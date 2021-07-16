@@ -1,0 +1,88 @@
+{
+  "@id": "https://bertspaan.nl/iiifmaps/#/?url=https://purl.stanford.edu/vg994wz9415/iiif/manifest",
+  "type": "AnnotationPage",
+  "@context": [
+    "http://geojson.org/geojson-ld/geojson-context.jsonld",
+    "http://iiif.io/api/presentation/3/context.json"
+  ],
+  "items": [
+    {
+      "type": "Annotation",
+      "motivation": "georeference-ground-control-points",
+      "target": "https://purl.stanford.edu/vg994wz9415/iiif/manifest",
+      "body": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {
+              "id": "c120f323-1504-440f-be2a-e52faff992ca",
+              "pixel": [
+                2049,
+                1588
+              ]
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                -10391829,
+                3765080
+              ]
+            }
+          },
+          {
+            "type": "Feature",
+            "properties": {
+              "id": "24ebe5a9-d8ed-431a-a251-e55b2eb3e79e",
+              "pixel": [
+                6239,
+                3656
+              ]
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                -10391565,
+                3764985
+              ]
+            }
+          },
+          {
+            "type": "Feature",
+            "properties": {
+              "id": "1e5867b2-6935-41f1-b5ad-b6392d2d81e7",
+              "pixel": [
+                4698,
+                1621
+              ]
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                -10391664,
+                3765108
+              ]
+            }
+          },
+          {
+            "type": "Feature",
+            "properties": {
+              "id": "b4b5baa1-ea26-4f77-afbd-6f9927f8ce39",
+              "pixel": [
+                3684,
+                5156
+              ]
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                -10391708,
+                3764867
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

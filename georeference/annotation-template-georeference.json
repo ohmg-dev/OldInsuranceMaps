@@ -1,0 +1,19 @@
+{
+  "@id": "https://bertspaan.nl/iiifmaps/#/?url=https://purl.stanford.edu/vg994wz9415/iiif/manifest",
+  "type": "AnnotationPage",
+  "@context": [
+    "http://geojson.org/geojson-ld/geojson-context.jsonld",
+    "http://iiif.io/api/presentation/3/context.json"
+  ],
+  "items": [
+    {
+      "type": "Annotation",
+      "motivation": "georeference-ground-control-points",
+      "target": "https://purl.stanford.edu/vg994wz9415/iiif/manifest",
+      "body": {
+        "type": "FeatureCollection",
+        "features": []
+      }
+    }
+  ]
+}
