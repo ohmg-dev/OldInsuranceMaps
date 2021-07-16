@@ -61,7 +61,8 @@ class Command(BaseCommand):
 
         with open(file_path, "w") as out:
             out.write(content)
-        return file_path
+
+        return os.path.abspath(file_path)
 
     def write_supervisor_config(self):
 
