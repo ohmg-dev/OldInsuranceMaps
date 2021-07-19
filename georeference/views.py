@@ -271,6 +271,7 @@ def georeference_interface(request, docid):
         "INCOMING_GCPS": incoming_gcps,
         "MAPSERVER_ENDPOINT": settings.MAPSERVER_ENDPOINT,
         "MAPSERVER_LAYERNAME": preview_layer,
+        "MAPBOX_API_KEY": settings.MAPBOX_API_KEY,
     }
 
     context_dict = {

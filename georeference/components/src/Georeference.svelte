@@ -14,7 +14,12 @@
   import ImageStatic from 'ol/source/ImageStatic';
   import VectorSource from 'ol/source/Vector';
   import OSM from 'ol/source/OSM';
+  import Stamen from 'ol/source/Stamen';
+  import XYZ from 'ol/source/XYZ';
   import TileWMS from 'ol/source/TileWMS';
+  import TileArcGISRest from 'ol/source/TileArcGISRest';
+  import WMTS from 'ol/source/WMTS';
+
   import GeoJSON from 'ol/format/GeoJSON';
 
   import IIIFInfo from 'ol/format/IIIFInfo';
@@ -23,6 +28,8 @@
 
   import ImageLayer from 'ol/layer/Image';
   import VectorLayer from 'ol/layer/Vector';
+
+  import LayerGroup from 'ol/layer/Group';
 
   import Projection from 'ol/proj/Projection';
   import {get as getProjection} from 'ol/proj';
@@ -54,6 +61,7 @@
   export let INCOMING_GCPS;
   export let MAPSERVER_ENDPOINT;
 	export let MAPSERVER_LAYERNAME;
+  export let MAPBOX_API_KEY;
 
   if (!MAP_CENTER) { MAP_CENTER = [0,0] };
 
@@ -105,6 +113,43 @@
     {id: 'tps', name: 'Thin Plate Spline'},
     // {id: 'remove', name: 'Remove', faClass: 'minus'},
   ];
+
+  const osmLayer = new TileLayer({
+    source: new OSM(),
+  })
+
+  // const imageryLayer = new TileLayer({
+  //   preload: 12,
+  //   source: new TileArcGISRest({
+  //     layer: "163",
+  //     url: "https://atlas1.ga.lsu.edu/arcgis/rest/services/imagery/la_gohsep2010_mosaic_LSU_2016/MapServer",
+  //   })
+  // });
+  // const imageryLabels = new TileLayer({
+  //   source: new XYZ({
+  //     url: 'https://api.mapbox.com/styles/v1/legiongis/ckr9kiwkk3naq17qlarzn5q9s/tiles/256/{z}/{x}/{y}?access_token='+MAPBOX_API_KEY,
+  //   })
+  // });
+  // const imageryGroup = new LayerGroup({
+  //   layers: [
+  //     imageryLayer,
+  //     imageryLabels,
+  //   ]
+  // })
+
+  const imageryLayer = new TileLayer({
+    opacity: .75,
+    source: new XYZ({
+      url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/{z}/{x}/{y}?access_token='+MAPBOX_API_KEY,
+      tileSize: 512,
+    })
+  });
+
+  const basemaps = [
+    { id: "osm", layer: osmLayer, label: "Streets" },
+    { id: "satellite", layer: imageryLayer, label: "Streets+Satellite" },
+  ]
+  let currentBasemap = basemaps[0].id;
 
   const docGCPSource = new VectorSource();
   const mapGCPSource = new VectorSource();
@@ -259,11 +304,6 @@
 
       const targetElement = document.getElementById(elementId);
 
-      // create layers
-      const osmLayer = new TileLayer({
-        source: new OSM(),
-      })
-
       const previewLayer = new TileLayer({
         source: previewSource,
 				opacity: .5,
@@ -277,7 +317,7 @@
       // create map
       const map = new Map({
         target: targetElement,
-				layers: [osmLayer, previewLayer, gcpLayer],
+				layers: [basemaps[0].layer, previewLayer, gcpLayer],
         view: new View({
           center: MAP_CENTER,
           zoom: 16,
@@ -476,6 +516,15 @@
 		mapView.previewLayer.setOpacity(previewOpacity);
 	}
 
+  $: if (mapView) {
+    mapView.map.getLayers().removeAt(0);
+    basemaps.forEach( function(item) {
+      if (item.id == currentBasemap) {
+        mapView.map.getLayers().insertAt(0, item.layer);
+      }
+    });
+	}
+
   $: {
     docGCPSource.getFeatures().forEach( function (feat) {
       feat.setStyle(gcpDefault);
@@ -537,15 +586,20 @@
 
 <div id="interface" class="main">
   <div class="tb tb-top">
+    <select class="basemap-select" title="select basemap" bind:value={currentBasemap}>
+      {#each basemaps as basemap}
+      <option value={basemap.id}>{basemap.label}</option>
+      {/each}
+    </select>
     <div id="interaction-options" class="tb-top-item">
-    <button title="enter fullscreen mode" on:click={toggleFullscreen}><i id="fs-icon" class="fa fa-arrows-alt" /></button>
-    <button title="reset interface" on:click={loadIncomingGCPs}><i id="fs-icon" class="fa fa-refresh" /></button>
-    {#each mapInteractions as option}
-        <label>
-          <input type=radio bind:group={currentInteraction} value={option.id}>
-            {option.name}<i class="fa fa-{option.faClass}" />
-        </label>
-    {/each}
+      <button title="enter fullscreen mode" on:click={toggleFullscreen}><i id="fs-icon" class="fa fa-arrows-alt" /></button>
+      <button title="reset interface" on:click={loadIncomingGCPs}><i id="fs-icon" class="fa fa-refresh" /></button>
+      {#each mapInteractions as option}
+          <label>
+            <input type=radio bind:group={currentInteraction} value={option.id}>
+              {option.name}<i class="fa fa-{option.faClass}" />
+          </label>
+      {/each}
     </div>
     <div id="summary-panel" class="toolbar-item">
       {#if gcpList.length == 0}
