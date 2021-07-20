@@ -104,15 +104,13 @@
 
   let currentInteraction = 'add';
   const mapInteractions = [
-    {id: 'add', name: 'Add', faClass: 'plus'},
-    {id: 'edit', name: 'Edit', faClass: 'edit'},
-    // {id: 'remove', name: 'Remove', faClass: 'minus'},
+    {id: 'add', name: 'Add', faClass: 'pencil'},
+    {id: 'remove', name: 'Remove', faClass: 'trash'},
   ];
   let currentTransformation = "poly";
   const transformations = [
     {id: 'poly', name: 'Polynomial'},
     {id: 'tps', name: 'Thin Plate Spline'},
-    // {id: 'remove', name: 'Remove', faClass: 'minus'},
   ];
 
   const osmLayer = new TileLayer({
@@ -208,7 +206,7 @@
     });
 
     modify.on(['modifystart', 'modifyend'], function (evt) {
-      targetElement.style.cursor = evt.type === 'modifystart' ? 'grabbing' : 'grab';
+      targetElement.style.cursor = evt.type === 'modifystart' ? 'grabbing' : 'pointer';
 			if (evt.type == "modifyend") {
 				activeGCP = evt.features.item(0).getProperties().listId;
 				syncGCPList();
@@ -217,9 +215,8 @@
 
     let overlaySource = modify.getOverlay().getSource();
     overlaySource.on(['addfeature', 'removefeature'], function (evt) {
-      targetElement.style.cursor = evt.type === 'addfeature' ? 'grab' : '';
+      targetElement.style.cursor = evt.type === 'addfeature' ? 'pointer' : '';
     });
-
     return modify
   }
 
@@ -276,6 +273,7 @@
     map.addInteraction(draw)
 
     const modify = makeModifyInteraction(gcpLayer, docGCPSource, targetElement)
+    modify.setActive(true);
     map.addInteraction(modify)
 
     // create controls
@@ -297,7 +295,6 @@
     this.map = map;
     this.element = targetElement;
     this.drawInteraction = draw;
-    this.modifyInteraction = modify;
 
   }
 
@@ -332,6 +329,7 @@
       map.addInteraction(draw)
 
       const modify = makeModifyInteraction(gcpLayer, mapGCPSource, targetElement)
+      modify.setActive(true)
       map.addInteraction(modify)
 
       // create controls
@@ -347,7 +345,6 @@
 			this.previewLayer = previewLayer;
       this.element = targetElement;
       this.drawInteraction = draw;
-      this.modifyInteraction = modify;
   }
 
   onMount(() => {
@@ -493,16 +490,11 @@
       docView.element.style.cursor = ( inProgress ? 'default' : 'crosshair' );
       mapView.element.style.cursor = ( inProgress ? 'crosshair' : 'default' );
     } else {
+      docView.element.style.cursor = 'default';
+      mapView.element.style.cursor = 'default';
       docView.drawInteraction.setActive(false);
       mapView.drawInteraction.setActive(false);
     }
-
-    docView.modifyInteraction.setActive(currentInteraction == "edit");
-    mapView.modifyInteraction.setActive(currentInteraction == "edit");
-
-		// not yet implemented
-    // docView.deleteInteraction.setActive(currentInteraction == "remove");
-    // mapView.deleteInteraction.setActive(currentInteraction == "remove");
   }
 
   $: if (mapView) {
@@ -565,9 +557,9 @@
         case "a": case "A":
           currentInteraction = 'add';
           break;
-        case "e": case "E":
-          currentInteraction = 'edit';
-          break;
+        // case "e": case "E":
+        //   currentInteraction = 'edit';
+        //   break;
         case "r": case "R":
           currentInteraction = 'remove';
           break;
