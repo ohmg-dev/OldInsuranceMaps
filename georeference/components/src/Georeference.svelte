@@ -102,6 +102,7 @@
     })
   });
 
+  let previousInteraction;
   let currentInteraction = 'add';
   const mapInteractions = [
     {id: 'add', name: 'Add', faClass: 'pencil'},
@@ -153,28 +154,28 @@
   const docGCPSource = new VectorSource();
   const mapGCPSource = new VectorSource();
 
-  docGCPSource.on('addfeature', function (event) {
+  docGCPSource.on('addfeature', function (e) {
 		activeGCP = gcpList.length + 1;
-    if (!event.feature.getProperties().listId) {
-			event.feature.setProperties({'listId': activeGCP})
+    if (!e.feature.getProperties().listId) {
+			e.feature.setProperties({'listId': activeGCP})
 		}
-		event.feature.setStyle(gcpHighlight);
+		e.feature.setStyle(gcpHighlight);
     inProgress = true;
   })
 
-  mapGCPSource.on(['addfeature'], function (event) {
+  mapGCPSource.on(['addfeature'], function (e) {
 
     // if this is an incoming gcp, the listID (and all other properties)
     // will already be set. Otherwise, it must be set here.
-		if (!event.feature.getProperties().listId) {
-	    event.feature.setProperties({
+		if (!e.feature.getProperties().listId) {
+	    e.feature.setProperties({
         'id': null,
         'listId': activeGCP,
 	      'username': USERNAME,
 	      'note': '',
 	    });
     }
-    event.feature.setStyle(gcpHighlight);
+    e.feature.setStyle(gcpHighlight);
     syncGCPList();
     inProgress = false;
   })
@@ -205,17 +206,17 @@
 		  }),
     });
 
-    modify.on(['modifystart', 'modifyend'], function (evt) {
-      targetElement.style.cursor = evt.type === 'modifystart' ? 'grabbing' : 'pointer';
-			if (evt.type == "modifyend") {
-				activeGCP = evt.features.item(0).getProperties().listId;
+    modify.on(['modifystart', 'modifyend'], function (e) {
+      targetElement.style.cursor = e.type === 'modifystart' ? 'grabbing' : 'pointer';
+			if (e.type == "modifyend") {
+				activeGCP = e.features.item(0).getProperties().listId;
 				syncGCPList();
 			}
     });
 
     let overlaySource = modify.getOverlay().getSource();
-    overlaySource.on(['addfeature', 'removefeature'], function (evt) {
-      targetElement.style.cursor = evt.type === 'addfeature' ? 'pointer' : '';
+    overlaySource.on(['addfeature', 'removefeature'], function (e) {
+      targetElement.style.cursor = e.type === 'addfeature' ? 'pointer' : '';
     });
     return modify
   }
@@ -406,7 +407,6 @@
   function removeGCP(gcpListID) {
     mapGCPSource.forEachFeature( function (mapFeat) {
       if (mapFeat.getProperties().listId == gcpListID) {
-        console.log(mapFeat)
         mapGCPSource.removeFeature(mapFeat)
       }
     });
@@ -497,7 +497,6 @@
       })
       .then(response => response.json())
       .then(result => {
-        console.log(result)
         let sourceUrl = previewSource.getUrls()[0];
         previewSource.setUrl(sourceUrl.replace(/\/[^\/]*$/, '/'+Math.random()));
         previewSource.refresh()
@@ -578,10 +577,11 @@
   }
 
   let key;
-  function handleKeydown(event) {
+  function handleKeydown(e) {
+    previousInteraction = currentInteraction;
     // only allow these shortcuts if the maps have focus
-    if (document.activeElement != noteInputEl) {
-      switch(event.key) {
+    if (document.activeElement.id != noteInputElId) {
+      switch(e.key) {
         case "Escape":
           if (document.fullscreenElement != null) {  document.exitFullscreen(); }
           break;
@@ -604,12 +604,14 @@
     }
   }
 
-  function handleKeyUp(event) {
+  function handleKeyup(e) {
     // only allow these shortcuts if the maps have focus
-    if (document.activeElement != noteInputEl) {
-      switch(event.key) {
+    if (document.activeElement.id != noteInputElId) {
+      switch(e.key) {
         case "Control":
-          currentInteraction = 'add';
+          if (previousInteraction != "remove") {
+            currentInteraction = 'add';
+          }
           break;
       }
     }
@@ -637,7 +639,7 @@
 
 </script>
 
-<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyUp} on:beforeunload={cleanupOnLeave}/>
+<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={cleanupOnLeave}/>
 
 <div id="interface" class="main">
   <div class="tb tb-top">
@@ -673,7 +675,6 @@
     <div id="map-viewer" class="map-item"></div>
   </div>
   <div class="tb tb-bottom">
-    {gcpList.length}
     {#if gcpList.length == 0}
     <div class="tb-bottom-item">
       <em>no control points added yet</em>
