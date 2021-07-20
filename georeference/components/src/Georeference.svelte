@@ -685,7 +685,7 @@
           <option value={trans.id}>{trans.name}</option>
         {/each}
       </select>
-      <button on:click={submitGCPs} disabled={gcpList.length >= 3}>Submit</button>
+      <button on:click={submitGCPs} disabled={gcpList.length < 3}>Submit</button>
     </div>
   </div>
   <div class="map-container">
