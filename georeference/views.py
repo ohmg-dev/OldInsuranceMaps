@@ -316,22 +316,27 @@ def run_georeferencing(request):
     # determine whether this is change to GCPs during editing or it's the
     # completion of the georeferencing process.
     preview = body.get("preview_only", False)
+    operation = body.get("operation", "preview")
+
+    response = {
+        "status": "",
+        "message": ""
+    }
+    print(operation)
 
     # if preview mode, modify/create the vrt for this map
-    if preview is True:
+    if operation == "preview":
         out_path = g.georeference(
             document.doc_file.path,
             out_format="VRT",
         )
-        return JsonResponse({
-            "status": "success",
-            "message": "all good."
-        })
+        response["status"] = "success"
+        response["message"] = "all good"
 
     # if submission, save updated/new GCPs, run warp to create GeoTiff.
     # register Layer here from GeoTiff?
-    # return url redirect location to original document?
-    else:
+    # return url redirect location to original document???
+    elif operation == "submit":
 
         gcp_group = GCPGroup().save_from_geojson(gcp_geojson, document)
 
@@ -349,7 +354,17 @@ def run_georeferencing(request):
 
         mapserver_remove_layer(document.doc_file.path)
 
-        return JsonResponse(response)
+        response["status"] = "success"
+        response["message"] = "all good"
+
+    elif operation == "cleanup":
+
+        mapserver_remove_layer(document.doc_file.path)
+
+        response["status"] = "success"
+        response["message"] = "all good"
+
+    return JsonResponse(response)
 
 def iiif2_endpoint(request, docid, iiif_object_requested):
     """ create a iiif v2 manifest, canvas, resource, or info.json object for a

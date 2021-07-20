@@ -65,6 +65,7 @@
 
   if (!MAP_CENTER) { MAP_CENTER = [0,0] };
 
+  let showPreview = INCOMING_GCPS ? true : false;
   let previewOpacity = .6;
 
   let activeGCP = 1;
@@ -444,19 +445,21 @@
     return featureCollection
   };
 
-  function previewGCPs() { processGCPs(true) }
-  function submitGCPs() { processGCPs(false) }
+  function previewGCPs() { processGCPs("preview") }
+  function submitGCPs() { processGCPs("submit") }
+  function cleanupPreview() { processGCPs("cleanup") }
 
-  function processGCPs(previewOnly){
-    if (gcpList.length < 3) {return};
+  function processGCPs(operation){
+    if (gcpList.length < 3) {
+      showPreview = false;
+      return
+    };
     const data = JSON.stringify({
       "gcp_geojson": gcpGeoJSON(),
       "docid": DOC_ID,
       "transformation": currentTransformation,
-      "preview_only": previewOnly,
-      // "gs_layer_name": GEOSERVER_LAYER_NAME,
+      "operation": operation,
     });
-    console.log(SUBMIT_URL)
     fetch(SUBMIT_URL, {
         method: 'POST',
         headers: {
@@ -471,6 +474,7 @@
         let sourceUrl = previewSource.getUrls()[0];
         previewSource.setUrl(sourceUrl.replace(/\/[^\/]*$/, '/'+Math.random()));
         previewSource.refresh()
+        showPreview = true;
       });
   }
 
@@ -523,6 +527,19 @@
         mapView.map.getLayers().insertAt(0, item.layer);
       }
     });
+	}
+
+  $: if (mapView) {
+    // if the preview should be shown and there are only two layers in the map
+    // (which would be the basemap and gcp layer) then add the preview layer
+    if (showPreview && mapView.map.getLayers().getArray().length == 2) {
+      mapView.map.getLayers().insertAt(1, mapView.previewLayer)
+    }
+    // if the preview should be shown and there are only two layers in the map
+    // (which would be the basemap and gcp layer) then add the preview layer
+    if (!showPreview && mapView.map.getLayers().getArray().length == 3) {
+      mapView.map.getLayers().removeAt(1)
+    }
 	}
 
   $: {
