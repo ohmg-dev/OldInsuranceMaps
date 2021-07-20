@@ -75,7 +75,7 @@
   let mapView;
   let gcpList = [];
 
-  let noteInputEl;
+  const noteInputElId = "note-input";
 
   const gcpDefault = new Style({
     image: new RegularShape({
@@ -505,10 +505,10 @@
   }
 
   function updateNote() {
-    noteInputEl = document.getElementById("note-input");
+    const el = document.getElementById(noteInputElId);
     mapGCPSource.getFeatures().forEach( function (feature) {
       if (feature.getProperties().listId == activeGCP) {
-        feature.setProperties({"note": noteInputEl.value});
+        feature.setProperties({"note": el.value});
       }
     })
   }
@@ -520,21 +520,19 @@
       docView.element.style.cursor = ( inProgress ? 'default' : 'crosshair' );
       mapView.element.style.cursor = ( inProgress ? 'crosshair' : 'default' );
     } else {
-      docView.element.style.cursor = 'default';
-      mapView.element.style.cursor = 'default';
       docView.drawInteraction.setActive(false);
       mapView.drawInteraction.setActive(false);
     }
   }
 
   $: if (gcpList.length > 1) {
-    noteInputEl = document.getElementById("note-input");
+    const el = document.getElementById(noteInputElId);
     if (inProgress) {
-      noteInputEl.value = "";
+      el.value = "";
     } else {
       mapGCPSource.getFeatures().forEach( function (feat) {
         let props = feat.getProperties();
-        if (props.listId == activeGCP) { noteInputEl.value = props.note }
+        if (props.listId == activeGCP) { el.value = props.note }
       })
     }
   }
