@@ -327,12 +327,14 @@
 
 <svelte:window on:keydown={handleKeydown}/>
 
-<div>
-	<div class="split-controls">
+<div id="interface" class="main">
+	<div class="tb tb-top">
+	  <div id="interaction-options" class="tb-top-item">
+		<button title="reset interface" on:click={iface.reset}><i id="fs-icon" class="fa fa-refresh" /></button>
 		<label>
 			<input type=radio bind:group={currentInteraction} value="draw" checked>
 			Draw
-		</label><br>
+		</label>
 		<label>
 			<input type=radio bind:group={currentInteraction} value="modify">
 			Modify
@@ -341,68 +343,55 @@
     	<input type="checkbox" bind:checked={showPreview} />
 			Show Preview
 		</label>
-    <button on:click={iface.reset}>Reset</button>
-    <button on:click={runProcessing} disabled="{polygonCount <= 1 }">Run</button>
-    <em><p style="display:{polygonCount > 1 ? 'block' : 'none'}" >
-				{polygonCount} {polygonCount === 1 ? 'part' : 'parts'} will be made
-		</p></em>
+	  </div>
+	  <div class="tb-top-item">
+            {#if polygonCount > 1}
+            <em>{polygonCount} {polygonCount === 1 ? 'part' : 'parts'} will be made</em>
+            {/if}
+            <button on:click={runProcessing} disabled="{polygonCount <= 1 }">Run</button>
+	  </div>
 	</div>
-	<div id="zoom-control"> </div>
-	<div id="mouse-position" ></div>
-  <div id="map" class="zoom-controls-bottom-left"></div>
-</div>
+	<div class="map-container">
+		<div id="zoom-control"> </div>
+		<div id="mouse-position" ></div>
+	    <div id="map"></div>
+	</div>
+	<div class="tb tb-bottom">
+	</div>
+  </div>
 
 <style>
 
-	.split-controls {
-		position: absolute;
-		top: 700px;
-		width: 225px;
-		background: rgba(0, 60, 136, 0.5);
-		padding: 10px;
-		z-index: 1500;
-		color: red;
-	}
-
-	#zoom-control {
-		position: absolute;
-		background:green;
-	}
-
 	button {
 		background: rgba(0, 60, 136, 0.7);
-		width: 50%;
+        color: white;
 	}
 
 	button:disabled {
-		background: orange;
+		background:#6f6f6f;
 	}
 
-	.ol-mouse-position {
-    top: auto !important;
-    right: .5em !important;
-    bottom: .5em !important;
-	}
+    .tb {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        background: white;
+        height: 2em;
+    }
 
+    .tb-top {
+        justify-content: space-between;
+    }
 
+    .tb-top-item {}
 
-  /* move the tooltips to the left of the now right aligned buttons */
-  .ol-has-tooltip:hover [role=tooltip] {
-      left: -5.5em;
-      border-radius: 4px 0 0 4px;
-   }
-  .ol-zoom-out.ol-has-tooltip:hover [role=tooltip]{
-      left: -6.2em;
-   }
+    .tb-bottom {
+        justify-content: center;
+    }
 
 	#map {
 		height: 700px;
 		background: url('../static/img/sandpaper-bg-vlite.jpg')
-		/* background-color: #e5e5f7;
-		opacity: 0.8;
-		background-image:  linear-gradient(#d1d3f1 2.6px, transparent 2.6px), linear-gradient(90deg, #d1d3f1 2.6px, transparent 2.6px), linear-gradient(#d1d3f1 1.3px, transparent 1.3px), linear-gradient(90deg, #d1d3f1 1.3px, #e5e5f7 1.3px);
-		background-size: 65px 65px, 65px 65px, 13px 13px, 13px 13px;
-		background-position: -2.6px -2.6px, -2.6px -2.6px, -1.3px -1.3px, -1.3px -1.3px; */
 	}
 
 	@media (min-width: 640px) {
