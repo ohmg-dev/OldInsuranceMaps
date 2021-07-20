@@ -661,11 +661,6 @@
 
 <div id="interface" class="main">
   <div class="tb tb-top">
-    <select class="basemap-select" title="select basemap" bind:value={currentBasemap}>
-      {#each basemaps as basemap}
-      <option value={basemap.id}>{basemap.label}</option>
-      {/each}
-    </select>
     <div id="interaction-options" class="tb-top-item">
       <button title="enter fullscreen mode" on:click={toggleFullscreen}><i id="fs-icon" class="fa fa-arrows-alt" /></button>
       <button title="reset interface" on:click={loadIncomingGCPs}><i id="fs-icon" class="fa fa-refresh" /></button>
@@ -677,6 +672,11 @@
       {/each}
     </div>
     <div class="tb-top-item">
+      <select class="basemap-select" title="select basemap" bind:value={currentBasemap}>
+        {#each basemaps as basemap}
+        <option value={basemap.id}>{basemap.label}</option>
+        {/each}
+      </select>
       <!-- svelte-ignore a11y-no-onchange -->
       <select class="trans-select" title="select transformation type" bind:value={currentTransformation} on:change={previewGCPs}>
         {#each transformations as trans}
