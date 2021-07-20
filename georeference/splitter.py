@@ -92,7 +92,7 @@ class DocumentSplitter(object):
             out_filename = filename.replace(ext, f"____{n+1}.png")
             out_path = os.path.join(self.temp_dir, out_filename)
 
-            im_inset_cropped.save(out_path)
+            im_inset_cropped.save(out_path, 'PNG')
 
             new_doc = self.save_new_document(out_path)
 
