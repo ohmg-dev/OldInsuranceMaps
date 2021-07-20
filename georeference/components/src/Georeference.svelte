@@ -583,8 +583,7 @@
     if (document.activeElement != noteInputEl) {
       switch(event.key) {
         case "Escape":
-          if (document.fullscreen) {  document.exitFullscreen(); }
-          // if (iface) { iface.drawInteraction.abortDrawing()}
+          if (document.fullscreenElement != null) {  document.exitFullscreen(); }
           break;
         case "a": case "A":
           currentInteraction = 'add';
@@ -617,7 +616,7 @@
   }
 
   function toggleFullscreen () {
-    if (!document.fullscreen) {
+    if (document.fullscreenElement == null) {
       let promise = document.getElementById('interface').requestFullscreen();
       document.getElementById("fs-icon").classList.remove("fa-arrows-alt");
       document.getElementById("fs-icon").classList.add("fa-times");
