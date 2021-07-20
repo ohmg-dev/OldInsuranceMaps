@@ -95,6 +95,18 @@
       radius2: 1,
       points: 4,
       rotation: .79,
+      fill: new Fill({color: 'rgb(0, 255, 0)'}),
+      stroke: new Stroke({
+        color: 'rgb(0, 255, 0)', width: 2
+      })
+    })
+  });
+  const gcpHover = new Style({
+    image: new RegularShape({
+      radius1: 10,
+      radius2: 1,
+      points: 4,
+      rotation: .79,
       fill: new Fill({color: 'red'}),
       stroke: new Stroke({
         color: 'red', width: 2
@@ -196,14 +208,7 @@
     const modify = new Modify({
       hitDetection: hitDetection,
       source: source,
-			style: new Style({
-		    image: new Circle({
-					radius: 3,
-		      fill: new Fill({
-						color: 'white'
-					}),
-		    })
-		  }),
+      style: gcpHover,
     });
 
     modify.on(['modifystart', 'modifyend'], function (e) {
@@ -292,6 +297,8 @@
     });
     map.addControl(mousePositionControl);
 
+    map.on("click", removeGCPOnClick)
+
     // expose properties as necessary
     this.map = map;
     this.element = targetElement;
@@ -341,27 +348,43 @@
       });
       map.addControl(mousePositionControl);
 
-      map.on("click", function (e) {
-        if (e.originalEvent.ctrlKey || e.originalEvent.metaKey || currentInteraction == "remove") {
-          let listId;
-          map.forEachFeatureAtPixel(e.pixel, function(feature) {
-            listId = feature.getProperties().listId;
-          });
-          if (listId) {
-            const rm = window.confirm(`Remove GCP #${listId}?`);
-            if (rm) {
-              removeGCP(listId);
-              currentInteraction = 'add';
-            }
-          }
-        }
-      })
+      map.on("click", removeGCPOnClick)
 
       // expose properties as necessary
       this.map = map;
 			this.previewLayer = previewLayer;
       this.element = targetElement;
       this.drawInteraction = draw;
+  }
+
+  function removeGCPOnClick(e) {
+    let rm = false
+    if (e.originalEvent.ctrlKey || e.originalEvent.metaKey || currentInteraction == "remove") {
+      let listId;
+      e.map.forEachFeatureAtPixel(e.pixel, function(feature) {
+        listId = feature.getProperties().listId;
+      });
+      if (listId) {
+        const rm = window.confirm(`Remove GCP #${listId}?`);
+        if (rm) {
+          removeGCP(listId);
+          currentInteraction = 'add';
+        }
+      }
+    }
+    if (rm) {
+      mapGCPSource.forEachFeature( function (mapFeat) {
+        if (mapFeat.getProperties().listId == gcpListID) {
+          mapGCPSource.removeFeature(mapFeat)
+        }
+      });
+      docGCPSource.forEachFeature( function (docFeat) {
+        if (docFeat.getProperties().listId == gcpListID) {
+          docGCPSource.removeFeature(docFeat)
+        }
+      })
+      syncGCPList();
+    }
   }
 
   onMount(() => {
@@ -586,10 +609,7 @@
         case "a": case "A":
           currentInteraction = 'add';
           break;
-        // case "e": case "E":
-        //   currentInteraction = 'edit';
-        //   break;
-        case "r": case "R":
+        case "d": case "D":
           currentInteraction = 'remove';
           break;
         case "w": case "W":
