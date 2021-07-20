@@ -2,6 +2,32 @@ import os
 import time
 from osgeo import gdal, osr
 
+from io import StringIO
+from contextlib import redirect_stdout, redirect_stderr
+import sys
+
+class CapturingStdout(list):
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio    # free up some memory
+        sys.stdout = self._stdout
+
+class CapturingStderr(list):
+    def __enter__(self):
+        self._stderr = sys.stderr
+        sys.stderr = self._stringio = StringIO()
+        return self
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio    # free up some memory
+        sys.stderr = self._stderr
+
+
+
 ## making a geoserver layer out of the newly georeferenced image, something like
 # from geonode.layers.utils import file_upload
 # layer = file_upload(output_file_path)
@@ -252,7 +278,26 @@ class Georeferencer(object):
 
         )
         print(dst_path)
-        gdal.Warp(dst_path, vrt_with_gcps, options=wo)
+
+        # with CapturingStderr() as output:
+        try:
+            print("in try block")
+            gdal.UseExceptions()
+
+            f = StringIO()
+            with redirect_stderr(f):
+                # do_something(my_object)
+            
+            # with CapturingStdout() as output:
+                
+                gdal.Warp(dst_path, vrt_with_gcps, options=wo)
+                # print(output)
+            out = f.getvalue()
+            print(out)
+        except Exception as e:
+            print("exception from warp command")
+            print(e)
+        # print(output)
         print("warp completed")
 
         elapsed += time.time() - start

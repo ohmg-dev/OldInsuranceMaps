@@ -326,12 +326,21 @@ def run_georeferencing(request):
 
     # if preview mode, modify/create the vrt for this map
     if operation == "preview":
-        out_path = g.georeference(
-            document.doc_file.path,
-            out_format="VRT",
-        )
-        response["status"] = "success"
-        response["message"] = "all good"
+
+        try:
+            print("1")
+            out_path = g.georeference(
+                document.doc_file.path,
+                out_format="VRT",
+            )
+            print(2)
+            response["status"] = "success"
+            response["message"] = "all good"
+        except Exception as e:
+            print("exception caught")
+            print(e)
+            response["status"] = "fail"
+            response["message"] = str(e)
 
     # if submission, save updated/new GCPs, run warp to create GeoTiff.
     # register Layer here from GeoTiff?
