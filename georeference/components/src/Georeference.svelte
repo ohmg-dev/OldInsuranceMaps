@@ -340,6 +340,22 @@
       });
       map.addControl(mousePositionControl);
 
+      map.on("click", function (e) {
+        if (e.originalEvent.ctrlKey || e.originalEvent.metaKey || currentInteraction == "remove") {
+          let listId;
+          map.forEachFeatureAtPixel(e.pixel, function(feature) {
+            listId = feature.getProperties().listId;
+          });
+          if (listId) {
+            const rm = window.confirm(`Remove GCP #${listId}?`);
+            if (rm) {
+              removeGCP(listId);
+              currentInteraction = 'add';
+            }
+          }
+        }
+      })
+
       // expose properties as necessary
       this.map = map;
 			this.previewLayer = previewLayer;
@@ -387,6 +403,21 @@
 		activeGCP = gcpList.length + 1;
 		inProgress = false;
 	}
+
+  function removeGCP(gcpListID) {
+    mapGCPSource.forEachFeature( function (mapFeat) {
+      if (mapFeat.getProperties().listId == gcpListID) {
+        console.log(mapFeat)
+        mapGCPSource.removeFeature(mapFeat)
+      }
+    });
+    docGCPSource.forEachFeature( function (docFeat) {
+      if (docFeat.getProperties().listId == gcpListID) {
+        docGCPSource.removeFeature(docFeat)
+      }
+    })
+    syncGCPList();
+  }
 
   function syncGCPList() {
     // first make sure the image coordinates match the image property in the
@@ -566,6 +597,20 @@
         case "w": case "W":
 					previewOpacity = (previewOpacity < 1 ? previewOpacity + .6 : 0);
           break;
+        case "Control":
+          currentInteraction = 'remove';
+          break;
+      }
+    }
+  }
+
+  function handleKeyUp(event) {
+    // only allow these shortcuts if the maps have focus
+    if (document.activeElement != noteInputEl) {
+      switch(event.key) {
+        case "Control":
+          currentInteraction = 'add';
+          break;
       }
     }
   }
@@ -587,11 +632,12 @@
     // alert("hello!")
     console.log("pausing")
     // e.returnValue = '';
+    cleanupPreview()
   }
 
 </script>
 
-<svelte:window on:keydown={handleKeydown} on:beforeunload={cleanupOnLeave}/>
+<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyUp} on:beforeunload={cleanupOnLeave}/>
 
 <div id="interface" class="main">
   <div class="tb tb-top">
