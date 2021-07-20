@@ -366,7 +366,6 @@
   onMount(() => {
     docView = new DocumentViewer('doc-viewer');
     mapView = new MapViewer('map-viewer');
-    noteInputEl = document.getElementById("note-input");
 
 		loadIncomingGCPs();
   });
@@ -507,6 +506,7 @@
   }
 
   function updateNote() {
+    noteInputEl = document.getElementById("note-input");
     mapGCPSource.getFeatures().forEach( function (feature) {
       if (feature.getProperties().listId == activeGCP) {
         feature.setProperties({"note": noteInputEl.value});
@@ -528,7 +528,8 @@
     }
   }
 
-  $: if (mapView) {
+  $: if (gcpList.length > 1) {
+    noteInputEl = document.getElementById("note-input");
     if (inProgress) {
       noteInputEl.value = "";
     } else {
@@ -656,19 +657,6 @@
           </label>
       {/each}
     </div>
-    <div id="summary-panel" class="toolbar-item">
-      {#if gcpList.length == 0}
-      <em>no control points added yet</em>
-      {:else}
-      <select class="gcp-select" bind:value={activeGCP}>
-        {#each gcpList as gcp}
-          <option value={gcp.listId}>
-            {gcp.listId} | ({gcp.pixelX}, {gcp.pixelY}) ({gcp.coordX}, {gcp.coordY}) | {gcp.username}
-          </option>
-        {/each}
-      </select>
-      {/if}
-    </div>
     <div class="tb-top-item">
       <!-- svelte-ignore a11y-no-onchange -->
       <select class="trans-select" title="select transformation type" bind:value={currentTransformation} on:change={previewGCPs}>
@@ -678,7 +666,7 @@
           <option value={trans.id}>{trans.name}</option>
         {/each}
       </select>
-       <button on:click={submitGCPs}>Submit</button>
+      <button on:click={submitGCPs} disabled={gcpList.length >= 3}>Submit</button>
     </div>
   </div>
   <div class="map-container">
@@ -686,12 +674,28 @@
     <div id="map-viewer" class="map-item"></div>
   </div>
   <div class="tb tb-bottom">
+    {gcpList.length}
+    {#if gcpList.length == 0}
+    <div class="tb-bottom-item">
+      <em>no control points added yet</em>
+    </div>
+    {:else}
+    <div id="summary-panel" class="tb-bottom-item">
+      <select class="gcp-select" bind:value={activeGCP}>
+        {#each gcpList as gcp}
+          <option value={gcp.listId}>
+            {gcp.listId} | ({gcp.pixelX}, {gcp.pixelY}) ({gcp.coordX}, {gcp.coordY}) | {gcp.username}
+          </option>
+        {/each}
+      </select>
+    </div>
     <div class="tb-bottom-item">
       <label>
-        Note [{activeGCP}]
-        <input type="text" id="note-input" style="width:400px" on:change={updateNote}>
+        Note:
+        <input type="text" id="note-input" style="width:400px" disabled={gcpList.length == 0} on:change={updateNote}>
       </label>
     </div>
+    {/if}
   </div>
 </div>
 
