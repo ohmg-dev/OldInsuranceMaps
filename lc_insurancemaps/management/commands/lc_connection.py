@@ -39,9 +39,8 @@ class Command(BaseCommand):
             "--county", help="specifically refine by county",
         )
         parser.add_argument(
-            "-d",
             "--date",
-            help="one or more place names to add to the search query",
+            help="year of volumes retrieved",
         )
         parser.add_argument(
             "--no-cache",
@@ -77,6 +76,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
+        lc = APIConnection(verbose=options['verbose'])
+
         # combine all location arguments
         locations = options['location']
         if options['state']:
@@ -93,7 +94,7 @@ class Command(BaseCommand):
         if options['operation'] == "import":
 
             if locations:
-                APIConnection().import_items(
+                lc.import_items(
                     locations=locations,
                     no_cache=options['no_cache'],
                     get_sheets=options['get_sheets'],
@@ -102,7 +103,7 @@ class Command(BaseCommand):
                 )
 
             if options['identifier']:
-                APIConnection().get_item_by_identifier(
+                lc.get_item_by_identifier(
                     identifier=options['identifier'],
                     no_cache=options['no_cache'],
                     get_sheets=options['get_sheets'],
@@ -110,16 +111,14 @@ class Command(BaseCommand):
 
         if options['operation'] == "summarize":
 
-            search = APIConnection(verbose=options['verbose'])
-            search.get_items(
+            lc.get_items(
                 locations=locations,
                 no_cache=options['no_cache'],
                 date=options['date'],
-                dry_run=options['dry_run']
             )
 
             volumes = {}
-            for item in search.results:
+            for item in lc.results:
                 loc_info = parsers.parse_location_info(item)
                 date_info = parsers.parse_date_info(item)
 
@@ -188,6 +187,9 @@ class Command(BaseCommand):
                     print(e)
                     pass
 
+            print(summary_data)
+            for k, v in volumes.items():
+                print(f"{v['city']}, {v['state']}, {v['county']}, {v['year']} - {v['sheets']} sheets")
             print(f"city count: {len(summary_data)}")
             print(f"volume count: {len(volumes)}")
             print(f"sheet count: {sheet_total}")

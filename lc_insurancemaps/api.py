@@ -113,7 +113,7 @@ class APIConnection(object):
         self.initialize_query(identifier=identifier)
         self.perform_search(searchurl, no_cache=no_cache)
 
-    def get_items(self, locations=[], no_cache=False, get_sheets=False, date=None, dry_run=False):
+    def get_items(self, locations=[], no_cache=False, date=None):
 
         self.initialize_query(collection="sanborn-maps")
         if len(locations) > 0:
@@ -129,8 +129,9 @@ class APIConnection(object):
             else:
                 break
 
-    def import_items(self, locations=[], no_cache=False, get_sheets=False, date="", dry_run=False):
+    def import_items(self, locations=[], no_cache=False, get_sheets=False, date=None, dry_run=False):
 
+        self.get_items(locations=locations, no_cache=no_cache, date=date)
         result_ct = self.data['search']['hits']
 
         if self.verbose:
@@ -139,10 +140,10 @@ class APIConnection(object):
             return
 
         # results = data.pop('results')
-        for result in data['results']:
+        for result in self.data['results']:
 
             result_year = result['date'].split("-")[0]
-            if date != "" and result_year != date:
+            if date is not None and result_year != date:
                 if self.verbose:
                     print(f"skipping date: {result['date']}")
                 continue
@@ -152,32 +153,36 @@ class APIConnection(object):
             if get_sheets:
                 if self.verbose:
                     print("getting sheets for:")
-                    print(item)
+                    print(result)
                 if dry_run is False:
                     self.get_sheets(item, no_cache=no_cache)
 
 
     def get_item_by_identifier(self, identifier, no_cache=False, get_sheets=False):
 
-        data = self.get_item_json(identifier, no_cache=no_cache)
+        self.get_item(identifier, no_cache=no_cache)
 
-        item = MapCollectionItem().create_from_json(data['item'])
-        item.loc_json = data
-        item.save()
-        item.save()
-        if get_sheets:
-            self.get_sheets(item, no_cache=no_cache)
+        print(self.data)
 
-        return item
+        # item = MapCollectionItem().create_from_json(data['item'])
+        # item.loc_json = data
+        # item.save()
+        # item.save()
+        # if get_sheets:
+        #     self.get_sheets(item, no_cache=no_cache)
+
+        # return item
 
     def get_sheets(self, volume, no_cache=False, dry_run=False):
 
         # If this volume was added as part of set of search results, then the
         # loc_json field will be empty, because that level of detail is not
         # acquired through basic search results. Thus, the extra call here.
+        print(volume.loc_json)
         if volume.loc_json is None:
-            data = self.get_item_json(volume.doi, no_cache=no_cache)
-            volume.loc_json = data
-            volume.save()
+            data = self.get_item_by_identifier(volume.doi, no_cache=no_cache)
+            print(data)
+            # volume.loc_json = data
+            # volume.save()
 
-        volume.get_all_sheets()
+        # volume.get_all_sheets()
