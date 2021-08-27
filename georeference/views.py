@@ -83,7 +83,11 @@ def _resolve_document_complete(request, docid):
     else:
         return document
 
-def process_cutlines(request, docid):
+def document_progress(request, docid):
+
+    pass
+
+def run_splitting(request, docid):
 
     document = _resolve_document_complete(request, docid)
 
@@ -160,7 +164,7 @@ def split_interface(request, docid):
     # iiif_info_url = base + reverse('document_info', args=(document.id,))
     # iiif_manifest_url = base + reverse('document_manifest', args=(document.id,))
     download_url = base + reverse('document_download', args=(document.id,))
-    process_url = base + reverse('process_cutlines', args=(document.id,))
+    process_url = base + reverse('run_splitting', args=(document.id,))
 
     svelte_params = {
         "title": document.title,
@@ -214,6 +218,14 @@ def split_interface(request, docid):
         "georeference/split_interface.html",
         context=context_dict)
 
+def trim_interface(request, docid):
+
+    pass
+
+def run_trimming(request, docid):
+
+    pass
+
 def georeference_interface(request, docid):
     """
     The view that presents the image chopping interface.
@@ -252,7 +264,7 @@ def georeference_interface(request, docid):
     if username == "":
         username = "<anonymous>"
 
-    georeference_url = base + reverse('run_georeferencing')
+    georeference_url = base + reverse('run_georeferencing', kwargs={"docid": docid})
 
     preview_layer = mapserver_add_layer(get_path_variant(document.doc_file.path, "VRT"))
 

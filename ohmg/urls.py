@@ -26,10 +26,10 @@ from geonode.urls import urlpatterns
 from geonode.monitoring import register_url_event
 
 if 'georeference' in settings.INSTALLED_APPS:
-    urlpatterns += [url(r'^georeference/', include('georeference.urls'))]
+    urlpatterns += [url(r'^g/', include('georeference.urls'))]
 
 if 'lc_insurancemaps' in settings.INSTALLED_APPS:
-    urlpatterns += [url(r'^loc/', include('lc_insurancemaps.urls'))]
+    urlpatterns += [url(r'^lc/', include('lc_insurancemaps.urls'))]
 
 homepage = register_url_event()(TemplateView.as_view(template_name='site_index.html'))
 
