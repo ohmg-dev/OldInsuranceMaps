@@ -156,9 +156,9 @@ def item_detail(request, docdoi, loc_type=None):
 
     template = "documents/document_detail.html"
     if loc_type == "volume":
-        template = "loc/volume_detail.html"
+        template = "lc/volume_detail.html"
     elif loc_type == "sheet":
-        template = "loc/sheet_detail.html"
+        template = "lc/sheet_detail.html"
 
     return render(
         request,
