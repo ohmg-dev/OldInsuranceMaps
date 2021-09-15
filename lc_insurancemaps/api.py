@@ -6,10 +6,6 @@ from datetime import datetime
 from django.conf import settings
 
 from lc_insurancemaps.models import MapCollectionItem, MapScan
-from lc_insurancemaps.views import get_volume_sheets
-
-from .utils.enumerations import STATE_CHOICES
-
 
 class APIConnection(object):
 

@@ -164,16 +164,3 @@ def item_detail(request, docdoi, loc_type=None):
         request,
         template,
         context=context_dict)
-
-def get_volume_sheets(request, volume_doi):
-
-    volume = _resolve_item(request, volume_doi, loc_type="volume")
-
-    if volume.loc_json is None:
-        loc_json = APIConnection().get_loc_item_json(volume.doi)
-        volume.loc_json = loc_json
-        volume.save()
-
-    result = volume.get_all_sheets()
-
-    return JsonResponse({"success": result})
