@@ -29,7 +29,7 @@ from geonode.base.models import Link
 from geonode.monitoring import register_event
 from geonode.monitoring.models import EventType
 
-from .models import GCPGroup
+from .models import GCPGroup, SplitSession
 from .splitter import DocumentSplitter
 from .georeferencer import Georeferencer, get_path_variant
 from .tasks import split_image_as_task
@@ -166,10 +166,19 @@ def split_interface(request, docid):
     download_url = base + reverse('document_download', args=(document.id,))
     process_url = base + reverse('run_splitting', args=(document.id,))
 
+    try:
+        sesh = SplitSession.objects.get(document=document)
+        divisions = sesh.divisions
+        cut_lines = sesh.cut_lines
+    except SplitSession.DoesNotExist:
+        divisions, cut_lines = None, None
+
     svelte_params = {
         "title": document.title,
         "imgwidth": width,
         "imgheight": height,
+        "divisions": divisions,
+        "cut_lines": cut_lines,
         "doc_url": download_url,
         "process_url": process_url,
         "csrftoken": csrf.get_token(request),

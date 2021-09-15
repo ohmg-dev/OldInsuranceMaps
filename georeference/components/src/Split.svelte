@@ -38,6 +38,7 @@
 	export let imgheight;
 	export let imgwidth;
 	export let doc_url;
+	export let divisions;
 	export let process_url;
 	export let csrftoken;
 
@@ -244,6 +245,8 @@
 
 	onMount(() => {
 		SplitInterface.init();
+
+		if (divisions != null) {iface.refreshPreviewLayer(divisions)}
 	});
 
 	$: {

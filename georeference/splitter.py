@@ -28,6 +28,7 @@ class DocumentSplitter(object):
         self.created_by = user
         self.session = SplitSession(document=document)
         self.divisions = []
+        self.cut_lines = []
 
         if os.path.isdir(settings.TEMP_DIR) is False:
             os.mkdir(settings.TEMP_DIR)
@@ -35,6 +36,7 @@ class DocumentSplitter(object):
 
     def generate_divisions(self, cutlines):
 
+        self.cut_lines = cutlines
         self.divisions = cut_geometry_by_lines(self.border_geom, cutlines)
 
         return self.divisions
@@ -62,6 +64,7 @@ class DocumentSplitter(object):
         # update the session info, now that it's about to be run
         print("splitting image...")
         self.session.divisions = self.divisions
+        self.session.cut_lines = self.cut_lines
         self.session.created_by = self.created_by
         self.session.save()
 

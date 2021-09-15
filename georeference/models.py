@@ -43,6 +43,7 @@ class SplitSession(models.Model):
 
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
     divisions = JSONField(default=None, null=True, blank=True)
+    cut_lines = JSONField(default=None, null=True, blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
