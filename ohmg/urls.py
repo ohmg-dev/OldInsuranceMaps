@@ -26,7 +26,7 @@ from geonode.urls import urlpatterns
 from geonode.monitoring import register_url_event
 
 if 'georeference' in settings.INSTALLED_APPS:
-    urlpatterns += [url(r'^g/', include('georeference.urls'))]
+    urlpatterns += [url(r'^stg/', include('georeference.urls'))]
 
 if 'lc_insurancemaps' in settings.INSTALLED_APPS:
     urlpatterns += [url(r'^lc/', include('lc_insurancemaps.urls'))]
