@@ -6,7 +6,8 @@ from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 
 from lc_insurancemaps.api import APIConnection
-from lc_insurancemaps.utils import parsers
+from lc_insurancemaps.utils import parsers, enumerations
+from lc_insurancemaps.models import Volume
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -39,8 +40,8 @@ class Command(BaseCommand):
             "--county", help="specifically refine by county",
         )
         parser.add_argument(
-            "--date",
-            help="year of volumes retrieved",
+            "--year",
+            help="year of volume retrieved",
         )
         parser.add_argument(
             "--no-cache",
@@ -81,7 +82,11 @@ class Command(BaseCommand):
         # combine all location arguments
         locations = options['location']
         if options['state']:
-            locations.append(options['state'])
+            statel = options['state'].lower()
+            if statel in enumerations.STATE_NAMES:
+                locations.append(statel)
+            else:
+                print("invalid state: " + options["state"])
         if options['city']:
             locations.append(options['city'])
         if options['county']:
@@ -90,24 +95,28 @@ class Command(BaseCommand):
         if options['operation'] == "clean" or options['clean']:
             management.call_command("clear_insurancemaps", "--all")
 
-        ## incomplete at this time! ## incomplete at this time!
         if options['operation'] == "import":
 
+            results = []
             if locations:
-                lc.import_items(
+                items = lc.get_items(
                     locations=locations,
                     no_cache=options['no_cache'],
-                    get_sheets=options['get_sheets'],
-                    date=options['date'],
-                    dry_run=options['dry_run']
+                    date=options['year'],
                 )
+                results += items
 
             if options['identifier']:
-                lc.get_item_by_identifier(
+                item = lc.get_item(
                     identifier=options['identifier'],
                     no_cache=options['no_cache'],
-                    get_sheets=options['get_sheets'],
                 )
+                results.append(item['item'])
+            
+            for item in results:
+                vol = Volume().create_from_lc_json(item, dry_run=options["dry_run"])
+                if options["get_sheets"]:
+                    vol.get_sheets(dry_run=options["dry_run"])
 
         if options['operation'] == "summarize":
 
