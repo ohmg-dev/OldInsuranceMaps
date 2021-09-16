@@ -1,80 +1,84 @@
+from os import set_blocking
 import pytz
 from datetime import datetime
 
-from .enumerations import STATE_CHOICES
+from .enumerations import STATE_CHOICES, MONTH_LOOKUP
 
 def full_capitalize(in_str):
     return " ".join([i.capitalize() for i in in_str.split(" ")])
 
 def parse_location_info(item):
 
-    info = {"city": None, "county": None, "state": None}
+    info = {"city": None, "county_equivalent": None, "state": None}
 
+    # collect all location tags into a list.
     # handle the fact that sometimes each location tag is a dictionary like
     # {'bexar county': 'https://www.loc.gov/search/?at=item&fa=location:bexar+county&fo=json'}
     # while other times each location tag is just a string.
-    locations = []
+    location_tags = []
     for l in item['location']:
         if isinstance(l, dict):
-            locations.append(list(l.keys())[0])
+            location_tags.append(list(l.keys())[0])
         else:
-            locations.append(l)
+            location_tags.append(l)
 
-    # elaborate parsing of location tags
+    # split the title of the item which has a lot of geographic info in it
+    title = item["item"]["title"].replace("Sanborn Fire Insurance Map from ", "").rstrip(".")
+    title_segs = [i.lstrip() for i in title.split(",")]
 
-    # first find the county/parish and remove that from the list
-    county_position = None
-    for index, l in enumerate(locations):
-        l_words = [i.lower() for i in l.split(" ")]
-        if "county" in l_words or "parish" in l_words or "counties" in l_words\
-          or "census division" in l:
-            info["county"] = full_capitalize(l)
-            county_position = index
-    if county_position is not None:
-        del locations[county_position]
+    used_tags = []
 
-
-    # next compare remaining tags to the title and only the city name
-    # should match
-    city_position = None
-    if not "item" in item:
-        print(item['id'])
-        raise Exception
-    city_seg = item["item"]["title"].split(",")[0].lower()
-    if " from " in city_seg:
-        title_city = city_seg.split(" from ")[1].lower()
+    # get state from the last item in the item title, easy
+    state_names = [i[1] for i in STATE_CHOICES]
+    state_seg = title_segs[-1]
+    if state_seg in state_names:
+        info["state"] = state_seg.lower()
+        # remove the location tag for the state
+        for lt in location_tags:
+            if lt == state_seg.lower():
+                used_tags.append(lt)
+                break
     else:
-        title_city = city_seg
-    for index, l in enumerate(locations):
-        if l == title_city:
-            info["city"] = full_capitalize(l)
-            city_position = index
-    if city_position is not None:
-        del locations[city_position]
+        print(f"BAD STATE IN TITLE: {state_seg}")
+    
+    # get city
+    location_tags = [i for i in location_tags if not i in used_tags]
+    city_seg = title_segs[0]
+    for lt in location_tags:
+        if lt == city_seg.lower():
+            info["city"] = city_seg
+            used_tags.append(lt)
 
-    # finally the state should be the only remaining tag. check against the
-    # list of valid state names
-    state_position = None
-    for index, l in enumerate(locations):
-        if l.lower() in [i[0].lower() for i in STATE_CHOICES]:
-            info["state"] = full_capitalize(l)
-            state_position = index
-    if state_position is not None:
-        del locations[state_position]
+    location_tags = [i for i in location_tags if not i in used_tags]
+    # find the county/parish and remove that from the tag list
+    county_seg = None
+    c_terms = ["county", "counties", "parish", "parishes"]
+    for seg in title_segs:
+        for t in c_terms:
+            if t in seg.lower():
+                county_seg = seg
+
+    if not county_seg:
+        for lt in location_tags:
+            for ct in c_terms:
+                if ct in lt.lower():
+                    info["county_equivalent"] = full_capitalize(lt)
+                    used_tags.append(lt)
+    else:
+        info["county_equivalent"] = county_seg
+        for lt in location_tags:
+            if lt in county_seg.lower():
+                used_tags.append(lt)
 
     # print leftover tags
-    if len(locations) > 0:
-        msg = f"WARNING: unparsed location tags - {item['id']} - {locations}"
+    location_tags = [i for i in location_tags if not i in used_tags]
+    if len(location_tags) > 0:
+        msg = f"WARNING: unparsed location tags - {item['id']} - {title} - {location_tags}"
         print(msg)
 
     return info
 
 def parse_date_info(item):
-
-    month_lookup = {
-        1:"JAN.", 2:"FEB.", 3:"MAR.", 4:"APR.", 5:"MAY.", 6:"JUN.",
-        7:"JUL.", 8:"AUG.", 9:"SEP.", 10:"OCT.", 11:"NOV.", 12:"DEC."
-    }
 
     info = {"year": None, "month": None}
 
@@ -87,7 +91,7 @@ def parse_date_info(item):
         d = pytz.utc.localize(dt)
         info["datetime"] = d
         info["year"] = d.year
-        info["month"] = month_lookup[d.month]
+        info["month"] = MONTH_LOOKUP[d.month]
     except ValueError:
         try:
             dt = datetime.strptime(date_tag, "%Y")
@@ -98,3 +102,14 @@ def parse_date_info(item):
             print("problem parsing date: " + date_tag)
 
     return info
+
+def parse_volume_number(item):
+
+    volume_no = None
+    created_published = item["item"].get("created_published", "").lower()
+    if "vol." in created_published:
+        a = created_published.split("vol.")[1]
+        b = a.lstrip(" ").split(" ")
+        volume_no = b[0]
+    
+    return volume_no
