@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from geonode.documents.models import Document
 
-from lc_insurancemaps.models import MapScan, MapCollectionItem
+from lc_insurancemaps.models import MapScan, MapCollectionItem, Volume, Sheet
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -42,6 +42,8 @@ class Command(BaseCommand):
             self.delete_documents()
             self.delete_mapscans()
             self.delete_collectionitems()
+            self.delete_volumes()
+            self.delete_sheets()
 
 
     def delete_mapscans(self):
@@ -55,3 +57,11 @@ class Command(BaseCommand):
     def delete_documents(self):
         print(f"removing {Document.objects.all().count()} Document objects")
         Document.objects.all().delete()
+    
+    def delete_volumes(self):
+        print(f"removing {Volume.objects.all().count()} Volume objects")
+        Volume.objects.all().delete()
+    
+    def delete_sheets(self):
+        print(f"removing {Sheet.objects.all().count()} Sheet objects")
+        Sheet.objects.all().delete()

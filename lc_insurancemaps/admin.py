@@ -1,11 +1,19 @@
 from django.contrib import admin
 
 from modeltranslation.admin import TabbedTranslationAdmin
-from .models import MapScan, MapCollectionItem
+from .models import MapScan, MapCollectionItem, Volume, Sheet
 
 from geonode.base.admin import ResourceBaseAdminForm
 from geonode.base.admin import metadata_batch_edit
 
+
+admin.site.register(Sheet)
+
+class VolumeAdmin(admin.ModelAdmin):
+    exclude = ('lc_item', 'lc_resources')
+    readonly_fields = ('lc_item_formatted', 'lc_resources_formatted')
+
+admin.site.register(Volume, VolumeAdmin)
 
 class MapScanAdminForm(ResourceBaseAdminForm):
     class Meta(ResourceBaseAdminForm.Meta):
