@@ -5,7 +5,7 @@ import requests
 from datetime import datetime
 from django.conf import settings
 
-from lc_insurancemaps.models import MapCollectionItem, MapScan
+# from lc_insurancemaps.models import MapCollectionItem
 
 class APIConnection(object):
 
@@ -41,7 +41,7 @@ class APIConnection(object):
             self.query_url = ""
             return
 
-        # set format to json, count to 50
+        # set format to json, count to 100
         self.query_url += "&fo=json&c=100"
 
     def add_location_param(self, locations=[]):
@@ -98,16 +98,18 @@ class APIConnection(object):
             if self.verbose:
                 print("using cached query results")
 
-        for item in self.data['results']:
-            if "item" in item:
-                self.results.append(item)
-
-        return
+        ## during location/year searches, multiple items are returned in a 'results' list
+        if "results" in self.data:
+            self.results += self.data["results"]
 
     def get_item(self, identifier, no_cache=False):
 
+        ## during identifier queries, a single dict is returned and stored in self.data
+        ## the dict has 'item' and 'resources' keys.
         self.initialize_query(identifier=identifier)
-        self.perform_search(searchurl, no_cache=no_cache)
+        self.perform_search(no_cache=no_cache)
+
+        return self.data
 
     def get_items(self, locations=[], no_cache=False, date=None):
 
@@ -125,60 +127,4 @@ class APIConnection(object):
             else:
                 break
 
-    def import_items(self, locations=[], no_cache=False, get_sheets=False, date=None, dry_run=False):
-
-        self.get_items(locations=locations, no_cache=no_cache, date=date)
-        result_ct = self.data['search']['hits']
-
-        if self.verbose:
-            print(f"results: {result_ct}")
-        if result_ct == 0:
-            return
-
-        # results = data.pop('results')
-        for result in self.data['results']:
-
-            result_year = result['date'].split("-")[0]
-            if date is not None and result_year != date:
-                if self.verbose:
-                    print(f"skipping date: {result['date']}")
-                continue
-
-            if dry_run is False:
-                item = MapCollectionItem().create_from_json(result)
-            if get_sheets:
-                if self.verbose:
-                    print("getting sheets for:")
-                    print(result)
-                if dry_run is False:
-                    self.get_sheets(item, no_cache=no_cache)
-
-
-    def get_item_by_identifier(self, identifier, no_cache=False, get_sheets=False):
-
-        self.get_item(identifier, no_cache=no_cache)
-
-        print(self.data)
-
-        # item = MapCollectionItem().create_from_json(data['item'])
-        # item.loc_json = data
-        # item.save()
-        # item.save()
-        # if get_sheets:
-        #     self.get_sheets(item, no_cache=no_cache)
-
-        # return item
-
-    def get_sheets(self, volume, no_cache=False, dry_run=False):
-
-        # If this volume was added as part of set of search results, then the
-        # loc_json field will be empty, because that level of detail is not
-        # acquired through basic search results. Thus, the extra call here.
-        print(volume.loc_json)
-        if volume.loc_json is None:
-            data = self.get_item_by_identifier(volume.doi, no_cache=no_cache)
-            print(data)
-            # volume.loc_json = data
-            # volume.save()
-
-        # volume.get_all_sheets()
+        return self.results
