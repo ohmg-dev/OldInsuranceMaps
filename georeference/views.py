@@ -311,7 +311,7 @@ def georeference_interface(request, docid):
         "georeference/georeference_interface.html",
         context=context_dict)
 
-def run_georeferencing(request):
+def run_georeferencing(request, docid):
 
     if request.body:
         body = json.loads(request.body)
