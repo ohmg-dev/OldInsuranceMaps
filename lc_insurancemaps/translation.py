@@ -1,12 +1,12 @@
 from modeltranslation.translator import translator, TranslationOptions
-from .models import MapScan, MapCollectionItem
+from .models import Volume, Sheet
 
 
-class MapScanTranslationOptions(TranslationOptions):
+class VolumeTranslationOptions(TranslationOptions):
     fields = ()
 
-class MapCollectionItemTranslationOptions(TranslationOptions):
+class SheetTranslationOptions(TranslationOptions):
     fields = ()
 
-translator.register(MapScan, MapScanTranslationOptions)
-translator.register(MapCollectionItem, MapCollectionItemTranslationOptions)
+translator.register(Volume, VolumeTranslationOptions)
+translator.register(Sheet, SheetTranslationOptions)

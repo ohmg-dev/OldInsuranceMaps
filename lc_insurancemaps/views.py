@@ -23,9 +23,7 @@ from geonode.base.auth import get_or_create_token
 from geonode.monitoring import register_event
 from geonode.monitoring.models import EventType
 
-from .models import MapCollectionItem, MapScan
-
-logger = logging.getLogger("geonode.loc.views")
+logger = logging.getLogger("geonode.lc_insurancemaps.views")
 
 ALLOWED_DOC_TYPES = settings.ALLOWED_DOCUMENT_TYPES
 
@@ -38,18 +36,11 @@ _PERMISSION_MSG_VIEW = _("You are not permitted to view this document")
 
 def _resolve_item(request, docdoi, loc_type=None, **kwargs):
 
-    if loc_type == "volume":
-        model = MapCollectionItem
-    elif loc_type == "sheet":
-        model = MapScan
-    else:
-        model = Document
-
     item = None
     try:
         item = resolve_object(
                 request,
-                model,
+                Document,
                 {'doi': docdoi},
                 permission='base.view_resourcebase',
                 permission_msg=_PERMISSION_MSG_VIEW,
