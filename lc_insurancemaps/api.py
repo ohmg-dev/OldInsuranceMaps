@@ -5,7 +5,6 @@ import requests
 from datetime import datetime
 from django.conf import settings
 
-# from lc_insurancemaps.models import MapCollectionItem
 
 class APIConnection(object):
 
@@ -15,6 +14,7 @@ class APIConnection(object):
         self.data = None
         self.results = []
         self.verbose = verbose
+        self.query_url = ""
 
     def make_cache_path(self, url=None):
 
@@ -38,7 +38,6 @@ class APIConnection(object):
             # set returned attributes
             self.query_url += "?at=item,resources"
         else:
-            self.query_url = ""
             return
 
         # set format to json, count to 100
