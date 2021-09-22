@@ -32,7 +32,6 @@ from geonode.people.models import Profile
 
 from .utils import enumerations, parsers
 from .renderers import convert_img_format
-from .api import APIConnection
 
 def format_json_display(data):
     """very nice from here:
@@ -64,7 +63,7 @@ class Sheet(models.Model):
     def __str__(self):
         return f"{self.volume.__str__()} p{self.sheet_no}"
 
-    def create_from_fileset(self, fileset, volume):
+    def create_from_fileset(self, fileset, volume, fileset_info=None):
 
         with transaction.atomic():
             sheet = Sheet()
@@ -75,23 +74,14 @@ class Sheet(models.Model):
             doc.uuid = str(uuid.uuid4())
             doc.owner = Profile.objects.get(username="admin")
 
-            jp2_url = None
-            iiif_service = None
-            for f in fileset:
-                if f['mimetype'] == "image/jp2":
-                    jp2_url = f['url']
-                    filename = f['url'].split("/")[-1]
-                    name, ext = os.path.splitext(filename)
-                    number = name.split("-")[-1].lstrip("0")
-                if 'image-services' in f['url'] and '/full/' in f['url']:
-                    iiif_service = f['url'].split("/full/")[0]
+            if fileset_info is None:
+                fileset_info = parsers.parse_fileset(fileset)
+            
+            sheet.sheet_no = fileset_info["sheet_number"]
+            sheet.iiif_service = fileset_info["iiif_service"]
 
-            if iiif_service is not None:
-                sheet.iiif_service = iiif_service
-
-            sheet.sheet_no = number
-
-            if jp2_url:
+            jp2_url = fileset_info["jp2_url"]
+            if jp2_url is not None:
                 tmp_path = os.path.join(settings.CACHE_DIR, "img", jp2_url.split("/")[-1])
 
                 # basic download code: https://stackoverflow.com/a/18043472/3873885
@@ -150,13 +140,6 @@ class Volume(models.Model):
 
         return display_str
     
-    def set_lc_item_and_lc_resources(self):
-
-        lc = APIConnection()
-        data = lc.get_item(self.identifier)
-        self.lc_resources = data['resources']
-        self.save()
-    
     def lc_item_formatted(self):
         return format_json_display(self.lc_item)
 
@@ -167,11 +150,12 @@ class Volume(models.Model):
 
     lc_resources_formatted.short_description = 'LC Resources'
     
-    def create_from_lc_json(self, item, dry_run=False):
+    def create_from_lc_json(self, item, location_info=None):
 
-        identifier = item["id"].rstrip("/").split("/")[-1]
+        identifier = parsers.parse_item_identifier(item)
 
-        location_info = parsers.parse_location_info(item)
+        if location_info is None:
+            location_info = parsers.parse_location_info(item)
         date_info = parsers.parse_date_info(item)
         volume_no = parsers.parse_volume_number(item)
 
@@ -196,18 +180,6 @@ class Volume(models.Model):
             if len(item["resources"]) > 0:
                 vol.sheet_ct = item["resources"][0]["files"]
 
-            if dry_run is False:
-                vol.save()
+            vol.save()
 
         return vol
-    
-    def get_sheets(self, dry_run=False):
-
-        if self.lc_resources is None:
-            lc = APIConnection()
-            data = lc.get_item(self.identifier)
-            self.lc_resources = data['resources']
-            self.save()
-
-        for fileset in self.lc_resources[0]['files']:
-            sheet = Sheet().create_from_fileset(fileset, self)

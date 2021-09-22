@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from lc_insurancemaps.api import APIConnection
 from lc_insurancemaps.utils import parsers, enumerations
+from lc_insurancemaps.utils.importer import Importer
 from lc_insurancemaps.models import Volume
 
 class Command(BaseCommand):
@@ -54,7 +55,7 @@ class Command(BaseCommand):
             help="clears all MapCollectionItem objects before running",
         )
         parser.add_argument(
-            "--get-sheets",
+            "--import-sheets",
             action="store_true",
             help="also acquires all sheets for the added items",
         )
@@ -77,53 +78,44 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        lc = APIConnection(verbose=options['verbose'])
-
-        # combine all location arguments
-        locations = options['location']
-        if options['state']:
-            statel = options['state'].lower()
-            if statel in enumerations.STATE_NAMES:
-                locations.append(statel)
-            else:
-                print("invalid state: " + options["state"])
-        if options['city']:
-            locations.append(options['city'])
-        if options['county']:
-            locations.append(options['county'])
-
         if options['operation'] == "clean" or options['clean']:
             management.call_command("clear_insurancemaps", "--all")
 
         if options['operation'] == "import":
 
-            results = []
-            if locations:
-                items = lc.get_items(
-                    locations=locations,
-                    no_cache=options['no_cache'],
-                    date=options['year'],
-                )
-                results += items
+            i = Importer(
+                dry_run=options["dry_run"],
+                verbose=options["verbose"],
+            )
 
-            if options['identifier']:
-                item = lc.get_item(
-                    identifier=options['identifier'],
-                    no_cache=options['no_cache'],
-                )
-                results.append(item['item'])
-            
-            for item in results:
-                vol = Volume().create_from_lc_json(item, dry_run=options["dry_run"])
-                if options["get_sheets"]:
-                    vol.get_sheets(dry_run=options["dry_run"])
+            i.import_volumes(
+                state=options["state"],
+                city=options["city"],
+                year=options["year"],
+                import_sheets=options["import_sheets"],
+            )
 
         if options['operation'] == "summarize":
+
+            lc = APIConnection(verbose=options['verbose'])
+
+            # combine all location arguments
+            locations = options['location']
+            if options['state']:
+                statel = options['state'].lower()
+                if statel in enumerations.STATE_NAMES:
+                    locations.append(statel)
+                else:
+                    print("invalid state: " + options["state"])
+            if options['city']:
+                locations.append(options['city'])
+            if options['county']:
+                locations.append(options['county'])
 
             lc.get_items(
                 locations=locations,
                 no_cache=options['no_cache'],
-                date=options['date'],
+                year=options['date'],
             )
 
             volumes = {}

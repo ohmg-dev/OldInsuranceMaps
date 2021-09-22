@@ -1,4 +1,4 @@
-from os import set_blocking
+import os
 import pytz
 from datetime import datetime
 
@@ -6,6 +6,9 @@ from .enumerations import STATE_CHOICES, MONTH_LOOKUP
 
 def full_capitalize(in_str):
     return " ".join([i.capitalize() for i in in_str.split(" ")])
+
+def parse_item_identifier(item):
+    return item["id"].rstrip("/").split("/")[-1]
 
 def parse_location_info(item):
 
@@ -113,3 +116,24 @@ def parse_volume_number(item):
         volume_no = b[0]
     
     return volume_no
+
+def parse_fileset(fileset):
+    """this could be much improved to take better advantage of IIIF service
+    returns."""
+
+    info = {
+        "jp2_url": None,
+        "sheet_number": None,
+        "iiif_service": None,
+    }
+
+    for f in fileset:
+        if f['mimetype'] == "image/jp2":
+            info["jp2_url"] = f['url']
+            filename = f['url'].split("/")[-1]
+            name = os.path.splitext(filename)[0]
+            info["sheet_number"] = name.split("-")[-1].lstrip("0")
+        if 'image-services' in f['url'] and '/full/' in f['url']:
+            info["iiif_service"] = f['url'].split("/full/")[0]
+
+    return info

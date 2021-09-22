@@ -1,10 +1,12 @@
 import os
 import json
 import time
+import logging
 import requests
 from datetime import datetime
 from django.conf import settings
 
+logger = logging.getLogger(__name__)
 
 class APIConnection(object):
 
@@ -83,14 +85,23 @@ class APIConnection(object):
             time.sleep(5)
             if self.verbose:
                 print("making request")
-            response = requests.get(url)
-            if response.status_code in [500, 503]:
-                if self.verbose:
-                    print(f"{response.status_code} error, retrying in 5 seconds...")
-                time.sleep(5)
-                if self.verbose:
-                    print("making request")
+            try:
                 response = requests.get(url)
+                if response.status_code in [500, 503]:
+                    msg = f"{response.status_code} error, retrying in 5 seconds..."
+                    logger.warn(msg)
+                    if self.verbose:
+                        print(msg)
+                    time.sleep(5)
+                    if self.verbose:
+                        print("making request")
+                    response = requests.get(url)
+            except (ConnectionError, ConnectionRefusedError, ConnectionAbortedError, ConnectionResetError) as e:
+                msg = f"API Error: {e}"
+                print(msg)
+                logger.warn(e)
+                return
+            
             self.data = json.loads(response.content)
             self.save_cache(url)
         else:
@@ -110,13 +121,13 @@ class APIConnection(object):
 
         return self.data
 
-    def get_items(self, locations=[], no_cache=False, date=None):
+    def get_items(self, locations=[], no_cache=False, year=None):
 
         self.initialize_query(collection="sanborn-maps")
         if len(locations) > 0:
             self.add_location_param(locations)
-        if date is not None:
-            self.add_date_param(date)
+        if year is not None:
+            self.add_date_param(year)
 
         page_no = 1
         while True:
