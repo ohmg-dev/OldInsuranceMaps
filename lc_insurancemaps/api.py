@@ -10,13 +10,14 @@ logger = logging.getLogger(__name__)
 
 class APIConnection(object):
 
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=False, delay=5):
 
         self.baseurl = "https://www.loc.gov"
         self.data = None
         self.results = []
         self.verbose = verbose
         self.query_url = ""
+        self.delay = delay
 
     def make_cache_path(self, url=None):
 
@@ -80,9 +81,9 @@ class APIConnection(object):
             print(f"query url: {url}")
         self.load_cache(url)
         if no_cache is False and self.data is None:
-            if self.verbose:
-                print("waiting 5 seconds before making a request...")
-            time.sleep(5)
+            if self.verbose and self.delay > 0:
+                print(f"waiting {self.delay} seconds before making a request...")
+            time.sleep(self.delay)
             if self.verbose:
                 print("making request")
             try:

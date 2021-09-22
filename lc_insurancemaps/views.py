@@ -4,9 +4,10 @@ from PIL import Image, ImageDraw, ImageFilter
 from guardian.shortcuts import get_perms, get_objects_for_user
 
 from django.shortcuts import render
-from django.views.generic import DetailView
+from django.views import View
 from django.db.models import F
 from django.conf import settings
+from django.urls import reverse
 from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonResponse
 from django.utils.translation import ugettext as _
@@ -22,6 +23,9 @@ from geonode.groups.models import GroupProfile
 from geonode.base.auth import get_or_create_token
 from geonode.monitoring import register_event
 from geonode.monitoring.models import EventType
+
+from .models import Volume, Sheet
+from .utils.importer import Importer
 
 logger = logging.getLogger("geonode.lc_insurancemaps.views")
 
@@ -155,3 +159,33 @@ def item_detail(request, docdoi, loc_type=None):
         request,
         template,
         context=context_dict)
+
+class SimpleAPI(View):
+
+    def get(self, request):
+
+        qtype = request.GET.get("t", None)
+        state = request.GET.get("s", None)
+        city = request.GET.get("c", None)
+
+        ## this is not implemented, but would ultimately return a list of all
+        ## cities with volumes in this state
+        if qtype == "cities":
+            return JsonResponse({})
+
+        ## return a list of all volumes in a city
+        elif qtype == "volumes":
+
+            volumes = Volume.objects.filter(city=city, state=state)
+
+            if len(volumes) > 0:
+                ids = volumes.values_list(("identifier",), flat=True)
+            else:
+                volumes = Importer(delay=0, verbose=True).import_volumes(
+                    state=state,
+                    city=city,
+                )
+
+                ids = [i.identifier for i in volumes]
+
+        return JsonResponse({"volumes": ids})
