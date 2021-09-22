@@ -2,15 +2,30 @@
 {% load markdownify %}
 {% load i18n %}
 {% load base_tags %}
+
+{% load django_svelte %}
+
 {% comment %}
 This is where you can override the hero area block. You can simply modify the content below or replace it wholesale to meet your own needs.
 {% endcomment %}
 {% block hero %}
+<div class="jumbotron">
+  <div class="container">
+    <div class="col-xs-12 col-sm-6">
+      About this app
+    </div>
+    <div class="col-xs-12 col-sm-6">
+      {% display_svelte "Index.svelte" lc_svelte_params %}
+    </div>
+  </div>
+</div>
+
+{% comment %}
 {% if custom_theme.welcome_theme == 'JUMBOTRON_BG' or not slides %}
 <div class="jumbotron">
   <div class="container">
     {% with jumbotron_welcome_title=custom_theme.jumbotron_welcome_title|default:"Welcome"|template_trans %}
-    <h1>{% trans jumbotron_welcome_title %}</h1>
+    <h1>{% trans jumbotron_welcome_title %} and the</h1>
     {% endwith %}
     <p></p>
     {% with jumbotron_welcome_content=custom_theme.jumbotron_welcome_content|default:"GeoNode is an open source platform for sharing geospatial data and maps."|template_trans %}
@@ -73,7 +88,9 @@ This is where you can override the hero area block. You can simply modify the co
   </div>
 </div>
 {% endif %}
+{% endcomment %}
 {% endblock hero %}
+{% block bigsearch %}{% endblock bigsearch %}
 {% block showcase %}
       <section id="showcase">
         <div class="row">

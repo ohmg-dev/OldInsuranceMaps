@@ -198,3 +198,5 @@ if 'georeference' in INSTALLED_APPS:
 if 'lc_insurancemaps' in INSTALLED_APPS:
     TEMPLATES[0]['DIRS'].insert(0, os.path.join(os.path.dirname(LOCAL_ROOT), "lc_insurancemaps", "templates"))
     STATICFILES_DIRS.append(os.path.join(os.path.dirname(LOCAL_ROOT), "lc_insurancemaps", "static"))
+    STATICFILES_DIRS.append(os.path.join(os.path.dirname(LOCAL_ROOT), "lc_insurancemaps", "components", "public", "build"))
+    TEMPLATES[0]['OPTIONS']['context_processors'].append('lc_insurancemaps.context_processors.lc_svelte_params')
