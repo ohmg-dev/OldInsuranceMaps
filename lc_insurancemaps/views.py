@@ -12,6 +12,7 @@ from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonResponse
 from django.utils.translation import ugettext as _
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.core import serializers
 
 from geonode.base.utils import ManageResourceOwnerPermissions
 from geonode.utils import resolve_object, build_social_links
@@ -26,6 +27,7 @@ from geonode.monitoring.models import EventType
 
 from .models import Volume, Sheet
 from .utils.importer import Importer
+from .api import APIConnection
 
 logger = logging.getLogger("geonode.lc_insurancemaps.views")
 
@@ -168,24 +170,34 @@ class SimpleAPI(View):
         state = request.GET.get("s", None)
         city = request.GET.get("c", None)
 
+        i = Importer(delay=0, verbose=True)
+
         ## this is not implemented, but would ultimately return a list of all
         ## cities with volumes in this state
         if qtype == "cities":
-            return JsonResponse({})
+
+            city_list = i.get_city_list_by_state(state)
+
+            return JsonResponse(city_list, safe=False)
 
         ## return a list of all volumes in a city
         elif qtype == "volumes":
 
-            volumes = Volume.objects.filter(city=city, state=state)
+            volumes = Volume.objects.filter(city=city, state=state).order_by("year")
 
-            if len(volumes) > 0:
-                ids = volumes.values_list(("identifier",), flat=True)
-            else:
-                volumes = Importer(delay=0, verbose=True).import_volumes(
+            if len(volumes) == 0:
+                new_volumes = i.import_volumes(
                     state=state,
                     city=city,
                 )
 
-                ids = [i.identifier for i in volumes]
+                ## generate queryset from the list of new volumes
+                volumes = Volume.objects.filter(pk__in=[i.identifier for i in new_volumes]).order_by("year")
+        
+            # volumes_data = volumes.values_list(("identifier", "city", "state", "year", "volume_no", "sheet_ct"))
+            data = serializers.serialize('json', volumes)
+            return HttpResponse(data, content_type='application/json')
+        
+        else:
 
-        return JsonResponse({"volumes": ids})
+            return JsonResponse({})

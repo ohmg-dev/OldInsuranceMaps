@@ -66,3 +66,25 @@ class Importer(object):
             sheets.append(sheet)
         
         return sheets
+    
+    def get_city_list_by_state(self, state):
+
+        lc = APIConnection(
+            delay=self.delay,
+            verbose=self.verbose,
+        )
+
+        items = lc.get_items(locations=[state])
+
+        cities = {}
+        for item in items:
+            identifier = parse_item_identifier(item)
+            location = parse_location_info(item)
+            if location["state"] != state:
+                continue
+            city = location["city"]
+            cities[city] = cities.get(city, 0) + 1
+        
+        cities_list = [(k, v) for k, v in cities.items()]
+        
+        return sorted(cities_list)

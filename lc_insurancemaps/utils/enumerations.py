@@ -64,6 +64,7 @@ STATE_CHOICES = [
     ('washington', 'Washington'),
     ('west virginia', 'West Virginia'),
     ('wisconsin', 'Wisconsin'),
+    ('wyoming', 'Wyoming'),
 ]
 STATE_NAMES = [i[0] for i in STATE_CHOICES]
 STATE_LOOKUP = { i[1]: i[0] for i in STATE_CHOICES }
