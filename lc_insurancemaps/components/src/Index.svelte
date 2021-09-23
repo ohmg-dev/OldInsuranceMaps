@@ -108,16 +108,18 @@ $: updateVolumeList(currentCity);
 	main {
 		display: flex;
 		flex-direction: row;
-		color: white;
+		color: black;
 		font-size: 1.25em;
 		padding: 1em;
 		max-width: 240px;
 		margin: 0 auto;
-		background: #2c689c;
+		/* background: #2c689c;
+		background: #ffd78b; */
+
 	}
 
 	main a {
-		color: #ff8f31;
+		color: #1647a4;
 	}
 
 	.pane {
@@ -141,13 +143,17 @@ $: updateVolumeList(currentCity);
 	}
 
 	h1, h2, h3 {
-		text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
+		color: #ff3e00;
 	}
 
 	h1 {
-		color: #ff3e00;
 		font-size: 4em;
 		font-weight: 100;
+		text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
+	}
+
+	h2, h3 {
+		text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
 	}
 
 	@media (min-width: 640px) {
