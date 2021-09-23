@@ -58,12 +58,12 @@ $: updateVolumeList(currentCity);
 <main>
 	<div class="pane" style="test-align: left;">
 		<h1>Welcome</h1>
-		<p>This is an open platform for creating and viewing web map mosaics from historical fire insuance maps.</p>
-		<p>All maps within are pulled directly from the Library of Congress <a href="https://www.loc.gov/collections/sanborn-maps/about-this-collection/">Sanborn Maps Collection</a>.</p>
+		<p>This is an open platform for creating and viewing web map mosaics of historical fire insuance maps.</p>
+		<p>All of the maps are pulled directly from the Library of Congress <a href="https://www.loc.gov/collections/sanborn-maps/about-this-collection/">Sanborn Maps Collection</a>.</p>
 		<p>The base of this platform is <a href="https://geonode.org">GeoNode</a>, an open source geospatial content management system.</p>
-		<p>Two new applications have been layered on top of GeoNode:</p>
+		<p>Two distinct custom components have been added:</p>
 		<ol>
-			<li>An accessible interface and database configuration tailored specifically to the structure of this map series.</li>
+			<li>An interface and database configuration tailored specifically to the structure of this map series.</li>
 			<li>A suite of tools that allow users to split, trim, and georeference the maps.</li>
 		</ol>
 	</div>
