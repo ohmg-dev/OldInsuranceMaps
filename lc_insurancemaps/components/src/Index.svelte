@@ -48,7 +48,7 @@ function updateVolumeList(city) {
 			console.log(volumes);
 		});
 	} else {
-		volumes = [];  
+		volumes = [];
 	}
 }
 $: updateVolumeList(currentCity);
@@ -64,7 +64,7 @@ $: updateVolumeList(currentCity);
 		<p>Two distinct custom components have been added:</p>
 		<ol>
 			<li>An interface and database configuration tailored specifically to the structure of this map series.</li>
-			<li>A suite of tools that allow users to split, trim, and georeference the maps.</li>
+			<li>A suite of tools that allows users to split, trim, and georeference the maps.</li>
 		</ol>
 	</div>
 	<div class="pane" style="text-align: center;">
@@ -109,7 +109,6 @@ $: updateVolumeList(currentCity);
 		display: flex;
 		flex-direction: row;
 		color: white;
-		text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
 		font-size: 1.25em;
 		padding: 1em;
 		max-width: 240px;
@@ -139,6 +138,10 @@ $: updateVolumeList(currentCity);
 	.select-item {
 		width: 100%;
 		margin-bottom: 20px;
+	}
+
+	h1, h2, h3 {
+		text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
 	}
 
 	h1 {
