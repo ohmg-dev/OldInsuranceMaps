@@ -11,6 +11,7 @@ from django.core import management
 from django.urls import reverse
 from django.template import loader
 from django.shortcuts import render, redirect
+from django.views import View
 from django.views.generic import DetailView
 from django.db.models import F
 from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonResponse
@@ -83,318 +84,323 @@ def _resolve_document_complete(request, docid):
     else:
         return document
 
-def document_progress(request, docid):
+class SummaryView(View):
 
-    pass
+    def get(self, request, docid):
+        pass
 
-def run_splitting(request, docid):
+class SplitView(View):
 
-    document = _resolve_document_complete(request, docid)
+    def get(self, request, docid):
+        """
+        Returns the splitting interface for this document.
+        """
 
+        document = _resolve_document_complete(request, docid)
 
-    body = json.loads(request.body)
-    cut_lines = body.get("lines", [])
+        permission_manager = ManageResourceOwnerPermissions(document)
+        permission_manager.set_owner_permissions_according_to_workflow()
 
+        # Add metadata_author or poc if missing
+        document.add_missing_metadata_author_or_poc()
 
-    ## polygons are not yet supported by the splitting process
-    # cut_polys = json.loads(request.GET.get("p", "[]"))
+        # Update count for popularity ranking,
+        # but do not includes admins or resource owners
+        if request.user != document.owner and not request.user.is_superuser:
+            Document.objects.filter(
+                id=document.id).update(
+                popular_count=F('popular_count') + 1)
 
-    dryrun = body.get("dryrun", False)
+        metadata = document.link_set.metadata().filter(
+            name__in=settings.DOWNLOAD_FORMATS_METADATA)
 
-    splitter = DocumentSplitter(document=document)
-    divs = splitter.generate_divisions(cut_lines)
+        # Call this first in order to be sure "perms_list" is correct
+        permissions_json = _perms_info_json(document)
 
-    if dryrun is True:
-        return JsonResponse({"success": True, "polygons": divs})
+        perms_list = get_perms(
+            request.user,
+            document.get_self_resource()) + get_perms(request.user, document)
 
-    res = split_image_as_task.apply_async((docid, cut_lines, request.user.pk), queue="update")
+        group = None
+        if document.group:
+            try:
+                group = GroupProfile.objects.get(slug=document.group.name)
+            except ObjectDoesNotExist:
+                group = None
 
-    redirect_url = reverse('document_detail', kwargs={'docid': docid}) + "#georeference"
+        access_token = None
+        if request and request.user:
+            access_token = get_or_create_token(request.user)
+            if access_token and not access_token.is_expired():
+                access_token = access_token.token
+            else:
+                access_token = None
 
-    return JsonResponse({"success":True, "redirect_to": redirect_url})
+        im_rgb = Image.open(document.doc_file)
+        width, height = im_rgb.size
 
-def split_interface(request, docid):
-    """
-    The view that presents the image chopping interface.
-    """
-    document = _resolve_document_complete(request, docid)
+        base = settings.SITEURL.rstrip("/")
+        # iiif_info_url = base + reverse('document_info', args=(document.id,))
+        # iiif_manifest_url = base + reverse('document_manifest', args=(document.id,))
+        download_url = base + reverse('document_download', args=(document.id,))
+        process_url = base + reverse('split_view', args=(document.id,))
 
-    permission_manager = ManageResourceOwnerPermissions(document)
-    permission_manager.set_owner_permissions_according_to_workflow()
-
-    # Add metadata_author or poc if missing
-    document.add_missing_metadata_author_or_poc()
-
-    # Update count for popularity ranking,
-    # but do not includes admins or resource owners
-    if request.user != document.owner and not request.user.is_superuser:
-        Document.objects.filter(
-            id=document.id).update(
-            popular_count=F('popular_count') + 1)
-
-    metadata = document.link_set.metadata().filter(
-        name__in=settings.DOWNLOAD_FORMATS_METADATA)
-
-    # Call this first in order to be sure "perms_list" is correct
-    permissions_json = _perms_info_json(document)
-
-    perms_list = get_perms(
-        request.user,
-        document.get_self_resource()) + get_perms(request.user, document)
-
-    group = None
-    if document.group:
         try:
-            group = GroupProfile.objects.get(slug=document.group.name)
-        except ObjectDoesNotExist:
-            group = None
+            sesh = SplitSession.objects.get(document=document)
+            divisions = sesh.divisions
+            cut_lines = sesh.cut_lines
+        except SplitSession.DoesNotExist:
+            divisions, cut_lines = None, None
 
-    access_token = None
-    if request and request.user:
-        access_token = get_or_create_token(request.user)
-        if access_token and not access_token.is_expired():
-            access_token = access_token.token
-        else:
-            access_token = None
+        svelte_params = {
+            "title": document.title,
+            "imgwidth": width,
+            "imgheight": height,
+            "divisions": divisions,
+            "cut_lines": cut_lines,
+            "doc_url": download_url,
+            "process_url": process_url,
+            "csrftoken": csrf.get_token(request),
+        }
 
-    im_rgb = Image.open(document.doc_file)
-    width, height = im_rgb.size
-
-    base = settings.SITEURL.rstrip("/")
-    # iiif_info_url = base + reverse('document_info', args=(document.id,))
-    # iiif_manifest_url = base + reverse('document_manifest', args=(document.id,))
-    download_url = base + reverse('document_download', args=(document.id,))
-    process_url = base + reverse('run_splitting', args=(document.id,))
-
-    try:
-        sesh = SplitSession.objects.get(document=document)
-        divisions = sesh.divisions
-        cut_lines = sesh.cut_lines
-    except SplitSession.DoesNotExist:
-        divisions, cut_lines = None, None
-
-    svelte_params = {
-        "title": document.title,
-        "imgwidth": width,
-        "imgheight": height,
-        "divisions": divisions,
-        "cut_lines": cut_lines,
-        "doc_url": download_url,
-        "process_url": process_url,
-        "csrftoken": csrf.get_token(request),
-    }
-
-    context_dict = {
-        "svelte_params": svelte_params,
-        "resource": document,
+        context_dict = {
+            "svelte_params": svelte_params,
+            "resource": document,
 
 
-        ## unclear at this point if any of the following will be necessary once
-        ## permissions are properly implemented throughout the app, so they are
-        ## just commented out for now.
-        # 'access_token': access_token,
-        # 'perms_list': perms_list,
-        # 'permissions_json': permissions_json,
-        # 'group': group,
-        # 'metadata': metadata,
-        # 'imgwidth': width,
-        # 'imgheight': height,
+            ## unclear at this point if any of the following will be necessary once
+            ## permissions are properly implemented throughout the app, so they are
+            ## just commented out for now.
+            # 'access_token': access_token,
+            # 'perms_list': perms_list,
+            # 'permissions_json': permissions_json,
+            # 'group': group,
+            # 'metadata': metadata,
+            # 'imgwidth': width,
+            # 'imgheight': height,
 
-    }
+        }
 
-    # if settings.SOCIAL_ORIGINS:
-    #     context_dict["social_links"] = build_social_links(
-    #         request, document)
+        # if settings.SOCIAL_ORIGINS:
+        #     context_dict["social_links"] = build_social_links(
+        #         request, document)
 
-    # if getattr(settings, 'EXIF_ENABLED', False):
-    #     try:
-    #         from geonode.documents.exif.utils import exif_extract_dict
-    #         exif = exif_extract_dict(document)
-    #         if exif:
-    #             context_dict['exif_data'] = exif
-    #     except Exception:
-    #         logger.error("Exif extraction failed.")
-    #
-    # if request.user.is_authenticated:
-    #     if getattr(settings, 'FAVORITE_ENABLED', False):
-    #         from geonode.favorite.utils import get_favorite_info
-    #         context_dict["favorite_info"] = get_favorite_info(request.user, document)
+        # if getattr(settings, 'EXIF_ENABLED', False):
+        #     try:
+        #         from geonode.documents.exif.utils import exif_extract_dict
+        #         exif = exif_extract_dict(document)
+        #         if exif:
+        #             context_dict['exif_data'] = exif
+        #     except Exception:
+        #         logger.error("Exif extraction failed.")
+        #
+        # if request.user.is_authenticated:
+        #     if getattr(settings, 'FAVORITE_ENABLED', False):
+        #         from geonode.favorite.utils import get_favorite_info
+        #         context_dict["favorite_info"] = get_favorite_info(request.user, document)
 
-    register_event(request, EventType.EVENT_VIEW, document)
+        register_event(request, EventType.EVENT_VIEW, document)
 
-    return render(
-        request,
-        "georeference/split_interface.html",
-        context=context_dict)
+        return render(
+            request,
+            "georeference/split_interface.html",
+            context=context_dict)
 
-def trim_interface(request, docid):
+    def post(self, request, docid):
 
-    pass
+        document = _resolve_document_complete(request, docid)
 
-def run_trimming(request, docid):
 
-    pass
-
-def georeference_interface(request, docid):
-    """
-    The view that presents the image chopping interface.
-    """
-
-    document = _resolve_document_complete(request, docid)
-    if not isinstance(document, Document):
-        return document
-
-    try:
-        gcp_group = GCPGroup.objects.get(document=document)
-        existing_anno = gcp_group.as_annotation
-        existing_anno_txt = json.dumps(existing_anno, indent=1)
-        incoming_gcps = gcp_group.as_geojson
-
-    except GCPGroup.DoesNotExist:
-        gcp_group, existing_anno, existing_anno_txt = None, None, None
-        incoming_gcps = None
-
-    # get the iiif info for the document file
-    base = settings.SITEURL.rstrip("/")
-    iiif_info_url = base + reverse('document_info', args=(document.id,))
-    iiif_manifest_url = base + reverse('document_manifest', args=(document.id,))
-    download_url = base + reverse('document_download', args=(document.id,))
-
-    permission_manager = ManageResourceOwnerPermissions(document)
-    permission_manager.set_owner_permissions_according_to_workflow()
-
-    # Call this first in order to be sure "perms_list" is correct
-    permissions_json = _perms_info_json(document)
-
-    im_rgb = Image.open(document.doc_file)
-    width, height = im_rgb.size
-
-    username = request.user.username
-    if username == "":
-        username = "<anonymous>"
-
-    georeference_url = base + reverse('run_georeferencing', kwargs={"docid": docid})
-
-    preview_layer = mapserver_add_layer(get_path_variant(document.doc_file.path, "VRT"))
-
-    # placeholders to be refactored/set elsewhere
-    map_center = [-10291143, 3673446] # could be replaced with region extent
-
-    svelte_params = {
-        "IMG_WIDTH": width,
-        "IMG_HEIGHT": height,
-        "DOC_URL": download_url,
-        "DOC_ID": docid,
-        "CSRFTOKEN": csrf.get_token(request),
-        "USERNAME": username,
-        "SUBMIT_URL": georeference_url,
-        "MAP_CENTER": map_center,
-        "INCOMING_GCPS": incoming_gcps,
-        "MAPSERVER_ENDPOINT": settings.MAPSERVER_ENDPOINT,
-        "MAPSERVER_LAYERNAME": preview_layer,
-        "MAPBOX_API_KEY": settings.MAPBOX_API_KEY,
-    }
-
-    context_dict = {
-        'resource': document,
-        'svelte_params': svelte_params,
-        'permissions_json': permissions_json,
-        'iiif_info_url': iiif_info_url,
-        'iiif_manifest_url': iiif_manifest_url,
-        'download_url': download_url,
-        'existing_anno': existing_anno,
-        'existing_anno_txt': existing_anno_txt,
-    }
-
-    return render(
-        request,
-        "georeference/georeference_interface.html",
-        context=context_dict)
-
-def run_georeferencing(request, docid):
-
-    if request.body:
         body = json.loads(request.body)
-    else:
-        return JsonResponse({
-            "status": "error",
-            "message": "not enough information."
-        })
+        cut_lines = body.get("lines", [])
 
-    docid = body.get("docid")
-    document = _resolve_document_complete(request, docid)
-    if not isinstance(document, Document):
-        return document
+        dryrun = body.get("dryrun", False)
 
-    gcp_geojson = body.get("gcp_geojson", {})
-    transformation = body.get("transformation", "poly")
+        splitter = DocumentSplitter(document=document)
+        divs = splitter.generate_divisions(cut_lines)
 
-    # prepare Georeferencer object
-    g = Georeferencer(epsg_code=3857)
-    g.load_gcps_from_geojson(gcp_geojson)
-    g.set_transformation(transformation)
+        if dryrun is True:
+            return JsonResponse({"success": True, "polygons": divs})
 
-    # determine whether this is change to GCPs during editing or it's the
-    # completion of the georeferencing process.
-    preview = body.get("preview_only", False)
-    operation = body.get("operation", "preview")
+        res = split_image_as_task.apply_async((docid, cut_lines, request.user.pk), queue="update")
 
-    response = {
-        "status": "",
-        "message": ""
-    }
-    print(operation)
+        redirect_url = reverse('document_detail', kwargs={'docid': docid}) + "#georeference"
 
-    # if preview mode, modify/create the vrt for this map
-    if operation == "preview":
+        return JsonResponse({"success":True, "redirect_to": redirect_url})
+
+
+class TrimView(View):
+
+    def get(self, request):
+        pass
+
+    def post(self, request):
+        pass
+
+class GeoreferenceView(View):
+
+    def get(self, request, docid):
+        """
+        Returns the georeferencing interface for this document.
+        """
+
+        document = _resolve_document_complete(request, docid)
+        if not isinstance(document, Document):
+            return document
 
         try:
-            print("1")
-            out_path = g.georeference(
-                document.doc_file.path,
-                out_format="VRT",
-            )
-            print(2)
+            gcp_group = GCPGroup.objects.get(document=document)
+            existing_anno = gcp_group.as_annotation
+            existing_anno_txt = json.dumps(existing_anno, indent=1)
+            incoming_gcps = gcp_group.as_geojson
+
+        except GCPGroup.DoesNotExist:
+            gcp_group, existing_anno, existing_anno_txt = None, None, None
+            incoming_gcps = None
+
+        # get the iiif info for the document file
+        base = settings.SITEURL.rstrip("/")
+        iiif_info_url = base + reverse('document_info', args=(document.id,))
+        iiif_manifest_url = base + reverse('document_manifest', args=(document.id,))
+        download_url = base + reverse('document_download', args=(document.id,))
+
+        permission_manager = ManageResourceOwnerPermissions(document)
+        permission_manager.set_owner_permissions_according_to_workflow()
+
+        # Call this first in order to be sure "perms_list" is correct
+        permissions_json = _perms_info_json(document)
+
+        im_rgb = Image.open(document.doc_file)
+        width, height = im_rgb.size
+
+        username = request.user.username
+        if username == "":
+            username = "<anonymous>"
+
+        georeference_url = base + reverse('georeference_view', kwargs={"docid": docid})
+
+        preview_layer = mapserver_add_layer(get_path_variant(document.doc_file.path, "VRT"))
+
+        # placeholders to be refactored/set elsewhere
+        map_center = [-10291143, 3673446] # could be replaced with region extent
+
+        svelte_params = {
+            "IMG_WIDTH": width,
+            "IMG_HEIGHT": height,
+            "DOC_URL": download_url,
+            "DOC_ID": docid,
+            "CSRFTOKEN": csrf.get_token(request),
+            "USERNAME": username,
+            "SUBMIT_URL": georeference_url,
+            "MAP_CENTER": map_center,
+            "INCOMING_GCPS": incoming_gcps,
+            "MAPSERVER_ENDPOINT": settings.MAPSERVER_ENDPOINT,
+            "MAPSERVER_LAYERNAME": preview_layer,
+            "MAPBOX_API_KEY": settings.MAPBOX_API_KEY,
+        }
+
+        context_dict = {
+            'resource': document,
+            'svelte_params': svelte_params,
+            'permissions_json': permissions_json,
+            'iiif_info_url': iiif_info_url,
+            'iiif_manifest_url': iiif_manifest_url,
+            'download_url': download_url,
+            'existing_anno': existing_anno,
+            'existing_anno_txt': existing_anno_txt,
+        }
+
+        return render(
+            request,
+            "georeference/georeference_interface.html",
+            context=context_dict)
+
+    def post(self, request, docid):
+        """
+        Runs the georeferencing process for this document.
+        """
+
+        if request.body:
+            body = json.loads(request.body)
+        else:
+            return JsonResponse({
+                "status": "error",
+                "message": "not enough information."
+            })
+
+        docid = body.get("docid")
+        document = _resolve_document_complete(request, docid)
+        if not isinstance(document, Document):
+            return document
+
+        gcp_geojson = body.get("gcp_geojson", {})
+        transformation = body.get("transformation", "poly")
+
+        # prepare Georeferencer object
+        g = Georeferencer(epsg_code=3857)
+        g.load_gcps_from_geojson(gcp_geojson)
+        g.set_transformation(transformation)
+
+        # determine whether this is change to GCPs during editing or it's the
+        # completion of the georeferencing process.
+        preview = body.get("preview_only", False)
+        operation = body.get("operation", "preview")
+
+        response = {
+            "status": "",
+            "message": ""
+        }
+
+        # if preview mode, modify/create the vrt for this map
+        if operation == "preview":
+
+            try:
+                print("1")
+                out_path = g.georeference(
+                    document.doc_file.path,
+                    out_format="VRT",
+                )
+                print(2)
+                response["status"] = "success"
+                response["message"] = "all good"
+            except Exception as e:
+                print("exception caught")
+                print(e)
+                response["status"] = "fail"
+                response["message"] = str(e)
+
+        # if submission, save updated/new GCPs, run warp to create GeoTiff.
+        # register Layer here from GeoTiff?
+        # return url redirect location to original document???
+        elif operation == "submit":
+
+            gcp_group = GCPGroup().save_from_geojson(gcp_geojson, document)
+
+            response = {}
+            try:
+                out_path = g.georeference(
+                    document.doc_file.path,
+                    out_format="GTIff",
+                )
+                response["status"] = "success"
+                response["message"] = "all good"
+            except Exception as e:
+                response["status"] = "fail"
+                response["message"] = str(e)
+
+            mapserver_remove_layer(document.doc_file.path)
+
             response["status"] = "success"
             response["message"] = "all good"
-        except Exception as e:
-            print("exception caught")
-            print(e)
-            response["status"] = "fail"
-            response["message"] = str(e)
 
-    # if submission, save updated/new GCPs, run warp to create GeoTiff.
-    # register Layer here from GeoTiff?
-    # return url redirect location to original document???
-    elif operation == "submit":
+        elif operation == "cleanup":
 
-        gcp_group = GCPGroup().save_from_geojson(gcp_geojson, document)
+            mapserver_remove_layer(document.doc_file.path)
 
-        response = {}
-        try:
-            out_path = g.georeference(
-                document.doc_file.path,
-                out_format="GTIff",
-            )
             response["status"] = "success"
             response["message"] = "all good"
-        except Exception as e:
-            response["status"] = "fail"
-            response["message"] = str(e)
 
-        mapserver_remove_layer(document.doc_file.path)
-
-        response["status"] = "success"
-        response["message"] = "all good"
-
-    elif operation == "cleanup":
-
-        mapserver_remove_layer(document.doc_file.path)
-
-        response["status"] = "success"
-        response["message"] = "all good"
-
-    return JsonResponse(response)
+        return JsonResponse(response)
 
 def iiif2_endpoint(request, docid, iiif_object_requested):
     """ create a iiif v2 manifest, canvas, resource, or info.json object for a
