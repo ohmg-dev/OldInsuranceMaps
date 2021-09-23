@@ -5,7 +5,7 @@ import Split from "../../../georeference/components/src/Split.svelte";
 export let STATE_CHOICES;
 export let CITY_QUERY_URL;
 
-const cityDefault = "Select a City";
+const cityDefault = "Select a city";
 
 let currentState = "louisiana";
 
@@ -93,7 +93,7 @@ $: updateVolumeList(currentCity);
 				<h3>Volumes available for {currentCity}:</h3>
 					<ul>
 					{#each volumes as volume}
-						<li>{volume.fields.year} {#if volume.fields.volume_no}vol. {volume.fields.volume_no}{/if} | {volume.fields.city}, {volume.fields.county_equivalent} | {volume.fields.sheet_ct} sheet{#if volume.fields.sheet_ct != 1}s{/if}</li>
+						<li>{volume.fields.year} {#if volume.fields.volume_no}(vol. {volume.fields.volume_no}){/if} | {volume.fields.city}, {volume.fields.county_equivalent} | {volume.fields.sheet_ct} sheet{#if volume.fields.sheet_ct != 1}s{/if}</li>
 					{/each}
 					</ul>
 				{:else}

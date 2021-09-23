@@ -192,12 +192,11 @@ class SimpleAPI(View):
                 )
 
                 ## generate queryset from the list of new volumes
-                volumes = Volume.objects.filter(pk__in=[i.identifier for i in new_volumes]).order_by("year")
-        
-            # volumes_data = volumes.values_list(("identifier", "city", "state", "year", "volume_no", "sheet_ct"))
-            data = serializers.serialize('json', volumes)
+                volumes = Volume.objects.filter(pk__in=[i.identifier for i in new_volumes])
+
+            ordered = volumes.order_by("year", "volume_no")
+            data = serializers.serialize('json', ordered)
             return HttpResponse(data, content_type='application/json')
         
         else:
-
             return JsonResponse({})
