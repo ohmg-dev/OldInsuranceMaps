@@ -11,10 +11,11 @@ from django.urls import reverse
 from django.template import loader
 from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonResponse
 from django.utils.translation import ugettext as _
-from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.core.exceptions import NON_FIELD_ERRORS, PermissionDenied, ObjectDoesNotExist
 from django.core import serializers
 
 from geonode.base.utils import ManageResourceOwnerPermissions
+from geonode.base.models import Region
 from geonode.utils import resolve_object, build_social_links
 from geonode.security.views import _perms_info_json
 from geonode.documents.models import Document
@@ -26,6 +27,7 @@ from geonode.monitoring import register_event
 from geonode.monitoring.models import EventType
 
 from .models import Volume, Sheet
+from .utils import parsers
 from .utils.importer import Importer
 from .api import APIConnection
 
@@ -188,38 +190,33 @@ class VolumeDetail(View):
 class SimpleAPI(View):
 
     def get(self, request):
-
         qtype = request.GET.get("t", None)
         state = request.GET.get("s", None)
         city = request.GET.get("c", None)
 
         i = Importer(delay=0, verbose=True)
 
-        ## this is not implemented, but would ultimately return a list of all
-        ## cities with volumes in this state
+        ## returns a list of all cities with volumes in this state
         if qtype == "cities":
-
             city_list = i.get_city_list_by_state(state)
+            missing = []
+            for i in city_list:
+                try:
+                    reg = Region.objects.get(name__iexact=i[0])
+                except Region.DoesNotExist:
+                    missing.append(i)
 
             return JsonResponse(city_list, safe=False)
 
         ## return a list of all volumes in a city
         elif qtype == "volumes":
 
-            volumes = Volume.objects.filter(city=city, state=state).order_by("year")
+            city = parsers.unsanitize_name(state, city)
+            volumes = i.get_volume_list_by_city(city, state)
+            # for volume in volumes:
+            #     volume["url"] = reverse("volume_summary", args=(volume["identifier"],))
 
-            if len(volumes) == 0:
-                new_volumes = i.import_volumes(
-                    state=state,
-                    city=city,
-                )
-
-                ## generate queryset from the list of new volumes
-                volumes = Volume.objects.filter(pk__in=[i.identifier for i in new_volumes])
-
-            ordered = volumes.order_by("year", "volume_no")
-            data = serializers.serialize('json', ordered)
-            return HttpResponse(data, content_type='application/json')
+            return JsonResponse(volumes, safe=False)
         
         else:
             return JsonResponse({})

@@ -2,7 +2,33 @@ import os
 import pytz
 from datetime import datetime
 
+from geonode.base.models import Region
+
 from .enumerations import STATE_CHOICES, MONTH_LOOKUP
+
+CITY_NAME_MISSPELLINGS = {
+    "louisiana": {
+        "Jeannerette": "Jeanerette",
+        "De Quincy": "DeQuincy",
+        "De Ridder": "DeRidder",
+        "Keatchie": "Keachi",
+        "Saint Rose": "St. Rose",
+        "Saint Martinville": "St. Martinville",
+        "Saint Francisville": "St. Francisville",
+    },
+}
+
+def unsanitize_name(state, name):
+    """must 'uncorrect' names from the interface which need to be passed to 
+    the LC api. For example, in the LC database there is De Quincy, which
+    should be DeQuincy. The input search term here may be DeQuincy, but it
+    must be changed to De Quincy for the search to work properly."""
+
+    lookup = CITY_NAME_MISSPELLINGS.get(state.lower(), {})
+
+    rev = {v: k for k, v in lookup.items()}
+
+    return rev.get(name, name)
 
 def full_capitalize(in_str):
     return " ".join([i.capitalize() for i in in_str.split(" ")])
@@ -10,9 +36,16 @@ def full_capitalize(in_str):
 def parse_item_identifier(item):
     return item["id"].rstrip("/").split("/")[-1]
 
-def parse_location_info(item):
+def parse_sheet_count(item):
+    sheet_ct = None
+    if len(item["resources"]) > 0:
+        sheet_ct = item["resources"][0]["files"]
 
-    info = {"city": None, "county_equivalent": None, "state": None}
+    return sheet_ct
+
+def parse_location_info(item, include_regions=False):
+
+    city, county_eq, state = None, None, None
 
     # collect all location tags into a list.
     # handle the fact that sometimes each location tag is a dictionary like
@@ -35,7 +68,7 @@ def parse_location_info(item):
     state_names = [i[1] for i in STATE_CHOICES]
     state_seg = title_segs[-1]
     if state_seg in state_names:
-        info["state"] = state_seg.lower()
+        state = state_seg.lower()
         # remove the location tag for the state
         for lt in location_tags:
             if lt == state_seg.lower():
@@ -47,15 +80,19 @@ def parse_location_info(item):
     # get city
     location_tags = [i for i in location_tags if not i in used_tags]
     city_seg = title_segs[0]
+    misspellings = CITY_NAME_MISSPELLINGS.get(state, {})
+    if city_seg in misspellings:
+        city = misspellings[city_seg]
+    else:
+        city = city_seg
     for lt in location_tags:
         if lt == city_seg.lower():
-            info["city"] = city_seg
             used_tags.append(lt)
 
     location_tags = [i for i in location_tags if not i in used_tags]
     # find the county/parish and remove that from the tag list
     county_seg = None
-    c_terms = ["county", "counties", "parish", "parishes"]
+    c_terms = ["county", "counties", "parish", "parishes", "census division"]
     for seg in title_segs:
         for t in c_terms:
             if t in seg.lower():
@@ -65,10 +102,10 @@ def parse_location_info(item):
         for lt in location_tags:
             for ct in c_terms:
                 if ct in lt.lower():
-                    info["county_equivalent"] = full_capitalize(lt)
+                    county_eq = full_capitalize(lt)
                     used_tags.append(lt)
     else:
-        info["county_equivalent"] = county_seg
+        county_eq = county_seg
         for lt in location_tags:
             if lt in county_seg.lower():
                 used_tags.append(lt)
@@ -78,6 +115,24 @@ def parse_location_info(item):
     if len(location_tags) > 0:
         msg = f"WARNING: unparsed location tags - {item['id']} - {title} - {location_tags}"
         print(msg)
+    
+    info = {
+        "city": city,
+        "county_equivalent": county_eq,
+        "state": state,
+        "extra": location_tags,
+    }
+
+    ## collect region objects. This should be combined to a single db call, but you 
+    ## can't combine __iexact and __in, so not sure how to do this...
+    if include_regions is True:
+        regions = []
+        regions += list(Region.objects.filter(name__iexact=city))
+        regions += list(Region.objects.filter(name__iexact=county_eq))
+        regions += list(Region.objects.filter(name__iexact=state))
+        for tag in location_tags:
+            regions += list(Region.objects.filter(name__iexact=tag))
+        info["regions"] = regions
 
     return info
 
@@ -113,7 +168,7 @@ def parse_volume_number(item):
     if "vol." in created_published:
         a = created_published.split("vol.")[1]
         b = a.lstrip(" ").split(" ")
-        volume_no = b[0]
+        volume_no = b[0].rstrip(",")
     
     return volume_no
 

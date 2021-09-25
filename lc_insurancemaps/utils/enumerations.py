@@ -1,4 +1,4 @@
-YEAR_CHOICES = [(r,r) for r in range(1867, 1950)]
+YEAR_CHOICES = [(r,r) for r in range(1867, 1970)]
 MONTH_CHOICES = [
     ("JAN.", "JAN."),
     ("FEB.", "FEB."),

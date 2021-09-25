@@ -20,7 +20,7 @@ from django.contrib.auth.models import Group
 from django.core.files import File
 from django.utils.safestring import mark_safe
 
-from geonode.base.models import License, Link, resourcebase_post_save
+from geonode.base.models import Region, License, Link, resourcebase_post_save
 from geonode.documents.models import (
     Document,
     pre_save_document,
@@ -54,6 +54,10 @@ def format_json_display(data):
     return mark_safe(style + response)
 
 class Sheet(models.Model):
+    """Sheet serves mainly as a middle model between Volume and Document.
+    It can store fields (like sheet number) that could conceivably be
+    attached to the Document, but avoids the need for actually inheriting
+    that model (and all of the signals, etc. that come along with it)."""
 
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
     volume = models.ForeignKey("Volume", on_delete=models.CASCADE)
@@ -110,7 +114,6 @@ class Sheet(models.Model):
             doc.detail_url = doc.get_absolute_url()
             doc.save()
 
-
         return sheet
 
 
@@ -129,7 +132,12 @@ class Volume(models.Model):
     lc_manifest_url = models.CharField(max_length=200, null=True, blank=True,
         verbose_name="LC Manifest URL"
     )
-    # sheets = models.ManyToManyField(Sheet, blank=True)
+    regions = models.ManyToManyField(
+        Region,
+        null=True,
+        blank=True,
+    )
+    extra_location_tags = JSONField(null=True, blank=True, default=list)
     sheet_ct = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
@@ -150,14 +158,14 @@ class Volume(models.Model):
 
     lc_resources_formatted.short_description = 'LC Resources'
     
-    def create_from_lc_json(self, item, location_info=None):
+    def create_from_lc_json(self, item):
 
         identifier = parsers.parse_item_identifier(item)
 
-        if location_info is None:
-            location_info = parsers.parse_location_info(item)
+        location_info = parsers.parse_location_info(item, include_regions=True)
         date_info = parsers.parse_date_info(item)
         volume_no = parsers.parse_volume_number(item)
+        sheet_ct = parsers.parse_sheet_count(item)
 
         with transaction.atomic():
 
@@ -173,13 +181,24 @@ class Volume(models.Model):
             vol.year = date_info['year']
             vol.month = date_info['month']
             vol.volume_no = volume_no
+            vol.extra_location_tags = location_info['extra']
 
             vol.lc_manifest_url = f'{item["url"]}manifest.json'
             vol.lc_item = item
 
-            if len(item["resources"]) > 0:
-                vol.sheet_ct = item["resources"][0]["files"]
+            vol.sheet_ct = sheet_ct
 
             vol.save()
 
+            for r in location_info['regions']:
+                vol.regions.add(r)
+
         return vol
+
+    def to_json(self):
+
+        return {
+            "identifier": self.identifier,
+            "title": self.__str__(),
+            # etc
+        }

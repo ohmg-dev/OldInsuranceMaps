@@ -16,7 +16,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "operation",
-            choices=["import", "summarize", "clean"],
+            choices=["import", "summarize", "clean", "initialize-volume"],
             help="the identifier of the LoC resource to add",
         )
         parser.add_argument(
@@ -94,6 +94,13 @@ class Command(BaseCommand):
                 year=options["year"],
                 import_sheets=options["import_sheets"],
             )
+        
+        if options['operation'] == "initialize-volume":
+            i = Importer(
+                dry_run=options["dry_run"],
+                verbose=options["verbose"],
+            )
+            i.initialize_volume(options["identifier"])
 
         if options['operation'] == "summarize":
 

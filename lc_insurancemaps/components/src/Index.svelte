@@ -1,11 +1,9 @@
 <script>
-import { set_attributes } from "svelte/internal";
-import Split from "../../../georeference/components/src/Split.svelte";
-
 export let STATE_CHOICES;
 export let CITY_QUERY_URL;
+export let USER_TYPE;
 
-const cityDefault = "Select a city";
+const cityDefault = "Select a community";
 
 let currentState = "louisiana";
 
@@ -25,7 +23,6 @@ function updateCityList(state) {
 	})
 	.then(response => response.json())
 	.then(result => {
-
 		cityOptions = result;
 		currentCity = cityDefault;
 		loadingCities = false;
@@ -36,6 +33,7 @@ $: updateCityList(currentState);
 function updateVolumeList(city) {
 	let volumeUrl = `${CITY_QUERY_URL}?t=volumes&s=${currentState}&c=${city}`;
 	if (city != cityDefault && city != undefined)	{
+		console.log("getting volumes")
 		volumes = [];
 		loadingVolumes = true;
 		fetch(volumeUrl, {
@@ -45,7 +43,6 @@ function updateVolumeList(city) {
 		.then(result => {
 			volumes = result;
 			loadingVolumes = false;
-			console.log(volumes);
 		});
 	} else {
 		volumes = [];
@@ -66,21 +63,22 @@ $: updateVolumeList(currentCity);
 			<li>An interface and database configuration tailored specifically to the structure of this map series.</li>
 			<li>A suite of tools that allows users to split, trim, and georeference the maps.</li>
 		</ol>
+		<p><strong><em>The beta release only includes maps from Louisiana published before 1921.</em></strong></p>
 	</div>
-	<div class="pane" style="text-align: center;">
+	<div class="pane">
+		{USER_TYPE}
 		<div class="select-menus">
 			<div class="select-item">
 				<h3>Select a state</h3>
-				<em>only Louisiana avaiable in beta</em>
 				<select bind:value={currentState}>
 				{#each STATE_CHOICES as state}
-					<!-- <option value={state[0]} disabled={state[0] != "louisiana" or state[0] != "wisconsin"}>{state[1]}</option> -->
-					<option value={state[0]}>{state[1]}</option>
+					<option value={state[0]} disabled={state[0] != "louisiana"}>{state[1]}</option>
+					<!-- <option value={state[0]}>{state[1]}</option> -->
 				{/each}
 				</select>
 			</div>
 			<div class="select-item">
-				<h3>Which city are you interested in?</h3>
+				<h3>Which community are you interested in?</h3>
 				<select bind:value={currentCity} disabled={loadingCities}>
 					<option value={cityDefault} disabled>{cityDefault}</option>
 				{#each cityOptions as city}
@@ -91,9 +89,22 @@ $: updateVolumeList(currentCity);
 			<div class="select-item">
 				{#if volumes.length > 0 }
 				<h3>Volumes available for {currentCity}:</h3>
-					<ul>
+					<ul class="volume-list">
 					{#each volumes as volume}
-						<li>{volume.fields.year} {#if volume.fields.volume_no}(vol. {volume.fields.volume_no}){/if} | {volume.fields.city}, {volume.fields.county_equivalent} | {volume.fields.sheet_ct} sheet{#if volume.fields.sheet_ct != 1}s{/if}</li>
+						
+						<li>
+							{#if parseInt(volume.year) > 1920}
+								<span style="color:grey;">{volume.title}</span>
+							{:else if volume.started}
+								<a href="{volume.url}">{volume.title}</a>
+							{:else if USER_TYPE == "superuser"}
+								<a href="{volume.url}">{volume.title}</a>
+							{:else if USER_TYPE == "participant"}
+								{volume.title} <a href="{volume.url}">go!</a>
+							{:else}
+								<span style="color:grey;">{volume.title}</span>
+							{/if}
+						</li>
 					{/each}
 					</ul>
 				{:else}
@@ -172,6 +183,15 @@ $: updateVolumeList(currentCity);
 
 	select:disabled {
 		color: #acacac;
+	}
+
+	.volume-list {
+		list-style: none;
+		text-align: left;
+		padding: 0;
+	}
+
+	.volume-list li {
 	}
 
 	/* pure css loading bar */

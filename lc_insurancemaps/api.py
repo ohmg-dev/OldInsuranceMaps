@@ -6,6 +6,8 @@ import requests
 from datetime import datetime
 from django.conf import settings
 
+from .utils.parsers import CITY_NAME_MISSPELLINGS
+
 logger = logging.getLogger(__name__)
 
 class APIConnection(object):
