@@ -200,3 +200,32 @@ if 'lc_insurancemaps' in INSTALLED_APPS:
     STATICFILES_DIRS.append(os.path.join(os.path.dirname(LOCAL_ROOT), "lc_insurancemaps", "static"))
     STATICFILES_DIRS.append(os.path.join(os.path.dirname(LOCAL_ROOT), "lc_insurancemaps", "components", "public", "build"))
     TEMPLATES[0]['OPTIONS']['context_processors'].append('lc_insurancemaps.context_processors.lc_svelte_params')
+
+UPLOADER = {
+    'BACKEND': os.getenv('DEFAULT_BACKEND_UPLOADER', 'geonode.rest'),
+    'OPTIONS': {
+        'TIME_ENABLED': False,
+        'MOSAIC_ENABLED': True,
+    },
+    'SUPPORTED_CRS': [
+        'EPSG:4326',
+        'EPSG:3785',
+        'EPSG:3857',
+        'EPSG:32647',
+        'EPSG:32736'
+    ],
+    'SUPPORTED_EXT': [
+        '.shp',
+        '.csv',
+        '.kml',
+        '.kmz',
+        '.json',
+        '.geojson',
+        '.tif',
+        '.tiff',
+        '.geotiff',
+        '.gml',
+        '.xml',
+        '.vrt',
+    ]
+}
