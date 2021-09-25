@@ -1,0 +1,15 @@
+{% extends 'index.html' %}
+{% load markdownify %}
+{% load i18n %}
+{% load base_tags %}
+
+{% load django_svelte %}
+
+{% block hero%}
+<div class="container">
+  {% display_svelte "Volume.svelte" svelte_params %}
+</div>
+{% endblock hero %}
+
+{% block bigsearch %}{% endblock bigsearch %}
+{% block showcase %}{% endblock showcase %}

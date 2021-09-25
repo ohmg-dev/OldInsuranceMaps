@@ -162,6 +162,29 @@ def item_detail(request, docdoi, loc_type=None):
         template,
         context=context_dict)
 
+class VolumeDetail(View):
+
+    def get(self, request, volumeid):
+
+        try:
+            vol = Volume.objects.get(pk=volumeid)
+        except Volume.DoesNotExist:
+            i = Importer()
+            vol = i.import_volume(volumeid)
+            if vol is None:
+                raise Http404
+
+        context_dict = {
+            "svelte_params": {
+                "VOLUME": vol.to_json(),
+            }
+        }
+        return render(
+            request,
+            "lc/volume_summary.html",
+            context=context_dict
+        )
+
 class SimpleAPI(View):
 
     def get(self, request):
