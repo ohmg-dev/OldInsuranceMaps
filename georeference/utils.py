@@ -251,7 +251,7 @@ def document_as_iiif_manifest(document, canvas=None, iiif_server=False):
 
     return manifest
 
-## ~~ Geoserver VRT utilities NOT CURRENTLY IN USE ~~
+## ~~ Geoserver VRT utilities ~~
 from geonode.geoserver.helpers import OGC_Servers_Handler
 from geoserver.catalog import Catalog
 
@@ -304,7 +304,13 @@ def create_layer_from_vrt(vrt_path, workspace="geonode"):
 
     gs_layer = cat.get_layer(name)
     print(gs_layer)
-    return gs_layer
+
+    return {
+        "name": name,
+        "layer": gs_layer,
+        "workspace_name": workspace,
+        "store": store,
+    }
 
 ## ~~ Mapserver layer manipulation functions ~~
 
