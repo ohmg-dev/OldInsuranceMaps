@@ -1,0 +1,9388 @@
+[
+{
+ "model": "base.region",
+ "pk": 120000,
+ "fields": {
+  "code": "LA",
+  "name": "Louisiana",
+  "name_en": "Louisiana",
+  "parent": null,
+  "bbox_x0": "-94.043147000000005",
+  "bbox_x1": "-88.817017000000007",
+  "bbox_y0": "28.928609000000002",
+  "bbox_y1": "33.019457000000003",
+  "srid": "EPSG:4326",
+  "lft": 1,
+  "rght": 988,
+  "tree_id": 1,
+  "level": 0
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120001,
+ "fields": {
+  "code": "02403761",
+  "name": "Gretna",
+  "name_en": "Gretna",
+  "parent": 120000,
+  "bbox_x0": "-90.071672000000007",
+  "bbox_x1": "29.866468999999999",
+  "bbox_y0": "-90.037283000000002",
+  "bbox_y1": "29.945333999999999",
+  "srid": "EPSG:4326",
+  "lft": 382,
+  "rght": 383,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120002,
+ "fields": {
+  "code": "02406839",
+  "name": "Waterproof",
+  "name_en": "Waterproof",
+  "parent": 120000,
+  "bbox_x0": "-91.396750999999995",
+  "bbox_x1": "31.799772000000001",
+  "bbox_y0": "-91.370619000000005",
+  "bbox_y1": "31.813265999999999",
+  "srid": "EPSG:4326",
+  "lft": 952,
+  "rght": 953,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120003,
+ "fields": {
+  "code": "02407464",
+  "name": "Gilliam",
+  "name_en": "Gilliam",
+  "parent": 120000,
+  "bbox_x0": "-93.853543000000002",
+  "bbox_x1": "32.814872000000001",
+  "bbox_y0": "-93.828926999999993",
+  "bbox_y1": "32.840510000000002",
+  "srid": "EPSG:4326",
+  "lft": 344,
+  "rght": 345,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120004,
+ "fields": {
+  "code": "02407535",
+  "name": "Reeves",
+  "name_en": "Reeves",
+  "parent": 120000,
+  "bbox_x0": "-93.062325999999999",
+  "bbox_x1": "30.509948000000001",
+  "bbox_y0": "-93.029134999999997",
+  "bbox_y1": "30.531952000000000",
+  "srid": "EPSG:4326",
+  "lft": 774,
+  "rght": 775,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120005,
+ "fields": {
+  "code": "02406433",
+  "name": "Elizabeth",
+  "name_en": "Elizabeth",
+  "parent": 120000,
+  "bbox_x0": "-92.811082999999996",
+  "bbox_x1": "30.858224000000000",
+  "bbox_y0": "-92.783533000000006",
+  "bbox_y1": "30.881188999999999",
+  "srid": "EPSG:4326",
+  "lft": 274,
+  "rght": 275,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120006,
+ "fields": {
+  "code": "02407270",
+  "name": "St. Joseph",
+  "name_en": "St. Joseph",
+  "parent": 120000,
+  "bbox_x0": "-91.253005000000002",
+  "bbox_x1": "31.909205000000000",
+  "bbox_y0": "-91.227086999999997",
+  "bbox_y1": "31.930159000000000",
+  "srid": "EPSG:4326",
+  "lft": 872,
+  "rght": 873,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120007,
+ "fields": {
+  "code": "02407443",
+  "name": "Doyline",
+  "name_en": "Doyline",
+  "parent": 120000,
+  "bbox_x0": "-93.429505000000006",
+  "bbox_x1": "32.512777000000000",
+  "bbox_y0": "-93.394439000000006",
+  "bbox_y1": "32.537815000000002",
+  "srid": "EPSG:4326",
+  "lft": 248,
+  "rght": 249,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120008,
+ "fields": {
+  "code": "02407511",
+  "name": "Noble",
+  "name_en": "Noble",
+  "parent": 120000,
+  "bbox_x0": "-93.692075000000003",
+  "bbox_x1": "31.682487999999999",
+  "bbox_y0": "-93.674373000000003",
+  "bbox_y1": "31.697140999999998",
+  "srid": "EPSG:4326",
+  "lft": 664,
+  "rght": 665,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120009,
+ "fields": {
+  "code": "02403821",
+  "name": "Baton Rouge",
+  "name_en": "Baton Rouge",
+  "parent": 120000,
+  "bbox_x0": "-91.234904000000000",
+  "bbox_x1": "30.338408000000001",
+  "bbox_y0": "-91.001373999999998",
+  "bbox_y1": "30.558941000000001",
+  "srid": "EPSG:4326",
+  "lft": 54,
+  "rght": 55,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120010,
+ "fields": {
+  "code": "02407526",
+  "name": "Plaucheville",
+  "name_en": "Plaucheville",
+  "parent": 120000,
+  "bbox_x0": "-91.994026000000005",
+  "bbox_x1": "30.955642999999998",
+  "bbox_y0": "-91.973112999999998",
+  "bbox_y1": "30.973630000000000",
+  "srid": "EPSG:4326",
+  "lft": 726,
+  "rght": 727,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120011,
+ "fields": {
+  "code": "02407444",
+  "name": "Dry Prong",
+  "name_en": "Dry Prong",
+  "parent": 120000,
+  "bbox_x0": "-92.539488000000006",
+  "bbox_x1": "31.570611000000000",
+  "bbox_y0": "-92.518090999999998",
+  "bbox_y1": "31.592618999999999",
+  "srid": "EPSG:4326",
+  "lft": 250,
+  "rght": 251,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120012,
+ "fields": {
+  "code": "02406299",
+  "name": "Columbia",
+  "name_en": "Columbia",
+  "parent": 120000,
+  "bbox_x0": "-92.085414000000000",
+  "bbox_x1": "32.092889000000000",
+  "bbox_y0": "-92.064357999999999",
+  "bbox_y1": "32.111643000000001",
+  "srid": "EPSG:4326",
+  "lft": 192,
+  "rght": 193,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120013,
+ "fields": {
+  "code": "02407564",
+  "name": "Varnado",
+  "name_en": "Varnado",
+  "parent": 120000,
+  "bbox_x0": "-89.841340000000002",
+  "bbox_x1": "30.887060999999999",
+  "bbox_y0": "-89.821731000000000",
+  "bbox_y1": "30.910333999999999",
+  "srid": "EPSG:4326",
+  "lft": 920,
+  "rght": 921,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120014,
+ "fields": {
+  "code": "02407507",
+  "name": "Morse",
+  "name_en": "Morse",
+  "parent": 120000,
+  "bbox_x0": "-92.506703999999999",
+  "bbox_x1": "30.110593000000001",
+  "bbox_y0": "-92.489617999999993",
+  "bbox_y1": "30.132206000000000",
+  "srid": "EPSG:4326",
+  "lft": 634,
+  "rght": 635,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120015,
+ "fields": {
+  "code": "02407551",
+  "name": "South Mansfield",
+  "name_en": "South Mansfield",
+  "parent": 120000,
+  "bbox_x0": "-93.731246999999996",
+  "bbox_x1": "32.008732999999999",
+  "bbox_y0": "-93.709401000000000",
+  "bbox_y1": "32.027180000000001",
+  "srid": "EPSG:4326",
+  "lft": 846,
+  "rght": 847,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120016,
+ "fields": {
+  "code": "02407474",
+  "name": "Heflin",
+  "name_en": "Heflin",
+  "parent": 120000,
+  "bbox_x0": "-93.279623000000001",
+  "bbox_x1": "32.446480000000001",
+  "bbox_y0": "-93.254333000000003",
+  "bbox_y1": "32.468426000000001",
+  "srid": "EPSG:4326",
+  "lft": 408,
+  "rght": 409,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120017,
+ "fields": {
+  "code": "02406260",
+  "name": "Cheneyville",
+  "name_en": "Cheneyville",
+  "parent": 120000,
+  "bbox_x0": "-92.303129999999996",
+  "bbox_x1": "31.003290000000000",
+  "bbox_y0": "-92.276096999999993",
+  "bbox_y1": "31.023721999999999",
+  "srid": "EPSG:4326",
+  "lft": 170,
+  "rght": 171,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120018,
+ "fields": {
+  "code": "02403899",
+  "name": "Bossier City",
+  "name_en": "Bossier City",
+  "parent": 120000,
+  "bbox_x0": "-93.744992999999994",
+  "bbox_x1": "32.419867000000004",
+  "bbox_y0": "-93.584334999999996",
+  "bbox_y1": "32.596783000000002",
+  "srid": "EPSG:4326",
+  "lft": 102,
+  "rght": 103,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120019,
+ "fields": {
+  "code": "02405891",
+  "name": "Iota",
+  "name_en": "Iota",
+  "parent": 120000,
+  "bbox_x0": "-92.503330000000005",
+  "bbox_x1": "30.315645000000000",
+  "bbox_y0": "-92.487379000000004",
+  "bbox_y1": "30.336900000000000",
+  "srid": "EPSG:4326",
+  "lft": 434,
+  "rght": 435,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120020,
+ "fields": {
+  "code": "02406006",
+  "name": "Leonville",
+  "name_en": "Leonville",
+  "parent": 120000,
+  "bbox_x0": "-91.999177000000003",
+  "bbox_x1": "30.453085000000002",
+  "bbox_y0": "-91.965185000000005",
+  "bbox_y1": "30.480629000000000",
+  "srid": "EPSG:4326",
+  "lft": 516,
+  "rght": 517,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120021,
+ "fields": {
+  "code": "02407521",
+  "name": "Pine Prairie",
+  "name_en": "Pine Prairie",
+  "parent": 120000,
+  "bbox_x0": "-92.436087999999998",
+  "bbox_x1": "30.769985999999999",
+  "bbox_y0": "-92.406942000000001",
+  "bbox_y1": "30.790102000000001",
+  "srid": "EPSG:4326",
+  "lft": 714,
+  "rght": 715,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120022,
+ "fields": {
+  "code": "02586698",
+  "name": "Oretta",
+  "name_en": "Oretta",
+  "parent": 120000,
+  "bbox_x0": "-93.455000999999996",
+  "bbox_x1": "30.519355000000001",
+  "bbox_y0": "-93.422939000000000",
+  "bbox_y1": "30.540669000000001",
+  "srid": "EPSG:4326",
+  "lft": 692,
+  "rght": 693,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120023,
+ "fields": {
+  "code": "02804662",
+  "name": "Delacroix",
+  "name_en": "Delacroix",
+  "parent": 120000,
+  "bbox_x0": "-89.791991999999993",
+  "bbox_x1": "29.757086999999999",
+  "bbox_y0": "-89.781706999999997",
+  "bbox_y1": "29.774998000000000",
+  "srid": "EPSG:4326",
+  "lft": 218,
+  "rght": 219,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120024,
+ "fields": {
+  "code": "02805372",
+  "name": "Trout",
+  "name_en": "Trout",
+  "parent": 120000,
+  "bbox_x0": "-92.183308999999994",
+  "bbox_x1": "31.694533000000000",
+  "bbox_y0": "-92.176687999999999",
+  "bbox_y1": "31.699093999999999",
+  "srid": "EPSG:4326",
+  "lft": 910,
+  "rght": 911,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120025,
+ "fields": {
+  "code": "02407468",
+  "name": "Grand Cane",
+  "name_en": "Grand Cane",
+  "parent": 120000,
+  "bbox_x0": "-93.820273999999998",
+  "bbox_x1": "32.073202999999999",
+  "bbox_y0": "-93.797347000000002",
+  "bbox_y1": "32.094237000000000",
+  "srid": "EPSG:4326",
+  "lft": 366,
+  "rght": 367,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120026,
+ "fields": {
+  "code": "02403328",
+  "name": "Natalbany",
+  "name_en": "Natalbany",
+  "parent": 120000,
+  "bbox_x0": "-90.504338000000004",
+  "bbox_x1": "30.524539999999998",
+  "bbox_y0": "-90.461748000000000",
+  "bbox_y1": "30.563071999999998",
+  "srid": "EPSG:4326",
+  "lft": 644,
+  "rght": 645,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120027,
+ "fields": {
+  "code": "02407509",
+  "name": "Napoleonville",
+  "name_en": "Napoleonville",
+  "parent": 120000,
+  "bbox_x0": "-91.030682999999996",
+  "bbox_x1": "29.933637999999998",
+  "bbox_y0": "-91.021491999999995",
+  "bbox_y1": "29.942610999999999",
+  "srid": "EPSG:4326",
+  "lft": 642,
+  "rght": 643,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120028,
+ "fields": {
+  "code": "02405922",
+  "name": "Jonesville",
+  "name_en": "Jonesville",
+  "parent": 120000,
+  "bbox_x0": "-91.850038999999995",
+  "bbox_x1": "31.611899999999999",
+  "bbox_y0": "-91.809904000000003",
+  "bbox_y1": "31.632771000000002",
+  "srid": "EPSG:4326",
+  "lft": 454,
+  "rght": 455,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120029,
+ "fields": {
+  "code": "02407491",
+  "name": "Lisbon",
+  "name_en": "Lisbon",
+  "parent": 120000,
+  "bbox_x0": "-92.914737000000002",
+  "bbox_x1": "32.758451999999998",
+  "bbox_y0": "-92.828135000000003",
+  "bbox_y1": "32.811532999999997",
+  "srid": "EPSG:4326",
+  "lft": 522,
+  "rght": 523,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120030,
+ "fields": {
+  "code": "00545142",
+  "name": "New Orleans",
+  "name_en": "New Orleans",
+  "parent": 120000,
+  "bbox_x0": "-90.140073999999998",
+  "bbox_x1": "29.866661000000001",
+  "bbox_y0": "-89.625522096454304",
+  "bbox_y1": "30.198660000000000",
+  "srid": "EPSG:4326",
+  "lft": 656,
+  "rght": 657,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120031,
+ "fields": {
+  "code": "02406074",
+  "name": "Madisonville",
+  "name_en": "Madisonville",
+  "parent": 120000,
+  "bbox_x0": "-90.180898999999997",
+  "bbox_x1": "30.377828000000001",
+  "bbox_y0": "-90.152844999999999",
+  "bbox_y1": "30.420000000000002",
+  "srid": "EPSG:4326",
+  "lft": 550,
+  "rght": 551,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120032,
+ "fields": {
+  "code": "02405470",
+  "name": "Slidell",
+  "name_en": "Slidell",
+  "parent": 120000,
+  "bbox_x0": "-89.838020999999998",
+  "bbox_x1": "30.217058999999999",
+  "bbox_y0": "-89.723304999999996",
+  "bbox_y1": "30.358100000000000",
+  "srid": "EPSG:4326",
+  "lft": 840,
+  "rght": 841,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120033,
+ "fields": {
+  "code": "02406446",
+  "name": "Elton",
+  "name_en": "Elton",
+  "parent": 120000,
+  "bbox_x0": "-92.714398000000003",
+  "bbox_x1": "30.474322999999998",
+  "bbox_y0": "-92.679559999999995",
+  "bbox_y1": "30.488367000000000",
+  "srid": "EPSG:4326",
+  "lft": 278,
+  "rght": 279,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120034,
+ "fields": {
+  "code": "02407422",
+  "name": "Bonita",
+  "name_en": "Bonita",
+  "parent": 120000,
+  "bbox_x0": "-91.684217000000004",
+  "bbox_x1": "32.911293000000001",
+  "bbox_y0": "-91.665822000000006",
+  "bbox_y1": "32.929955999999997",
+  "srid": "EPSG:4326",
+  "lft": 96,
+  "rght": 97,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120035,
+ "fields": {
+  "code": "02406497",
+  "name": "Ferriday",
+  "name_en": "Ferriday",
+  "parent": 120000,
+  "bbox_x0": "-91.569168000000005",
+  "bbox_x1": "31.616554000000001",
+  "bbox_y0": "-91.545319000000006",
+  "bbox_y1": "31.655263999999999",
+  "srid": "EPSG:4326",
+  "lft": 302,
+  "rght": 303,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120036,
+ "fields": {
+  "code": "02805370",
+  "name": "Morrow",
+  "name_en": "Morrow",
+  "parent": 120000,
+  "bbox_x0": "-92.092495000000000",
+  "bbox_x1": "30.820886999999999",
+  "bbox_y0": "-92.070905999999994",
+  "bbox_y1": "30.839283999999999",
+  "srid": "EPSG:4326",
+  "lft": 632,
+  "rght": 633,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120037,
+ "fields": {
+  "code": "02407571",
+  "name": "Wilson",
+  "name_en": "Wilson",
+  "parent": 120000,
+  "bbox_x0": "-91.125943000000007",
+  "bbox_x1": "30.912269999999999",
+  "bbox_y0": "-91.092511000000002",
+  "bbox_y1": "30.938417000000001",
+  "srid": "EPSG:4326",
+  "lft": 970,
+  "rght": 971,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120038,
+ "fields": {
+  "code": "02405432",
+  "name": "Scott",
+  "name_en": "Scott",
+  "parent": 120000,
+  "bbox_x0": "-92.141993999999997",
+  "bbox_x1": "30.181571999999999",
+  "bbox_y0": "-92.042961000000005",
+  "bbox_y1": "30.290506000000001",
+  "srid": "EPSG:4326",
+  "lft": 814,
+  "rght": 815,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120039,
+ "fields": {
+  "code": "02407440",
+  "name": "Dixie Inn",
+  "name_en": "Dixie Inn",
+  "parent": 120000,
+  "bbox_x0": "-93.346998999999997",
+  "bbox_x1": "32.588445000000000",
+  "bbox_y0": "-93.318944000000002",
+  "bbox_y1": "32.607010000000002",
+  "srid": "EPSG:4326",
+  "lft": 238,
+  "rght": 239,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120040,
+ "fields": {
+  "code": "02407332",
+  "name": "Sibley",
+  "name_en": "Sibley",
+  "parent": 120000,
+  "bbox_x0": "-93.310364000000007",
+  "bbox_x1": "32.522395000000003",
+  "bbox_y0": "-93.279831000000001",
+  "bbox_y1": "32.559032999999999",
+  "srid": "EPSG:4326",
+  "lft": 822,
+  "rght": 823,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120041,
+ "fields": {
+  "code": "02407446",
+  "name": "East Hodge",
+  "name_en": "East Hodge",
+  "parent": 120000,
+  "bbox_x0": "-92.718738999999999",
+  "bbox_x1": "32.272629999999999",
+  "bbox_y0": "-92.707080000000005",
+  "bbox_y1": "32.281288000000004",
+  "srid": "EPSG:4326",
+  "lft": 260,
+  "rght": 261,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120042,
+ "fields": {
+  "code": "02407418",
+  "name": "Bienville",
+  "name_en": "Bienville",
+  "parent": 120000,
+  "bbox_x0": "-92.998801999999998",
+  "bbox_x1": "32.308418000000003",
+  "bbox_y0": "-92.962925999999996",
+  "bbox_y1": "32.402572999999997",
+  "srid": "EPSG:4326",
+  "lft": 90,
+  "rght": 91,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120043,
+ "fields": {
+  "code": "02406207",
+  "name": "Mount Lebanon",
+  "name_en": "Mount Lebanon",
+  "parent": 120000,
+  "bbox_x0": "-93.067762000000002",
+  "bbox_x1": "32.490673999999999",
+  "bbox_y0": "-93.032477999999998",
+  "bbox_y1": "32.519765000000000",
+  "srid": "EPSG:4326",
+  "lft": 640,
+  "rght": 641,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120044,
+ "fields": {
+  "code": "02406598",
+  "name": "Grand Coteau",
+  "name_en": "Grand Coteau",
+  "parent": 120000,
+  "bbox_x0": "-92.059117000000001",
+  "bbox_x1": "30.395534999999999",
+  "bbox_y0": "-92.031091000000004",
+  "bbox_y1": "30.431960000000000",
+  "srid": "EPSG:4326",
+  "lft": 368,
+  "rght": 369,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120045,
+ "fields": {
+  "code": "02404525",
+  "name": "Pineville",
+  "name_en": "Pineville",
+  "parent": 120000,
+  "bbox_x0": "-92.453856999999999",
+  "bbox_x1": "31.302582000000001",
+  "bbox_y0": "-92.356528999999995",
+  "bbox_y1": "31.391652000000001",
+  "srid": "EPSG:4326",
+  "lft": 716,
+  "rght": 717,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120046,
+ "fields": {
+  "code": "02407455",
+  "name": "Florien",
+  "name_en": "Florien",
+  "parent": 120000,
+  "bbox_x0": "-93.472104000000002",
+  "bbox_x1": "31.417045999999999",
+  "bbox_y0": "-93.449470000000005",
+  "bbox_y1": "31.471093000000000",
+  "srid": "EPSG:4326",
+  "lft": 308,
+  "rght": 309,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120047,
+ "fields": {
+  "code": "02804549",
+  "name": "Rio",
+  "name_en": "Rio",
+  "parent": 120000,
+  "bbox_x0": "-89.905193999999995",
+  "bbox_x1": "30.681352000000000",
+  "bbox_y0": "-89.876879000000002",
+  "bbox_y1": "30.698715000000000",
+  "srid": "EPSG:4326",
+  "lft": 786,
+  "rght": 787,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120048,
+ "fields": {
+  "code": "02583528",
+  "name": "Bayou Country Club",
+  "name_en": "Bayou Country Club",
+  "parent": 120000,
+  "bbox_x0": "-90.798502999999997",
+  "bbox_x1": "29.770012999999999",
+  "bbox_y0": "-90.778518000000005",
+  "bbox_y1": "29.790254000000001",
+  "srid": "EPSG:4326",
+  "lft": 64,
+  "rght": 65,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120049,
+ "fields": {
+  "code": "02586693",
+  "name": "Lemannville",
+  "name_en": "Lemannville",
+  "parent": 120000,
+  "bbox_x0": "-90.940686999999997",
+  "bbox_x1": "30.094045999999999",
+  "bbox_y0": "-90.912306000000001",
+  "bbox_y1": "30.114270999999999",
+  "srid": "EPSG:4326",
+  "lft": 514,
+  "rght": 515,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120050,
+ "fields": {
+  "code": "02586683",
+  "name": "Gloster",
+  "name_en": "Gloster",
+  "parent": 120000,
+  "bbox_x0": "-93.832728000000003",
+  "bbox_x1": "32.184161000000003",
+  "bbox_y0": "-93.798303000000004",
+  "bbox_y1": "32.198998000000003",
+  "srid": "EPSG:4326",
+  "lft": 352,
+  "rght": 353,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120051,
+ "fields": {
+  "code": "02407558",
+  "name": "Tangipahoa",
+  "name_en": "Tangipahoa",
+  "parent": 120000,
+  "bbox_x0": "-90.524317999999994",
+  "bbox_x1": "30.868437000000000",
+  "bbox_y0": "-90.505009000000001",
+  "bbox_y1": "30.884433000000001",
+  "srid": "EPSG:4326",
+  "lft": 898,
+  "rght": 899,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120052,
+ "fields": {
+  "code": "02805367",
+  "name": "Good Pine",
+  "name_en": "Good Pine",
+  "parent": 120000,
+  "bbox_x0": "-92.171474000000003",
+  "bbox_x1": "31.684377000000001",
+  "bbox_y0": "-92.155016000000003",
+  "bbox_y1": "31.701923000000001",
+  "srid": "EPSG:4326",
+  "lft": 360,
+  "rght": 361,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120053,
+ "fields": {
+  "code": "02407445",
+  "name": "Dubberly",
+  "name_en": "Dubberly",
+  "parent": 120000,
+  "bbox_x0": "-93.254170000000002",
+  "bbox_x1": "32.526490000000003",
+  "bbox_y0": "-93.220438999999999",
+  "bbox_y1": "32.556257000000002",
+  "srid": "EPSG:4326",
+  "lft": 254,
+  "rght": 255,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120054,
+ "fields": {
+  "code": "02406258",
+  "name": "Chatham",
+  "name_en": "Chatham",
+  "parent": 120000,
+  "bbox_x0": "-92.466851000000005",
+  "bbox_x1": "32.302470000000000",
+  "bbox_y0": "-92.428555000000003",
+  "bbox_y1": "32.326946000000000",
+  "srid": "EPSG:4326",
+  "lft": 166,
+  "rght": 167,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120055,
+ "fields": {
+  "code": "02405899",
+  "name": "Jackson",
+  "name_en": "Jackson",
+  "parent": 120000,
+  "bbox_x0": "-91.230870999999993",
+  "bbox_x1": "30.809916999999999",
+  "bbox_y0": "-91.184832000000000",
+  "bbox_y1": "30.855281999999999",
+  "srid": "EPSG:4326",
+  "lft": 438,
+  "rght": 439,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120056,
+ "fields": {
+  "code": "02402908",
+  "name": "Swartz",
+  "name_en": "Swartz",
+  "parent": 120000,
+  "bbox_x0": "-92.014899999999997",
+  "bbox_x1": "32.539790000000004",
+  "bbox_y0": "-91.967339999999993",
+  "bbox_y1": "32.617159999999998",
+  "srid": "EPSG:4326",
+  "lft": 892,
+  "rght": 893,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120057,
+ "fields": {
+  "code": "02407473",
+  "name": "Harrisonburg",
+  "name_en": "Harrisonburg",
+  "parent": 120000,
+  "bbox_x0": "-91.852932999999993",
+  "bbox_x1": "31.754677999999998",
+  "bbox_y0": "-91.812128000000001",
+  "bbox_y1": "31.776519000000000",
+  "srid": "EPSG:4326",
+  "lft": 398,
+  "rght": 399,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120058,
+ "fields": {
+  "code": "02403444",
+  "name": "Poydras",
+  "name_en": "Poydras",
+  "parent": 120000,
+  "bbox_x0": "-89.910708000000000",
+  "bbox_x1": "29.846636000000000",
+  "bbox_y0": "-89.868378000000007",
+  "bbox_y1": "29.879317000000000",
+  "srid": "EPSG:4326",
+  "lft": 750,
+  "rght": 751,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120059,
+ "fields": {
+  "code": "02402643",
+  "name": "Ama",
+  "name_en": "Ama",
+  "parent": 120000,
+  "bbox_x0": "-90.323183000000000",
+  "bbox_x1": "29.922129000000002",
+  "bbox_y0": "-90.275526999999997",
+  "bbox_y1": "29.967970999999999",
+  "srid": "EPSG:4326",
+  "lft": 14,
+  "rght": 15,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120060,
+ "fields": {
+  "code": "02402879",
+  "name": "South Vacherie",
+  "name_en": "South Vacherie",
+  "parent": 120000,
+  "bbox_x0": "-90.719070000000002",
+  "bbox_x1": "29.922335000000000",
+  "bbox_y0": "-90.665889000000007",
+  "bbox_y1": "29.954214000000000",
+  "srid": "EPSG:4326",
+  "lft": 848,
+  "rght": 849,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120061,
+ "fields": {
+  "code": "02404283",
+  "name": "Monroe",
+  "name_en": "Monroe",
+  "parent": 120000,
+  "bbox_x0": "-92.135508000000002",
+  "bbox_x1": "32.429699999999997",
+  "bbox_y0": "-91.988889999999998",
+  "bbox_y1": "32.621026000000001",
+  "srid": "EPSG:4326",
+  "lft": 608,
+  "rght": 609,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120062,
+ "fields": {
+  "code": "02407518",
+  "name": "Palmetto",
+  "name_en": "Palmetto",
+  "parent": 120000,
+  "bbox_x0": "-91.916259999999994",
+  "bbox_x1": "30.710816999999999",
+  "bbox_y0": "-91.900098999999997",
+  "bbox_y1": "30.724547999999999",
+  "srid": "EPSG:4326",
+  "lft": 698,
+  "rght": 699,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120063,
+ "fields": {
+  "code": "02403174",
+  "name": "Killona",
+  "name_en": "Killona",
+  "parent": 120000,
+  "bbox_x0": "-90.497100000000003",
+  "bbox_x1": "29.987237000000000",
+  "bbox_y0": "-90.473203999999996",
+  "bbox_y1": "30.008880000000001",
+  "srid": "EPSG:4326",
+  "lft": 474,
+  "rght": 475,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120064,
+ "fields": {
+  "code": "02403304",
+  "name": "Montz",
+  "name_en": "Montz",
+  "parent": 120000,
+  "bbox_x0": "-90.475577999999999",
+  "bbox_x1": "29.998279000000000",
+  "bbox_y0": "-90.448593000000002",
+  "bbox_y1": "30.032629000000000",
+  "srid": "EPSG:4326",
+  "lft": 620,
+  "rght": 621,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120065,
+ "fields": {
+  "code": "02407427",
+  "name": "Castor",
+  "name_en": "Castor",
+  "parent": 120000,
+  "bbox_x0": "-93.181520000000006",
+  "bbox_x1": "32.246747999999997",
+  "bbox_y0": "-93.155608000000001",
+  "bbox_y1": "32.261547000000000",
+  "srid": "EPSG:4326",
+  "lft": 146,
+  "rght": 147,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120066,
+ "fields": {
+  "code": "02407425",
+  "name": "Calvin",
+  "name_en": "Calvin",
+  "parent": 120000,
+  "bbox_x0": "-92.792078000000004",
+  "bbox_x1": "31.950842000000002",
+  "bbox_y0": "-92.758758999999998",
+  "bbox_y1": "31.972725000000001",
+  "srid": "EPSG:4326",
+  "lft": 134,
+  "rght": 135,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120067,
+ "fields": {
+  "code": "02407544",
+  "name": "Shongaloo",
+  "name_en": "Shongaloo",
+  "parent": 120000,
+  "bbox_x0": "-93.318309999999997",
+  "bbox_x1": "32.919510000000002",
+  "bbox_y0": "-93.272734000000000",
+  "bbox_y1": "32.963495999999999",
+  "srid": "EPSG:4326",
+  "lft": 818,
+  "rght": 819,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120068,
+ "fields": {
+  "code": "02407531",
+  "name": "Powhatan",
+  "name_en": "Powhatan",
+  "parent": 120000,
+  "bbox_x0": "-93.224164999999999",
+  "bbox_x1": "31.865352000000001",
+  "bbox_y0": "-93.189598000000004",
+  "bbox_y1": "31.882876000000000",
+  "srid": "EPSG:4326",
+  "lft": 748,
+  "rght": 749,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120069,
+ "fields": {
+  "code": "02402715",
+  "name": "Bridge City",
+  "name_en": "Bridge City",
+  "parent": 120000,
+  "bbox_x0": "-90.181952999999993",
+  "bbox_x1": "29.903590000000001",
+  "bbox_y0": "-90.138974000000005",
+  "bbox_y1": "29.956067999999998",
+  "srid": "EPSG:4326",
+  "lft": 114,
+  "rght": 115,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120070,
+ "fields": {
+  "code": "02402632",
+  "name": "Jefferson",
+  "name_en": "Jefferson",
+  "parent": 120000,
+  "bbox_x0": "-90.177672999999999",
+  "bbox_x1": "29.944351000000001",
+  "bbox_y0": "-90.127662000000001",
+  "bbox_y1": "29.971405000000001",
+  "srid": "EPSG:4326",
+  "lft": 446,
+  "rght": 447,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120071,
+ "fields": {
+  "code": "02402935",
+  "name": "Timberlane",
+  "name_en": "Timberlane",
+  "parent": 120000,
+  "bbox_x0": "-90.039495000000002",
+  "bbox_x1": "29.865518999999999",
+  "bbox_y0": "-90.017719000000000",
+  "bbox_y1": "29.894100999999999",
+  "srid": "EPSG:4326",
+  "lft": 906,
+  "rght": 907,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120072,
+ "fields": {
+  "code": "02403281",
+  "name": "Merrydale",
+  "name_en": "Merrydale",
+  "parent": 120000,
+  "bbox_x0": "-91.130362000000005",
+  "bbox_x1": "30.480644000000002",
+  "bbox_y0": "-91.085320999999993",
+  "bbox_y1": "30.518984000000000",
+  "srid": "EPSG:4326",
+  "lft": 590,
+  "rght": 591,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120073,
+ "fields": {
+  "code": "02402967",
+  "name": "Village St. George",
+  "name_en": "Village St. George",
+  "parent": 120000,
+  "bbox_x0": "-91.083371999999997",
+  "bbox_x1": "30.347372000000000",
+  "bbox_y0": "-91.049441000000002",
+  "bbox_y1": "30.375212999999999",
+  "srid": "EPSG:4326",
+  "lft": 932,
+  "rght": 933,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120074,
+ "fields": {
+  "code": "02407417",
+  "name": "Belcher",
+  "name_en": "Belcher",
+  "parent": 120000,
+  "bbox_x0": "-93.849378000000002",
+  "bbox_x1": "32.742378000000002",
+  "bbox_y0": "-93.826372000000006",
+  "bbox_y1": "32.761201999999997",
+  "srid": "EPSG:4326",
+  "lft": 76,
+  "rght": 77,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120075,
+ "fields": {
+  "code": "02407478",
+  "name": "Hosston",
+  "name_en": "Hosston",
+  "parent": 120000,
+  "bbox_x0": "-93.895932000000002",
+  "bbox_x1": "32.862583999999998",
+  "bbox_y0": "-93.869784999999993",
+  "bbox_y1": "32.899146000000002",
+  "srid": "EPSG:4326",
+  "lft": 422,
+  "rght": 423,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120076,
+ "fields": {
+  "code": "02406504",
+  "name": "Fordoche",
+  "name_en": "Fordoche",
+  "parent": 120000,
+  "bbox_x0": "-91.640310999999997",
+  "bbox_x1": "30.575043999999998",
+  "bbox_y0": "-91.595125999999993",
+  "bbox_y1": "30.608149000000001",
+  "srid": "EPSG:4326",
+  "lft": 312,
+  "rght": 313,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120077,
+ "fields": {
+  "code": "02407483",
+  "name": "Junction City",
+  "name_en": "Junction City",
+  "parent": 120000,
+  "bbox_x0": "-92.733253000000005",
+  "bbox_x1": "33.000138999999997",
+  "bbox_y0": "-92.711548480459001",
+  "bbox_y1": "33.014398000000000",
+  "srid": "EPSG:4326",
+  "lft": 460,
+  "rght": 461,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120078,
+ "fields": {
+  "code": "02407524",
+  "name": "Pioneer",
+  "name_en": "Pioneer",
+  "parent": 120000,
+  "bbox_x0": "-91.447591000000003",
+  "bbox_x1": "32.730362000000000",
+  "bbox_y0": "-91.425869000000006",
+  "bbox_y1": "32.745210000000000",
+  "srid": "EPSG:4326",
+  "lft": 718,
+  "rght": 719,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120079,
+ "fields": {
+  "code": "02405249",
+  "name": "Bernice",
+  "name_en": "Bernice",
+  "parent": 120000,
+  "bbox_x0": "-92.669156000000001",
+  "bbox_x1": "32.799739000000002",
+  "bbox_y0": "-92.647548000000000",
+  "bbox_y1": "32.856670999999999",
+  "srid": "EPSG:4326",
+  "lft": 86,
+  "rght": 87,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120080,
+ "fields": {
+  "code": "02405074",
+  "name": "Zachary",
+  "name_en": "Zachary",
+  "parent": 120000,
+  "bbox_x0": "-91.235528000000002",
+  "bbox_x1": "30.611674000000001",
+  "bbox_y0": "-91.089521000000005",
+  "bbox_y1": "30.708911000000001",
+  "srid": "EPSG:4326",
+  "lft": 984,
+  "rght": 985,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120081,
+ "fields": {
+  "code": "02633175",
+  "name": "Buras",
+  "name_en": "Buras",
+  "parent": 120000,
+  "bbox_x0": "-89.562066000000002",
+  "bbox_x1": "29.336041999999999",
+  "bbox_y0": "-89.493936000000005",
+  "bbox_y1": "29.370052000000001",
+  "srid": "EPSG:4326",
+  "lft": 128,
+  "rght": 129,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120082,
+ "fields": {
+  "code": "02629542",
+  "name": "Siracusaville",
+  "name_en": "Siracusaville",
+  "parent": 120000,
+  "bbox_x0": "-91.164901999999998",
+  "bbox_x1": "29.677219999999998",
+  "bbox_y0": "-91.137546000000000",
+  "bbox_y1": "29.697068999999999",
+  "srid": "EPSG:4326",
+  "lft": 836,
+  "rght": 837,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120083,
+ "fields": {
+  "code": "02407411",
+  "name": "Athens",
+  "name_en": "Athens",
+  "parent": 120000,
+  "bbox_x0": "-93.045767999999995",
+  "bbox_x1": "32.639358000000001",
+  "bbox_y0": "-93.012110000000007",
+  "bbox_y1": "32.680115000000001",
+  "srid": "EPSG:4326",
+  "lft": 32,
+  "rght": 33,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120084,
+ "fields": {
+  "code": "02404141",
+  "name": "Covington",
+  "name_en": "Covington",
+  "parent": 120000,
+  "bbox_x0": "-90.170118000000002",
+  "bbox_x1": "30.440103000000001",
+  "bbox_y0": "-90.081193999999996",
+  "bbox_y1": "30.506592999999999",
+  "srid": "EPSG:4326",
+  "lft": 204,
+  "rght": 205,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120085,
+ "fields": {
+  "code": "02586701",
+  "name": "Pointe a la Hache",
+  "name_en": "Pointe a la Hache",
+  "parent": 120000,
+  "bbox_x0": "-89.800413000000006",
+  "bbox_x1": "29.557638000000001",
+  "bbox_y0": "-89.762297000000004",
+  "bbox_y1": "29.588279000000000",
+  "srid": "EPSG:4326",
+  "lft": 732,
+  "rght": 733,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120086,
+ "fields": {
+  "code": "02805364",
+  "name": "Centerville",
+  "name_en": "Centerville",
+  "parent": 120000,
+  "bbox_x0": "-91.439411000000007",
+  "bbox_x1": "29.748843000000001",
+  "bbox_y0": "-91.416425000000004",
+  "bbox_y1": "29.762848000000002",
+  "srid": "EPSG:4326",
+  "lft": 154,
+  "rght": 155,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120087,
+ "fields": {
+  "code": "02402906",
+  "name": "Supreme",
+  "name_en": "Supreme",
+  "parent": 120000,
+  "bbox_x0": "-91.015051000000000",
+  "bbox_x1": "29.840074999999999",
+  "bbox_y0": "-90.975997000000007",
+  "bbox_y1": "29.878498000000000",
+  "srid": "EPSG:4326",
+  "lft": 890,
+  "rght": 891,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120088,
+ "fields": {
+  "code": "02406458",
+  "name": "Eros",
+  "name_en": "Eros",
+  "parent": 120000,
+  "bbox_x0": "-92.431963999999994",
+  "bbox_x1": "32.383935999999999",
+  "bbox_y0": "-92.415830000000000",
+  "bbox_y1": "32.400596000000000",
+  "srid": "EPSG:4326",
+  "lft": 286,
+  "rght": 287,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120089,
+ "fields": {
+  "code": "02583541",
+  "name": "Lockport Heights",
+  "name_en": "Lockport Heights",
+  "parent": 120000,
+  "bbox_x0": "-90.562624999999997",
+  "bbox_x1": "29.642949000000002",
+  "bbox_y0": "-90.538769000000002",
+  "bbox_y1": "29.666079000000000",
+  "srid": "EPSG:4326",
+  "lft": 530,
+  "rght": 531,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120090,
+ "fields": {
+  "code": "02407424",
+  "name": "Bryceland",
+  "name_en": "Bryceland",
+  "parent": 120000,
+  "bbox_x0": "-93.012518999999998",
+  "bbox_x1": "32.439546999999997",
+  "bbox_y0": "-92.974726000000004",
+  "bbox_y1": "32.458953000000001",
+  "srid": "EPSG:4326",
+  "lft": 124,
+  "rght": 125,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120091,
+ "fields": {
+  "code": "02586682",
+  "name": "Gillis",
+  "name_en": "Gillis",
+  "parent": 120000,
+  "bbox_x0": "-93.211183000000005",
+  "bbox_x1": "30.362711999999998",
+  "bbox_y0": "-93.189751000000001",
+  "bbox_y1": "30.388497000000001",
+  "srid": "EPSG:4326",
+  "lft": 346,
+  "rght": 347,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120092,
+ "fields": {
+  "code": "02586684",
+  "name": "Hayes",
+  "name_en": "Hayes",
+  "parent": 120000,
+  "bbox_x0": "-92.941495000000003",
+  "bbox_x1": "30.100657000000002",
+  "bbox_y0": "-92.899837000000005",
+  "bbox_y1": "30.124489000000001",
+  "srid": "EPSG:4326",
+  "lft": 404,
+  "rght": 405,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120093,
+ "fields": {
+  "code": "02586680",
+  "name": "Frierson",
+  "name_en": "Frierson",
+  "parent": 120000,
+  "bbox_x0": "-93.697405000000003",
+  "bbox_x1": "32.242111000000001",
+  "bbox_y0": "-93.682829999999996",
+  "bbox_y1": "32.257761000000002",
+  "srid": "EPSG:4326",
+  "lft": 330,
+  "rght": 331,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120094,
+ "fields": {
+  "code": "02586665",
+  "name": "Bawcomville",
+  "name_en": "Bawcomville",
+  "parent": 120000,
+  "bbox_x0": "-92.192959999999999",
+  "bbox_x1": "32.456848999999998",
+  "bbox_y0": "-92.147169000000005",
+  "bbox_y1": "32.485019999999999",
+  "srid": "EPSG:4326",
+  "lft": 56,
+  "rght": 57,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120095,
+ "fields": {
+  "code": "02586705",
+  "name": "Reddell",
+  "name_en": "Reddell",
+  "parent": 120000,
+  "bbox_x0": "-92.449631999999994",
+  "bbox_x1": "30.652158000000000",
+  "bbox_y0": "-92.405316999999997",
+  "bbox_y1": "30.691125000000000",
+  "srid": "EPSG:4326",
+  "lft": 772,
+  "rght": 773,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120096,
+ "fields": {
+  "code": "02586666",
+  "name": "Bayou Goula",
+  "name_en": "Bayou Goula",
+  "parent": 120000,
+  "bbox_x0": "-91.199303999999998",
+  "bbox_x1": "30.191468000000000",
+  "bbox_y0": "-91.154150000000001",
+  "bbox_y1": "30.228065000000001",
+  "srid": "EPSG:4326",
+  "lft": 68,
+  "rght": 69,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120097,
+ "fields": {
+  "code": "02586710",
+  "name": "Sorrel",
+  "name_en": "Sorrel",
+  "parent": 120000,
+  "bbox_x0": "-91.640646000000004",
+  "bbox_x1": "29.871024999999999",
+  "bbox_y0": "-91.600981000000004",
+  "bbox_y1": "29.902175000000000",
+  "srid": "EPSG:4326",
+  "lft": 842,
+  "rght": 843,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120098,
+ "fields": {
+  "code": "02583539",
+  "name": "Lafourche Crossing",
+  "name_en": "Lafourche Crossing",
+  "parent": 120000,
+  "bbox_x0": "-90.796302999999995",
+  "bbox_x1": "29.743182000000001",
+  "bbox_y0": "-90.740144000000001",
+  "bbox_y1": "29.789717000000000",
+  "srid": "EPSG:4326",
+  "lft": 492,
+  "rght": 493,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120099,
+ "fields": {
+  "code": "02583550",
+  "name": "Union",
+  "name_en": "Union",
+  "parent": 120000,
+  "bbox_x0": "-90.915565000000001",
+  "bbox_x1": "30.061821999999999",
+  "bbox_y0": "-90.850905999999995",
+  "bbox_y1": "30.122015000000001",
+  "srid": "EPSG:4326",
+  "lft": 916,
+  "rght": 917,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120100,
+ "fields": {
+  "code": "02583551",
+  "name": "Venice",
+  "name_en": "Venice",
+  "parent": 120000,
+  "bbox_x0": "-89.379340999999997",
+  "bbox_x1": "29.267993000000001",
+  "bbox_y0": "-89.349052000000000",
+  "bbox_y1": "29.304615999999999",
+  "srid": "EPSG:4326",
+  "lft": 922,
+  "rght": 923,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120101,
+ "fields": {
+  "code": "02407438",
+  "name": "Creola",
+  "name_en": "Creola",
+  "parent": 120000,
+  "bbox_x0": "-92.491995000000003",
+  "bbox_x1": "31.422650000000001",
+  "bbox_y0": "-92.475942000000003",
+  "bbox_y1": "31.435998000000001",
+  "srid": "EPSG:4326",
+  "lft": 206,
+  "rght": 207,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120102,
+ "fields": {
+  "code": "02407246",
+  "name": "Roseland",
+  "name_en": "Roseland",
+  "parent": 120000,
+  "bbox_x0": "-90.526679000000001",
+  "bbox_x1": "30.755337999999998",
+  "bbox_y0": "-90.490165000000005",
+  "bbox_y1": "30.773949999999999",
+  "srid": "EPSG:4326",
+  "lft": 802,
+  "rght": 803,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120103,
+ "fields": {
+  "code": "02405211",
+  "name": "Basile",
+  "name_en": "Basile",
+  "parent": 120000,
+  "bbox_x0": "-92.615842000000001",
+  "bbox_x1": "30.480432000000000",
+  "bbox_y0": "-92.582356000000004",
+  "bbox_y1": "30.490683000000001",
+  "srid": "EPSG:4326",
+  "lft": 48,
+  "rght": 49,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120104,
+ "fields": {
+  "code": "02407554",
+  "name": "Stanley",
+  "name_en": "Stanley",
+  "parent": 120000,
+  "bbox_x0": "-93.914630000000002",
+  "bbox_x1": "31.946536999999999",
+  "bbox_y0": "-93.884798000000004",
+  "bbox_y1": "31.976604999999999",
+  "srid": "EPSG:4326",
+  "lft": 858,
+  "rght": 859,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120105,
+ "fields": {
+  "code": "02405949",
+  "name": "Kinder",
+  "name_en": "Kinder",
+  "parent": 120000,
+  "bbox_x0": "-92.874041000000005",
+  "bbox_x1": "30.466947999999999",
+  "bbox_y0": "-92.823898000000000",
+  "bbox_y1": "30.498463999999998",
+  "srid": "EPSG:4326",
+  "lft": 476,
+  "rght": 477,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120106,
+ "fields": {
+  "code": "02407538",
+  "name": "Rodessa",
+  "name_en": "Rodessa",
+  "parent": 120000,
+  "bbox_x0": "-94.015737999999999",
+  "bbox_x1": "32.965800999999999",
+  "bbox_y0": "-93.985640000000004",
+  "bbox_y1": "32.980663000000000",
+  "srid": "EPSG:4326",
+  "lft": 796,
+  "rght": 797,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120107,
+ "fields": {
+  "code": "02407546",
+  "name": "Sikes",
+  "name_en": "Sikes",
+  "parent": 120000,
+  "bbox_x0": "-92.500945999999999",
+  "bbox_x1": "32.069713999999998",
+  "bbox_y0": "-92.475279999999998",
+  "bbox_y1": "32.087707999999999",
+  "srid": "EPSG:4326",
+  "lft": 826,
+  "rght": 827,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120108,
+ "fields": {
+  "code": "02407508",
+  "name": "Mound",
+  "name_en": "Mound",
+  "parent": 120000,
+  "bbox_x0": "-91.051284999999993",
+  "bbox_x1": "32.321947999999999",
+  "bbox_y0": "-91.011002000000005",
+  "bbox_y1": "32.341468999999996",
+  "srid": "EPSG:4326",
+  "lft": 638,
+  "rght": 639,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120109,
+ "fields": {
+  "code": "02405170",
+  "name": "Arnaudville",
+  "name_en": "Arnaudville",
+  "parent": 120000,
+  "bbox_x0": "-91.941100000000006",
+  "bbox_x1": "30.393401999999998",
+  "bbox_y0": "-91.921710000000004",
+  "bbox_y1": "30.414353999999999",
+  "srid": "EPSG:4326",
+  "lft": 28,
+  "rght": 29,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120110,
+ "fields": {
+  "code": "02586691",
+  "name": "Lakeview",
+  "name_en": "Lakeview",
+  "parent": 120000,
+  "bbox_x0": "-93.837506000000005",
+  "bbox_x1": "32.516401000000002",
+  "bbox_y0": "-93.817453999999998",
+  "bbox_y1": "32.535178999999999",
+  "srid": "EPSG:4326",
+  "lft": 502,
+  "rght": 503,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120111,
+ "fields": {
+  "code": "02407213",
+  "name": "Ridgecrest",
+  "name_en": "Ridgecrest",
+  "parent": 120000,
+  "bbox_x0": "-91.539259000000001",
+  "bbox_x1": "31.595597999999999",
+  "bbox_y0": "-91.520482999999999",
+  "bbox_y1": "31.608529999999998",
+  "srid": "EPSG:4326",
+  "lft": 782,
+  "rght": 783,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120112,
+ "fields": {
+  "code": "02404859",
+  "name": "Lake Charles",
+  "name_en": "Lake Charles",
+  "parent": 120000,
+  "bbox_x0": "-93.316714000000005",
+  "bbox_x1": "30.124502000000000",
+  "bbox_y0": "-93.128833000000000",
+  "bbox_y1": "30.272321000000002",
+  "srid": "EPSG:4326",
+  "lft": 496,
+  "rght": 497,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120113,
+ "fields": {
+  "code": "02407496",
+  "name": "Martin",
+  "name_en": "Martin",
+  "parent": 120000,
+  "bbox_x0": "-93.253625999999997",
+  "bbox_x1": "32.074381000000002",
+  "bbox_y0": "-93.177040000000005",
+  "bbox_y1": "32.129275000000000",
+  "srid": "EPSG:4326",
+  "lft": 574,
+  "rght": 575,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120114,
+ "fields": {
+  "code": "02407450",
+  "name": "Epps",
+  "name_en": "Epps",
+  "parent": 120000,
+  "bbox_x0": "-91.490067999999994",
+  "bbox_x1": "32.594591000000001",
+  "bbox_y0": "-91.468823000000000",
+  "bbox_y1": "32.611632000000000",
+  "srid": "EPSG:4326",
+  "lft": 282,
+  "rght": 283,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120115,
+ "fields": {
+  "code": "02407442",
+  "name": "Downsville",
+  "name_en": "Downsville",
+  "parent": 120000,
+  "bbox_x0": "-92.419353000000001",
+  "bbox_x1": "32.619253999999998",
+  "bbox_y0": "-92.406321000000005",
+  "bbox_y1": "32.633665000000001",
+  "srid": "EPSG:4326",
+  "lft": 246,
+  "rght": 247,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120116,
+ "fields": {
+  "code": "02407505",
+  "name": "Moreauville",
+  "name_en": "Moreauville",
+  "parent": 120000,
+  "bbox_x0": "-92.000500000000002",
+  "bbox_x1": "31.016376000000001",
+  "bbox_y0": "-91.956179000000006",
+  "bbox_y1": "31.052005000000001",
+  "srid": "EPSG:4326",
+  "lft": 626,
+  "rght": 627,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120117,
+ "fields": {
+  "code": "02761293",
+  "name": "Bayou Corne",
+  "name_en": "Bayou Corne",
+  "parent": 120000,
+  "bbox_x0": "-91.159035000000003",
+  "bbox_x1": "30.008821000000001",
+  "bbox_y0": "-91.146889000000002",
+  "bbox_y1": "30.020122000000001",
+  "srid": "EPSG:4326",
+  "lft": 62,
+  "rght": 63,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120118,
+ "fields": {
+  "code": "02406144",
+  "name": "Melville",
+  "name_en": "Melville",
+  "parent": 120000,
+  "bbox_x0": "-91.765178000000006",
+  "bbox_x1": "30.685449999999999",
+  "bbox_y0": "-91.735744999999994",
+  "bbox_y1": "30.700119000000001",
+  "srid": "EPSG:4326",
+  "lft": 582,
+  "rght": 583,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120119,
+ "fields": {
+  "code": "02407492",
+  "name": "Longstreet",
+  "name_en": "Longstreet",
+  "parent": 120000,
+  "bbox_x0": "-93.960876999999996",
+  "bbox_x1": "32.080584000000002",
+  "bbox_y0": "-93.937252000000001",
+  "bbox_y1": "32.126632999999998",
+  "srid": "EPSG:4326",
+  "lft": 534,
+  "rght": 535,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120120,
+ "fields": {
+  "code": "02583547",
+  "name": "Romeville",
+  "name_en": "Romeville",
+  "parent": 120000,
+  "bbox_x0": "-90.856814000000000",
+  "bbox_x1": "30.050360000000001",
+  "bbox_y0": "-90.810936999999996",
+  "bbox_y1": "30.087574000000000",
+  "srid": "EPSG:4326",
+  "lft": 798,
+  "rght": 799,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120121,
+ "fields": {
+  "code": "02586719",
+  "name": "Watson",
+  "name_en": "Watson",
+  "parent": 120000,
+  "bbox_x0": "-90.956959999999995",
+  "bbox_x1": "30.563265999999999",
+  "bbox_y0": "-90.944490000000002",
+  "bbox_y1": "30.588020000000000",
+  "srid": "EPSG:4326",
+  "lft": 954,
+  "rght": 955,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120122,
+ "fields": {
+  "code": "02407448",
+  "name": "Edgefield",
+  "name_en": "Edgefield",
+  "parent": 120000,
+  "bbox_x0": "-93.343321000000003",
+  "bbox_x1": "32.046207000000003",
+  "bbox_y0": "-93.330704999999995",
+  "bbox_y1": "32.053553000000001",
+  "srid": "EPSG:4326",
+  "lft": 270,
+  "rght": 271,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120123,
+ "fields": {
+  "code": "02406099",
+  "name": "Maringouin",
+  "name_en": "Maringouin",
+  "parent": 120000,
+  "bbox_x0": "-91.533772999999997",
+  "bbox_x1": "30.482921000000001",
+  "bbox_y0": "-91.504876999999993",
+  "bbox_y1": "30.497274999999998",
+  "srid": "EPSG:4326",
+  "lft": 564,
+  "rght": 565,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120124,
+ "fields": {
+  "code": "02406345",
+  "name": "Cullen",
+  "name_en": "Cullen",
+  "parent": 120000,
+  "bbox_x0": "-93.457168999999993",
+  "bbox_x1": "32.960647999999999",
+  "bbox_y0": "-93.437117000000001",
+  "bbox_y1": "32.978596000000003",
+  "srid": "EPSG:4326",
+  "lft": 212,
+  "rght": 213,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120125,
+ "fields": {
+  "code": "02804547",
+  "name": "Dorseyville",
+  "name_en": "Dorseyville",
+  "parent": 120000,
+  "bbox_x0": "-91.165889000000007",
+  "bbox_x1": "30.174209000000001",
+  "bbox_y0": "-91.156559000000001",
+  "bbox_y1": "30.181194000000001",
+  "srid": "EPSG:4326",
+  "lft": 244,
+  "rght": 245,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120126,
+ "fields": {
+  "code": "02404233",
+  "name": "Donaldsonville",
+  "name_en": "Donaldsonville",
+  "parent": 120000,
+  "bbox_x0": "-91.015634000000006",
+  "bbox_x1": "30.072859000000001",
+  "bbox_y0": "-90.973161000000005",
+  "bbox_y1": "30.110894999999999",
+  "srid": "EPSG:4326",
+  "lft": 242,
+  "rght": 243,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120127,
+ "fields": {
+  "code": "02406692",
+  "name": "Sunset",
+  "name_en": "Sunset",
+  "parent": 120000,
+  "bbox_x0": "-92.088316000000006",
+  "bbox_x1": "30.391649000000001",
+  "bbox_y0": "-92.039136999999997",
+  "bbox_y1": "30.424085999999999",
+  "srid": "EPSG:4326",
+  "lft": 888,
+  "rght": 889,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120128,
+ "fields": {
+  "code": "02406907",
+  "name": "Wisner",
+  "name_en": "Wisner",
+  "parent": 120000,
+  "bbox_x0": "-91.662473000000006",
+  "bbox_x1": "31.967957999999999",
+  "bbox_y0": "-91.648623999999998",
+  "bbox_y1": "31.990351000000000",
+  "srid": "EPSG:4326",
+  "lft": 976,
+  "rght": 977,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120129,
+ "fields": {
+  "code": "02407530",
+  "name": "Port Vincent",
+  "name_en": "Port Vincent",
+  "parent": 120000,
+  "bbox_x0": "-90.854804000000001",
+  "bbox_x1": "30.324145999999999",
+  "bbox_y0": "-90.821005000000000",
+  "bbox_y1": "30.358070000000001",
+  "srid": "EPSG:4326",
+  "lft": 746,
+  "rght": 747,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120130,
+ "fields": {
+  "code": "02406149",
+  "name": "Merryville",
+  "name_en": "Merryville",
+  "parent": 120000,
+  "bbox_x0": "-93.563896999999997",
+  "bbox_x1": "30.737475000000000",
+  "bbox_y0": "-93.487696000000000",
+  "bbox_y1": "30.777204999999999",
+  "srid": "EPSG:4326",
+  "lft": 592,
+  "rght": 593,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120131,
+ "fields": {
+  "code": "02407466",
+  "name": "Goldonna",
+  "name_en": "Goldonna",
+  "parent": 120000,
+  "bbox_x0": "-92.961001999999993",
+  "bbox_x1": "31.987348000000001",
+  "bbox_y0": "-92.885976999999997",
+  "bbox_y1": "32.046284000000000",
+  "srid": "EPSG:4326",
+  "lft": 356,
+  "rght": 357,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120132,
+ "fields": {
+  "code": "02406474",
+  "name": "Evergreen",
+  "name_en": "Evergreen",
+  "parent": 120000,
+  "bbox_x0": "-92.116862999999995",
+  "bbox_x1": "30.942771000000000",
+  "bbox_y0": "-92.093584000000007",
+  "bbox_y1": "30.962844000000000",
+  "srid": "EPSG:4326",
+  "lft": 296,
+  "rght": 297,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120133,
+ "fields": {
+  "code": "02406800",
+  "name": "Vienna",
+  "name_en": "Vienna",
+  "parent": 120000,
+  "bbox_x0": "-92.657185999999996",
+  "bbox_x1": "32.584235000000000",
+  "bbox_y0": "-92.639110000000002",
+  "bbox_y1": "32.634084999999999",
+  "srid": "EPSG:4326",
+  "lft": 928,
+  "rght": 929,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120134,
+ "fields": {
+  "code": "02404537",
+  "name": "Plaquemine",
+  "name_en": "Plaquemine",
+  "parent": 120000,
+  "bbox_x0": "-91.262440999999995",
+  "bbox_x1": "30.257320000000000",
+  "bbox_y0": "-91.225307000000001",
+  "bbox_y1": "30.307585000000000",
+  "srid": "EPSG:4326",
+  "lft": 724,
+  "rght": 725,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120135,
+ "fields": {
+  "code": "02406856",
+  "name": "Welsh",
+  "name_en": "Welsh",
+  "parent": 120000,
+  "bbox_x0": "-92.841438999999994",
+  "bbox_x1": "30.217313000000001",
+  "bbox_y0": "-92.791690000000003",
+  "bbox_y1": "30.253898000000000",
+  "srid": "EPSG:4326",
+  "lft": 958,
+  "rght": 959,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120136,
+ "fields": {
+  "code": "02406666",
+  "name": "Sterlington",
+  "name_en": "Sterlington",
+  "parent": 120000,
+  "bbox_x0": "-92.087034000000003",
+  "bbox_x1": "32.638992999999999",
+  "bbox_y0": "-92.034091000000004",
+  "bbox_y1": "32.719192999999997",
+  "srid": "EPSG:4326",
+  "lft": 864,
+  "rght": 865,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120137,
+ "fields": {
+  "code": "02407412",
+  "name": "Atlanta",
+  "name_en": "Atlanta",
+  "parent": 120000,
+  "bbox_x0": "-92.750401999999994",
+  "bbox_x1": "31.799617999999999",
+  "bbox_y0": "-92.721772000000001",
+  "bbox_y1": "31.815728000000000",
+  "srid": "EPSG:4326",
+  "lft": 34,
+  "rght": 35,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120138,
+ "fields": {
+  "code": "02407515",
+  "name": "Oak Ridge",
+  "name_en": "Oak Ridge",
+  "parent": 120000,
+  "bbox_x0": "-91.782774000000003",
+  "bbox_x1": "32.616025000000000",
+  "bbox_y0": "-91.763116999999994",
+  "bbox_y1": "32.633600999999999",
+  "srid": "EPSG:4326",
+  "lft": 680,
+  "rght": 681,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120139,
+ "fields": {
+  "code": "02405394",
+  "name": "St. Gabriel",
+  "name_en": "St. Gabriel",
+  "parent": 120000,
+  "bbox_x0": "-91.155501000000001",
+  "bbox_x1": "30.183129000000001",
+  "bbox_y0": "-91.041112999999996",
+  "bbox_y1": "30.319893000000000",
+  "srid": "EPSG:4326",
+  "lft": 868,
+  "rght": 869,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120140,
+ "fields": {
+  "code": "02404597",
+  "name": "Rayne",
+  "name_en": "Rayne",
+  "parent": 120000,
+  "bbox_x0": "-92.299802000000000",
+  "bbox_x1": "30.218897999999999",
+  "bbox_y0": "-92.210258999999994",
+  "bbox_y1": "30.265505999999998",
+  "srid": "EPSG:4326",
+  "lft": 766,
+  "rght": 767,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120141,
+ "fields": {
+  "code": "02404216",
+  "name": "Denham Springs",
+  "name_en": "Denham Springs",
+  "parent": 120000,
+  "bbox_x0": "-90.991474999999994",
+  "bbox_x1": "30.445284000000001",
+  "bbox_y0": "-90.894767000000002",
+  "bbox_y1": "30.504705999999999",
+  "srid": "EPSG:4326",
+  "lft": 226,
+  "rght": 227,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120142,
+ "fields": {
+  "code": "02407462",
+  "name": "Georgetown",
+  "name_en": "Georgetown",
+  "parent": 120000,
+  "bbox_x0": "-92.390092999999993",
+  "bbox_x1": "31.745034000000000",
+  "bbox_y0": "-92.368860999999995",
+  "bbox_y1": "31.771830000000001",
+  "srid": "EPSG:4326",
+  "lft": 338,
+  "rght": 339,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120143,
+ "fields": {
+  "code": "02407500",
+  "name": "Mer Rouge",
+  "name_en": "Mer Rouge",
+  "parent": 120000,
+  "bbox_x0": "-91.809460000000001",
+  "bbox_x1": "32.765979999999999",
+  "bbox_y0": "-91.781475000000000",
+  "bbox_y1": "32.785620999999999",
+  "srid": "EPSG:4326",
+  "lft": 588,
+  "rght": 589,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120144,
+ "fields": {
+  "code": "02404162",
+  "name": "Crowley",
+  "name_en": "Crowley",
+  "parent": 120000,
+  "bbox_x0": "-92.402719000000005",
+  "bbox_x1": "30.190667000000001",
+  "bbox_y0": "-92.345566000000005",
+  "bbox_y1": "30.246934000000000",
+  "srid": "EPSG:4326",
+  "lft": 210,
+  "rght": 211,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120145,
+ "fields": {
+  "code": "02406578",
+  "name": "Glenmora",
+  "name_en": "Glenmora",
+  "parent": 120000,
+  "bbox_x0": "-92.598217000000005",
+  "bbox_x1": "30.963521000000000",
+  "bbox_y0": "-92.568145999999999",
+  "bbox_y1": "30.983453999999998",
+  "srid": "EPSG:4326",
+  "lft": 350,
+  "rght": 351,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120146,
+ "fields": {
+  "code": "02407017",
+  "name": "Oak Grove",
+  "name_en": "Oak Grove",
+  "parent": 120000,
+  "bbox_x0": "-91.407418000000007",
+  "bbox_x1": "32.850023000000000",
+  "bbox_y0": "-91.372127000000006",
+  "bbox_y1": "32.875241000000003",
+  "srid": "EPSG:4326",
+  "lft": 676,
+  "rght": 677,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120147,
+ "fields": {
+  "code": "02406275",
+  "name": "Clayton",
+  "name_en": "Clayton",
+  "parent": 120000,
+  "bbox_x0": "-91.558499999999995",
+  "bbox_x1": "31.705838000000000",
+  "bbox_y0": "-91.514312000000004",
+  "bbox_y1": "31.731805000000001",
+  "srid": "EPSG:4326",
+  "lft": 184,
+  "rght": 185,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120148,
+ "fields": {
+  "code": "02407504",
+  "name": "Montpelier",
+  "name_en": "Montpelier",
+  "parent": 120000,
+  "bbox_x0": "-90.671143000000001",
+  "bbox_x1": "30.669447000000002",
+  "bbox_y0": "-90.635615000000001",
+  "bbox_y1": "30.697317000000002",
+  "srid": "EPSG:4326",
+  "lft": 618,
+  "rght": 619,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120149,
+ "fields": {
+  "code": "02407532",
+  "name": "Provencal",
+  "name_en": "Provencal",
+  "parent": 120000,
+  "bbox_x0": "-93.224360000000004",
+  "bbox_x1": "31.643813000000002",
+  "bbox_y0": "-93.175608999999994",
+  "bbox_y1": "31.666256000000001",
+  "srid": "EPSG:4326",
+  "lft": 760,
+  "rght": 761,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120150,
+ "fields": {
+  "code": "02405027",
+  "name": "Marksville",
+  "name_en": "Marksville",
+  "parent": 120000,
+  "bbox_x0": "-92.089026000000004",
+  "bbox_x1": "31.086127000000001",
+  "bbox_y0": "-92.040198000000004",
+  "bbox_y1": "31.147981000000001",
+  "srid": "EPSG:4326",
+  "lft": 568,
+  "rght": 569,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120151,
+ "fields": {
+  "code": "02407436",
+  "name": "Collinston",
+  "name_en": "Collinston",
+  "parent": 120000,
+  "bbox_x0": "-91.881383999999997",
+  "bbox_x1": "32.681859000000003",
+  "bbox_y0": "-91.862088000000000",
+  "bbox_y1": "32.696790999999997",
+  "srid": "EPSG:4326",
+  "lft": 190,
+  "rght": 191,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120152,
+ "fields": {
+  "code": "02406799",
+  "name": "Vidalia",
+  "name_en": "Vidalia",
+  "parent": 120000,
+  "bbox_x0": "-91.467607000000001",
+  "bbox_x1": "31.549295000000001",
+  "bbox_y0": "-91.415565999999998",
+  "bbox_y1": "31.580316000000000",
+  "srid": "EPSG:4326",
+  "lft": 926,
+  "rght": 927,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120153,
+ "fields": {
+  "code": "02405148",
+  "name": "Amite",
+  "name_en": "Amite",
+  "parent": 120000,
+  "bbox_x0": "-90.535674000000000",
+  "bbox_x1": "30.715271999999999",
+  "bbox_y0": "-90.494642999999996",
+  "bbox_y1": "30.754135000000002",
+  "srid": "EPSG:4326",
+  "lft": 18,
+  "rght": 19,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120154,
+ "fields": {
+  "code": "02407429",
+  "name": "Chataignier",
+  "name_en": "Chataignier",
+  "parent": 120000,
+  "bbox_x0": "-92.327166000000005",
+  "bbox_x1": "30.561420999999999",
+  "bbox_y0": "-92.302654000000004",
+  "bbox_y1": "30.578600999999999",
+  "srid": "EPSG:4326",
+  "lft": 164,
+  "rght": 165,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120155,
+ "fields": {
+  "code": "02407494",
+  "name": "Lucky",
+  "name_en": "Lucky",
+  "parent": 120000,
+  "bbox_x0": "-93.049464000000000",
+  "bbox_x1": "32.206507000000002",
+  "bbox_y0": "-92.979266999999993",
+  "bbox_y1": "32.279594000000003",
+  "srid": "EPSG:4326",
+  "lft": 542,
+  "rght": 543,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120156,
+ "fields": {
+  "code": "02407142",
+  "name": "Pollock",
+  "name_en": "Pollock",
+  "parent": 120000,
+  "bbox_x0": "-92.468557000000004",
+  "bbox_x1": "31.461134000000001",
+  "bbox_y0": "-92.392528999999996",
+  "bbox_y1": "31.537998999999999",
+  "srid": "EPSG:4326",
+  "lft": 736,
+  "rght": 737,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120157,
+ "fields": {
+  "code": "02404908",
+  "name": "Leesville",
+  "name_en": "Leesville",
+  "parent": 120000,
+  "bbox_x0": "-93.303516999999999",
+  "bbox_x1": "31.076922000000000",
+  "bbox_y0": "-93.227778999999998",
+  "bbox_y1": "31.170697000000001",
+  "srid": "EPSG:4326",
+  "lft": 512,
+  "rght": 513,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120158,
+ "fields": {
+  "code": "02403147",
+  "name": "Baker",
+  "name_en": "Baker",
+  "parent": 120000,
+  "bbox_x0": "-91.193635999999998",
+  "bbox_x1": "30.556870000000000",
+  "bbox_y0": "-91.114769999999993",
+  "bbox_y1": "30.612200999999999",
+  "srid": "EPSG:4326",
+  "lft": 38,
+  "rght": 39,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120159,
+ "fields": {
+  "code": "02407460",
+  "name": "French Settlement",
+  "name_en": "French Settlement",
+  "parent": 120000,
+  "bbox_x0": "-90.824562999999998",
+  "bbox_x1": "30.274550999999999",
+  "bbox_y0": "-90.775823000000003",
+  "bbox_y1": "30.352091000000001",
+  "srid": "EPSG:4326",
+  "lft": 328,
+  "rght": 329,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120160,
+ "fields": {
+  "code": "02405007",
+  "name": "Mandeville",
+  "name_en": "Mandeville",
+  "parent": 120000,
+  "bbox_x0": "-90.125309000000001",
+  "bbox_x1": "30.348409000000000",
+  "bbox_y0": "-90.035240000000002",
+  "bbox_y1": "30.404059000000000",
+  "srid": "EPSG:4326",
+  "lft": 554,
+  "rght": 555,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120161,
+ "fields": {
+  "code": "02405767",
+  "name": "Winnfield",
+  "name_en": "Winnfield",
+  "parent": 120000,
+  "bbox_x0": "-92.670793000000003",
+  "bbox_x1": "31.903430000000000",
+  "bbox_y0": "-92.617008999999996",
+  "bbox_y1": "31.953009000000002",
+  "srid": "EPSG:4326",
+  "lft": 972,
+  "rght": 973,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120162,
+ "fields": {
+  "code": "02404410",
+  "name": "Oakdale",
+  "name_en": "Oakdale",
+  "parent": 120000,
+  "bbox_x0": "-92.679407999999995",
+  "bbox_x1": "30.787524000000001",
+  "bbox_y0": "-92.623563000000004",
+  "bbox_y1": "30.845580999999999",
+  "srid": "EPSG:4326",
+  "lft": 674,
+  "rght": 675,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120163,
+ "fields": {
+  "code": "02407221",
+  "name": "Ringgold",
+  "name_en": "Ringgold",
+  "parent": 120000,
+  "bbox_x0": "-93.309892000000005",
+  "bbox_x1": "32.307406000000000",
+  "bbox_y0": "-93.262804000000003",
+  "bbox_y1": "32.340739999999997",
+  "srid": "EPSG:4326",
+  "lft": 784,
+  "rght": 785,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120164,
+ "fields": {
+  "code": "02407520",
+  "name": "Parks",
+  "name_en": "Parks",
+  "parent": 120000,
+  "bbox_x0": "-91.840131999999997",
+  "bbox_x1": "30.204568999999999",
+  "bbox_y0": "-91.813892999999993",
+  "bbox_y1": "30.228214000000001",
+  "srid": "EPSG:4326",
+  "lft": 702,
+  "rght": 703,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120165,
+ "fields": {
+  "code": "02403952",
+  "name": "Bunkie",
+  "name_en": "Bunkie",
+  "parent": 120000,
+  "bbox_x0": "-92.273989999999998",
+  "bbox_x1": "30.938836999999999",
+  "bbox_y0": "-92.162744000000004",
+  "bbox_y1": "30.970970999999999",
+  "srid": "EPSG:4326",
+  "lft": 126,
+  "rght": 127,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120166,
+ "fields": {
+  "code": "02407475",
+  "name": "Hessmer",
+  "name_en": "Hessmer",
+  "parent": 120000,
+  "bbox_x0": "-92.137823999999995",
+  "bbox_x1": "31.042040000000000",
+  "bbox_y0": "-92.109889999999993",
+  "bbox_y1": "31.066687999999999",
+  "srid": "EPSG:4326",
+  "lft": 412,
+  "rght": 413,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120167,
+ "fields": {
+  "code": "02406597",
+  "name": "Gramercy",
+  "name_en": "Gramercy",
+  "parent": 120000,
+  "bbox_x0": "-90.712029999999999",
+  "bbox_x1": "30.040367000000000",
+  "bbox_y0": "-90.681276999999994",
+  "bbox_y1": "30.079284000000001",
+  "srid": "EPSG:4326",
+  "lft": 364,
+  "rght": 365,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120168,
+ "fields": {
+  "code": "02407267",
+  "name": "St. Francisville",
+  "name_en": "St. Francisville",
+  "parent": 120000,
+  "bbox_x0": "-91.393671999999995",
+  "bbox_x1": "30.769062000000002",
+  "bbox_y0": "-91.361908000000000",
+  "bbox_y1": "30.806673000000000",
+  "srid": "EPSG:4326",
+  "lft": 866,
+  "rght": 867,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120169,
+ "fields": {
+  "code": "02406085",
+  "name": "Mamou",
+  "name_en": "Mamou",
+  "parent": 120000,
+  "bbox_x0": "-92.427661999999998",
+  "bbox_x1": "30.621221999999999",
+  "bbox_y0": "-92.403357000000000",
+  "bbox_y1": "30.646281999999999",
+  "srid": "EPSG:4326",
+  "lft": 552,
+  "rght": 553,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120170,
+ "fields": {
+  "code": "02406294",
+  "name": "Colfax",
+  "name_en": "Colfax",
+  "parent": 120000,
+  "bbox_x0": "-92.715384999999998",
+  "bbox_x1": "31.505918000000001",
+  "bbox_y0": "-92.682851999999997",
+  "bbox_y1": "31.530104999999999",
+  "srid": "EPSG:4326",
+  "lft": 188,
+  "rght": 189,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120171,
+ "fields": {
+  "code": "02407029",
+  "name": "Oberlin",
+  "name_en": "Oberlin",
+  "parent": 120000,
+  "bbox_x0": "-92.812749999999994",
+  "bbox_x1": "30.550018999999999",
+  "bbox_y0": "-92.747816999999998",
+  "bbox_y1": "30.630051000000002",
+  "srid": "EPSG:4326",
+  "lft": 682,
+  "rght": 683,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120172,
+ "fields": {
+  "code": "02407501",
+  "name": "Mermentau",
+  "name_en": "Mermentau",
+  "parent": 120000,
+  "bbox_x0": "-92.603876000000000",
+  "bbox_x1": "30.170499000000000",
+  "bbox_y0": "-92.568961000000002",
+  "bbox_y1": "30.203393999999999",
+  "srid": "EPSG:4326",
+  "lft": 586,
+  "rght": 587,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120173,
+ "fields": {
+  "code": "02406269",
+  "name": "Church Point",
+  "name_en": "Church Point",
+  "parent": 120000,
+  "bbox_x0": "-92.236310000000003",
+  "bbox_x1": "30.388237000000000",
+  "bbox_y0": "-92.194470999999993",
+  "bbox_y1": "30.420731000000000",
+  "srid": "EPSG:4326",
+  "lft": 176,
+  "rght": 177,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120174,
+ "fields": {
+  "code": "02402753",
+  "name": "Cecilia",
+  "name_en": "Cecilia",
+  "parent": 120000,
+  "bbox_x0": "-91.865486000000004",
+  "bbox_x1": "30.320979999999999",
+  "bbox_y0": "-91.829632000000004",
+  "bbox_y1": "30.349737000000001",
+  "srid": "EPSG:4326",
+  "lft": 150,
+  "rght": 151,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120175,
+ "fields": {
+  "code": "02805369",
+  "name": "Midland",
+  "name_en": "Midland",
+  "parent": 120000,
+  "bbox_x0": "-92.508234999999999",
+  "bbox_x1": "30.176193000000001",
+  "bbox_y0": "-92.494589000000005",
+  "bbox_y1": "30.185320000000001",
+  "srid": "EPSG:4326",
+  "lft": 596,
+  "rght": 597,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120176,
+ "fields": {
+  "code": "02403396",
+  "name": "Paradis",
+  "name_en": "Paradis",
+  "parent": 120000,
+  "bbox_x0": "-90.476387000000003",
+  "bbox_x1": "29.841360000000002",
+  "bbox_y0": "-90.413139000000001",
+  "bbox_y1": "29.888883000000000",
+  "srid": "EPSG:4326",
+  "lft": 700,
+  "rght": 701,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120177,
+ "fields": {
+  "code": "02402679",
+  "name": "Belle Rose",
+  "name_en": "Belle Rose",
+  "parent": 120000,
+  "bbox_x0": "-91.067588000000001",
+  "bbox_x1": "30.000509000000001",
+  "bbox_y0": "-91.025983999999994",
+  "bbox_y1": "30.076104999999998",
+  "srid": "EPSG:4326",
+  "lft": 80,
+  "rght": 81,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120178,
+ "fields": {
+  "code": "02402408",
+  "name": "Deville",
+  "name_en": "Deville",
+  "parent": 120000,
+  "bbox_x0": "-92.171689000000001",
+  "bbox_x1": "31.301202000000000",
+  "bbox_y0": "-92.090143999999995",
+  "bbox_y1": "31.384336000000001",
+  "srid": "EPSG:4326",
+  "lft": 236,
+  "rght": 237,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120179,
+ "fields": {
+  "code": "02404820",
+  "name": "Kenner",
+  "name_en": "Kenner",
+  "parent": 120000,
+  "bbox_x0": "-90.280296000000007",
+  "bbox_x1": "29.969137000000000",
+  "bbox_y0": "-90.221321000000003",
+  "bbox_y1": "30.049972000000000",
+  "srid": "EPSG:4326",
+  "lft": 466,
+  "rght": 467,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120180,
+ "fields": {
+  "code": "02404352",
+  "name": "Natchitoches",
+  "name_en": "Natchitoches",
+  "parent": 120000,
+  "bbox_x0": "-93.168138999999996",
+  "bbox_x1": "31.648042000000000",
+  "bbox_y0": "-93.049707999999995",
+  "bbox_y1": "31.790274000000000",
+  "srid": "EPSG:4326",
+  "lft": 648,
+  "rght": 649,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120181,
+ "fields": {
+  "code": "02407512",
+  "name": "North Hodge",
+  "name_en": "North Hodge",
+  "parent": 120000,
+  "bbox_x0": "-92.727794000000003",
+  "bbox_x1": "32.276085999999999",
+  "bbox_y0": "-92.705522000000002",
+  "bbox_y1": "32.292585000000003",
+  "srid": "EPSG:4326",
+  "lft": 668,
+  "rght": 669,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120182,
+ "fields": {
+  "code": "02406089",
+  "name": "Mansura",
+  "name_en": "Mansura",
+  "parent": 120000,
+  "bbox_x0": "-92.062808000000004",
+  "bbox_x1": "31.046226000000001",
+  "bbox_y0": "-92.038279000000003",
+  "bbox_y1": "31.097279000000000",
+  "srid": "EPSG:4326",
+  "lft": 560,
+  "rght": 561,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120183,
+ "fields": {
+  "code": "02407046",
+  "name": "Olla",
+  "name_en": "Olla",
+  "parent": 120000,
+  "bbox_x0": "-92.261825999999999",
+  "bbox_x1": "31.874680000000001",
+  "bbox_y0": "-92.216410999999994",
+  "bbox_y1": "31.914406000000000",
+  "srid": "EPSG:4326",
+  "lft": 688,
+  "rght": 689,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120184,
+ "fields": {
+  "code": "02407408",
+  "name": "Anacoco",
+  "name_en": "Anacoco",
+  "parent": 120000,
+  "bbox_x0": "-93.357218000000003",
+  "bbox_x1": "31.232630000000000",
+  "bbox_y0": "-93.329170000000005",
+  "bbox_y1": "31.276492000000001",
+  "srid": "EPSG:4326",
+  "lft": 20,
+  "rght": 21,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120185,
+ "fields": {
+  "code": "02403478",
+  "name": "River Ridge",
+  "name_en": "River Ridge",
+  "parent": 120000,
+  "bbox_x0": "-90.240500999999995",
+  "bbox_x1": "29.933962999999999",
+  "bbox_y0": "-90.203085999999999",
+  "bbox_y1": "29.975555000000000",
+  "srid": "EPSG:4326",
+  "lft": 788,
+  "rght": 789,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120186,
+ "fields": {
+  "code": "02586713",
+  "name": "Start",
+  "name_en": "Start",
+  "parent": 120000,
+  "bbox_x0": "-91.894789000000003",
+  "bbox_x1": "32.475552000000000",
+  "bbox_y0": "-91.843461000000005",
+  "bbox_y1": "32.503816000000000",
+  "srid": "EPSG:4326",
+  "lft": 862,
+  "rght": 863,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120187,
+ "fields": {
+  "code": "02406038",
+  "name": "Logansport",
+  "name_en": "Logansport",
+  "parent": 120000,
+  "bbox_x0": "-94.017246737205497",
+  "bbox_x1": "31.958959000000000",
+  "bbox_y0": "-93.977873000000002",
+  "bbox_y1": "32.004314000000001",
+  "srid": "EPSG:4326",
+  "lft": 532,
+  "rght": 533,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120188,
+ "fields": {
+  "code": "02402973",
+  "name": "Violet",
+  "name_en": "Violet",
+  "parent": 120000,
+  "bbox_x0": "-89.912161999999995",
+  "bbox_x1": "29.875467000000000",
+  "bbox_y0": "-89.874709999999993",
+  "bbox_y1": "29.924806000000000",
+  "srid": "EPSG:4326",
+  "lft": 938,
+  "rght": 939,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120189,
+ "fields": {
+  "code": "02583529",
+  "name": "Bayou L'Ourse",
+  "name_en": "Bayou L'Ourse",
+  "parent": 120000,
+  "bbox_x0": "-91.084301999999994",
+  "bbox_x1": "29.697740000000000",
+  "bbox_y0": "-91.033745999999994",
+  "bbox_y1": "29.729724000000001",
+  "srid": "EPSG:4326",
+  "lft": 70,
+  "rght": 71,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120190,
+ "fields": {
+  "code": "02402502",
+  "name": "Fort Polk South",
+  "name_en": "Fort Polk South",
+  "parent": 120000,
+  "bbox_x0": "-93.237261000000004",
+  "bbox_x1": "31.028970000000001",
+  "bbox_y0": "-93.191072000000005",
+  "bbox_y1": "31.074635000000001",
+  "srid": "EPSG:4326",
+  "lft": 322,
+  "rght": 323,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120191,
+ "fields": {
+  "code": "02403301",
+  "name": "Montegut",
+  "name_en": "Montegut",
+  "parent": 120000,
+  "bbox_x0": "-90.575587999999996",
+  "bbox_x1": "29.428456000000001",
+  "bbox_y0": "-90.532030000000006",
+  "bbox_y1": "29.501097000000001",
+  "srid": "EPSG:4326",
+  "lft": 610,
+  "rght": 611,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120192,
+ "fields": {
+  "code": "02586703",
+  "name": "Prospect",
+  "name_en": "Prospect",
+  "parent": 120000,
+  "bbox_x0": "-92.516458000000000",
+  "bbox_x1": "31.443185000000000",
+  "bbox_y0": "-92.479889999999997",
+  "bbox_y1": "31.458311999999999",
+  "srid": "EPSG:4326",
+  "lft": 758,
+  "rght": 759,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120193,
+ "fields": {
+  "code": "02586675",
+  "name": "Crescent",
+  "name_en": "Crescent",
+  "parent": 120000,
+  "bbox_x0": "-91.302237000000005",
+  "bbox_x1": "30.226220000000001",
+  "bbox_y0": "-91.269698000000005",
+  "bbox_y1": "30.254041999999998",
+  "srid": "EPSG:4326",
+  "lft": 208,
+  "rght": 209,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120194,
+ "fields": {
+  "code": "02407482",
+  "name": "Jamestown",
+  "name_en": "Jamestown",
+  "parent": 120000,
+  "bbox_x0": "-93.221211999999994",
+  "bbox_x1": "32.322772000000001",
+  "bbox_y0": "-93.193526000000006",
+  "bbox_y1": "32.355812000000000",
+  "srid": "EPSG:4326",
+  "lft": 440,
+  "rght": 441,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120195,
+ "fields": {
+  "code": "02403660",
+  "name": "Franklin",
+  "name_en": "Franklin",
+  "parent": 120000,
+  "bbox_x0": "-91.546908999999999",
+  "bbox_x1": "29.753266000000000",
+  "bbox_y0": "-91.478391000000002",
+  "bbox_y1": "29.822948000000000",
+  "srid": "EPSG:4326",
+  "lft": 324,
+  "rght": 325,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120196,
+ "fields": {
+  "code": "02404489",
+  "name": "Patterson",
+  "name_en": "Patterson",
+  "parent": 120000,
+  "bbox_x0": "-91.323992000000004",
+  "bbox_x1": "29.673736000000002",
+  "bbox_y0": "-91.291784000000007",
+  "bbox_y1": "29.710736000000001",
+  "srid": "EPSG:4326",
+  "lft": 704,
+  "rght": 705,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120197,
+ "fields": {
+  "code": "02586671",
+  "name": "Brownsville",
+  "name_en": "Brownsville",
+  "parent": 120000,
+  "bbox_x0": "-92.192110000000000",
+  "bbox_x1": "32.473959999999998",
+  "bbox_y0": "-92.138339000000002",
+  "bbox_y1": "32.501845000000003",
+  "srid": "EPSG:4326",
+  "lft": 120,
+  "rght": 121,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120198,
+ "fields": {
+  "code": "02586689",
+  "name": "Lacassine",
+  "name_en": "Lacassine",
+  "parent": 120000,
+  "bbox_x0": "-92.929079999999999",
+  "bbox_x1": "30.216733000000001",
+  "bbox_y0": "-92.911354000000003",
+  "bbox_y1": "30.246303999999999",
+  "srid": "EPSG:4326",
+  "lft": 484,
+  "rght": 485,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120199,
+ "fields": {
+  "code": "02402442",
+  "name": "Edgard",
+  "name_en": "Edgard",
+  "parent": 120000,
+  "bbox_x0": "-90.624556999999996",
+  "bbox_x1": "30.017486000000002",
+  "bbox_y0": "-90.474238000000000",
+  "bbox_y1": "30.053266000000001",
+  "srid": "EPSG:4326",
+  "lft": 268,
+  "rght": 269,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120200,
+ "fields": {
+  "code": "02402441",
+  "name": "Eden Isle",
+  "name_en": "Eden Isle",
+  "parent": 120000,
+  "bbox_x0": "-89.860015000000004",
+  "bbox_x1": "30.209823000000000",
+  "bbox_y0": "-89.769211999999996",
+  "bbox_y1": "30.245070999999999",
+  "srid": "EPSG:4326",
+  "lft": 266,
+  "rght": 267,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120201,
+ "fields": {
+  "code": "02405202",
+  "name": "Baldwin",
+  "name_en": "Baldwin",
+  "parent": 120000,
+  "bbox_x0": "-91.570042999999998",
+  "bbox_x1": "29.818712000000001",
+  "bbox_y0": "-91.537001000000004",
+  "bbox_y1": "29.861245000000000",
+  "srid": "EPSG:4326",
+  "lft": 40,
+  "rght": 41,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120202,
+ "fields": {
+  "code": "02402980",
+  "name": "Wallace",
+  "name_en": "Wallace",
+  "parent": 120000,
+  "bbox_x0": "-90.688850000000002",
+  "bbox_x1": "30.008644000000000",
+  "bbox_y0": "-90.617851000000002",
+  "bbox_y1": "30.051459000000001",
+  "srid": "EPSG:4326",
+  "lft": 946,
+  "rght": 947,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120203,
+ "fields": {
+  "code": "02403181",
+  "name": "Lacombe",
+  "name_en": "Lacombe",
+  "parent": 120000,
+  "bbox_x0": "-89.980872000000005",
+  "bbox_x1": "30.246873000000001",
+  "bbox_y0": "-89.876227999999998",
+  "bbox_y1": "30.371534000000000",
+  "srid": "EPSG:4326",
+  "lft": 486,
+  "rght": 487,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120204,
+ "fields": {
+  "code": "02402758",
+  "name": "Chackbay",
+  "name_en": "Chackbay",
+  "parent": 120000,
+  "bbox_x0": "-90.851867999999996",
+  "bbox_x1": "29.837388000000001",
+  "bbox_y0": "-90.672571000000005",
+  "bbox_y1": "29.922007000000001",
+  "srid": "EPSG:4326",
+  "lft": 158,
+  "rght": 159,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120205,
+ "fields": {
+  "code": "02586709",
+  "name": "Singer",
+  "name_en": "Singer",
+  "parent": 120000,
+  "bbox_x0": "-93.443810999999997",
+  "bbox_x1": "30.631231000000000",
+  "bbox_y0": "-93.379185000000007",
+  "bbox_y1": "30.671619000000000",
+  "srid": "EPSG:4326",
+  "lft": 834,
+  "rght": 835,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120206,
+ "fields": {
+  "code": "02403362",
+  "name": "Oak Hills Place",
+  "name_en": "Oak Hills Place",
+  "parent": 120000,
+  "bbox_x0": "-91.106617000000000",
+  "bbox_x1": "30.350822000000001",
+  "bbox_y0": "-91.069540000000003",
+  "bbox_y1": "30.388632000000001",
+  "srid": "EPSG:4326",
+  "lft": 678,
+  "rght": 679,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120207,
+ "fields": {
+  "code": "02405882",
+  "name": "Independence",
+  "name_en": "Independence",
+  "parent": 120000,
+  "bbox_x0": "-90.529133000000002",
+  "bbox_x1": "30.624991999999999",
+  "bbox_y0": "-90.489211999999995",
+  "bbox_y1": "30.649985999999998",
+  "srid": "EPSG:4326",
+  "lft": 430,
+  "rght": 431,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120208,
+ "fields": {
+  "code": "02405939",
+  "name": "Kentwood",
+  "name_en": "Kentwood",
+  "parent": 120000,
+  "bbox_x0": "-90.538511000000000",
+  "bbox_x1": "30.902823999999999",
+  "bbox_y0": "-90.491394000000000",
+  "bbox_y1": "30.961040000000001",
+  "srid": "EPSG:4326",
+  "lft": 468,
+  "rght": 469,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120209,
+ "fields": {
+  "code": "02404548",
+  "name": "Ponchatoula",
+  "name_en": "Ponchatoula",
+  "parent": 120000,
+  "bbox_x0": "-90.465305000000001",
+  "bbox_x1": "30.420715999999999",
+  "bbox_y0": "-90.413729000000004",
+  "bbox_y1": "30.468105999999999",
+  "srid": "EPSG:4326",
+  "lft": 738,
+  "rght": 739,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120210,
+ "fields": {
+  "code": "02402440",
+  "name": "Eastwood",
+  "name_en": "Eastwood",
+  "parent": 120000,
+  "bbox_x0": "-93.587104999999994",
+  "bbox_x1": "32.541978999999998",
+  "bbox_y0": "-93.533652000000004",
+  "bbox_y1": "32.585991000000000",
+  "srid": "EPSG:4326",
+  "lft": 262,
+  "rght": 263,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120211,
+ "fields": {
+  "code": "02403356",
+  "name": "North Vacherie",
+  "name_en": "North Vacherie",
+  "parent": 120000,
+  "bbox_x0": "-90.739006000000003",
+  "bbox_x1": "29.966304000000001",
+  "bbox_y0": "-90.677932999999996",
+  "bbox_y1": "30.035952999999999",
+  "srid": "EPSG:4326",
+  "lft": 670,
+  "rght": 671,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120212,
+ "fields": {
+  "code": "02403288",
+  "name": "Midway",
+  "name_en": "Midway",
+  "parent": 120000,
+  "bbox_x0": "-92.170229000000006",
+  "bbox_x1": "31.658003000000001",
+  "bbox_y0": "-92.136010999999996",
+  "bbox_y1": "31.701899999999998",
+  "srid": "EPSG:4326",
+  "lft": 598,
+  "rght": 599,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120213,
+ "fields": {
+  "code": "02402454",
+  "name": "Empire",
+  "name_en": "Empire",
+  "parent": 120000,
+  "bbox_x0": "-89.649349000000001",
+  "bbox_x1": "29.362183999999999",
+  "bbox_y0": "-89.557377000000002",
+  "bbox_y1": "29.458290000000002",
+  "srid": "EPSG:4326",
+  "lft": 280,
+  "rght": 281,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120214,
+ "fields": {
+  "code": "02407561",
+  "name": "Tickfaw",
+  "name_en": "Tickfaw",
+  "parent": 120000,
+  "bbox_x0": "-90.501200999999995",
+  "bbox_x1": "30.561160999999998",
+  "bbox_y0": "-90.474187000000001",
+  "bbox_y1": "30.585435000000000",
+  "srid": "EPSG:4326",
+  "lft": 904,
+  "rght": 905,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120215,
+ "fields": {
+  "code": "02405892",
+  "name": "Iowa",
+  "name_en": "Iowa",
+  "parent": 120000,
+  "bbox_x0": "-93.030434999999997",
+  "bbox_x1": "30.224786000000002",
+  "bbox_y0": "-92.996820000000000",
+  "bbox_y1": "30.259992000000000",
+  "srid": "EPSG:4326",
+  "lft": 436,
+  "rght": 437,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120216,
+ "fields": {
+  "code": "02406803",
+  "name": "Vinton",
+  "name_en": "Vinton",
+  "parent": 120000,
+  "bbox_x0": "-93.600057000000007",
+  "bbox_x1": "30.168887000000002",
+  "bbox_y0": "-93.562062999999995",
+  "bbox_y1": "30.213068000000000",
+  "srid": "EPSG:4326",
+  "lft": 936,
+  "rght": 937,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120217,
+ "fields": {
+  "code": "02403079",
+  "name": "Alexandria",
+  "name_en": "Alexandria",
+  "parent": 120000,
+  "bbox_x0": "-92.565788999999995",
+  "bbox_x1": "31.231542999999999",
+  "bbox_y0": "-92.398295000000005",
+  "bbox_y1": "31.359625999999999",
+  "srid": "EPSG:4326",
+  "lft": 10,
+  "rght": 11,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120218,
+ "fields": {
+  "code": "02405204",
+  "name": "Ball",
+  "name_en": "Ball",
+  "parent": 120000,
+  "bbox_x0": "-92.447361999999998",
+  "bbox_x1": "31.371182999999998",
+  "bbox_y0": "-92.373709000000005",
+  "bbox_y1": "31.442587000000000",
+  "srid": "EPSG:4326",
+  "lft": 42,
+  "rght": 43,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120219,
+ "fields": {
+  "code": "02407458",
+  "name": "Forest Hill",
+  "name_en": "Forest Hill",
+  "parent": 120000,
+  "bbox_x0": "-92.556487000000004",
+  "bbox_x1": "31.025426000000000",
+  "bbox_y0": "-92.501036999999997",
+  "bbox_y1": "31.067848000000001",
+  "srid": "EPSG:4326",
+  "lft": 316,
+  "rght": 317,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120220,
+ "fields": {
+  "code": "02405997",
+  "name": "Lecompte",
+  "name_en": "Lecompte",
+  "parent": 120000,
+  "bbox_x0": "-92.436059000000000",
+  "bbox_x1": "31.068044000000000",
+  "bbox_y0": "-92.374290000000002",
+  "bbox_y1": "31.101262999999999",
+  "srid": "EPSG:4326",
+  "lft": 510,
+  "rght": 511,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120221,
+ "fields": {
+  "code": "02406916",
+  "name": "Woodworth",
+  "name_en": "Woodworth",
+  "parent": 120000,
+  "bbox_x0": "-92.540960999999996",
+  "bbox_x1": "31.126815000000001",
+  "bbox_y0": "-92.454036000000002",
+  "bbox_y1": "31.201722000000000",
+  "srid": "EPSG:4326",
+  "lft": 980,
+  "rght": 981,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120222,
+ "fields": {
+  "code": "02406092",
+  "name": "Many",
+  "name_en": "Many",
+  "parent": 120000,
+  "bbox_x0": "-93.515638999999993",
+  "bbox_x1": "31.537596000000001",
+  "bbox_y0": "-93.448195999999996",
+  "bbox_y1": "31.595838000000001",
+  "srid": "EPSG:4326",
+  "lft": 562,
+  "rght": 563,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120223,
+ "fields": {
+  "code": "02404271",
+  "name": "Minden",
+  "name_en": "Minden",
+  "parent": 120000,
+  "bbox_x0": "-93.322270000000003",
+  "bbox_x1": "32.578074000000001",
+  "bbox_y0": "-93.234849999999994",
+  "bbox_y1": "32.660564000000001",
+  "srid": "EPSG:4326",
+  "lft": 602,
+  "rght": 603,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120224,
+ "fields": {
+  "code": "02407292",
+  "name": "Sarepta",
+  "name_en": "Sarepta",
+  "parent": 120000,
+  "bbox_x0": "-93.470980999999995",
+  "bbox_x1": "32.878425000000000",
+  "bbox_y0": "-93.436879000000005",
+  "bbox_y1": "32.915799000000000",
+  "srid": "EPSG:4326",
+  "lft": 810,
+  "rght": 811,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120225,
+ "fields": {
+  "code": "02405514",
+  "name": "Springhill",
+  "name_en": "Springhill",
+  "parent": 120000,
+  "bbox_x0": "-93.492147002472706",
+  "bbox_x1": "32.975017000000001",
+  "bbox_y0": "-93.432766000000001",
+  "bbox_y1": "33.018611000000000",
+  "srid": "EPSG:4326",
+  "lft": 856,
+  "rght": 857,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120226,
+ "fields": {
+  "code": "02404660",
+  "name": "Ruston",
+  "name_en": "Ruston",
+  "parent": 120000,
+  "bbox_x0": "-92.686828000000006",
+  "bbox_x1": "32.480068000000003",
+  "bbox_y0": "-92.569130999999999",
+  "bbox_y1": "32.577165999999998",
+  "srid": "EPSG:4326",
+  "lft": 806,
+  "rght": 807,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120227,
+ "fields": {
+  "code": "02407547",
+  "name": "Simpson",
+  "name_en": "Simpson",
+  "parent": 120000,
+  "bbox_x0": "-93.050062999999994",
+  "bbox_x1": "31.237530000000000",
+  "bbox_y0": "-92.986248000000003",
+  "bbox_y1": "31.288139999999999",
+  "srid": "EPSG:4326",
+  "lft": 830,
+  "rght": 831,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120228,
+ "fields": {
+  "code": "02407431",
+  "name": "Choudrant",
+  "name_en": "Choudrant",
+  "parent": 120000,
+  "bbox_x0": "-92.536462999999998",
+  "bbox_x1": "32.524422999999999",
+  "bbox_y0": "-92.486587000000000",
+  "bbox_y1": "32.582033000000003",
+  "srid": "EPSG:4326",
+  "lft": 174,
+  "rght": 175,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120229,
+ "fields": {
+  "code": "02407541",
+  "name": "Saline",
+  "name_en": "Saline",
+  "parent": 120000,
+  "bbox_x0": "-92.988969999999995",
+  "bbox_x1": "32.155245000000001",
+  "bbox_y0": "-92.966648000000006",
+  "bbox_y1": "32.170347000000000",
+  "srid": "EPSG:4326",
+  "lft": 808,
+  "rght": 809,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120230,
+ "fields": {
+  "code": "02405245",
+  "name": "Benton",
+  "name_en": "Benton",
+  "parent": 120000,
+  "bbox_x0": "-93.753525999999994",
+  "bbox_x1": "32.669412000000001",
+  "bbox_y0": "-93.728617000000000",
+  "bbox_y1": "32.705992000000002",
+  "srid": "EPSG:4326",
+  "lft": 84,
+  "rght": 85,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120231,
+ "fields": {
+  "code": "02405802",
+  "name": "Haughton",
+  "name_en": "Haughton",
+  "parent": 120000,
+  "bbox_x0": "-93.536880999999994",
+  "bbox_x1": "32.490509000000003",
+  "bbox_y0": "-93.475792999999996",
+  "bbox_y1": "32.556846999999998",
+  "srid": "EPSG:4326",
+  "lft": 402,
+  "rght": 403,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120232,
+ "fields": {
+  "code": "02407409",
+  "name": "Angie",
+  "name_en": "Angie",
+  "parent": 120000,
+  "bbox_x0": "-89.831826000000007",
+  "bbox_x1": "30.954294000000001",
+  "bbox_y0": "-89.804930999999996",
+  "bbox_y1": "30.972580000000001",
+  "srid": "EPSG:4326",
+  "lft": 22,
+  "rght": 23,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120233,
+ "fields": {
+  "code": "02407452",
+  "name": "Fenton",
+  "name_en": "Fenton",
+  "parent": 120000,
+  "bbox_x0": "-92.924077999999994",
+  "bbox_x1": "30.357845999999999",
+  "bbox_y0": "-92.912026999999995",
+  "bbox_y1": "30.372603999999999",
+  "srid": "EPSG:4326",
+  "lft": 300,
+  "rght": 301,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120234,
+ "fields": {
+  "code": "02403993",
+  "name": "Carencro",
+  "name_en": "Carencro",
+  "parent": 120000,
+  "bbox_x0": "-92.074729000000005",
+  "bbox_x1": "30.283042999999999",
+  "bbox_y0": "-91.990137000000004",
+  "bbox_y1": "30.375437999999999",
+  "srid": "EPSG:4326",
+  "lft": 142,
+  "rght": 143,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120235,
+ "fields": {
+  "code": "02405160",
+  "name": "Arcadia",
+  "name_en": "Arcadia",
+  "parent": 120000,
+  "bbox_x0": "-92.948217000000000",
+  "bbox_x1": "32.522976999999997",
+  "bbox_y0": "-92.904045999999994",
+  "bbox_y1": "32.571246000000002",
+  "srid": "EPSG:4326",
+  "lft": 26,
+  "rght": 27,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120236,
+ "fields": {
+  "code": "02406562",
+  "name": "Gibsland",
+  "name_en": "Gibsland",
+  "parent": 120000,
+  "bbox_x0": "-93.067340000000002",
+  "bbox_x1": "32.526789000000001",
+  "bbox_y0": "-93.040851000000004",
+  "bbox_y1": "32.552112999999999",
+  "srid": "EPSG:4326",
+  "lft": 340,
+  "rght": 341,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120237,
+ "fields": {
+  "code": "02504823",
+  "name": "Central",
+  "name_en": "Central",
+  "parent": 120000,
+  "bbox_x0": "-91.102528000000007",
+  "bbox_x1": "30.465831000000001",
+  "bbox_y0": "-90.967889999999997",
+  "bbox_y1": "30.649070999999999",
+  "srid": "EPSG:4326",
+  "lft": 156,
+  "rght": 157,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120238,
+ "fields": {
+  "code": "02405073",
+  "name": "Youngsville",
+  "name_en": "Youngsville",
+  "parent": 120000,
+  "bbox_x0": "-92.033990000000003",
+  "bbox_x1": "30.062089000000000",
+  "bbox_y0": "-91.947378999999998",
+  "bbox_y1": "30.135179999999998",
+  "srid": "EPSG:4326",
+  "lft": 982,
+  "rght": 983,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120239,
+ "fields": {
+  "code": "02804546",
+  "name": "Darrow",
+  "name_en": "Darrow",
+  "parent": 120000,
+  "bbox_x0": "-90.989992000000001",
+  "bbox_x1": "30.117440999999999",
+  "bbox_y0": "-90.978990999999994",
+  "bbox_y1": "30.125623000000001",
+  "srid": "EPSG:4326",
+  "lft": 216,
+  "rght": 217,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120240,
+ "fields": {
+  "code": "02402749",
+  "name": "Carlyss",
+  "name_en": "Carlyss",
+  "parent": 120000,
+  "bbox_x0": "-93.392921000000001",
+  "bbox_x1": "30.139645000000002",
+  "bbox_y0": "-93.346603999999999",
+  "bbox_y1": "30.215385999999999",
+  "srid": "EPSG:4326",
+  "lft": 144,
+  "rght": 145,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120241,
+ "fields": {
+  "code": "02403308",
+  "name": "Moss Bluff",
+  "name_en": "Moss Bluff",
+  "parent": 120000,
+  "bbox_x0": "-93.249937000000003",
+  "bbox_x1": "30.262006000000000",
+  "bbox_y0": "-93.153889000000007",
+  "bbox_y1": "30.330596000000000",
+  "srid": "EPSG:4326",
+  "lft": 636,
+  "rght": 637,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120242,
+ "fields": {
+  "code": "02407426",
+  "name": "Cankton",
+  "name_en": "Cankton",
+  "parent": 120000,
+  "bbox_x0": "-92.124550999999997",
+  "bbox_x1": "30.332373000000000",
+  "bbox_y0": "-92.097966999999997",
+  "bbox_y1": "30.361143999999999",
+  "srid": "EPSG:4326",
+  "lft": 140,
+  "rght": 141,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120243,
+ "fields": {
+  "code": "02405960",
+  "name": "Krotz Springs",
+  "name_en": "Krotz Springs",
+  "parent": 120000,
+  "bbox_x0": "-91.763223999999994",
+  "bbox_x1": "30.514351000000001",
+  "bbox_y0": "-91.733322000000001",
+  "bbox_y1": "30.546855999999998",
+  "srid": "EPSG:4326",
+  "lft": 480,
+  "rght": 481,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120244,
+ "fields": {
+  "code": "02407148",
+  "name": "Port Barre",
+  "name_en": "Port Barre",
+  "parent": 120000,
+  "bbox_x0": "-91.971214000000003",
+  "bbox_x1": "30.544319999999999",
+  "bbox_y0": "-91.944827000000004",
+  "bbox_y1": "30.570464000000001",
+  "srid": "EPSG:4326",
+  "lft": 742,
+  "rght": 743,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120245,
+ "fields": {
+  "code": "02406835",
+  "name": "Washington",
+  "name_en": "Washington",
+  "parent": 120000,
+  "bbox_x0": "-92.070808999999997",
+  "bbox_x1": "30.606158000000001",
+  "bbox_y0": "-92.042499000000007",
+  "bbox_y1": "30.624195000000000",
+  "srid": "EPSG:4326",
+  "lft": 950,
+  "rght": 951,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120246,
+ "fields": {
+  "code": "02405976",
+  "name": "Lake Providence",
+  "name_en": "Lake Providence",
+  "parent": 120000,
+  "bbox_x0": "-91.216727000000006",
+  "bbox_x1": "32.789040000000000",
+  "bbox_y0": "-91.161411999999999",
+  "bbox_y1": "32.841380000000001",
+  "srid": "EPSG:4326",
+  "lft": 498,
+  "rght": 499,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120247,
+ "fields": {
+  "code": "02405817",
+  "name": "Henderson",
+  "name_en": "Henderson",
+  "parent": 120000,
+  "bbox_x0": "-91.834714000000005",
+  "bbox_x1": "30.305958000000000",
+  "bbox_y0": "-91.782996999999995",
+  "bbox_y1": "30.328560000000000",
+  "srid": "EPSG:4326",
+  "lft": 410,
+  "rght": 411,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120248,
+ "fields": {
+  "code": "02405397",
+  "name": "St. Martinville",
+  "name_en": "St. Martinville",
+  "parent": 120000,
+  "bbox_x0": "-91.856773000000004",
+  "bbox_x1": "30.101355000000002",
+  "bbox_y0": "-91.811869000000002",
+  "bbox_y1": "30.147762000000000",
+  "srid": "EPSG:4326",
+  "lft": 874,
+  "rght": 875,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120249,
+ "fields": {
+  "code": "02407514",
+  "name": "Norwood",
+  "name_en": "Norwood",
+  "parent": 120000,
+  "bbox_x0": "-91.152569999999997",
+  "bbox_x1": "30.943138000000001",
+  "bbox_y0": "-91.076907000000006",
+  "bbox_y1": "30.996811999999998",
+  "srid": "EPSG:4326",
+  "lft": 672,
+  "rght": 673,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120250,
+ "fields": {
+  "code": "02405858",
+  "name": "Homer",
+  "name_en": "Homer",
+  "parent": 120000,
+  "bbox_x0": "-93.084637999999998",
+  "bbox_x1": "32.775494999999999",
+  "bbox_y0": "-93.038559000000006",
+  "bbox_y1": "32.822406000000001",
+  "srid": "EPSG:4326",
+  "lft": 418,
+  "rght": 419,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120251,
+ "fields": {
+  "code": "02405119",
+  "name": "Abita Springs",
+  "name_en": "Abita Springs",
+  "parent": 120000,
+  "bbox_x0": "-90.048884999999999",
+  "bbox_x1": "30.452953999999998",
+  "bbox_y0": "-90.011005999999995",
+  "bbox_y1": "30.496939000000001",
+  "srid": "EPSG:4326",
+  "lft": 4,
+  "rght": 5,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120252,
+ "fields": {
+  "code": "02407087",
+  "name": "Pearl River",
+  "name_en": "Pearl River",
+  "parent": 120000,
+  "bbox_x0": "-89.771367999999995",
+  "bbox_x1": "30.340560000000000",
+  "bbox_y0": "-89.728261000000003",
+  "bbox_y1": "30.401409999999998",
+  "srid": "EPSG:4326",
+  "lft": 708,
+  "rght": 709,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120253,
+ "fields": {
+  "code": "02406985",
+  "name": "Newellton",
+  "name_en": "Newellton",
+  "parent": 120000,
+  "bbox_x0": "-91.260148999999998",
+  "bbox_x1": "32.060487999999999",
+  "bbox_y0": "-91.224643999999998",
+  "bbox_y1": "32.084251999999999",
+  "srid": "EPSG:4326",
+  "lft": 650,
+  "rght": 651,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120254,
+ "fields": {
+  "code": "02403796",
+  "name": "Harahan",
+  "name_en": "Harahan",
+  "parent": 120000,
+  "bbox_x0": "-90.219038999999995",
+  "bbox_x1": "29.923120000000001",
+  "bbox_y0": "-90.184157999999996",
+  "bbox_y1": "29.973766000000001",
+  "srid": "EPSG:4326",
+  "lft": 396,
+  "rght": 397,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120255,
+ "fields": {
+  "code": "02405918",
+  "name": "Jonesboro",
+  "name_en": "Jonesboro",
+  "parent": 120000,
+  "bbox_x0": "-92.733536999999998",
+  "bbox_x1": "32.202058999999998",
+  "bbox_y0": "-92.687708000000001",
+  "bbox_y1": "32.258423000000001",
+  "srid": "EPSG:4326",
+  "lft": 452,
+  "rght": 453,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120256,
+ "fields": {
+  "code": "02407534",
+  "name": "Quitman",
+  "name_en": "Quitman",
+  "parent": 120000,
+  "bbox_x0": "-92.739538999999994",
+  "bbox_x1": "32.342658000000000",
+  "bbox_y0": "-92.710735000000000",
+  "bbox_y1": "32.362701000000001",
+  "srid": "EPSG:4326",
+  "lft": 762,
+  "rght": 763,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120257,
+ "fields": {
+  "code": "02407477",
+  "name": "Hodge",
+  "name_en": "Hodge",
+  "parent": 120000,
+  "bbox_x0": "-92.740249000000006",
+  "bbox_x1": "32.263154000000000",
+  "bbox_y0": "-92.718637000000001",
+  "bbox_y1": "32.281823000000003",
+  "srid": "EPSG:4326",
+  "lft": 416,
+  "rght": 417,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120258,
+ "fields": {
+  "code": "02406370",
+  "name": "Delcambre",
+  "name_en": "Delcambre",
+  "parent": 120000,
+  "bbox_x0": "-92.010396000000000",
+  "bbox_x1": "29.937840000000001",
+  "bbox_y0": "-91.981600999999998",
+  "bbox_y1": "29.965795000000000",
+  "srid": "EPSG:4326",
+  "lft": 220,
+  "rght": 221,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120259,
+ "fields": {
+  "code": "02407493",
+  "name": "Loreauville",
+  "name_en": "Loreauville",
+  "parent": 120000,
+  "bbox_x0": "-91.742642000000004",
+  "bbox_x1": "30.049016000000002",
+  "bbox_y0": "-91.733801999999997",
+  "bbox_y1": "30.071225999999999",
+  "srid": "EPSG:4326",
+  "lft": 540,
+  "rght": 541,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120260,
+ "fields": {
+  "code": "02407407",
+  "name": "Albany",
+  "name_en": "Albany",
+  "parent": 120000,
+  "bbox_x0": "-90.592371999999997",
+  "bbox_x1": "30.467490000000002",
+  "bbox_y0": "-90.569578000000007",
+  "bbox_y1": "30.511763999999999",
+  "srid": "EPSG:4326",
+  "lft": 8,
+  "rght": 9,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120261,
+ "fields": {
+  "code": "02406030",
+  "name": "Livingston",
+  "name_en": "Livingston",
+  "parent": 120000,
+  "bbox_x0": "-90.762127000000007",
+  "bbox_x1": "30.470949999999998",
+  "bbox_y0": "-90.732750999999993",
+  "bbox_y1": "30.510574999999999",
+  "srid": "EPSG:4326",
+  "lft": 524,
+  "rght": 525,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120262,
+ "fields": {
+  "code": "02407389",
+  "name": "Springfield",
+  "name_en": "Springfield",
+  "parent": 120000,
+  "bbox_x0": "-90.556156999999999",
+  "bbox_x1": "30.414335000000001",
+  "bbox_y0": "-90.521440999999996",
+  "bbox_y1": "30.441738000000001",
+  "srid": "EPSG:4326",
+  "lft": 854,
+  "rght": 855,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120263,
+ "fields": {
+  "code": "02404363",
+  "name": "New Iberia",
+  "name_en": "New Iberia",
+  "parent": 120000,
+  "bbox_x0": "-91.864818999999997",
+  "bbox_x1": "29.968212999999999",
+  "bbox_y0": "-91.778619000000006",
+  "bbox_y1": "30.046412000000000",
+  "srid": "EPSG:4326",
+  "lft": 652,
+  "rght": 653,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120264,
+ "fields": {
+  "code": "02403937",
+  "name": "Broussard",
+  "name_en": "Broussard",
+  "parent": 120000,
+  "bbox_x0": "-92.016678999999996",
+  "bbox_x1": "30.087721999999999",
+  "bbox_y0": "-91.907633000000004",
+  "bbox_y1": "30.195190000000000",
+  "srid": "EPSG:4326",
+  "lft": 116,
+  "rght": 117,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120265,
+ "fields": {
+  "code": "02407539",
+  "name": "Rosedale",
+  "name_en": "Rosedale",
+  "parent": 120000,
+  "bbox_x0": "-91.494343000000001",
+  "bbox_x1": "30.416813000000001",
+  "bbox_y0": "-91.422483000000000",
+  "bbox_y1": "30.467146000000000",
+  "srid": "EPSG:4326",
+  "lft": 800,
+  "rght": 801,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120266,
+ "fields": {
+  "code": "02405566",
+  "name": "Tallulah",
+  "name_en": "Tallulah",
+  "parent": 120000,
+  "bbox_x0": "-91.237094999999997",
+  "bbox_x1": "32.381537000000002",
+  "bbox_y0": "-91.171330999999995",
+  "bbox_y1": "32.423755000000000",
+  "srid": "EPSG:4326",
+  "lft": 896,
+  "rght": 897,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120267,
+ "fields": {
+  "code": "02403818",
+  "name": "Bastrop",
+  "name_en": "Bastrop",
+  "parent": 120000,
+  "bbox_x0": "-91.942814999999996",
+  "bbox_x1": "32.747328000000003",
+  "bbox_y0": "-91.868508000000006",
+  "bbox_y1": "32.800359000000000",
+  "srid": "EPSG:4326",
+  "lft": 52,
+  "rght": 53,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120268,
+ "fields": {
+  "code": "02406615",
+  "name": "Greensburg",
+  "name_en": "Greensburg",
+  "parent": 120000,
+  "bbox_x0": "-90.688022000000004",
+  "bbox_x1": "30.817837000000001",
+  "bbox_y0": "-90.652776000000003",
+  "bbox_y1": "30.843509999999998",
+  "srid": "EPSG:4326",
+  "lft": 378,
+  "rght": 379,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120269,
+ "fields": {
+  "code": "02404366",
+  "name": "New Roads",
+  "name_en": "New Roads",
+  "parent": 120000,
+  "bbox_x0": "-91.484626000000006",
+  "bbox_x1": "30.676871999999999",
+  "bbox_y0": "-91.419432999999998",
+  "bbox_y1": "30.709911999999999",
+  "srid": "EPSG:4326",
+  "lft": 660,
+  "rght": 661,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120270,
+ "fields": {
+  "code": "02407181",
+  "name": "Rayville",
+  "name_en": "Rayville",
+  "parent": 120000,
+  "bbox_x0": "-91.778116999999995",
+  "bbox_x1": "32.449503000000000",
+  "bbox_y0": "-91.739900000000006",
+  "bbox_y1": "32.485241000000002",
+  "srid": "EPSG:4326",
+  "lft": 768,
+  "rght": 769,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120271,
+ "fields": {
+  "code": "02805371",
+  "name": "Perry",
+  "name_en": "Perry",
+  "parent": 120000,
+  "bbox_x0": "-92.170333999999997",
+  "bbox_x1": "29.940683000000000",
+  "bbox_y0": "-92.135424999999998",
+  "bbox_y1": "29.961365000000001",
+  "srid": "EPSG:4326",
+  "lft": 710,
+  "rght": 711,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120272,
+ "fields": {
+  "code": "02407210",
+  "name": "Richwood",
+  "name_en": "Richwood",
+  "parent": 120000,
+  "bbox_x0": "-92.106460999999996",
+  "bbox_x1": "32.412197999999997",
+  "bbox_y0": "-92.055905999999993",
+  "bbox_y1": "32.484529999999999",
+  "srid": "EPSG:4326",
+  "lft": 780,
+  "rght": 781,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120273,
+ "fields": {
+  "code": "02406060",
+  "name": "Lutcher",
+  "name_en": "Lutcher",
+  "parent": 120000,
+  "bbox_x0": "-90.732782999999998",
+  "bbox_x1": "30.033552000000000",
+  "bbox_y0": "-90.688996000000003",
+  "bbox_y1": "30.098621999999999",
+  "srid": "EPSG:4326",
+  "lft": 546,
+  "rght": 547,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120274,
+ "fields": {
+  "code": "02404734",
+  "name": "Houma",
+  "name_en": "Houma",
+  "parent": 120000,
+  "bbox_x0": "-90.767014000000003",
+  "bbox_x1": "29.544924999999999",
+  "bbox_y0": "-90.635628999999994",
+  "bbox_y1": "29.611308000000001",
+  "srid": "EPSG:4326",
+  "lft": 426,
+  "rght": 427,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120275,
+ "fields": {
+  "code": "02805366",
+  "name": "Echo",
+  "name_en": "Echo",
+  "parent": 120000,
+  "bbox_x0": "-92.250730000000004",
+  "bbox_x1": "31.094999000000001",
+  "bbox_y0": "-92.229653999999996",
+  "bbox_y1": "31.123010000000001",
+  "srid": "EPSG:4326",
+  "lft": 264,
+  "rght": 265,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120276,
+ "fields": {
+  "code": "02407415",
+  "name": "Baskin",
+  "name_en": "Baskin",
+  "parent": 120000,
+  "bbox_x0": "-91.761994000000001",
+  "bbox_x1": "32.246853999999999",
+  "bbox_y0": "-91.735787999999999",
+  "bbox_y1": "32.268757999999998",
+  "srid": "EPSG:4326",
+  "lft": 50,
+  "rght": 51,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120277,
+ "fields": {
+  "code": "02407463",
+  "name": "Gilbert",
+  "name_en": "Gilbert",
+  "parent": 120000,
+  "bbox_x0": "-91.668751000000000",
+  "bbox_x1": "32.039785999999999",
+  "bbox_y0": "-91.646996999999999",
+  "bbox_y1": "32.059939000000000",
+  "srid": "EPSG:4326",
+  "lft": 342,
+  "rght": 343,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120278,
+ "fields": {
+  "code": "02407457",
+  "name": "Forest",
+  "name_en": "Forest",
+  "parent": 120000,
+  "bbox_x0": "-91.423147000000000",
+  "bbox_x1": "32.776378000000001",
+  "bbox_y0": "-91.394170000000003",
+  "bbox_y1": "32.805838000000001",
+  "srid": "EPSG:4326",
+  "lft": 314,
+  "rght": 315,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120279,
+ "fields": {
+  "code": "02407485",
+  "name": "Kilbourne",
+  "name_en": "Kilbourne",
+  "parent": 120000,
+  "bbox_x0": "-91.326094999999995",
+  "bbox_x1": "32.987305999999997",
+  "bbox_y0": "-91.300023999999993",
+  "bbox_y1": "33.005341806194302",
+  "srid": "EPSG:4326",
+  "lft": 470,
+  "rght": 471,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120280,
+ "fields": {
+  "code": "02406625",
+  "name": "Gueydan",
+  "name_en": "Gueydan",
+  "parent": 120000,
+  "bbox_x0": "-92.514455999999996",
+  "bbox_x1": "30.019165000000001",
+  "bbox_y0": "-92.494369000000006",
+  "bbox_y1": "30.040572999999998",
+  "srid": "EPSG:4326",
+  "lft": 386,
+  "rght": 387,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120281,
+ "fields": {
+  "code": "02407498",
+  "name": "Maurice",
+  "name_en": "Maurice",
+  "parent": 120000,
+  "bbox_x0": "-92.132987999999997",
+  "bbox_x1": "30.086596000000000",
+  "bbox_y0": "-92.098578000000003",
+  "bbox_y1": "30.121842999999998",
+  "srid": "EPSG:4326",
+  "lft": 578,
+  "rght": 579,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120282,
+ "fields": {
+  "code": "02403710",
+  "name": "Gonzales",
+  "name_en": "Gonzales",
+  "parent": 120000,
+  "bbox_x0": "-90.955275999999998",
+  "bbox_x1": "30.174894999999999",
+  "bbox_y0": "-90.896360999999999",
+  "bbox_y1": "30.254669000000000",
+  "srid": "EPSG:4326",
+  "lft": 358,
+  "rght": 359,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120283,
+ "fields": {
+  "code": "02406584",
+  "name": "Golden Meadow",
+  "name_en": "Golden Meadow",
+  "parent": 120000,
+  "bbox_x0": "-90.290212999999994",
+  "bbox_x1": "29.367183000000001",
+  "bbox_y0": "-90.258960999999999",
+  "bbox_y1": "29.410782999999999",
+  "srid": "EPSG:4326",
+  "lft": 354,
+  "rght": 355,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120284,
+ "fields": {
+  "code": "02405581",
+  "name": "Thibodaux",
+  "name_en": "Thibodaux",
+  "parent": 120000,
+  "bbox_x0": "-90.847694000000004",
+  "bbox_x1": "29.751294000000001",
+  "bbox_y0": "-90.788126000000005",
+  "bbox_y1": "29.835940999999998",
+  "srid": "EPSG:4326",
+  "lft": 902,
+  "rght": 903,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120285,
+ "fields": {
+  "code": "02407552",
+  "name": "Spearsville",
+  "name_en": "Spearsville",
+  "parent": 120000,
+  "bbox_x0": "-92.621555000000001",
+  "bbox_x1": "32.911079999999998",
+  "bbox_y0": "-92.580331000000001",
+  "bbox_y1": "32.950462000000002",
+  "srid": "EPSG:4326",
+  "lft": 850,
+  "rght": 851,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120286,
+ "fields": {
+  "code": "02405373",
+  "name": "Campti",
+  "name_en": "Campti",
+  "parent": 120000,
+  "bbox_x0": "-93.125001999999995",
+  "bbox_x1": "31.884813000000001",
+  "bbox_y0": "-93.104988000000006",
+  "bbox_y1": "31.914726999999999",
+  "srid": "EPSG:4326",
+  "lft": 138,
+  "rght": 139,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120287,
+ "fields": {
+  "code": "02407537",
+  "name": "Robeline",
+  "name_en": "Robeline",
+  "parent": 120000,
+  "bbox_x0": "-93.314978999999994",
+  "bbox_x1": "31.672141000000000",
+  "bbox_y0": "-93.291263000000001",
+  "bbox_y1": "31.702162999999999",
+  "srid": "EPSG:4326",
+  "lft": 792,
+  "rght": 793,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120288,
+ "fields": {
+  "code": "02405278",
+  "name": "Blanchard",
+  "name_en": "Blanchard",
+  "parent": 120000,
+  "bbox_x0": "-93.903756999999999",
+  "bbox_x1": "32.572446999999997",
+  "bbox_y0": "-93.842461999999998",
+  "bbox_y1": "32.646510999999997",
+  "srid": "EPSG:4326",
+  "lft": 92,
+  "rght": 93,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120289,
+ "fields": {
+  "code": "02406617",
+  "name": "Greenwood",
+  "name_en": "Greenwood",
+  "parent": 120000,
+  "bbox_x0": "-94.006872000000001",
+  "bbox_x1": "32.408732000000001",
+  "bbox_y0": "-93.914841999999993",
+  "bbox_y1": "32.457622000000001",
+  "srid": "EPSG:4326",
+  "lft": 380,
+  "rght": 381,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120290,
+ "fields": {
+  "code": "02407038",
+  "name": "Oil City",
+  "name_en": "Oil City",
+  "parent": 120000,
+  "bbox_x0": "-93.984953000000004",
+  "bbox_x1": "32.725853000000001",
+  "bbox_y0": "-93.966060999999996",
+  "bbox_y1": "32.767741000000001",
+  "srid": "EPSG:4326",
+  "lft": 684,
+  "rght": 685,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120291,
+ "fields": {
+  "code": "02406806",
+  "name": "Vivian",
+  "name_en": "Vivian",
+  "parent": 120000,
+  "bbox_x0": "-94.016886999999997",
+  "bbox_x1": "32.837119999999999",
+  "bbox_y0": "-93.972981000000004",
+  "bbox_y1": "32.906134000000002",
+  "srid": "EPSG:4326",
+  "lft": 940,
+  "rght": 941,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120292,
+ "fields": {
+  "code": "02407437",
+  "name": "Converse",
+  "name_en": "Converse",
+  "parent": 120000,
+  "bbox_x0": "-93.708909000000006",
+  "bbox_x1": "31.763622999999999",
+  "bbox_y0": "-93.690870000000004",
+  "bbox_y1": "31.794912000000000",
+  "srid": "EPSG:4326",
+  "lft": 196,
+  "rght": 197,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120293,
+ "fields": {
+  "code": "02406180",
+  "name": "Montgomery",
+  "name_en": "Montgomery",
+  "parent": 120000,
+  "bbox_x0": "-92.904973999999996",
+  "bbox_x1": "31.647998000000001",
+  "bbox_y0": "-92.859008000000003",
+  "bbox_y1": "31.686664000000000",
+  "srid": "EPSG:4326",
+  "lft": 614,
+  "rght": 615,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120294,
+ "fields": {
+  "code": "02402668",
+  "name": "Bayou Cane",
+  "name_en": "Bayou Cane",
+  "parent": 120000,
+  "bbox_x0": "-90.772991000000005",
+  "bbox_x1": "29.591042999999999",
+  "bbox_y0": "-90.728247999999994",
+  "bbox_y1": "29.658884000000000",
+  "srid": "EPSG:4326",
+  "lft": 60,
+  "rght": 61,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120295,
+ "fields": {
+  "code": "02402546",
+  "name": "Gray",
+  "name_en": "Gray",
+  "parent": 120000,
+  "bbox_x0": "-90.812168000000000",
+  "bbox_x1": "29.646508999999998",
+  "bbox_y0": "-90.738325000000003",
+  "bbox_y1": "29.723655999999998",
+  "srid": "EPSG:4326",
+  "lft": 374,
+  "rght": 375,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120296,
+ "fields": {
+  "code": "02406280",
+  "name": "Clinton",
+  "name_en": "Clinton",
+  "parent": 120000,
+  "bbox_x0": "-91.031136000000004",
+  "bbox_x1": "30.845887999999999",
+  "bbox_y0": "-91.000056999999998",
+  "bbox_y1": "30.876940999999999",
+  "srid": "EPSG:4326",
+  "lft": 186,
+  "rght": 187,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120297,
+ "fields": {
+  "code": "02405911",
+  "name": "Jena",
+  "name_en": "Jena",
+  "parent": 120000,
+  "bbox_x0": "-92.161147000000000",
+  "bbox_x1": "31.666107000000000",
+  "bbox_y0": "-92.105483000000007",
+  "bbox_y1": "31.715349000000000",
+  "srid": "EPSG:4326",
+  "lft": 448,
+  "rght": 449,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120298,
+ "fields": {
+  "code": "02407527",
+  "name": "Pleasant Hill",
+  "name_en": "Pleasant Hill",
+  "parent": 120000,
+  "bbox_x0": "-93.531137000000001",
+  "bbox_x1": "31.801700000000000",
+  "bbox_y0": "-93.502650000000003",
+  "bbox_y1": "31.829018999999999",
+  "srid": "EPSG:4326",
+  "lft": 728,
+  "rght": 729,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120299,
+ "fields": {
+  "code": "02404817",
+  "name": "Kaplan",
+  "name_en": "Kaplan",
+  "parent": 120000,
+  "bbox_x0": "-92.309415000000001",
+  "bbox_x1": "29.984885999999999",
+  "bbox_y0": "-92.265814000000006",
+  "bbox_y1": "30.024070999999999",
+  "srid": "EPSG:4326",
+  "lft": 462,
+  "rght": 463,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120300,
+ "fields": {
+  "code": "02407490",
+  "name": "Lillie",
+  "name_en": "Lillie",
+  "parent": 120000,
+  "bbox_x0": "-92.676078000000004",
+  "bbox_x1": "32.906708999999999",
+  "bbox_y0": "-92.651537000000005",
+  "bbox_y1": "32.937742000000000",
+  "srid": "EPSG:4326",
+  "lft": 520,
+  "rght": 521,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120301,
+ "fields": {
+  "code": "02402516",
+  "name": "Gardere",
+  "name_en": "Gardere",
+  "parent": 120000,
+  "bbox_x0": "-91.154178000000002",
+  "bbox_x1": "30.340427999999999",
+  "bbox_y0": "-91.112594000000001",
+  "bbox_y1": "30.375941999999998",
+  "srid": "EPSG:4326",
+  "lft": 334,
+  "rght": 335,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120302,
+ "fields": {
+  "code": "02403303",
+  "name": "Monticello",
+  "name_en": "Monticello",
+  "parent": 120000,
+  "bbox_x0": "-91.060185000000004",
+  "bbox_x1": "30.472963000000000",
+  "bbox_y0": "-91.032314999999997",
+  "bbox_y1": "30.505770999999999",
+  "srid": "EPSG:4326",
+  "lft": 616,
+  "rght": 617,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120303,
+ "fields": {
+  "code": "02403374",
+  "name": "Old Jefferson",
+  "name_en": "Old Jefferson",
+  "parent": 120000,
+  "bbox_x0": "-91.035714999999996",
+  "bbox_x1": "30.355416000000002",
+  "bbox_y0": "-90.985240000000005",
+  "bbox_y1": "30.392482000000001",
+  "srid": "EPSG:4326",
+  "lft": 686,
+  "rght": 687,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120304,
+ "fields": {
+  "code": "02402848",
+  "name": "Shenandoah",
+  "name_en": "Shenandoah",
+  "parent": 120000,
+  "bbox_x0": "-91.039036999999993",
+  "bbox_x1": "30.388180999999999",
+  "bbox_y0": "-90.968511000000007",
+  "bbox_y1": "30.419239999999999",
+  "srid": "EPSG:4326",
+  "lft": 816,
+  "rght": 817,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120305,
+ "fields": {
+  "code": "02407506",
+  "name": "Morganza",
+  "name_en": "Morganza",
+  "parent": 120000,
+  "bbox_x0": "-91.603181000000006",
+  "bbox_x1": "30.725577999999999",
+  "bbox_y0": "-91.575239999999994",
+  "bbox_y1": "30.750443000000001",
+  "srid": "EPSG:4326",
+  "lft": 630,
+  "rght": 631,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120306,
+ "fields": {
+  "code": "02402405",
+  "name": "Des Allemands",
+  "name_en": "Des Allemands",
+  "parent": 120000,
+  "bbox_x0": "-90.524952999999996",
+  "bbox_x1": "29.766492000000000",
+  "bbox_y0": "-90.429671999999997",
+  "bbox_y1": "29.859037000000001",
+  "srid": "EPSG:4326",
+  "lft": 232,
+  "rght": 233,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120307,
+ "fields": {
+  "code": "02403457",
+  "name": "Raceland",
+  "name_en": "Raceland",
+  "parent": 120000,
+  "bbox_x0": "-90.712102000000002",
+  "bbox_x1": "29.685856999999999",
+  "bbox_y0": "-90.560939000000005",
+  "bbox_y1": "29.758179999999999",
+  "srid": "EPSG:4326",
+  "lft": 764,
+  "rght": 765,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120308,
+ "fields": {
+  "code": "02405251",
+  "name": "Berwick",
+  "name_en": "Berwick",
+  "parent": 120000,
+  "bbox_x0": "-91.263079000000005",
+  "bbox_x1": "29.673953999999998",
+  "bbox_y0": "-91.214581999999993",
+  "bbox_y1": "29.725273999999999",
+  "srid": "EPSG:4326",
+  "lft": 88,
+  "rght": 89,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120309,
+ "fields": {
+  "code": "02404436",
+  "name": "Opelousas",
+  "name_en": "Opelousas",
+  "parent": 120000,
+  "bbox_x0": "-92.119416999999999",
+  "bbox_x1": "30.467025000000000",
+  "bbox_y0": "-92.045246000000006",
+  "bbox_y1": "30.569655000000001",
+  "srid": "EPSG:4326",
+  "lft": 690,
+  "rght": 691,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120310,
+ "fields": {
+  "code": "02407247",
+  "name": "Rosepine",
+  "name_en": "Rosepine",
+  "parent": 120000,
+  "bbox_x0": "-93.310789000000000",
+  "bbox_x1": "30.907530000000001",
+  "bbox_y0": "-93.268168000000003",
+  "bbox_y1": "30.937768999999999",
+  "srid": "EPSG:4326",
+  "lft": 804,
+  "rght": 805,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120311,
+ "fields": {
+  "code": "02407441",
+  "name": "Dodson",
+  "name_en": "Dodson",
+  "parent": 120000,
+  "bbox_x0": "-92.671744000000004",
+  "bbox_x1": "32.069966999999998",
+  "bbox_y0": "-92.645578000000000",
+  "bbox_y1": "32.091731000000003",
+  "srid": "EPSG:4326",
+  "lft": 240,
+  "rght": 241,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120312,
+ "fields": {
+  "code": "02402677",
+  "name": "Belle Chasse",
+  "name_en": "Belle Chasse",
+  "parent": 120000,
+  "bbox_x0": "-90.068610000000007",
+  "bbox_x1": "29.801850000000002",
+  "bbox_y0": "-89.969451000000007",
+  "bbox_y1": "29.893737000000002",
+  "srid": "EPSG:4326",
+  "lft": 78,
+  "rght": 79,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120313,
+ "fields": {
+  "code": "02403442",
+  "name": "Port Sulphur",
+  "name_en": "Port Sulphur",
+  "parent": 120000,
+  "bbox_x0": "-89.797982000000005",
+  "bbox_x1": "29.450195000000001",
+  "bbox_y0": "-89.644874000000002",
+  "bbox_y1": "29.572552999999999",
+  "srid": "EPSG:4326",
+  "lft": 744,
+  "rght": 745,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120314,
+ "fields": {
+  "code": "02407131",
+  "name": "Plain Dealing",
+  "name_en": "Plain Dealing",
+  "parent": 120000,
+  "bbox_x0": "-93.709880999999996",
+  "bbox_x1": "32.898212999999998",
+  "bbox_y0": "-93.688213000000005",
+  "bbox_y1": "32.917782000000003",
+  "srid": "EPSG:4326",
+  "lft": 722,
+  "rght": 723,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120315,
+ "fields": {
+  "code": "02406398",
+  "name": "Dubach",
+  "name_en": "Dubach",
+  "parent": 120000,
+  "bbox_x0": "-92.671649000000002",
+  "bbox_x1": "32.688246999999997",
+  "bbox_y0": "-92.643771000000001",
+  "bbox_y1": "32.719143000000003",
+  "srid": "EPSG:4326",
+  "lft": 252,
+  "rght": 253,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120316,
+ "fields": {
+  "code": "02402451",
+  "name": "Elmwood",
+  "name_en": "Elmwood",
+  "parent": 120000,
+  "bbox_x0": "-90.208434999999994",
+  "bbox_x1": "29.931856000000000",
+  "bbox_y0": "-90.169141999999994",
+  "bbox_y1": "29.973645999999999",
+  "srid": "EPSG:4326",
+  "lft": 276,
+  "rght": 277,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120317,
+ "fields": {
+  "code": "02402571",
+  "name": "Harvey",
+  "name_en": "Harvey",
+  "parent": 120000,
+  "bbox_x0": "-90.092346000000006",
+  "bbox_x1": "29.856093999999999",
+  "bbox_y0": "-90.039610999999994",
+  "bbox_y1": "29.919304000000000",
+  "srid": "EPSG:4326",
+  "lft": 400,
+  "rght": 401,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120318,
+ "fields": {
+  "code": "02403256",
+  "name": "Marrero",
+  "name_en": "Marrero",
+  "parent": 120000,
+  "bbox_x0": "-90.143980999999997",
+  "bbox_x1": "29.854410000000001",
+  "bbox_y0": "-90.083572000000004",
+  "bbox_y1": "29.912804999999999",
+  "srid": "EPSG:4326",
+  "lft": 570,
+  "rght": 571,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120319,
+ "fields": {
+  "code": "02402921",
+  "name": "Terrytown",
+  "name_en": "Terrytown",
+  "parent": 120000,
+  "bbox_x0": "-90.043739000000002",
+  "bbox_x1": "29.878504000000000",
+  "bbox_y0": "-90.008055999999996",
+  "bbox_y1": "29.926857999999999",
+  "srid": "EPSG:4326",
+  "lft": 900,
+  "rght": 901,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120320,
+ "fields": {
+  "code": "02402650",
+  "name": "Arabi",
+  "name_en": "Arabi",
+  "parent": 120000,
+  "bbox_x0": "-90.012101999999999",
+  "bbox_x1": "29.937183000000001",
+  "bbox_y0": "-89.984245000000001",
+  "bbox_y1": "29.973703000000000",
+  "srid": "EPSG:4326",
+  "lft": 24,
+  "rght": 25,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120321,
+ "fields": {
+  "code": "02407367",
+  "name": "Sorrento",
+  "name_en": "Sorrento",
+  "parent": 120000,
+  "bbox_x0": "-90.890135000000001",
+  "bbox_x1": "30.149419000000002",
+  "bbox_y0": "-90.845993000000007",
+  "bbox_y1": "30.208107999999999",
+  "srid": "EPSG:4326",
+  "lft": 844,
+  "rght": 845,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120322,
+ "fields": {
+  "code": "02406318",
+  "name": "Cotton Valley",
+  "name_en": "Cotton Valley",
+  "parent": 120000,
+  "bbox_x0": "-93.439993999999999",
+  "bbox_x1": "32.797789999999999",
+  "bbox_y0": "-93.409823000000003",
+  "bbox_y1": "32.827016000000000",
+  "srid": "EPSG:4326",
+  "lft": 200,
+  "rght": 201,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120323,
+ "fields": {
+  "code": "02403386",
+  "name": "Paincourtville",
+  "name_en": "Paincourtville",
+  "parent": 120000,
+  "bbox_x0": "-91.073430000000002",
+  "bbox_x1": "29.977059000000001",
+  "bbox_y0": "-91.029334000000006",
+  "bbox_y1": "30.001822000000001",
+  "srid": "EPSG:4326",
+  "lft": 696,
+  "rght": 697,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120324,
+ "fields": {
+  "code": "02402707",
+  "name": "Boutte",
+  "name_en": "Boutte",
+  "parent": 120000,
+  "bbox_x0": "-90.434218999999999",
+  "bbox_x1": "29.843267000000001",
+  "bbox_y0": "-90.355675000000005",
+  "bbox_y1": "29.917152000000002",
+  "srid": "EPSG:4326",
+  "lft": 106,
+  "rght": 107,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120325,
+ "fields": {
+  "code": "02402407",
+  "name": "Destrehan",
+  "name_en": "Destrehan",
+  "parent": 120000,
+  "bbox_x0": "-90.396690000000007",
+  "bbox_x1": "29.934781999999998",
+  "bbox_y0": "-90.341391999999999",
+  "bbox_y1": "29.987822999999999",
+  "srid": "EPSG:4326",
+  "lft": 234,
+  "rght": 235,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120326,
+ "fields": {
+  "code": "02402517",
+  "name": "Garyville",
+  "name_en": "Garyville",
+  "parent": 120000,
+  "bbox_x0": "-90.670871000000005",
+  "bbox_x1": "30.031506000000000",
+  "bbox_y0": "-90.587826000000007",
+  "bbox_y1": "30.097435000000001",
+  "srid": "EPSG:4326",
+  "lft": 336,
+  "rght": 337,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120327,
+ "fields": {
+  "code": "02403219",
+  "name": "Laplace",
+  "name_en": "Laplace",
+  "parent": 120000,
+  "bbox_x0": "-90.546576999999999",
+  "bbox_x1": "30.031352999999999",
+  "bbox_y0": "-90.410078999999996",
+  "bbox_y1": "30.109378000000000",
+  "srid": "EPSG:4326",
+  "lft": 504,
+  "rght": 505,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120328,
+ "fields": {
+  "code": "02402560",
+  "name": "Hahnville",
+  "name_en": "Hahnville",
+  "parent": 120000,
+  "bbox_x0": "-90.436210000000003",
+  "bbox_x1": "29.936501000000000",
+  "bbox_y0": "-90.391962000000007",
+  "bbox_y1": "29.994254999999999",
+  "srid": "EPSG:4326",
+  "lft": 390,
+  "rght": 391,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120329,
+ "fields": {
+  "code": "02403246",
+  "name": "Luling",
+  "name_en": "Luling",
+  "parent": 120000,
+  "bbox_x0": "-90.425749999999994",
+  "bbox_x1": "29.852837000000001",
+  "bbox_y0": "-90.285139999999998",
+  "bbox_y1": "29.952555000000000",
+  "srid": "EPSG:4326",
+  "lft": 544,
+  "rght": 545,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120330,
+ "fields": {
+  "code": "02403339",
+  "name": "Norco",
+  "name_en": "Norco",
+  "parent": 120000,
+  "bbox_x0": "-90.429266999999996",
+  "bbox_x1": "29.978835000000000",
+  "bbox_y0": "-90.376472000000007",
+  "bbox_y1": "30.018170999999999",
+  "srid": "EPSG:4326",
+  "lft": 666,
+  "rght": 667,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120331,
+ "fields": {
+  "code": "02402911",
+  "name": "Taft",
+  "name_en": "Taft",
+  "parent": 120000,
+  "bbox_x0": "-90.488783999999995",
+  "bbox_x1": "29.965790999999999",
+  "bbox_y0": "-90.419486000000006",
+  "bbox_y1": "30.004619000000002",
+  "srid": "EPSG:4326",
+  "lft": 894,
+  "rght": 895,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120332,
+ "fields": {
+  "code": "02404803",
+  "name": "Jennings",
+  "name_en": "Jennings",
+  "parent": 120000,
+  "bbox_x0": "-92.684820999999999",
+  "bbox_x1": "30.194376999999999",
+  "bbox_y0": "-92.622484000000000",
+  "bbox_y1": "30.250630000000001",
+  "srid": "EPSG:4326",
+  "lft": 450,
+  "rght": 451,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120333,
+ "fields": {
+  "code": "02406031",
+  "name": "Livonia",
+  "name_en": "Livonia",
+  "parent": 120000,
+  "bbox_x0": "-91.576787999999993",
+  "bbox_x1": "30.547564999999999",
+  "bbox_y0": "-91.528452000000001",
+  "bbox_y1": "30.586283999999999",
+  "srid": "EPSG:4326",
+  "lft": 526,
+  "rght": 527,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120334,
+ "fields": {
+  "code": "02406320",
+  "name": "Cottonport",
+  "name_en": "Cottonport",
+  "parent": 120000,
+  "bbox_x0": "-92.069401999999997",
+  "bbox_x1": "30.971869000000002",
+  "bbox_y0": "-92.030784999999995",
+  "bbox_y1": "31.008720000000000",
+  "srid": "EPSG:4326",
+  "lft": 198,
+  "rght": 199,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120335,
+ "fields": {
+  "code": "02405809",
+  "name": "Haynesville",
+  "name_en": "Haynesville",
+  "parent": 120000,
+  "bbox_x0": "-93.162115999999997",
+  "bbox_x1": "32.948605999999998",
+  "bbox_y0": "-93.114788000000004",
+  "bbox_y1": "32.993372999999998",
+  "srid": "EPSG:4326",
+  "lft": 406,
+  "rght": 407,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120336,
+ "fields": {
+  "code": "02407479",
+  "name": "Ida",
+  "name_en": "Ida",
+  "parent": 120000,
+  "bbox_x0": "-93.916991999999993",
+  "bbox_x1": "32.986776999999996",
+  "bbox_y0": "-93.880510000000001",
+  "bbox_y1": "33.019311870961403",
+  "srid": "EPSG:4326",
+  "lft": 428,
+  "rght": 429,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120337,
+ "fields": {
+  "code": "02405463",
+  "name": "Shreveport",
+  "name_en": "Shreveport",
+  "parent": 120000,
+  "bbox_x0": "-93.948096000000007",
+  "bbox_x1": "32.332514000000003",
+  "bbox_y0": "-93.679544000000007",
+  "bbox_y1": "32.589885000000002",
+  "srid": "EPSG:4326",
+  "lft": 820,
+  "rght": 821,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120338,
+ "fields": {
+  "code": "02406457",
+  "name": "Erath",
+  "name_en": "Erath",
+  "parent": 120000,
+  "bbox_x0": "-92.056887000000003",
+  "bbox_x1": "29.947327999999999",
+  "bbox_y0": "-92.006522000000004",
+  "bbox_y1": "29.971482999999999",
+  "srid": "EPSG:4326",
+  "lft": 284,
+  "rght": 285,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120339,
+ "fields": {
+  "code": "02407432",
+  "name": "Clarence",
+  "name_en": "Clarence",
+  "parent": 120000,
+  "bbox_x0": "-93.048108999999997",
+  "bbox_x1": "31.807810000000000",
+  "bbox_y0": "-93.010666999999998",
+  "bbox_y1": "31.831458000000001",
+  "srid": "EPSG:4326",
+  "lft": 180,
+  "rght": 181,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120340,
+ "fields": {
+  "code": "02407451",
+  "name": "Estherwood",
+  "name_en": "Estherwood",
+  "parent": 120000,
+  "bbox_x0": "-92.473763000000005",
+  "bbox_x1": "30.168669999999999",
+  "bbox_y0": "-92.448446000000004",
+  "bbox_y1": "30.195641999999999",
+  "srid": "EPSG:4326",
+  "lft": 292,
+  "rght": 293,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120341,
+ "fields": {
+  "code": "02402559",
+  "name": "Hackberry",
+  "name_en": "Hackberry",
+  "parent": 120000,
+  "bbox_x0": "-93.501003999999995",
+  "bbox_x1": "29.919342000000000",
+  "bbox_y0": "-93.332490000000007",
+  "bbox_y1": "30.018101000000001",
+  "srid": "EPSG:4326",
+  "lft": 388,
+  "rght": 389,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120342,
+ "fields": {
+  "code": "02586718",
+  "name": "Wallace Ridge",
+  "name_en": "Wallace Ridge",
+  "parent": 120000,
+  "bbox_x0": "-91.858044000000007",
+  "bbox_x1": "31.652280000000001",
+  "bbox_y0": "-91.802878000000007",
+  "bbox_y1": "31.710080000000001",
+  "srid": "EPSG:4326",
+  "lft": 948,
+  "rght": 949,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120343,
+ "fields": {
+  "code": "02403277",
+  "name": "Meraux",
+  "name_en": "Meraux",
+  "parent": 120000,
+  "bbox_x0": "-89.944204999999997",
+  "bbox_x1": "29.903379000000001",
+  "bbox_y0": "-89.894616999999997",
+  "bbox_y1": "29.949631000000000",
+  "srid": "EPSG:4326",
+  "lft": 584,
+  "rght": 585,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120344,
+ "fields": {
+  "code": "02586667",
+  "name": "Belmont",
+  "name_en": "Belmont",
+  "parent": 120000,
+  "bbox_x0": "-93.537049999999994",
+  "bbox_x1": "31.690619999999999",
+  "bbox_y0": "-93.477739999999997",
+  "bbox_y1": "31.749822000000002",
+  "srid": "EPSG:4326",
+  "lft": 82,
+  "rght": 83,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120345,
+ "fields": {
+  "code": "02586686",
+  "name": "Jordan Hill",
+  "name_en": "Jordan Hill",
+  "parent": 120000,
+  "bbox_x0": "-92.552353999999994",
+  "bbox_x1": "31.840499999999999",
+  "bbox_y0": "-92.482343999999998",
+  "bbox_y1": "31.882608999999999",
+  "srid": "EPSG:4326",
+  "lft": 456,
+  "rght": 457,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120346,
+ "fields": {
+  "code": "02586687",
+  "name": "Joyce",
+  "name_en": "Joyce",
+  "parent": 120000,
+  "bbox_x0": "-92.604434999999995",
+  "bbox_x1": "31.921396000000001",
+  "bbox_y0": "-92.562770000000000",
+  "bbox_y1": "31.948912000000000",
+  "srid": "EPSG:4326",
+  "lft": 458,
+  "rght": 459,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120347,
+ "fields": {
+  "code": "02586708",
+  "name": "St. Maurice",
+  "name_en": "St. Maurice",
+  "parent": 120000,
+  "bbox_x0": "-92.971733999999998",
+  "bbox_x1": "31.730543000000001",
+  "bbox_y0": "-92.909379000000001",
+  "bbox_y1": "31.787814999999998",
+  "srid": "EPSG:4326",
+  "lft": 876,
+  "rght": 877,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120348,
+ "fields": {
+  "code": "02586690",
+  "name": "Lakeshore",
+  "name_en": "Lakeshore",
+  "parent": 120000,
+  "bbox_x0": "-92.045159999999996",
+  "bbox_x1": "32.524909999999998",
+  "bbox_y0": "-92.012090000000001",
+  "bbox_y1": "32.546559999999999",
+  "srid": "EPSG:4326",
+  "lft": 500,
+  "rght": 501,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120349,
+ "fields": {
+  "code": "02586677",
+  "name": "Erwinville",
+  "name_en": "Erwinville",
+  "parent": 120000,
+  "bbox_x0": "-91.415059999999997",
+  "bbox_x1": "30.511444000000001",
+  "bbox_y0": "-91.364576999999997",
+  "bbox_y1": "30.569590999999999",
+  "srid": "EPSG:4326",
+  "lft": 288,
+  "rght": 289,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120350,
+ "fields": {
+  "code": "02586711",
+  "name": "Spokane",
+  "name_en": "Spokane",
+  "parent": 120000,
+  "bbox_x0": "-91.475774000000001",
+  "bbox_x1": "31.679247000000000",
+  "bbox_y0": "-91.409914000000001",
+  "bbox_y1": "31.755182999999999",
+  "srid": "EPSG:4326",
+  "lft": 852,
+  "rght": 853,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120351,
+ "fields": {
+  "code": "02586668",
+  "name": "Bordelonville",
+  "name_en": "Bordelonville",
+  "parent": 120000,
+  "bbox_x0": "-91.941439000000003",
+  "bbox_x1": "31.088799000000002",
+  "bbox_y0": "-91.864220000000003",
+  "bbox_y1": "31.113209999999999",
+  "srid": "EPSG:4326",
+  "lft": 100,
+  "rght": 101,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120352,
+ "fields": {
+  "code": "02586673",
+  "name": "Center Point",
+  "name_en": "Center Point",
+  "parent": 120000,
+  "bbox_x0": "-92.232860000000002",
+  "bbox_x1": "31.228905000000001",
+  "bbox_y0": "-92.186294000000004",
+  "bbox_y1": "31.275115000000000",
+  "srid": "EPSG:4326",
+  "lft": 152,
+  "rght": 153,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120353,
+ "fields": {
+  "code": "02586707",
+  "name": "Rock Hill",
+  "name_en": "Rock Hill",
+  "parent": 120000,
+  "bbox_x0": "-92.586590000000001",
+  "bbox_x1": "31.412734000000000",
+  "bbox_y0": "-92.549424000000002",
+  "bbox_y1": "31.468540999999998",
+  "srid": "EPSG:4326",
+  "lft": 794,
+  "rght": 795,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120354,
+ "fields": {
+  "code": "02586695",
+  "name": "Minorca",
+  "name_en": "Minorca",
+  "parent": 120000,
+  "bbox_x0": "-91.515258000000003",
+  "bbox_x1": "31.557355999999999",
+  "bbox_y0": "-91.457160000000002",
+  "bbox_y1": "31.592084000000000",
+  "srid": "EPSG:4326",
+  "lft": 604,
+  "rght": 605,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120355,
+ "fields": {
+  "code": "02586670",
+  "name": "Branch",
+  "name_en": "Branch",
+  "parent": 120000,
+  "bbox_x0": "-92.299730999999994",
+  "bbox_x1": "30.310904000000001",
+  "bbox_y0": "-92.244381000000004",
+  "bbox_y1": "30.377518999999999",
+  "srid": "EPSG:4326",
+  "lft": 110,
+  "rght": 111,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120356,
+ "fields": {
+  "code": "02586676",
+  "name": "Egan",
+  "name_en": "Egan",
+  "parent": 120000,
+  "bbox_x0": "-92.546008000000000",
+  "bbox_x1": "30.231148999999998",
+  "bbox_y0": "-92.489424999999997",
+  "bbox_y1": "30.267969000000001",
+  "srid": "EPSG:4326",
+  "lft": 272,
+  "rght": 273,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120357,
+ "fields": {
+  "code": "02586664",
+  "name": "Banks Springs",
+  "name_en": "Banks Springs",
+  "parent": 120000,
+  "bbox_x0": "-92.099755000000002",
+  "bbox_x1": "32.055244999999999",
+  "bbox_y0": "-92.070859999999996",
+  "bbox_y1": "32.100586000000000",
+  "srid": "EPSG:4326",
+  "lft": 44,
+  "rght": 45,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120358,
+ "fields": {
+  "code": "02583536",
+  "name": "Grand Point",
+  "name_en": "Grand Point",
+  "parent": 120000,
+  "bbox_x0": "-90.763319999999993",
+  "bbox_x1": "30.013860000000001",
+  "bbox_y0": "-90.733870999999994",
+  "bbox_y1": "30.078689000000001",
+  "srid": "EPSG:4326",
+  "lft": 372,
+  "rght": 373,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120359,
+ "fields": {
+  "code": "02403282",
+  "name": "Metairie",
+  "name_en": "Metairie",
+  "parent": 120000,
+  "bbox_x0": "-90.237624999999994",
+  "bbox_x1": "29.968343000000001",
+  "bbox_y0": "-90.120952000000003",
+  "bbox_y1": "30.034365999999999",
+  "srid": "EPSG:4326",
+  "lft": 594,
+  "rght": 595,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120360,
+ "fields": {
+  "code": "02402670",
+  "name": "Bayou Vista",
+  "name_en": "Bayou Vista",
+  "parent": 120000,
+  "bbox_x0": "-91.292136999999997",
+  "bbox_x1": "29.677226999999998",
+  "bbox_y0": "-91.253956000000002",
+  "bbox_y1": "29.709641999999999",
+  "srid": "EPSG:4326",
+  "lft": 74,
+  "rght": 75,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120361,
+ "fields": {
+  "code": "02583538",
+  "name": "Kraemer",
+  "name_en": "Kraemer",
+  "parent": 120000,
+  "bbox_x0": "-90.678308000000001",
+  "bbox_x1": "29.848523000000000",
+  "bbox_y0": "-90.588132999999999",
+  "bbox_y1": "29.873909000000001",
+  "srid": "EPSG:4326",
+  "lft": 478,
+  "rght": 479,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120362,
+ "fields": {
+  "code": "02583533",
+  "name": "Choctaw",
+  "name_en": "Choctaw",
+  "parent": 120000,
+  "bbox_x0": "-90.766298000000006",
+  "bbox_x1": "29.825776999999999",
+  "bbox_y0": "-90.678308000000001",
+  "bbox_y1": "29.861426000000002",
+  "srid": "EPSG:4326",
+  "lft": 172,
+  "rght": 173,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120363,
+ "fields": {
+  "code": "02583532",
+  "name": "Calhoun",
+  "name_en": "Calhoun",
+  "parent": 120000,
+  "bbox_x0": "-92.380989999999997",
+  "bbox_x1": "32.507882000000002",
+  "bbox_y0": "-92.325051999999999",
+  "bbox_y1": "32.521580999999998",
+  "srid": "EPSG:4326",
+  "lft": 132,
+  "rght": 133,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120364,
+ "fields": {
+  "code": "02583543",
+  "name": "Ossun",
+  "name_en": "Ossun",
+  "parent": 120000,
+  "bbox_x0": "-92.125309000000001",
+  "bbox_x1": "30.262903999999999",
+  "bbox_y0": "-92.091271000000006",
+  "bbox_y1": "30.298096999999999",
+  "srid": "EPSG:4326",
+  "lft": 694,
+  "rght": 695,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120365,
+ "fields": {
+  "code": "02583540",
+  "name": "Moonshine",
+  "name_en": "Moonshine",
+  "parent": 120000,
+  "bbox_x0": "-90.817938999999996",
+  "bbox_x1": "29.958534000000000",
+  "bbox_y0": "-90.807745999999995",
+  "bbox_y1": "29.982927000000000",
+  "srid": "EPSG:4326",
+  "lft": 622,
+  "rght": 623,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120366,
+ "fields": {
+  "code": "02583531",
+  "name": "Cade",
+  "name_en": "Cade",
+  "parent": 120000,
+  "bbox_x0": "-91.934478999999996",
+  "bbox_x1": "30.067055000000000",
+  "bbox_y0": "-91.868959000000004",
+  "bbox_y1": "30.118033000000000",
+  "srid": "EPSG:4326",
+  "lft": 130,
+  "rght": 131,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120367,
+ "fields": {
+  "code": "02583537",
+  "name": "Hester",
+  "name_en": "Hester",
+  "parent": 120000,
+  "bbox_x0": "-90.788223000000002",
+  "bbox_x1": "30.008201000000000",
+  "bbox_y0": "-90.752983000000000",
+  "bbox_y1": "30.045038999999999",
+  "srid": "EPSG:4326",
+  "lft": 414,
+  "rght": 415,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120368,
+ "fields": {
+  "code": "02583545",
+  "name": "Pleasure Bend",
+  "name_en": "Pleasure Bend",
+  "parent": 120000,
+  "bbox_x0": "-90.666129999999995",
+  "bbox_x1": "29.904682000000001",
+  "bbox_y0": "-90.620880000000000",
+  "bbox_y1": "29.937051000000000",
+  "srid": "EPSG:4326",
+  "lft": 730,
+  "rght": 731,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120369,
+ "fields": {
+  "code": "02402669",
+  "name": "Bayou Gauche",
+  "name_en": "Bayou Gauche",
+  "parent": 120000,
+  "bbox_x0": "-90.467757000000006",
+  "bbox_x1": "29.770378000000001",
+  "bbox_y0": "-90.377364999999998",
+  "bbox_y1": "29.861698000000001",
+  "srid": "EPSG:4326",
+  "lft": 66,
+  "rght": 67,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120370,
+ "fields": {
+  "code": "02583548",
+  "name": "St. James",
+  "name_en": "St. James",
+  "parent": 120000,
+  "bbox_x0": "-90.886459000000002",
+  "bbox_x1": "29.962026000000002",
+  "bbox_y0": "-90.820599000000001",
+  "bbox_y1": "30.059449999999998",
+  "srid": "EPSG:4326",
+  "lft": 870,
+  "rght": 871,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120371,
+ "fields": {
+  "code": "02403471",
+  "name": "Reserve",
+  "name_en": "Reserve",
+  "parent": 120000,
+  "bbox_x0": "-90.598381000000003",
+  "bbox_x1": "30.046274000000000",
+  "bbox_y0": "-90.509185000000002",
+  "bbox_y1": "30.104680999999999",
+  "srid": "EPSG:4326",
+  "lft": 776,
+  "rght": 777,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120372,
+ "fields": {
+  "code": "02583549",
+  "name": "Triumph",
+  "name_en": "Triumph",
+  "parent": 120000,
+  "bbox_x0": "-89.502275999999995",
+  "bbox_x1": "29.325766999999999",
+  "bbox_y0": "-89.439114000000004",
+  "bbox_y1": "29.363102999999999",
+  "srid": "EPSG:4326",
+  "lft": 908,
+  "rght": 909,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120373,
+ "fields": {
+  "code": "02586679",
+  "name": "Fort Jesup",
+  "name_en": "Fort Jesup",
+  "parent": 120000,
+  "bbox_x0": "-93.431749999999994",
+  "bbox_x1": "31.593190000000000",
+  "bbox_y0": "-93.383070000000004",
+  "bbox_y1": "31.630423000000000",
+  "srid": "EPSG:4326",
+  "lft": 318,
+  "rght": 319,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120374,
+ "fields": {
+  "code": "02402743",
+  "name": "Cameron",
+  "name_en": "Cameron",
+  "parent": 120000,
+  "bbox_x0": "-93.347379000000004",
+  "bbox_x1": "29.763187492381899",
+  "bbox_y0": "-93.214771999999996",
+  "bbox_y1": "29.812515000000001",
+  "srid": "EPSG:4326",
+  "lft": 136,
+  "rght": 137,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120375,
+ "fields": {
+  "code": "02586700",
+  "name": "Point Place",
+  "name_en": "Point Place",
+  "parent": 120000,
+  "bbox_x0": "-93.037321000000006",
+  "bbox_x1": "31.680237000000002",
+  "bbox_y0": "-93.010514000000001",
+  "bbox_y1": "31.698397000000000",
+  "srid": "EPSG:4326",
+  "lft": 734,
+  "rght": 735,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120376,
+ "fields": {
+  "code": "02586716",
+  "name": "Vienna Bend",
+  "name_en": "Vienna Bend",
+  "parent": 120000,
+  "bbox_x0": "-93.051344000000000",
+  "bbox_x1": "31.724651999999999",
+  "bbox_y0": "-93.018657000000005",
+  "bbox_y1": "31.752257000000000",
+  "srid": "EPSG:4326",
+  "lft": 930,
+  "rght": 931,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120377,
+ "fields": {
+  "code": "02586692",
+  "name": "Lawtell",
+  "name_en": "Lawtell",
+  "parent": 120000,
+  "bbox_x0": "-92.203115999999994",
+  "bbox_x1": "30.498963000000000",
+  "bbox_y0": "-92.159651999999994",
+  "bbox_y1": "30.529056000000001",
+  "srid": "EPSG:4326",
+  "lft": 508,
+  "rght": 509,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120378,
+ "fields": {
+  "code": "02403263",
+  "name": "Mathews",
+  "name_en": "Mathews",
+  "parent": 120000,
+  "bbox_x0": "-90.577257000000003",
+  "bbox_x1": "29.663112999999999",
+  "bbox_y0": "-90.534925000000001",
+  "bbox_y1": "29.705109000000000",
+  "srid": "EPSG:4326",
+  "lft": 576,
+  "rght": 577,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120379,
+ "fields": {
+  "code": "02403334",
+  "name": "New Sarpy",
+  "name_en": "New Sarpy",
+  "parent": 120000,
+  "bbox_x0": "-90.397658000000007",
+  "bbox_x1": "29.965187000000000",
+  "bbox_y0": "-90.363746000000006",
+  "bbox_y1": "29.992878999999999",
+  "srid": "EPSG:4326",
+  "lft": 662,
+  "rght": 663,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120380,
+ "fields": {
+  "code": "02583530",
+  "name": "Bourg",
+  "name_en": "Bourg",
+  "parent": 120000,
+  "bbox_x0": "-90.645309999999995",
+  "bbox_x1": "29.535135000000000",
+  "bbox_y0": "-90.574544000000003",
+  "bbox_y1": "29.576407000000000",
+  "srid": "EPSG:4326",
+  "lft": 104,
+  "rght": 105,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120381,
+ "fields": {
+  "code": "02403447",
+  "name": "Prien",
+  "name_en": "Prien",
+  "parent": 120000,
+  "bbox_x0": "-93.283814000000007",
+  "bbox_x1": "30.139087000000000",
+  "bbox_y0": "-93.232237999999995",
+  "bbox_y1": "30.197927000000000",
+  "srid": "EPSG:4326",
+  "lft": 756,
+  "rght": 757,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120382,
+ "fields": {
+  "code": "02805368",
+  "name": "Marthaville",
+  "name_en": "Marthaville",
+  "parent": 120000,
+  "bbox_x0": "-93.407374000000004",
+  "bbox_x1": "31.729562999999999",
+  "bbox_y0": "-93.373078000000007",
+  "bbox_y1": "31.745244000000000",
+  "srid": "EPSG:4326",
+  "lft": 572,
+  "rght": 573,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120383,
+ "fields": {
+  "code": "02403463",
+  "name": "Red Chute",
+  "name_en": "Red Chute",
+  "parent": 120000,
+  "bbox_x0": "-93.634641000000002",
+  "bbox_x1": "32.542009999999998",
+  "bbox_y0": "-93.574162000000001",
+  "bbox_y1": "32.619734000000001",
+  "srid": "EPSG:4326",
+  "lft": 770,
+  "rght": 771,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120384,
+ "fields": {
+  "code": "02402762",
+  "name": "Charenton",
+  "name_en": "Charenton",
+  "parent": 120000,
+  "bbox_x0": "-91.566443000000007",
+  "bbox_x1": "29.841674000000001",
+  "bbox_y0": "-91.518996999999999",
+  "bbox_y1": "29.891200000000001",
+  "srid": "EPSG:4326",
+  "lft": 162,
+  "rght": 163,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120385,
+ "fields": {
+  "code": "02583527",
+  "name": "Bayou Blue",
+  "name_en": "Bayou Blue",
+  "parent": 120000,
+  "bbox_x0": "-90.793357999999998",
+  "bbox_x1": "29.575824999999998",
+  "bbox_y0": "-90.578175999999999",
+  "bbox_y1": "29.739446000000001",
+  "srid": "EPSG:4326",
+  "lft": 58,
+  "rght": 59,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120386,
+ "fields": {
+  "code": "02402616",
+  "name": "Inniswold",
+  "name_en": "Inniswold",
+  "parent": 120000,
+  "bbox_x0": "-91.085812000000004",
+  "bbox_x1": "30.382235000000001",
+  "bbox_y0": "-91.054349999999999",
+  "bbox_y1": "30.412006000000002",
+  "srid": "EPSG:4326",
+  "lft": 432,
+  "rght": 433,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120387,
+ "fields": {
+  "code": "02403220",
+  "name": "Larose",
+  "name_en": "Larose",
+  "parent": 120000,
+  "bbox_x0": "-90.426038000000005",
+  "bbox_x1": "29.537769000000001",
+  "bbox_y0": "-90.323509999999999",
+  "bbox_y1": "29.596049000000001",
+  "srid": "EPSG:4326",
+  "lft": 506,
+  "rght": 507,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120388,
+ "fields": {
+  "code": "02633174",
+  "name": "Boothville",
+  "name_en": "Boothville",
+  "parent": 120000,
+  "bbox_x0": "-89.441923000000003",
+  "bbox_x1": "29.299258999999999",
+  "bbox_y0": "-89.369003000000006",
+  "bbox_y1": "29.360880999999999",
+  "srid": "EPSG:4326",
+  "lft": 98,
+  "rght": 99,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120389,
+ "fields": {
+  "code": "02583534",
+  "name": "Convent",
+  "name_en": "Convent",
+  "parent": 120000,
+  "bbox_x0": "-90.841886000000002",
+  "bbox_x1": "29.981038999999999",
+  "bbox_y0": "-90.802571999999998",
+  "bbox_y1": "30.054151000000001",
+  "srid": "EPSG:4326",
+  "lft": 194,
+  "rght": 195,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120390,
+ "fields": {
+  "code": "02402978",
+  "name": "Waggaman",
+  "name_en": "Waggaman",
+  "parent": 120000,
+  "bbox_x0": "-90.264266000000006",
+  "bbox_x1": "29.910509000000001",
+  "bbox_y0": "-90.206419999999994",
+  "bbox_y1": "29.968516999999999",
+  "srid": "EPSG:4326",
+  "lft": 942,
+  "rght": 943,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120391,
+ "fields": {
+  "code": "02404854",
+  "name": "Lafayette",
+  "name_en": "Lafayette",
+  "parent": 120000,
+  "bbox_x0": "-92.107789999999994",
+  "bbox_x1": "30.121835999999998",
+  "bbox_y0": "-91.971327000000002",
+  "bbox_y1": "30.296468999999998",
+  "srid": "EPSG:4326",
+  "lft": 488,
+  "rght": 489,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120392,
+ "fields": {
+  "code": "02402767",
+  "name": "Chauvin",
+  "name_en": "Chauvin",
+  "parent": 120000,
+  "bbox_x0": "-90.613676999999996",
+  "bbox_x1": "29.407706999999998",
+  "bbox_y0": "-90.574049000000002",
+  "bbox_y1": "29.485451999999999",
+  "srid": "EPSG:4326",
+  "lft": 168,
+  "rght": 169,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120393,
+ "fields": {
+  "code": "02404794",
+  "name": "Jeanerette",
+  "name_en": "Jeanerette",
+  "parent": 120000,
+  "bbox_x0": "-91.697574000000003",
+  "bbox_x1": "29.894967999999999",
+  "bbox_y0": "-91.656666999999999",
+  "bbox_y1": "29.933786999999999",
+  "srid": "EPSG:4326",
+  "lft": 442,
+  "rght": 443,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120394,
+ "fields": {
+  "code": "02406876",
+  "name": "White Castle",
+  "name_en": "White Castle",
+  "parent": 120000,
+  "bbox_x0": "-91.157516000000001",
+  "bbox_x1": "30.143222999999999",
+  "bbox_y0": "-91.141587000000001",
+  "bbox_y1": "30.175381000000002",
+  "srid": "EPSG:4326",
+  "lft": 968,
+  "rght": 969,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120395,
+ "fields": {
+  "code": "02406035",
+  "name": "Lockport",
+  "name_en": "Lockport",
+  "parent": 120000,
+  "bbox_x0": "-90.548289999999994",
+  "bbox_x1": "29.633516000000000",
+  "bbox_y0": "-90.514593000000005",
+  "bbox_y1": "29.654091000000001",
+  "srid": "EPSG:4326",
+  "lft": 528,
+  "rght": 529,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120396,
+ "fields": {
+  "code": "02407549",
+  "name": "Simsboro",
+  "name_en": "Simsboro",
+  "parent": 120000,
+  "bbox_x0": "-92.806382999999997",
+  "bbox_x1": "32.514592999999998",
+  "bbox_y0": "-92.756924999999995",
+  "bbox_y1": "32.546889000000000",
+  "srid": "EPSG:4326",
+  "lft": 832,
+  "rght": 833,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120397,
+ "fields": {
+  "code": "02406599",
+  "name": "Grand Isle",
+  "name_en": "Grand Isle",
+  "parent": 120000,
+  "bbox_x0": "-90.090468000000001",
+  "bbox_x1": "29.166944147543202",
+  "bbox_y0": "-89.949924999999993",
+  "bbox_y1": "29.267382999999999",
+  "srid": "EPSG:4326",
+  "lft": 370,
+  "rght": 371,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120398,
+ "fields": {
+  "code": "02403057",
+  "name": "Abbeville",
+  "name_en": "Abbeville",
+  "parent": 120000,
+  "bbox_x0": "-92.165327000000005",
+  "bbox_x1": "29.956900999999998",
+  "bbox_y0": "-92.078518000000003",
+  "bbox_y1": "29.996943999999999",
+  "srid": "EPSG:4326",
+  "lft": 2,
+  "rght": 3,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120399,
+ "fields": {
+  "code": "02404219",
+  "name": "DeQuincy",
+  "name_en": "DeQuincy",
+  "parent": 120000,
+  "bbox_x0": "-93.481311000000005",
+  "bbox_x1": "30.430661000000001",
+  "bbox_y0": "-93.422798000000000",
+  "bbox_y1": "30.461124999999999",
+  "srid": "EPSG:4326",
+  "lft": 228,
+  "rght": 229,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120400,
+ "fields": {
+  "code": "02405540",
+  "name": "Sulphur",
+  "name_en": "Sulphur",
+  "parent": 120000,
+  "bbox_x0": "-93.405522000000005",
+  "bbox_x1": "30.190785000000002",
+  "bbox_y0": "-93.304337000000004",
+  "bbox_y1": "30.252938000000000",
+  "srid": "EPSG:4326",
+  "lft": 884,
+  "rght": 885,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120401,
+ "fields": {
+  "code": "02407510",
+  "name": "Natchez",
+  "name_en": "Natchez",
+  "parent": 120000,
+  "bbox_x0": "-93.063543999999993",
+  "bbox_x1": "31.660876999999999",
+  "bbox_y0": "-93.033162000000004",
+  "bbox_y1": "31.686993999999999",
+  "srid": "EPSG:4326",
+  "lft": 646,
+  "rght": 647,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120402,
+ "fields": {
+  "code": "02407433",
+  "name": "Clarks",
+  "name_en": "Clarks",
+  "parent": 120000,
+  "bbox_x0": "-92.147463999999999",
+  "bbox_x1": "32.017879000000001",
+  "bbox_y0": "-92.133245000000002",
+  "bbox_y1": "32.039265000000000",
+  "srid": "EPSG:4326",
+  "lft": 182,
+  "rght": 183,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120403,
+ "fields": {
+  "code": "02407545",
+  "name": "Sicily Island",
+  "name_en": "Sicily Island",
+  "parent": 120000,
+  "bbox_x0": "-91.672622000000004",
+  "bbox_x1": "31.841051000000000",
+  "bbox_y0": "-91.651174999999995",
+  "bbox_y1": "31.861516999999999",
+  "srid": "EPSG:4326",
+  "lft": 824,
+  "rght": 825,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120404,
+ "fields": {
+  "code": "02407556",
+  "name": "Sun",
+  "name_en": "Sun",
+  "parent": 120000,
+  "bbox_x0": "-89.937117000000001",
+  "bbox_x1": "30.634751000000001",
+  "bbox_y0": "-89.877270999999993",
+  "bbox_y1": "30.664044000000001",
+  "srid": "EPSG:4326",
+  "lft": 886,
+  "rght": 887,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120405,
+ "fields": {
+  "code": "02406491",
+  "name": "Farmerville",
+  "name_en": "Farmerville",
+  "parent": 120000,
+  "bbox_x0": "-92.439007000000004",
+  "bbox_x1": "32.744487999999997",
+  "bbox_y0": "-92.379637000000002",
+  "bbox_y1": "32.835321999999998",
+  "srid": "EPSG:4326",
+  "lft": 298,
+  "rght": 299,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120406,
+ "fields": {
+  "code": "02403180",
+  "name": "Labadieville",
+  "name_en": "Labadieville",
+  "parent": 120000,
+  "bbox_x0": "-90.976363000000006",
+  "bbox_x1": "29.802672000000001",
+  "bbox_y0": "-90.924626000000004",
+  "bbox_y1": "29.845248000000002",
+  "srid": "EPSG:4326",
+  "lft": 482,
+  "rght": 483,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120407,
+ "fields": {
+  "code": "02402460",
+  "name": "Estelle",
+  "name_en": "Estelle",
+  "parent": 120000,
+  "bbox_x0": "-90.123724999999993",
+  "bbox_x1": "29.818104999999999",
+  "bbox_y0": "-90.084204999999997",
+  "bbox_y1": "29.867789999999999",
+  "srid": "EPSG:4326",
+  "lft": 290,
+  "rght": 291,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120408,
+ "fields": {
+  "code": "02403185",
+  "name": "Lafitte",
+  "name_en": "Lafitte",
+  "parent": 120000,
+  "bbox_x0": "-90.120086000000001",
+  "bbox_x1": "29.642538999999999",
+  "bbox_y0": "-90.080100999999999",
+  "bbox_y1": "29.746839000000001",
+  "srid": "EPSG:4326",
+  "lft": 490,
+  "rght": 491,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120409,
+ "fields": {
+  "code": "02407536",
+  "name": "Richmond",
+  "name_en": "Richmond",
+  "parent": 120000,
+  "bbox_x0": "-91.194950000000006",
+  "bbox_x1": "32.376975999999999",
+  "bbox_y0": "-91.166477000000000",
+  "bbox_y1": "32.402742000000003",
+  "srid": "EPSG:4326",
+  "lft": 778,
+  "rght": 779,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120410,
+ "fields": {
+  "code": "02403577",
+  "name": "Eunice",
+  "name_en": "Eunice",
+  "parent": 120000,
+  "bbox_x0": "-92.448339000000004",
+  "bbox_x1": "30.458525999999999",
+  "bbox_y0": "-92.384586999999996",
+  "bbox_y1": "30.506098999999999",
+  "srid": "EPSG:4326",
+  "lft": 294,
+  "rght": 295,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120411,
+ "fields": {
+  "code": "02404220",
+  "name": "DeRidder",
+  "name_en": "DeRidder",
+  "parent": 120000,
+  "bbox_x0": "-93.347093000000001",
+  "bbox_x1": "30.810258000000001",
+  "bbox_y0": "-93.254861000000005",
+  "bbox_y1": "30.890402999999999",
+  "srid": "EPSG:4326",
+  "lft": 230,
+  "rght": 231,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120412,
+ "fields": {
+  "code": "02407499",
+  "name": "McNary",
+  "name_en": "McNary",
+  "parent": 120000,
+  "bbox_x0": "-92.593532999999994",
+  "bbox_x1": "30.977050999999999",
+  "bbox_y0": "-92.564093000000000",
+  "bbox_y1": "30.998425999999998",
+  "srid": "EPSG:4326",
+  "lft": 580,
+  "rght": 581,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120413,
+ "fields": {
+  "code": "02405864",
+  "name": "Hornbeck",
+  "name_en": "Hornbeck",
+  "parent": 120000,
+  "bbox_x0": "-93.405379999999994",
+  "bbox_x1": "31.316424999999999",
+  "bbox_y0": "-93.384855999999999",
+  "bbox_y1": "31.336710000000000",
+  "srid": "EPSG:4326",
+  "lft": 420,
+  "rght": 421,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120414,
+ "fields": {
+  "code": "02407486",
+  "name": "Killian",
+  "name_en": "Killian",
+  "parent": 120000,
+  "bbox_x0": "-90.618622999999999",
+  "bbox_x1": "30.328997000000001",
+  "bbox_y0": "-90.533848000000006",
+  "bbox_y1": "30.377244999999998",
+  "srid": "EPSG:4326",
+  "lft": 472,
+  "rght": 473,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120415,
+ "fields": {
+  "code": "02406820",
+  "name": "Walker",
+  "name_en": "Walker",
+  "parent": 120000,
+  "bbox_x0": "-90.898808000000002",
+  "bbox_x1": "30.454065000000000",
+  "bbox_y0": "-90.814284999999998",
+  "bbox_y1": "30.505264000000000",
+  "srid": "EPSG:4326",
+  "lft": 944,
+  "rght": 945,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120416,
+ "fields": {
+  "code": "02402760",
+  "name": "Chalmette",
+  "name_en": "Chalmette",
+  "parent": 120000,
+  "bbox_x0": "-89.997491999999994",
+  "bbox_x1": "29.923846000000001",
+  "bbox_y0": "-89.930319999999995",
+  "bbox_y1": "29.968442000000000",
+  "srid": "EPSG:4326",
+  "lft": 160,
+  "rght": 161,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120417,
+ "fields": {
+  "code": "02402830",
+  "name": "Schriever",
+  "name_en": "Schriever",
+  "parent": 120000,
+  "bbox_x0": "-90.890467999999998",
+  "bbox_x1": "29.698850000000000",
+  "bbox_y0": "-90.782853000000003",
+  "bbox_y1": "29.777926000000001",
+  "srid": "EPSG:4326",
+  "lft": 812,
+  "rght": 813,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120418,
+ "fields": {
+  "code": "02402779",
+  "name": "Claiborne",
+  "name_en": "Claiborne",
+  "parent": 120000,
+  "bbox_x0": "-92.228696999999997",
+  "bbox_x1": "32.509889999999999",
+  "bbox_y0": "-92.166934999999995",
+  "bbox_y1": "32.572287000000003",
+  "srid": "EPSG:4326",
+  "lft": 178,
+  "rght": 179,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120419,
+ "fields": {
+  "code": "02407410",
+  "name": "Ashland",
+  "name_en": "Ashland",
+  "parent": 120000,
+  "bbox_x0": "-93.187138000000004",
+  "bbox_x1": "32.075284000000003",
+  "bbox_y0": "-93.049482999999995",
+  "bbox_y1": "32.148508999999997",
+  "srid": "EPSG:4326",
+  "lft": 30,
+  "rght": 31,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120420,
+ "fields": {
+  "code": "02403723",
+  "name": "Grambling",
+  "name_en": "Grambling",
+  "parent": 120000,
+  "bbox_x0": "-92.738921000000005",
+  "bbox_x1": "32.503591000000000",
+  "bbox_y0": "-92.669707000000002",
+  "bbox_y1": "32.549717999999999",
+  "srid": "EPSG:4326",
+  "lft": 362,
+  "rght": 363,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120421,
+ "fields": {
+  "code": "02586696",
+  "name": "Monterey",
+  "name_en": "Monterey",
+  "parent": 120000,
+  "bbox_x0": "-91.741074999999995",
+  "bbox_x1": "31.420732999999998",
+  "bbox_y0": "-91.700920999999994",
+  "bbox_y1": "31.474895000000000",
+  "srid": "EPSG:4326",
+  "lft": 612,
+  "rght": 613,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120422,
+ "fields": {
+  "code": "02405712",
+  "name": "West Monroe",
+  "name_en": "West Monroe",
+  "parent": 120000,
+  "bbox_x0": "-92.200154999999995",
+  "bbox_x1": "32.481245000000001",
+  "bbox_y0": "-92.112634000000000",
+  "bbox_y1": "32.551219000000003",
+  "srid": "EPSG:4326",
+  "lft": 964,
+  "rght": 965,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120423,
+ "fields": {
+  "code": "02406520",
+  "name": "Franklinton",
+  "name_en": "Franklinton",
+  "parent": 120000,
+  "bbox_x0": "-90.171818999999999",
+  "bbox_x1": "30.824396000000000",
+  "bbox_y0": "-90.121893999999998",
+  "bbox_y1": "30.866975000000000",
+  "srid": "EPSG:4326",
+  "lft": 326,
+  "rght": 327,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120424,
+ "fields": {
+  "code": "02407349",
+  "name": "Slaughter",
+  "name_en": "Slaughter",
+  "parent": 120000,
+  "bbox_x0": "-91.169540999999995",
+  "bbox_x1": "30.708051999999999",
+  "bbox_y0": "-91.107640000000004",
+  "bbox_y1": "30.736985000000001",
+  "srid": "EPSG:4326",
+  "lft": 838,
+  "rght": 839,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120425,
+ "fields": {
+  "code": "02406931",
+  "name": "Zwolle",
+  "name_en": "Zwolle",
+  "parent": 120000,
+  "bbox_x0": "-93.674019000000001",
+  "bbox_x1": "31.623377999999999",
+  "bbox_y0": "-93.617909999999995",
+  "bbox_y1": "31.656025000000000",
+  "srid": "EPSG:4326",
+  "lft": 986,
+  "rght": 987,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120426,
+ "fields": {
+  "code": "02406977",
+  "name": "New Llano",
+  "name_en": "New Llano",
+  "parent": 120000,
+  "bbox_x0": "-93.292584000000005",
+  "bbox_x1": "31.064772999999999",
+  "bbox_y0": "-93.261938999999998",
+  "bbox_y1": "31.120114000000001",
+  "srid": "EPSG:4326",
+  "lft": 654,
+  "rght": 655,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120427,
+ "fields": {
+  "code": "02407563",
+  "name": "Turkey Creek",
+  "name_en": "Turkey Creek",
+  "parent": 120000,
+  "bbox_x0": "-92.432750999999996",
+  "bbox_x1": "30.862452999999999",
+  "bbox_y0": "-92.400313999999995",
+  "bbox_y1": "30.891431999999998",
+  "srid": "EPSG:4326",
+  "lft": 914,
+  "rght": 915,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120428,
+ "fields": {
+  "code": "02405931",
+  "name": "Keachi",
+  "name_en": "Keachi",
+  "parent": 120000,
+  "bbox_x0": "-93.935490999999999",
+  "bbox_x1": "32.135536999999999",
+  "bbox_y0": "-93.888132999999996",
+  "bbox_y1": "32.199657999999999",
+  "srid": "EPSG:4326",
+  "lft": 464,
+  "rght": 465,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120429,
+ "fields": {
+  "code": "02405718",
+  "name": "Westlake",
+  "name_en": "Westlake",
+  "parent": 120000,
+  "bbox_x0": "-93.283201000000005",
+  "bbox_x1": "30.234805999999999",
+  "bbox_y0": "-93.246099000000001",
+  "bbox_y1": "30.286245000000001",
+  "srid": "EPSG:4326",
+  "lft": 960,
+  "rght": 961,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120430,
+ "fields": {
+  "code": "02405768",
+  "name": "Winnsboro",
+  "name_en": "Winnsboro",
+  "parent": 120000,
+  "bbox_x0": "-91.743774000000002",
+  "bbox_x1": "32.142187000000000",
+  "bbox_y0": "-91.697941000000000",
+  "bbox_y1": "32.205235999999999",
+  "srid": "EPSG:4326",
+  "lft": 974,
+  "rght": 975,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120431,
+ "fields": {
+  "code": "02586694",
+  "name": "Longville",
+  "name_en": "Longville",
+  "parent": 120000,
+  "bbox_x0": "-93.253867999999997",
+  "bbox_x1": "30.588750999999998",
+  "bbox_y0": "-93.201809999999995",
+  "bbox_y1": "30.628264000000001",
+  "srid": "EPSG:4326",
+  "lft": 536,
+  "rght": 537,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120432,
+ "fields": {
+  "code": "02583542",
+  "name": "Milton",
+  "name_en": "Milton",
+  "parent": 120000,
+  "bbox_x0": "-92.090857000000000",
+  "bbox_x1": "30.080482000000000",
+  "bbox_y0": "-92.051496000000000",
+  "bbox_y1": "30.141770999999999",
+  "srid": "EPSG:4326",
+  "lft": 600,
+  "rght": 601,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120433,
+ "fields": {
+  "code": "02405969",
+  "name": "Lake Arthur",
+  "name_en": "Lake Arthur",
+  "parent": 120000,
+  "bbox_x0": "-92.693865000000002",
+  "bbox_x1": "30.064119999999999",
+  "bbox_y0": "-92.657921000000002",
+  "bbox_y1": "30.093689000000001",
+  "srid": "EPSG:4326",
+  "lft": 494,
+  "rght": 495,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120434,
+ "fields": {
+  "code": "02586712",
+  "name": "Starks",
+  "name_en": "Starks",
+  "parent": 120000,
+  "bbox_x0": "-93.681344999999993",
+  "bbox_x1": "30.291972000000001",
+  "bbox_y0": "-93.647405000000006",
+  "bbox_y1": "30.326663000000000",
+  "srid": "EPSG:4326",
+  "lft": 860,
+  "rght": 861,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120435,
+ "fields": {
+  "code": "02586702",
+  "name": "Prairieville",
+  "name_en": "Prairieville",
+  "parent": 120000,
+  "bbox_x0": "-91.014156999999997",
+  "bbox_x1": "30.269174000000000",
+  "bbox_y0": "-90.903953999999999",
+  "bbox_y1": "30.346913000000001",
+  "srid": "EPSG:4326",
+  "lft": 752,
+  "rght": 753,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120436,
+ "fields": {
+  "code": "02403041",
+  "name": "Woodmere",
+  "name_en": "Woodmere",
+  "parent": 120000,
+  "bbox_x0": "-90.088927999999996",
+  "bbox_x1": "29.826765999999999",
+  "bbox_y0": "-90.059410000000000",
+  "bbox_y1": "29.874096999999999",
+  "srid": "EPSG:4326",
+  "lft": 978,
+  "rght": 979,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120437,
+ "fields": {
+  "code": "02407470",
+  "name": "Grayson",
+  "name_en": "Grayson",
+  "parent": 120000,
+  "bbox_x0": "-92.120080999999999",
+  "bbox_x1": "32.039814000000000",
+  "bbox_y0": "-92.102626000000001",
+  "bbox_y1": "32.058540999999998",
+  "srid": "EPSG:4326",
+  "lft": 376,
+  "rght": 377,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120438,
+ "fields": {
+  "code": "02406670",
+  "name": "Stonewall",
+  "name_en": "Stonewall",
+  "parent": 120000,
+  "bbox_x0": "-93.841105999999996",
+  "bbox_x1": "32.230888000000000",
+  "bbox_y0": "-93.746809999999996",
+  "bbox_y1": "32.302379999999999",
+  "srid": "EPSG:4326",
+  "lft": 878,
+  "rght": 879,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120439,
+ "fields": {
+  "code": "02405908",
+  "name": "Jean Lafitte",
+  "name_en": "Jean Lafitte",
+  "parent": 120000,
+  "bbox_x0": "-90.136688000000007",
+  "bbox_x1": "29.718105999999999",
+  "bbox_y0": "-90.065726999999995",
+  "bbox_y1": "29.771850000000001",
+  "srid": "EPSG:4326",
+  "lft": 444,
+  "rght": 445,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120440,
+ "fields": {
+  "code": "02405013",
+  "name": "Mansfield",
+  "name_en": "Mansfield",
+  "parent": 120000,
+  "bbox_x0": "-93.724252000000007",
+  "bbox_x1": "32.016224000000001",
+  "bbox_y0": "-93.677699000000004",
+  "bbox_y1": "32.062511000000001",
+  "srid": "EPSG:4326",
+  "lft": 558,
+  "rght": 559,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120441,
+ "fields": {
+  "code": "02407456",
+  "name": "Folsom",
+  "name_en": "Folsom",
+  "parent": 120000,
+  "bbox_x0": "-90.211550000000003",
+  "bbox_x1": "30.610015000000001",
+  "bbox_y0": "-90.177706999999998",
+  "bbox_y1": "30.648959000000001",
+  "srid": "EPSG:4326",
+  "lft": 310,
+  "rght": 311,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120442,
+ "fields": {
+  "code": "02804360",
+  "name": "New Orleans Station",
+  "name_en": "New Orleans Station",
+  "parent": 120000,
+  "bbox_x0": "-90.048396999999994",
+  "bbox_x1": "29.801742999999998",
+  "bbox_y0": "-89.994028999999998",
+  "bbox_y1": "29.857537000000001",
+  "srid": "EPSG:4326",
+  "lft": 658,
+  "rght": 659,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120443,
+ "fields": {
+  "code": "02586715",
+  "name": "Ventress",
+  "name_en": "Ventress",
+  "parent": 120000,
+  "bbox_x0": "-91.459461000000005",
+  "bbox_x1": "30.674493999999999",
+  "bbox_y0": "-91.391762000000000",
+  "bbox_y1": "30.691905999999999",
+  "srid": "EPSG:4326",
+  "lft": 924,
+  "rght": 925,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120444,
+ "fields": {
+  "code": "02407471",
+  "name": "Grosse Tete",
+  "name_en": "Grosse Tete",
+  "parent": 120000,
+  "bbox_x0": "-91.453613000000004",
+  "bbox_x1": "30.404893000000001",
+  "bbox_y0": "-91.421644000000001",
+  "bbox_y1": "30.427603999999999",
+  "srid": "EPSG:4326",
+  "lft": 384,
+  "rght": 385,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120445,
+ "fields": {
+  "code": "02403014",
+  "name": "Westminster",
+  "name_en": "Westminster",
+  "parent": 120000,
+  "bbox_x0": "-91.101472000000001",
+  "bbox_x1": "30.394977999999998",
+  "bbox_y0": "-91.080408000000006",
+  "bbox_y1": "30.417377999999999",
+  "srid": "EPSG:4326",
+  "lft": 962,
+  "rght": 963,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120446,
+ "fields": {
+  "code": "02407453",
+  "name": "Fisher",
+  "name_en": "Fisher",
+  "parent": 120000,
+  "bbox_x0": "-93.468209000000002",
+  "bbox_x1": "31.471295000000001",
+  "bbox_y0": "-93.453322000000000",
+  "bbox_y1": "31.502136000000000",
+  "srid": "EPSG:4326",
+  "lft": 306,
+  "rght": 307,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120447,
+ "fields": {
+  "code": "02402512",
+  "name": "Galliano",
+  "name_en": "Galliano",
+  "parent": 120000,
+  "bbox_x0": "-90.342054000000005",
+  "bbox_x1": "29.403597999999999",
+  "bbox_y0": "-90.265092999999993",
+  "bbox_y1": "29.490283000000002",
+  "srid": "EPSG:4326",
+  "lft": 332,
+  "rght": 333,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120448,
+ "fields": {
+  "code": "02407472",
+  "name": "Hall Summit",
+  "name_en": "Hall Summit",
+  "parent": 120000,
+  "bbox_x0": "-93.322875999999994",
+  "bbox_x1": "32.166080000000001",
+  "bbox_y0": "-93.292914999999994",
+  "bbox_y1": "32.184587000000001",
+  "srid": "EPSG:4326",
+  "lft": 392,
+  "rght": 393,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120449,
+ "fields": {
+  "code": "02406100",
+  "name": "Marion",
+  "name_en": "Marion",
+  "parent": 120000,
+  "bbox_x0": "-92.259946999999997",
+  "bbox_x1": "32.876531999999997",
+  "bbox_y0": "-92.219005999999993",
+  "bbox_y1": "32.922274999999999",
+  "srid": "EPSG:4326",
+  "lft": 566,
+  "rght": 567,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120450,
+ "fields": {
+  "code": "02402644",
+  "name": "Amelia",
+  "name_en": "Amelia",
+  "parent": 120000,
+  "bbox_x0": "-91.121172000000001",
+  "bbox_x1": "29.638532999999999",
+  "bbox_y0": "-91.095151000000001",
+  "bbox_y1": "29.696943999999998",
+  "srid": "EPSG:4326",
+  "lft": 16,
+  "rght": 17,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120451,
+ "fields": {
+  "code": "02405721",
+  "name": "Westwego",
+  "name_en": "Westwego",
+  "parent": 120000,
+  "bbox_x0": "-90.158439000000001",
+  "bbox_x1": "29.871281000000000",
+  "bbox_y0": "-90.127427999999995",
+  "bbox_y1": "29.932403999999998",
+  "srid": "EPSG:4326",
+  "lft": 966,
+  "rght": 967,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120452,
+ "fields": {
+  "code": "02405338",
+  "name": "Brusly",
+  "name_en": "Brusly",
+  "parent": 120000,
+  "bbox_x0": "-91.278547000000003",
+  "bbox_x1": "30.380068000000001",
+  "bbox_y0": "-91.225335999999999",
+  "bbox_y1": "30.408116000000000",
+  "srid": "EPSG:4326",
+  "lft": 122,
+  "rght": 123,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120453,
+ "fields": {
+  "code": "02403408",
+  "name": "Pierre Part",
+  "name_en": "Pierre Part",
+  "parent": 120000,
+  "bbox_x0": "-91.221511000000007",
+  "bbox_x1": "29.920466000000001",
+  "bbox_y0": "-91.188142999999997",
+  "bbox_y1": "29.993248999999999",
+  "srid": "EPSG:4326",
+  "lft": 712,
+  "rght": 713,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120454,
+ "fields": {
+  "code": "02402656",
+  "name": "Avondale",
+  "name_en": "Avondale",
+  "parent": 120000,
+  "bbox_x0": "-90.221755000000002",
+  "bbox_x1": "29.881498000000001",
+  "bbox_y0": "-90.162597000000005",
+  "bbox_y1": "29.933263000000000",
+  "srid": "EPSG:4326",
+  "lft": 36,
+  "rght": 37,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120455,
+ "fields": {
+  "code": "02403888",
+  "name": "Bogalusa",
+  "name_en": "Bogalusa",
+  "parent": 120000,
+  "bbox_x0": "-89.896000000000001",
+  "bbox_x1": "30.746811000000001",
+  "bbox_y0": "-89.832127418749096",
+  "bbox_y1": "30.807939999999999",
+  "srid": "EPSG:4326",
+  "lft": 94,
+  "rght": 95,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120456,
+ "fields": {
+  "code": "02403915",
+  "name": "Breaux Bridge",
+  "name_en": "Breaux Bridge",
+  "parent": 120000,
+  "bbox_x0": "-91.936083999999994",
+  "bbox_x1": "30.256582999999999",
+  "bbox_y0": "-91.868587000000005",
+  "bbox_y1": "30.310896000000000",
+  "srid": "EPSG:4326",
+  "lft": 112,
+  "rght": 113,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120457,
+ "fields": {
+  "code": "02406781",
+  "name": "Urania",
+  "name_en": "Urania",
+  "parent": 120000,
+  "bbox_x0": "-92.303256000000005",
+  "bbox_x1": "31.848485000000000",
+  "bbox_y0": "-92.273695000000004",
+  "bbox_y1": "31.876550999999999",
+  "srid": "EPSG:4326",
+  "lft": 918,
+  "rght": 919,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120458,
+ "fields": {
+  "code": "02404553",
+  "name": "Port Allen",
+  "name_en": "Port Allen",
+  "parent": 120000,
+  "bbox_x0": "-91.225502000000006",
+  "bbox_x1": "30.413460000000001",
+  "bbox_y0": "-91.195905999999994",
+  "bbox_y1": "30.465546000000000",
+  "srid": "EPSG:4326",
+  "lft": 740,
+  "rght": 741,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120459,
+ "fields": {
+  "code": "02402722",
+  "name": "Brownfields",
+  "name_en": "Brownfields",
+  "parent": 120000,
+  "bbox_x0": "-91.157551999999995",
+  "bbox_x1": "30.528831000000000",
+  "bbox_y0": "-91.091716000000005",
+  "bbox_y1": "30.559415999999999",
+  "srid": "EPSG:4326",
+  "lft": 118,
+  "rght": 119,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120460,
+ "fields": {
+  "code": "02406325",
+  "name": "Coushatta",
+  "name_en": "Coushatta",
+  "parent": 120000,
+  "bbox_x0": "-93.363478000000001",
+  "bbox_x1": "32.001921000000003",
+  "bbox_y0": "-93.320052000000004",
+  "bbox_y1": "32.049951000000000",
+  "srid": "EPSG:4326",
+  "lft": 202,
+  "rght": 203,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120461,
+ "fields": {
+  "code": "02403788",
+  "name": "Hammond",
+  "name_en": "Hammond",
+  "parent": 120000,
+  "bbox_x0": "-90.516737000000006",
+  "bbox_x1": "30.462927000000001",
+  "bbox_y0": "-90.398296999999999",
+  "bbox_y1": "30.546282999999999",
+  "srid": "EPSG:4326",
+  "lft": 394,
+  "rght": 395,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120462,
+ "fields": {
+  "code": "02404301",
+  "name": "Morgan City",
+  "name_en": "Morgan City",
+  "parent": 120000,
+  "bbox_x0": "-91.218681000000004",
+  "bbox_x1": "29.685202000000000",
+  "bbox_y0": "-91.157482000000002",
+  "bbox_y1": "29.737863999999998",
+  "srid": "EPSG:4326",
+  "lft": 628,
+  "rght": 629,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120463,
+ "fields": {
+  "code": "02405654",
+  "name": "Ville Platte",
+  "name_en": "Ville Platte",
+  "parent": 120000,
+  "bbox_x0": "-92.311933999999994",
+  "bbox_x1": "30.675915000000000",
+  "bbox_y0": "-92.240819000000002",
+  "bbox_y1": "30.704180999999998",
+  "srid": "EPSG:4326",
+  "lft": 934,
+  "rght": 935,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120464,
+ "fields": {
+  "code": "02406087",
+  "name": "Mangham",
+  "name_en": "Mangham",
+  "parent": 120000,
+  "bbox_x0": "-91.792337000000003",
+  "bbox_x1": "32.300620000000002",
+  "bbox_y0": "-91.771002999999993",
+  "bbox_y1": "32.320863000000003",
+  "srid": "EPSG:4326",
+  "lft": 556,
+  "rght": 557,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120465,
+ "fields": {
+  "code": "02586706",
+  "name": "Roanoke",
+  "name_en": "Roanoke",
+  "parent": 120000,
+  "bbox_x0": "-92.757407999999998",
+  "bbox_x1": "30.232306999999999",
+  "bbox_y0": "-92.740442000000002",
+  "bbox_y1": "30.241150000000001",
+  "srid": "EPSG:4326",
+  "lft": 790,
+  "rght": 791,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120466,
+ "fields": {
+  "code": "02586672",
+  "name": "Catahoula",
+  "name_en": "Catahoula",
+  "parent": 120000,
+  "bbox_x0": "-91.733508999999998",
+  "bbox_x1": "30.196793000000000",
+  "bbox_y0": "-91.692905999999994",
+  "bbox_y1": "30.226300999999999",
+  "srid": "EPSG:4326",
+  "lft": 148,
+  "rght": 149,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120467,
+ "fields": {
+  "code": "02804548",
+  "name": "Lewisburg",
+  "name_en": "Lewisburg",
+  "parent": 120000,
+  "bbox_x0": "-90.120857000000001",
+  "bbox_x1": "30.358246000000001",
+  "bbox_y0": "-90.094016999999994",
+  "bbox_y1": "30.376241000000000",
+  "srid": "EPSG:4326",
+  "lft": 518,
+  "rght": 519,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120468,
+ "fields": {
+  "code": "02583544",
+  "name": "Paulina",
+  "name_en": "Paulina",
+  "parent": 120000,
+  "bbox_x0": "-90.743628999999999",
+  "bbox_x1": "30.012778000000001",
+  "bbox_y0": "-90.697565999999995",
+  "bbox_y1": "30.058679000000001",
+  "srid": "EPSG:4326",
+  "lft": 706,
+  "rght": 707,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120469,
+ "fields": {
+  "code": "02586714",
+  "name": "Sugartown",
+  "name_en": "Sugartown",
+  "parent": 120000,
+  "bbox_x0": "-93.030783000000000",
+  "bbox_x1": "30.824114999999999",
+  "bbox_y0": "-92.994837000000004",
+  "bbox_y1": "30.853621000000000",
+  "srid": "EPSG:4326",
+  "lft": 882,
+  "rght": 883,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120470,
+ "fields": {
+  "code": "02586678",
+  "name": "Fifth Ward",
+  "name_en": "Fifth Ward",
+  "parent": 120000,
+  "bbox_x0": "-92.182115999999994",
+  "bbox_x1": "31.102167000000001",
+  "bbox_y0": "-92.125820000000004",
+  "bbox_y1": "31.143892000000001",
+  "srid": "EPSG:4326",
+  "lft": 304,
+  "rght": 305,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120471,
+ "fields": {
+  "code": "02406371",
+  "name": "Delhi",
+  "name_en": "Delhi",
+  "parent": 120000,
+  "bbox_x0": "-91.506983000000005",
+  "bbox_x1": "32.434992999999999",
+  "bbox_y0": "-91.471765000000005",
+  "bbox_y1": "32.471221000000000",
+  "srid": "EPSG:4326",
+  "lft": 222,
+  "rght": 223,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120472,
+ "fields": {
+  "code": "02403248",
+  "name": "Lydia",
+  "name_en": "Lydia",
+  "parent": 120000,
+  "bbox_x0": "-91.789621999999994",
+  "bbox_x1": "29.906281000000000",
+  "bbox_y0": "-91.771502999999996",
+  "bbox_y1": "29.945573000000000",
+  "srid": "EPSG:4326",
+  "lft": 548,
+  "rght": 549,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120473,
+ "fields": {
+  "code": "02406407",
+  "name": "Duson",
+  "name_en": "Duson",
+  "parent": 120000,
+  "bbox_x0": "-92.210265000000007",
+  "bbox_x1": "30.222642000000000",
+  "bbox_y0": "-92.175959000000006",
+  "bbox_y1": "30.252573999999999",
+  "srid": "EPSG:4326",
+  "lft": 258,
+  "rght": 259,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120474,
+ "fields": {
+  "code": "02407439",
+  "name": "Delta",
+  "name_en": "Delta",
+  "parent": 120000,
+  "bbox_x0": "-91.012783999999996",
+  "bbox_x1": "32.305582000000001",
+  "bbox_y0": "-90.905396999999994",
+  "bbox_y1": "32.336570999999999",
+  "srid": "EPSG:4326",
+  "lft": 224,
+  "rght": 225,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120475,
+ "fields": {
+  "code": "02583552",
+  "name": "Welcome",
+  "name_en": "Welcome",
+  "parent": 120000,
+  "bbox_x0": "-90.906379000000001",
+  "bbox_x1": "30.022487000000002",
+  "bbox_y0": "-90.850346999999999",
+  "bbox_y1": "30.064661000000001",
+  "srid": "EPSG:4326",
+  "lft": 956,
+  "rght": 957,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120476,
+ "fields": {
+  "code": "02402501",
+  "name": "Fort Polk North",
+  "name_en": "Fort Polk North",
+  "parent": 120000,
+  "bbox_x0": "-93.218064999999996",
+  "bbox_x1": "31.078406999999999",
+  "bbox_y0": "-93.143775000000005",
+  "bbox_y1": "31.136562999999999",
+  "srid": "EPSG:4326",
+  "lft": 320,
+  "rght": 321,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120477,
+ "fields": {
+  "code": "02407344",
+  "name": "Simmesport",
+  "name_en": "Simmesport",
+  "parent": 120000,
+  "bbox_x0": "-91.832136000000006",
+  "bbox_x1": "30.964827000000000",
+  "bbox_y0": "-91.796520999999998",
+  "bbox_y1": "30.996547000000000",
+  "srid": "EPSG:4326",
+  "lft": 828,
+  "rght": 829,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120478,
+ "fields": {
+  "code": "02586699",
+  "name": "Pitkin",
+  "name_en": "Pitkin",
+  "parent": 120000,
+  "bbox_x0": "-92.954606999999996",
+  "bbox_x1": "30.908376000000001",
+  "bbox_y0": "-92.898319000000001",
+  "bbox_y1": "30.956613999999998",
+  "srid": "EPSG:4326",
+  "lft": 720,
+  "rght": 721,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120479,
+ "fields": {
+  "code": "02402662",
+  "name": "Barataria",
+  "name_en": "Barataria",
+  "parent": 120000,
+  "bbox_x0": "-90.152961000000005",
+  "bbox_x1": "29.667038999999999",
+  "bbox_y0": "-90.098526000000007",
+  "bbox_y1": "29.742677000000000",
+  "srid": "EPSG:4326",
+  "lft": 46,
+  "rght": 47,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120480,
+ "fields": {
+  "code": "02402415",
+  "name": "Dulac",
+  "name_en": "Dulac",
+  "parent": 120000,
+  "bbox_x0": "-90.734997000000007",
+  "bbox_x1": "29.299458000000001",
+  "bbox_y0": "-90.671352999999996",
+  "bbox_y1": "29.442744999999999",
+  "srid": "EPSG:4326",
+  "lft": 256,
+  "rght": 257,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120481,
+ "fields": {
+  "code": "02402812",
+  "name": "St. Rose",
+  "name_en": "St. Rose",
+  "parent": 120000,
+  "bbox_x0": "-90.344926000000001",
+  "bbox_x1": "29.934056000000002",
+  "bbox_y0": "-90.279533000000001",
+  "bbox_y1": "30.000837000000001",
+  "srid": "EPSG:4326",
+  "lft": 880,
+  "rght": 881,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120482,
+ "fields": {
+  "code": "02583535",
+  "name": "Glencoe",
+  "name_en": "Glencoe",
+  "parent": 120000,
+  "bbox_x0": "-91.677869999999999",
+  "bbox_x1": "29.802471000000001",
+  "bbox_y0": "-91.662191000000007",
+  "bbox_y1": "29.819230000000001",
+  "srid": "EPSG:4326",
+  "lft": 348,
+  "rght": 349,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120483,
+ "fields": {
+  "code": "02583546",
+  "name": "Presquille",
+  "name_en": "Presquille",
+  "parent": 120000,
+  "bbox_x0": "-90.659058000000002",
+  "bbox_x1": "29.546627999999998",
+  "bbox_y0": "-90.625146000000001",
+  "bbox_y1": "29.579754000000001",
+  "srid": "EPSG:4326",
+  "lft": 754,
+  "rght": 755,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120484,
+ "fields": {
+  "code": "02405122",
+  "name": "Addis",
+  "name_en": "Addis",
+  "parent": 120000,
+  "bbox_x0": "-91.290857000000003",
+  "bbox_x1": "30.339708000000002",
+  "bbox_y0": "-91.243467999999993",
+  "bbox_y1": "30.386261000000001",
+  "srid": "EPSG:4326",
+  "lft": 6,
+  "rght": 7,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120485,
+ "fields": {
+  "code": "02406763",
+  "name": "Tullos",
+  "name_en": "Tullos",
+  "parent": 120000,
+  "bbox_x0": "-92.344581000000005",
+  "bbox_x1": "31.804164000000000",
+  "bbox_y0": "-92.313451999999998",
+  "bbox_y1": "31.833093000000002",
+  "srid": "EPSG:4326",
+  "lft": 912,
+  "rght": 913,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120486,
+ "fields": {
+  "code": "02406190",
+  "name": "Mooringsport",
+  "name_en": "Mooringsport",
+  "parent": 120000,
+  "bbox_x0": "-93.971166999999994",
+  "bbox_x1": "32.668951000000000",
+  "bbox_y0": "-93.952364000000003",
+  "bbox_y1": "32.696829999999999",
+  "srid": "EPSG:4326",
+  "lft": 624,
+  "rght": 625,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120487,
+ "fields": {
+  "code": "02405308",
+  "name": "Boyce",
+  "name_en": "Boyce",
+  "parent": 120000,
+  "bbox_x0": "-92.676561000000007",
+  "bbox_x1": "31.380379999999999",
+  "bbox_y0": "-92.662749000000005",
+  "bbox_y1": "31.403618999999999",
+  "srid": "EPSG:4326",
+  "lft": 108,
+  "rght": 109,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120488,
+ "fields": {
+  "code": "02402391",
+  "name": "Cut Off",
+  "name_en": "Cut Off",
+  "parent": 120000,
+  "bbox_x0": "-90.373330999999993",
+  "bbox_x1": "29.473493000000001",
+  "bbox_y0": "-90.289901000000000",
+  "bbox_y1": "29.556308999999999",
+  "srid": "EPSG:4326",
+  "lft": 214,
+  "rght": 215,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120489,
+ "fields": {
+  "code": "0249990",
+  "name": "Alto",
+  "name_en": "Alto",
+  "parent": 120000,
+  "bbox_x0": "-91.863035710567203",
+  "bbox_x1": "32.354049566515144",
+  "bbox_y0": "-91.858229884305715",
+  "bbox_y1": "32.359011538756249",
+  "srid": "EPSG:4326",
+  "lft": 12,
+  "rght": 13,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120490,
+ "fields": {
+  "code": "0249991",
+  "name": "Mira",
+  "name_en": "Mira",
+  "parent": 120000,
+  "bbox_x0": "-93.895050091066935",
+  "bbox_x1": "32.932813314735711",
+  "bbox_y0": "-93.880372368983089",
+  "bbox_y1": "32.948566709123561",
+  "srid": "EPSG:4326",
+  "lft": 606,
+  "rght": 607,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120491,
+ "fields": {
+  "code": "0249992",
+  "name": "Loranger",
+  "name_en": "Loranger",
+  "parent": 120000,
+  "bbox_x0": "-90.410713279389071",
+  "bbox_x1": "30.625773815473579",
+  "bbox_y0": "-90.390570448018707",
+  "bbox_y1": "30.648063654063652",
+  "srid": "EPSG:4326",
+  "lft": 538,
+  "rght": 539,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120492,
+ "fields": {
+  "code": "0239993",
+  "name": "Hot Wells",
+  "name_en": "Hot Wells",
+  "parent": 120000,
+  "bbox_x0": "-92.727841543888928",
+  "bbox_x1": "31.329279767506200",
+  "bbox_y0": "-92.705093026483766",
+  "bbox_y1": "31.353199379758500",
+  "srid": "EPSG:4326",
+  "lft": 424,
+  "rght": 425,
+  "tree_id": 1,
+  "level": 1
+ }
+},
+{
+ "model": "base.region",
+ "pk": 120493,
+ "fields": {
+  "code": "0249994",
+  "name": "Bayou Sara",
+  "name_en": "Bayou Sara",
+  "parent": 120000,
+  "bbox_x0": "-91.411706599960212",
+  "bbox_x1": "30.754535693914001",
+  "bbox_y0": "-91.385708294354288",
+  "bbox_y1": "30.780299780550500",
+  "srid": "EPSG:4326",
+  "lft": 72,
+  "rght": 73,
+  "tree_id": 1,
+  "level": 1
+ }
+}
+]
