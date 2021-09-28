@@ -380,11 +380,12 @@ class GeoreferenceView(View):
             try:
                 out_path = g.georeference(
                     document.doc_file.path,
-                    out_format="GTIff",
+                    out_format="GTiff",
                 )
                 response["status"] = "success"
                 response["message"] = "all good"
             except Exception as e:
+                print(e)
                 response["status"] = "fail"
                 response["message"] = str(e)
 
