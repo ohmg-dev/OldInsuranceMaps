@@ -1,54 +1,41 @@
 <script>
-
   import {onMount} from 'svelte';
 
   import 'ol/ol.css';
   import Map from 'ol/Map';
   import View from 'ol/View';
   import Feature from 'ol/Feature';
-  import Collection from 'ol/Collection';
 
   import Point from 'ol/geom/Point';
 
-  import IIIF from 'ol/source/IIIF';
   import ImageStatic from 'ol/source/ImageStatic';
   import VectorSource from 'ol/source/Vector';
   import OSM from 'ol/source/OSM';
-  import Stamen from 'ol/source/Stamen';
   import XYZ from 'ol/source/XYZ';
   import TileWMS from 'ol/source/TileWMS';
-  import TileArcGISRest from 'ol/source/TileArcGISRest';
-  import WMTS from 'ol/source/WMTS';
 
   import GeoJSON from 'ol/format/GeoJSON';
-
-  import IIIFInfo from 'ol/format/IIIFInfo';
 
   import TileLayer from 'ol/layer/Tile';
 
   import ImageLayer from 'ol/layer/Image';
   import VectorLayer from 'ol/layer/Vector';
 
-  import LayerGroup from 'ol/layer/Group';
-
   import Projection from 'ol/proj/Projection';
-  import {get as getProjection} from 'ol/proj';
 
-  import Zoom from 'ol/control/Zoom';
   import MousePosition from 'ol/control/MousePosition';
   import {createStringXY} from 'ol/coordinate';
 
   import Style from 'ol/style/Style';
-  import Circle from 'ol/style/Circle';
   import Stroke from 'ol/style/Stroke';
   import Fill from 'ol/style/Fill';
-  import Text from 'ol/style/Text';
   import RegularShape from 'ol/style/RegularShape';
 
   import Draw from 'ol/interaction/Draw';
   import Select from 'ol/interaction/Select';
   import Modify from 'ol/interaction/Modify';
   import Snap from 'ol/interaction/Snap';
+import { remove } from 'ol/array';
 
   export let IMG_HEIGHT;
   export let IMG_WIDTH;
@@ -71,9 +58,17 @@
   let activeGCP = 1;
   let inProgress = false;
 
+  let panelFocus = "equal";
+  let syncPanelWidth = false;
+
   let docView;
   let mapView;
   let gcpList = [];
+  
+  const beginGCPDirection = "Click a recognizable location on the map document (left side)"
+  const completeGCPDirection = "Now find and click on the corresponding location in the web map (right side)"
+
+  let currentDirection = beginGCPDirection;
 
   const noteInputElId = "note-input";
 
@@ -114,12 +109,6 @@
     })
   });
 
-  let previousInteraction;
-  let currentInteraction = 'add';
-  const mapInteractions = [
-    {id: 'add', name: 'Add', faClass: 'pencil'},
-    {id: 'remove', name: 'Remove', faClass: 'trash'},
-  ];
   let currentTransformation = "poly";
   const transformations = [
     {id: 'poly', name: 'Polynomial'},
@@ -164,8 +153,6 @@
   let currentBasemap = basemaps[0].id;
 
   const docGCPSource = new VectorSource();
-  const mapGCPSource = new VectorSource();
-
   docGCPSource.on('addfeature', function (e) {
 		activeGCP = gcpList.length + 1;
     if (!e.feature.getProperties().listId) {
@@ -175,6 +162,7 @@
     inProgress = true;
   })
 
+  const mapGCPSource = new VectorSource();
   mapGCPSource.on(['addfeature'], function (e) {
 
     // if this is an incoming gcp, the listID (and all other properties)
@@ -203,7 +191,7 @@
     serverType: 'mapserver',
   });
 
-	// this modify interaction is created individually for each map panel
+	// this Modify interaction is created individually for each map panel
   function makeModifyInteraction(hitDetection, source, targetElement) {
     const modify = new Modify({
       hitDetection: hitDetection,
@@ -226,7 +214,7 @@
     return modify
   }
 
-	// this draw interaction is created individually for each map panel
+	// this Draw interaction is created individually for each map panel
   function makeDrawInteraction(source) {
     return new Draw({
       source: source,
@@ -276,6 +264,8 @@
 
     // create interactions
     const draw = makeDrawInteraction(docGCPSource);
+    draw.setActive(true);
+    targetElement.style.cursor = 'crosshair';
     map.addInteraction(draw)
 
     const modify = makeModifyInteraction(gcpLayer, docGCPSource, targetElement)
@@ -297,7 +287,13 @@
     });
     map.addControl(mousePositionControl);
 
-    map.on("click", removeGCPOnClick)
+    // add some click actions to the map
+    map.on("click", setActiveGCPOnClick);
+
+    // add transition actions to the map element
+    function updateMapEl() {map.updateSize()}
+    targetElement.style.transition = "width .5s";
+    targetElement.addEventListener("transitionend", updateMapEl)
 
     // expose properties as necessary
     this.map = map;
@@ -334,6 +330,7 @@
 
       // create interactions
       const draw = makeDrawInteraction(mapGCPSource);
+      draw.setActive(false);
       map.addInteraction(draw)
 
       const modify = makeModifyInteraction(gcpLayer, mapGCPSource, targetElement)
@@ -348,7 +345,13 @@
       });
       map.addControl(mousePositionControl);
 
-      map.on("click", removeGCPOnClick)
+      // add some click actions to the map
+      map.on("click", setActiveGCPOnClick)
+
+      // add transition actions to the map element
+      function updateMapEl() {map.updateSize()}
+      targetElement.style.transition = "width .5s";
+      targetElement.addEventListener("transitionend", updateMapEl)
 
       // expose properties as necessary
       this.map = map;
@@ -357,44 +360,13 @@
       this.drawInteraction = draw;
   }
 
-  function removeGCPOnClick(e) {
-    let rm = false
-    if (e.originalEvent.ctrlKey || e.originalEvent.metaKey || currentInteraction == "remove") {
-      let listId;
-      e.map.forEachFeatureAtPixel(e.pixel, function(feature) {
-        listId = feature.getProperties().listId;
-      });
-      if (listId) {
-        const rm = window.confirm(`Remove GCP #${listId}?`);
-        if (rm) {
-          removeGCP(listId);
-          currentInteraction = 'add';
-        }
-      }
-    }
-    if (rm) {
-      mapGCPSource.forEachFeature( function (mapFeat) {
-        if (mapFeat.getProperties().listId == gcpListID) {
-          mapGCPSource.removeFeature(mapFeat)
-        }
-      });
-      docGCPSource.forEachFeature( function (docFeat) {
-        if (docFeat.getProperties().listId == gcpListID) {
-          docGCPSource.removeFeature(docFeat)
-        }
-      })
-      syncGCPList();
-    }
-  }
-
   onMount(() => {
     docView = new DocumentViewer('doc-viewer');
     mapView = new MapViewer('map-viewer');
-
 		loadIncomingGCPs();
   });
 
-	function loadIncomingGCPs() {
+  function loadIncomingGCPs() {
 		docGCPSource.refresh();
 		mapGCPSource.refresh();
 		if (INCOMING_GCPS) {
@@ -427,19 +399,52 @@
 		inProgress = false;
 	}
 
-  function removeGCP(gcpListID) {
-    mapGCPSource.forEachFeature( function (mapFeat) {
-      if (mapFeat.getProperties().listId == gcpListID) {
-        mapGCPSource.removeFeature(mapFeat)
-      }
+  function setActiveGCPOnClick(e) {
+    e.map.forEachFeatureAtPixel(e.pixel, function(feature) {
+      activeGCP = feature.getProperties().listId;
     });
-    docGCPSource.forEachFeature( function (docFeat) {
-      if (docFeat.getProperties().listId == gcpListID) {
-        docGCPSource.removeFeature(docFeat)
-      }
+  }
+
+  function removeActiveGCP() {
+    removeGCP(activeGCP)
+  }
+
+  function confirmGCPRemoval(gcpId) {
+    return window.confirm(`Remove GCP #${gcpId}?`);
+  }
+
+  function removeGCP(gcpListID) {
+    if (confirmGCPRemoval(gcpListID)) {
+      mapGCPSource.forEachFeature( function (mapFeat) {
+        if (mapFeat.getProperties().listId == gcpListID) {
+          mapGCPSource.removeFeature(mapFeat)
+        }
+      });
+      docGCPSource.forEachFeature( function (docFeat) {
+        if (docFeat.getProperties().listId == gcpListID) {
+          docGCPSource.removeFeature(docFeat)
+        }
+      });
+      resetListIds();
+      activeGCP = null;
+    }
+  }
+
+  function resetListIds() {
+    // iterates the features in map and doc and resets all list ids.
+    // necessary if any GCP has been deleted that is not the last in the list.
+    let newListId = 1;
+    mapGCPSource.forEachFeature( function (mapFeat) {
+      docGCPSource.forEachFeature( function (docFeat) {
+        if (mapFeat.getProperties().listId == docFeat.getProperties().listId) {
+          docFeat.setProperties({'listId': newListId});
+          mapFeat.setProperties({'listId': newListId});
+        }
+      });
+      newListId = newListId + 1;
     })
     syncGCPList();
-  }
+  };
 
   function syncGCPList() {
     // first make sure the image coordinates match the image property in the
@@ -474,12 +479,133 @@
     previewGCPs();
   }
 
-  function gcpGeoJSON() {
+  function updateNote() {
+    const el = document.getElementById(noteInputElId);
+    mapGCPSource.getFeatures().forEach( function (feature) {
+      if (feature.getProperties().listId == activeGCP) {
+        feature.setProperties({"note": el.value});
+      }
+    })
+  }
 
+  // Triggered by the inProgress boolean
+  function updateInterface(gcpInProgress) {
+
+    if (syncPanelWidth) {
+      panelFocus = ( gcpInProgress ? "map" : "document" )
+      setPanelWidths(panelFocus)
+    }
+    if (docView && mapView) {
+      docView.drawInteraction.setActive(!gcpInProgress);
+      mapView.drawInteraction.setActive(gcpInProgress);
+      docView.element.style.cursor = ( gcpInProgress ? 'default' : 'crosshair' );
+      mapView.element.style.cursor = ( gcpInProgress ? 'crosshair' : 'default' );
+      currentDirection = ( gcpInProgress ? completeGCPDirection : beginGCPDirection );
+    }
+  }
+  $: updateInterface(inProgress)
+
+  // triggered by a change in the basemap id
+  function setBasemap(basemapId) {
+    if (mapView) {
+      mapView.map.getLayers().removeAt(0);
+      basemaps.forEach( function(item) {
+        if (item.id == basemapId) {
+          mapView.map.getLayers().insertAt(0, item.layer);
+        }
+      });
+    }
+  }
+  $: setBasemap(currentBasemap);
+
+  // triggered by a change in the previewOpacity variable
+  function setOpacity(opacity) {
+    if (mapView) {
+      mapView.previewLayer.setOpacity(opacity);
+    }
+  }
+  $: setOpacity(previewOpacity);
+
+  // Triggered by a change in the showPreview variable
+  function togglePreviewLayer(show) {
+    if (mapView) {
+      // if the preview should be shown and there are only two layers in the map
+      // (which would be the basemap and gcp layer) then add the preview layer
+      if (show && mapView.map.getLayers().getArray().length == 2) {
+        mapView.map.getLayers().insertAt(1, mapView.previewLayer)
+      }
+      // if the preview should not be shown and there are three layers in the map
+      // then remove the preview layer
+      if (!show && mapView.map.getLayers().getArray().length == 3) {
+        mapView.map.getLayers().removeAt(1)
+      }
+    }
+  }
+  $: togglePreviewLayer(showPreview);
+
+  // Triggered by change of activeGCP
+  function displayActiveGCP(activeId) {
+
+    // set note display content
+    const el = document.getElementById(noteInputElId);
+    if (inProgress) {
+      el.value = "";
+    } else {
+      mapGCPSource.getFeatures().forEach( function (feat) {
+        let props = feat.getProperties();
+        if (props.listId == activeId) { el.value = props.note }
+      })
+    }
+
+    // highlight features for active GCP
+    docGCPSource.getFeatures().forEach( function (feat) {
+      feat.setStyle(gcpDefault);
+      if (feat.getProperties().listId == activeId) { feat.setStyle(gcpHighlight) }
+    })
+    mapGCPSource.getFeatures().forEach( function (feat) {
+      feat.setStyle(gcpDefault)
+      if (feat.getProperties().listId == activeId) { feat.setStyle(gcpHighlight) }
+    })
+  }
+  $: displayActiveGCP(activeGCP)
+
+  // Triggered by a (manual) change in which panel should have focus
+  function setPanelWidths (focusOn) {
+    if (docView && mapView) {
+      switch(focusOn) {
+        case "equal":
+          docView.element.style.width = "50%";
+          mapView.element.style.width = "50%";
+          break;
+        case "document":
+          docView.element.style.width = "75%";
+          mapView.element.style.width = "25%";
+          break;
+        case "map":
+          docView.element.style.width = "25%";
+          mapView.element.style.width = "75%";
+          break
+      }
+    }
+  }
+  $: setPanelWidths(panelFocus);
+
+  function toggleFullscreen () {
+    if (document.fullscreenElement == null) {
+      let promise = document.getElementById('interface').requestFullscreen();
+      document.getElementById("fs-icon").classList.remove("fa-arrows-alt");
+      document.getElementById("fs-icon").classList.add("fa-times");
+    } else {
+      document.exitFullscreen();
+      document.getElementById("fs-icon").classList.remove("fa-times");
+      document.getElementById("fs-icon").classList.add("fa-arrows-alt");
+    }
+  }
+
+  // convert the map features to GeoJSON for sending to georeferencing operation
+  $: asGeoJSON = () => {
     let featureCollection = { "type": "FeatureCollection", "features": [] };
-
     mapGCPSource.forEachFeature( function(feature) {
-
       const wgs84_geom = feature.getGeometry().clone().transform('EPSG:3857', 'EPSG:4326')
       featureCollection.features.push(
         {
@@ -493,8 +619,9 @@
       )
     });
     return featureCollection
-  };
+  }
 
+  // wrappers for the backend view to process GCPs
   function previewGCPs() { processGCPs("preview") }
   function submitGCPs() { processGCPs("submit") }
   function cleanupPreview() { processGCPs("cleanup") }
@@ -504,8 +631,9 @@
       showPreview = false;
       return
     };
+
     const data = JSON.stringify({
-      "gcp_geojson": gcpGeoJSON(),
+      "gcp_geojson": asGeoJSON(),
       "docid": DOC_ID,
       "transformation": currentTransformation,
       "operation": operation,
@@ -525,128 +653,12 @@
         previewSource.refresh()
         showPreview = true;
       });
+
   }
 
-  function updateNote() {
-    const el = document.getElementById(noteInputElId);
-    mapGCPSource.getFeatures().forEach( function (feature) {
-      if (feature.getProperties().listId == activeGCP) {
-        feature.setProperties({"note": el.value});
-      }
-    })
-  }
+  // A couple of functions that are attached to the window itself
 
-  $: if (docView && mapView) {
-    if (currentInteraction == 'add') {
-      docView.drawInteraction.setActive(!inProgress);
-      mapView.drawInteraction.setActive(inProgress);
-      docView.element.style.cursor = ( inProgress ? 'default' : 'crosshair' );
-      mapView.element.style.cursor = ( inProgress ? 'crosshair' : 'default' );
-    } else {
-      docView.drawInteraction.setActive(false);
-      mapView.drawInteraction.setActive(false);
-    }
-  }
-
-  $: if (gcpList.length > 1) {
-    const el = document.getElementById(noteInputElId);
-    if (inProgress) {
-      el.value = "";
-    } else {
-      mapGCPSource.getFeatures().forEach( function (feat) {
-        let props = feat.getProperties();
-        if (props.listId == activeGCP) { el.value = props.note }
-      })
-    }
-  }
-
-	$: if (mapView) {
-		mapView.previewLayer.setOpacity(previewOpacity);
-	}
-
-  $: if (mapView) {
-    mapView.map.getLayers().removeAt(0);
-    basemaps.forEach( function(item) {
-      if (item.id == currentBasemap) {
-        mapView.map.getLayers().insertAt(0, item.layer);
-      }
-    });
-	}
-
-  $: if (mapView) {
-    // if the preview should be shown and there are only two layers in the map
-    // (which would be the basemap and gcp layer) then add the preview layer
-    if (showPreview && mapView.map.getLayers().getArray().length == 2) {
-      mapView.map.getLayers().insertAt(1, mapView.previewLayer)
-    }
-    // if the preview should be shown and there are only two layers in the map
-    // (which would be the basemap and gcp layer) then add the preview layer
-    if (!showPreview && mapView.map.getLayers().getArray().length == 3) {
-      mapView.map.getLayers().removeAt(1)
-    }
-	}
-
-  $: {
-    docGCPSource.getFeatures().forEach( function (feat) {
-      feat.setStyle(gcpDefault);
-      if (feat.getProperties().listId == activeGCP) { feat.setStyle(gcpHighlight) }
-    })
-    mapGCPSource.getFeatures().forEach( function (feat) {
-      feat.setStyle(gcpDefault)
-      if (feat.getProperties().listId == activeGCP) { feat.setStyle(gcpHighlight) }
-    })
-  }
-
-  let key;
-  function handleKeydown(e) {
-    previousInteraction = currentInteraction;
-    // only allow these shortcuts if the maps have focus
-    if (document.activeElement.id != noteInputElId) {
-      switch(e.key) {
-        case "Escape":
-          if (document.fullscreenElement != null) {  document.exitFullscreen(); }
-          break;
-        case "a": case "A":
-          currentInteraction = 'add';
-          break;
-        case "d": case "D":
-          currentInteraction = 'remove';
-          break;
-        case "w": case "W":
-					previewOpacity = (previewOpacity < 1 ? previewOpacity + .6 : 0);
-          break;
-        case "Control":
-          currentInteraction = 'remove';
-          break;
-      }
-    }
-  }
-
-  function handleKeyup(e) {
-    // only allow these shortcuts if the maps have focus
-    if (document.activeElement.id != noteInputElId) {
-      switch(e.key) {
-        case "Control":
-          if (previousInteraction != "remove") {
-            currentInteraction = 'add';
-          }
-          break;
-      }
-    }
-  }
-
-  function toggleFullscreen () {
-    if (document.fullscreenElement == null) {
-      let promise = document.getElementById('interface').requestFullscreen();
-      document.getElementById("fs-icon").classList.remove("fa-arrows-alt");
-      document.getElementById("fs-icon").classList.add("fa-times");
-    } else {
-      document.exitFullscreen();
-      document.getElementById("fs-icon").classList.remove("fa-times");
-      document.getElementById("fs-icon").classList.add("fa-arrows-alt");
-    }
-  }
-
+  // wrapper function to call view for db cleanup as needed
   function cleanupOnLeave (e) {
     // e.preventDefault();
     // alert("hello!")
@@ -655,22 +667,40 @@
     cleanupPreview()
   }
 
+  function handleKeydown(e) {
+    // only allow these shortcuts if the maps have focus
+    // so they aren't activated while typing a note.
+    if (document.activeElement.id != noteInputElId) {
+      switch(e.key) {
+        case "Escape":
+          if (document.fullscreenElement != null) {  document.exitFullscreen(); }
+          break;
+        case "d": case "D":
+          removeActiveGCP();
+          break;
+        case "w": case "W":
+					previewOpacity = (previewOpacity < 1 ? previewOpacity + .6 : 0);
+          break;
+      }
+    }
+  }
+
 </script>
 
-<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={cleanupOnLeave}/>
+<svelte:window on:keydown={handleKeydown} on:beforeunload={cleanupOnLeave}/>
 
 <div id="interface" class="main">
   <div class="tb tb-top">
     <div id="interaction-options" class="tb-top-item">
       <button title="enter fullscreen mode" on:click={toggleFullscreen}><i id="fs-icon" class="fa fa-arrows-alt" /></button>
-      <button title="reset interface" on:click={loadIncomingGCPs}><i id="fs-icon" class="fa fa-refresh" /></button>
-      {#each mapInteractions as option}
-          <label>
-            <input type=radio bind:group={currentInteraction} value={option.id}>
-              {option.name}<i class="fa fa-{option.faClass}" />
-          </label>
-      {/each}
+      View Focus 
+      <label><input type=radio bind:group={panelFocus} disabled={syncPanelWidth} value="equal">equal</label>
+      <label><input type=radio bind:group={panelFocus} disabled={syncPanelWidth} value="document">document</label>
+      <label><input type=radio bind:group={panelFocus} disabled={syncPanelWidth} value="map">map</label>
+      <label><input type=checkbox bind:checked={syncPanelWidth}>auto</label>
+
     </div>
+    <div class="tb-top-item"><em>{currentDirection}</em></div>
     <div class="tb-top-item">
       <select class="basemap-select" title="select basemap" bind:value={currentBasemap}>
         {#each basemaps as basemap}
@@ -693,6 +723,9 @@
     <div id="map-viewer" class="map-item"></div>
   </div>
   <div class="tb tb-bottom">
+    <div class="tb-bottom-item">
+      
+    </div>
     {#if gcpList.length == 0}
     <div class="tb-bottom-item">
       <em>no control points added yet</em>
@@ -713,6 +746,8 @@
         <input type="text" id="note-input" style="width:400px" disabled={gcpList.length == 0} on:change={updateNote}>
       </label>
     </div>
+    <button title="remove" on:click={removeActiveGCP}><i id="fs-icon" class="fa fa-trash" style="color:red"/></button>
+    <button title="clear all GCPs" on:click={loadIncomingGCPs}><i id="fs-icon" class="fa fa-refresh" /></button>
     {/if}
   </div>
 </div>
