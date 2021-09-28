@@ -188,6 +188,12 @@ class GCPGroup(models.Model):
                 "crs_epsg": 3857
             })
 
+        # first remove any existing gcps that have been deleted
+        for gcp in group.gcps:
+            if str(gcp.id) not in [i['properties'].get('id') for i in geojson['features']]:
+                print(f"deleting gcp {gcp.id}")
+                gcp.delete()
+
         for feature in geojson['features']:
 
             id = feature['properties'].get('id', str(uuid.uuid4()))
@@ -212,20 +218,13 @@ class GCPGroup(models.Model):
 
             # only update the point if one of its coordinate pairs have changed,
             # this also triggered when new GCPs have None for pixels and geom.
-            if 1 == 3:
-                print(old_pixel)
-                print(new_pixel)
-                print(gcp.geom)
-                print(new_geom)
-                print(new_geom.equals(gcp.geom))
-
             if new_pixel != old_pixel or not new_geom.equals(gcp.geom):
                 gcp.pixel_x = new_pixel[0]
                 gcp.pixel_y = new_pixel[1]
                 gcp.geom = new_geom
                 gcp.last_modified_by = user
                 gcp.save()
-                print("saved")
+                print("coordinates saved/updated")
             else:
                 print("gcp coordinates unchanged, no save made")
 
