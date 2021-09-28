@@ -115,6 +115,18 @@ import { remove } from 'ol/array';
     {id: 'tps', name: 'Thin Plate Spline'},
   ];
 
+  // generate a uuid, code from here:
+  // https://www.cloudhadoop.com/2018/10/guide-to-unique-identifiers-uuid-guid
+  function uuid() {
+    var uuidValue = "", k, randomValue;
+    for (k = 0; k < 32;k++) {
+      randomValue = Math.random() * 16 | 0;
+      if (k == 8 || k == 12 || k == 16 || k == 20) { uuidValue += "-" }
+      uuidValue += (k == 12 ? 4 : (k == 16 ? (randomValue & 3 | 8) : randomValue)).toString(16);
+    }
+    return uuidValue;
+  }
+
   const osmLayer = new TileLayer({
     source: new OSM(),
   })
@@ -169,7 +181,7 @@ import { remove } from 'ol/array';
     // will already be set. Otherwise, it must be set here.
 		if (!e.feature.getProperties().listId) {
 	    e.feature.setProperties({
-        'id': null,
+        'id': uuid(),
         'listId': activeGCP,
 	      'username': USERNAME,
 	      'note': '',
@@ -441,7 +453,7 @@ import { remove } from 'ol/array';
           mapFeat.setProperties({'listId': newListId});
         }
       });
-      newListId = newListId + 1;
+      newListId += 1;
     })
     syncGCPList();
   };
@@ -707,15 +719,6 @@ import { remove } from 'ol/array';
         <option value={basemap.id}>{basemap.label}</option>
         {/each}
       </select>
-      <!-- svelte-ignore a11y-no-onchange -->
-      <select class="trans-select" title="select transformation type" bind:value={currentTransformation} on:change={previewGCPs}>
-        {#each transformations as trans}
-          <!-- disable thin plate spline for now, but it does work properly -->
-          <!-- <option value={trans.id} disabled={trans.id == "tps"}>{trans.name}</option> -->
-          <option value={trans.id}>{trans.name}</option>
-        {/each}
-      </select>
-      <button on:click={submitGCPs} disabled={gcpList.length < 3}>Submit</button>
     </div>
   </div>
   <div class="map-container">
@@ -723,9 +726,6 @@ import { remove } from 'ol/array';
     <div id="map-viewer" class="map-item"></div>
   </div>
   <div class="tb tb-bottom">
-    <div class="tb-bottom-item">
-      
-    </div>
     {#if gcpList.length == 0}
     <div class="tb-bottom-item">
       <em>no control points added yet</em>
@@ -739,16 +739,25 @@ import { remove } from 'ol/array';
           </option>
         {/each}
       </select>
-    </div>
-    <div class="tb-bottom-item">
       <label>
         Note:
         <input type="text" id="note-input" style="width:400px" disabled={gcpList.length == 0} on:change={updateNote}>
       </label>
-    </div>
     <button title="remove" on:click={removeActiveGCP}><i id="fs-icon" class="fa fa-trash" style="color:red"/></button>
     <button title="clear all GCPs" on:click={loadIncomingGCPs}><i id="fs-icon" class="fa fa-refresh" /></button>
+    </div>
     {/if}
+    <div class="tb-bottom-item">
+      <!-- svelte-ignore a11y-no-onchange -->
+      <select class="trans-select" title="select transformation type" bind:value={currentTransformation} on:change={previewGCPs}>
+        {#each transformations as trans}
+          <!-- disable thin plate spline for now, but it does work properly -->
+          <!-- <option value={trans.id} disabled={trans.id == "tps"}>{trans.name}</option> -->
+          <option value={trans.id}>{trans.name}</option>
+        {/each}
+      </select>
+      <button on:click={submitGCPs} disabled={gcpList.length < 3}>Submit</button>
+    </div>
   </div>
 </div>
 
@@ -776,6 +785,10 @@ import { remove } from 'ol/array';
     height: 2em;
   }
 
+  .tb button:disabled {
+    color: grey;
+  }
+
   .tb-top {
     justify-content: space-between;
   }
@@ -783,7 +796,7 @@ import { remove } from 'ol/array';
   .tb-top-item {}
 
   .tb-bottom {
-    justify-content: center;
+    justify-content: space-between;
   }
 
   .tb-bottom-item {}

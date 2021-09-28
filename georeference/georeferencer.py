@@ -67,7 +67,7 @@ def get_path_variant(original_path, variant, outdir=None):
     elif variant == "GTiff":
         filename = basename.replace(ext, "_modified.tif")
     else:
-        raise Exception("unsupported derivative type")
+        raise Exception(f"unsupported derivative type: {variant}")
     
     return os.path.join(outdir, filename)
 
