@@ -15,12 +15,12 @@ from .renderers import (
     generate_collection_item_thumbnail_content,
     get_image_content_from_url
 )
-from .models import MapCollectionItem, MapScan
+# from .models import MapCollectionItem, MapScan
 
 logger = get_task_logger(__name__)
 
 
-@app.task(bind=True, queue='update')
+# @app.task(bind=True, queue='update')
 def create_collection_item_thumbnail(self, object_id):
     """
     Create thumbnail for a document.
@@ -57,7 +57,7 @@ def create_collection_item_thumbnail(self, object_id):
     item.save_thumbnail(filename, thumbnail_content)
     logger.debug("Thumbnail for document #{} created.".format(object_id))
 
-@app.task(bind=True, queue='update')
+# @app.task(bind=True, queue='update')
 def create_map_sheet_thumbnail(self, object_id):
     """
     Create thumbnail for a document.
