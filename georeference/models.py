@@ -167,6 +167,9 @@ class GCPGroup(models.Model):
         }
 
         for gcp in self.gcps:
+            coords = json.loads(gcp.geom.geojson)["coordinates"]
+            lat = coords[0]
+            lng = coords[1]
             geo_json['features'].append({
                 "type": "Feature",
                 "properties": {
@@ -175,7 +178,10 @@ class GCPGroup(models.Model):
                   "username": gcp.last_modified_by.username,
                   "note": gcp.note,
                 },
-                "geometry": json.loads(gcp.geom.geojson)
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [lng, lat]
+                }
             })
         return geo_json
 
@@ -214,7 +220,7 @@ class GCPGroup(models.Model):
             lng = feature['geometry']['coordinates'][0]
             lat = feature['geometry']['coordinates'][1]
 
-            new_geom = Point(lng, lat, srid=4326)
+            new_geom = Point(lat, lng, srid=4326)
 
             # only update the point if one of its coordinate pairs have changed,
             # this also triggered when new GCPs have None for pixels and geom.
