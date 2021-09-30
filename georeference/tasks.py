@@ -24,6 +24,7 @@ from django.contrib.auth import get_user_model
 from geonode.documents.models import Document
 
 from .splitter import DocumentSplitter
+from .georeferencer import georeference_document
 
 logger = get_task_logger(__name__)
 
@@ -37,3 +38,16 @@ def split_image_as_task(docid, cut_lines, userid=0):
     splitter = DocumentSplitter(document=document, user=user)
     splitter.generate_divisions(cut_lines)
     splitter.split_image()
+
+@shared_task
+def georeference_document_as_task(docid, gcp_json, transformation, userid):
+
+    user = get_user_model().objects.get(pk=userid)
+    document = Document.objects.get(pk=docid)
+    response = georeference_document(
+        document,
+        gcp_json=gcp_json,
+        transformation=transformation,
+        user=user
+    )
+    return response
