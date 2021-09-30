@@ -32,23 +32,53 @@ class CapturingStderr(list):
 # from geonode.layers.utils import file_upload
 # layer = file_upload(output_file_path)
 
-def georeference_document(document, transformation="poly", user=None, gcp_group=None):
+def georeference_document(document, gcp_json=None, gcp_group=None, transformation="poly", user=None):
 
-    if gcp_group is None:
+    from django.conf import settings
+    from geonode.layers.utils import file_upload
+    from georeference.models import GCPGroup
+
+    response = {
+        "status": "",
+        "message": "",
+    }
+
+    if gcp_json is None:
         try:
             gcp_group = GCPGroup.objects.get(document=document)
         except GCPGroup.DoesNotExist as exception:
-            raise exception
+            response["status"] = "fail"
+            response["message"] = "no GCP json provided, and no GCPGroup exists for this document"
+            return response
+    else:
+        gcp_group = GCPGroup().save_from_geojson(gcp_json, document)
+        if gcp_group is None:
+            response["status"] = "fail"
+            response["message"] = "error saving GCP json"
+            return response
+
+    gdal_gcps = gcp_group.gdal_gcps
 
     g = Georeferencer(
         gdal_gcps=gcp_group.gdal_gcps,
         transformation=transformation,
-        out_dir=settings.TEMP_DIR,
-        crs=gcp_group.crs_epsg
+        epsg_code=gcp_group.crs_epsg
     )
 
-    output = g.georeference(document.doc_file.path)
-    print(output)
+    out_path = g.georeference(
+        document.doc_file.path,
+        out_format="GTiff",
+        addo=True,
+    )
+
+    # now that the geotiff has been created, upload it to GeoNode/Geoserver
+    # as a new Layer.
+    layer = file_upload(out_path, title=document.title, user=user)
+
+    # delete the geotiff once the layer has been made (it will have been duplicated)
+    os.remove(out_path)
+    print(f"new layer: {layer}")
+    return layer
 
 def get_path_variant(original_path, variant, outdir=None):
     """Used to standardize the derivative names of Document files created
@@ -108,10 +138,11 @@ class Georeferencer(object):
 
     def __init__(self,
             epsg_code=None,
-            transformation=None
+            transformation=None,
+            gdal_gcps=[],
         ):
 
-        self.gcps = []
+        self.gcps = gdal_gcps
         self.epsg_code = epsg_code
         self.transformation = None
         if transformation:
@@ -147,6 +178,7 @@ class Georeferencer(object):
         # geo_json is assumed to be WGS84, so it must be transformed to the
         # CRS of this Georeferencer instance
         from osgeo import ogr
+        self.gcps = []
 
         wgs84 = osr.SpatialReference()
         wgs84.ImportFromEPSG(4326)
@@ -191,23 +223,6 @@ class Georeferencer(object):
         sr.ImportFromEPSG(self.epsg_code)
         return sr
 
-    def georeference_document(self, document, user=None):
-
-        from .models import GCPGroup
-
-        try:
-            gcp_group = GCPGroup.objects.get(document=document)
-        except GCPGroup.DoesNotExist as e:
-            raise e
-
-        if len(self.gcps) == 0:
-            self.gcps = gcp_group.gdal_gcps
-            self.epsg_code = gcp_group.crs_epsg
-
-        out_path = self.georeference(document.doc_file.path)
-
-        return out_path
-
     def add_overviews(self, image_path):
 
         ## add overviews
@@ -229,31 +244,15 @@ class Georeferencer(object):
         vrt_with_gcps = get_path_variant(src_path, "gcps", outdir=self.workspace)
         dst_path = get_path_variant(src_path, out_format, outdir=self.workspace)
 
-        # name, ext = os.path.splitext(os.path.basename(src_path))
-        # vrt_with_gcps = os.path.join(self.workspace, f"{name}_gcps.vrt")
-        # if out_format == "VRT":
-            
-        # elif out_format == "GTiff":
-        #     dst_path = os.path.join(self.workspace, f"{name}_modified.tif")
-        # else:
-        #     raise Exception("invalid output format")
-
-        print(f"format: {out_format}")
-
         ## make TranslateOptions object to hold the GCP list and embed that list
         ## into a new image file.
         elapsed = 0
-        print("translating...")
-        start = time.time()
 
         to = gdal.TranslateOptions(
             GCPs=self.gcps,
             format="VRT",
         )
         gdal.Translate(vrt_with_gcps, src_path, options=to)
-
-        elapsed += time.time() - start
-        print(f"  completed in {time.time() - start} seconds.")
 
         print("warping...")
         start = time.time()
@@ -275,9 +274,7 @@ class Georeferencer(object):
             format=out_format,
             dstSRS=f"EPSG:{self.epsg_code}",
             dstAlpha=True,
-
         )
-        print(dst_path)
 
         # with CapturingStderr() as output:
         try:
@@ -311,4 +308,5 @@ class Georeferencer(object):
             print(f"  completed in {time.time() - start} seconds.")
 
         print(f"\nfull process took {elapsed} seconds.")
+
         return dst_path
