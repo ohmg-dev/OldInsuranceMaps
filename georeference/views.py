@@ -255,12 +255,8 @@ class GeoreferenceView(View):
 
         try:
             gcp_group = GCPGroup.objects.get(document=document)
-            existing_anno = gcp_group.as_annotation
-            existing_anno_txt = json.dumps(existing_anno, indent=1)
             incoming_gcps = gcp_group.as_geojson
-
         except GCPGroup.DoesNotExist:
-            gcp_group, existing_anno, existing_anno_txt = None, None, None
             incoming_gcps = None
 
         # get the iiif info for the document file
@@ -311,8 +307,6 @@ class GeoreferenceView(View):
             'iiif_info_url': iiif_info_url,
             'iiif_manifest_url': iiif_manifest_url,
             'download_url': download_url,
-            'existing_anno': existing_anno,
-            'existing_anno_txt': existing_anno_txt,
         }
 
         return render(
@@ -341,14 +335,8 @@ class GeoreferenceView(View):
         gcp_geojson = body.get("gcp_geojson", {})
         transformation = body.get("transformation", "poly")
 
-        # prepare Georeferencer object
-        g = Georeferencer(epsg_code=3857)
-        g.load_gcps_from_geojson(gcp_geojson)
-        g.set_transformation(transformation)
-
         # determine whether this is change to GCPs during editing or it's the
         # completion of the georeferencing process.
-        preview = body.get("preview_only", False)
         operation = body.get("operation", "preview")
 
         response = {
@@ -356,16 +344,20 @@ class GeoreferenceView(View):
             "message": ""
         }
 
-        # if preview mode, modify/create the vrt for this map
+        # if preview mode, modify/create the vrt for this map.
+        # the vrt layer should already served to the interface via mapserver,
+        # and it will be automatically updated there.
         if operation == "preview":
 
+            # prepare Georeferencer object
+            g = Georeferencer(epsg_code=3857)
+            g.load_gcps_from_geojson(gcp_geojson)
+            g.set_transformation(transformation)
             try:
-                print("1")
                 out_path = g.georeference(
                     document.doc_file.path,
                     out_format="VRT",
                 )
-                print(2)
                 response["status"] = "success"
                 response["message"] = "all good"
             except Exception as e:
