@@ -145,6 +145,8 @@ class GCPGroup(models.Model):
         with open(anno_template, "r") as o:
             anno = json.loads(o.read())
 
+        ## WARNING: the order of the coordinates in the geometry below
+        ## may need to be switched. see as_geojson() for example.
         for gcp in self.gcps:
             gcp_feat = {
                 "type": "Feature",
@@ -236,10 +238,10 @@ class GCPGroup(models.Model):
 
         return group
 
-    def save_from_annotation(self, annotation, document, user):
+    def save_from_annotation(self, annotation, document):
 
         m = "georeference-ground-control-points"
         georef_annos = [i for i in annotation['items'] if i['motivation'] == m]
         anno = georef_annos[0]
 
-        self.save_from_geojson(anno['body'], document, user)
+        self.save_from_geojson(anno['body'], document)
