@@ -76,6 +76,9 @@ IIIF_SERVER_LOCATION = "http://localhost:8182"
 # To allow other sites to read IIIF resources set CORS_ORIGIN_ALLOW_ALL to True
 CORS_ORIGIN_ALLOW_ALL = False
 
+# the default thumbnail background is wikimedia and it causes a lot of errors
+THUMBNAIL_BACKGROUND = { "class": "georeference.background.NoThumbnailBackground" }
+
 # Location of url mappings
 ROOT_URLCONF = os.getenv('ROOT_URLCONF', '{}.urls'.format(PROJECT_NAME))
 
