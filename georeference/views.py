@@ -30,10 +30,13 @@ from geonode.base.models import Link
 from geonode.monitoring import register_event
 from geonode.monitoring.models import EventType
 
+from georeference.tasks import (
+    split_image_as_task,
+    georeference_document_as_task,
+)
 from .models import GCPGroup, SplitSession
 from .splitter import DocumentSplitter
 from .georeferencer import Georeferencer, get_path_variant
-from .tasks import split_image_as_task
 from .utils import (
     document_as_iiif_resource,
     document_as_iiif_canvas,
@@ -222,7 +225,9 @@ class SplitView(View):
         if dryrun is True:
             return JsonResponse({"success": True, "polygons": divs})
 
-        res = split_image_as_task.apply_async((docid, cut_lines, request.user.pk), queue="update")
+        res = split_image_as_task.apply_async(
+            (docid, cut_lines, request.user.pk), queue="update"
+        )
 
         redirect_url = reverse('document_detail', kwargs={'docid': docid}) + "#georeference"
 
@@ -371,28 +376,12 @@ class GeoreferenceView(View):
 
         # if submission, save updated/new GCPs, run warp to create GeoTiff.
         # register Layer here from GeoTiff?
-        # return url redirect location to original document???
         elif operation == "submit":
 
-            gcp_group = GCPGroup().save_from_geojson(gcp_geojson, document)
-
-            response = {}
-            try:
-                out_path = g.georeference(
-                    document.doc_file.path,
-                    out_format="GTiff",
-                )
-                response["status"] = "success"
-                response["message"] = "all good"
-            except Exception as e:
-                print(e)
-                response["status"] = "fail"
-                response["message"] = str(e)
-
-            mapserver_remove_layer(document.doc_file.path)
-
-            response["status"] = "success"
-            response["message"] = "all good"
+            res = georeference_document_as_task.apply_async(
+                (docid, gcp_geojson, transformation, request.user.pk),
+                queue="update"
+            )
 
         elif operation == "cleanup":
 
@@ -400,6 +389,7 @@ class GeoreferenceView(View):
 
             response["status"] = "success"
             response["message"] = "all good"
+            response["redirect_to"] = "/layers"
 
         return JsonResponse(response)
 
