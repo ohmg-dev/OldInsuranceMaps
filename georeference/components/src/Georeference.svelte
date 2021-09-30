@@ -17,7 +17,6 @@
   import GeoJSON from 'ol/format/GeoJSON';
 
   import TileLayer from 'ol/layer/Tile';
-
   import ImageLayer from 'ol/layer/Image';
   import VectorLayer from 'ol/layer/Vector';
 
@@ -32,10 +31,8 @@
   import RegularShape from 'ol/style/RegularShape';
 
   import Draw from 'ol/interaction/Draw';
-  import Select from 'ol/interaction/Select';
   import Modify from 'ol/interaction/Modify';
   import Snap from 'ol/interaction/Snap';
-import { remove } from 'ol/array';
 
   export let IMG_HEIGHT;
   export let IMG_WIDTH;
@@ -52,8 +49,7 @@ import { remove } from 'ol/array';
 
   if (!MAP_CENTER) { MAP_CENTER = [0,0] };
 
-  let showPreview = INCOMING_GCPS ? true : false;
-  let previewOpacity = .6;
+  let previewMode = "n/a";
 
   let activeGCP = 1;
   let inProgress = false;
@@ -65,10 +61,10 @@ import { remove } from 'ol/array';
   let mapView;
   let gcpList = [];
   
-  const beginGCPDirection = "Click a recognizable location on the map document (left side)"
-  const completeGCPDirection = "Now find and click on the corresponding location in the web map (right side)"
+  const beginTxt = "Click a recognizable location on the map document (left panel)"
+  const completeTxt = "Now find and click on the corresponding location in the web map (right panel)"
 
-  let currentDirection = beginGCPDirection;
+  let currentTxt = beginTxt;
 
   const noteInputElId = "note-input";
 
@@ -192,16 +188,24 @@ import { remove } from 'ol/array';
     inProgress = false;
   })
 
+  // create the preview layer from mapserver
   const previewSource = new TileWMS({
     url: MAPSERVER_ENDPOINT,
     params: {
-        // set this as env variable in apache conf file
-        // 'MAP': '/opt/mapserver/data/config/geonode.map',
+        // set this as env variable in apache conf file,
+        // 'MAP': '/path/to/mapfile.map',
         'LAYERS': MAPSERVER_LAYERNAME,
         'TILED': true,
     },
     serverType: 'mapserver',
   });
+
+  let startloads = 0;
+  let endloads = 0;
+  previewSource.on("tileloadstart", function (e) { startloads++ })
+  previewSource.on("tileloadend", function (e) { endloads++ })
+
+  const previewLayer = new TileLayer({ source: previewSource });
 
 	// this Modify interaction is created individually for each map panel
   function makeModifyInteraction(hitDetection, source, targetElement) {
@@ -318,11 +322,6 @@ import { remove } from 'ol/array';
 
       const targetElement = document.getElementById(elementId);
 
-      const previewLayer = new TileLayer({
-        source: previewSource,
-				opacity: .5,
-      });
-
       const gcpLayer = new VectorLayer({
         source: mapGCPSource,
         style: gcpDefault,
@@ -331,7 +330,7 @@ import { remove } from 'ol/array';
       // create map
       const map = new Map({
         target: targetElement,
-				layers: [basemaps[0].layer, previewLayer, gcpLayer],
+				layers: [basemaps[0].layer, gcpLayer],
         view: new View({
           center: MAP_CENTER,
           zoom: 16,
@@ -367,7 +366,6 @@ import { remove } from 'ol/array';
 
       // expose properties as necessary
       this.map = map;
-			this.previewLayer = previewLayer;
       this.element = targetElement;
       this.drawInteraction = draw;
   }
@@ -402,9 +400,9 @@ import { remove } from 'ol/array';
 				});
 				docFeat.setProperties({"listId": listId})
 				docGCPSource.addFeature(docFeat);
-
 				listId += 1;
-			})
+			});
+      previewMode = "transparent";
 		}
 		syncGCPList();
 		activeGCP = gcpList.length + 1;
@@ -418,7 +416,7 @@ import { remove } from 'ol/array';
   }
 
   function removeActiveGCP() {
-    removeGCP(activeGCP)
+    if (activeGCP) { removeGCP(activeGCP) }
   }
 
   function confirmGCPRemoval(gcpId) {
@@ -438,7 +436,8 @@ import { remove } from 'ol/array';
         }
       });
       resetListIds();
-      activeGCP = null;
+      activeGCP = (gcpList.length == 0 ? 1 : activeGCP - 1);
+      inProgress = false;
     }
   }
 
@@ -504,7 +503,7 @@ import { remove } from 'ol/array';
   function updateInterface(gcpInProgress) {
 
     if (syncPanelWidth) {
-      panelFocus = ( gcpInProgress ? "map" : "document" )
+      panelFocus = ( gcpInProgress ? "right" : "left" )
       setPanelWidths(panelFocus)
     }
     if (docView && mapView) {
@@ -512,7 +511,7 @@ import { remove } from 'ol/array';
       mapView.drawInteraction.setActive(gcpInProgress);
       docView.element.style.cursor = ( gcpInProgress ? 'default' : 'crosshair' );
       mapView.element.style.cursor = ( gcpInProgress ? 'crosshair' : 'default' );
-      currentDirection = ( gcpInProgress ? completeGCPDirection : beginGCPDirection );
+      currentTxt = ( gcpInProgress ? completeTxt : beginTxt );
     }
   }
   $: updateInterface(inProgress)
@@ -530,30 +529,27 @@ import { remove } from 'ol/array';
   }
   $: setBasemap(currentBasemap);
 
-  // triggered by a change in the previewOpacity variable
-  function setOpacity(opacity) {
-    if (mapView) {
-      mapView.previewLayer.setOpacity(opacity);
+  function setPreviewVisibility(mode) {
+    if (!mapView) { return }
+    if (mode == "full" || mode == "transparent") {
+      // first set the opacity of the layer
+      const newOpacity = ( mode == "full" ? 1 : .6 );
+      previewLayer.setOpacity(newOpacity);
+      // now add the layer if necessary
+      if (mapView.map.getLayers().getArray().length == 2){
+        mapView.map.getLayers().insertAt(1, previewLayer)
+      }
+    } else if (mode == "none" || mode == "n/a") {
+      // remove the layer
+      mapView.map.removeLayer(previewLayer);
+      startloads = 0;
+      endloads = 0;
     }
   }
-  $: setOpacity(previewOpacity);
+  $: setPreviewVisibility(previewMode);
 
-  // Triggered by a change in the showPreview variable
-  function togglePreviewLayer(show) {
-    if (mapView) {
-      // if the preview should be shown and there are only two layers in the map
-      // (which would be the basemap and gcp layer) then add the preview layer
-      if (show && mapView.map.getLayers().getArray().length == 2) {
-        mapView.map.getLayers().insertAt(1, mapView.previewLayer)
-      }
-      // if the preview should not be shown and there are three layers in the map
-      // then remove the preview layer
-      if (!show && mapView.map.getLayers().getArray().length == 3) {
-        mapView.map.getLayers().removeAt(1)
-      }
-    }
-  }
-  $: togglePreviewLayer(showPreview);
+  $: previewLoading = (previewMode == "transparent" || previewMode == "full") && 
+        ( startloads != endloads) ; 
 
   // Triggered by change of activeGCP
   function displayActiveGCP(activeId) {
@@ -589,11 +585,11 @@ import { remove } from 'ol/array';
           docView.element.style.width = "50%";
           mapView.element.style.width = "50%";
           break;
-        case "document":
+        case "left":
           docView.element.style.width = "75%";
           mapView.element.style.width = "25%";
           break;
-        case "map":
+        case "right":
           docView.element.style.width = "25%";
           mapView.element.style.width = "75%";
           break
@@ -640,7 +636,7 @@ import { remove } from 'ol/array';
 
   function processGCPs(operation){
     if (gcpList.length < 3) {
-      showPreview = false;
+      previewMode = "n/a";
       return
     };
 
@@ -663,7 +659,13 @@ import { remove } from 'ol/array';
         let sourceUrl = previewSource.getUrls()[0];
         previewSource.setUrl(sourceUrl.replace(/\/[^\/]*$/, '/'+Math.random()));
         previewSource.refresh()
-        showPreview = true;
+        if (previewMode == "n/a") { previewMode = "transparent"};
+        if (operation == "submit") {
+          previewMode = "none";
+          processGCPs("cleanup");
+        } else if (operation == "cleanup") {
+          window.location.href = result['redirect_to'];
+        }
       });
 
   }
@@ -682,7 +684,7 @@ import { remove } from 'ol/array';
   function handleKeydown(e) {
     // only allow these shortcuts if the maps have focus
     // so they aren't activated while typing a note.
-    if (document.activeElement.id != noteInputElId) {
+    if (document.activeElement.id == "") {
       switch(e.key) {
         case "Escape":
           if (document.fullscreenElement != null) {  document.exitFullscreen(); }
@@ -691,7 +693,14 @@ import { remove } from 'ol/array';
           removeActiveGCP();
           break;
         case "w": case "W":
-					previewOpacity = (previewOpacity < 1 ? previewOpacity + .6 : 0);
+          // cyle through the three preview level options
+          if (previewMode == "none") {
+            previewMode = "transparent"
+          } else if (previewMode == "transparent") {
+            previewMode = "full"
+          } else if (previewMode == "full") {
+            previewMode = "none"
+          }
           break;
       }
     }
@@ -705,15 +714,29 @@ import { remove } from 'ol/array';
   <div class="tb tb-top">
     <div id="interaction-options" class="tb-top-item">
       <button title="enter fullscreen mode" on:click={toggleFullscreen}><i id="fs-icon" class="fa fa-arrows-alt" /></button>
-      View Focus 
-      <label><input type=radio bind:group={panelFocus} disabled={syncPanelWidth} value="equal">equal</label>
-      <label><input type=radio bind:group={panelFocus} disabled={syncPanelWidth} value="document">document</label>
-      <label><input type=radio bind:group={panelFocus} disabled={syncPanelWidth} value="map">map</label>
+      Panels:
+      <select class="basemap-select" title="set panel size" bind:value={panelFocus} disabled={syncPanelWidth}>
+        <option value="equal">equal</option>
+        <option value="left">more left</option>
+        <option value="right">more right</option>
+      </select>
+      <!-- <label><input type=radio bind:group={panelFocus} disabled={syncPanelWidth} value="equal">equal</label>
+      <label><input type=radio bind:group={panelFocus} disabled={syncPanelWidth} value="left">left</label>
+      <label><input type=radio bind:group={panelFocus} disabled={syncPanelWidth} value="right">right</label> -->
       <label><input type=checkbox bind:checked={syncPanelWidth}>auto</label>
 
     </div>
-    <div class="tb-top-item"><em>{currentDirection}</em></div>
+    <div class="tb-top-item"><em>{currentTxt}</em></div>
     <div class="tb-top-item">
+      {startloads}/{endloads} | {inProgress} | {activeGCP} | 
+      Preview:
+      <select class="basemap-select" title="set preview mode" bind:value={previewMode} disabled={previewMode == "n/a"}>
+        <option value="n/a" disabled>n/a</option>
+        <option value="none">hide</option>
+        <option value="transparent">transparent</option>
+        <option value="full">opaque</option>
+      </select>
+      Basemap:
       <select class="basemap-select" title="select basemap" bind:value={currentBasemap}>
         {#each basemaps as basemap}
         <option value={basemap.id}>{basemap.label}</option>
@@ -724,6 +747,7 @@ import { remove } from 'ol/array';
   <div class="map-container">
     <div id="doc-viewer" class="map-item"></div>
     <div id="map-viewer" class="map-item"></div>
+    <div class={previewLoading ? 'lds-ellipsis': ''}><div></div><div></div><div></div><div></div></div>
   </div>
   <div class="tb tb-bottom">
     {#if gcpList.length == 0}
@@ -741,7 +765,7 @@ import { remove } from 'ol/array';
       </select>
       <label>
         Note:
-        <input type="text" id="note-input" style="width:400px" disabled={gcpList.length == 0} on:change={updateNote}>
+        <input type="text" id="{noteInputElId}" style="width:400px" disabled={gcpList.length == 0} on:change={updateNote}>
       </label>
     <button title="remove" on:click={removeActiveGCP}><i id="fs-icon" class="fa fa-trash" style="color:red"/></button>
     <button title="clear all GCPs" on:click={loadIncomingGCPs}><i id="fs-icon" class="fa fa-refresh" /></button>
@@ -828,5 +852,64 @@ import { remove } from 'ol/array';
 	    height: 50%;
 	  } */
   }
+
+  /* pure css loading bar */
+	/* from https://loading.io/css/ */
+	.lds-ellipsis {
+		display: inline-block;
+		position: absolute;
+    right: 25px;
+		width: 80px;
+		height: 80px;
+	}
+	.lds-ellipsis div {
+		position: absolute;
+		top: 33px;
+		width: 13px;
+		height: 13px;
+		border-radius: 50%;
+		background: #000;
+		animation-timing-function: cubic-bezier(0, 1, 1, 0);
+	}
+	.lds-ellipsis div:nth-child(1) {
+		left: 8px;
+		animation: lds-ellipsis1 0.6s infinite;
+	}
+	.lds-ellipsis div:nth-child(2) {
+		left: 8px;
+		animation: lds-ellipsis2 0.6s infinite;
+	}
+	.lds-ellipsis div:nth-child(3) {
+		left: 32px;
+		animation: lds-ellipsis2 0.6s infinite;
+	}
+	.lds-ellipsis div:nth-child(4) {
+		left: 56px;
+		animation: lds-ellipsis3 0.6s infinite;
+	}
+	@keyframes lds-ellipsis1 {
+		0% {
+			transform: scale(0);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+	@keyframes lds-ellipsis3 {
+		0% {
+			transform: scale(1);
+		}
+		100% {
+			transform: scale(0);
+		}
+		}
+		@keyframes lds-ellipsis2 {
+		0% {
+			transform: translate(0, 0);
+		}
+		100% {
+			transform: translate(24px, 0);
+		}
+	}
 
 </style>
