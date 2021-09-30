@@ -1,6 +1,6 @@
 import os
 import time
-from osgeo import gdal, osr
+from osgeo import gdal, osr, ogr
 
 from io import StringIO
 from contextlib import redirect_stdout, redirect_stderr
@@ -27,14 +27,8 @@ class CapturingStderr(list):
         sys.stderr = self._stderr
 
 
-
-## making a geoserver layer out of the newly georeferenced image, something like
-# from geonode.layers.utils import file_upload
-# layer = file_upload(output_file_path)
-
 def georeference_document(document, gcp_json=None, gcp_group=None, transformation="poly", user=None):
 
-    from django.conf import settings
     from geonode.layers.utils import file_upload
     from georeference.models import GCPGroup
 
@@ -57,8 +51,6 @@ def georeference_document(document, gcp_json=None, gcp_group=None, transformatio
             response["message"] = "error saving GCP json"
             return response
 
-    gdal_gcps = gcp_group.gdal_gcps
-
     g = Georeferencer(
         gdal_gcps=gcp_group.gdal_gcps,
         transformation=transformation,
@@ -77,7 +69,7 @@ def georeference_document(document, gcp_json=None, gcp_group=None, transformatio
 
     # delete the geotiff once the layer has been made (it will have been duplicated)
     os.remove(out_path)
-    print(f"new layer: {layer}")
+
     return layer
 
 def get_path_variant(original_path, variant, outdir=None):
@@ -103,38 +95,38 @@ def get_path_variant(original_path, variant, outdir=None):
 
 class Georeferencer(object):
 
-    trans_options = [
-        {
+    TRANSFORMATIONS = {
+        "tps": {
             "id": "tps",
             "gdal_code": -1,
             "name": "Thin Plate Spline",
             "desc": "max distortion"
         },
-        {
+        "poly": {
             "id": "poly",
             "gdal_code": 0,
             "name": "Highest Possible Polynomial",
             "desc": "uses highest possible polynomial order based on GCP count"
         },
-        {
+        "poly1": {
             "id": "poly1",
             "gdal_code": 1,
             "name": "Polynomial 1",
             "desc": "uses polynomial 1"
         },
-        {
+        "poly2": {
             "id": "poly2",
             "gdal_code": 2,
             "name": "Polynomial 2",
             "desc": "uses polynomial 2, requires 6 GCPs"
         },
-        {
+        "poly3": {
             "id": "poly3",
             "gdal_code": 3,
             "name": "Polynomial 3",
             "desc": "uses polynomial 3, requires 10 GCPs (not recommended in GDAL docs)"
         }
-    ]
+    }
 
     def __init__(self,
             epsg_code=None,
@@ -177,7 +169,6 @@ class Georeferencer(object):
 
         # geo_json is assumed to be WGS84, so it must be transformed to the
         # CRS of this Georeferencer instance
-        from osgeo import ogr
         self.gcps = []
 
         wgs84 = osr.SpatialReference()
@@ -202,13 +193,12 @@ class Georeferencer(object):
 
     def set_transformation(self, trans_id):
 
-        valid_ids = [i['id'] for i in self.trans_options]
-        if not trans_id in valid_ids:
-            k = ", ".join(valid_ids)
-            msg = f"invalid transformation identifier must be one of {k}"
+        trans = self.TRANSFORMATIONS.get(trans_id)
+        if trans is None:
+            ids = self.TRANSFORMATIONS.keys()
+            msg = f"ERROR: invalid transformation, must be one of {ids}"
             raise TypeError(msg)
 
-        trans = [i for i in self.trans_options if i['id'] == trans_id][0]
         self.transformation = trans
 
     def set_workspace(self, directory):
