@@ -17,7 +17,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--mapserver-bin",
-            help="path to mapserver binary needed for nginx config",
+            help="path to mapserver binary needed for apache site conf",
         )
 
     def handle(self, *args, **options):
