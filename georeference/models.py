@@ -214,9 +214,6 @@ class GCP(models.Model):
     gcp_group = models.ForeignKey(
         "GCPGroup",
         on_delete=models.CASCADE)
-    # session = models.ForeignKey(
-    #     "GeoreferenceSession",
-    #     on_delete=models.CASCADE)
 
     created = models.DateTimeField(
         auto_now_add=True,
@@ -244,12 +241,28 @@ class GCP(models.Model):
 
 class GCPGroup(models.Model):
 
+    TRANSFORMATION_CHOICES = (
+        ("tps", "tps"),
+        ("poly1", "poly1"),
+        ("poly2", "poly2"),
+        ("poly3", "poly3"),
+    )
+
     class Meta:
         verbose_name = "GCP Group"
         verbose_name_plural = "GCP Groups"
 
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
     crs_epsg = models.IntegerField(null=True, blank=True)
+    transformation = models.CharField(
+        null=True,
+        blank=True,
+        choices=TRANSFORMATION_CHOICES,
+        max_length=20,
+    )
+
+    def __str__(self):
+        return self.document.title
 
     @property
     def gcps(self):
@@ -315,14 +328,14 @@ class GCPGroup(models.Model):
             })
         return geo_json
 
-    def save_from_geojson(self, geojson, document):
+    def save_from_geojson(self, geojson, document, transformation=None):
         print("saving gcps")
 
-        group, created = GCPGroup.objects.get_or_create(
-            document=document,
-            defaults = {
-                "crs_epsg": 3857
-            })
+        group, created = GCPGroup.objects.get_or_create(document=document)
+
+        group.crs_epsg = 3857 # don't see this changing any time soon...
+        group.transformation = transformation
+        group.save()
 
         # first remove any existing gcps that have been deleted
         for gcp in group.gcps:
@@ -372,4 +385,4 @@ class GCPGroup(models.Model):
         georef_annos = [i for i in annotation['items'] if i['motivation'] == m]
         anno = georef_annos[0]
 
-        self.save_from_geojson(anno['body'], document)
+        self.save_from_geojson(anno['body'], document, "poly1")
