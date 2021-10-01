@@ -348,7 +348,7 @@ class GeoreferenceView(View):
 
         # if preview mode, modify/create the vrt for this map.
         # the vrt layer should already served to the interface via mapserver,
-        # and it will be automatically updated there.
+        # and it will be automatically reloaded there.
         if operation == "preview":
 
             # prepare Georeferencer object
@@ -369,11 +369,15 @@ class GeoreferenceView(View):
                 response["message"] = str(e)
 
         # if submission, save updated/new GCPs, run warp to create GeoTiff.
-        # register Layer here from GeoTiff?
         elif operation == "submit":
 
-            res = georeference_document_as_task.apply_async(
-                (docid, gcp_geojson, transformation, request.user.pk),
+            # saving the gcps like this will create the full group and its
+            # connection to the document, which will be utilized during
+            # GeoreferenceSession.run(), called in the task below.
+            GCPGroup().save_from_geojson(gcp_geojson, document, transformation)
+
+            georeference_document_as_task.apply_async(
+                (docid, request.user.pk),
                 queue="update"
             )
 
