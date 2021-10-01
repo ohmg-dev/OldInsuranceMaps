@@ -43,6 +43,7 @@
   export let SUBMIT_URL;
   export let MAP_CENTER;
   export let INCOMING_GCPS;
+  export let INCOMING_TRANSFORMATION;
   export let MAPSERVER_ENDPOINT;
 	export let MAPSERVER_LAYERNAME;
   export let MAPBOX_API_KEY;
@@ -105,9 +106,9 @@
     })
   });
 
-  let currentTransformation = "poly";
+  let currentTransformation = "poly1";
   const transformations = [
-    {id: 'poly', name: 'Polynomial'},
+    {id: 'poly1', name: 'Polynomial'},
     {id: 'tps', name: 'Thin Plate Spline'},
   ];
 
@@ -404,6 +405,7 @@
 			});
       previewMode = "transparent";
 		}
+    currentTransformation = (INCOMING_TRANSFORMATION ? INCOMING_TRANSFORMATION : "poly1")
 		syncGCPList();
 		activeGCP = gcpList.length + 1;
 		inProgress = false;
