@@ -256,8 +256,9 @@ class GeoreferenceView(View):
         try:
             gcp_group = GCPGroup.objects.get(document=document)
             incoming_gcps = gcp_group.as_geojson
+            incoming_transformation = gcp_group.transformation
         except GCPGroup.DoesNotExist:
-            incoming_gcps = None
+            incoming_gcps, incoming_transformation = None, None
 
         # get the iiif info for the document file
         base = settings.SITEURL.rstrip("/")
@@ -295,6 +296,7 @@ class GeoreferenceView(View):
             "SUBMIT_URL": georeference_url,
             "MAP_CENTER": map_center,
             "INCOMING_GCPS": incoming_gcps,
+            "INCOMING_TRANSFORMATION": incoming_transformation,
             "MAPSERVER_ENDPOINT": settings.MAPSERVER_ENDPOINT,
             "MAPSERVER_LAYERNAME": preview_layer,
             "MAPBOX_API_KEY": settings.MAPBOX_API_KEY,
@@ -333,7 +335,7 @@ class GeoreferenceView(View):
             return document
 
         gcp_geojson = body.get("gcp_geojson", {})
-        transformation = body.get("transformation", "poly")
+        transformation = body.get("transformation", "poly1")
 
         # determine whether this is change to GCPs during editing or it's the
         # completion of the georeferencing process.
