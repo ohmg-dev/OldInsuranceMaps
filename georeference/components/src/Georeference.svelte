@@ -658,12 +658,12 @@
       })
       .then(response => response.json())
       .then(result => {
-        let sourceUrl = previewSource.getUrls()[0];
-        previewSource.setUrl(sourceUrl.replace(/\/[^\/]*$/, '/'+Math.random()));
-        previewSource.refresh()
         if (previewMode == "n/a") { previewMode = "transparent"};
-        if (operation == "submit") {
-          previewMode = "none";
+        if (operation == "preview") {
+          let sourceUrl = previewSource.getUrls()[0];
+          previewSource.setUrl(sourceUrl.replace(/\/[^\/]*$/, '/'+Math.random()));
+          previewSource.refresh()
+        } else if (operation == "submit") {
           processGCPs("cleanup");
         } else if (operation == "cleanup") {
           window.location.href = result['redirect_to'];
