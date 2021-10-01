@@ -3,15 +3,21 @@ import uuid
 import json
 from osgeo import gdal, osr
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db import models
-from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.utils.translation import ugettext_lazy as _
 
-from geonode.documents.models import Document
+from geonode.documents.models import Document, DocumentResourceLink
+from geonode.layers.models import Layer
+from geonode.layers.utils import file_upload
+from geonode.thumbs.thumbnails import create_thumbnail
+
+from .georeferencer import Georeferencer
 
 class SplitLink(models.Model):
 
@@ -58,19 +64,141 @@ class SplitSession(models.Model):
     def __str__(self):
         return f"{self.document.__str__()} - {self.created_by} - {self.created}"
 
-# class GeoreferenceSession(models.Model):
-#
-#     document = models.ForeignKey(Document, on_delete=models.CASCADE)
-#     user = models.ForeignKey(
-#         settings.AUTH_USER_MODEL,
-#         blank=True,
-#         null=True,
-#         on_delete=models.CASCADE)
-#     created = models.DateTimeField(
-#         auto_now_add=True,
-#         editable=False,
-#         null=False,
-#         blank=False)
+class GeoreferenceSession(models.Model):
+
+    class Meta:
+        verbose_name = "Georeference Session"
+        verbose_name_plural = "Georeference Sessions"
+
+    STATUS_CHOICES = (
+        ("unstarted", "unstarted"),
+        ("failed", "failed"),
+        ("georeferencing", "georeferencing"),
+        ("layercreation", "layercreation"),
+        ("success", "success"),
+    )
+
+    document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    layer = models.ForeignKey(Layer, null=True, blank=True, on_delete=models.CASCADE)
+    gcps_used = JSONField(null=True, blank=True)
+    transformation_used = models.CharField(null=True, blank=True, max_length=20)
+    crs_epsg_used = models.IntegerField(null=True, blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE)
+    created = models.DateTimeField(
+        auto_now_add=True,
+        editable=False,
+        null=False,
+        blank=False)
+    status = models.CharField(
+        default="unstarted",
+        choices=STATUS_CHOICES,
+        max_length=20,
+    )
+    note = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+    )
+
+    def __str__(self):
+        return f"{self.document.title} - {self.created}"
+
+    def run(self):
+
+        gcp_group = GCPGroup.objects.get(document=self.document)
+
+        self.gcps_used = gcp_group.as_geojson
+        self.crs_epsg_used = gcp_group.crs_epsg
+        self.status = "georeferencing"
+        self.save()
+
+        try:
+            g = Georeferencer(
+                gdal_gcps=gcp_group.gdal_gcps,
+                transformation=gcp_group.transformation,
+                epsg_code=gcp_group.crs_epsg
+            )
+        except Exception as e:
+            self.status = "failed"
+            self.message = f"error initializing Georeferencer: {e.message}"
+            self.save()
+            return None
+
+        out_path = g.georeference(
+            self.document.doc_file.path,
+            out_format="GTiff",
+            addo=True,
+        )
+
+        self.transformation_used = g.transformation["id"]
+        self.status = "layercreation"
+        self.save()
+
+        ## first look to see if there is a layer alreaded linked to this document.
+        ## this would indicate that it has already been georeferenced before,
+        ## and the existing layer should be overwritten.
+        existing_layer = None
+        links = DocumentResourceLink.objects.filter(document=self.document)
+        for link in links:
+            try:
+                obj = link.content_type.get_object_for_this_type(pk=link.object_id)
+                if isinstance(obj, Layer):
+                    existing_layer = obj
+            except Layer.DoesNotExist:
+                pass
+
+        ## need to remove commas from the titles, otherwise the layer will not
+        ## be valid in the catalog list when trying to add it to a Map. the 
+        ## message in the catalog will read "Missing OGC reference metadata".
+        title = self.document.title.replace(",", " -")
+
+        ## create the layer, passing in the existing_layer if present
+        layer = file_upload(
+            out_path,
+            layer=existing_layer,
+            overwrite=True,
+            title=title,
+            user=self.user,
+        )
+
+        ## if there was no existing layer, create a new link between the
+        ## document and the new layer
+        if existing_layer is None:
+            ct = ContentType.objects.get(app_label="layers", model="layer")
+            DocumentResourceLink.objects.create(
+                document=self.document,
+                content_type=ct,
+                object_id=layer.pk,
+            )
+
+            # set attributes in the layer straight from the document
+            layer.date = self.document.date
+            layer.abstract = self.document.abstract
+            layer.category = self.document.category
+            for keyword in self.document.keywords.all():
+                layer.keywords.add(keyword)
+            for region in self.document.regions.all():
+                layer.regions.add(region)
+            layer.restriction_code_type = self.document.restriction_code_type
+            layer.attribution = self.document.attribution
+            layer.license = self.document.license
+
+        ## if there was an existing layer that's been overwritten, regenerate thumb.
+        else:
+            thumb = create_thumbnail(layer, overwrite=True)
+            layer.thumbnail_url = thumb
+
+        layer.save()
+        self.layer = layer
+        self.status = "success"
+        self.save()
+
+        return layer
+
 
 class GCP(models.Model):
 
