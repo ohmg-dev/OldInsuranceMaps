@@ -26,51 +26,27 @@ class CapturingStderr(list):
         del self._stringio    # free up some memory
         sys.stderr = self._stderr
 
+## DEPRECATED - this was a fun idea, but polynomial 2 and beyond create
+## crazy results, so only polynomial 1 is used throughout the app for now.
+def anticipate_polynomial_order(gcp_count):
+    """If the 'poly' transformation has been chosen, then the actual
+    polynomial order that is used by GDAL will depend on the number of
+    GCPs that are provided.
+    3-5 GCPs: poly1
+    6-9 GCPs: poly2
+    10+ GCPs: poly3 (though this isn't recommended in the gdal docs)
+    Thus, to know after the fact which one GDAL has chosen, we will
+    preemptively set it here based on the criteria above.
+    """
 
-def georeference_document(document, gcp_json=None, gcp_group=None, transformation="poly", user=None):
-
-    from geonode.layers.utils import file_upload
-    from georeference.models import GCPGroup
-
-    response = {
-        "status": "",
-        "message": "",
-    }
-
-    if gcp_json is None:
-        try:
-            gcp_group = GCPGroup.objects.get(document=document)
-        except GCPGroup.DoesNotExist as exception:
-            response["status"] = "fail"
-            response["message"] = "no GCP json provided, and no GCPGroup exists for this document"
-            return response
+    if gcp_count < 6:
+        return "poly1"
+    elif gcp_count < 10:
+        return "poly2"
     else:
-        gcp_group = GCPGroup().save_from_geojson(gcp_json, document)
-        if gcp_group is None:
-            response["status"] = "fail"
-            response["message"] = "error saving GCP json"
-            return response
-
-    g = Georeferencer(
-        gdal_gcps=gcp_group.gdal_gcps,
-        transformation=transformation,
-        epsg_code=gcp_group.crs_epsg
-    )
-
-    out_path = g.georeference(
-        document.doc_file.path,
-        out_format="GTiff",
-        addo=True,
-    )
-
-    # now that the geotiff has been created, upload it to GeoNode/Geoserver
-    # as a new Layer.
-    layer = file_upload(out_path, title=document.title, user=user)
-
-    # delete the geotiff once the layer has been made (it will have been duplicated)
-    os.remove(out_path)
-
-    return layer
+        ## based on recs from GDAL docs, use poly2 here even
+        ## though there are enough GCPs for poly3
+        return "poly3"
 
 def get_path_variant(original_path, variant, outdir=None):
     """Used to standardize the derivative names of Document files created
