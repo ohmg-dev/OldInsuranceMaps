@@ -63,10 +63,14 @@ $: updateVolumeList(currentCity);
 			<li>An interface and database configuration tailored specifically to the structure of this map series.</li>
 			<li>A suite of tools that allows users to split, trim, and georeference the maps.</li>
 		</ol>
-		<p><strong><em>The beta release only includes maps from Louisiana published before 1921.</em></strong></p>
+		<p><strong><em>This project only includes maps from Louisiana published through 1910, with a couple exceptions:
+			<ul>
+				<li>If only one volume was published for a community, it is included regardless of the year</li>
+				<li>Because if the city's disproportionate size, only the earliest year for New Orleans is included (1885)</li>
+			</ul>
+		</em></strong></p>
 	</div>
 	<div class="pane">
-		{USER_TYPE}
 		<div class="select-menus">
 			<div class="select-item">
 				<h3>Select a state</h3>
