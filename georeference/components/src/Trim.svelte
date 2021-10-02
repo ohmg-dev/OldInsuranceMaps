@@ -181,7 +181,7 @@
   }
 
   function refreshPreview() {
-    trimmedLayerSource.updateParams({
+    trimmedLayer.getSource().updateParams({
       "SLD_BODY": generateSLD(),
     });
   }
