@@ -328,7 +328,6 @@ class GeoreferenceView(View):
             "IMG_WIDTH": width,
             "IMG_HEIGHT": height,
             "DOC_URL": download_url,
-            "DOC_ID": docid,
             "CSRFTOKEN": csrf.get_token(request),
             "USERNAME": username,
             "SUBMIT_URL": georeference_url,
@@ -364,7 +363,6 @@ class GeoreferenceView(View):
         else:
             return HttpResponseBadRequest("invalid parameters")
 
-        docid = body.get("docid")
         document = _resolve_document_complete(request, docid)
         if not isinstance(document, Document):
             return document

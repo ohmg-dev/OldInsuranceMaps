@@ -37,7 +37,6 @@
   export let IMG_HEIGHT;
   export let IMG_WIDTH;
   export let DOC_URL;
-	export let DOC_ID;
   export let CSRFTOKEN;
   export let USERNAME;
   export let SUBMIT_URL;
@@ -644,7 +643,6 @@
 
     const data = JSON.stringify({
       "gcp_geojson": asGeoJSON(),
-      "docid": DOC_ID,
       "transformation": currentTransformation,
       "operation": operation,
     });
