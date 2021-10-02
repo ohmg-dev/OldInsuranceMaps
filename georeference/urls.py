@@ -16,7 +16,7 @@ urlpatterns = [
     path('iiif/2/<str:docid>/info.json', iiif2_endpoint, {"iiif_object_requested": "info"}, name="document_info"),
     ## action urls
     path('split/<str:docid>/', SplitView.as_view(), name="split_view"),
-    path('trim/<str:docid>/', TrimView.as_view(), name="trim_view"),
+    path('trim/<str:layerid>/', TrimView.as_view(), name="trim_view"),
     path('georeference/<str:docid>/', GeoreferenceView.as_view(), name="georeference_view"),
 
     path('summary/<str:docid>', SummaryView.as_view(), name="summary_view"),

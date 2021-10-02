@@ -29,10 +29,12 @@ from geonode.base.auth import get_or_create_token
 from geonode.base.models import Link
 from geonode.monitoring import register_event
 from geonode.monitoring.models import EventType
+from geonode.layers.models import Layer
 
 from georeference.tasks import (
     split_image_as_task,
     georeference_document_as_task,
+    trim_layer_as_task,
 )
 from .models import GCPGroup, SplitSession
 from .splitter import Splitter
@@ -236,11 +238,47 @@ class SplitView(View):
 
 class TrimView(View):
 
-    def get(self, request):
-        pass
+    def get(self, request, layerid):
+        layer = _resolve_document_complete(request, layerid)
+        if not isinstance(layer, Layer):
+            raise Http404
 
-    def post(self, request):
-        pass
+        svelte_params = {
+            # "title": document.title,
+            # "imgwidth": width,
+            # "imgheight": height,
+            # "divisions": divisions,
+            # "cut_lines": cut_lines,
+            # "doc_url": download_url,
+            # "process_url": process_url,
+            # "csrftoken": csrf.get_token(request),
+        }
+
+        context_dict = {
+            "svelte_params": svelte_params,
+            "resource": layer,
+
+
+            ## unclear at this point if any of the following will be necessary once
+            ## permissions are properly implemented throughout the app, so they are
+            ## just commented out for now.
+            # 'access_token': access_token,
+            # 'perms_list': perms_list,
+            # 'permissions_json': permissions_json,
+            # 'group': group,
+            # 'metadata': metadata,
+            # 'imgwidth': width,
+            # 'imgheight': height,
+
+        }
+
+        return render(
+            request,
+            "georeference/trim_interface.html",
+            context=context_dict)
+
+    def post(self, request, layerid):
+        layer = _resolve_document_complete(request, layerid)
 
 class GeoreferenceView(View):
 

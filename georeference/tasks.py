@@ -22,6 +22,7 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
 from geonode.documents.models import Document
+from geonode.layers.models import Layer
 
 from .splitter import Splitter
 from .models import GeoreferenceSession
@@ -49,3 +50,8 @@ def georeference_document_as_task(docid, userid):
         user=user,
     )
     gs.run()
+
+@shared_task
+def trim_layer_as_task(layerid, userid):
+    user = get_user_model().objects.get(pk=userid)
+    layer = Layer.objects.get(pk=layerid)
