@@ -1,406 +1,433 @@
 <script>
+  import {onMount} from 'svelte';
+  
+  import 'ol/ol.css';
+  import Map from 'ol/Map';
+  import View from 'ol/View';
 
-	import {onMount} from 'svelte';
+  import VectorSource from 'ol/source/Vector';
+  import OSM from 'ol/source/OSM';
+  import XYZ from 'ol/source/XYZ';
+  import TileWMS from 'ol/source/TileWMS';
 
-	import 'ol/ol.css';
-	import Map from 'ol/Map';
-	import View from 'ol/View';
-	import Feature from 'ol/Feature';
+  import GeoJSON from 'ol/format/GeoJSON';
 
-	import Polygon from 'ol/geom/Polygon';
+  import TileLayer from 'ol/layer/Tile';
+  import VectorLayer from 'ol/layer/Vector';
 
-	import IIIF from 'ol/source/IIIF';
-	import ImageStatic from 'ol/source/ImageStatic';
-	import VectorSource from 'ol/source/Vector';
+  import MousePosition from 'ol/control/MousePosition';
+  import {createStringXY} from 'ol/coordinate';
 
-	import IIIFInfo from 'ol/format/IIIFInfo';
+  import Style from 'ol/style/Style';
+  import Stroke from 'ol/style/Stroke';
+  import Fill from 'ol/style/Fill';
+  import RegularShape from 'ol/style/RegularShape';
+  
+  import Draw from 'ol/interaction/Draw';
+  import Modify from 'ol/interaction/Modify';
+  import Snap from 'ol/interaction/Snap';
 
-	import TileLayer from 'ol/layer/Tile';
-	import ImageLayer from 'ol/layer/Image';
-	import VectorLayer from 'ol/layer/Vector';
+  export let CSRFTOKEN;
+  export let SUBMIT_URL;
+  export let MAP_CENTER;
+  export let MAPBOX_API_KEY;
+  export let LAYER_ID;
+  export let GEOSERVER_WMS;
+  
+  if (!MAP_CENTER) { MAP_CENTER = [0,0] };
+  
+  let previewMode = "n/a";
+  let trimPolygon;
 
-	import Projection from 'ol/proj/Projection';
+  let mapView;
+  let gcpList = [];
 
+  let currentTxt = "Hello!";
 
-	import Zoom from 'ol/control/Zoom';
-	import MousePosition from 'ol/control/MousePosition';
-	import {createStringXY} from 'ol/coordinate';
+  const gcpDefault = new Style({
+    image: new RegularShape({
+    radius1: 10,
+    radius2: 1,
+    points: 4,
+    rotation: .79,
+    fill: new Fill({color: 'black'}),
+    stroke: new Stroke({
+      color: 'black', width: 2
+    })
+    })
+  });
+  const gcpHighlight = new Style({
+    image: new RegularShape({
+    radius1: 10,
+    radius2: 1,
+    points: 4,
+    rotation: .79,
+    fill: new Fill({color: 'rgb(0, 255, 0)'}),
+    stroke: new Stroke({
+      color: 'rgb(0, 255, 0)', width: 2
+    })
+    })
+  });
+  const gcpHover = new Style({
+    image: new RegularShape({
+    radius1: 10,
+    radius2: 1,
+    points: 4,
+    rotation: .79,
+    fill: new Fill({color: 'red'}),
+    stroke: new Stroke({
+      color: 'red', width: 2
+    })
+    })
+  });
 
-	import Style from 'ol/style/Style';
-	import Stroke from 'ol/style/Stroke';
-	import Fill from 'ol/style/Fill';
+  const outlineStyle = new Style({
+      stroke: new Stroke({ color: '#fae200', width: 2, })
+    })
 
-	import Draw from 'ol/interaction/Draw';
-	import Select from 'ol/interaction/Select';
-	import Modify from 'ol/interaction/Modify';
-	import Snap from 'ol/interaction/Snap';
+  function generateSLD() {
+    let sld = '<?xml version="1.0" encoding="UTF-8"?>'
+    sld += '<StyledLayerDescriptor version="1.0.0"'
+    sld += ' xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd"'
+    sld += ' xmlns="http://www.opengis.net/sld"'
+    sld += ' xmlns:ogc="http://www.opengis.net/ogc"'
+    sld += ' xmlns:xlink="http://www.w3.org/1999/xlink"'
+    sld += ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
+    sld += '<NamedLayer>'
+    sld += ` <Name>${LAYER_ID}</Name>`
+    sld += ' <UserStyle IsDefault="true">'
+    sld += '  <FeatureTypeStyle>'
+    if (trimPolygon) {
+    sld += '   <Transformation>'
+    sld += '    <ogc:Function name="gs:CropCoverage">'
+    sld += '     <ogc:Function name="parameter">'
+    sld += '      <ogc:Literal>coverage</ogc:Literal>'
+    sld += '     </ogc:Function>'
+    sld += '     <ogc:Function name="parameter">'
+    sld += '      <ogc:Literal>cropShape</ogc:Literal>'
+    sld += `      <ogc:Literal>${trimPolygon}</ogc:Literal>`
+    sld += '     </ogc:Function>'
+    sld += '    </ogc:Function>'
+    sld += '   </Transformation>'
+    }
+    sld += '   <Rule>'
+    sld += '    <RasterSymbolizer>'
+    sld += '      <Opacity>1</Opacity>'
+    sld += '    </RasterSymbolizer>'
+    sld += '   </Rule>'
+    sld += '  </FeatureTypeStyle>'
+    sld += ' </UserStyle>'
+    sld += '</NamedLayer>'
+    sld += '</StyledLayerDescriptor>'
+    return sld
+  }
 
-	export let imgheight;
-	export let imgwidth;
-	export let doc_url;
-	export let divisions;
-	export let process_url;
-	export let csrftoken;
+  const trimmedLayer = new TileLayer({
+    source: new TileWMS({
+      url: GEOSERVER_WMS,
+      params: {
+        'LAYERS': LAYER_ID,
+        'TILED': true,
+        'SLD_BODY': generateSLD(),
+        // Strangely, STYLES needs to have some random value in it, so that
+        // the "Library Mode" will find the corresponding style in the SLD_BODY,
+        // instead of the default for this layer that is stored in Geoserver.
+        'STYLES': "placeholder",
+      },
+    })
+  });
 
-	export let polygonCount = 0;
-	export let showPreview = true;
+  const osmLayer = new TileLayer({
+    source: new OSM(),
+  })
+  
+  const imageryLayer = new TileLayer({
+    opacity: .75,
+    source: new XYZ({
+    url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/{z}/{x}/{y}?access_token='+MAPBOX_API_KEY,
+    tileSize: 512,
+    })
+  });
+  
+  const basemaps = [
+    { id: "osm", layer: osmLayer, label: "Streets" },
+    { id: "satellite", layer: imageryLayer, label: "Streets+Satellite" },
+  ]
+  let currentBasemap = basemaps[0].id;
+  
+  const trimShapeSource = new VectorSource();
+  const trimShapeLayer = new VectorLayer({
+      source: trimShapeSource,
+      style: outlineStyle,
+    });
+  trimShapeSource.on("addfeature", function(e) {
+    updateTrimPolygon(e.feature.getGeometry().getCoordinates()[0]);
+    mapView.drawInteraction.setActive(false)
+  })
 
-	let iface = null;
-	let cutLines = [];
+  function updateTrimPolygon(coordinates) {
+    if (coordinates) {
+      trimPolygon = "POLYGON ((";
+      coordinates.forEach( function(coord) {
+        const lng = Math.round(coord[0]*10)/10;
+        const lat = Math.round(coord[1]*10)/10;
+        trimPolygon += `${lng} ${lat}, `
+      })
+      // remove trailing comma from last coord pair
+      trimPolygon = trimPolygon.replace(/,\s*$/, "");
+      trimPolygon += "))";
+      refreshPreview();
+    }
+  }
 
-	let currentInteraction = 'draw';
-	let mapInteractions = [
-		{id: 'draw', name: 'Draw'},
-		{id: 'modify', name: 'Modify'}
-	];
+  function refreshPreview() {
+    trimmedLayerSource.updateParams({
+      "SLD_BODY": generateSLD(),
+    });
+  }
 
-	let extent = [0, 0, imgwidth, imgheight];
+    // this Modify interaction is created individually for each map panel
+  function makeModifyInteraction(hitDetection, source, targetElement) {
+    const modify = new Modify({
+    hitDetection: hitDetection,
+    source: source,
+    style: gcpHover,
+    });
+  
+    modify.on(['modifystart', 'modifyend'], function (e) {
+    targetElement.style.cursor = e.type === 'modifystart' ? 'grabbing' : 'pointer';
+    if (e.type == "modifyend") {
+      updateTrimPolygon(e.features.item(0).getGeometry().getCoordinates()[0]);
+      // refreshPreview()
+    }
+    });
+  
+    let overlaySource = modify.getOverlay().getSource();
+    overlaySource.on(['addfeature', 'removefeature'], function (e) {
+    targetElement.style.cursor = e.type === 'addfeature' ? 'pointer' : '';
+    });
+    return modify
+  }
 
-	let projection = new Projection({
-		code: 'whatdoesthismatter',
-		units: 'pixels',
-		extent: extent,
-	});
+  function MapViewer (elementId) {
 
-	let SplitInterface = {
+    const targetElement = document.getElementById(elementId);
+  
+    // create map
+    const map = new Map({
+      target: targetElement,
+      layers: [
+        basemaps[0].layer,
+      //   origLayer,
+        trimmedLayer,
+        trimShapeLayer,
+      ],
+      view: new View({
+      center: MAP_CENTER,
+      zoom: 16,
+      })
+    });
+  
+    // create interactions
+    const draw = new Draw({
+      source: trimShapeSource,
+      type: 'Polygon',
+      style: new Style({
+        stroke: new Stroke({ color: '#fae200', width: 2, })
+      }),
+    });
+    draw.setActive(true);
+    map.addInteraction(draw)
+  
+    const modify = makeModifyInteraction(trimShapeLayer, trimShapeSource, targetElement)
+    modify.setActive(true)
+    map.addInteraction(modify)
+  
+    // create controls
+    let mousePositionControl = new MousePosition({
+      projection: 'EPSG:4326',
+      coordinateFormat: createStringXY(6),
+      undefinedHTML: '&nbsp;',
+    });
+    map.addControl(mousePositionControl);
+  
+    // expose properties as necessary
+    this.map = map;
+    this.element = targetElement;
+    this.drawInteraction = draw;
+  }
+  
+  onMount(() => {
+    mapView = new MapViewer("map-viewer");
+  });
 
-		init: function () {
+  // triggered by a change in the basemap id
+  function setBasemap(basemapId) {
+    if (mapView) {
+      mapView.map.getLayers().removeAt(0);
+      basemaps.forEach( function(item) {
+        if (item.id == basemapId) {
+          mapView.map.getLayers().insertAt(0, item.layer);
+        }
+      });
+    }
+  }
+  $: setBasemap(currentBasemap);
 
-			let mousePositionControl = new MousePosition({
-				coordinateFormat: createStringXY(0),
-				projection: projection,
-				undefinedHTML: '&nbsp;',
-				// comment the following two lines to have the mouse position
-				// be placed within the map.
-				// className: 'custom-mouse-position',
-				// target: document.getElementById('mouse-position'),
+  function processGCPs(operation){
+  
+    const data = JSON.stringify({});
+    fetch(SUBMIT_URL, {
+      method: 'POST',
+      headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      'X-CSRFToken': CSRFTOKEN,
+      },
+      body: data,
+    })
+    .then(response => response.json())
+    .then(result => {
+      window.location.href = result['redirect_to'];
+    });
+  }
 
-			});
-
-			let zoomControl = new Zoom({
-				// target: 'zoom-control',
-				// className: 'zoom-control',
-			});
-
-			this.map = new Map({
-			  target: 'map',
-			  view: new View({
-					projection: projection,
-					center: [imgwidth/2, imgheight/2],
-					zoom: 1,
-					maxZoom: 8,
-				}),
-				controls: [zoomControl, mousePositionControl]
-			});
-
-
-			// this.map.addControl(mousePositionControl);
-
-			this.initLayers();
-			this.initInteractions(this);
-			this.initSnapping(this);
-
-			iface = this;
-		},
-
-		initLayers: function () {
-
-			this.img_layer = new ImageLayer({
-				source: new ImageStatic({
-					url: doc_url,
-					projection: projection,
-					imageExtent: extent,
-				}),
-				// zIndex: 999,
-			})
-			this.map.addLayer(this.img_layer);
-
-			this.previewLayer = new VectorLayer({
-				source: new VectorSource(),
-				style: new Style({
-					fill: new Fill({ color: 'rgba(255, 29, 51, 0.1)', }),
-					stroke: new Stroke({ color: 'rgba(255, 29, 51, 1)', width: 7.5, }),
-				}),
-				// zIndex: 1000,
-			});
-			this.map.addLayer(this.previewLayer);
-
-			this.borderLayer = new VectorLayer({
-				source: new VectorSource(),
-				style: new Style({
-					stroke: new Stroke({ color: '#fae200', width: 2, })
-				}),
-				// zIndex: 1001,
-			});
-			let border = new Feature({
-				geometry: new Polygon([[
-					[0,0], [imgwidth, 0], [imgwidth, imgheight], [0, imgheight], [0,0]
-				]]),
-			});
-			this.borderLayer.getSource().addFeature(border);
-			this.map.addLayer(this.borderLayer);
-
-			this.cutLayer = new VectorLayer({
-				source: new VectorSource(),
-				style: new Style({
-					stroke: new Stroke({ color: '#fae200', width: 2, })
-				}),
-				// zIndex: 1002,
-			});
-			this.map.addLayer(this.cutLayer);
-
-		},
-		initInteractions: function (obj) {
-
-			// create and add draw interaction
-			self = obj;
-			self.drawInteraction = new Draw({
-		    source: self.cutLayer.getSource(),
-		    type: 'LineString',
-		  });
-			self.map.addInteraction(self.drawInteraction);
-			self.drawInteraction.on('drawend', self.updateCutLines);
-
-			// create and add select and modify interactions (used for modify action)
-			self.selectInteraction = new Select({
-	      layers: [self.cutLayer],
-	    });
-	    // self.map.addInteraction(self.selectInteraction);
-
-	    // self.modifyInteraction = new Modify({
-	    //   features: self.selectInteraction.getFeatures(),
-	    // });
-	    self.modifyInteraction = new Modify({
-	      hitDetection: self.cutLayer,
-				source: self.cutLayer.getSource()
-	    });
-
-
-			let mapEl = document.getElementById('map');
-			self.modifyInteraction.on(['modifystart', 'modifyend'], function (evt) {
-			  mapEl.style.cursor = evt.type === 'modifystart' ? 'grabbing' : 'grab';
-			});
-
-			let overlaySource = self.modifyInteraction.getOverlay().getSource();
-			overlaySource.on(['addfeature', 'removefeature'], function (evt) {
-			  mapEl.style.cursor = evt.type === 'addfeature' ? 'grab' : '';
-			});
-			self.modifyInteraction.on('modifyend', self.updateCutLines)
-
-	    self.map.addInteraction(self.modifyInteraction);
-
-
-	    // set events for modify action
-			let selectedFeatures = self.selectInteraction.getFeatures();
-
-	    self.selectInteraction.on('change:active', function () {
-	      selectedFeatures.forEach(function (each) {
-	        selectedFeatures.remove(each);
-	      });
-	    });
-
-		},
-		initSnapping: function (obj) {
-			self = obj;
-			let snapToCutLines = new Snap({
-			  source: self.cutLayer.getSource(),
-			});
-			var snapToBorder = new Snap({
-			  source: self.borderLayer.getSource(),
-			})
-			self.map.addInteraction(snapToCutLines);
-			self.map.addInteraction(snapToBorder);
-		},
-		reset: function () {
-			iface.cutLayer.getSource().once('change', function() {})
-			iface.cutLayer.getSource().clear();
-			iface.previewLayer.getSource().clear();
-			cutLines = [];
-			polygonCount = 0;
-		},
-		refreshPreviewLayer: function(polygons) {
-			iface.previewLayer.getSource().clear();
-			polygonCount = polygons.length;
-			polygons.forEach(function (item, index) {
-				let feature = new Feature({
-          geometry: new Polygon([item]),
-          name: index
-        });
-        iface.previewLayer.getSource().addFeature(feature);
-			})
-		},
-		updateCutLines: function (event) {
-			let tempList = [];
-			iface.cutLayer.getSource().forEachFeature( function(feature) {
-		    tempList.push(feature.getGeometry().getCoordinates())
-		  });
-			// if this is triggered by a Draw event, then the current feature must be
-		  // added to the feature list because it isn't present instantaneously in cutLayer
-		  if (event.type == "drawend") {
-		    tempList.push(event.feature.getGeometry().getCoordinates())
-		  };
-			cutLines = tempList;
-		}
-	}
-
-	onMount(() => {
-		SplitInterface.init();
-
-		if (divisions != null) {iface.refreshPreviewLayer(divisions)}
-	});
-
-	$: {
-		if (iface != null) {
-			let mapEl = document.getElementById('map');
-			// switch interactions based on the radio buttons
-			if (currentInteraction == "draw") {
-				iface.drawInteraction.setActive(true);
-				// iface.selectInteraction.setActive(false);
-				iface.modifyInteraction.setActive(false);
-				// mapEl.style.cursor = 'copy'
-			} else if (currentInteraction == "modify") {
-
-
-				iface.drawInteraction.setActive(false);
-				// iface.selectInteraction.setActive(true);
-				iface.modifyInteraction.setActive(true);
-			}
-
-			// toggle the visibility of the preview layer based on the checkbox
-			iface.previewLayer.setVisible(showPreview);
-		}
-	}
-
-	let key;
-
-	function handleKeydown(event) {
-		key = event.key;
-		if (key == "Escape") {
-			if (iface) { iface.drawInteraction.abortDrawing()}
-		} else if (key == "a" || key == "A") {
-			currentInteraction = "draw"
-		} else if (key == "e" || key == "E") {
-			currentInteraction = "modify"
-		}
-	}
-
-	$: {
-
-		// triggered by any change in the cutLines array, new polygons are acquired
-		// here and fed to the preview layer for live update.
-		if (cutLines.length > 0) {
-			let data = JSON.stringify({"lines": cutLines, "dryrun": true});
-			fetch(process_url, {
-				  method: 'POST',
-				  headers: {
-				    'Content-Type': 'application/json;charset=utf-8',
-						'X-CSRFToken': csrftoken,
-				  },
-				  body: data,
-				})
-				.then(response => response.json())
-	  		.then(result => {
-					if (result['polygons'].length > 1) {
-						iface.refreshPreviewLayer(result['polygons'])
-					}
-				});
-		}
-	}
-
-	function runProcessing() {
-		if (cutLines.length > 0) {
-			let data = JSON.stringify({"lines": cutLines});
-			fetch(process_url, {
-				  method: 'POST',
-				  headers: {
-				    'Content-Type': 'application/json;charset=utf-8',
-						'X-CSRFToken': csrftoken,
-				  },
-				  body: data,
-				})
-				.then(response => response.json())
-	  		.then(result => {
-					console.log(result)
-					window.location.href = result['redirect_to'];
-				});
-		}
-	}
-
-</script>
-
-<svelte:window on:keydown={handleKeydown}/>
-
-<div id="interface" class="main">
-	<div class="tb tb-top">
-	  <div id="interaction-options" class="tb-top-item">
-		<button title="reset interface" on:click={iface.reset}><i id="fs-icon" class="fa fa-refresh" /></button>
-		<label>
-			<input type=radio bind:group={currentInteraction} value="draw" checked>
-			Draw
-		</label>
-		<label>
-			<input type=radio bind:group={currentInteraction} value="modify">
-			Modify
-		</label>
-		<label>
-    	<input type="checkbox" bind:checked={showPreview} />
-			Show Preview
-		</label>
-	  </div>
-	  <div class="tb-top-item">
-            {#if polygonCount > 1}
-            <em>{polygonCount} {polygonCount === 1 ? 'part' : 'parts'} will be made</em>
-            {/if}
-            <button on:click={runProcessing} disabled="{polygonCount <= 1 }">Run</button>
-	  </div>
-	</div>
-	<div class="map-container">
-		<div id="zoom-control"> </div>
-		<div id="mouse-position" ></div>
-	    <div id="map"></div>
-	</div>
-	<div class="tb tb-bottom">
-	</div>
+  
+  </script>
+  
+  <div id="interface" class="main">
+    <div class="tb tb-top">
+      <div id="interaction-options" class="tb-top-item">
+      </div>
+      <div class="tb-top-item"><em>{currentTxt}</em></div>
+      <div class="tb-top-item">
+      Preview:
+      <select class="basemap-select" title="set preview mode" bind:value={previewMode} disabled={previewMode == "n/a"}>
+        <option value="n/a" disabled>n/a</option>
+        <option value="none">hide</option>
+        <option value="transparent">transparent</option>
+        <option value="full">opaque</option>
+      </select>
+      Basemap:
+      <select class="basemap-select" title="select basemap" bind:value={currentBasemap}>
+        {#each basemaps as basemap}
+        <option value={basemap.id}>{basemap.label}</option>
+        {/each}
+      </select>
+      </div>
+    </div>
+    <div class="map-container">
+      <div id="map-viewer"></div>
+    </div>
+    <div class="tb tb-bottom">
+      <div class="tb-bottom-item"></div>
+    </div>
   </div>
-
-<style>
-
-	button {
-		background: rgba(0, 60, 136, 0.7);
-        color: white;
-	}
-
-	button:disabled {
-		background:#6f6f6f;
-	}
-
-    .tb {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        background: white;
-        height: 2em;
+  
+  <style>
+  
+  .main {
+    height: 700px;
+    padding: 0;
+  }
+  
+  .tb {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: white;
+    height: 2em;
+  }
+  
+  .tb button {
+    padding: 0;
+    height: 2em;
+  }
+  
+  .tb button:disabled {
+    color: grey;
+  }
+  
+  .tb-top {
+    justify-content: space-between;
+  }
+  
+  .tb-top-item {}
+  
+  .tb-bottom {
+    justify-content: space-between;
+  }
+  
+  .tb-bottom-item {}
+  
+  .map-container {
+    display: flex;
+    height: calc(100% - 4em);
+    justify-content: space-between;
+  }
+  
+  #map-viewer {
+    width: 100%;
+    height: 100%;
+  }
+  
+  /* pure css loading bar */
+    /* from https://loading.io/css/ */
+    .lds-ellipsis {
+      display: inline-block;
+      position: absolute;
+    right: 25px;
+      width: 80px;
+      height: 80px;
     }
-
-    .tb-top {
-        justify-content: space-between;
+    .lds-ellipsis div {
+      position: absolute;
+      top: 33px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #000;
+      animation-timing-function: cubic-bezier(0, 1, 1, 0);
     }
-
-    .tb-top-item {}
-
-    .tb-bottom {
-        justify-content: center;
+    .lds-ellipsis div:nth-child(1) {
+      left: 8px;
+      animation: lds-ellipsis1 0.6s infinite;
     }
-
-	#map {
-		height: 700px;
-		background: url('../static/img/sandpaper-bg-vlite.jpg')
-	}
-
-	@media (min-width: 640px) {
-
-	}
-
-
-
-</style>
+    .lds-ellipsis div:nth-child(2) {
+      left: 8px;
+      animation: lds-ellipsis2 0.6s infinite;
+    }
+    .lds-ellipsis div:nth-child(3) {
+      left: 32px;
+      animation: lds-ellipsis2 0.6s infinite;
+    }
+    .lds-ellipsis div:nth-child(4) {
+      left: 56px;
+      animation: lds-ellipsis3 0.6s infinite;
+    }
+    @keyframes lds-ellipsis1 {
+      0% {
+        transform: scale(0);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+    @keyframes lds-ellipsis3 {
+      0% {
+        transform: scale(1);
+      }
+      100% {
+        transform: scale(0);
+      }
+      }
+      @keyframes lds-ellipsis2 {
+      0% {
+        transform: translate(0, 0);
+      }
+      100% {
+        transform: translate(24px, 0);
+      }
+    }
+  
+  </style>
+  

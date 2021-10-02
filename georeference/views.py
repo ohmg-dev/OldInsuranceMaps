@@ -243,33 +243,24 @@ class TrimView(View):
 
         layer = _resolve_layer(request, layeralternate)
 
+        trim_url = reverse('trim_view', kwargs={"layeralternate": layeralternate})
+
+        # placeholders to be refactored/set elsewhere
+
+        map_center = [-10291143, 3673446] # could be replaced with region extent
+
         svelte_params = {
-            # "title": document.title,
-            # "imgwidth": width,
-            # "imgheight": height,
-            # "divisions": divisions,
-            # "cut_lines": cut_lines,
-            # "doc_url": download_url,
-            # "process_url": process_url,
-            # "csrftoken": csrf.get_token(request),
+            "CSRFTOKEN": csrf.get_token(request),
+            "SUBMIT_URL": trim_url,
+            "MAP_CENTER": map_center,
+            "GEOSERVER_WMS": "http://localhost:8080/geoserver/ows/",
+            "LAYER_ID": f"{layer.workspace}:{layer.name}",
+            "MAPBOX_API_KEY": settings.MAPBOX_API_KEY,
         }
 
         context_dict = {
             "svelte_params": svelte_params,
             "resource": layer,
-
-
-            ## unclear at this point if any of the following will be necessary once
-            ## permissions are properly implemented throughout the app, so they are
-            ## just commented out for now.
-            # 'access_token': access_token,
-            # 'perms_list': perms_list,
-            # 'permissions_json': permissions_json,
-            # 'group': group,
-            # 'metadata': metadata,
-            # 'imgwidth': width,
-            # 'imgheight': height,
-
         }
 
         return render(
