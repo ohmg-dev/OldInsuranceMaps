@@ -64,6 +64,12 @@ class SplitSession(models.Model):
     def __str__(self):
         return f"{self.document.__str__()} - {self.created_by} - {self.created}"
 
+    def run(self):
+        """Implement this eventually to mimic the pattern set forth by
+        GeoreferenceSession.run()"""
+        pass
+
+
 class GeoreferenceSession(models.Model):
 
     class Meta:
