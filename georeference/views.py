@@ -14,7 +14,7 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.views.generic import DetailView
 from django.db.models import F
-from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonResponse, HttpResponseBadRequest
 from django.utils.translation import ugettext as _
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.middleware import csrf
@@ -362,10 +362,7 @@ class GeoreferenceView(View):
         if request.body:
             body = json.loads(request.body)
         else:
-            return JsonResponse({
-                "status": "error",
-                "message": "not enough information."
-            })
+            return HttpResponseBadRequest("invalid parameters")
 
         docid = body.get("docid")
         document = _resolve_document_complete(request, docid)
