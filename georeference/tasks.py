@@ -23,7 +23,7 @@ from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
 from geonode.documents.models import Document
 
-from .splitter import DocumentSplitter
+from .splitter import Splitter
 from .models import GeoreferenceSession
 
 logger = get_task_logger(__name__)
@@ -35,7 +35,7 @@ def split_image_as_task(docid, cut_lines, userid=0):
     """
     user = get_user_model().objects.get(pk=userid)
     document = Document.objects.get(pk=docid)
-    splitter = DocumentSplitter(document=document, user=user)
+    splitter = Splitter(document=document, user=user)
     splitter.generate_divisions(cut_lines)
     splitter.split_image()
 

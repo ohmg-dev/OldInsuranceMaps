@@ -35,7 +35,7 @@ from georeference.tasks import (
     georeference_document_as_task,
 )
 from .models import GCPGroup, SplitSession
-from .splitter import DocumentSplitter
+from .splitter import Splitter
 from .georeferencer import Georeferencer, get_path_variant
 from .utils import (
     document_as_iiif_resource,
@@ -219,7 +219,7 @@ class SplitView(View):
 
         dryrun = body.get("dryrun", False)
 
-        splitter = DocumentSplitter(document=document)
+        splitter = Splitter(document=document)
         divs = splitter.generate_divisions(cut_lines)
 
         if dryrun is True:
