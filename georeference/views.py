@@ -30,6 +30,7 @@ from geonode.base.models import Link
 from geonode.monitoring import register_event
 from geonode.monitoring.models import EventType
 from geonode.layers.models import Layer
+from geonode.layers.views import _resolve_layer
 
 from georeference.tasks import (
     split_image_as_task,
@@ -49,45 +50,45 @@ from .utils import (
 
 logger = logging.getLogger("geonode.georeference.views")
 
-ALLOWED_DOC_TYPES = settings.ALLOWED_DOCUMENT_TYPES
+# ALLOWED_DOC_TYPES = settings.ALLOWED_DOCUMENT_TYPES
 
-_PERMISSION_MSG_DELETE = _("You are not permitted to delete this document")
-_PERMISSION_MSG_GENERIC = _("You do not have permissions for this document.")
-_PERMISSION_MSG_MODIFY = _("You are not permitted to modify this document")
-_PERMISSION_MSG_METADATA = _(
-    "You are not permitted to modify this document's metadata")
-_PERMISSION_MSG_VIEW = _("You are not permitted to view this document")
+# _PERMISSION_MSG_DELETE = _("You are not permitted to delete this document")
+# _PERMISSION_MSG_GENERIC = _("You do not have permissions for this document.")
+# _PERMISSION_MSG_MODIFY = _("You are not permitted to modify this document")
+# _PERMISSION_MSG_METADATA = _(
+#     "You are not permitted to modify this document's metadata")
+# _PERMISSION_MSG_VIEW = _("You are not permitted to view this document")
 
-def _resolve_document_complete(request, docid):
+# def _resolve_document_complete(request, docid):
 
-    document = None
-    try:
-        document = _resolve_document(
-            request,
-            docid,
-            'base.view_resourcebase',
-            _PERMISSION_MSG_VIEW)
-    except Http404:
-        return HttpResponse(
-            loader.render_to_string(
-                '404.html', context={
-                }, request=request), status=404)
+#     document = None
+#     try:
+#         document = _resolve_document(
+#             request,
+#             docid,
+#             'base.view_resourcebase',
+#             _PERMISSION_MSG_VIEW)
+#     except Http404:
+#         return HttpResponse(
+#             loader.render_to_string(
+#                 '404.html', context={
+#                 }, request=request), status=404)
 
-    except PermissionDenied:
-        return HttpResponse(
-            loader.render_to_string(
-                '401.html', context={
-                    'error_message': _("You are not allowed to view this document.")}, request=request), status=403)
+#     except PermissionDenied:
+#         return HttpResponse(
+#             loader.render_to_string(
+#                 '401.html', context={
+#                     'error_message': _("You are not allowed to view this document.")}, request=request), status=403)
 
-    if document is None:
-        return HttpResponse(
-            'An unknown error has occured.',
-            content_type="text/plain",
-            status=401
-        )
+#     if document is None:
+#         return HttpResponse(
+#             'An unknown error has occured.',
+#             content_type="text/plain",
+#             status=401
+#         )
 
-    else:
-        return document
+#     else:
+#         return document
 
 class SummaryView(View):
 
@@ -101,7 +102,7 @@ class SplitView(View):
         Returns the splitting interface for this document.
         """
 
-        document = _resolve_document_complete(request, docid)
+        document = _resolve_document(request, docid)
 
         permission_manager = ManageResourceOwnerPermissions(document)
         permission_manager.set_owner_permissions_according_to_workflow()
@@ -213,7 +214,7 @@ class SplitView(View):
 
     def post(self, request, docid):
 
-        document = _resolve_document_complete(request, docid)
+        document = _resolve_document(request, docid)
 
 
         body = json.loads(request.body)
@@ -238,10 +239,9 @@ class SplitView(View):
 
 class TrimView(View):
 
-    def get(self, request, layerid):
-        layer = _resolve_document_complete(request, layerid)
-        if not isinstance(layer, Layer):
-            raise Http404
+    def get(self, request, layeralternate):
+
+        layer = _resolve_layer(request, layeralternate)
 
         svelte_params = {
             # "title": document.title,
@@ -277,8 +277,8 @@ class TrimView(View):
             "georeference/trim_interface.html",
             context=context_dict)
 
-    def post(self, request, layerid):
-        layer = _resolve_document_complete(request, layerid)
+    def post(self, request, layeralternate):
+        layer = _resolve_layer(request, layeralternate)
 
 class GeoreferenceView(View):
 
@@ -287,9 +287,7 @@ class GeoreferenceView(View):
         Returns the georeferencing interface for this document.
         """
 
-        document = _resolve_document_complete(request, docid)
-        if not isinstance(document, Document):
-            return document
+        document = _resolve_document(request, docid)
 
         try:
             gcp_group = GCPGroup.objects.get(document=document)
@@ -363,7 +361,7 @@ class GeoreferenceView(View):
         else:
             return HttpResponseBadRequest("invalid parameters")
 
-        document = _resolve_document_complete(request, docid)
+        document = _resolve_document(request, docid)
         if not isinstance(document, Document):
             return document
 
@@ -431,7 +429,7 @@ def iiif2_endpoint(request, docid, iiif_object_requested):
 
     IIIF_SERVER_ENABLED = getattr(settings, "IIIF_SERVER_ENABLED", False)
 
-    document = _resolve_document_complete(request, docid)
+    document = _resolve_document(request, docid)
     if not isinstance(document, Document):
         return document
 
