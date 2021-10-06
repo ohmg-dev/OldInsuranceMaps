@@ -1,0 +1,24 @@
+{% extends "documents/document_base.html" %}
+{% load i18n %}
+{% load dialogos_tags %}
+{% load pinax_ratings_tags %}
+{% load bootstrap_tags %}
+{% load base_tags %}
+{% load guardian_tags %}
+{% load staticfiles %}
+
+{% load django_svelte %}
+
+{% block title %}SGT Overview — {{ block.super }}{% endblock %}
+
+{% block head %}
+{{ block.super }}
+{% endblock %}
+
+{% block body_class %}{% endblock %}
+
+{% block body_outer %}
+
+{% display_svelte "Overview.svelte" svelte_params %}
+
+{% endblock %}

@@ -90,10 +90,23 @@ logger = logging.getLogger("geonode.georeference.views")
 #     else:
 #         return document
 
-class SummaryView(View):
+class OverviewView(View):
 
-    def get(self, request, docid):
-        pass
+    def get(self, request):
+
+        docid = request.GET.get("document")
+        svelte_params = {}
+
+        if docid is not None:
+            document = _resolve_document(request, docid)
+            svelte_params["DOC_TITLE"] = document.title
+
+        else:
+            svelte_params["DOC_TITLE"] = None
+        return render(
+            request,
+            "georeference/overview.html",
+            context={"svelte_params": svelte_params})
 
 class SplitView(View):
 
