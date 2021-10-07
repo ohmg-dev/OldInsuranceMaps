@@ -1,31 +1,21 @@
 import os
 import math
 import logging
-from copy import copy
 from PIL import Image, ImageDraw, ImageFilter
 
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry, Polygon, LineString
-from django.core.files import File
 
-from geonode.documents.models import Document
-
-from .models import SplitLink, SplitSession
 from .utils import make_db_cursor
 
 logger = logging.getLogger(__name__)
 
 class Splitter(object):
 
-    def __init__(self, document=None, user=None):
+    def __init__(self, image_file=None, divisions=[]):
 
-        self.document = document
-        self.doc_title = copy(document.title)
-        self.img_file = self.document.doc_file.path
-        self.created_by = user
-        self.session = SplitSession(document=document)
-        self.divisions = []
-        self.cut_lines = []
+        self.img_file = image_file
+        self.divisions = divisions
 
         if os.path.isdir(settings.TEMP_DIR) is False:
             os.mkdir(settings.TEMP_DIR)
@@ -88,13 +78,12 @@ class Splitter(object):
 
         return LineString(coord_list)
 
-    def cut_geometry_by_lines(self, geom_to_cut=None, cutlines=[]):
+    def generate_divisions(self, cutlines):
         """ takes the input border and then tries to cut it with the cutlines.
         any sub polygons resulting from the cut are also compared to the cutlines,
         until all cutlines have been used. """
 
-        if geom_to_cut is None:
-            geom_to_cut = self.make_border_geometry(self.img_file)
+        initial_geom = self.make_border_geometry(self.img_file)
 
         ## process input cutlines
         cut_shapes = []
@@ -107,7 +96,7 @@ class Splitter(object):
         ## candidates is a list of polygons that may be the final polygons
         ## for the cut process. intially the list only contains the border polygon.
         candidates = [{
-            "geom": geom_to_cut,
+            "geom": initial_geom,
             "evaluated": False,
             "final": True
         }]
@@ -170,45 +159,20 @@ class Splitter(object):
         print(f"{len(out_shapes)} output shapes")
 
         self.divisions = out_shapes
-        self.cut_lines = cutlines
 
         return out_shapes
-
-    def generate_divisions(self, cutlines):
-
-        return self.cut_geometry_by_lines(cutlines=cutlines)
-
-    def save_new_document(self, file_path):
-
-        link_no = SplitLink.objects.filter(parent_doc=self.document).count() + 1
-
-        fname = os.path.basename(file_path)
-        new_doc = Document.objects.get(pk=self.document.pk)
-        new_doc.pk = None
-        new_doc.id = None
-        new_doc.uuid = None
-        new_doc.thumbnail_url = None
-        new_doc.title = f"{self.doc_title} [{link_no}]"
-        with open(file_path, "rb") as openf:
-            new_doc.doc_file.save(fname, File(openf))
-        new_doc.save()
-
-        return new_doc
 
     def split_image(self):
         """ """
 
         # update the session info, now that it's about to be run
         print("splitting image...")
-        self.session.divisions = self.divisions
-        self.session.cut_lines = self.cut_lines
-        self.session.created_by = self.created_by
-        self.session.save()
 
         img = Image.open(self.img_file)
         w, h = img.size
 
-        for n, shape in enumerate(self.divisions):
+        out_paths = []
+        for n, shape in enumerate(self.divisions, start=1):
 
             coords = self.transform_coordinates(shape, h)
 
@@ -229,19 +193,11 @@ class Splitter(object):
             # set output file name and save file to cache
             filename = os.path.basename(self.img_file)
             ext = os.path.splitext(filename)[1]
-            out_filename = filename.replace(ext, f"____{n+1}.png")
+            out_filename = filename.replace(ext, f"__{n}.png")
             out_path = os.path.join(self.temp_dir, out_filename)
+
+            out_paths.append(out_path)
 
             im_inset_cropped.save(out_path, 'PNG')
 
-            new_doc = self.save_new_document(out_path)
-
-            link = SplitLink.objects.create(
-                parent_doc=self.document,
-                child_doc=new_doc,
-                session=self.session,
-            )
-
-            os.remove(out_path)
-
-        return self.session
+        return out_paths
