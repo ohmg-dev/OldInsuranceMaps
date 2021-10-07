@@ -22,9 +22,10 @@ class Command(BaseCommand):
             imgdir = options["dir"]
         else:
             appdir = os.path.dirname(os.path.dirname((os.path.dirname(__file__))))
-            imgdir = os.path.join(appdir, "fixtures", "img", "coushatta")
+            imgdir = os.path.join(appdir, "tests", "data", "image_files")
 
         print(imgdir)
+
         for imgpath in glob.glob(imgdir + "/*.jpg"):
             with open(imgpath, 'rb') as openf:
                 imgdata = openf.read()
@@ -33,10 +34,13 @@ class Command(BaseCommand):
                 os.path.basename(imgpath),
                 imgdata,
                 'image/jpg')
+            
+            title = f.name.replace(".jpg", "")
 
             superuser = get_user_model().objects.get(username='admin')
             c = Document.objects.create(
                 doc_file=f,
                 owner=superuser,
-                title=f.name)
+                title=title
+            )
             c.set_default_permissions()
