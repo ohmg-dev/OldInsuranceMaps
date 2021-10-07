@@ -37,7 +37,7 @@ from georeference.tasks import (
     georeference_document_as_task,
     trim_layer_as_task,
 )
-from .models import GCPGroup, SplitSession
+from .models import GCPGroup, Segmentation, SplitSession
 from .splitter import Splitter
 from .georeferencer import Georeferencer, get_path_variant
 from .utils import (
@@ -165,11 +165,11 @@ class SplitView(View):
         process_url = base + reverse('split_view', args=(document.id,))
 
         try:
-            sesh = SplitSession.objects.get(document=document)
-            divisions = sesh.divisions
-            cut_lines = sesh.cut_lines
-        except SplitSession.DoesNotExist:
-            divisions, cut_lines = None, None
+            s = Segmentation.objects.get(document=document)
+            incoming_segments = s.segments
+            incoming_cutlines = s.cutlines
+        except Segmentation.DoesNotExist:
+            incoming_segments, incoming_cutlines = None, None
 
         svelte_params = {
             "IMG_WIDTH": width,
@@ -227,26 +227,31 @@ class SplitView(View):
     def post(self, request, docid):
 
         document = _resolve_document(request, docid)
-
+        image_path = document.doc_file.path
 
         body = json.loads(request.body)
-        cut_lines = body.get("lines", [])
+        cutlines = body.get("lines", [])
 
-        dryrun = body.get("dryrun", False)
+        operation = body.get("operation", "preview")
 
-        splitter = Splitter(document=document)
-        divs = splitter.generate_divisions(cut_lines)
+        if operation == "preview":
 
-        if dryrun is True:
+            splitter = Splitter(image_file=image_path)
+            divs = splitter.generate_divisions(cutlines)
+
             return JsonResponse({"success": True, "polygons": divs})
 
-        res = split_image_as_task.apply_async(
-            (docid, cut_lines, request.user.pk), queue="update"
-        )
+        elif operation == "submit":
 
-        redirect_url = reverse('document_detail', kwargs={'docid': docid}) + "#georeference"
+            Segmentation().save_from_cutlines(cutlines, document)
 
-        return JsonResponse({"success":True, "redirect_to": redirect_url})
+            res = split_image_as_task.apply_async(
+                (docid, request.user.pk), queue="update"
+            )
+
+            redirect_url = reverse('overview_view', kwargs={'docid': docid}) + "#georeference"
+
+            return JsonResponse({"success":True, "redirect_to": redirect_url})
 
 
 class TrimView(View):

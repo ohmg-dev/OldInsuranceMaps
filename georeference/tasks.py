@@ -24,21 +24,26 @@ from django.contrib.auth import get_user_model
 from geonode.documents.models import Document
 from geonode.layers.models import Layer
 
-from .splitter import Splitter
-from .models import GeoreferenceSession
+# from .splitter import Splitter
+from .models import (
+    GeoreferenceSession,
+    SplitSession,
+)
 
 logger = get_task_logger(__name__)
 
 @shared_task
-def split_image_as_task(docid, cut_lines, userid=0):
+def split_image_as_task(docid, userid):
     """
     This is the complete image splitting task that can be called from elsewhere.
     """
     user = get_user_model().objects.get(pk=userid)
     document = Document.objects.get(pk=docid)
-    splitter = Splitter(document=document, user=user)
-    splitter.generate_divisions(cut_lines)
-    splitter.split_image()
+    ss = SplitSession.objects.create(
+        document=document,
+        user=user,
+    )
+    ss.run()
 
 @shared_task
 def georeference_document_as_task(docid, userid):
