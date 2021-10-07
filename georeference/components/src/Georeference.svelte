@@ -780,7 +780,7 @@
           <option value={trans.id}>{trans.name}</option>
         {/each}
       </select>
-      <button on:click={submitGCPs} disabled={gcpList.length < 3}>Submit</button>
+      <button on:click={submitGCPs} disabled={gcpList.length < 3}>Done</button>
     </div>
   </div>
 </div>

@@ -352,7 +352,7 @@
             {#if polygonCount > 1}
             <em>{polygonCount} {polygonCount === 1 ? 'part' : 'parts'} will be made</em>
             {/if}
-            <button on:click={runProcessing} disabled="{polygonCount <= 1 }">Run</button>
+            <button on:click={runProcessing} disabled="{polygonCount <= 1 }">Done</button>
     </div>
   </div>
   <div class="map-container">
