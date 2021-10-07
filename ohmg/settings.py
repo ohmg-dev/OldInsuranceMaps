@@ -191,7 +191,6 @@ MAPBOX_API_KEY = os.getenv('MAPBOX_API_KEY', '')
 if 'georeference' in INSTALLED_APPS:
     INSTALLED_APPS += ('django_svelte', )
     TEMPLATES[0]['DIRS'].insert(0, os.path.join(os.path.dirname(LOCAL_ROOT), "georeference", "templates"))
-    TEMPLATES[0]['OPTIONS']['context_processors'].append('georeference.context_processors.georeference_info')
     STATICFILES_DIRS.append(os.path.join(os.path.dirname(LOCAL_ROOT), "georeference", "static"))
     # this is the path for the svelte components
     STATICFILES_DIRS.append(os.path.join(os.path.dirname(LOCAL_ROOT), "georeference", "components", "public", "build"))
