@@ -37,7 +37,7 @@ from georeference.tasks import (
     georeference_document_as_task,
     trim_layer_as_task,
 )
-from .models import GCPGroup, Segmentation, SplitSession
+from .models import GCPGroup, Segmentation, SplitDocumentLink
 from .splitter import Splitter
 from .georeferencer import Georeferencer, get_path_variant
 from .utils import (
@@ -92,17 +92,32 @@ logger = logging.getLogger("geonode.georeference.views")
 
 class OverviewView(View):
 
-    def get(self, request):
+    def get(self, request, objectid):
 
-        docid = request.GET.get("document")
-        svelte_params = {}
-
-        if docid is not None:
-            document = _resolve_document(request, docid)
-            svelte_params["DOC_TITLE"] = document.title
-
+        ## If a number is passed in, assume it's a Document pk.
+        if objectid.isdigit():
+            document = _resolve_document(request, objectid)
+        ## To do: If a string is passed in, assume it's a Layer alternate,
+        ## find a linked Document for the layer, and then redirect to this method.
+        ## The main reason for this is that passing the alternate is likely the
+        ## easiest way to generate links from the layer detail page (or search 
+        ## result items) so that layers from georeferenced documents can be linked
+        ## back to this page.
         else:
-            svelte_params["DOC_TITLE"] = None
+            raise Http404
+        
+        is_geoferenced = GCPGroup.objects.filter(document=document).exists()
+
+        svelte_params = {
+            "DOC_TITLE": document.title,
+            "DOC_IMG_URL": reverse('document_download', args=(document.id,)),
+            "IS_GEOREFERENCED": is_geoferenced,
+            
+            "IS_TRIMMED": is_geoferenced,
+            "SPLIT_URL": reverse('split_view', args=(document.id,)),
+            "GEOREFERENCE_URL": reverse('georeference_view', args=(document.id,)),
+        }
+
         return render(
             request,
             "georeference/overview.html",
