@@ -221,7 +221,7 @@ class SplitView(View):
 
         return render(
             request,
-            "georeference/split_interface.html",
+            "georeference/interfaces/split.html",
             context=context_dict)
 
     def post(self, request, docid):
@@ -282,7 +282,7 @@ class TrimView(View):
 
         return render(
             request,
-            "georeference/trim_interface.html",
+            "georeference/interfaces/trim.html",
             context=context_dict)
 
     def post(self, request, layeralternate):
@@ -356,7 +356,7 @@ class GeoreferenceView(View):
 
         return render(
             request,
-            "georeference/georeference_interface.html",
+            "georeference/interfaces/georeference.html",
             context=context_dict)
 
     def post(self, request, docid):
