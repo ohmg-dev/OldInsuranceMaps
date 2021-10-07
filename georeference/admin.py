@@ -2,7 +2,8 @@ from django.contrib import admin
 
 from .models import (
     SplitSession,
-    SplitLink,
+    Segmentation,
+    SplitDocumentLink,
     GeoreferenceSession,
     GCP,
     GCPGroup,
@@ -14,7 +15,8 @@ class GCPAdmin(admin.ModelAdmin):
 class GeoreferenceSessionAdmin(admin.ModelAdmin):
     readonly_fields = ('created',)
 
-admin.site.register(SplitLink)
+admin.site.register(SplitDocumentLink)
+admin.site.register(Segmentation)
 admin.site.register(SplitSession)
 admin.site.register(GeoreferenceSession, GeoreferenceSessionAdmin)
 admin.site.register(GCP, GCPAdmin)
