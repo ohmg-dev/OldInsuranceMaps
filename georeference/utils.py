@@ -1,19 +1,11 @@
 import os
-import math
-import json
 import base64
 import logging
 import psycopg2
-import urllib.request
 from PIL import Image
-from osgeo import gdal, osr
 
 from django.conf import settings
-from django.core.files import File
-from django.contrib.gis.geos import GEOSGeometry, Polygon, LineString
 from django.urls import reverse
-
-from .models import GCP
 
 logger = logging.getLogger(__name__)
 
@@ -26,140 +18,6 @@ def make_db_cursor():
     conn = psycopg2.connect(db_conn)
 
     return conn.cursor()
-
-def make_border_geometery(image_file):
-    """ generates a Polygon from the dimensions of the input image file. """
-
-    img = Image.open(image_file)
-    w, h = img.size
-    coords = [(0,0), (0,h), (w,h), (w,0), (0,0)]
-
-    return Polygon(coords)
-
-def extend_linestring(linestring, distance=10):
-    ''' takes the input GEOS LineString and extends it in both directions
-    (following the trajectory of each end segment) by the given distance. '''
-
-    coord_list = list(linestring.coords)
-
-    new_start = extend_vector(coord_list[1], coord_list[0], distance)
-    new_end = extend_vector(coord_list[-2], coord_list[-1], distance)
-
-    coord_list.insert(0, new_start)
-    coord_list.append(new_end)
-
-    return LineString(coord_list)
-
-def extend_vector(p1, p2, distance):
-    '''https://math.stackexchange.com/a/3346108 (credit to Oliver Roche)
-    takes the two input points, which represent a vector, and creates a
-    third point that would extend that vector by the given distance.'''
-
-    x1, y1 = p1
-    x2, y2 = p2
-    rise = y2 - y1
-    run = x2 - x1
-
-    norm = math.sqrt((run ** 2) + (rise ** 2))
-
-    # if negative coords are used norm will be 0.0, silently return original point
-    if norm == 0.0:
-        return (x2, y2)
-
-    x3 = x2 + distance * (run/norm)
-    y3 = y2 + distance * (rise/norm)
-
-    return (x3, y3)
-
-def transform_coordinates(shape, img_height):
-    """ OpenLayers and PIL use different x,y coordinate systems: in OL 0,0 is
-    the bottom left corner, and in PIL 0,0 is the top left corner, so the y
-    coordinate must be inverted based on the image's real height. """
-    coords = list()
-    for coord_pair in shape:
-        x, y = coord_pair
-        coords.append((x, img_height - y))
-    return coords
-
-def cut_geometry_by_lines(border, cutlines):
-    """ takes the input border and then tries to cut it with the cutlines.
-    any sub polygons resulting from the cut are also compared to the cutlines,
-    until all cutlines have been used. """
-
-    ## process input cutlines
-    cut_shapes = []
-    for l in cutlines:
-        ## this function extends each end of the original line by 10 pixels.
-        ## this facilitates a more robust splitting process.
-        ls_extended = extend_linestring(LineString(l))
-        cut_shapes.append({"geom": ls_extended, "used": False})
-
-    ## candidates is a list of polygons that may be the final polygons
-    ## for the cut process. intially the list only contains the border polygon.
-    candidates = [{
-        "geom": border,
-        "evaluated": False,
-        "final": True
-    }]
-
-    cursor = make_db_cursor()
-
-    while True:
-        ## evaluate one clipped shape at a time.
-        for candidate in [i for i in candidates if not i["evaluated"]]:
-            candidate["evaluated"] = True
-
-            ## iterate all of the clip lines to try against this one shape.
-            ## exclude those that have already been used to cut a shape.
-            for cut in [i for i in cut_shapes if not i["used"]]:
-
-                ## quick skip this cutline if it doesn't even touch the
-                ## polygon that is being evaluated.
-                if not candidate["geom"].intersects(cut["geom"]):
-                    continue
-
-                sql = f'''
-SELECT ST_AsText((ST_Dump(ST_Split(border, cut))).geom) AS wkt
-FROM (SELECT
- ST_SnapToGrid(ST_GeomFromText(' {candidate["geom"].wkt} '), 1) AS border,
- ST_SnapToGrid(ST_GeomFromText(' {cut["geom"].wkt} '), 1) AS cut) AS foo;
-                '''
-                cursor.execute(sql)
-                rows = cursor.fetchall()
-
-                ## if only one row is returned it means that the line was
-                ## insufficient to cut the polygon. This check is likely
-                ## redundant at this point in the process though.
-                if len(rows) > 1:
-
-                    ## if a proper cut has been made, this cutline should be
-                    ## ignored on future iterations.
-                    cut['used'] = True
-
-                    ## if this candidate has been split, it will not be one
-                    ## of the final polygons.
-                    candidate["final"] = False
-
-                    ## turn each of the resulting polygons from the cut into
-                    ## new candidates for future iterations.
-                    for row in rows:
-                        geom = GEOSGeometry(row[0])
-                        candidates.append({
-                            "geom": geom,
-                            "evaluated": False,
-                            "final": True
-                        })
-                    break
-
-        ## break the while loop once all of the candidates have been evaluated
-        if all([i["evaluated"] for i in candidates]):
-            break
-
-    out_shapes = [i["geom"].coords[0] for i in candidates if i["final"] is True]
-
-    print(f"{len(out_shapes)} output shapes")
-    return out_shapes
-
 
 ## ~~ IIIF support ~~
 
