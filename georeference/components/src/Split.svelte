@@ -35,15 +35,16 @@
   import Modify from 'ol/interaction/Modify';
   import Snap from 'ol/interaction/Snap';
 
-  export let imgheight;
-  export let imgwidth;
-  export let doc_url;
-  export let divisions;
-  export let process_url;
-  export let csrftoken;
+  export let IMG_HEIGHT;
+  export let IMG_WIDTH;
+  export let DOC_URL;
+  export let CSRFTOKEN;
+  export let SUBMIT_URL;
+  export let INCOMING_DIVISIONS;
+  export let INCOMING_CUTLINES;
 
-  export let polygonCount = 0;
-  export let showPreview = true;
+  let polygonCount = 0;
+  let showPreview = true;
 
   let iface = null;
   let cutLines = [];
@@ -54,7 +55,8 @@
     {id: 'modify', name: 'Modify'}
   ];
 
-  let extent = [0, 0, imgwidth, imgheight];
+  const extent = [0, 0, IMG_WIDTH, IMG_HEIGHT];
+  const mapCenter = [IMG_WIDTH/2, IMG_HEIGHT/2];
 
   let projection = new Projection({
     code: 'whatdoesthismatter',
@@ -86,7 +88,7 @@
         target: 'map',
         view: new View({
           projection: projection,
-          center: [imgwidth/2, imgheight/2],
+          center: mapCenter,
           zoom: 1,
           maxZoom: 8,
         }),
@@ -107,7 +109,7 @@
 
       this.img_layer = new ImageLayer({
         source: new ImageStatic({
-          url: doc_url,
+          url: DOC_URL,
           projection: projection,
           imageExtent: extent,
         }),
@@ -134,7 +136,7 @@
       });
       let border = new Feature({
         geometry: new Polygon([[
-          [0,0], [imgwidth, 0], [imgwidth, imgheight], [0, imgheight], [0,0]
+          [0,0], [IMG_WIDTH, 0], [IMG_WIDTH, IMG_HEIGHT], [0, IMG_HEIGHT], [0,0]
         ]]),
       });
       this.borderLayer.getSource().addFeature(border);
@@ -246,7 +248,7 @@
   onMount(() => {
     SplitInterface.init();
 
-    if (divisions != null) {iface.refreshPreviewLayer(divisions)}
+    if (INCOMING_DIVISIONS != null) {iface.refreshPreviewLayer(INCOMING_DIVISIONS)}
   });
 
   $: {
@@ -289,12 +291,12 @@
     // triggered by any change in the cutLines array, new polygons are acquired
     // here and fed to the preview layer for live update.
     if (cutLines.length > 0) {
-      let data = JSON.stringify({"lines": cutLines, "dryrun": true});
-      fetch(process_url, {
+      let data = JSON.stringify({"lines": cutLines, "operation": "preview"});
+      fetch(SUBMIT_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json;charset=utf-8',
-            'X-CSRFToken': csrftoken,
+            'X-CSRFToken': CSRFTOKEN,
           },
           body: data,
         })
@@ -309,18 +311,17 @@
 
   function runProcessing() {
     if (cutLines.length > 0) {
-      let data = JSON.stringify({"lines": cutLines});
-      fetch(process_url, {
+      let data = JSON.stringify({"lines": cutLines, "operation": "submit"});
+      fetch(SUBMIT_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json;charset=utf-8',
-            'X-CSRFToken': csrftoken,
+            'X-CSRFToken': CSRFTOKEN,
           },
           body: data,
         })
         .then(response => response.json())
         .then(result => {
-          console.log(result)
           window.location.href = result['redirect_to'];
         });
     }

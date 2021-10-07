@@ -172,14 +172,13 @@ class SplitView(View):
             divisions, cut_lines = None, None
 
         svelte_params = {
-            "title": document.title,
-            "imgwidth": width,
-            "imgheight": height,
-            "divisions": divisions,
-            "cut_lines": cut_lines,
-            "doc_url": download_url,
-            "process_url": process_url,
-            "csrftoken": csrf.get_token(request),
+            "IMG_WIDTH": width,
+            "IMG_HEIGHT": height,
+            "INCOMING_DIVISIONS": incoming_segments,
+            "INCOMING_CUTLINES": incoming_cutlines,
+            "DOC_URL": download_url,
+            "SUBMIT_URL": process_url,
+            "CSRFTOKEN": csrf.get_token(request),
         }
 
         context_dict = {
