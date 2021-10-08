@@ -1,0 +1,54 @@
+[
+{
+ "model": "base.thesaurus",
+ "pk": 1000,
+ "fields": {
+  "identifier": "sgt",
+  "title": "Georeferencing Status",
+  "date": "2021-10-08",
+  "description": "Georeferencing Status",
+  "slug": "sgt",
+  "about": "sgt",
+  "card_min": 0,
+  "card_max": 0,
+  "facet": true,
+  "order": 0
+ }
+},
+{
+  "model": "base.thesauruskeyword",
+  "pk": 1000,
+  "fields": {
+   "about": "Georeferenced",
+   "alt_label": "Georeferenced",
+   "thesaurus": 1000
+  }
+},
+{
+  "model": "base.thesauruskeyword",
+  "pk": 1001,
+  "fields": {
+    "about": "Unprepared",
+    "alt_label": "Unprepared",
+    "thesaurus": 1000
+  }
+},
+{
+  "model": "base.thesauruskeyword",
+  "pk": 1002,
+  "fields": {
+    "about": "Prepared",
+    "alt_label": "Prepared",
+    "thesaurus": 1000
+  }
+},
+{
+  "model": "base.thesauruskeyword",
+  "pk": 1003,
+  "fields": {
+    "about": "Currently Processing",
+    "alt_label": "Currently Processing",
+    "thesaurus": 1000
+  }
+}
+]
