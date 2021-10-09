@@ -19,7 +19,54 @@
 
 {% block body_outer %}
 
-<h4>Splitting: {{ resource.title }}</h4>
+<div class="interface-header" style="margin-bottom:20px; font-size:1.25em;">
+
+    <h3>Preparing: {{ resource.title }}</h3>
+
+    <h4>Check: Does this image need to be split before it can be georeferenced?</h4>
+    <p><em>I don't know - <a href="#" data-toggle="collapse" data-target=".more-info">tell me more about this.</a></em></p>
+    <div class="more-info collapse" style="background:lightgray; border-radius:7px; padding:20px; margin-top:20px; margin-bottom:20px;">
+        <div class="row">
+            <div class="col-xs-12">
+                <p>Sometimes, old maps will cover discontiguous areas, especially when the mapmakers were trying to 
+                fit a lot of content into a single page. In these cases, the image must be split into
+                separate documents, and then each one can be georeferenced individually. Typically, you'll find
+                <strong>strong black lines</strong> delineating different parts of the map. The image must be split along those lines.
+            </div>
+            <div class="col-sm-4" style="text-align: center;">
+                <img height="300px" src="{% static 'img/split-example-p1-anno.jpg' %}" />
+                <p><em>This map must be split into four different sections.</em></p>
+            </div>
+            <div class="col-sm-4" style="text-align: center;">
+                <img height="300px" src="{% static 'img/split-example-p2-anno.jpg' %}" />
+                <p><em>This map must be split in half.</em></p>
+            </div>
+            <div class="col-sm-4" style="text-align: center;">
+                <img height="300px" src="{% static 'img/split-example-p3-anno.jpg' %}" />
+                <p><em>This map shows only one part of town, so it should not be split.</one></em></p>
+            </div>
+            <div class="col-xs-12">
+                <p>
+                    Feel free to inspect the map in the interface below, and then click "Don't Split" if 
+                    the process is not necessary. You will then be brought to the georeferencing interface.
+                </p>
+                <p>
+                    If the image does need to be split, draw lines across the interface and watch as the preview
+                    updates to show you how many new documents will be made. Click once to start or continue a line,
+                    double-click to end it. You can <i class="fa fa-refresh"></i>
+                    the drawing at any time to start over.  Click "Split!" when you are done.
+                </p>
+                <p>
+                    <strong>
+                    Note: This evaluation is a very important initial step that should only be done once,
+                    so feel free browse <a href="/documents/?limit=20&offset=0&tkeywords__id__in=1002">
+                    documents that have already been prepared</a> if you want to jump right into georeferencing.
+                    </strong>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% display_svelte "Split.svelte" svelte_params %}
 
