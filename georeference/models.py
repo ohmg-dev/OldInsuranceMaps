@@ -50,6 +50,7 @@ class Segmentation(models.Model):
     """
 
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    no_split_needed = models.BooleanField(default=None, null=True, blank=True)
     segments = JSONField(default=None, null=True, blank=True)
     cutlines = JSONField(default=None, null=True, blank=True)
 
@@ -64,6 +65,7 @@ class Segmentation(models.Model):
         segmentation, created = Segmentation.objects.get_or_create(document=document)
         segmentation.cutlines = cutlines
         segmentation.segments = segments
+        segmentation.no_split_needed = False
         segmentation.save()
 
         return segmentation
@@ -75,6 +77,7 @@ class SplitSession(models.Model):
         verbose_name_plural = "Split Sessions"
 
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    no_split_needed = models.BooleanField(default=None, null=True, blank=True)
     segments_used = JSONField(default=None, null=True, blank=True)
     cutlines_used = JSONField(default=None, null=True, blank=True)
     user = models.ForeignKey(
@@ -106,6 +109,7 @@ class SplitSession(models.Model):
         segmentation = Segmentation.objects.get(document=self.document)
         self.segments_used = segmentation.segments
         self.cutlines_used = segmentation.cutlines
+        self.no_split_needed = False
         self.save()
 
         s = Splitter(
