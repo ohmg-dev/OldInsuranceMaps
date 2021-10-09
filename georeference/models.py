@@ -21,11 +21,9 @@ from geonode.thumbs.thumbnails import create_thumbnail
 
 from .georeferencer import Georeferencer
 from .splitter import Splitter
+from .utils import TK
 
-k_processing = ThesaurusKeyword.objects.get(about="Currently Processing")
-k_unprepared = ThesaurusKeyword.objects.get(about="Unprepared")
-k_prepared = ThesaurusKeyword.objects.get(about="Prepared")
-k_georeferenced = ThesaurusKeyword.objects.get(about="Georeferenced")
+tk = TK()
 
 class SplitDocumentLink(DocumentResourceLink):
     """
@@ -103,8 +101,8 @@ class SplitSession(models.Model):
         metadata_only so that it no longer shows up in the search page lists.
         """
 
-        self.document.tkeywords.remove(k_unprepared)
-        self.document.tkeywords.add(k_processing)
+        self.document.tkeywords.remove(tk.unprepared)
+        self.document.tkeywords.add(tk.processing)
 
         segmentation = Segmentation.objects.get(document=self.document)
         self.segments_used = segmentation.segments
@@ -145,12 +143,12 @@ class SplitSession(models.Model):
                 object_id=new_doc.pk,
             )
 
-            new_doc.tkeywords.add(k_prepared)
+            new_doc.tkeywords.add(tk.prepared)
         
         if len(new_images) > 1:
             self.document.metadata_only = True
             self.document.save()
-        self.document.tkeywords.remove(k_processing)
+        self.document.tkeywords.remove(tk.processing)
 
 class GeoreferenceSession(models.Model):
 

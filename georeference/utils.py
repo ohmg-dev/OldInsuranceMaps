@@ -7,6 +7,8 @@ from PIL import Image
 from django.conf import settings
 from django.urls import reverse
 
+from geonode.base.models import ThesaurusKeyword
+
 logger = logging.getLogger(__name__)
 
 def make_db_cursor():
@@ -18,6 +20,15 @@ def make_db_cursor():
     conn = psycopg2.connect(db_conn)
 
     return conn.cursor()
+
+## ~~ Management of ThesaurusKeywords
+
+class TK(object):
+
+    processing = ThesaurusKeyword.objects.get(about="Currently Processing")
+    unprepared = ThesaurusKeyword.objects.get(about="Unprepared")
+    prepared = ThesaurusKeyword.objects.get(about="Prepared")
+    georeferenced = ThesaurusKeyword.objects.get(about="Georeferenced")
 
 ## ~~ IIIF support ~~
 
