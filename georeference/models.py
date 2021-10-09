@@ -13,6 +13,7 @@ from django.contrib.postgres.fields import JSONField
 from django.core.files import File
 from django.utils.translation import ugettext_lazy as _
 
+from geonode.base.models import ThesaurusKeyword
 from geonode.documents.models import Document, DocumentResourceLink
 from geonode.layers.models import Layer
 from geonode.layers.utils import file_upload
@@ -20,6 +21,11 @@ from geonode.thumbs.thumbnails import create_thumbnail
 
 from .georeferencer import Georeferencer
 from .splitter import Splitter
+
+k_processing = ThesaurusKeyword.objects.get(about="Currently Processing")
+k_unprepared = ThesaurusKeyword.objects.get(about="Unprepared")
+k_prepared = ThesaurusKeyword.objects.get(about="Prepared")
+k_georeferenced = ThesaurusKeyword.objects.get(about="Georeferenced")
 
 class SplitDocumentLink(DocumentResourceLink):
     """
@@ -94,6 +100,9 @@ class SplitSession(models.Model):
         metadata_only so that it no longer shows up in the search page lists.
         """
 
+        self.document.tkeywords.remove(k_unprepared)
+        self.document.tkeywords.add(k_processing)
+
         segmentation = Segmentation.objects.get(document=self.document)
         self.segments_used = segmentation.segments
         self.cutlines_used = segmentation.cutlines
@@ -105,10 +114,6 @@ class SplitSession(models.Model):
         )
         new_images = s.split_image()
 
-        if len(new_images) > 1:
-            self.document.metadata_only = True
-            self.document.save()
-
         for n, file_path in enumerate(new_images, start=1):
 
             fname = os.path.basename(file_path)
@@ -117,6 +122,7 @@ class SplitSession(models.Model):
             new_doc.id = None
             new_doc.uuid = None
             new_doc.thumbnail_url = None
+            new_doc.metadata_only = False
             new_doc.title = f"{self.document.title} [{n}]"
             with open(file_path, "rb") as openf:
                 new_doc.doc_file.save(fname, File(openf))
@@ -134,6 +140,13 @@ class SplitSession(models.Model):
                 content_type=ct,
                 object_id=new_doc.pk,
             )
+
+            new_doc.tkeywords.add(k_prepared)
+        
+        if len(new_images) > 1:
+            self.document.metadata_only = True
+            self.document.save()
+        self.document.tkeywords.remove(k_processing)
 
 class GeoreferenceSession(models.Model):
 
