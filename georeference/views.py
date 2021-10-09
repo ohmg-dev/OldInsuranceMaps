@@ -264,7 +264,7 @@ class SplitView(View):
                 (docid, request.user.pk), queue="update"
             )
 
-            redirect_url = reverse('overview_view', kwargs={'docid': docid}) + "#georeference"
+            redirect_url = reverse('overview_view', kwargs={'objectid': docid})
 
             return JsonResponse({"success":True, "redirect_to": redirect_url})
 
