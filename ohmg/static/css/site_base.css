@@ -1,5 +1,6 @@
 body {
   font-family: 'Josefin Sans', Pacifico, 'PT Sans', sans-serif;
+  letter-spacing: -.3px;
 }
 
 /* pure css loading bar */
