@@ -19,8 +19,8 @@
   "model": "base.thesauruskeyword",
   "pk": 1000,
   "fields": {
-   "about": "Georeferenced",
-   "alt_label": "Georeferenced",
+   "about": "unprepared",
+   "alt_label": "Unprepared",
    "thesaurus": 1000
   }
 },
@@ -28,8 +28,8 @@
   "model": "base.thesauruskeyword",
   "pk": 1001,
   "fields": {
-    "about": "Unprepared",
-    "alt_label": "Unprepared",
+    "about": "splitting",
+    "alt_label": "Splitting - in progress",
     "thesaurus": 1000
   }
 },
@@ -37,7 +37,7 @@
   "model": "base.thesauruskeyword",
   "pk": 1002,
   "fields": {
-    "about": "Prepared",
+    "about": "prepared",
     "alt_label": "Prepared",
     "thesaurus": 1000
   }
@@ -46,8 +46,35 @@
   "model": "base.thesauruskeyword",
   "pk": 1003,
   "fields": {
-    "about": "Currently Processing",
-    "alt_label": "Currently Processing",
+    "about": "georeferencing",
+    "alt_label": "Georeferencing - in progress",
+    "thesaurus": 1000
+  }
+},
+{
+  "model": "base.thesauruskeyword",
+  "pk": 1004,
+  "fields": {
+    "about": "georeferenced",
+    "alt_label": "Georeferenced",
+    "thesaurus": 1000
+  }
+},
+{
+  "model": "base.thesauruskeyword",
+  "pk": 1005,
+  "fields": {
+    "about": "trimming",
+    "alt_label": "Trimming - in progress",
+    "thesaurus": 1000
+  }
+},
+{
+  "model": "base.thesauruskeyword",
+  "pk": 1006,
+  "fields": {
+    "about": "complete",
+    "alt_label": "Complete",
     "thesaurus": 1000
   }
 }
