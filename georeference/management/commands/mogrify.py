@@ -8,6 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from geonode.base.models import ThesaurusKeyword
 from geonode.documents.models import Document
+from geonode.layers.models import Layer
 
 from georeference.models import (
     GeoreferenceSession, GCP, GCPGroup,
@@ -40,6 +41,7 @@ class Command(BaseCommand):
                 SplitSession,
                 Segmentation,
                 SplitDocumentLink,
+                Layer,
             ]
 
             for model in model_list:
