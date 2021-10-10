@@ -54,7 +54,8 @@ class Segmentation(models.Model):
 
     def save_from_cutlines(self, cutlines, document):
         """
-        This is the preferred method for creating an instance of this model.
+        This is the preferred method for creating an instance of this model if the document
+        needs to be split in the future.
         """
 
         s = Splitter(image_file=document.doc_file.path)
@@ -67,6 +68,16 @@ class Segmentation(models.Model):
         segmentation.save()
 
         return segmentation
+    
+    def save_without_split(self, document):
+        """
+        This is the preferred method for creating an instance of this model if the document
+        does not need to be split.
+        """
+
+        segmentation, created = Segmentation.objects.get_or_create(document=document)
+        segmentation.no_split_needed = True
+        segmentation.save()
 
 class SplitSession(models.Model):
 
@@ -105,6 +116,13 @@ class SplitSession(models.Model):
         self.document.tkeywords.add(tk.processing)
 
         segmentation = Segmentation.objects.get(document=self.document)
+
+        if segmentation.no_split_needed is True:
+            self.document.tkeywords.remove(tk.unprepared)
+            self.document.tkeywords.add(tk.prepared)
+            self.no_split_needed = True
+            return
+
         self.segments_used = segmentation.segments
         self.cutlines_used = segmentation.cutlines
         self.no_split_needed = False

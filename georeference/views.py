@@ -37,7 +37,7 @@ from georeference.tasks import (
     georeference_document_as_task,
     trim_layer_as_task,
 )
-from .models import GCPGroup, Segmentation, SplitDocumentLink
+from .models import GCPGroup, Segmentation, SplitDocumentLink, SplitSession
 from .splitter import Splitter
 from .georeferencer import Georeferencer, get_path_variant
 from .utils import (
@@ -266,6 +266,18 @@ class SplitView(View):
 
             redirect_url = reverse('overview_view', kwargs={'objectid': docid})
 
+            return JsonResponse({"success":True, "redirect_to": redirect_url})
+
+        elif operation == "no_split":
+
+            Segmentation().save_without_split(document)
+            ss = SplitSession.objects.create(
+                document=document,
+                user=request.user,
+            )
+            ss.run()
+
+            redirect_url = reverse("georeference_view", kwargs={'docid': docid })
             return JsonResponse({"success":True, "redirect_to": redirect_url})
 
 
