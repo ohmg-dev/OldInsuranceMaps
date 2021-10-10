@@ -43,6 +43,8 @@
   export let INCOMING_DIVISIONS;
   export let INCOMING_CUTLINES;
 
+  console.log(DOC_URL)
+
   let polygonCount = 0;
   let showPreview = true;
 
@@ -85,7 +87,7 @@
       });
 
       this.map = new Map({
-        target: 'map',
+        target: 'doc-viewer',
         view: new View({
           projection: projection,
           center: mapCenter,
@@ -178,7 +180,7 @@
       });
 
 
-      let mapEl = document.getElementById('map');
+      let mapEl = document.getElementById('doc-viewer');
       self.modifyInteraction.on(['modifystart', 'modifyend'], function (evt) {
         mapEl.style.cursor = evt.type === 'modifystart' ? 'grabbing' : 'grab';
       });
@@ -242,6 +244,7 @@
         tempList.push(event.feature.getGeometry().getCoordinates())
       };
       cutLines = tempList;
+      previewSplit()
     }
   }
 
@@ -253,7 +256,7 @@
 
   $: {
     if (iface != null) {
-      let mapEl = document.getElementById('map');
+      let mapEl = document.getElementById('doc-viewer');
       // switch interactions based on the radio buttons
       if (currentInteraction == "draw") {
         iface.drawInteraction.setActive(true);
@@ -286,55 +289,40 @@
     }
   }
 
-  $: {
+  function noSplitNeeded() { processCutlines("no_split") };
+  function previewSplit() { if ( cutLines.length > 0) { processCutlines("preview") } };
+  function runSplit() { processCutlines("submit") };
 
-    // triggered by any change in the cutLines array, new polygons are acquired
-    // here and fed to the preview layer for live update.
-    if (cutLines.length > 0) {
-      let data = JSON.stringify({"lines": cutLines, "operation": "preview"});
-      fetch(SUBMIT_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json;charset=utf-8',
-            'X-CSRFToken': CSRFTOKEN,
-          },
-          body: data,
-        })
-        .then(response => response.json())
-        .then(result => {
-          if (result['polygons'].length > 1) {
-            iface.refreshPreviewLayer(result['polygons'])
-          }
-        });
-    }
-  }
+  function processCutlines(operation) {
 
-  function runProcessing() {
-    if (cutLines.length > 0) {
-      let data = JSON.stringify({"lines": cutLines, "operation": "submit"});
-      fetch(SUBMIT_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json;charset=utf-8',
-            'X-CSRFToken': CSRFTOKEN,
-          },
-          body: data,
-        })
-        .then(response => response.json())
-        .then(result => {
+    let data = JSON.stringify({"lines": cutLines, "operation": operation });
+
+    fetch(SUBMIT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8',
+          'X-CSRFToken': CSRFTOKEN,
+        },
+        body: data,
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (operation == "submit" || operation == "no_split") {
           window.location.href = result['redirect_to'];
-        });
-    }
+        } else {
+          iface.refreshPreviewLayer(result['polygons'])
+        }
+      });
   }
 
 </script>
 
 <svelte:window on:keydown={handleKeydown}/>
 
-<div id="interface" class="main">
-  <div class="tb tb-top">
+<div class="svelte-component-main">
+  <nav id="hamnav">
     <div id="interaction-options" class="tb-top-item">
-    <button title="reset interface" on:click={iface.reset}><i id="fs-icon" class="fa fa-refresh" /></button>
+    
     <label>
       <input type=radio bind:group={currentInteraction} value="draw" checked>
       Draw
@@ -352,56 +340,15 @@
             {#if polygonCount > 1}
             <em>{polygonCount} {polygonCount === 1 ? 'part' : 'parts'} will be made</em>
             {/if}
-            <button on:click={runProcessing} disabled="{polygonCount <= 1 }">Done</button>
+            <button on:click={runSplit} disabled="{polygonCount <= 1 }">Split!</button>
+            <button on:click={noSplitNeeded} disabled="{polygonCount > 1 }">Don't Split</button>
+            <button title="reset interface" on:click={iface.reset}><i id="fs-icon" class="fa fa-refresh" /></button>
     </div>
+  </nav>
+  <div class="map-container" style="border-top: 1.5px solid rgb(150, 150, 150)">
+      <div id="doc-viewer" class="map-item rounded-bottom"></div>
   </div>
-  <div class="map-container">
-    <div id="zoom-control"> </div>
-    <div id="mouse-position" ></div>
-      <div id="map"></div>
-  </div>
-  <div class="tb tb-bottom">
-  </div>
-  </div>
+</div>
 
 <style>
-
-  button {
-    background: rgba(0, 60, 136, 0.7);
-        color: white;
-  }
-
-  button:disabled {
-    background:#6f6f6f;
-  }
-
-    .tb {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        background: white;
-        height: 2em;
-    }
-
-    .tb-top {
-        justify-content: space-between;
-    }
-
-    .tb-top-item {}
-
-    .tb-bottom {
-        justify-content: center;
-    }
-
-  #map {
-    height: 700px;
-    background: url('../static/img/sandpaper-bg-vlite.jpg')
-  }
-
-  @media (min-width: 640px) {
-
-  }
-
-
-
 </style>

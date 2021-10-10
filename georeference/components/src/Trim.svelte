@@ -294,8 +294,8 @@
   
   </script>
   
-  <div id="interface" class="main">
-    <div class="tb tb-top">
+  <div class="svelte-component-main">
+    <nav>
       <div id="interaction-options" class="tb-top-item">
       </div>
       <div class="tb-top-item"><em>{currentTxt}</em></div>
@@ -314,120 +314,11 @@
         {/each}
       </select>
       </div>
-    </div>
+    </nav>
     <div class="map-container">
-      <div id="map-viewer"></div>
-    </div>
-    <div class="tb tb-bottom">
-      <div class="tb-bottom-item"></div>
+      <div id="map-viewer" class="map-item rounded-bottom"></div>
     </div>
   </div>
   
-  <style>
-  
-  .main {
-    height: 700px;
-    padding: 0;
-  }
-  
-  .tb {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    background: white;
-    height: 2em;
-  }
-  
-  .tb button {
-    padding: 0;
-    height: 2em;
-  }
-  
-  .tb button:disabled {
-    color: grey;
-  }
-  
-  .tb-top {
-    justify-content: space-between;
-  }
-  
-  .tb-top-item {}
-  
-  .tb-bottom {
-    justify-content: space-between;
-  }
-  
-  .tb-bottom-item {}
-  
-  .map-container {
-    display: flex;
-    height: calc(100% - 4em);
-    justify-content: space-between;
-  }
-  
-  #map-viewer {
-    width: 100%;
-    height: 100%;
-  }
-  
-  /* pure css loading bar */
-    /* from https://loading.io/css/ */
-    .lds-ellipsis {
-      display: inline-block;
-      position: absolute;
-    right: 25px;
-      width: 80px;
-      height: 80px;
-    }
-    .lds-ellipsis div {
-      position: absolute;
-      top: 33px;
-      width: 13px;
-      height: 13px;
-      border-radius: 50%;
-      background: #000;
-      animation-timing-function: cubic-bezier(0, 1, 1, 0);
-    }
-    .lds-ellipsis div:nth-child(1) {
-      left: 8px;
-      animation: lds-ellipsis1 0.6s infinite;
-    }
-    .lds-ellipsis div:nth-child(2) {
-      left: 8px;
-      animation: lds-ellipsis2 0.6s infinite;
-    }
-    .lds-ellipsis div:nth-child(3) {
-      left: 32px;
-      animation: lds-ellipsis2 0.6s infinite;
-    }
-    .lds-ellipsis div:nth-child(4) {
-      left: 56px;
-      animation: lds-ellipsis3 0.6s infinite;
-    }
-    @keyframes lds-ellipsis1 {
-      0% {
-        transform: scale(0);
-      }
-      100% {
-        transform: scale(1);
-      }
-    }
-    @keyframes lds-ellipsis3 {
-      0% {
-        transform: scale(1);
-      }
-      100% {
-        transform: scale(0);
-      }
-      }
-      @keyframes lds-ellipsis2 {
-      0% {
-        transform: translate(0, 0);
-      }
-      100% {
-        transform: translate(24px, 0);
-      }
-    }
-  
-  </style>
-  
+<style>
+</style>

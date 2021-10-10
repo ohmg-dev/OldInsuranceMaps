@@ -8,8 +8,6 @@ export let SPLIT_URL;
 export let IS_GEOREFERENCED;
 export let GEOREFERENCE_URL;
 
-
-
 </script>
 
 <h1>{DOC_TITLE}</h1>

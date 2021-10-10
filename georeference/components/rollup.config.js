@@ -30,7 +30,7 @@ function serve() {
 
 function componentExportDetails(componentName) {
 	return {
-    input: `src/main-${componentName.toLowerCase()}.js`,
+    input: `src/${componentName.toLowerCase()}-main.js`,
 		output: {
 			sourcemap: true,
 			format: 'iife',

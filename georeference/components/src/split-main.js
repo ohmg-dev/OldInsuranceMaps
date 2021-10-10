@@ -1,4 +1,7 @@
+
+import './css/shared.css';
 import Split from './Split.svelte';
+import './css/ol-overrides.css'
 
 const app = new Split({
 	target: document.getElementById("split-target"),
