@@ -182,8 +182,6 @@ try:
 except ImportError:
     pass
 
-MAPBOX_API_KEY = os.getenv('MAPBOX_API_KEY', '')
-
 # add templates based on installed apps. Doing so here allows local_settings.py
 # to determine this installation's apps
 
