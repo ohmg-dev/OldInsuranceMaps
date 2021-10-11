@@ -21,9 +21,6 @@ from geonode.thumbs.thumbnails import create_thumbnail
 
 from .georeferencer import Georeferencer
 from .splitter import Splitter
-from .utils import TK
-
-tk = TK()
 
 class SplitDocumentLink(DocumentResourceLink):
     """
@@ -112,14 +109,16 @@ class SplitSession(models.Model):
         metadata_only so that it no longer shows up in the search page lists.
         """
 
-        self.document.tkeywords.remove(tk.unprepared)
-        self.document.tkeywords.add(tk.processing)
+        tk_unprepared = ThesaurusKeyword.objects.get(about="unprepared")
+        tk_splitting = ThesaurusKeyword.objects.get(about="splitting")
+        tk_prepared = ThesaurusKeyword.objects.get(about="prepared")
+
+        self.document.tkeywords.remove(tk_unprepared)
 
         segmentation = Segmentation.objects.get(document=self.document)
 
         if segmentation.no_split_needed is True:
-            self.document.tkeywords.remove(tk.unprepared)
-            self.document.tkeywords.add(tk.prepared)
+            self.document.tkeywords.add(tk_prepared)
             self.no_split_needed = True
             return
 
@@ -161,12 +160,15 @@ class SplitSession(models.Model):
                 object_id=new_doc.pk,
             )
 
-            new_doc.tkeywords.add(tk.prepared)
+            new_doc.tkeywords.add(tk_prepared)
         
         if len(new_images) > 1:
             self.document.metadata_only = True
             self.document.save()
-        self.document.tkeywords.remove(tk.processing)
+        
+        self.document.tkeywords.remove(tk_splitting)
+        self.document.tkeywords.remove(tk_unprepared)
+
 
 class GeoreferenceSession(models.Model):
 
@@ -213,6 +215,13 @@ class GeoreferenceSession(models.Model):
 
     def run(self):
 
+        tk_prepared = ThesaurusKeyword.objects.get(about="prepared")
+        tk_georeferencing = ThesaurusKeyword.objects.get(about="georeferencing")
+        tk_georeferenced = ThesaurusKeyword.objects.get(about="georeferenced")
+
+        self.document.tkeywords.remove(tk_prepared)
+        self.document.tkeywords.add(tk_georeferencing)
+
         gcp_group = GCPGroup.objects.get(document=self.document)
 
         self.gcps_used = gcp_group.as_geojson
@@ -230,6 +239,9 @@ class GeoreferenceSession(models.Model):
             self.status = "failed"
             self.message = f"error initializing Georeferencer: {e.message}"
             self.save()
+            # revert to previous tkeyword state
+            self.document.tkeywords.add(tk_prepared)
+            self.document.tkeywords.remove(tk_georeferencing)
             return None
 
         out_path = g.georeference(
@@ -300,6 +312,11 @@ class GeoreferenceSession(models.Model):
         self.layer = layer
         self.status = "success"
         self.save()
+
+        self.document.tkeywords.remove(tk_georeferencing)
+        self.document.tkeywords.add(tk_georeferenced)
+        
+        layer.tkeywords.add(tk_georeferenced)
 
         return layer
 

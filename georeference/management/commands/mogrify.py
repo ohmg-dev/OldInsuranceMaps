@@ -73,5 +73,5 @@ class Command(BaseCommand):
                 )
                 c.set_default_permissions()
 
-                tk = ThesaurusKeyword.objects.get(about="Unprepared")
+                tk = ThesaurusKeyword.objects.get(about="unprepared")
                 c.tkeywords.add(tk)

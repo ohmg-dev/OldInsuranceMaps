@@ -292,6 +292,7 @@
   function noSplitNeeded() { processCutlines("no_split") };
   function previewSplit() { if ( cutLines.length > 0) { processCutlines("preview") } };
   function runSplit() { processCutlines("submit") };
+  function runCleanup() { processCutlines("cleanup") };
 
   function processCutlines(operation) {
 
@@ -309,15 +310,28 @@
       .then(result => {
         if (operation == "submit" || operation == "no_split") {
           window.location.href = result['redirect_to'];
-        } else {
+        } else if (operation == "preview") {
           iface.refreshPreviewLayer(result['polygons'])
         }
       });
   }
 
+function cleanupOnLeave (e) {
+  // e.preventDefault();
+  // // alert("hello!")
+  // alert("pausing")
+  // // e.returnValue = '';
+  // cleanupPreview()
+  // e.preventDefault();
+  // let choice = e.returnValue = "Are you sure you want to exit?";
+  // console.log("adoincgin")
+  // runCleanup()
+  return 
+}
+
 </script>
 
-<svelte:window on:keydown={handleKeydown}/>
+<svelte:window on:keydown={handleKeydown} on:beforeunload={cleanupOnLeave}/>
 
 <div class="svelte-component-main">
   <nav id="hamnav">
