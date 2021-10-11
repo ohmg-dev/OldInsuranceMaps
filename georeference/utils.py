@@ -21,15 +21,6 @@ def make_db_cursor():
 
     return conn.cursor()
 
-## ~~ Management of ThesaurusKeywords
-
-class TK(object):
-
-    processing = ThesaurusKeyword.objects.get(about="Currently Processing")
-    unprepared = ThesaurusKeyword.objects.get(about="Unprepared")
-    prepared = ThesaurusKeyword.objects.get(about="Prepared")
-    georeferenced = ThesaurusKeyword.objects.get(about="Georeferenced")
-
 ## ~~ IIIF support ~~
 
 def document_as_iiif_resource(document, iiif_server=False):
