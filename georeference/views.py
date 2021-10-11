@@ -242,6 +242,7 @@ class SplitView(View):
     def post(self, request, docid):
 
         document = _resolve_document(request, docid)
+
         image_path = document.doc_file.path
 
         body = json.loads(request.body)
@@ -369,7 +370,7 @@ class GeoreferenceView(View):
             "INCOMING_TRANSFORMATION": incoming_transformation,
             "MAPSERVER_ENDPOINT": settings.MAPSERVER_ENDPOINT,
             "MAPSERVER_LAYERNAME": preview_layer,
-            "MAPBOX_API_KEY": settings.MAPBOX_API_KEY,
+            "MAPBOX_API_KEY": settings.MAPBOX_ACCESS_TOKEN,
         }
 
         context_dict = {
