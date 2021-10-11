@@ -20,9 +20,7 @@
 {% block middle %}
 <div class="container" style="width: 100%">
     <h4>Georeferencing: {{ resource.title }}</h4>
-    <div style="border: 1px solid #b3b3b3;">
     {% display_svelte "Georeference.svelte" svelte_params %}
-    </div>
 </div>
 {% endblock %}
 
