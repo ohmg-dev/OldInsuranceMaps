@@ -2,10 +2,10 @@
 {% verbatim %}
 <div class="georeferencing-status">
     <div ng-if="item.detail_url.indexOf('/documents/') > -1">
-        <a ng-if="item.tkeywords.indexOf('unprepared') > -1" href="{{ item.site_url }}mogrify/split/{{ item.id }}">
+        <a ng-if="item.tkeywords.indexOf('unprepared') > -1" href="{{ item.site_url }}g/split/{{ item.id }}">
         {% endverbatim %}{% trans "prepare document for georeferencing" %}{% verbatim %} &rarr;
         </a>
-        <a ng-if="item.tkeywords.indexOf('prepared') > -1" href="{{ item.site_url }}mogrify/georeference/{{ item.id }}">
+        <a ng-if="item.tkeywords.indexOf('prepared') > -1" href="{{ item.site_url }}g/georeference/{{ item.id }}">
         {% endverbatim %}{% trans "georeference document" %}{% verbatim %} &rarr;
         </a>
         <p ng-if="item.tkeywords.indexOf('georeferencing') > -1">
@@ -15,14 +15,14 @@
         <em>{% endverbatim %}{% trans "splitting in progress..." %}{% verbatim %}</em>
         </p>
         <p ng-if="item.tkeywords.indexOf('georeferenced') > -1">
-        {% endverbatim %}{% trans "georeferencing complete" %}{% verbatim %} - <a href="{{ item.site_url }}mogrify/georeference/{{ item.id }}">edit</a>
+        {% endverbatim %}{% trans "georeferencing complete" %}{% verbatim %} - <a href="{{ item.site_url }}g/georeference/{{ item.id }}">edit</a>
         </p>
     </div>
     <div ng-if="item.detail_url.indexOf('/layers/') > -1">
         <p ng-if="item.tkeywords.indexOf('georeferenced') > -1">
-        {% endverbatim %}{% trans "from georeferenced document" %}{% verbatim %} - <a href="{{ item.site_url }}mogrify/trim/{{ item.alternate }}">trim layer</a>
+        {% endverbatim %}{% trans "from georeferenced document" %}{% verbatim %} - <a href="{{ item.site_url }}g/trim/{{ item.alternate }}">trim layer</a>
         </p>
-        <p ng-if="item.tkeywords.indexOf('complete') > -1" href="{{ item.site_url }}mogrify/georeference/{{ item.id }}">
+        <p ng-if="item.tkeywords.indexOf('complete') > -1" href="{{ item.site_url }}g/georeference/{{ item.id }}">
         {% endverbatim %}{% trans "from georeferenced document (trimmed)" %}{% verbatim %}
         </p>
     </div>
