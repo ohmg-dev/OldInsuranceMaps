@@ -42,7 +42,7 @@
   let mapView;
   let gcpList = [];
 
-  let currentTxt = "Hello!";
+  let currentTxt = "still under construction!";
 
   const gcpDefault = new Style({
     image: new RegularShape({
