@@ -7,14 +7,11 @@
 <div class="page-header">
   <h2>{% trans "About this Site" %}</h2>
 </div>
-<p>
-　　{% trans "LOC archive app ontent management system, a platform for the management and publication of geospatial data. It brings together mature and stable open-source software projects under a consistent and easy-to-use interface allowing non-specialized users to share data and create interactive maps." %}
-</p>
-<p>
-　　{% trans "Data management tools built into GeoNode allow for integrated creation of data, metadata, and map visualizations. Each dataset in the system can be shared publicly or restricted to allow access to only specific users. Social features like user profiles and commenting and rating systems allow for the development of communities around each platform to facilitate the use, management, and quality control of the data the GeoNode instance contains." %}
-</p>
-<p>
-　　{% trans "It is also designed to be a flexible platform that software developers can extend, modify or integrate against to meet requirements in their own applications." %}
-</p>
+<p>The base of this platform is <a href="https://geonode.org">GeoNode</a>, an open source geospatial content management system.</p>
+<p>Two distinct custom components have been added:</p>
+<ol>
+  <li>An interface and database configuration tailored specifically to the structure of this map series.</li>
+  <li>A suite of tools that allows users to split, trim, and georeference the maps.</li>
+</ol>
 
 {% endblock %}
