@@ -122,6 +122,8 @@ class SplitSession(models.Model):
             self.no_split_needed = True
             return
 
+        self.document.tkeywords.remove(tk_splitting)
+
         self.segments_used = segmentation.segments
         self.cutlines_used = segmentation.cutlines
         self.no_split_needed = False
@@ -161,11 +163,11 @@ class SplitSession(models.Model):
             )
 
             new_doc.tkeywords.add(tk_prepared)
-        
+
         if len(new_images) > 1:
             self.document.metadata_only = True
             self.document.save()
-        
+
         self.document.tkeywords.remove(tk_splitting)
         self.document.tkeywords.remove(tk_unprepared)
 
