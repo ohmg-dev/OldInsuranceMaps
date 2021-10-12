@@ -20,6 +20,29 @@
 {% block middle %}
 <div class="container" style="width: 100%">
     <h4>Georeferencing: {{ resource.title }}</h4>
+    <p><em><a href="#" data-toggle="collapse" data-target=".more-info">I don't know how to do this.</a></em></p>
+    <div class="more-info collapse" style="background:lightgray; border-radius:7px; padding:20px; margin-top:20px; margin-bottom:20px;">
+        <div class="row">
+            <div class="col-xs-12">
+                <p>
+                    Georeferencing is basically a point-and-click operation through which you will create "ground control points" (GCPs).
+                    A GCP links a point on the original map document with real-world latitude/longitude coordinates, as represented
+                    in the web map in the right-hand panel.
+                </p>
+                <p>
+                    To create a control point, click on a recognizable location on the map document on the left, and then click the
+                    corresponding location in the web map on the right. Once you have created a 
+                </p>
+            </div>
+            <div class="col-xs-12" style="text-align: center;">
+                <img height="300px" src="{% static 'img/georef-example-simple.jpg' %}" />
+                <p><em>Three GCPs have been added to this map.</em></p>
+            </div>
+            <div class="col-xs-12">
+                <p><em>add full description of interface controls here...</em>
+            </div>
+        </div>
+    </div>
     {% display_svelte "Georeference.svelte" svelte_params %}
 </div>
 {% endblock %}
