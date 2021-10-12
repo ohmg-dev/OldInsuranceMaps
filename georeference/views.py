@@ -265,7 +265,7 @@ class SplitView(View):
                 (docid, request.user.pk), queue="update"
             )
 
-            redirect_url = reverse('overview_view', kwargs={'objectid': docid})
+            redirect_url = "/documents"
 
             return JsonResponse({"success":True, "redirect_to": redirect_url})
 
@@ -300,7 +300,7 @@ class TrimView(View):
             "MAP_CENTER": map_center,
             "GEOSERVER_WMS": "http://localhost:8080/geoserver/ows/",
             "LAYER_ID": f"{layer.workspace}:{layer.name}",
-            "MAPBOX_API_KEY": settings.MAPBOX_API_KEY,
+            "MAPBOX_API_KEY": settings.MAPBOX_ACCESS_TOKEN,
         }
 
         context_dict = {
@@ -454,7 +454,7 @@ class GeoreferenceView(View):
 
             response["status"] = "success"
             response["message"] = "all good"
-            response["redirect_to"] = "/layers"
+            response["redirect_to"] = "/documents"
 
         return JsonResponse(response)
 
