@@ -5,7 +5,7 @@ import time
 import uuid
 import shutil
 import requests
-# from datetime import datetime
+from datetime import datetime
 
 from pygments import highlight
 from pygments.formatters.html import HtmlFormatter
@@ -20,7 +20,7 @@ from django.contrib.auth.models import Group
 from django.core.files import File
 from django.utils.safestring import mark_safe
 
-from geonode.base.models import Region, License, Link, resourcebase_post_save
+from geonode.base.models import Region, License, Link, ThesaurusKeyword
 from geonode.documents.models import (
     Document,
     pre_save_document,
@@ -80,9 +80,6 @@ class Sheet(models.Model):
 
             if fileset_info is None:
                 fileset_info = parsers.parse_fileset(fileset)
-            
-            sheet.sheet_no = fileset_info["sheet_number"]
-            sheet.iiif_service = fileset_info["iiif_service"]
 
             jp2_url = fileset_info["jp2_url"]
             if jp2_url is not None:
@@ -103,16 +100,21 @@ class Sheet(models.Model):
                 os.remove(tmp_path)
                 os.remove(jpg_path)
 
-            doc.save()
-
             sheet.document = doc
+            sheet.sheet_no = fileset_info["sheet_number"]
+            sheet.iiif_service = fileset_info["iiif_service"]
             sheet.save()
 
             doc.title = sheet.__str__()
+            doc.date = datetime(volume.year, 1, 1)
+            for r in volume.regions.all():
+                doc.regions.add(r)
             # set the detail_url with the same function that is used in search
             # result indexing. this must be done after the doc has been saved once.
             doc.detail_url = doc.get_absolute_url()
             doc.save()
+
+            doc.tkeywords.add(ThesaurusKeyword.objects.get(about="unprepared"))
 
         return sheet
 
