@@ -53,22 +53,17 @@ $: updateVolumeList(currentCity);
 </script>
 
 <main>
-	<div class="pane" style="test-align: left;">
+	<div class="pane">
 		<h1>Welcome</h1>
-		<p>This is an open platform for creating and viewing web map mosaics of historical fire insuance maps.</p>
-		<p>All of the maps are pulled directly from the Library of Congress <a href="https://www.loc.gov/collections/sanborn-maps/about-this-collection/">Sanborn Maps Collection</a>.</p>
-		<p>The base of this platform is <a href="https://geonode.org">GeoNode</a>, an open source geospatial content management system.</p>
-		<p>Two distinct custom components have been added:</p>
-		<ol>
-			<li>An interface and database configuration tailored specifically to the structure of this map series.</li>
-			<li>A suite of tools that allows users to split, trim, and georeference the maps.</li>
-		</ol>
-		<p><strong><em>This project only includes maps from Louisiana published through 1910, with a couple exceptions:
-			<ul>
-				<li>If only one volume was published for a community, it is included regardless of the year</li>
-				<li>Because if the city's disproportionate size, only the earliest year for New Orleans is included (1885)</li>
-			</ul>
-		</em></strong></p>
+		<p>This is an open platform for georeferencing and viewing Louisiana maps from
+			the Library of Congress <a href="https://www.loc.gov/collections/sanborn-maps/about-this-collection/">Sanborn Maps Collection</a>.</p>
+		<p>Currently, only maps made through 1910 are available, with two exceptions:</p>
+		<ul>
+			<li>If only one volume was published for a community, it will be included regardless of the year</li>
+			<li>Because if the city's disproportionate size, only the earliest year for New Orleans is included (1885)</li>
+		</ul>
+		<h3>To get started...</h3>
+		<p>Select a community at right &rarr;</p>
 	</div>
 	<div class="pane">
 		<div class="select-menus">
@@ -97,16 +92,19 @@ $: updateVolumeList(currentCity);
 					{#each volumes as volume}
 						
 						<li>
-							{#if parseInt(volume.year) > 1920}
+							{#if parseInt(volume.year) > 1910}
 								<span style="color:grey;">{volume.title}</span>
-							{:else if volume.started}
-								<a href="{volume.url}">{volume.title}</a>
-							{:else if USER_TYPE == "superuser"}
-								<a href="{volume.url}">{volume.title}</a>
-							{:else if USER_TYPE == "participant"}
-								{volume.title} <a href="{volume.url}">go!</a>
 							{:else}
-								<span style="color:grey;">{volume.title}</span>
+								{volume.title}
+								{#if volume.started}
+									<a href="{volume.docs_search_url}">view maps</a>
+								{:else if USER_TYPE == "superuser"}
+									<a href="{volume.url}">import</a>
+								{:else if USER_TYPE == "participant"}
+									<a href="{volume.docs_search_url}">view</a>
+								{:else}
+									<a href="{volume.docs_search_url}">view maps</a>
+								{/if}
 							{/if}
 						</li>
 					{/each}

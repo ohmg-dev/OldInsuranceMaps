@@ -172,7 +172,7 @@ class VolumeDetail(View):
             vol = Volume.objects.get(pk=volumeid)
         except Volume.DoesNotExist:
             i = Importer()
-            vol = i.import_volume(volumeid)
+            vol = i.import_volume(volumeid, import_sheets=True)
             if vol is None:
                 raise Http404
 

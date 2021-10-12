@@ -2,6 +2,7 @@ import uuid
 
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 from geonode.maps.models import Map
 from geonode.layers.models import Layer
@@ -158,12 +159,16 @@ class Importer(object):
 
             title = " | ".join([seg2, seg1, seg3])
 
+            d_facet = f"date__gte={d['year']}-01-01T00:00:00.000Z"
+            r_facet = f"region__name__in={l['city']}"
+
             vol = {
                 "identifier": i,
                 "title": title,
                 "year": d["year"],
                 "url": reverse("volume_summary", args=(i,)),
-                "started": Volume.objects.filter(identifier=i).exists()
+                "started": Volume.objects.filter(identifier=i).exists(),
+                "docs_search_url": f"{settings.SITEURL}documents/?{r_facet}&{d_facet}"
             }
             volumes.append(vol)
 
