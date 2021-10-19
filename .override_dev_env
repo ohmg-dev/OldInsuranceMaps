@@ -6,7 +6,7 @@ export SITEURL=http://localhost:8000/
 export ALLOWED_HOSTS="['localhost',]"
 
 export GEONODE_INSTANCE_NAME=geonode
-export DJANGO_SETTINGS_MODULE=ohmg.settings
+export DJANGO_SETTINGS_MODULE=loc_insurancemaps.settings
 export GEONODE_DATABASE=my_geonode
 export GEONODE_DATABASE_PASSWORD=geonode
 export GEONODE_GEODATABASE=my_geonode_data

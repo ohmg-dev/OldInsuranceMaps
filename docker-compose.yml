@@ -67,7 +67,7 @@ services:
     env_file:
       - .env
     environment:
-      UWSGI_CMD: uwsgi --ini /usr/src/ohmg/uwsgi.ini
+      UWSGI_CMD: uwsgi --ini /usr/src/loc_insurancemaps/uwsgi.ini
       IS_CELERY: 'False'
 
   celery:

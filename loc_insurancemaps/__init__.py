@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # -*- coding: utf-8 -*-
 #########################################################################
 #
@@ -21,11 +19,13 @@
 #########################################################################
 
 import os
-import sys
+
+__version__ = (0, 0, 1, 'beta', 0)
 
 
-if __name__ == "__main__":
-    from django.core.management import execute_from_command_line
+default_app_config = "loc_insurancemaps.apps.AppConfig"
 
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "loc_insurancemaps.settings")
-    execute_from_command_line(sys.argv)
+
+def get_version():
+    import loc_insurancemaps.version
+    return loc_insurancemaps.version.get_version(__version__)

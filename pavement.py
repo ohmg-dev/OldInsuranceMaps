@@ -51,9 +51,9 @@ from paver.easy import (
 from setuptools.command import easy_install
 
 try:
-    from ohmg.local_settings import *
+    from loc_insurancemaps.local_settings import *
 except ImportError:
-    from ohmg.settings import *
+    from loc_insurancemaps.settings import *
 
 try:
     from paver.path import pushd
@@ -1012,8 +1012,8 @@ def _reset():
         path=os.path.join(settings.PROJECT_ROOT, 'development.db')
     )
     )
-    sh("rm -rf ohmg/development.db")
-    sh("rm -rf ohmg/uploaded/*")
+    sh("rm -rf loc_insurancemaps/development.db")
+    sh("rm -rf loc_insurancemaps/uploaded/*")
     _install_data_dir()
 
 

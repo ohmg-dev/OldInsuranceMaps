@@ -95,7 +95,7 @@ def update(ctx):
     }
     try:
         current_allowed = ast.literal_eval(os.getenv('ALLOWED_HOSTS') or \
-                                           "['{public_fqdn}', '{public_host}', 'localhost', 'django', 'ohmg',]".format(**envs))
+                                           "['{public_fqdn}', '{public_host}', 'localhost', 'django', 'loc_insurancemaps',]".format(**envs))
     except ValueError:
         current_allowed = []
     current_allowed.extend(['{}'.format(pub_ip), '{}:{}'.format(pub_ip, pub_port)])
@@ -222,7 +222,7 @@ def fixtures(ctx):
 --settings={0}".format(_localsettings()), pty=True)
     ctx.run("python manage.py loaddata /tmp/default_site.json \
 --settings={0}".format(_localsettings()), pty=True)
-    ctx.run("python manage.py loaddata /usr/src/ohmg/fixtures/initial_data.json \
+    ctx.run("python manage.py loaddata /usr/src/loc_insurancemaps/fixtures/initial_data.json \
 --settings={0}".format(_localsettings()), pty=True)
     ctx.run("python manage.py set_all_layers_alternate \
 --settings={0}".format(_localsettings()), pty=True)
@@ -338,7 +338,7 @@ def _update_geodb_connstring():
 
 
 def _localsettings():
-    settings = os.getenv('DJANGO_SETTINGS_MODULE', 'ohmg.settings')
+    settings = os.getenv('DJANGO_SETTINGS_MODULE', 'loc_insurancemaps.settings')
     return settings
 
 

@@ -1,0 +1,285 @@
+{
+ "item": {
+  "_version_": 1682365588407582720,
+  "access_restricted": false,
+  "aka": [
+   "http://www.loc.gov/item/sanborn03267_002/",
+   "http://hdl.loc.gov/loc.gmd/g4014am.g032671892",
+   "http://www.loc.gov/resource/g4014am.g032671892/"
+  ],
+  "campaigns": [],
+  "created_published": [
+   "Sanborn Map Company, Jun 1892"
+  ],
+  "date": "1892-06",
+  "dates": [
+   {
+    "1892": "https://www.loc.gov/search/?c=100&dates=1892/1892&fo=json"
+   }
+  ],
+  "description": [
+   "Jun 1892.   3."
+  ],
+  "digital_id": [
+   "http://hdl.loc.gov/loc.gmd/g4014am.g032671892"
+  ],
+  "digitized": true,
+  "display_offsite": true,
+  "extract_timestamp": "2020-11-03T18:14:39.955Z",
+  "extract_urls": [
+   "http://www.loc.gov/item/sanborn03267_002#sanborn"
+  ],
+  "format": [
+   {
+    "map": "https://www.loc.gov/search/?c=100&fa=original_format:map&fo=json"
+   }
+  ],
+  "group": [
+   "sanborn"
+  ],
+  "hassegments": true,
+  "id": "http://www.loc.gov/item/sanborn03267_002/",
+  "image_url": [
+   "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0001.gif",
+   "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0001.gif#h=150&w=126",
+   "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0001/full/pct:12.5/0/default.jpg#h=956&w=806",
+   "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0001/full/pct:25/0/default.jpg#h=1912&w=1612"
+  ],
+  "index": 1,
+  "item": {
+   "created_published": "Sanborn Map Company, Jun 1892",
+   "digital_id": [
+    "https://www.loc.gov/item/sanborn03267_002",
+    "http://hdl.loc.gov/loc.gmd/g4014am.g032671892",
+    "https://www.loc.gov/resource/g4014am.g032671892"
+   ],
+   "format": "cartographic",
+   "language": "English",
+   "notes": [
+    " Jun 1892. ",
+    " 3. "
+   ],
+   "repository": "Library of Congress Geography and Map Division Washington, D.C. 20540-4650 USA",
+   "title": "Sanborn Fire Insurance Map from Alexandria, Rapides Parish, Louisiana."
+  },
+  "language": [
+   "english"
+  ],
+  "languages": [
+   {
+    "english": "https://www.loc.gov/search/?c=100&fa=language:english&fo=json"
+   }
+  ],
+  "location": [
+   "alexandria",
+   "louisiana",
+   "rapides parish"
+  ],
+  "locations": [
+   {
+    "alexandria": "https://www.loc.gov/search/?c=100&fa=location:alexandria&fo=json"
+   },
+   {
+    "louisiana": "https://www.loc.gov/search/?c=100&fa=location:louisiana&fo=json"
+   },
+   {
+    "rapides parish": "https://www.loc.gov/search/?c=100&fa=location:rapides+parish&fo=json"
+   }
+  ],
+  "mime_type": [
+   "image/gif",
+   "image/jpg",
+   "image/jp2"
+  ],
+  "notes": [
+   " Jun 1892. ",
+   " 3. "
+  ],
+  "number": [
+   "2018-04-24t09:37:54"
+  ],
+  "number_source_modified": [
+   "2018-04-24t09:37:54"
+  ],
+  "online_format": [
+   "image"
+  ],
+  "original_format": [
+   "map"
+  ],
+  "other_formats": [],
+  "other_title": [],
+  "partof": [
+   {
+    "count": 35041,
+    "title": "sanborn maps",
+    "url": "https://www.loc.gov/collections/sanborn-maps/?c=100&fo=json"
+   },
+   {
+    "count": 55481,
+    "title": "geography and map division",
+    "url": "https://www.loc.gov/search/?c=100&fa=partof:geography+and+map+division&fo=json"
+   },
+   {
+    "count": 515279,
+    "title": "american memory",
+    "url": "https://www.loc.gov/search/?c=100&fa=partof:american+memory&fo=json"
+   }
+  ],
+  "repository": [
+   "Library of Congress Geography and Map Division Washington, D.C. 20540-4650 USA"
+  ],
+  "resources": [
+   {
+    "files": 3,
+    "image": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0001.gif",
+    "url": "https://www.loc.gov/resource/g4014am.g032671892/"
+   }
+  ],
+  "rights": [
+   "<p>The maps in the Map Collections materials were either published prior to \r1922, produced by the United States government, or both (see catalogue \rrecords that accompany each map for information regarding date of \rpublication and source). The Library of Congress is providing access to \rthese materials for educational and research purposes and is not aware of \rany U.S. copyright protection (see Title 17 of the United States Code) or any \rother restrictions in the Map Collection materials.\r</p>\r<p>Note that the written permission of the copyright owners and/or other rights \rholders (such as publicity and/or privacy rights) is required for distribution, \rreproduction, or other use of protected items beyond that allowed by fair use \ror other statutory exemptions.  Responsibility for making an independent \rlegal assessment of an item and securing any necessary permissions \rultimately rests with persons desiring to use the item.\r</p>\r<p>Credit Line: Library of Congress, Geography and Map Division. </p>"
+  ],
+  "score": 8.573093,
+  "shelf_id": "http://www.loc.gov/item/sanborn03267_002/",
+  "site": [
+   "ammem"
+  ],
+  "timestamp": "2020-11-03T18:40:52.350Z",
+  "title": "Sanborn Fire Insurance Map from Alexandria, Rapides Parish, Louisiana.",
+  "type": [
+   "map"
+  ],
+  "url": "https://www.loc.gov/item/sanborn03267_002/"
+ },
+ "resources": [
+  {
+   "files": [
+    [
+     {
+      "height": 956,
+      "levels": 1,
+      "mimetype": "image/jpeg",
+      "url": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0001/full/pct:12.5/0/default.jpg",
+      "width": 806
+     },
+     {
+      "height": 1912,
+      "levels": 1,
+      "mimetype": "image/jpeg",
+      "url": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0001/full/pct:25/0/default.jpg",
+      "width": 1612
+     },
+     {
+      "height": 7650,
+      "info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0001/info.json",
+      "levels": 7,
+      "mimetype": "image/jp2",
+      "size": 8220628,
+      "url": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0001.jp2",
+      "width": 6450
+     },
+     {
+      "height": 150,
+      "levels": 1,
+      "mimetype": "image/gif",
+      "size": 12471,
+      "url": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0001.gif",
+      "width": 126
+     },
+     {
+      "height": null,
+      "levels": 1,
+      "mimetype": "image/tiff",
+      "size": 148029548,
+      "url": "https://tile.loc.gov/storage-services/master/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0001.tif",
+      "width": null
+     }
+    ],
+    [
+     {
+      "height": 956,
+      "levels": 1,
+      "mimetype": "image/jpeg",
+      "url": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0002/full/pct:12.5/0/default.jpg",
+      "width": 806
+     },
+     {
+      "height": 1912,
+      "levels": 1,
+      "mimetype": "image/jpeg",
+      "url": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0002/full/pct:25/0/default.jpg",
+      "width": 1612
+     },
+     {
+      "height": 7650,
+      "info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0002/info.json",
+      "levels": 7,
+      "mimetype": "image/jp2",
+      "size": 8705265,
+      "url": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0002.jp2",
+      "width": 6450
+     },
+     {
+      "height": 150,
+      "levels": 1,
+      "mimetype": "image/gif",
+      "size": 14128,
+      "url": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0002.gif",
+      "width": 126
+     },
+     {
+      "height": null,
+      "levels": 1,
+      "mimetype": "image/tiff",
+      "size": 148029548,
+      "url": "https://tile.loc.gov/storage-services/master/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0002.tif",
+      "width": null
+     }
+    ],
+    [
+     {
+      "height": 956,
+      "levels": 1,
+      "mimetype": "image/jpeg",
+      "url": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0003/full/pct:12.5/0/default.jpg",
+      "width": 806
+     },
+     {
+      "height": 1912,
+      "levels": 1,
+      "mimetype": "image/jpeg",
+      "url": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0003/full/pct:25/0/default.jpg",
+      "width": 1612
+     },
+     {
+      "height": 7650,
+      "info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0003/info.json",
+      "levels": 7,
+      "mimetype": "image/jp2",
+      "size": 9645111,
+      "url": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0003.jp2",
+      "width": 6450
+     },
+     {
+      "height": 150,
+      "levels": 1,
+      "mimetype": "image/gif",
+      "size": 15149,
+      "url": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0003.gif",
+      "width": 126
+     },
+     {
+      "height": null,
+      "levels": 1,
+      "mimetype": "image/tiff",
+      "size": 148029548,
+      "url": "https://tile.loc.gov/storage-services/master/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0003.tif",
+      "width": null
+     }
+    ]
+   ],
+   "image": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0001.gif",
+   "url": "https://www.loc.gov/resource/g4014am.g032671892/"
+  }
+ ]
+}

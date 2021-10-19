@@ -2,11 +2,11 @@
   hosts: production
   remote_user: ubuntu
   vars:
-    app_name: ohmg
+    app_name: loc_insurancemaps
     github_user: geonode
     server_name: 0.0.0.0
     deploy_user: ubuntu
-    code_repository: https://github.com/mradamcox/ohmg.git"
+    code_repository: https://github.com/mradamcox/loc_insurancemaps.git"
     branch_name: master
     virtualenv_dir: "/home/ubuntu/.venvs"
     site_url: "http://localhost:8000/" # The public url of the GeoNode instance

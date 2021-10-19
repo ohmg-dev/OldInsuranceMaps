@@ -1,4 +1,4 @@
-# Online Historical Map Georeferencer (OHMG)
+# Online Historical Map Georeferencer (loc_insurancemaps)
 
 This app was built from [geonode-project](https://github.com/GeoNode/geonode-project).
 

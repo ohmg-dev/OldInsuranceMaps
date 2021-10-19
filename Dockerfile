@@ -1,7 +1,7 @@
 FROM python:3.8.3-buster
 MAINTAINER GeoNode development team
 
-RUN mkdir -p /usr/src/ohmg
+RUN mkdir -p /usr/src/loc_insurancemaps
 
 # Enable postgresql-client-11.2
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ buster-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list
@@ -29,8 +29,8 @@ RUN printf "deb http://archive.debian.org/debian/ jessie main\ndeb-src http://ar
 RUN apt-get update && apt-get install -y geoip-bin
 
 # add bower and grunt command
-COPY . /usr/src/ohmg/
-WORKDIR /usr/src/ohmg
+COPY . /usr/src/loc_insurancemaps/
+WORKDIR /usr/src/loc_insurancemaps
 
 RUN apt-get update && apt-get -y install cron
 COPY monitoring-cron /etc/cron.d/monitoring-cron
@@ -41,8 +41,8 @@ RUN service cron start
 
 COPY wait-for-databases.sh /usr/bin/wait-for-databases
 RUN chmod +x /usr/bin/wait-for-databases
-RUN chmod +x /usr/src/ohmg/tasks.py \
-    && chmod +x /usr/src/ohmg/entrypoint.sh
+RUN chmod +x /usr/src/loc_insurancemaps/tasks.py \
+    && chmod +x /usr/src/loc_insurancemaps/entrypoint.sh
 
 # Install pip packages
 RUN pip install pip==20.1.1 \
@@ -58,4 +58,4 @@ RUN cd /usr/src; git clone https://github.com/GeoNode/geonode-contribs.git -b ma
 RUN cd /usr/src/geonode-contribs/geonode-logstash; pip install --upgrade -e . \
 	cd /usr/src/geonode-contribs/ldap; pip install --upgrade -e .
 
-ENTRYPOINT service cron restart && /usr/src/ohmg/entrypoint.sh
+ENTRYPOINT service cron restart && /usr/src/loc_insurancemaps/entrypoint.sh

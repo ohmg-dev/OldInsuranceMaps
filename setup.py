@@ -50,7 +50,7 @@ def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 setup(
-    name="ohmg",
+    name="loc_insurancemaps",
     version="0.1",
     author="",
     author_email="",
@@ -62,8 +62,8 @@ setup(
         'Development Status :: 1 - Planning',
     ],
     license="GPL",
-    keywords="ohmg geonode django",
-    url='https://github.com/mradamcox/ohmg',
+    keywords="loc_insurancemaps geonode django",
+    url='https://github.com/mradamcox/loc_insurancemaps',
     packages=find_packages(),
     install_requires=REQUIREMENTS,
     dependency_links=[

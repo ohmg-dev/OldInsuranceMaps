@@ -52,12 +52,12 @@ services:
       - db
       - elasticsearch
       - rabbitmq
-    command: celery worker --app=ohmg.celeryapp:app -B -l INFO
+    command: celery worker --app=loc_insurancemaps.celeryapp:app -B -l INFO
     volumes:
       - statics:/mnt/volumes/statics
       - geoserver-data-dir:/geoserver_data/data
     environment:
-      DJANGO_SETTINGS_MODULE: ohmg.settings
+      DJANGO_SETTINGS_MODULE: loc_insurancemaps.settings
       GEONODE_INSTANCE_NAME: geonode
       GEONODE_LB_HOST_IP:
       GEONODE_LB_PORT:
@@ -140,7 +140,7 @@ services:
       - statics:/mnt/volumes/statics
       - geoserver-data-dir:/geoserver_data/data
     environment:
-      DJANGO_SETTINGS_MODULE: ohmg.settings
+      DJANGO_SETTINGS_MODULE: loc_insurancemaps.settings
       GEONODE_INSTANCE_NAME: geonode
       GEONODE_LB_HOST_IP:
       GEONODE_LB_PORT:
