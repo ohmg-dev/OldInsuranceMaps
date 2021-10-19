@@ -300,7 +300,7 @@ class TrimView(View):
             "MAP_CENTER": map_center,
             "GEOSERVER_WMS": "http://localhost:8080/geoserver/ows/",
             "LAYER_ID": f"{layer.workspace}:{layer.name}",
-            "MAPBOX_API_KEY": settings.MAPBOX_ACCESS_TOKEN,
+            "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
         }
 
         context_dict = {
@@ -370,7 +370,7 @@ class GeoreferenceView(View):
             "INCOMING_TRANSFORMATION": incoming_transformation,
             "MAPSERVER_ENDPOINT": settings.MAPSERVER_ENDPOINT,
             "MAPSERVER_LAYERNAME": preview_layer,
-            "MAPBOX_API_KEY": settings.MAPBOX_ACCESS_TOKEN,
+            "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
         }
 
         context_dict = {
