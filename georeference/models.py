@@ -122,7 +122,7 @@ class SplitSession(models.Model):
             self.no_split_needed = True
             return
 
-        self.document.tkeywords.remove(tk_splitting)
+        self.document.tkeywords.add(tk_splitting)
 
         self.segments_used = segmentation.segments
         self.cutlines_used = segmentation.cutlines
