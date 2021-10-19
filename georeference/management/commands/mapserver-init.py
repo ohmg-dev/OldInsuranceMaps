@@ -1,9 +1,7 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
-from geonode.documents.models import Document
-
-from georeference.models import SplitSession, SplitLink
+from georeference.utils import initialize_mapfile
 
 class Command(BaseCommand):
     help = 'management commands for mapserver integration'
@@ -23,7 +21,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         if options["operation"] == "mapfile":
-            self.create_mapfile()
+            initialize_mapfile()
 
         if options["operation"] == "apache":
             pass
@@ -32,39 +30,3 @@ class Command(BaseCommand):
             #     exit()
 
             # self.create_nginx_config(options['mapserver-bin'])
-
-    def write_file(self, file_path, content):
-
-        with open(file_path, "w") as out:
-            out.write(content)
-        return file_path
-
-    def create_mapfile(self):
-
-        file_content = f"""MAP
-  NAME "Georeference Previews"
-  STATUS ON
-  EXTENT -2200000 -712631 3072800 3840000
-  UNITS METERS
-
-  WEB
-    METADATA
-      "wms_title"          "GeoNode Gereferencer Preview Server"  ##required
-      "wms_onlineresource" "{settings.MAPSERVER_ENDPOINT}?"   ##required
-      "wms_srs"            "EPSG:3857"  ##recommended
-      "wms_enable_request" "*"   ##necessary
-    END
-  END # Web
-
-  PROJECTION
-    "init=epsg:3857"   ##required
-  END
-
-  #
-  # Start of layer definitions
-  #
-
-END # Map File
-"""
-
-        self.write_file(settings.MAPSERVER_MAPFILE, file_content)

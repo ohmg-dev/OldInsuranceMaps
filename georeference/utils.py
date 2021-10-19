@@ -172,11 +172,49 @@ def create_layer_from_vrt(vrt_path, workspace="geonode"):
         "store": store,
     }
 
-## ~~ Mapserver layer manipulation functions ~~
+## ~~ Mapserver-related functions ~~
+
+def initialize_mapfile():
+
+    file_path = settings.MAPSERVER_MAPFILE
+
+    file_content = f"""MAP
+NAME "Georeference Previews"
+STATUS ON
+EXTENT -2200000 -712631 3072800 3840000
+UNITS METERS
+
+WEB
+METADATA
+    "wms_title"          "GeoNode Gereferencer Preview Server"  ##required
+    "wms_onlineresource" "{settings.MAPSERVER_ENDPOINT}?"   ##required
+    "wms_srs"            "EPSG:3857"  ##recommended
+    "wms_enable_request" "*"   ##necessary
+END
+END # Web
+
+PROJECTION
+"init=epsg:3857"   ##required
+END
+
+#
+# Start of layer definitions
+#
+
+END # Map File
+"""
+
+    with open(file_path, "w") as out:
+        out.write(file_content)
+
+    return file_path
 
 def mapserver_add_layer(file_path):
 
     mapfile = settings.MAPSERVER_MAPFILE
+
+    if not os.path.isfile(mapfile):
+        initialize_mapfile()
 
     layer_name = os.path.splitext(os.path.basename(file_path))[0]
     output = []
