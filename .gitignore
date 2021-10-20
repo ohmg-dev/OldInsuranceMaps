@@ -1,5 +1,7 @@
 loc_insurancemaps/fixtures/data
+loc_insurancemaps/cache
 mapserver.map
+
 
 _system-configs
 .env_local
