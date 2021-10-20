@@ -8,7 +8,6 @@ import os
 from os import access, R_OK
 from os.path import isfile
 
-from geonode.celery_app import app
 from celery.utils.log import get_task_logger
 
 from .renderers import (
