@@ -18,6 +18,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonRespons
 from django.utils.translation import ugettext as _
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.middleware import csrf
+from django.contrib.gis.geos import Polygon
 
 from geonode.base.utils import ManageResourceOwnerPermissions
 from geonode.utils import resolve_object, build_social_links
@@ -355,8 +356,14 @@ class GeoreferenceView(View):
 
         preview_layer = mapserver_add_layer(get_path_variant(document.doc_file.path, "VRT"))
 
-        # placeholders to be refactored/set elsewhere
-        map_center = [-10291143, 3673446] # could be replaced with region extent
+        ## start with a full world polygon and then compare the regions assigned to this
+        ## document with it. select the smallest region and pass its extent to the component
+        use_polygon = Polygon.from_bbox((-180, -90, 180, 90))
+        for region in document.regions.all():
+            polygon = Polygon.from_bbox(region.bbox[:4])
+            if polygon.area < use_polygon.area:
+                use_polygon = polygon
+        region_extent = use_polygon.extent
 
         svelte_params = {
             "IMG_WIDTH": width,
@@ -365,7 +372,7 @@ class GeoreferenceView(View):
             "CSRFTOKEN": csrf.get_token(request),
             "USERNAME": username,
             "SUBMIT_URL": georeference_url,
-            "MAP_CENTER": map_center,
+            "REGION_EXTENT": region_extent,
             "INCOMING_GCPS": incoming_gcps,
             "INCOMING_TRANSFORMATION": incoming_transformation,
             "MAPSERVER_ENDPOINT": settings.MAPSERVER_ENDPOINT,

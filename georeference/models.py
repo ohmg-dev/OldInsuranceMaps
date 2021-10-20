@@ -163,6 +163,8 @@ class SplitSession(models.Model):
             )
 
             new_doc.tkeywords.add(tk_prepared)
+            for r in self.document.regions.all():
+                new_doc.regions.add(r)
 
         if len(new_images) > 1:
             self.document.metadata_only = True

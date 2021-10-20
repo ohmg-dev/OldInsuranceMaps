@@ -21,6 +21,7 @@
   import VectorLayer from 'ol/layer/Vector';
 
   import Projection from 'ol/proj/Projection';
+  import {transformExtent} from 'ol/proj';
 
   import MousePosition from 'ol/control/MousePosition';
   import {createStringXY} from 'ol/coordinate';
@@ -40,14 +41,12 @@
   export let CSRFTOKEN;
   export let USERNAME;
   export let SUBMIT_URL;
-  export let MAP_CENTER;
+  export let REGION_EXTENT;
   export let INCOMING_GCPS;
   export let INCOMING_TRANSFORMATION;
   export let MAPSERVER_ENDPOINT;
 	export let MAPSERVER_LAYERNAME;
   export let MAPBOX_API_KEY;
-
-  if (!MAP_CENTER) { MAP_CENTER = [0,0] };
 
   let previewMode = "n/a";
 
@@ -244,7 +243,7 @@
     const targetElement = document.getElementById(elementId);
 
     // items needed by layers and map
-    // set the extent and projection with 0, 0 at the top left of the image
+    // set the extent and projection with 0, 0 at the **top left** of the image
     const docExtent = [0, -IMG_HEIGHT, IMG_WIDTH, 0];
     const docProjection = new Projection({
       units: 'pixels',
@@ -331,12 +330,7 @@
       const map = new Map({
         target: targetElement,
 				layers: [basemaps[0].layer, gcpLayer],
-        view: new View({
-          center: MAP_CENTER,
-          zoom: 16,
-          // not yet sure how to change the projection
-          // projection: getProjection('EPSG:42304'),
-        })
+        view: new View(),
       });
 
       // create interactions
@@ -403,7 +397,11 @@
 				listId += 1;
 			});
       previewMode = "transparent";
-		}
+      mapView.map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
+		} else {
+      const extent3857 = transformExtent(REGION_EXTENT, "EPSG:4326", "EPSG:3857");
+      mapView.map.getView().fit(extent3857);
+    }
     currentTransformation = (INCOMING_TRANSFORMATION ? INCOMING_TRANSFORMATION : "poly1")
 		syncGCPList();
 		activeGCP = gcpList.length + 1;
@@ -601,7 +599,7 @@
 
   function toggleFullscreen () {
     if (document.fullscreenElement == null) {
-      let promise = document.getElementById('interface').requestFullscreen();
+      let promise = document.getElementsByClassName('svelte-component-main')[0].requestFullscreen();
       document.getElementById("fs-icon").classList.remove("fa-arrows-alt");
       document.getElementById("fs-icon").classList.add("fa-times");
     } else {
@@ -773,8 +771,8 @@
         <span class="hidden-small">Note:</span>
         <input type="text" id="{noteInputElId}" style="height:30px; width:250px;" disabled={gcpList.length == 0} on:change={updateNote}>
       </label>
-    <button title="remove" on:click={removeActiveGCP}><i id="fs-icon" class="fa fa-trash" /></button>
-    <button title="clear all GCPs" on:click={loadIncomingGCPs}><i id="fs-icon" class="fa fa-refresh" /></button>
+    <button title="remove" on:click={removeActiveGCP}><i class="fa fa-trash" /></button>
+    <button title="clear all GCPs" on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
     </div>
     {/if}
     <div>
