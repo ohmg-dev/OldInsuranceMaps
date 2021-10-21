@@ -26,7 +26,7 @@ from django.views.generic import TemplateView
 from geonode.urls import urlpatterns
 from geonode.monitoring import register_url_event
 
-from .views import item_detail, SimpleAPI, VolumeDetail
+from .views import item_detail, SimpleAPI, VolumeDetail, HomePage
 
 urlpatterns += [
     path('lc/volume/<str:docdoi>/', item_detail, {"loc_type": "volume"}, name='volume_detail'),
@@ -38,10 +38,8 @@ urlpatterns += [
 if 'georeference' in settings.INSTALLED_APPS:
     urlpatterns += [url(r'^g/', include('georeference.urls'))]
 
-homepage = register_url_event()(TemplateView.as_view(template_name='site_index.html'))
+homepage = register_url_event()(HomePage.as_view())
 
 urlpatterns = [
-    url(r'^/?$',
-        homepage,
-        name='home'),
+    url(r'^/?$', homepage, name='home'),
  ] + urlpatterns

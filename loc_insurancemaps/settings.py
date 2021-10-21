@@ -61,7 +61,6 @@ INSTALLED_APPS += (
 
 TEMPLATES[0]['DIRS'].insert(0, os.path.join(LOCAL_ROOT, "templates"))
 STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "components", "public", "build"))
-TEMPLATES[0]['OPTIONS']['context_processors'].append('loc_insurancemaps.context_processors.lc_svelte_params')
 
 INSTALLED_APPS += ('georeference', )
 

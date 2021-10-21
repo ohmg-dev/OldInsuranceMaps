@@ -29,6 +29,7 @@ from geonode.monitoring.models import EventType
 from .models import Volume, Sheet
 from .utils import parsers
 from .utils.importer import Importer
+from .utils.enumerations import STATE_CHOICES
 from .api import APIConnection
 
 logger = logging.getLogger(__name__)
@@ -41,6 +42,15 @@ _PERMISSION_MSG_MODIFY = _("You are not permitted to modify this document")
 _PERMISSION_MSG_METADATA = _(
     "You are not permitted to modify this document's metadata")
 _PERMISSION_MSG_VIEW = _("You are not permitted to view this document")
+
+def get_user_type(user):
+    if user.is_superuser:
+        user_type = "superuser"
+    elif user.is_authenticated:
+        user_type = "participant"
+    else:
+        user_type = "anonymous"
+    return user_type
 
 def _resolve_item(request, docdoi, loc_type=None, **kwargs):
 
@@ -163,6 +173,24 @@ def item_detail(request, docdoi, loc_type=None):
         request,
         template,
         context=context_dict)
+
+class HomePage(View):
+
+    def get(self, request):
+
+        context_dict = {
+            "svelte_params": {
+                "STATE_CHOICES": STATE_CHOICES,
+                "CITY_QUERY_URL": reverse('lc_api'),
+                'USER_TYPE': get_user_type(request.user),
+            }
+        }
+
+        return render(
+            request,
+            "site_index.html",
+            context=context_dict
+        )
 
 class VolumeDetail(View):
 
