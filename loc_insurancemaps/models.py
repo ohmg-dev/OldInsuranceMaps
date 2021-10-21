@@ -30,7 +30,11 @@ from geonode.documents.models import (
 from geonode.maps.signals import map_changed_signal
 from geonode.people.models import Profile
 
-from .utils import enumerations, parsers
+from .utils import LOCParser
+from .enumerations import (
+    STATE_CHOICES,
+    MONTH_CHOICES,
+)
 from .renderers import convert_img_format
 
 def format_json_display(data):
@@ -83,7 +87,7 @@ class Sheet(models.Model):
             doc.owner = Profile.objects.get(username="admin")
 
             if fileset_info is None:
-                fileset_info = parsers.parse_fileset(fileset)
+                fileset_info = LOCParser().parse_fileset(fileset)
 
             jp2_url = fileset_info["jp2_url"]
             if jp2_url is not None:
@@ -125,12 +129,14 @@ class Sheet(models.Model):
 
 class Volume(models.Model):
 
+    YEAR_CHOICES = [(r,r) for r in range(1867, 1970)]
+
     identifier = models.CharField(max_length=100, primary_key=True)
     city = models.CharField(max_length=100)
     county_equivalent = models.CharField(max_length=100, null=True, blank=True)
-    state = models.CharField(max_length=50, choices=enumerations.STATE_CHOICES)
-    year = models.IntegerField(choices=enumerations.YEAR_CHOICES)
-    month = models.CharField(max_length=10, choices=enumerations.MONTH_CHOICES,
+    state = models.CharField(max_length=50, choices=STATE_CHOICES)
+    year = models.IntegerField(choices=YEAR_CHOICES)
+    month = models.CharField(max_length=10, choices=MONTH_CHOICES,
         null=True, blank=True)
     volume_no = models.CharField(max_length=5, null=True, blank=True)
     lc_item = JSONField(default=None, null=True, blank=True)
@@ -166,12 +172,12 @@ class Volume(models.Model):
     
     def create_from_lc_json(self, item):
 
-        identifier = parsers.parse_item_identifier(item)
+        identifier = LOCParser().parse_item_identifier(item)
 
-        location_info = parsers.parse_location_info(item, include_regions=True)
-        date_info = parsers.parse_date_info(item)
-        volume_no = parsers.parse_volume_number(item)
-        sheet_ct = parsers.parse_sheet_count(item)
+        location_info = LOCParser().parse_location_info(item, include_regions=True)
+        date_info = LOCParser().parse_date_info(item)
+        volume_no = LOCParser().parse_volume_number(item)
+        sheet_ct = LOCParser().parse_sheet_count(item)
 
         with transaction.atomic():
 

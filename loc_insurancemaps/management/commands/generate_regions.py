@@ -9,11 +9,6 @@ from django.core.management.base import BaseCommand, CommandError
 
 from geonode.base.models import Region
 
-from loc_insurancemaps.api import APIConnection
-from loc_insurancemaps.utils import parsers, enumerations
-from loc_insurancemaps.utils.importer import Importer
-from loc_insurancemaps.models import Volume
-
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
 
@@ -36,11 +31,11 @@ class Command(BaseCommand):
 
         appdir = os.path.dirname(os.path.dirname((os.path.dirname(__file__))))
         fixtures_dir = os.path.join(appdir, 'fixtures')
-        shp_dir = os.path.join(fixtures_dir, 'data')
+        shps = os.path.join(settings.LOCAL_ROOT, "reference_data", "shapefiles")
 
-        shp_state = os.path.join(shp_dir, "cb_2020_us_state_500k", "cb_2020_us_state_500k.shp")
-        shp_county = os.path.join(shp_dir, "cb_2020_us_county_500k", "cb_2020_us_county_500k.shp")
-        shp_city = os.path.join(shp_dir, "cb_2020_us_place_500k", "cb_2020_us_place_500k_updated.shp")
+        shp_state = os.path.join(shps, "cb_2020_us_state_500k", "cb_2020_us_state_500k.shp")
+        shp_county = os.path.join(shps, "cb_2020_us_county_500k", "cb_2020_us_county_500k.shp")
+        shp_city = os.path.join(shps, "cb_2020_us_place_500k", "cb_2020_us_place_500k_updated.shp")
 
         lyr_state = DataSource(shp_state)[0]
         lyr_county = DataSource(shp_county)[0]

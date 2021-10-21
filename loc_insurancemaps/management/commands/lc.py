@@ -5,10 +5,9 @@ from django.conf import settings
 from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 
-from loc_insurancemaps.api import APIConnection
-from loc_insurancemaps.utils import parsers, enumerations
-from loc_insurancemaps.utils.importer import Importer
-from loc_insurancemaps.models import Volume
+from loc_insurancemaps.api import Importer
+from loc_insurancemaps.enumerations import STATE_NAMES
+from loc_insurancemaps.utils import LOCParser
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -110,7 +109,7 @@ class Command(BaseCommand):
             locations = options['location']
             if options['state']:
                 statel = options['state'].lower()
-                if statel in enumerations.STATE_NAMES:
+                if statel in STATE_NAMES:
                     locations.append(statel)
                 else:
                     print("invalid state: " + options["state"])
@@ -127,8 +126,8 @@ class Command(BaseCommand):
 
             volumes = {}
             for item in lc.results:
-                loc_info = parsers.parse_location_info(item)
-                date_info = parsers.parse_date_info(item)
+                loc_info = LOCParser().parse_location_info(item)
+                date_info = LOCParser().parse_date_info(item)
 
                 info = {
                     "id": item['id'],

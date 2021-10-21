@@ -27,10 +27,9 @@ from geonode.monitoring import register_event
 from geonode.monitoring.models import EventType
 
 from .models import Volume, Sheet
-from .utils import parsers
-from .utils.importer import Importer
-from .utils.enumerations import STATE_CHOICES
-from .api import APIConnection
+from .utils import unsanitize_name
+from .enumerations import STATE_CHOICES
+from .api import Importer
 
 logger = logging.getLogger(__name__)
 
@@ -239,7 +238,7 @@ class SimpleAPI(View):
         ## return a list of all volumes in a city
         elif qtype == "volumes":
 
-            city = parsers.unsanitize_name(state, city)
+            city = unsanitize_name(state, city)
             volumes = i.get_volume_list_by_city(city, state)
             # for volume in volumes:
             #     volume["url"] = reverse("volume_summary", args=(volume["identifier"],))
