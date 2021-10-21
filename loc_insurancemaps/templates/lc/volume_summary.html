@@ -6,8 +6,10 @@
 {% load django_svelte %}
 
 {% block hero%}
+<div class="container-outer">
 <div class="container">
   {% display_svelte "Volume.svelte" svelte_params %}
+</div>
 </div>
 {% endblock hero %}
 

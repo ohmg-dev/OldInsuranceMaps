@@ -3,6 +3,30 @@ body {
   letter-spacing: -.3px;
 }
 
+/* footer a {
+	color: #028BAF !important;
+} */
+
+/* #wrap {
+	background: unset;
+} */
+
+.search-result-item {
+	padding: 0;
+	background: white;
+	border: 1px solid #777777;
+	border-radius: 5px;
+}
+
+.search-result-item img {
+	border-bottom-left-radius: 5px;
+}
+
+.container-outer {
+	/* margin-top: -11px; */
+	/* background: #d7cec7; */
+}
+
 /* pure css loading bar */
 	/* from https://loading.io/css/ */
 	.lds-ellipsis {

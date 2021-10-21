@@ -133,6 +133,9 @@ $: updateVolumeList(currentCity);
 
 	main a {
 		color: #1647a4;
+		color: #ff8f31;
+		color: #ff3e00;
+		color: #007363;
 	}
 
 	.pane {
@@ -155,18 +158,21 @@ $: updateVolumeList(currentCity);
 		margin-bottom: 20px;
 	}
 
-	h1, h2, h3 {
+	/* h1, h2, h3 {
 		color: #ff3e00;
-	}
+		color: #136f6f;
+		color: #373737;
+		color: #028BAF;
+	} */
 
 	h1 {
-		font-size: 4em;
-		font-weight: 100;
+		/* font-size: 4em;
+		font-weight: 100; */
 		text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
 	}
 
 	h2, h3 {
-		text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+		/* text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4); */
 	}
 
 	@media (min-width: 640px) {
