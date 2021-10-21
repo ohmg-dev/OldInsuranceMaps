@@ -92,7 +92,7 @@ $: updateVolumeList(currentCity);
 					{#each volumes as volume}
 						
 						<li>
-							{#if parseInt(volume.year) > 1910}
+							{#if volume.include == false}
 								<span style="color:grey;">{volume.title}</span>
 							{:else}
 								{volume.title}

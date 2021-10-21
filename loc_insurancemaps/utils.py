@@ -12,6 +12,32 @@ from .enumerations import (
     MONTH_LOOKUP,
 )
 
+def filter_volumes_for_use(volumes):
+    """
+    This is the primary filter function that is applied to a set of volumes
+    from a given city (it must be a full list) and determines whether each
+    one will be available in the current implementation.
+    """
+
+    ## set all to excluded first
+    for volume in volumes:
+        volume['include'] = False
+
+    ## now iterate and selectively enable based on some criteria
+    for n, v in enumerate(volumes):
+        ## use the first volume for the city regardless of date
+        if n == 0:
+            v['include'] = True
+        ## include the earliest New Orleans volumes
+        elif v['city'] == "New Orleans":
+            if v['year'] == 1885:
+                v['include'] = True
+        ## include all other volumes up to 1911
+        elif v['year'] < 1911:
+            v['include'] = True
+
+    return volumes
+
 def load_city_name_misspellings(state_name):
 
     data = {}

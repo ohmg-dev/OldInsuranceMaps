@@ -15,7 +15,7 @@ from geonode.layers.models import Layer
 from georeference.utils import create_layer_from_vrt
 
 from .models import Volume, Sheet
-from .utils import LOCParser
+from .utils import LOCParser, filter_volumes_for_use
 
 logger = logging.getLogger(__name__)
 
@@ -297,6 +297,7 @@ class Importer(object):
             vol = {
                 "identifier": i,
                 "title": title,
+                "city": l['city'],
                 "year": d["year"],
                 "url": reverse("volume_summary", args=(i,)),
                 "started": Volume.objects.filter(identifier=i).exists(),
@@ -304,7 +305,10 @@ class Importer(object):
             }
             volumes.append(vol)
 
-        return sorted(volumes, key=lambda k: k['title']) 
+        volumes = sorted(volumes, key=lambda k: k['title'])
+        volumes = filter_volumes_for_use(volumes)
+
+        return volumes
 
 
     def initialize_volume(self, volume):
