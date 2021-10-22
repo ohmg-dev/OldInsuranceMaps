@@ -32,7 +32,7 @@ def filter_volumes_for_use(volumes):
         elif v['city'] == "New Orleans":
             if v['year'] == 1885:
                 v['include'] = True
-        ## include all other volumes up to 1911
+        ## include all other volumes through 1910
         elif v['year'] < 1911:
             v['include'] = True
 

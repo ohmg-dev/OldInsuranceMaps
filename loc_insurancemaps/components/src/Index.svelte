@@ -9,6 +9,7 @@ let currentState = "louisiana";
 
 let cityOptions = [cityDefault];
 let currentCity;
+let currentCountyEq;
 let volumes = [];
 
 let loadingCities = false;
@@ -33,7 +34,6 @@ $: updateCityList(currentState);
 function updateVolumeList(city) {
 	let volumeUrl = `${CITY_QUERY_URL}?t=volumes&s=${currentState}&c=${city}`;
 	if (city != cityDefault && city != undefined)	{
-		console.log("getting volumes")
 		volumes = [];
 		loadingVolumes = true;
 		fetch(volumeUrl, {
@@ -41,7 +41,8 @@ function updateVolumeList(city) {
 		})
 		.then(response => response.json())
 		.then(result => {
-			volumes = result;
+			currentCountyEq = result["county_eq"]
+			volumes = result["volumes"];
 			loadingVolumes = false;
 		});
 	} else {
@@ -55,20 +56,23 @@ $: updateVolumeList(currentCity);
 <main>
 	<div class="pane">
 		<h1>Welcome</h1>
-		<p>This is an open platform for georeferencing and viewing Louisiana maps from
-			the Library of Congress <a href="https://www.loc.gov/collections/sanborn-maps/about-this-collection/">Sanborn Maps Collection</a>.</p>
-		<p>Currently, only maps made through 1910 are available, with two exceptions:</p>
-		<ul>
-			<li>If only one volume was published for a community, it will be included regardless of the year</li>
-			<li>Because if the city's disproportionate size, only the earliest year for New Orleans is included (1885)</li>
-		</ul>
+		<p>
+			This is an open platform for georeferencing and viewing Louisiana maps from
+			the Library of Congress <a href="https://www.loc.gov/collections/sanborn-maps/about-this-collection/">Sanborn Maps Collection</a>.
+		</p>
 		<h3>To get started...</h3>
 		<p>Select a community at right &rarr;</p>
+		<ul>
+			<li>If a volume has been started, you'll be able to view it status page.</li>
+			<li>If you have an account, you can start a new volume.</li>
+			<li>If a volume is greyed out <span style="color: grey">(like this)</span> then it
+				is not available for this project. <a href="/about#included-volumes" target="_blank">learn why <i class="fa fa-external-link"></i></a></li>
+		</ul>		
 	</div>
 	<div class="pane">
 		<div class="select-menus">
 			<div class="select-item">
-				<h3>Select a state</h3>
+				<h3>Select a state:</h3>
 				<select bind:value={currentState}>
 				{#each STATE_CHOICES as state}
 					<option value={state[0]} disabled={state[0] != "louisiana"}>{state[1]}</option>
@@ -87,7 +91,7 @@ $: updateVolumeList(currentCity);
 			</div>
 			<div class="select-item">
 				{#if volumes.length > 0 }
-				<h3>Volumes available for {currentCity}:</h3>
+				<h3>{currentCity}, {currentCountyEq}:</h3>
 					<ul class="volume-list">
 					{#each volumes as volume}
 						
@@ -97,15 +101,14 @@ $: updateVolumeList(currentCity);
 							{:else}
 								{volume.title}
 								{#if volume.started}
-									<a href="{volume.docs_search_url}">view documents</a>
-								{:else if USER_TYPE == "superuser"}
-									<a href="{volume.url}">import</a>
-								{:else if USER_TYPE == "participant"}
-									<a href="{volume.docs_search_url}">view</a>
+									<a href="{volume.url}">view progress</a>
+								{:else if USER_TYPE == "participant" || USER_TYPE == "superuser"}
+									<a href="{volume.url}">start!</a>
 								{:else}
-									<a href="{volume.docs_search_url}">view documents</a>
+									(not started)
 								{/if}
 							{/if}
+						
 						</li>
 					{/each}
 					</ul>
@@ -136,6 +139,7 @@ $: updateVolumeList(currentCity);
 		color: #ff8f31;
 		color: #ff3e00;
 		color: #007363;
+		color: #812525;
 	}
 
 	.pane {

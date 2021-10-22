@@ -3,9 +3,9 @@ body {
   letter-spacing: -.3px;
 }
 
-/* footer a {
-	color: #028BAF !important;
-} */
+footer a:hover {
+	color: #ffffff !important;
+}
 
 /* #wrap {
 	background: unset;
@@ -23,8 +23,8 @@ body {
 }
 
 .container-outer {
-	/* margin-top: -11px; */
-	/* background: #d7cec7; */
+	margin-top: -11px;
+	background: #EAE0C1;
 }
 
 /* pure css loading bar */

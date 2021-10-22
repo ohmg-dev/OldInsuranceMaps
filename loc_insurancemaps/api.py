@@ -272,10 +272,15 @@ class Importer(object):
             locations=[i for i in [state, city] if not i is None],
         )
 
+        response = {
+            "county_eq": None,
+            "volumes": []
+        }
+
         if self.verbose:
             print(f"{len(items)} items retrieved")
 
-        volumes = []
+        all_volumes = list()
         for item in items:
             i = LOCParser().parse_item_identifier(item)
             l = LOCParser().parse_location_info(item)
@@ -283,10 +288,12 @@ class Importer(object):
             n = LOCParser().parse_volume_number(item)
             s = LOCParser().parse_sheet_count(item)
 
+            response["county_eq"] = l['county_equivalent']
+
             seg1 = str(d['year'])
             if n:
                 seg1 += f" (vol. {n})"
-            seg2 = f"{l['city']}, {l['county_equivalent']}"
+            seg2 = f"{l['city']}"
             seg3 = f"{s} Sheet{'s' if s != 1 else ''}"
 
             title = " | ".join([seg2, seg1, seg3])
@@ -303,12 +310,14 @@ class Importer(object):
                 "started": Volume.objects.filter(identifier=i).exists(),
                 "docs_search_url": f"{settings.SITEURL}documents/?{r_facet}&{d_facet}"
             }
-            volumes.append(vol)
+            all_volumes.append(vol)
 
-        volumes = sorted(volumes, key=lambda k: k['title'])
-        volumes = filter_volumes_for_use(volumes)
+        all_volumes = sorted(all_volumes, key=lambda k: k['title'])
+        volumes = filter_volumes_for_use(all_volumes)
 
-        return volumes
+        response["volumes"] = volumes
+
+        return response
 
 
     def initialize_volume(self, volume):

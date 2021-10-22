@@ -47,7 +47,7 @@ export let VOLUME;
 	}
 
 	h1, h2, h3 {
-		color: #ff3e00;
+		/* color: #ff3e00; */
 	}
 
 	h1 {

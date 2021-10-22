@@ -5,7 +5,7 @@
 
 {% block body_outer %}
 <div class="page-header">
-  <h2>{% trans "About this Site" %}</h2>
+  <h2>{% trans "About this Project" %}</h2>
 </div>
 <p>The base of this platform is <a href="https://geonode.org">GeoNode</a>, an open source geospatial content management system.</p>
 <p>Two distinct custom components have been added:</p>
@@ -13,5 +13,19 @@
   <li>An interface and database configuration tailored specifically to the structure of this map series.</li>
   <li>A suite of tools that allows users to split, trim, and georeference the maps.</li>
 </ol>
+<a id="included-volumes"></a>
+<h2>Included Volumes</h2>
+<p>
+  To facilitate wide geographic and temporal coverages throughout Louisiana, while
+  also limiting the overall number of volumes to make disk space manageable, the
+  following criteria are applied to determine which volumes to include from the
+  Library of Congress.  
+</p>
+<ul>
+  <li>The earliest available edition for every community, regardless of date.</li>
+  <li>For New Orleans, <em>only</em> the earliest edition (1885).</li>
+  <li>For all other communities, all editions published through 1910.</li>
+</ul>
+<p>These parameters result in an overall total of _______</p>
 
 {% endblock %}
