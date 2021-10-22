@@ -21,6 +21,7 @@ from geonode.security.views import _perms_info_json
 from geonode.documents.models import Document
 from geonode.documents.views import _resolve_document
 from geonode.documents.enumerations import DOCUMENT_TYPE_MAP
+from geonode.groups.conf import settings as groups_settings
 from geonode.groups.models import GroupProfile
 from geonode.base.auth import get_or_create_token
 from geonode.monitoring import register_event
@@ -45,7 +46,7 @@ _PERMISSION_MSG_VIEW = _("You are not permitted to view this document")
 def get_user_type(user):
     if user.is_superuser:
         user_type = "superuser"
-    elif user.is_authenticated:
+    elif user.groups.filter(name=groups_settings.REGISTERED_MEMBERS_GROUP_NAME).exists():
         user_type = "participant"
     else:
         user_type = "anonymous"
