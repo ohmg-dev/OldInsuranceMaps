@@ -1,13 +1,14 @@
 from django.contrib import admin
 
 from modeltranslation.admin import TabbedTranslationAdmin
-from .models import Volume, Sheet
+from .models import Volume, Sheet, FullThumbnail
 
 from geonode.base.admin import ResourceBaseAdminForm
 from geonode.base.admin import metadata_batch_edit
 
 
 admin.site.register(Sheet)
+admin.site.register(FullThumbnail)
 
 class VolumeAdmin(admin.ModelAdmin):
     exclude = ('lc_item', 'lc_resources')

@@ -18,6 +18,7 @@ from django.urls import reverse
 from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import Group
 from django.core.files import File
+from django.core.files.base import ContentFile
 from django.utils.safestring import mark_safe
 
 from geonode.base.models import Region, License, Link, ThesaurusKeyword
@@ -35,7 +36,7 @@ from .enumerations import (
     STATE_CHOICES,
     MONTH_CHOICES,
 )
-from .renderers import convert_img_format
+from .renderers import convert_img_format, generate_full_thumbnail_content
 
 def format_json_display(data):
     """very nice from here:
@@ -56,6 +57,27 @@ def format_json_display(data):
     style = "<style>" + formatter.get_style_defs() + "</style><br/>"
 
     return mark_safe(style + response)
+
+class FullThumbnail(models.Model):
+
+    document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="full_thumbs")
+
+    def generate_thumbnail(self):
+
+        if self.image:
+            if os.path.isfile(self.image.path):
+                os.remove(self.image.path)
+
+        path = f"document-{self.document.uuid}-full-thumb.png"
+        content = generate_full_thumbnail_content(self.document)
+        self.image.save(path, ContentFile(content))
+
+    def save(self, *args, **kwargs):
+        if not self.image:
+            self.generate_thumbnail()        
+        super(FullThumbnail, self).save(*args, **kwargs)
+
 
 class Sheet(models.Model):
     """Sheet serves mainly as a middle model between Volume and Document.
