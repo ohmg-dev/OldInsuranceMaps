@@ -146,7 +146,6 @@
   // })
 
   const imageryLayer = new TileLayer({
-    opacity: .75,
     source: new XYZ({
       url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/{z}/{x}/{y}?access_token='+MAPBOX_API_KEY,
       tileSize: 512,
@@ -732,7 +731,7 @@
         <div>
           <select title="set preview mode" bind:value={previewMode} disabled={previewMode == "n/a"}>
             {#if previewMode == "n/a"}<option value="n/a" disabled>preview n/a</option>{/if}
-            <option value="none">preview hidden</option>
+            <option value="none">no preview</option>
             <option value="transparent">1/2 preview</option>
             <option value="full">full preview</option>
           </select>
