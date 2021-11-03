@@ -8,15 +8,33 @@ import os
 from os import access, R_OK
 from os.path import isfile
 
+from django.contrib.auth import get_user_model
+
+from celery import shared_task
 from celery.utils.log import get_task_logger
 
 from .renderers import (
     generate_collection_item_thumbnail_content,
-    get_image_content_from_url
+    get_image_content_from_url,
+    generate_loc_document_thumbnail
 )
 # from .models import MapCollectionItem, MapScan
+from .models import Volume
 
 logger = get_task_logger(__name__)
+
+@shared_task
+def import_sheets_as_task(volume_id, userid):
+
+    user = get_user_model().objects.get(pk=userid)
+    logger.debug(user.username)
+    volume = Volume.objects.get(pk=volume_id)
+    volume.import_sheets(user=user)
+
+@shared_task
+def create_document_thumbnail(document_id):
+    generate_loc_document_thumbnail(document_id)
+
 
 
 # @app.task(bind=True, queue='update')

@@ -64,33 +64,43 @@ def full_capitalize(in_str):
 
 class LOCParser(object):
 
-    def parse_item_identifier(self, item):
-        return item["id"].rstrip("/").split("/")[-1]
+    def __init__(self):
 
-    def parse_sheet_count(self, item):
-        sheet_ct = None
-        if len(item["resources"]) > 0:
-            sheet_ct = item["resources"][0]["files"]
+        # these are set when the json is passed to the appropriate methods.
+        self.item = None
+        self.fileset = None
 
-        return sheet_ct
+    def parse_item_identifier(self):
+        self.id = self.item["id"].rstrip("/").split("/")[-1]
 
-    def parse_location_info(self, item, include_regions=False):
+    def parse_sheet_count(self):
+        self.sheet_ct = None
+        if len(self.item["resources"]) > 0:
+            sheet_ct = self.item["resources"][0]["files"]
 
-        city, county_eq, state = None, None, None
+        self.sheet_ct = sheet_ct
+
+    def parse_location_info(self, include_regions=False):
+
+        self.city = None
+        self.county_eq = None
+        self.state = None
+        self.regions = []
+        self.extra_location_tags = []
 
         # collect all location tags into a list.
         # handle the fact that sometimes each location tag is a dictionary like
         # {'bexar county': 'https://www.loc.gov/search/?at=item&fa=location:bexar+county&fo=json'}
         # while other times each location tag is just a string.
         location_tags = []
-        for l in item['location']:
+        for l in self.item['location']:
             if isinstance(l, dict):
                 location_tags.append(list(l.keys())[0])
             else:
                 location_tags.append(l)
 
         # split the title of the item which has a lot of geographic info in it
-        title = item["item"]["title"].replace("Sanborn Fire Insurance Map from ", "").rstrip(".")
+        title = self.item["item"]["title"].replace("Sanborn Fire Insurance Map from ", "").rstrip(".")
         title_segs = [i.lstrip() for i in title.split(",")]
 
         used_tags = []
@@ -99,7 +109,7 @@ class LOCParser(object):
         state_names = [i[1] for i in STATE_CHOICES]
         state_seg = title_segs[-1]
         if state_seg in state_names:
-            state = state_seg.lower()
+            self.state = state_seg.lower()
             # remove the location tag for the state
             for lt in location_tags:
                 if lt == state_seg.lower():
@@ -111,11 +121,11 @@ class LOCParser(object):
         # get city
         location_tags = [i for i in location_tags if not i in used_tags]
         city_seg = title_segs[0]
-        misspellings = load_city_name_misspellings(state)
+        misspellings = load_city_name_misspellings(self.state)
         if city_seg in misspellings:
-            city = misspellings[city_seg]
+            self.city = misspellings[city_seg]
         else:
-            city = city_seg
+            self.city = city_seg
         for lt in location_tags:
             if lt == city_seg.lower():
                 used_tags.append(lt)
@@ -133,10 +143,10 @@ class LOCParser(object):
             for lt in location_tags:
                 for ct in c_terms:
                     if ct in lt.lower():
-                        county_eq = full_capitalize(lt)
+                        self.county_eq = full_capitalize(lt)
                         used_tags.append(lt)
         else:
-            county_eq = county_seg
+            self.county_eq = county_seg
             for lt in location_tags:
                 if lt in county_seg.lower():
                     used_tags.append(lt)
@@ -144,64 +154,99 @@ class LOCParser(object):
         # print leftover tags
         location_tags = [i for i in location_tags if not i in used_tags]
         if len(location_tags) > 0:
-            msg = f"WARNING: unparsed location tags - {item['id']} - {title} - {location_tags}"
+            msg = f"WARNING: unparsed location tags - {self.id} - {title} - {location_tags}"
             print(msg)
-        
-        info = {
-            "city": city,
-            "county_equivalent": county_eq,
-            "state": state,
-            "extra": location_tags,
-        }
+
+        self.extra_location_tags = location_tags
 
         ## collect region objects. This should be combined to a single db call, but you 
         ## can't combine __iexact and __in, so not sure how to do this...
         if include_regions is True:
-            regions = []
-            regions += list(Region.objects.filter(name__iexact=city))
-            regions += list(Region.objects.filter(name__iexact=county_eq))
-            regions += list(Region.objects.filter(name__iexact=state))
+            self.regions += list(Region.objects.filter(name__iexact=self.city))
+            self.regions += list(Region.objects.filter(name__iexact=self.county_eq))
+            self.regions += list(Region.objects.filter(name__iexact=self.state))
             for tag in location_tags:
-                regions += list(Region.objects.filter(name__iexact=tag))
-            info["regions"] = regions
+                self.regions += list(Region.objects.filter(name__iexact=tag))
 
-        return info
+    def parse_date_info(self):
 
-    def parse_date_info(self, item):
-
-        info = {"year": None, "month": None}
-
-        date_tag = item.get("date", None)
+        self.year = None
+        self.month = None
+        self.datetime = None
+        date_tag = self.item.get("date", None)
         if date_tag is None:
-            return info
+            return
 
         try:
             dt = datetime.strptime(date_tag, "%Y-%m")
             d = pytz.utc.localize(dt)
-            info["datetime"] = d
-            info["year"] = d.year
-            info["month"] = MONTH_LOOKUP[d.month]
+            self.datetime = d
+            self.year = d.year
+            self.month = MONTH_LOOKUP[d.month]
         except ValueError:
             try:
                 dt = datetime.strptime(date_tag, "%Y")
                 d = pytz.utc.localize(dt)
-                info["datetime"] = d
-                info["year"] = d.year
+                self.datetime = d
+                self.year = d.year
             except ValueError:
                 print("problem parsing date: " + date_tag)
 
-        return info
-
-    def parse_volume_number(self, item):
+    def parse_volume_number(self):
 
         volume_no = None
-        created_published = item["item"].get("created_published", "").lower()
+        created_published = self.item["item"].get("created_published", "").lower()
         if "vol." in created_published:
             a = created_published.split("vol.")[1]
             b = a.lstrip(" ").split(" ")
             volume_no = b[0].rstrip(",")
+
+        self.volume_no = volume_no
+    
+    def parse_manifest_url(self):
+        self.lc_manifest_url = f'{self.item["url"]}manifest.json'
+
+    def create_item_title(self):
+
+        seg1 = str(self.year)
+        if self.volume_no:
+            seg1 += f" (vol. {self.volume_no})"
+        seg2 = f"{self.city}"
+        seg3 = f"{self.sheet_ct} Sheet{'s' if self.sheet_ct != 1 else ''}"
+
+        self.title = " | ".join([seg2, seg1, seg3])
         
-        return volume_no
+
+    def parse_item(self, item, include_regions=False):
+
+        self.item = item
+        self.parse_item_identifier()
+        self.parse_location_info(include_regions=include_regions)
+        self.parse_volume_number()
+        self.parse_sheet_count()
+        self.parse_date_info()
+        self.parse_manifest_url()
+        self.create_item_title()
+
+        parsed_item = {
+            "id": self.id,
+            "volume_no": self.volume_no,
+            "sheet_ct": self.sheet_ct,
+            "year": self.year,
+            "datetime": self.datetime,
+            "month": self.month,
+            "city": self.city,
+            "county_eq": self.county_eq,
+            "state": self.state,
+            "regions": self.regions,
+            "extra_location_tags": self.extra_location_tags,
+            "title": self.title,
+            "lc_manifest_url": self.lc_manifest_url,
+        }
+
+        return parsed_item
+
+
 
     def parse_fileset(self, fileset):
         """this could be much improved to take better advantage of IIIF service

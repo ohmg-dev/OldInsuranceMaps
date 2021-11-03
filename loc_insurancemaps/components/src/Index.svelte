@@ -41,8 +41,10 @@ function updateVolumeList(city) {
 		})
 		.then(response => response.json())
 		.then(result => {
-			currentCountyEq = result["county_eq"]
-			volumes = result["volumes"];
+			if ( result.length > 0) {
+				currentCountyEq = result[0]["county_eq"]
+			}
+			volumes = result;
 			loadingVolumes = false;
 		});
 	} else {
@@ -75,8 +77,8 @@ $: updateVolumeList(currentCity);
 				<h3>Select a state:</h3>
 				<select bind:value={currentState}>
 				{#each STATE_CHOICES as state}
-					<option value={state[0]} disabled={state[0] != "louisiana"}>{state[1]}</option>
-					<!-- <option value={state[0]}>{state[1]}</option> -->
+					<!-- <option value={state[0]} disabled={state[0] != "louisiana"}>{state[1]}</option> -->
+					<option value={state[0]}>{state[1]}</option>
 				{/each}
 				</select>
 			</div>
@@ -94,7 +96,6 @@ $: updateVolumeList(currentCity);
 				<h3>{currentCity}, {currentCountyEq}:</h3>
 					<ul class="volume-list">
 					{#each volumes as volume}
-						
 						<li>
 							{#if volume.include == false}
 								<span style="color:grey;">{volume.title}</span>
@@ -220,7 +221,7 @@ $: updateVolumeList(currentCity);
 		width: 13px;
 		height: 13px;
 		border-radius: 50%;
-		background: #fff;
+		background: #000;
 		animation-timing-function: cubic-bezier(0, 1, 1, 0);
 	}
 	.lds-ellipsis div:nth-child(1) {

@@ -2,8 +2,9 @@
 {% load markdownify %}
 {% load i18n %}
 {% load base_tags %}
-
 {% load django_svelte %}
+
+{% block title %}{{ svelte_params.VOLUME.title }}{% endblock title %}
 
 {% block hero%}
 <div class="container-outer">

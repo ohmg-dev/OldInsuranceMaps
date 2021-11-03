@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 from geonode.documents.models import Document
 from geonode.maps.models import Map
 
-from loc_insurancemaps.models import Volume, Sheet
+from loc_insurancemaps.models import Volume, Sheet, FullThumbnail
 
 class Command(BaseCommand):
     help = 'delete model instances.'
@@ -30,7 +30,7 @@ class Command(BaseCommand):
             self.delete_volumes()
             self.delete_sheets()
             self.delete_maps()
-
+            self.delete_thumbs()
 
     def delete_documents(self):
         print(f"removing {Document.objects.all().count()} Document objects")
@@ -47,3 +47,7 @@ class Command(BaseCommand):
     def delete_maps(self):
         print(f"removing {Map.objects.all().count()} Map objects")
         Map.objects.all().delete()
+
+    def delete_thumbs(self):
+        print(f"removing {FullThumbnail.objects.all().count()} FullThumbnail objects")
+        FullThumbnail.objects.all().delete()

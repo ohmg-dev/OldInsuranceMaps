@@ -126,28 +126,27 @@ class Command(BaseCommand):
 
             volumes = {}
             for item in lc.results:
-                loc_info = LOCParser().parse_location_info(item)
-                date_info = LOCParser().parse_date_info(item)
+                parsed = LOCParser().parse_item(item)
 
                 info = {
-                    "id": item['id'],
-                    "city": loc_info['city'],
-                    "state": loc_info['state'],
-                    "county": loc_info['county'],
-                    "year": date_info['year'],
-                    "month": date_info['month'],
-                    "sheets": item['resources'][0]['files'],
+                    "id": parsed['id'],
+                    "city": parsed['city'],
+                    "state": parsed['state'],
+                    "county": parsed['county'],
+                    "year": parsed['year'],
+                    "month": parsed['month'],
+                    "sheets": parsed['sheet_ct'],
                 }
 
                 if options['state'] or options['city'] or options['county']:
                     if options['state']:
-                        if options['state'].lower() == loc_info['state'].lower():
+                        if options['state'].lower() == parsed['state'].lower():
                             volumes[item['id']] = info
                     if options['city']:
-                        if options['city'].lower() == loc_info['city'].lower():
+                        if options['city'].lower() == parsed['city'].lower():
                             volumes[item['id']] = info
                     if options['county']:
-                        if options['county'].lower() == loc_info['county'].lower():
+                        if options['county'].lower() == parsed['county'].lower():
                             volumes[item['id']] = info
                 else:
                     volumes[item['id']] = info

@@ -1,5 +1,6 @@
 loc_insurancemaps/reference_data/shapefiles
 loc_insurancemaps/cache
+loc_insurancemaps/temp
 mapserver.map
 
 

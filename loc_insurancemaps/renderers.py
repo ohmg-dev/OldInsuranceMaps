@@ -23,6 +23,96 @@ from io import BytesIO
 import requests
 from PIL import Image, ImageOps, ImageDraw, ImageFilter, ImageFont
 
+from django.conf import settings
+from django.core.files.base import ContentFile
+
+from geonode.base.thumb_utils import thumb_path
+from geonode.documents.models import Document
+
+def generate_full_thumbnail_content(document):
+
+    # size = (200, 200)
+    image_path = document.doc_file.path
+    full_image = Image.open(image_path)
+    # img = ImageOps.fit(img, size, Image.ANTIALIAS)
+    width, height = full_image.size
+    print(width, height)
+    # only resize if one of the dimensions is larger than 200
+    if width > 200 or height > 200:
+        print("resizing")
+        biggest_dim = max([width, height])
+        
+        ratio = 200/biggest_dim
+        print(ratio)
+        new_width, new_height = int(ratio*width), int(ratio*height)
+        new_size = (new_width, new_height)
+        print(new_size)
+
+        image = ImageOps.fit(full_image, new_size, Image.ANTIALIAS)
+    else:
+        image = full_image
+
+    output = BytesIO()
+    image.save(output, format='PNG')
+    content = output.getvalue()
+    output.close()
+
+    return content
+    # return ContentFile(content)
+
+
+def generate_loc_document_thumbnail(document_id, size=(200, 200)):
+
+    document = Document.objects.get(pk=document_id)
+    image_path = document.doc_file.path
+
+    image = Image.open(image_path)
+    image = ImageOps.fit(image, size, Image.ANTIALIAS)
+
+    # anticipate the existing image file location on disk
+    file_name = document.thumbnail_url.split("/")[-1]
+    full_path = os.path.join(settings.MEDIA_ROOT, thumb_path(file_name))
+
+    image.save(full_path, format="PNG")
+    return
+
+
+def generate_loc_document_thumbnail_content(document_id, size=(200, 200)):
+
+    document = Document.objects.get(pk=document_id)
+    image_path = document.doc_file.path
+
+    image = Image.open(image_path)
+    biggest_dim = max(image.size)
+    ratio = 200/biggest_dim
+    new_size = (int(ratio*image.size[0]), int(ratio*image.size[1]))
+    image = ImageOps.fit(image, new_size, Image.ANTIALIAS)
+
+    in_mem_file = BytesIO()
+    image.save(in_mem_file, format='PNG')
+    in_mem_file.seek(0)
+    image_bytes = in_mem_file.read()
+    import base64
+
+    base64_encoded_result_bytes = base64.b64encode(image_bytes)
+    base64_encoded_result_str = base64_encoded_result_bytes.decode('ascii')
+
+    # bytes_list = list(thumbnail_bytes)
+
+    # import json
+    
+    # thumbnail_bytes_str = json.dumps(bytes_list)
+
+    # thumbnail_bytes_64 = base64.b64encode(thumbnail_bytes_str).decode('ascii')
+    # print(type(thumbnail_bytes_64))
+    # print(len(thumbnail_bytes_64))
+
+    print(len(base64_encoded_result_str))
+
+    
+
+    return base64_encoded_result_str
+
 def generate_collection_item_thumbnail_content(image_path, size=(150, 180), number=None):
     """Generate custom thumbnail content for a collection item that shows
     the number of files associated with the item.

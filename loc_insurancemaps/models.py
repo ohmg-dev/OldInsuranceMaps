@@ -21,7 +21,9 @@ from django.core.files import File
 from django.core.files.base import ContentFile
 from django.utils.safestring import mark_safe
 
-from geonode.base.models import Region, License, Link, ThesaurusKeyword
+from geonode.base.models import Region, License, Link, ThesaurusKeyword, Thesaurus
+from geonode.documents.models import DocumentResourceLink
+from geonode.layers.models import Layer
 from geonode.documents.models import (
     Document,
     pre_save_document,
@@ -30,6 +32,8 @@ from geonode.documents.models import (
 )
 from geonode.maps.signals import map_changed_signal
 from geonode.people.models import Profile
+
+from georeference.models import SplitDocumentLink
 
 from .utils import LOCParser
 from .enumerations import (
@@ -93,25 +97,35 @@ class Sheet(models.Model):
     def __str__(self):
         return f"{self.volume.__str__()} p{self.sheet_no}"
 
-    def create_from_fileset(self, fileset, volume, fileset_info=None):
+    def create_from_fileset(self, fileset, volume, user=None):
 
         temp_img_dir = os.path.join(settings.CACHE_DIR, "img")
         if not os.path.isdir(temp_img_dir):
             os.mkdir(temp_img_dir)
 
         with transaction.atomic():
-            sheet = Sheet()
-            sheet.volume = volume
 
+            parsed = LOCParser().parse_fileset(fileset)
+
+            try:
+                sheet = Sheet.objects.get(
+                    volume=volume,
+                    sheet_no=parsed["sheet_number"]
+                )
+            except Sheet.DoesNotExist:
+                sheet = Sheet(
+                    volume=volume,
+                    sheet_no=parsed["sheet_number"]
+                )
             doc = Document()
 
             doc.uuid = str(uuid.uuid4())
-            doc.owner = Profile.objects.get(username="admin")
 
-            if fileset_info is None:
-                fileset_info = LOCParser().parse_fileset(fileset)
+            if user is None:
+                user = Profile.objects.get(username="admin")
+            doc.owner = user
 
-            jp2_url = fileset_info["jp2_url"]
+            jp2_url = parsed["jp2_url"]
             if jp2_url is not None:
                 tmp_path = os.path.join(temp_img_dir, jp2_url.split("/")[-1])
 
@@ -130,9 +144,11 @@ class Sheet(models.Model):
                 os.remove(tmp_path)
                 os.remove(jpg_path)
 
+                doc.save()
+
             sheet.document = doc
-            sheet.sheet_no = fileset_info["sheet_number"]
-            sheet.iiif_service = fileset_info["iiif_service"]
+            sheet.sheet_no = parsed["sheet_number"]
+            sheet.iiif_service = parsed["iiif_service"]
             sheet.save()
 
             doc.title = sheet.__str__()
@@ -146,12 +162,50 @@ class Sheet(models.Model):
 
             doc.tkeywords.add(ThesaurusKeyword.objects.get(about="unprepared"))
 
+            thumb = FullThumbnail(document=doc)
+            thumb.save()
+
         return sheet
+
+    @property
+    def real_documents(self):
+        """
+        This method is a necessary patch for the fact that once a
+        Document has been split by the georeferencing tools it will no
+        longer be properly associated with this Sheet. So a little extra
+        parsing must be done to make this a reliable way to get the one
+        or more documents in use for this Sheet.
+        """
+
+        sgt = Thesaurus.objects.get(identifier="sgt")
+        sgt_keywords = ThesaurusKeyword.objects.filter(thesaurus=sgt)
+
+        for tk in self.document.tkeywords.all():
+            if tk in sgt_keywords:
+                return [self.document]
+        
+        ## if tk is in the status dict set, then further checking needed
+        links = SplitDocumentLink.objects.filter(document=self.document)
+        documents = [Document.objects.get(pk=i.object_id) for i in links]
+        return documents
+
+    def to_json(self):
+        return {
+            "sheet_no": self.sheet_no,
+            "sheet_name": self.__str__(),
+            "doc_id": self.document.pk,
+        }
 
 
 class Volume(models.Model):
 
     YEAR_CHOICES = [(r,r) for r in range(1867, 1970)]
+    STATUS_CHOICES = (
+        ("not started", "not started"),
+        ("initializing...", "initializing..."),
+        ("started", "started"),
+        ("all georeferenced", "all georeferenced"),
+    )
 
     identifier = models.CharField(max_length=100, primary_key=True)
     city = models.CharField(max_length=100)
@@ -173,6 +227,7 @@ class Volume(models.Model):
     )
     extra_location_tags = JSONField(null=True, blank=True, default=list)
     sheet_ct = models.IntegerField(null=True, blank=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
 
     def __str__(self):
 
@@ -192,47 +247,143 @@ class Volume(models.Model):
 
     lc_resources_formatted.short_description = 'LC Resources'
     
-    def create_from_lc_json(self, item):
+    def create_from_lc_json(self, response):
 
-        identifier = LOCParser().parse_item_identifier(item)
-
-        location_info = LOCParser().parse_location_info(item, include_regions=True)
-        date_info = LOCParser().parse_date_info(item)
-        volume_no = LOCParser().parse_volume_number(item)
-        sheet_ct = LOCParser().parse_sheet_count(item)
+        parsed = LOCParser().parse_item(response['item'], include_regions=True)
 
         with transaction.atomic():
 
             try:
-                vol = Volume.objects.get(identifier=identifier)
+                vol = Volume.objects.get(identifier=parsed['id'])
             except Volume.DoesNotExist:
                 vol = Volume()
-                vol.identifier = identifier
+                vol.identifier = parsed['id']
 
-            vol.city = location_info['city']
-            vol.county_equivalent = location_info['county_equivalent']
-            vol.state = location_info['state']
-            vol.year = date_info['year']
-            vol.month = date_info['month']
-            vol.volume_no = volume_no
-            vol.extra_location_tags = location_info['extra']
+            vol.lc_item = response['item']
+            vol.lc_resources = response['resources']
 
-            vol.lc_manifest_url = f'{item["url"]}manifest.json'
-            vol.lc_item = item
+            vol.city = parsed['city']
+            vol.county_equivalent = parsed['county_eq']
+            vol.state = parsed['state']
+            vol.year = parsed['year']
+            vol.month = parsed['month']
+            vol.volume_no = parsed['volume_no']
+            vol.extra_location_tags = parsed['extra_location_tags']
 
-            vol.sheet_ct = sheet_ct
+            vol.lc_manifest_url = parsed["lc_manifest_url"]
+
+            vol.sheet_ct = parsed['sheet_ct']
 
             vol.save()
 
-            for r in location_info['regions']:
+            for r in parsed['regions']:
                 vol.regions.add(r)
 
         return vol
 
-    def to_json(self):
+    def import_sheets(self, user):
 
+        self.status = "initializing..."
+        self.save()
+
+        print("importing all sheeets")
+
+        try:
+            sheets = []
+            for fileset in self.lc_resources[0]['files']:
+                print("importing sheet...")
+                sheet = Sheet().create_from_fileset(fileset, self, user)
+                sheets.append(sheet)                
+        except Exception as e:
+            print(e)
+            self.status = "not started"
+            self.save()
+
+        self.status = "started"
+        self.save()
+        return sheets
+
+    @property
+    def sheets(self):
+        return Sheet.objects.filter(volume=self)
+    
+    @property
+    def sheets_json(self):
+        return [i.to_json() for i in self.sheets]
+    
+    @property
+    def documents_json(self):
+
+        sgt = Thesaurus.objects.get(identifier="sgt")
+        sgt_keywords = ThesaurusKeyword.objects.filter(thesaurus=sgt)
+
+        documents = []
+        for sheet in self.sheets:
+            documents += sheet.real_documents
+
+        sorted_items = {tk.about: [] for tk in sgt_keywords}
+        sorted_items['layers'] = []
+        layers = []
+        for document in documents:
+            try:
+                thumb = FullThumbnail.objects.get(document=document)
+            except FullThumbnail.DoesNotExist:
+                thumb = FullThumbnail(document=document)
+                thumb.save()
+
+            detail_url = reverse('document_detail', args=(document.id,))
+            split_url = reverse('split_view', args=(document.id,))
+            georeference_url = reverse('georeference_view', args=(document.id,))
+
+            doc_json = {
+                "id": document.pk,
+                "title": document.title,
+                "urls": {
+                    "detail": detail_url,
+                    "thumbnail": thumb.image.url,
+                    "split": split_url,
+                    "georeference": georeference_url,
+                }
+            }
+
+            for tk in document.tkeywords.all():
+                if tk in sgt_keywords:
+                    sorted_items[tk.about].append(doc_json)
+
+            ## must also collect layers resulting from georeferenced documents
+            if "georeferenced" in [tk.about for tk in document.tkeywords.all()]:
+                layer = None
+                links = DocumentResourceLink.objects.filter(document=document)
+                for link in links:
+                    obj = link.content_type.get_object_for_this_type(pk=link.object_id)
+                    if isinstance(obj, Layer):
+                        layer = obj
+                        break
+                if layer is not None:
+                    trim_url = reverse('trim_view', args=(layer.alternate,))
+                    detail_url = reverse('layer_detail', args=(layer.alternate,))
+                    layer_json = {
+                        "id": layer.pk,
+                        "title": layer.title,
+                        "urls": {
+                            "detail": detail_url,
+                            "thumbnail": layer.thumbnail_url,
+                            "georeference": georeference_url,
+                            "trim": trim_url,
+                        }
+                    }
+                    sorted_items["layers"].append(layer_json)
+
+        return sorted_items
+
+    def to_json(self):
+        items = self.documents_json
+        items_ct = sum([len(v) for v in items.values()])
         return {
             "identifier": self.identifier,
             "title": self.__str__(),
-            # etc
+            "status": self.status,
+            "sheet_ct": self.sheet_ct,
+            "items_ct": items_ct,
+            "items": items,
         }

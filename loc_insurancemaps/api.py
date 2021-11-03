@@ -15,7 +15,7 @@ from geonode.layers.models import Layer
 from georeference.utils import create_layer_from_vrt
 
 from .models import Volume, Sheet
-from .utils import LOCParser, filter_volumes_for_use
+from .utils import LOCParser
 
 logger = logging.getLogger(__name__)
 
@@ -153,16 +153,56 @@ class CollectionConnection(object):
 
         return self.results
 
+    def get_city_list_by_state(self, state):
 
-class Importer(object):
+        items = self.get_items(locations=[state])
 
-    def __init__(self, verbose=False, dry_run=False, delay=5):
+        cities = {}
+        for item in items:
+            parsed = LOCParser().parse_item(item)
+            if parsed["state"] != state:
+                continue
+            city = parsed["city"]
+            cities[city] = cities.get(city, 0) + 1
+        cities_list = [(k, v) for k, v in cities.items()]
 
-        self.verbose = verbose
-        self.dry_run = dry_run
-        self.delay = delay
-    
-    def import_volumes(self, state=None, city=None, year=None, import_sheets=False):
+        return sorted(cities_list)
+
+    def get_volume_list_by_city(self, city, state):
+
+        items = self.get_items(
+            locations=[i for i in [state, city] if not i is None],
+        )
+
+        if self.verbose:
+            print(f"{len(items)} items retrieved")
+
+        volumes = list()
+        for item in items:
+
+            parsed = LOCParser().parse_item(item)
+
+            d_facet = f"date__gte={parsed['year']}-01-01T00:00:00.000Z"
+            r_facet = f"region__name__in={parsed['city']}"
+
+            parsed['url'] = reverse("volume_summary", args=(parsed['id'],))
+            parsed['started'] = Volume.objects.filter(identifier=parsed['id']).exists()
+            parsed['docs_search_url'] = f"{settings.SITEURL}documents/?{r_facet}&{d_facet}"
+
+            volumes.append(parsed)
+
+        return sorted(volumes, key=lambda k: k['title'])
+
+    def import_volume(self, identifier):
+
+        response = self.get_item(identifier)
+        if response.get("status") == 404:
+            return None
+        volume = Volume().create_from_lc_json(response)
+        return volume
+
+    def import_volumes(self, state=None, city=None, year=None):
+        """deprecated: volumes should only be imported one by one"""
 
         lc = CollectionConnection(
             delay=self.delay,
@@ -179,52 +219,27 @@ class Importer(object):
 
         volumes = []
         for item in items:
-            identifier = LOCParser().parse_item_identifier(item)
-            location = LOCParser().parse_location_info(item)
-            if location["state"] != state:
+            parsed = LOCParser().parse_item(item)
+            if parsed["state"] != state:
                 continue
 
             if not self.dry_run:
                 vol = Volume().create_from_lc_json(item)
                 volumes.append(vol)
 
-            if import_sheets is True and not self.dry_run:
-                self.import_sheets(identifier)
-        
         return volumes
 
-    def import_volume(self, identifier, import_sheets=False):
+class Importer(object):
 
-        lc = CollectionConnection(
-            delay=self.delay,
-            verbose=self.verbose,
-        )
+    def __init__(self, verbose=False, dry_run=False, delay=5):
 
-        item = lc.get_item(
-            identifier=identifier,
-        )
-        
-        if item.get("status") == 404:
-            return None
-
-        vol = Volume().create_from_lc_json(item["item"])
-
-        if import_sheets is True and not self.dry_run:
-            self.import_sheets(identifier)
-
-        return vol
+        self.verbose = verbose
+        self.dry_run = dry_run
+        self.delay = delay
 
     def import_sheets(self, volume_id):
 
         vol = Volume.objects.get(identifier=volume_id)
-        if vol.lc_resources is None:
-            lc = CollectionConnection(
-                delay=self.delay,
-                verbose=self.verbose,
-            )
-            data = lc.get_item(volume_id)
-            vol.lc_resources = data['resources']
-            vol.save()
 
         sheets = []
         for fileset in vol.lc_resources[0]['files']:
@@ -238,87 +253,6 @@ class Importer(object):
             sheets.append(sheet)
         
         return sheets
-    
-    def get_city_list_by_state(self, state):
-
-        lc = CollectionConnection(
-            delay=self.delay,
-            verbose=self.verbose,
-        )
-
-        items = lc.get_items(locations=[state])
-
-        cities = {}
-        for item in items:
-            identifier = LOCParser().parse_item_identifier(item)
-            location = LOCParser().parse_location_info(item)
-            if location["state"] != state:
-                continue
-            city = location["city"]
-            cities[city] = cities.get(city, 0) + 1
-        
-        cities_list = [(k, v) for k, v in cities.items()]
-        
-        return sorted(cities_list)
-    
-    def get_volume_list_by_city(self, city, state):
-
-        lc = CollectionConnection(
-            delay=self.delay,
-            verbose=self.verbose,
-        )
-
-        items = lc.get_items(
-            locations=[i for i in [state, city] if not i is None],
-        )
-
-        response = {
-            "county_eq": None,
-            "volumes": []
-        }
-
-        if self.verbose:
-            print(f"{len(items)} items retrieved")
-
-        all_volumes = list()
-        for item in items:
-            i = LOCParser().parse_item_identifier(item)
-            l = LOCParser().parse_location_info(item)
-            d = LOCParser().parse_date_info(item)
-            n = LOCParser().parse_volume_number(item)
-            s = LOCParser().parse_sheet_count(item)
-
-            response["county_eq"] = l['county_equivalent']
-
-            seg1 = str(d['year'])
-            if n:
-                seg1 += f" (vol. {n})"
-            seg2 = f"{l['city']}"
-            seg3 = f"{s} Sheet{'s' if s != 1 else ''}"
-
-            title = " | ".join([seg2, seg1, seg3])
-
-            d_facet = f"date__gte={d['year']}-01-01T00:00:00.000Z"
-            r_facet = f"region__name__in={l['city']}"
-
-            vol = {
-                "identifier": i,
-                "title": title,
-                "city": l['city'],
-                "year": d["year"],
-                "url": reverse("volume_summary", args=(i,)),
-                "started": Volume.objects.filter(identifier=i).exists(),
-                "docs_search_url": f"{settings.SITEURL}documents/?{r_facet}&{d_facet}"
-            }
-            all_volumes.append(vol)
-
-        all_volumes = sorted(all_volumes, key=lambda k: k['title'])
-        volumes = filter_volumes_for_use(all_volumes)
-
-        response["volumes"] = volumes
-
-        return response
-
 
     def initialize_volume(self, volume):
         """Creates all of the necessary items to begin georeferencing a new volume.
@@ -425,4 +359,3 @@ def create_map_from_layer_list(user, layers, title, abstract):
     # to generate the thumbnail.
     m.set_missing_info()
     m.save(notify=True)
-
