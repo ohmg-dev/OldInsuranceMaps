@@ -237,6 +237,8 @@ def mapserver_add_layer(file_path):
             '    TYPE RASTER\n',
             '    STATUS ON\n',
             f'    DATA "{file_path}"\n',
+            '    OFFSITE 255 255 255 ',
+            '    TRANSPARENCY 100'
             '    PROJECTION\n',
             '     "init=epsg:3857"\n',
             '    END\n',

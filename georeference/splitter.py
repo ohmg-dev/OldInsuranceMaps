@@ -162,11 +162,13 @@ class Splitter(object):
 
         return out_shapes
 
-    def split_image(self):
+    def split_image(self, out_format="jpg"):
         """ """
 
         # update the session info, now that it's about to be run
         print("splitting image...")
+
+        format_lookup = {"jpg": "JPEG", "png": "PNG"}
 
         img = Image.open(self.img_file)
         w, h = img.size
@@ -179,25 +181,41 @@ class Splitter(object):
             # future reference: this is a small rect. in the top left of the image
             # coords = [(0, 100), (50,100), (50, 0), (0, 0)]
 
-            im_a = Image.new("L", img.size, 0)
-            draw = ImageDraw.Draw(im_a)
+            # first generate a mask that will only show the desired content
+            shape_mask = Image.new("L", img.size, 0)
+            draw = ImageDraw.Draw(shape_mask)
             draw.polygon(coords, fill=255)
 
-            im_blur = im_a.filter(ImageFilter.GaussianBlur(2))
+            # if the output will have an alpha channel, add a nice lil blur on
+            # the edges of the polygon mask
+            if out_format == "png":
+                shape_mask = shape_mask.filter(ImageFilter.GaussianBlur(2))
 
-            im_inset = img.copy()
-            im_inset.putalpha(im_blur)
+            # create a copy of the original image
+            cut_image = img.copy()
+            
+            # apply the polygon mask as an alpha layer, erasing everything else
+            cut_image.putalpha(shape_mask)
 
-            im_inset_cropped = im_inset.crop(im_inset.getbbox())
+            # crop the newly cut image down to size
+            out_image = cut_image.crop(cut_image.getbbox())
 
-            # set output file name and save file to cache
+            # if the output should be jpg (RGB), then set all transparent
+            # areas to white (255, 255, 255)
+            if out_format == "jpg":
+                bg = Image.new('RGBA', out_image.size, (255, 255, 255))
+                composite = Image.alpha_composite(bg, out_image)
+                out_image = composite.convert("RGB")
+
+            # set output file name
             filename = os.path.basename(self.img_file)
             ext = os.path.splitext(filename)[1]
-            out_filename = filename.replace(ext, f"__{n}.png")
+            out_filename = filename.replace(ext, f"__{n}.{out_format}")
             out_path = os.path.join(self.temp_dir, out_filename)
 
-            out_paths.append(out_path)
+            # finally, save the image out to the specified format
+            out_image.save(out_path, format_lookup[out_format])
 
-            im_inset_cropped.save(out_path, 'PNG')
+            out_paths.append(out_path)
 
         return out_paths

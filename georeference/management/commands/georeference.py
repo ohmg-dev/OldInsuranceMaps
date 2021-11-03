@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand, CommandError
 from geonode.documents.models import Document
 
 from georeference.models import GCPGroup
-from georeference.georeferencer import georeference_document, Georeferencer
+from georeference.georeferencer import Georeferencer
 
 class Command(BaseCommand):
     help = 'Command line access point for the internal georeferencing utilities.'
@@ -61,7 +61,24 @@ class Command(BaseCommand):
             # else:
             #     g.georeference(options["source"], addo=True)
 
-        # doc = Document.objects.get(id=options['docid'])
+        if options["docid"]:
+            doc = Document.objects.get(id=options['docid'])
+            gcp_group = GCPGroup.objects.get(document=doc)
+
+            infile = doc.doc_file.path
+            print(infile)
+
+            g = Georeferencer(
+                gdal_gcps=gcp_group.gdal_gcps,
+                transformation=gcp_group.transformation,
+                epsg_code=gcp_group.crs_epsg
+            )
+            out_path = g.georeference(
+                infile,
+                out_format="GTiff",
+                addo=True,
+            )
+            print(out_path)
         #
         # output = georeference_document(doc, transformation=options['transformation'])
         # print(output)

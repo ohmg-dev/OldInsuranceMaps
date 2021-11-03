@@ -224,6 +224,12 @@ class Georeferencer(object):
         start = time.time()
 
         sr_wkt = self.get_spatial_reference().ExportToWkt()
+
+        ## if a jpg is pass in, assume that white (255, 255, 255) should be
+        ## interpreted as the no data value
+        src_nodata = None
+        if src_path.endswith(".jpg"):
+            src_nodata = "255 255 255"
         ## make WarpOptions to handle more settings in the final process
         # https://gdal.org/python/osgeo.gdal-module.html#WarpOptions
         wo = gdal.WarpOptions(
@@ -239,6 +245,7 @@ class Georeferencer(object):
             ],
             format=out_format,
             dstSRS=f"EPSG:{self.epsg_code}",
+            srcNodata=src_nodata,
             dstAlpha=True,
         )
 
