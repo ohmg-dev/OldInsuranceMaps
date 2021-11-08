@@ -36,7 +36,7 @@ urlpatterns += [
 ]
 
 if 'georeference' in settings.INSTALLED_APPS:
-    urlpatterns += [url(r'^g/', include('georeference.urls'))]
+    urlpatterns += [url(r'^', include('georeference.urls'))]
 
 homepage = register_url_event()(HomePage.as_view())
 
