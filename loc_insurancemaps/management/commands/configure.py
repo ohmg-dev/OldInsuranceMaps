@@ -95,7 +95,7 @@ class Command(BaseCommand):
                 print("creating nginx site config")
             nginx_site_file = self.write_nginx_site_conf()
             outputs.append(nginx_site_file)
-        
+
         if create_all or "nginx-ssl" in options['type']:
             if self.verbose:
                 print("creating nginx SSL site config")
@@ -126,7 +126,6 @@ class Command(BaseCommand):
     def write_supervisor_config(self):
         """
         Writes a supervisor conf file with all necessary environment variables.
-        
         """
 
         vars = [
@@ -190,18 +189,16 @@ files = /etc/supervisor/conf.d/*.conf
         full_path = self.write_file(outfile_path, file_content)
 
         return full_path
-    
+
     def write_supervisor_deploy(self, conf_path):
 
         deploy_path = os.path.join(self.out_dir, "deploy-supervisor.sh")
         deploy_content = f"""#!/bin/bash
 sudo cp {conf_path} /etc/supervisor/supervisord.conf
 
-# Restart supervisor
+# kill celery workers and reload supervisor
+sudo pkill celery
 sudo supervisorctl reload
-
-# Kill old celery workers (if any)
-sudo pkill -f celery
 """
         full_deploy_path = self.write_file(deploy_path, deploy_content)
 
@@ -212,14 +209,15 @@ sudo pkill -f celery
         LOCAL_ROOT = self.resolve_var("LOCAL_ROOT", None)
         project_name = os.path.basename(LOCAL_ROOT)
         top_dir = os.path.dirname(LOCAL_ROOT)
+        env_file = os.path.join(top_dir, ".env_local")
         user = self.resolve_var("USER", "username")
         celery_path = os.path.join(os.path.dirname(sys.executable), "celery")
 
         file_content = f"""[program:{project_name}-celery]
-command=sh -c \'{celery_path} -A {project_name}.celeryapp:app worker -B -E --loglevel=DEBUG --concurrency=10 -n worker1@%%h'
+command=sh -c \'. {env_file} && {celery_path} -A {project_name}.celeryapp:app worker -B -E --loglevel=DEBUG --concurrency=10 -n worker1@%%h'
 directory={top_dir}
 user={user}
-numproc=1
+numproc=4
 stdout_logfile=/var/log/{project_name}-celery.log
 stderr_logfile=/var/log/{project_name}-celery.log
 autostart=true
@@ -282,7 +280,12 @@ sudo pkill -f celery
             ("OGC_REQUEST_TIMEOUT", 60),
             ("OGC_REQUEST_MAX_RETRIES", 3),
             ("OGC_REQUEST_POOL_MAXSIZE", 100),
-            ("OGC_REQUEST_POOL_CONNECTIONS", 100)
+            ("OGC_REQUEST_POOL_CONNECTIONS", 100),
+            ("MAPBOX_API_TOKEN", None),
+            ("MAPSERVER_ENDPOINT", ""),
+            ("MONITORING_ENABLED", False),
+            ("BROKER_URL", ""),
+            ("ASYNC_SIGNALS", False),
         ]
 
         env_section = ""
@@ -305,7 +308,6 @@ gid = www-data
 
 # set log paths and daemon mode
 logto = {log_dir}/uwsgi.log
-daemonize = {log_dir}/uwsgi.log
 
 pidfile = /tmp/{project_name}.pid
 
@@ -321,13 +323,13 @@ virtualenv = {env_path}
 {env_section}
 
 # other geonode doc-recommended settings
-strict = false
-master = true
-enable-threads = true
+#strict = false
+#master = true
+enable-threads = false
 vacuum = true                        ; Delete sockets during shutdown
-single-interpreter = true
+#single-interpreter = true
 die-on-term = true                   ; Shutdown when receiving SIGTERM (default is respawn)
-need-app = true
+#need-app = true
 
 touch-reload = {wsgi_file}
 buffer-size = 32768
@@ -476,16 +478,7 @@ server {{
 
         ## attempt to find LE cert for this domain
         fullchain_path = f"/etc/letsencrypt/live/{SITE_HOST_NAME}/fullchain.pem"
-        if not os.path.isfile(fullchain_path):
-            if self.verbose:
-                print(f"can't find anticipated file at {fullchain_path}")
-            fullchain_path = "<INSERT FULL PATH TO>fullchain.pem"
         privkey_path = f"/etc/letsencrypt/live/{SITE_HOST_NAME}/privkey.pem"
-        if not os.path.isfile(privkey_path):
-            if self.verbose:
-                print(f"can't find anticipated file at {privkey_path}")
-            privkey_path = "<INSERT FULL PATH TO>privkey.pem"
-
         file_content = f"""# {file_name}
 
 # the upstream component nginx needs to connect to
