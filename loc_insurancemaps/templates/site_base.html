@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 {% block extra_head %}
   <!-- <link href="https://fonts.googleapis.com/css2?family=Redressed&display=swap" rel="stylesheet"> -->
   <!-- <link href="https://fonts.googleapis.com/css2?family=Rubik&display=swap" rel="stylesheet"> -->
@@ -6,6 +7,10 @@
   <!-- <link href="https://fonts.googleapis.com/css2?family=PT+Sans&display=swap" rel="stylesheet"> -->
   <!-- <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet"> -->
   <link href="{{ STATIC_URL }}css/site_base.css" rel="stylesheet"/>
+
+  <title>{% block title %}Explore Insurance Maps{% endblock %}</title>
+
+  <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
 
 {% endblock %}
 
