@@ -66,7 +66,7 @@ if 'georeference' in INSTALLED_APPS:
     STATICFILES_DIRS.append(os.path.join(os.path.dirname(LOCAL_ROOT), "georeference", "components", "public", "build"))
 
 # must have trailing slash
-MAPSERVER_ENDPOINT = "http://localhost:9999/wms/"
+MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
 MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
 
 # no trailing slash on server location

@@ -177,6 +177,7 @@ def create_layer_from_vrt(vrt_path, workspace="geonode"):
 def initialize_mapfile():
 
     file_path = settings.MAPSERVER_MAPFILE
+    print(f"creating new mapfile: {file_path}")
 
     file_content = f"""MAP
 NAME "Georeference Previews"
