@@ -71,6 +71,8 @@ if 'georeference' in INSTALLED_APPS:
     MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
     MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
 
+    MIDDLEWARE += ("georeference.middleware.GeoreferenceMiddleware", )
+
 # no trailing slash on server location
 IIIF_SERVER_ENABLED = False
 IIIF_SERVER_LOCATION = "http://localhost:8182"

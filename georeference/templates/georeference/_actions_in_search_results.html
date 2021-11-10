@@ -1,30 +1,35 @@
 {% load i18n %}
 {% verbatim %}
 <div class="georeferencing-status">
-    <div ng-if="item.detail_url.indexOf('/documents/') > -1">
-        <a ng-if="item.tkeywords.indexOf('unprepared') > -1" href="{{ item.site_url }}split/{{ item.id }}">
-        {% endverbatim %}{% trans "prepare document for georeferencing" %}{% verbatim %} &rarr;
-        </a>
-        <a ng-if="item.tkeywords.indexOf('prepared') > -1" href="{{ item.site_url }}georeference/{{ item.id }}">
-        {% endverbatim %}{% trans "georeference document" %}{% verbatim %} &rarr;
-        </a>
-        <p ng-if="item.tkeywords.indexOf('georeferencing') > -1">
-        <em>{% endverbatim %}{% trans "georeferencing in progress..." %}{% verbatim %}</em>
-        </p>
-        <p ng-if="item.tkeywords.indexOf('splitting') > -1">
-        <em>{% endverbatim %}{% trans "splitting in progress..." %}{% verbatim %}</em>
-        </p>
-        <p ng-if="item.tkeywords.indexOf('georeferenced') > -1">
-        {% endverbatim %}{% trans "georeferencing complete" %}{% verbatim %} - <a href="{{ item.site_url }}georeference/{{ item.id }}">edit</a>
-        </p>
+    <div ng-if="item.type == 'document'">
+        <div ng-if="item.georeferencing_status == 'Unprepared'">
+            <a href="{{ item.trim_url }}">
+            {% endverbatim %}{% trans "prepare document for georeferencing" %}{% verbatim %} &rarr;
+            </a>
+        </div>
+        <div ng-if="item.georeferencing_status == 'Prepared'">
+            <a href="{{ item.georeference_url }}">
+            {% endverbatim %}{% trans "georeference document" %}{% verbatim %} &rarr;
+            </a>
+        </div>
+        <div ng-if="item.georeferencing_status == 'Georeferenced'">
+            <a href="{{ item.georeference_url }}">
+            {% endverbatim %}{% trans "edit georeferencing" %}{% verbatim %} &rarr;
+            </a><br>
+            <a href="{{ item.layer_url }}">
+            {% endverbatim %}{% trans "view layer" %}{% verbatim %} &rarr;
+            </a>
+        </div>
     </div>
-    <div ng-if="item.detail_url.indexOf('/layers/') > -1">
-        <p ng-if="item.tkeywords.indexOf('georeferenced') > -1">
-        {% endverbatim %}{% trans "from georeferenced document" %}{% verbatim %} - <a href="{{ item.site_url }}trim/{{ item.alternate }}">trim layer</a>
-        </p>
-        <p ng-if="item.tkeywords.indexOf('complete') > -1" href="{{ item.site_url }}georeference/{{ item.id }}">
-        {% endverbatim %}{% trans "from georeferenced document (trimmed)" %}{% verbatim %}
-        </p>
+    <div ng-if="item.type == 'layer'">
+        <div ng-if="item.georeferencing_status == 'Georeferenced'">
+            <a href="{{ item.georeference_url }}">
+            {% endverbatim %}{% trans "edit georeferencing" %}{% verbatim %} &rarr;
+            </a><br>
+            <a href="{{ item.document_url }}">
+            {% endverbatim %}{% trans "view document" %}{% verbatim %} &rarr;
+            </a>
+        </div>
     </div>
 </div>
 {% endverbatim %}

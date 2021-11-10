@@ -8,8 +8,12 @@ from django.conf import settings
 from django.urls import reverse
 
 from geonode.base.models import ThesaurusKeyword
+from geonode.documents.models import DocumentResourceLink
+from geonode.layers.models import Layer
 
 logger = logging.getLogger(__name__)
+
+## ~~ general utils ~~
 
 def make_db_cursor():
 
@@ -20,6 +24,24 @@ def make_db_cursor():
     conn = psycopg2.connect(db_conn)
 
     return conn.cursor()
+
+def get_layer_from_document(document):
+
+    existing_layer = None
+    links = DocumentResourceLink.objects.filter(document=document)
+    for link in links:
+        try:
+            obj = link.content_type.get_object_for_this_type(pk=link.object_id)
+            if isinstance(obj, Layer):
+                existing_layer = obj
+        except Layer.DoesNotExist:
+            pass
+    return existing_layer
+
+def get_document_from_layer(layer):
+
+    link = DocumentResourceLink.objects.get(object_id=layer.pk)
+    return link.document
 
 ## ~~ IIIF support ~~
 
@@ -287,3 +309,4 @@ def mapserver_remove_layer(file_path):
     
     with open(mapfile, "w") as openf:
         openf.writelines(output)
+
