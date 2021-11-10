@@ -10,10 +10,8 @@ from geonode.base.models import ThesaurusKeyword
 from geonode.documents.models import Document
 from geonode.layers.models import Layer
 
-from georeference.models import (
-    GeoreferenceSession, GCP, GCPGroup,
-    SplitSession, Segmentation, SplitDocumentLink
-)
+from georeference import models as gmodels
+
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
 
@@ -35,13 +33,15 @@ class Command(BaseCommand):
         if options["operation"] == "reset-all":
             model_list = [
                 Document,
-                GCP,
-                GCPGroup,
-                GeoreferenceSession,
-                SplitSession,
-                Segmentation,
-                SplitDocumentLink,
                 Layer,
+                gmodels.GCP,
+                gmodels.GCPGroup,
+                gmodels.GeoreferenceSession,
+                gmodels.SplitSession,
+                gmodels.Segmentation,
+                gmodels.SplitDocumentLink,
+                gmodels.LayerMask,
+                gmodels.MaskSession,
             ]
 
             for model in model_list:

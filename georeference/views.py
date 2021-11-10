@@ -38,7 +38,13 @@ from georeference.tasks import (
     georeference_document_as_task,
     trim_layer_as_task,
 )
-from .models import GCPGroup, Segmentation, SplitDocumentLink, SplitSession
+from .models import (
+    GCPGroup,
+    LayerMask,
+    MaskSession,
+    Segmentation,
+    SplitSession,
+)
 from .splitter import Splitter
 from .georeferencer import Georeferencer, get_path_variant
 from .utils import (
@@ -50,6 +56,8 @@ from .utils import (
 )
 
 logger = logging.getLogger("geonode.georeference.views")
+
+BadPostRequest = HttpResponseBadRequest("invalid post content")
 
 # ALLOWED_DOC_TYPES = settings.ALLOWED_DOCUMENT_TYPES
 
@@ -242,17 +250,18 @@ class SplitView(View):
 
     def post(self, request, docid):
 
+        if request.body:
+            body = json.loads(request.body)
+        else:
+            return BadPostRequest
+
         document = _resolve_document(request, docid)
 
-        image_path = document.doc_file.path
-
-        body = json.loads(request.body)
         cutlines = body.get("lines", [])
-
         operation = body.get("operation", "preview")
 
         if operation == "preview":
-
+            image_path = document.doc_file.path
             splitter = Splitter(image_file=image_path)
             divs = splitter.generate_divisions(cutlines)
 
@@ -282,6 +291,9 @@ class SplitView(View):
             redirect_url = reverse("georeference_view", kwargs={'docid': docid })
             return JsonResponse({"success":True, "redirect_to": redirect_url})
 
+        else:
+            return BadPostRequest
+
 
 class TrimView(View):
 
@@ -289,19 +301,22 @@ class TrimView(View):
 
         layer = _resolve_layer(request, layeralternate)
 
+        mask, created = LayerMask.objects.get_or_create(layer=layer)
+        if mask.polygon:
+            coords = mask.polygon.coords[0]
+        else:
+            coords = []
+
         trim_url = reverse('trim_view', kwargs={"layeralternate": layeralternate})
-
-        # placeholders to be refactored/set elsewhere
-
-        map_center = [-10291143, 3673446] # could be replaced with region extent
 
         svelte_params = {
             "CSRFTOKEN": csrf.get_token(request),
             "SUBMIT_URL": trim_url,
-            "MAP_CENTER": map_center,
             "GEOSERVER_WMS": "http://localhost:8080/geoserver/ows/",
             "LAYER_ID": f"{layer.workspace}:{layer.name}",
             "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+            "LAYER_EXTENT": layer.ll_bbox_polygon.extent,
+            "INCOMING_MASK_COORDINATES": coords,
         }
 
         context_dict = {
@@ -315,7 +330,42 @@ class TrimView(View):
             context=context_dict)
 
     def post(self, request, layeralternate):
+
+        if request.body:
+            body = json.loads(request.body)
+        else:
+            return BadPostRequest
+
         layer = _resolve_layer(request, layeralternate)
+
+        polygon_coords = body.get("mask_coords", [])
+        operation = body.get("operation")
+
+        mask = LayerMask.objects.get(layer=layer)
+        if len(polygon_coords) >= 3:
+            mask.polygon = Polygon(polygon_coords)
+        else:
+            mask.polygon = None
+
+        if operation == "preview":
+
+            sld = mask.as_sld()
+            return JsonResponse({"success": True, "sld_content": sld})
+
+        elif operation == "submit":
+
+            mask.save()
+            ts = MaskSession.objects.create(
+                layer=layer,
+                user=request.user,
+                coords_used=polygon_coords,
+            )
+            ts.run()
+            detail_url = reverse("layer_detail", args=(layer.alternate, ))
+            return JsonResponse({"success": True, "redirect_to": detail_url})
+
+        else:
+            return BadPostRequest
 
 class GeoreferenceView(View):
 
@@ -402,7 +452,7 @@ class GeoreferenceView(View):
         if request.body:
             body = json.loads(request.body)
         else:
-            return HttpResponseBadRequest("invalid parameters")
+            return BadPostRequest
 
         document = _resolve_document(request, docid)
         if not isinstance(document, Document):
@@ -441,6 +491,7 @@ class GeoreferenceView(View):
                 print(e)
                 response["status"] = "fail"
                 response["message"] = str(e)
+            return JsonResponse(response)
 
         # if submission, save updated/new GCPs, run warp to create GeoTiff.
         elif operation == "submit":
@@ -454,6 +505,7 @@ class GeoreferenceView(View):
                 (docid, request.user.pk),
                 queue="update"
             )
+            return JsonResponse(response)
 
         elif operation == "cleanup":
 
@@ -463,7 +515,10 @@ class GeoreferenceView(View):
             response["message"] = "all good"
             response["redirect_to"] = "/documents"
 
-        return JsonResponse(response)
+            return JsonResponse(response)
+
+        else:
+            return BadPostRequest
 
 def iiif2_endpoint(request, docid, iiif_object_requested):
     """ create a iiif v2 manifest, canvas, resource, or info.json object for a

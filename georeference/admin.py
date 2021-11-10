@@ -7,6 +7,8 @@ from .models import (
     GeoreferenceSession,
     GCP,
     GCPGroup,
+    LayerMask,
+    MaskSession,
 )
 
 class GCPAdmin(admin.ModelAdmin):
@@ -21,3 +23,5 @@ admin.site.register(SplitSession)
 admin.site.register(GeoreferenceSession, GeoreferenceSessionAdmin)
 admin.site.register(GCP, GCPAdmin)
 admin.site.register(GCPGroup)
+admin.site.register(LayerMask)
+admin.site.register(MaskSession)

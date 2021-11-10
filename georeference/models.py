@@ -15,12 +15,14 @@ from django.utils.translation import ugettext_lazy as _
 
 from geonode.base.models import ThesaurusKeyword
 from geonode.documents.models import Document, DocumentResourceLink
-from geonode.layers.models import Layer
+from geonode.layers.models import Layer, Style
 from geonode.layers.utils import file_upload
 from geonode.thumbs.thumbnails import create_thumbnail
+from geonode.geoserver.helpers import save_style
 
 from .georeferencer import Georeferencer
 from .splitter import Splitter
+from .utils import get_gs_catalog
 
 class SplitDocumentLink(DocumentResourceLink):
     """
@@ -511,3 +513,137 @@ class GCPGroup(models.Model):
         anno = georef_annos[0]
 
         self.save_from_geojson(anno['body'], document, "poly1")
+
+
+class LayerMask(models.Model):
+
+    layer = models.ForeignKey(Layer, on_delete=models.CASCADE)
+    polygon = models.PolygonField(null=True, blank=True, srid=3857)
+
+    def as_sld(self, indent=False):
+
+        if self.polygon is None:
+            return None
+
+        sld = f'''<?xml version="1.0" encoding="UTF-8"?>
+<StyledLayerDescriptor version="1.0.0"
+ xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd"
+ xmlns="http://www.opengis.net/sld"
+ xmlns:ogc="http://www.opengis.net/ogc"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<NamedLayer>
+ <Name>{self.layer.workspace}:{self.layer.name}</Name>
+ <UserStyle IsDefault="true">
+  <FeatureTypeStyle>
+   <Transformation>
+    <ogc:Function name="gs:CropCoverage">
+     <ogc:Function name="parameter">
+      <ogc:Literal>coverage</ogc:Literal>
+     </ogc:Function>
+     <ogc:Function name="parameter">
+      <ogc:Literal>cropShape</ogc:Literal>
+      <ogc:Literal>{self.polygon.wkt}</ogc:Literal>
+     </ogc:Function>
+    </ogc:Function>
+   </Transformation>
+   <Rule>
+    <RasterSymbolizer>
+      <Opacity>1</Opacity>
+    </RasterSymbolizer>
+   </Rule>
+  </FeatureTypeStyle>
+ </UserStyle>
+</NamedLayer>
+</StyledLayerDescriptor>'''
+
+        if indent is False:
+            sld = " ".join([i.strip() for i in sld.splitlines()])
+            sld = sld.replace("> <","><")
+
+        return sld
+
+class MaskSession(models.Model):
+
+    class Meta:
+        verbose_name = "Mask Session"
+        verbose_name_plural = "Mask Sessions"
+
+    layer = models.ForeignKey(Layer, on_delete=models.CASCADE)
+    coords_used = JSONField(null=True, blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE)
+    created = models.DateTimeField(
+        auto_now_add=True,
+        editable=False,
+        null=False,
+        blank=False)
+    note = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+    )
+
+    def run(self):
+
+        mask = LayerMask.objects.get(layer=self.layer)
+        cat = get_gs_catalog()
+
+        gs_full_style = cat.get_style(self.layer.name, workspace="geonode")
+        gn_full_style = Style.objects.get(name=self.layer.name)
+        trim_style_name = f"{self.layer.name}_trim"
+
+        # if there is no polygon saved to the LayerMask, then clean up old
+        # mask styles if necessary
+        if mask.polygon is None:
+            # delete the existing trim style if necessary
+            # set the full style back as the default
+            gs_trim_style = cat.get_style(trim_style_name, workspace="geonode")
+            if gs_trim_style is not None:
+                cat.delete(gs_trim_style, recurse=True)
+
+            # delete the trimmed style in GeoNode
+            Style.objects.filter(name=trim_style_name).delete()
+
+            # set the full style back to the default in GeoNode
+            self.layer.default_style = gn_full_style
+            self.layer.save()
+
+        # otherwise, create/update a mask style for this layer and set as default
+        else:
+            # create (overwrite if existing) trim style in GeoServer using mask sld
+            gs_trim_style = cat.create_style(
+                trim_style_name,
+                mask.as_sld(),
+                overwrite=True,
+                workspace="geonode",
+            )
+
+            # get the GeoServer layer for this GeoNode layer
+            gs_layer = cat.get_layer(self.layer.name)
+
+            # add the full and trim styles to the GeoServer alternate style list
+            gs_alt_styles = gs_layer._get_alternate_styles()
+            gs_alt_styles += [gs_full_style, gs_trim_style]
+            gs_layer._set_alternate_styles(gs_alt_styles)
+
+            # set the trim style as the default in GeoServer
+            gs_layer._set_default_style(gs_trim_style)
+
+            # save these changes to the GeoServer layer
+            cat.save(gs_layer)
+
+            # create/update the GeoNode Style object for the trim style
+            trim_style_gn = save_style(gs_trim_style, self.layer)
+
+            # add new trim style to GeoNode list styles, set as default, save
+            self.layer.styles.add(trim_style_gn)
+            self.layer.default_style = trim_style_gn
+            self.layer.save()
+
+            thumb = create_thumbnail(self.layer, overwrite=True)
+            self.layer.thumbnail_url = thumb
+            self.layer.save()
