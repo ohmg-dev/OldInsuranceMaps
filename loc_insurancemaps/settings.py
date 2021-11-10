@@ -31,7 +31,7 @@ LOCAL_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 # This must be the name of the directory holding this file (i.e. the app name)
 PROJECT_NAME = os.path.basename(LOCAL_ROOT)
-WSGI_APPLICATION = "{}.wsgi.application".format(PROJECT_NAME)
+WSGI_APPLICATION = f"{PROJECT_NAME}.wsgi.application"
 
 # add trailing slash to site url. geoserver url will be relative to this
 if not SITEURL.endswith('/'):
@@ -50,24 +50,26 @@ LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', "en")
 
 INSTALLED_APPS += (
     'django_svelte',
+    'georeference',
     PROJECT_NAME,
 )
 
+# add static files and templates that are in the local (loc_insurancemaps) app
 TEMPLATES[0]['DIRS'].insert(0, os.path.join(LOCAL_ROOT, "templates"))
+STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "static"))
 STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "components", "public", "build"))
 
-INSTALLED_APPS += ('georeference', )
-
-# conditionally add static files from the 'georeference' app
+# conditionally add static files from the 'georeference' app, as well as
+# Mapserver information, used for the georeferencing preview layer
 if 'georeference' in INSTALLED_APPS:
     TEMPLATES[0]['DIRS'].insert(0, os.path.join(os.path.dirname(LOCAL_ROOT), "georeference", "templates"))
     STATICFILES_DIRS.append(os.path.join(os.path.dirname(LOCAL_ROOT), "georeference", "static"))
     # this is the path for the svelte components
     STATICFILES_DIRS.append(os.path.join(os.path.dirname(LOCAL_ROOT), "georeference", "components", "public", "build"))
 
-# must have trailing slash
-MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
-MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
+    # must have trailing slash
+    MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
+    MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
 
 # no trailing slash on server location
 IIIF_SERVER_ENABLED = False
@@ -88,13 +90,7 @@ LOCALE_PATHS = (
     os.path.join(LOCAL_ROOT, 'locale'),
     ) + LOCALE_PATHS
 
-# add static files and templates that are in the local app
-STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "static"))
-TEMPLATES[0]['DIRS'].insert(0, os.path.join(LOCAL_ROOT, "templates"))
-
-
 loaders = TEMPLATES[0]['OPTIONS'].get('loaders') or ['django.template.loaders.filesystem.Loader','django.template.loaders.app_directories.Loader']
-# loaders.insert(0, 'apptemplates.Loader')
 TEMPLATES[0]['OPTIONS']['loaders'] = loaders
 TEMPLATES[0].pop('APP_DIRS', None)
 
@@ -178,7 +174,9 @@ if LDAP_ENABLED and 'geonode_ldap' not in INSTALLED_APPS:
 API_LIMIT_PER_PAGE = 20
 CLIENT_RESULTS_LIMIT = 20
 
-## don't use MAPBOX_ACCESS_TOKEN because it will be picked up by GeoNode
+# don't use MAPBOX_ACCESS_TOKEN because it will be picked up by GeoNode and
+# trigger many Mapbox-based basemaps. Instead use MAPBOX_API_TOKEN here and
+# manually replace the sentinel imagery basemap with Mapbox Satellite.
 MAPBOX_API_TOKEN = os.environ.get('MAPBOX_API_TOKEN', None)
 if MAPBOX_API_TOKEN:
     MAPBOX_SATELLITE_SOURCE = "satellite-streets-v10"
