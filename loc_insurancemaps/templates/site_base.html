@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 {% block extra_head %}
-  <!-- <link href="https://fonts.googleapis.com/css2?family=Redressed&display=swap" rel="stylesheet"> -->
-  <!-- <link href="https://fonts.googleapis.com/css2?family=Rubik&display=swap" rel="stylesheet"> -->
-  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
-  <!-- <link href="https://fonts.googleapis.com/css2?family=PT+Sans&display=swap" rel="stylesheet"> -->
-  <!-- <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet"> -->
-  <link href="{{ STATIC_URL }}css/site_base.css" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
 
-  <title>{% block title %}Explore Insurance Maps{% endblock %}</title>
+<link href="{{ STATIC_URL }}css/site_base.css" rel="stylesheet"/>
+<link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
+{% endblock %}
 
   <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
 
