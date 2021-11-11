@@ -22,16 +22,14 @@ class GeoreferenceMiddleware:
         api_paths = [
             '/api/documents/',
             '/api/layers/',
+            '/api/base/',
         ]
         if request.path in api_paths:
             data = json.loads(response._container[0].decode("utf-8"))
             for item in data['objects']:
 
                 # first use the detail url to get the type of item
-                if "layer" in item['detail_url']:
-                    item['type'] = 'layer'
-                if "document" in item['detail_url']:
-                    item['type'] = 'document'
+                item['type'] = item['detail_url'].split("/")[1].rstrip("s")
 
                 # set the status (same for all items)
                 if "prepared" in item['tkeywords']:
@@ -40,6 +38,8 @@ class GeoreferenceMiddleware:
                     item['georeferencing_status'] = "Unprepared"
                 elif "georeferenced" in item['tkeywords']:
                     item['georeferencing_status'] = "Georeferenced"
+                else:
+                    item['georeferencing_status'] = "N/A"
 
                 # generate urls for documents
                 if item['type'] == "document":
