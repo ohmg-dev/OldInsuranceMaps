@@ -1,0 +1,13 @@
+{% extends "geonode_base.html" %}
+{% load i18n %}
+
+{% block body %}
+  <div id="description"><h3>{% trans "Server Error" %}</h3></div>
+  {% if message %}
+      {{ message }}
+  {% else %}
+      {% blocktrans %}
+          Internal server error. Please contact admin if the problem persists.
+      {% endblocktrans %}
+  {% endif %}
+{% endblock %}

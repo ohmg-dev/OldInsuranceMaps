@@ -1,0 +1,19 @@
+{% extends "documents/document_list.html" %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block body %}
+  <div class="page-header">
+    {% if user.is_superuser %}
+      <a href="{% url "document_upload" %}" class="btn btn-primary pull-right">{% trans "Upload Documents" %}</a>
+    {% endif %}
+    <h2>{% trans "Explore Documents" %}</h2>
+  </div>
+  {% with include_type_filter='true' %}
+    {% with header='Document Type' %}
+      {% with filter='doc_type__in' %}
+        {% include "search/_search_content.html" %}
+      {% endwith %}
+    {% endwith %}
+  {% endwith %}
+{% endblock %}
