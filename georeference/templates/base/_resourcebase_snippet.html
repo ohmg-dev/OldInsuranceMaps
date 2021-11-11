@@ -67,6 +67,7 @@
           <div class="abstract" ng-bind-html="item.abstract | limitTo: 300"></div>
           <p class="abstract">{{ item.abstract.length  > 300 ? '...' : ''}}</p>
           {% endverbatim %}
+          <!-- Insert the section of the search results related to georeferencing here -->
           {% include 'georeference/_actions_in_search_results.html' %}
           {% verbatim %}
           <div class="row">
