@@ -40,8 +40,12 @@ def get_layer_from_document(document):
 
 def get_document_from_layer(layer):
 
-    link = DocumentResourceLink.objects.get(object_id=layer.pk)
-    return link.document
+    try:
+        link = DocumentResourceLink.objects.get(object_id=layer.pk)
+        document = link.document
+    except DocumentResourceLink.DoesNotExist:
+        document = None
+    return document
 
 ## ~~ IIIF support ~~
 

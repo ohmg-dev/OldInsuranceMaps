@@ -54,8 +54,12 @@ class GeoreferenceMiddleware:
                 if item['type'] == "layer":
                     layer = Layer.objects.get(pk=item['id'])
                     document = get_document_from_layer(layer)
-                    item['document_url'] = reverse("document_detail", args=(document.pk, ))
-                    item['georeference_url'] = reverse("georeference_view", args=(document.pk, ))
+                    if document is not None:
+                        item['document_url'] = reverse("document_detail", args=(document.pk, ))
+                        item['georeference_url'] = reverse("georeference_view", args=(document.pk, ))
+                    else:
+                        item['document_url'] = ""
+                        item['georeference_url'] = ""
 
             response._container = [json.dumps(data).encode()]
         return response
