@@ -2,6 +2,7 @@ from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 
 from geonode.documents.models import Document
+from geonode.layers.models import Layer
 from geonode.maps.models import Map
 
 from loc_insurancemaps.models import Volume, Sheet, FullThumbnail
@@ -24,30 +25,18 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         if options['document']:
-            self.delete_documents()
+            delete_list = [Document]
         if options['all']:
-            self.delete_documents()
-            self.delete_volumes()
-            self.delete_sheets()
-            self.delete_maps()
-            self.delete_thumbs()
-
-    def delete_documents(self):
-        print(f"removing {Document.objects.all().count()} Document objects")
-        Document.objects.all().delete()
-    
-    def delete_volumes(self):
-        print(f"removing {Volume.objects.all().count()} Volume objects")
-        Volume.objects.all().delete()
-    
-    def delete_sheets(self):
-        print(f"removing {Sheet.objects.all().count()} Sheet objects")
-        Sheet.objects.all().delete()
-
-    def delete_maps(self):
-        print(f"removing {Map.objects.all().count()} Map objects")
-        Map.objects.all().delete()
-
-    def delete_thumbs(self):
-        print(f"removing {FullThumbnail.objects.all().count()} FullThumbnail objects")
-        FullThumbnail.objects.all().delete()
+            delete_list = [
+                Document,
+                Layer,
+                Volume,
+                Sheet,
+                Map,
+                FullThumbnail,
+            ]
+        
+        for model in delete_list:
+            objs = model.objects.all()
+            print(f"removing {objs.count()} {model.__name__} objects")
+            objs.delete()
