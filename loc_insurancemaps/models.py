@@ -228,6 +228,11 @@ class Volume(models.Model):
     extra_location_tags = JSONField(null=True, blank=True, default=list)
     sheet_ct = models.IntegerField(null=True, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
+    loaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE)
 
     def __str__(self):
 
@@ -284,6 +289,7 @@ class Volume(models.Model):
     def import_sheets(self, user):
 
         self.status = "initializing..."
+        self.loaded_by = user
         self.save()
 
         print("importing all sheeets")
@@ -335,9 +341,16 @@ class Volume(models.Model):
             split_url = reverse('split_view', args=(document.id,))
             georeference_url = reverse('georeference_view', args=(document.id,))
 
+            # hacky method for pulling out the sheet number from the doc title
+            try:
+                page_str = document.title.split("|")[1].split("p")[1]
+            except IndexError:
+                page_str = document.title
+
             doc_json = {
                 "id": document.pk,
                 "title": document.title,
+                "page_str": page_str,
                 "urls": {
                     "detail": detail_url,
                     "thumbnail": thumb.image.url,
@@ -365,6 +378,7 @@ class Volume(models.Model):
                     layer_json = {
                         "id": layer.pk,
                         "title": layer.title,
+                        "page_str": page_str,
                         "urls": {
                             "detail": detail_url,
                             "thumbnail": layer.thumbnail_url,
@@ -379,6 +393,12 @@ class Volume(models.Model):
     def to_json(self):
         items = self.documents_json
         items_ct = sum([len(v) for v in items.values()])
+        if self.loaded_by is None:
+            loaded_by = ""
+            loaded_by_url = ""
+        else:
+            loaded_by = self.loaded_by.username
+            loaded_by_url = reverse("profile_detail", args=(self.loaded_by.username, ))
         return {
             "identifier": self.identifier,
             "title": self.__str__(),
@@ -386,4 +406,7 @@ class Volume(models.Model):
             "sheet_ct": self.sheet_ct,
             "items_ct": items_ct,
             "items": items,
+            "loc_url": f"https://loc.gov/item/{self.identifier}",
+            "loaded_by": loaded_by,
+            "loaded_by_url": loaded_by_url,
         }
