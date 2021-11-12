@@ -2,34 +2,19 @@
 export let STATE_CHOICES;
 export let CITY_QUERY_URL;
 export let USER_TYPE;
+export let CITY_LIST;
 
 const cityDefault = "Select a community";
 
 let currentState = "louisiana";
 
-let cityOptions = [cityDefault];
+let cityOptions = CITY_LIST;
 let currentCity;
 let currentCountyEq;
 let volumes = [];
 
 let loadingCities = false;
 let loadingVolumes = false;
-
-function updateCityList(state) {
-	loadingCities = true;
-	volumes = [];
-	let cityUrl = `${CITY_QUERY_URL}?t=cities&s=${state}`;
-	fetch(cityUrl, {
-		method: 'GET',
-	})
-	.then(response => response.json())
-	.then(result => {
-		cityOptions = result;
-		currentCity = cityDefault;
-		loadingCities = false;
-	});
-}
-$: updateCityList(currentState);
 
 function updateVolumeList(city) {
 	let volumeUrl = `${CITY_QUERY_URL}?t=volumes&s=${currentState}&c=${city}`;
@@ -53,82 +38,112 @@ function updateVolumeList(city) {
 }
 $: updateVolumeList(currentCity);
 
+function updateFilteredList(filterText) {
+	if (filterText && filterText.length > 0) {
+		cityOptions = [];
+		CITY_LIST.forEach( function(city) {
+			const cityName = city[0].toUpperCase();
+			const filterBy = filterText.toUpperCase();
+			if (cityName.indexOf(filterBy) > -1) {
+				cityOptions.push(city);
+			}
+		});
+	} else {
+		cityOptions = CITY_LIST;
+	}
+}
+let filterInput;
+$: updateFilteredList(filterInput)
+
 </script>
 
 <main>
-	<div class="pane">
-		<h1>Welcome</h1>
-		<p>
-			This is an open platform for georeferencing and viewing Louisiana maps from
-			the Library of Congress <a href="https://www.loc.gov/collections/sanborn-maps/about-this-collection/">Sanborn Maps Collection</a>.
-		</p>
-		<h3>To get started...</h3>
-		<p>Select a community at right &rarr;</p>
-		<ul>
-			<li>If a volume has been started, you'll be able to view it status page.</li>
-			<li>If you have an account, you can start a new volume.</li>
-			<li>If a volume is greyed out <span style="color: grey">(like this)</span> then it
-				is not available for this project. <a href="/about#included-volumes" target="_blank">learn why <i class="fa fa-external-link"></i></a></li>
-		</ul>		
+	<div style="display:flex; flex-direction:row;">
+		<div class="pane">
+			<h1>Welcome</h1>
+			<p>
+				This is an open platform for georeferencing and viewing old insurance maps in
+				the Library of Congress <a href="https://www.loc.gov/collections/sanborn-maps/about-this-collection/">Sanborn Maps Collection</a>.
+			</p>	
+		</div>
+		<div class="pane">
+			<h2>How to Use This Site</h2>
+			<ul>
+				<li>If a volume has been started, you'll be able to view it status page.</li>
+				<li>If you have an account, you can start a new volume.</li>
+				<li>If a volume is greyed out <span style="color: grey">(like this)</span> then it
+					is not available for this project. <a href="/about#included-volumes" target="_blank">learn why <i class="fa fa-external-link"></i></a></li>
+			</ul>		
+		</div>
 	</div>
-	<div class="pane">
-		<div class="select-menus">
-			<div class="select-item">
-				<h3>Select a state:</h3>
-				<select bind:value={currentState}>
-				{#each STATE_CHOICES as state}
-					<!-- <option value={state[0]} disabled={state[0] != "louisiana"}>{state[1]}</option> -->
-					<option value={state[0]}>{state[1]}</option>
-				{/each}
-				</select>
-			</div>
-			<div class="select-item">
-				<h3>Which community are you interested in?</h3>
-				<select bind:value={currentCity} disabled={loadingCities}>
-					<option value={cityDefault} disabled>{cityDefault}</option>
+	<hr>
+	<div style="display:flex; flex-direction:row;">
+		<div class="pane">
+			<input type="text" id="filterInput" placeholder="Filter by name.." bind:value={filterInput}>
+			<div id="city-list" style="max-height: 350px; overflow-y:auto;">
 				{#each cityOptions as city}
-					<option value={city[0]}>{city[0]} - {city[1]} volume{#if city[1] != 1}s{/if}</option>
+				<label for={city[0]}>
+					<input type="radio" id={city[0]} bind:group={currentCity} value={city[0]}>
+					{city[0]} - {city[1]} volume{#if city[1] != 1}s{/if}
+				</label>
 				{/each}
-				</select>
 			</div>
-			<div class="select-item">
-				{#if volumes.length > 0 }
-				<h3>{currentCity}, {currentCountyEq}:</h3>
-					<ul class="volume-list">
-					{#each volumes as volume}
-						<li>
-							{#if volume.include == false}
-								<span style="color:grey;">{volume.title}</span>
-							{:else}
-								{volume.title}
-								{#if volume.started}
-									<a href="{volume.url}">view progress</a>
-								{:else if USER_TYPE == "participant" || USER_TYPE == "superuser"}
-									<a href="{volume.url}">start!</a>
-								{:else}
-									(not started)
-								{/if}
-							{/if}
-						
-						</li>
-					{/each}
-					</ul>
-				{:else}
-				<div class={loadingVolumes || loadingCities ? 'lds-ellipsis': ''} ><div></div><div></div><div></div><div></div></div>
-				{/if}
-			</div>
+		</div>
+		<div class="pane">
+			{#if volumes.length > 0 }
+			<h3 style="margin-top: 10px;">{currentCity}, {currentCountyEq}:</h3>
+				<ul class="volume-list">
+				{#each volumes as volume}
+					<li>
+					{#if volume.include == false}
+						<span style="color:grey;">{volume.title}</span>
+					{:else}
+						<a href="{volume.url}">{volume.title}</a> ({volume.status})
+					{/if}
+					</li>
+				{/each}
+				</ul>
+			{:else}
+			<h3 style="margin-top: 10px;">&larr; Select a Community</h3>
+			<div class={loadingVolumes || loadingCities ? 'lds-ellipsis': ''} ><div></div><div></div><div></div><div></div></div>
+			{/if}
 		</div>
 	</div>
 </main>
 
 <style>
+
+#filterInput {
+  width: 100%; /* Full-width */
+  font-size: 16px; /* Increase font-size */
+  padding: 12px;
+  text-align: center;
+  border: 1px solid #ddd; /* Add a grey border */
+}
+
+#city-list label {
+  border: 1px solid #ddd; /* Add a border to all links */
+  margin-top: -1px; /* Prevent double borders */
+  background-color: #f6f6f6; /* Grey background color */
+  padding: 12px; /* Add some padding */
+  text-decoration: none; /* Remove default text underline */
+  font-size: 18px; /* Increase the font-size */
+  color: black; /* Add a black text color */
+  display: block; /* Make it into a block element to fill the whole list */
+  margin-bottom: 0px;
+}
+
+#city-list label:hover:not(.header) {
+  background-color: #eee; /* Add a hover effect to all links, except for headers */
+}
+
 	main {
 		display: flex;
-		flex-direction: row;
+		flex-direction: column;
 		color: black;
 		font-size: 1.25em;
 		padding: 1em;
-		max-width: 240px;
+		/* max-width: 240px; */
 		margin: 0 auto;
 		/* background: #2c689c;
 		background: #ffd78b; */
@@ -171,8 +186,8 @@ $: updateVolumeList(currentCity);
 	} */
 
 	h1 {
-		/* font-size: 4em;
-		font-weight: 100; */
+		/* font-size: 4em;*/
+		font-weight: 400; 
 		text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
 	}
 
@@ -191,7 +206,7 @@ $: updateVolumeList(currentCity);
 		width: 100%;
 		height: 2em;
 		font-size: 1.25em;
-		font-weight: 700;
+		/* font-weight: 700; */
 	}
 
 	select:disabled {

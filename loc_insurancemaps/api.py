@@ -186,6 +186,11 @@ class CollectionConnection(object):
             r_facet = f"region__name__in={parsed['city']}"
 
             parsed['url'] = reverse("volume_summary", args=(parsed['id'],))
+            try:
+                v = Volume.objects.get(identifier=parsed['id'])
+                parsed['status'] = v.status
+            except Volume.DoesNotExist:
+                parsed['status'] = "not started"
             parsed['started'] = Volume.objects.filter(identifier=parsed['id']).exists()
             parsed['docs_search_url'] = f"{settings.SITEURL}documents/?{r_facet}&{d_facet}"
 

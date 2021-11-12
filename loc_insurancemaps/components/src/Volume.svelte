@@ -2,8 +2,15 @@
 export let VOLUME;
 export let POST_URL;
 export let CSRFTOKEN;
+export let USER_TYPE;
 
-function initializeVolume() { postOperation("initialize") }
+let pagesLoading = VOLUME.status == "initializing...";
+// let loadedBy = VOLUME.loaded_by;
+
+function initializeVolume() {
+	postOperation("initialize")
+	
+}
 function refreshSummary() { postOperation("refresh") }
 
 function postOperation(operation) {
@@ -21,103 +28,168 @@ function postOperation(operation) {
 	.then(response => response.json())
 	.then(result => {
 		VOLUME = result;
+		pagesLoading = VOLUME.status == "initializing...";
+		// loadedBy = VOLUME.loaded_by;
+		// force pagesLoading = true here because async operations may not
+		// yet have changed the actual VOLUME status.
+		if (operation == "initialize") { pagesLoading = true; }
 	});
 }
 </script>
 
 <main>
-	<div class="title-bar"><h2>{VOLUME.title}</h2><hr style="border-top-color:rgb(149, 149, 149);"></div>
-	<h3 style="display:inline">Summary of Progress</h3>
-	{#if VOLUME.status == "initializing..." || VOLUME.status == "started"}
-	<button id="refresh-button" title="refresh summary" on:click={refreshSummary}><em>refresh</em> <i class="fa fa-refresh" /></button>
+	<div class="title-bar">
+		<h2>{VOLUME.title}</h2>
+		<p><a href={VOLUME.loc_url} target="_blank">View in Library of Congress <i class="fa fa-external-link"></i></a></p>
+	</div>
+	<hr style="border-top-color:rgb(149, 149, 149);">
+	{#if USER_TYPE == 'anonymous' }
+	<div class="sign-in-reminder">
+	<p><em>
+		<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+		<a href="/account/register">sign up</a> to work on this volume
+	</em></p>
+	</div>
 	{/if}
-	{#if VOLUME.status == "not started"}
-	<p>Work on this volume has not yet begun. Load the volume to get started!</p>
-	<button on:click={initializeVolume}>Load Volume</button>
-	{/if}
-	{#if VOLUME.status == "initializing..."}
-	<p>{VOLUME.items_ct}/{VOLUME.sheet_ct} sheet{#if VOLUME.sheet_ct != 1}s{/if} loaded...</p>
-	<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
-	{/if}
-	
-	{#if VOLUME.status == "started"}
+	<h3 style="">Georeferencing Overview <button id="refresh-button" title="refresh overview" on:click={refreshSummary}><i class="fa fa-refresh" /></button></h3>
+	<div class="pages-status-bar">
+		{#if VOLUME.loaded_by != "" && !pagesLoading}
+			<p><em>pages loaded by <a href={VOLUME.loaded_by_url}>{VOLUME.loaded_by}</a></em></p>
+		{/if}
+		{#if VOLUME.items_ct == 0 && USER_TYPE != 'anonymous' && !pagesLoading}
+			<!-- <p><em>no pages loaded</em></p> -->
+			<button on:click={initializeVolume}>load pages</button>
+		{/if}
+		{#if pagesLoading}
+			<p style="float:left;"><em>{VOLUME.items_ct}/{VOLUME.sheet_ct} page{#if VOLUME.sheet_ct != 1}s{/if} loaded...</em></p>
+			<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
+		{/if}
+	</div>
 	<div class="documents-box">
-		{#if VOLUME.items.unprepared.length > 0}
 		<h4>Unprepared ({VOLUME.items.unprepared.length})</h4>
 		<div class="documents-column">
 			{#each VOLUME.items.unprepared as document}
 			<div class="document-item">
-				<p>
-					<a href={document.urls.detail} title={document.title}>detail page &rarr;</a><br>
-					<a href={document.urls.split} title="prepare this document">prepare &rarr;</a>
-				</p>
+				<div><p>page {document.page_str}</p></div>
 				<img src={document.urls.thumbnail} alt={document.title}>
+				<div>
+					<ul>
+						{#if USER_TYPE != "anonymous"}
+						<li><a href={document.urls.split} title="prepare this document">prepare &rarr;</a></li>
+						{/if}
+						<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
+					</ul>
+				</div>
 			</div>
 			{/each}
 		</div>
-		{/if}
-		{#if VOLUME.items.prepared.length > 0}
 		<h4>Prepared ({VOLUME.items.prepared.length})</h4>
 		<div class="documents-column">
 			{#each VOLUME.items.prepared as document}
 			<div class="document-item">
-				<p>
-					<a href={document.urls.detail} title={document.title}>detail page &rarr;</a><br>
-					<a href={document.urls.georeference} title="georeference this document">georeference &rarr;</a>
-				</p>
+				<div><p>page {document.page_str}</p></div>
 				<img src={document.urls.thumbnail} alt={document.title}>
+				<div>
+					<ul>
+						{#if USER_TYPE != "anonymous"}
+						<li><a href={document.urls.georeference} title="georeference this document">georeference &rarr;</a></li>
+						{/if}
+						<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
+					</ul>
+				</div>
 			</div>
 			{/each}
 		</div>
-		{/if}
-		{#if VOLUME.items.layers.length > 0}
 		<h4>Georeferenced ({VOLUME.items.layers.length})</h4>
 		<div class="documents-column">
 			{#each VOLUME.items.layers as layer}
 			<div class="document-item">
-				<p>
-					<a href={layer.urls.detail} title={layer.title}>detail page &rarr;</a><br>
-					<a href={layer.urls.georeference} title="edit georeferencing">edit georeferencing &rarr;</a><br>
-					<a href={layer.urls.trim} title="trim this layer">trim &rarr;</a>
-				</p>
-				<img src={layer.urls.thumbnail} alt={layer.title}>
+				<div><p>page {layer.page_str}</p></div>
+				<img src={layer.urls.thumbnail} alt={document.title}>
+				<div>
+					<ul>
+						{#if USER_TYPE != "anonymous"}
+						<li><a href={layer.urls.georeference} title="edit georeferencing">edit georeferencing &rarr;</a></li>
+						<li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li>
+						{/if}
+						<li><a href={layer.urls.detail} title={layer.title}>layer detail &rarr;</a></li>
+					</ul>
+				</div>
 			</div>
 			{/each}
 		</div>
-		{/if}
 	</div>
-	{/if}
 </main>
 
 
 
 <style>
-	main {
-		font-size: 1.25em;
-		padding: 1em;
-		/* background: #2c689c;
-		background: #ffd78b; */
+
+	.pages-status-bar {
+		width: 100%;
+		display: inline-block;
+		vertical-align: middle;
+		font-size: .9em;
 	}
 
-	.documents-box {
-		
+	.pages-status-bar p {
+		margin: 0px;
+	}
+
+	.sign-in-reminder {
+		background: #e6e6e6;
+		text-align: center;
+		padding: 5px;
+		margin: 5px;
+	}
+
+	.sign-in-reminder p {
+		margin: 0px;
+	}
+
+	.documents-box {		
 	}
 
 	.documents-column {
 		display: flex;
 		flex-direction: row;
+		flex-wrap: wrap;
 		gap: 20px;
 	}
 
 	.document-item {
-		padding: 20px;
+		/* padding: 20px; */
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
 		border: 1px solid gray;
 		background: white;
+
 	}
 
 	.document-item img {
+		margin: 15px;
 		max-height: 200px;
 		max-width: 200px;
+	}
+
+	.document-item div:first-child {
+		text-align: center;
+	}
+
+	.document-item div:first-child, .document-item div:last-child {
+		padding: 10px;
+		background: #e6e6e6;
+		width: 100%;
+	}
+
+	.document-item p, .document-item ul {
+		margin: 0px;
+	}
+
+	.document-item ul {
+		list-style-type: none;
+		padding: 0;
 	}
 
 	.pane {
@@ -141,8 +213,7 @@ function postOperation(operation) {
 	}
 
 	#refresh-button {
-		background: unset;
-		border: none;
+		float: right;
 	}
 
 	#refresh-button i {
@@ -175,6 +246,19 @@ function postOperation(operation) {
 
 	}
 
+	.rotate{
+    -moz-transition: all 2s linear;
+    -webkit-transition: all 2s linear;
+    transition: all 2s linear;
+}
+
+.rotate.down{
+    -ms-transform: rotate(180deg);
+    -moz-transform: rotate(180deg);
+    -webkit-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
+
 
 	select {
 		color: rgb(59, 57, 57);
@@ -194,11 +278,11 @@ function postOperation(operation) {
 		display: inline-block;
 		position: relative;
 		width: 80px;
-		height: 80px;
+		height: 20px;
 	}
 	.lds-ellipsis div {
 		position: absolute;
-		top: 33px;
+		top: 10px;
 		width: 13px;
 		height: 13px;
 		border-radius: 50%;

@@ -182,11 +182,14 @@ class HomePage(View):
 
     def get(self, request):
 
+        lc = CollectionConnection(delay=0, verbose=True)
+        city_list = lc.get_city_list_by_state("louisiana")
         context_dict = {
             "svelte_params": {
                 "STATE_CHOICES": STATE_CHOICES,
                 "CITY_QUERY_URL": reverse('lc_api'),
                 'USER_TYPE': get_user_type(request.user),
+                'CITY_LIST': city_list,
             }
         }
 
@@ -201,18 +204,20 @@ class VolumeDetail(View):
     def get(self, request, volumeid):
 
         try:
-            vol = Volume.objects.get(pk=volumeid)
+            volume = Volume.objects.get(pk=volumeid)
         except Volume.DoesNotExist:
             lc = CollectionConnection(delay=0, verbose=True)
-            vol = lc.import_volume(volumeid)
-            if vol is None:
+            volume = lc.import_volume(volumeid)
+            if volume is None:
                 raise Http404
 
+        volume_json = volume.to_json()
         context_dict = {
             "svelte_params": {
-                "VOLUME": vol.to_json(),
+                "VOLUME": volume_json,
                 "POST_URL": reverse("volume_summary", args=(volumeid,)),
                 "CSRFTOKEN": csrf.get_token(request),
+                'USER_TYPE': get_user_type(request.user),
             }
         }
         return render(
@@ -233,14 +238,19 @@ class VolumeDetail(View):
             )
             volume = Volume.objects.get(pk=volumeid)
             volume_json = volume.to_json()
-            # set a few things manually here
-            # volume_json["status"] = "initializing..."
-            # volume_json["items_ct"] = sum([len(v) for v in volume_json["items"].values()])
+
+            # set a few things manually here that may not be set on the Volume
+            # yet due to async operations
+            volume_json["loaded_by"] = request.user.username
+            volume_json["loaded_by_url"] = reverse("profile_detail", args=(request.user.username, ))
+            volume_json["status"] = "initializing..."
+
             return JsonResponse(volume_json)
         
         elif operation == "refresh":
             volume = Volume.objects.get(pk=volumeid)
-            return JsonResponse(volume.to_json())
+            volume_json = volume.to_json()
+            return JsonResponse(volume_json)
 
 class SimpleAPI(View):
 
