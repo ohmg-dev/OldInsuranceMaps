@@ -1,34 +1,46 @@
 {% load i18n %}
 {% verbatim %}
-<div class="georeferencing-status">
-    <div ng-if="item.type == 'document'">
-        <div ng-if="item.georeferencing_status == 'Unprepared'">
-            <a href="{{ item.trim_url }}">
-            {% endverbatim %}{% trans "prepare document for georeferencing" %}{% verbatim %} &rarr;
-            </a>
-        </div>
-        <div ng-if="item.georeferencing_status == 'Prepared'">
-            <a href="{{ item.georeference_url }}">
-            {% endverbatim %}{% trans "georeference document" %}{% verbatim %} &rarr;
-            </a>
-        </div>
-        <div ng-if="item.georeferencing_status == 'Georeferenced'">
-            <a href="{{ item.georeference_url }}">
-            {% endverbatim %}{% trans "edit georeferencing" %}{% verbatim %} &rarr;
-            </a><br>
-            <a href="{{ item.layer_url }}">
-            {% endverbatim %}{% trans "view layer" %}{% verbatim %} &rarr;
-            </a>
-        </div>
-    </div>
-    <div ng-if="item.type == 'layer'">
-        <div ng-if="item.georeferencing_status == 'Georeferenced'">
-            <a href="{{ item.georeference_url }}">
-            {% endverbatim %}{% trans "edit georeferencing" %}{% verbatim %} &rarr;
-            </a><br>
-            <a href="{{ item.document_url }}">
-            {% endverbatim %}{% trans "view document" %}{% verbatim %} &rarr;
-            </a>
+<div class="row" style="padding-bottom:5px;">
+    <div class="col-xs-12">
+        <div class="georeferencing-status">
+            <div ng-if="item.type == 'document'">
+                <div ng-if="item.georeferencing_status == 'Unprepared'">
+                    <a href="{{ item.split_url }}">
+                        <i class="fa fa-cut"></i>
+                        {% endverbatim %}{% trans "prepare document for georeferencing" %}{% verbatim %}
+                    </a>
+                </div>
+                <div ng-if="item.georeferencing_status == 'Prepared'">
+                    <a href="{{ item.georeference_url }}">
+                        <i class="fa fa-map-pin"></i>
+                        {% endverbatim %}{% trans "georeference document" %}{% verbatim %}
+                    </a>
+                </div>
+                <div ng-if="item.georeferencing_status == 'Georeferenced'">
+                    <a href="{{ item.georeference_url }}">
+                        <i class="fa fa-map-pin"></i>
+                        {% endverbatim %}{% trans "edit georeferencing" %}{% verbatim %}
+                    </a><br>
+                    <a href="{{ item.layer_url }}">
+                        <i class="fa fa-picture-o"></i>
+                        {% endverbatim %}{% trans "view layer" %}{% verbatim %}
+                    </a>
+                </div>
+            </div>
+            <div ng-if="item.type == 'layer'">
+                <div ng-if="item.georeference_url != ''">
+                    <a href="{{ item.georeference_url }}">
+                        <i class="fa fa-map-pin"></i>
+                        {% endverbatim %}{% trans "edit georeferencing" %}{% verbatim %}
+                    </a>
+                </div>
+                <div ng-if="item.document_url != ''">
+                    <a href="{{ item.document_url }}">
+                        <i class="fa fa-newspaper-o"></i>
+                        {% endverbatim %}{% trans "view document" %}{% verbatim %}
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
