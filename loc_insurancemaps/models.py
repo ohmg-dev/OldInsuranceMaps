@@ -340,6 +340,7 @@ class Volume(models.Model):
             detail_url = reverse('document_detail', args=(document.id,))
             split_url = reverse('split_view', args=(document.id,))
             georeference_url = reverse('georeference_view', args=(document.id,))
+            georeference_summary_url = reverse('georeference_summary', args=(document.id,))
 
             # hacky method for pulling out the sheet number from the doc title
             try:
@@ -356,6 +357,7 @@ class Volume(models.Model):
                     "thumbnail": thumb.image.url,
                     "split": split_url,
                     "georeference": georeference_url,
+                    "georeference_summary": georeference_summary_url,
                 }
             }
 
@@ -384,6 +386,7 @@ class Volume(models.Model):
                             "thumbnail": layer.thumbnail_url,
                             "georeference": georeference_url,
                             "trim": trim_url,
+                            "georeference_summary": georeference_summary_url,
                         }
                     }
                     sorted_items["layers"].append(layer_json)

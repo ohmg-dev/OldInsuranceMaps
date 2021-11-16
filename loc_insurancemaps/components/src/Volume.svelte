@@ -44,7 +44,7 @@ function postOperation(operation) {
 	</div>
 	<hr style="border-top-color:rgb(149, 149, 149);">
 	{#if USER_TYPE == 'anonymous' }
-	<div class="sign-in-reminder">
+	<div class="signin-reminder">
 	<p><em>
 		<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
 		<a href="/account/register">sign up</a> to work on this volume
@@ -78,6 +78,7 @@ function postOperation(operation) {
 						<li><a href={document.urls.split} title="prepare this document">prepare &rarr;</a></li>
 						{/if}
 						<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
+						<li><a href={document.urls.georeference_summary} title="view summary">georeferencing summary &rarr;</a></li>
 					</ul>
 				</div>
 			</div>
@@ -95,6 +96,7 @@ function postOperation(operation) {
 						<li><a href={document.urls.georeference} title="georeference this document">georeference &rarr;</a></li>
 						{/if}
 						<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
+						<li><a href={document.urls.georeference_summary} title="view summary">georeferencing summary &rarr;</a></li>
 					</ul>
 				</div>
 			</div>
@@ -113,6 +115,7 @@ function postOperation(operation) {
 						<li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li>
 						{/if}
 						<li><a href={layer.urls.detail} title={layer.title}>layer detail &rarr;</a></li>
+						<li><a href={layer.urls.georeference_summary} title="view summary">georeferencing summary &rarr;</a></li>
 					</ul>
 				</div>
 			</div>
@@ -136,18 +139,15 @@ function postOperation(operation) {
 		margin: 0px;
 	}
 
-	.sign-in-reminder {
+	.signin-reminder {
 		background: #e6e6e6;
 		text-align: center;
 		padding: 5px;
 		margin: 5px;
 	}
 
-	.sign-in-reminder p {
+	.signin-reminder p {
 		margin: 0px;
-	}
-
-	.documents-box {		
 	}
 
 	.documents-column {
@@ -171,6 +171,7 @@ function postOperation(operation) {
 		margin: 15px;
 		max-height: 200px;
 		max-width: 200px;
+		object-fit: scale-down;
 	}
 
 	.document-item div:first-child {
@@ -190,26 +191,6 @@ function postOperation(operation) {
 	.document-item ul {
 		list-style-type: none;
 		padding: 0;
-	}
-
-	.pane {
-		flex-grow: 1;
-		/* width: 33%; */
-	}
-
-	.pane + .pane {
-		margin-left: 2%;
-	}
-
-	.select-menus {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.select-item {
-		width: 100%;
-		margin-bottom: 20px;
 	}
 
 	#refresh-button {
