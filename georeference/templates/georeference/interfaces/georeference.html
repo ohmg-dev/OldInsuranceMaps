@@ -9,17 +9,13 @@
 
 {% load django_svelte %}
 
-{% block title %}{{ resource.title }} — {{ block.super }}{% endblock %}
-
-{% block head %}
-{{ block.super }}
-{% endblock %}
+{% block title %}{{ svelte_params.DOCUMENT.title }} — Georeference{% endblock %}
 
 {% block body_class %}{% trans "documents" %}{% endblock %}
 
 {% block middle %}
 <div class="container" style="width: 100%">
-    <h4>Georeferencing: {{ resource.title }}</h4>
+    <h4>Georeferencing: {{ svelte_params.DOCUMENT.title }}</h4>
     <p><em><a href="#" data-toggle="collapse" data-target=".more-info">I don't know how to do this.</a></em></p>
     <div class="more-info collapse" style="background:lightgray; border-radius:7px; padding:20px; margin-top:20px; margin-bottom:20px;">
         <div class="row">

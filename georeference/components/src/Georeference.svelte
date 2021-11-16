@@ -35,12 +35,10 @@
   import Modify from 'ol/interaction/Modify';
   import Snap from 'ol/interaction/Snap';
 
-  export let IMG_HEIGHT;
-  export let IMG_WIDTH;
-  export let DOC_URL;
+  export let DOCUMENT;
+  export let IMG_SIZE;
   export let CSRFTOKEN;
   export let USERNAME;
-  export let SUBMIT_URL;
   export let REGION_EXTENT;
   export let INCOMING_GCPS;
   export let INCOMING_TRANSFORMATION;
@@ -59,7 +57,10 @@
   let docView;
   let mapView;
   let gcpList = [];
-  
+
+  const imgWidth = IMG_SIZE[0];
+  const imgHeight = IMG_SIZE[1];
+
   const beginTxt = "Click a recognizable location on the map document (left panel)"
   const completeTxt = "Now find and click on the corresponding location in the web map (right panel)"
 
@@ -243,7 +244,7 @@
 
     // items needed by layers and map
     // set the extent and projection with 0, 0 at the **top left** of the image
-    const docExtent = [0, -IMG_HEIGHT, IMG_WIDTH, 0];
+    const docExtent = [0, -imgHeight, imgWidth, 0];
     const docProjection = new Projection({
       units: 'pixels',
       extent: docExtent,
@@ -252,7 +253,7 @@
     // create layers
     const docLayer = new ImageLayer({
       source: new ImageStatic({
-        url: DOC_URL,
+        url: DOCUMENT.urls.image,
         projection: docProjection,
         imageExtent: docExtent,
       }),
@@ -270,7 +271,7 @@
       layers: [docLayer, gcpLayer],
       view: new View({
         projection: docProjection,
-        center: [IMG_WIDTH/2, -IMG_HEIGHT/2],
+        center: [imgWidth/2, -imgHeight/2],
         zoom: 1,
         maxZoom: 8,
       })
@@ -293,7 +294,7 @@
         const y = -Math.round(coordinate[1]);
         let formatted = `${x}, ${y}`;
         // set empty if the mouse is outside of the image itself
-        if (x < 0 || x > IMG_WIDTH || y < 0 || y > IMG_HEIGHT) {formatted = ""}
+        if (x < 0 || x > imgWidth || y < 0 || y > imgHeight) {formatted = ""}
         return formatted
       },
       projection: docProjection,
@@ -613,10 +614,12 @@
     let featureCollection = { "type": "FeatureCollection", "features": [] };
     mapGCPSource.forEachFeature( function(feature) {
       const wgs84_geom = feature.getGeometry().clone().transform('EPSG:3857', 'EPSG:4326')
+      let props = feature.getProperties();
+      delete props['geometry'];
       featureCollection.features.push(
         {
           "type": "Feature",
-          "properties": feature.getProperties(),
+          "properties": props,
           "geometry": {
             "type": "Point",
             "coordinates": wgs84_geom.flatCoordinates
@@ -630,7 +633,6 @@
   // wrappers for the backend view to process GCPs
   function previewGCPs() { processGCPs("preview") }
   function submitGCPs() { processGCPs("submit") }
-  function cleanupPreview() { processGCPs("cleanup") }
 
   function processGCPs(operation){
     if (gcpList.length < 3) {
@@ -643,7 +645,7 @@
       "transformation": currentTransformation,
       "operation": operation,
     });
-    fetch(SUBMIT_URL, {
+    fetch(DOCUMENT.urls.georeference, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=utf-8',
@@ -659,9 +661,7 @@
           previewSource.setUrl(sourceUrl.replace(/\/[^\/]*$/, '/'+Math.random()));
           previewSource.refresh()
         } else if (operation == "submit") {
-          processGCPs("cleanup");
-        } else if (operation == "cleanup") {
-          window.location.href = result['redirect_to'];
+          window.location.href = DOCUMENT.urls.progress_page;
         }
       });
 
@@ -671,11 +671,7 @@
 
   // wrapper function to call view for db cleanup as needed
   function cleanupOnLeave (e) {
-    // e.preventDefault();
-    // alert("hello!")
-    console.log("pausing")
-    // e.returnValue = '';
-    cleanupPreview()
+    processGCPs("cleanup");
   }
 
   function handleKeydown(e) {

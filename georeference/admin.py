@@ -7,6 +7,7 @@ from .models import (
     GeoreferenceSession,
     GCP,
     GCPGroup,
+    GeoreferencedDocumentLink,
     LayerMask,
     MaskSession,
 )
@@ -20,6 +21,7 @@ class GeoreferenceSessionAdmin(admin.ModelAdmin):
 admin.site.register(SplitDocumentLink)
 admin.site.register(Segmentation)
 admin.site.register(SplitSession)
+admin.site.register(GeoreferencedDocumentLink)
 admin.site.register(GeoreferenceSession, GeoreferenceSessionAdmin)
 admin.site.register(GCP, GCPAdmin)
 admin.site.register(GCPGroup)

@@ -9,7 +9,7 @@
 
 {% load django_svelte %}
 
-{% block title %}{{ resource.title }} — {{ block.super }}{% endblock %}
+{% block title %}{{ svelte_params.LAYER.title }} — Trim{% endblock %}
 
 {% block head %}
 {{ block.super }}
@@ -19,7 +19,7 @@
 
 {% block body_outer %}
 
-<h4>Trimming: {{ resource.title }}</h4>
+<h4>Trimming: {{ svelte_params.LAYER.title }}</h4>
 
 {% display_svelte "Trim.svelte" svelte_params %}
 

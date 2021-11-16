@@ -34,9 +34,9 @@
   import Snap from 'ol/interaction/Snap';
 
   export let CSRFTOKEN;
-  export let SUBMIT_URL;
+  export let LAYER;
   export let MAPBOX_API_KEY;
-  export let LAYER_ID;
+  // export let LAYER_ID;
   export let GEOSERVER_WMS;
   export let LAYER_EXTENT;
   export let INCOMING_MASK_COORDINATES;
@@ -103,7 +103,7 @@
     sld += ' xmlns:xlink="http://www.w3.org/1999/xlink"'
     sld += ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
     sld += '<NamedLayer>'
-    sld += ` <Name>${LAYER_ID}</Name>`
+    sld += ` <Name>${LAYER.geoserver_id}</Name>`
     sld += ' <UserStyle IsDefault="true">'
     sld += '  <FeatureTypeStyle>'
     sld += '   <Rule>'
@@ -122,7 +122,7 @@
     source: new TileWMS({
       url: GEOSERVER_WMS,
       params: {
-        'LAYERS': LAYER_ID,
+        'LAYERS': LAYER.geoserver_id,
         'TILED': true,
         'SLD_BODY': defaultSLD(),
         // Strangely, STYLES needs to have some random value in it, so that
@@ -165,7 +165,7 @@
     maskPolygonCoords = [];
     trimShapeSource.clear();
     maskSLDContent = defaultSLD();
-    const extent3857 = transformExtent(LAYER_EXTENT, "EPSG:4326", "EPSG:3857");
+    const extent3857 = transformExtent(LAYER.extent, "EPSG:4326", "EPSG:3857");
     mapView.map.getView().fit(extent3857);
     mapView.drawInteraction.setActive(true)
   }
@@ -301,7 +301,7 @@
       "mask_coords": maskPolygonCoords,
       "operation": operation,
     });
-    fetch(SUBMIT_URL, {
+    fetch(LAYER.urls.trim, {
       method: 'POST',
       headers: {
       'Content-Type': 'application/json;charset=utf-8',

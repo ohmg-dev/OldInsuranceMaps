@@ -11,9 +11,17 @@ from geonode.base.models import ThesaurusKeyword
 from geonode.documents.models import DocumentResourceLink
 from geonode.layers.models import Layer
 
+from .georeferencer import get_path_variant
+
 logger = logging.getLogger(__name__)
 
 ## ~~ general utils ~~
+
+def full_reverse(view_name, **kwargs):
+    """Wraps the reverse utility to prepend the site base domain."""
+    base = settings.SITEURL.rstrip("/")
+    full_url = base + reverse(view_name, **kwargs)
+    return full_url
 
 def make_db_cursor():
 
@@ -25,27 +33,31 @@ def make_db_cursor():
 
     return conn.cursor()
 
-def get_layer_from_document(document):
+## ~~ Status TKeyword Management ~~
 
-    existing_layer = None
-    links = DocumentResourceLink.objects.filter(document=document)
-    for link in links:
-        try:
-            obj = link.content_type.get_object_for_this_type(pk=link.object_id)
-            if isinstance(obj, Layer):
-                existing_layer = obj
-        except Layer.DoesNotExist:
-            pass
-    return existing_layer
+tk_lookup = {
+    "unprepared": ThesaurusKeyword.objects.get(about="unprepared"),
+    "splitting": ThesaurusKeyword.objects.get(about="splitting"),
+    "prepared": ThesaurusKeyword.objects.get(about="prepared"),
+    "georeferencing": ThesaurusKeyword.objects.get(about="georeferencing"),
+    "georeferenced": ThesaurusKeyword.objects.get(about="georeferenced"),
+}
 
-def get_document_from_layer(layer):
+def get_status(resource):
+    status = None
+    for tk in tk_lookup.values():
+        if tk in resource.tkeywords.all():
+            status = tk.about
+    return status
 
-    try:
-        link = DocumentResourceLink.objects.get(object_id=layer.pk)
-        document = link.document
-    except DocumentResourceLink.DoesNotExist:
-        document = None
-    return document
+def unset_status(resource):
+    for tk in tk_lookup.values():
+        if tk in resource.tkeywords.all():
+            resource.tkeywords.remove(tk)
+
+def set_status(resource, status):
+    unset_status(resource)
+    resource.tkeywords.add(tk_lookup[status])
 
 ## ~~ IIIF support ~~
 
@@ -238,12 +250,14 @@ END # Map File
 
 def mapserver_add_layer(file_path):
 
+    vrt_path = get_path_variant(file_path, "VRT")
+
     mapfile = settings.MAPSERVER_MAPFILE
 
     if not os.path.isfile(mapfile):
         initialize_mapfile()
 
-    layer_name = os.path.splitext(os.path.basename(file_path))[0]
+    layer_name = os.path.splitext(os.path.basename(vrt_path))[0]
     output = []
     already_exists = False
     with open(mapfile, "r") as openf:
@@ -251,7 +265,7 @@ def mapserver_add_layer(file_path):
         for line in openf.readlines():
             if line != "END # Map File\n":
                 output.append(line)
-            if file_path in line:
+            if vrt_path in line:
                 already_exists = True
     
     if not already_exists:
@@ -263,9 +277,9 @@ def mapserver_add_layer(file_path):
             '    END\n',
             '    TYPE RASTER\n',
             '    STATUS ON\n',
-            f'    DATA "{file_path}"\n',
-            '    OFFSITE 255 255 255 ',
-            '    TRANSPARENCY 100'
+            f'    DATA "{vrt_path}"\n',
+            '    OFFSITE 255 255 255\n',
+            '    TRANSPARENCY 100\n'
             '    PROJECTION\n',
             '     "init=epsg:3857"\n',
             '    END\n',
@@ -283,9 +297,10 @@ def mapserver_add_layer(file_path):
 
 def mapserver_remove_layer(file_path):
 
+    vrt_path = get_path_variant(file_path, "VRT")
     mapfile = settings.MAPSERVER_MAPFILE
 
-    basename = os.path.basename(file_path)
+    basename = os.path.basename(vrt_path)
     output = []
     current_layer = {"source": "", "lines": []}
     with open(mapfile, "r") as openf:

@@ -33,30 +33,11 @@ from .models import (
 logger = get_task_logger(__name__)
 
 @shared_task
-def split_image_as_task(docid, userid):
-    """
-    This is the complete image splitting task that can be called from elsewhere.
-    """
-    user = get_user_model().objects.get(pk=userid)
-    document = Document.objects.get(pk=docid)
-    ss = SplitSession.objects.create(
-        document=document,
-        user=user,
-    )
-    ss.run()
+def split_image_as_task(sessionid):
+    session = SplitSession.objects.get(pk=sessionid)
+    session.run()
 
 @shared_task
-def georeference_document_as_task(docid, userid):
-
-    user = get_user_model().objects.get(pk=userid)
-    document = Document.objects.get(pk=docid)
-    gs = GeoreferenceSession.objects.create(
-        document=document,
-        user=user,
-    )
-    gs.run()
-
-@shared_task
-def trim_layer_as_task(layerid, userid):
-    user = get_user_model().objects.get(pk=userid)
-    layer = Layer.objects.get(pk=layerid)
+def georeference_document_as_task(sessionid):
+    session = GeoreferenceSession.objects.get(pk=sessionid)
+    session.run()

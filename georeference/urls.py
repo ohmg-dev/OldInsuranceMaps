@@ -5,7 +5,7 @@ from .views import (
     SplitView,
     TrimView,
     GeoreferenceView,
-    OverviewView,
+    GeoreferenceSummary,
 )
 
 urlpatterns = [
@@ -19,5 +19,5 @@ urlpatterns = [
     path('trim/<str:layeralternate>/', TrimView.as_view(), name="trim_view"),
     path('georeference/<int:docid>/', GeoreferenceView.as_view(), name="georeference_view"),
 
-    path('georeference/overview/<str:objectid>', OverviewView.as_view(), name="overview_view"),
+    path('progress/<int:docid>', GeoreferenceSummary.as_view(), name="georeference_summary"),
 ]

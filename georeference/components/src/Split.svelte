@@ -35,15 +35,11 @@
   import Modify from 'ol/interaction/Modify';
   import Snap from 'ol/interaction/Snap';
 
-  export let IMG_HEIGHT;
-  export let IMG_WIDTH;
-  export let DOC_URL;
+  export let DOCUMENT;
+  export let IMG_SIZE;
   export let CSRFTOKEN;
-  export let SUBMIT_URL;
   export let INCOMING_DIVISIONS;
   export let INCOMING_CUTLINES;
-
-  console.log(DOC_URL)
 
   let polygonCount = 0;
   let showPreview = true;
@@ -57,8 +53,11 @@
     {id: 'modify', name: 'Modify'}
   ];
 
-  const extent = [0, 0, IMG_WIDTH, IMG_HEIGHT];
-  const mapCenter = [IMG_WIDTH/2, IMG_HEIGHT/2];
+  const imgWidth = IMG_SIZE[0];
+  const imgHeight = IMG_SIZE[1];
+
+  const extent = [0, 0, imgWidth, imgHeight];
+  const mapCenter = [imgWidth/2, imgHeight/2];
 
   let projection = new Projection({
     code: 'whatdoesthismatter',
@@ -111,7 +110,7 @@
 
       this.img_layer = new ImageLayer({
         source: new ImageStatic({
-          url: DOC_URL,
+          url: DOCUMENT.urls.image,
           projection: projection,
           imageExtent: extent,
         }),
@@ -138,7 +137,7 @@
       });
       let border = new Feature({
         geometry: new Polygon([[
-          [0,0], [IMG_WIDTH, 0], [IMG_WIDTH, IMG_HEIGHT], [0, IMG_HEIGHT], [0,0]
+          [0,0], [imgWidth, 0], [imgWidth, imgHeight], [0, imgHeight], [0,0]
         ]]),
       });
       this.borderLayer.getSource().addFeature(border);
@@ -289,16 +288,16 @@
     }
   }
 
-  function noSplitNeeded() { processCutlines("no_split") };
+  
   function previewSplit() { if ( cutLines.length > 0) { processCutlines("preview") } };
-  function runSplit() { processCutlines("submit") };
-  function runCleanup() { processCutlines("cleanup") };
+  function runSplit() { processCutlines("submit", false) };
+  function noSplitNeeded() { processCutlines("submit", true) };
 
-  function processCutlines(operation) {
+  function processCutlines(operation, noSplit) {
 
-    let data = JSON.stringify({"lines": cutLines, "operation": operation });
+    let data = JSON.stringify({"lines": cutLines, "operation": operation, "no_split": noSplit});
 
-    fetch(SUBMIT_URL, {
+    fetch(DOCUMENT.urls.split, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=utf-8',
@@ -308,30 +307,17 @@
       })
       .then(response => response.json())
       .then(result => {
-        if (operation == "submit" || operation == "no_split") {
-          window.location.href = result['redirect_to'];
+        if (operation == "submit") {
+          window.location.href = DOCUMENT.urls.progress_page;
         } else if (operation == "preview") {
           iface.refreshPreviewLayer(result['polygons'])
         }
       });
   }
 
-function cleanupOnLeave (e) {
-  // e.preventDefault();
-  // // alert("hello!")
-  // alert("pausing")
-  // // e.returnValue = '';
-  // cleanupPreview()
-  // e.preventDefault();
-  // let choice = e.returnValue = "Are you sure you want to exit?";
-  // console.log("adoincgin")
-  // runCleanup()
-  return 
-}
-
 </script>
 
-<svelte:window on:keydown={handleKeydown} on:beforeunload={cleanupOnLeave}/>
+<svelte:window on:keydown={handleKeydown}/>
 
 <div class="svelte-component-main">
   <nav id="hamnav">

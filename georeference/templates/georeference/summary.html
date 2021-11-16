@@ -9,11 +9,7 @@
 
 {% load django_svelte %}
 
-{% block title %}SGT Overview — {{ block.super }}{% endblock %}
-
-{% block head %}
-{{ block.super }}
-{% endblock %}
+{% block title %}{{svelte_params.DOCUMENT.title}} — Summary{% endblock %}
 
 {% block body_class %}{% endblock %}
 

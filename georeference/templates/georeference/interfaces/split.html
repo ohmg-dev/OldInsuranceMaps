@@ -9,7 +9,7 @@
 
 {% load django_svelte %}
 
-{% block title %}{{ resource.title }} — {{ block.super }}{% endblock %}
+{% block title %}{{ svelte_params.DOCUMENT.title }} — Split{% endblock %}
 
 {% block head %}
 {{ block.super }}
@@ -21,7 +21,7 @@
 
 <div class="interface-header" style="margin-bottom:20px; font-size:1.25em;">
 
-    <h3>Preparing: {{ resource.title }}</h3>
+    <h3>Preparing: {{ svelte_params.DOCUMENT.title }}</h3>
 
     <h4>Check: Does this image need to be split before it can be georeferenced?</h4>
     <p><em>I don't know - <a href="#" data-toggle="collapse" data-target=".more-info">tell me more about this.</a></em></p>
