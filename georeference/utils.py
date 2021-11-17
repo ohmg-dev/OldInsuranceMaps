@@ -35,27 +35,32 @@ def make_db_cursor():
 
 ## ~~ Status TKeyword Management ~~
 
-tk_lookup = {
-    "unprepared": ThesaurusKeyword.objects.get(about="unprepared"),
-    "splitting": ThesaurusKeyword.objects.get(about="splitting"),
-    "prepared": ThesaurusKeyword.objects.get(about="prepared"),
-    "georeferencing": ThesaurusKeyword.objects.get(about="georeferencing"),
-    "georeferenced": ThesaurusKeyword.objects.get(about="georeferenced"),
-}
+def get_tk_lookup():
+    tk_lookup = {
+        "unprepared": ThesaurusKeyword.objects.get(about="unprepared"),
+        "splitting": ThesaurusKeyword.objects.get(about="splitting"),
+        "prepared": ThesaurusKeyword.objects.get(about="prepared"),
+        "georeferencing": ThesaurusKeyword.objects.get(about="georeferencing"),
+        "georeferenced": ThesaurusKeyword.objects.get(about="georeferenced"),
+    }
+    return tk_lookup
 
 def get_status(resource):
     status = None
+    tk_lookup = get_tk_lookup()
     for tk in tk_lookup.values():
         if tk in resource.tkeywords.all():
             status = tk.about
     return status
 
 def unset_status(resource):
+    tk_lookup = get_tk_lookup()
     for tk in tk_lookup.values():
         if tk in resource.tkeywords.all():
             resource.tkeywords.remove(tk)
 
 def set_status(resource, status):
+    tk_lookup = get_tk_lookup()
     unset_status(resource)
     resource.tkeywords.add(tk_lookup[status])
 
