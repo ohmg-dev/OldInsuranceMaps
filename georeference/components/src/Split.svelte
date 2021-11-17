@@ -34,12 +34,14 @@
   import Select from 'ol/interaction/Select';
   import Modify from 'ol/interaction/Modify';
   import Snap from 'ol/interaction/Snap';
+import { disable } from 'ol/rotationconstraint';
 
   export let DOCUMENT;
   export let IMG_SIZE;
   export let CSRFTOKEN;
   export let INCOMING_DIVISIONS;
   export let INCOMING_CUTLINES;
+  export let USER_AUTHENTICATED;
 
   let polygonCount = 0;
   let showPreview = true;
@@ -52,6 +54,8 @@
     {id: 'draw', name: 'Draw'},
     {id: 'modify', name: 'Modify'}
   ];
+
+  let disableInterface = !USER_AUTHENTICATED;
 
   const imgWidth = IMG_SIZE[0];
   const imgHeight = IMG_SIZE[1];
@@ -295,6 +299,8 @@
 
   function processCutlines(operation, noSplit) {
 
+    if (operation == "submit") {disableInterface = true};
+
     let data = JSON.stringify({"lines": cutLines, "operation": operation, "no_split": noSplit});
 
     fetch(DOCUMENT.urls.split, {
@@ -320,6 +326,18 @@
 <svelte:window on:keydown={handleKeydown}/>
 
 <div class="svelte-component-main">
+  {#if disableInterface}
+  <div class="interface-mask">
+    {#if !USER_AUTHENTICATED}
+    <div class="signin-reminder">
+      <p><em>
+        <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+        <a href="/account/register">sign up</a> to work on this document
+      </em></p>
+    </div>
+    {/if}
+  </div>
+  {/if}
   <nav id="hamnav">
     <div id="interaction-options" class="tb-top-item">
     
@@ -349,6 +367,7 @@
       <div id="doc-viewer" class="map-item rounded-bottom"></div>
   </div>
 </div>
+
 
 <style>
 </style>

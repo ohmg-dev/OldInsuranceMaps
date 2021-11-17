@@ -1,3 +1,4 @@
+import './css/shared.css';
 import Overview from './Overview.svelte';
 
 const app = new Overview({

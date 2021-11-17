@@ -14,6 +14,7 @@ from .models import (
     Segmentation,
     SplitSession,
     GeoreferenceSession,
+    MaskSession,
     GCPGroup,
 )
 from .utils import (
@@ -191,23 +192,12 @@ class DocumentProxy(object):
 
         return sesh_info
 
-    def get_georeference_summary(self):
-
-        summary = {
-            "sessions": []
-        }
-
-        layer = self.get_layer_proxy()
-
-        # this would the document is not yet georeferenced
-        if layer is None:
-            return summary
-
-        seshes = GeoreferenceSession.objects.filter(document=self.id).order_by("created")
-        for sesh in seshes:
-            summary["sessions"].append(sesh.serialize())
-
-        return summary
+    def get_georeference_sessions(self, serialized=False):
+        sessions = GeoreferenceSession.objects.filter(document=self.id).order_by("created")
+        if serialized is True:
+            return [i.serialize() for i in sessions]
+        else:
+            return sessions
 
     def get_best_region_extent(self):
         """
@@ -343,6 +333,13 @@ class LayerProxy(object):
         urls = self.urls
         urls.update(self.get_document_urls())
         return urls
+
+    def get_mask_sessions(self, serialized=False):
+        sessions = MaskSession.objects.filter(layer=self.id).order_by("created")
+        if serialized is True:
+            return [i.serialize() for i in sessions]
+        else:
+            return sessions
     
     def serialize(self):
 

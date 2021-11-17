@@ -45,6 +45,9 @@
   export let MAPSERVER_ENDPOINT;
 	export let MAPSERVER_LAYERNAME;
   export let MAPBOX_API_KEY;
+  export let USER_AUTHENTICATED;
+
+  let disableInterface = !USER_AUTHENTICATED;
 
   let previewMode = "n/a";
 
@@ -640,6 +643,8 @@
       return
     };
 
+    if (operation == "submit") {disableInterface = true};
+
     const data = JSON.stringify({
       "gcp_geojson": asGeoJSON(),
       "transformation": currentTransformation,
@@ -704,6 +709,20 @@
 <svelte:window on:keydown={handleKeydown} on:beforeunload={cleanupOnLeave}/>
 
 <div class="svelte-component-main">
+  {#if disableInterface}
+  <div class="interface-mask">
+    {#if !USER_AUTHENTICATED}
+    <div class="signin-reminder">
+      <p><em>
+        <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+        <a href="/account/register">sign up</a> to proceed
+      </em></p>
+    </div>
+    {:else}
+    <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+    {/if}
+  </div>
+  {/if}
   <nav id="hamnav">
     <div>
       <button title="enter fullscreen mode" on:click={toggleFullscreen}><i id="fs-icon" class="fa fa-arrows-alt" /></button>
@@ -746,7 +765,7 @@
   <div class="map-container">
     <div id="doc-viewer" class="map-item"></div>
     <div id="map-viewer" class="map-item"></div>
-    <div class={previewLoading ? 'lds-ellipsis': ''}><div></div><div></div><div></div><div></div></div>
+    <div id="preview-loading" class={previewLoading ? 'lds-ellipsis': ''}><div></div><div></div><div></div><div></div></div>
   </div>
   <nav>
     {#if gcpList.length == 0}

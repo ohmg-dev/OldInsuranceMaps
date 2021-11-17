@@ -14,7 +14,6 @@ from georeference.tasks import (
     georeference_document_as_task,
 )
 from .models import (
-    GCPGroup,
     LayerMask,
     MaskSession,
     SplitSession,
@@ -34,22 +33,45 @@ BadPostRequest = HttpResponseBadRequest("invalid post content")
 
 class GeoreferenceSummary(View):
 
-    def get(self, request, docid):
+    def generate_summary_context(self, docid):
 
         doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
+        layer_proxy = doc_proxy.get_layer_proxy()
+        if layer_proxy is not None:
+            layer_json = layer_proxy.serialize()
+            mask_sessions = layer_proxy.get_mask_sessions(serialized=True)
+        else:
+            layer_json = None
+            mask_sessions = []
 
-        svelte_params = {
+        context = {
             "DOCUMENT": doc_proxy.serialize(),
-            "LAYER": doc_proxy.get_layer_json(),
+            "LAYER": layer_json,
             "SPLIT_SUMMARY": doc_proxy.get_split_summary(),
-            "GEOREFERENCE_SUMMARY": doc_proxy.get_georeference_summary(),
+            "GEOREFERENCE_SESSIONS": doc_proxy.get_georeference_sessions(serialized=True),
+            "MASK_SESSIONS": mask_sessions,
+        }
+
+        return context
+
+    def get(self, request, docid):
+
+        context = self.generate_summary_context(docid)
+        svelte_params = {
+            "CSRFTOKEN": csrf.get_token(request),
             "USER_AUTHENTICATED": request.user.is_authenticated,
         }
+        svelte_params.update(context)
 
         return render(
             request,
             "georeference/summary.html",
             context={"svelte_params": svelte_params})
+
+    def post(self, request, docid):
+        
+        response = self.generate_summary_context(docid)
+        return JsonResponse(response)
 
 class SplitView(View):
 
@@ -66,6 +88,7 @@ class SplitView(View):
             "IMG_SIZE": doc_proxy.image_size,
             "INCOMING_DIVISIONS": doc_proxy.segments,
             "INCOMING_CUTLINES": doc_proxy.cutlines,
+            "USER_AUTHENTICATED": request.user.is_authenticated,
         }
         
         return render(
@@ -131,6 +154,7 @@ class TrimView(View):
             "GEOSERVER_WMS": geoserver_ows,
             "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
             "INCOMING_MASK_COORDINATES": layer_proxy.mask_coords,
+            "USER_AUTHENTICATED": request.user.is_authenticated,
         }
 
         return render(
@@ -152,26 +176,32 @@ class TrimView(View):
         polygon_coords = body.get("mask_coords", [])
         operation = body.get("operation")
 
-        mask = LayerMask.objects.get_or_create(layer=layer_proxy.id)
         if len(polygon_coords) >= 3:
-            mask.polygon = Polygon(polygon_coords)
+            polygon = Polygon(polygon_coords)
         else:
-            mask.polygon = None
+            polygon = None
 
         if operation == "preview":
-            sld = mask.as_sld()
-            return JsonResponse({"success": True, "sld_content": sld})
+
+            if polygon is not None:
+                preview_sld = LayerMask(
+                    layer=layer_proxy.resource,
+                    polygon=polygon,
+                ).as_sld()
+            else:
+                preview_sld = None
+
+            return JsonResponse({"success": True, "sld_content": preview_sld})
 
         elif operation == "submit":
 
-            mask.save()
             ts = MaskSession.objects.create(
-                layer=layer_proxy.id,
+                layer=layer_proxy.resource,
                 user=request.user,
-                coords_used=polygon_coords,
+                polygon=polygon,
             )
             ts.run()
-            return JsonResponse({"success": True, "redirect_to": layer_proxy.urls['detail']})
+            return JsonResponse({"success": True})
 
         else:
             return BadPostRequest
@@ -202,6 +232,7 @@ class GeoreferenceView(View):
             "MAPSERVER_ENDPOINT": settings.MAPSERVER_ENDPOINT,
             "MAPSERVER_LAYERNAME": doc_proxy.add_mapserver_layer(),
             "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+            "USER_AUTHENTICATED": request.user.is_authenticated,
         }
 
         return render(

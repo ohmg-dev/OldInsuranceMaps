@@ -19,7 +19,8 @@
 
 {% block body_outer %}
 
-<h4>Trimming: {{ svelte_params.LAYER.title }}</h4>
+<h3>Trimming: {{ svelte_params.LAYER.title }}</h3>
+<p><a href="{{ svelte_params.LAYER.urls.progress_page }}">&larr; go to progress page</a></p>
 
 {% display_svelte "Trim.svelte" svelte_params %}
 

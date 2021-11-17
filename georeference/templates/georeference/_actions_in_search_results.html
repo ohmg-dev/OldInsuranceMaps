@@ -18,10 +18,10 @@
                     </a>
                 </div>
                 <div ng-if="item.georeferencing_status == 'georeferenced'">
-                    <a href="{{ item.urls.georeference }}">
-                        <i class="fa fa-map-pin"></i>
+                    <a href="{{ item.urls.georeference }}" title="edit georeferencing">
+                        <i class="fa fa-map-pin"></i></a>
                         {% endverbatim %}{% trans "edit georeferencing" %}{% verbatim %}
-                    </a><br>
+                    <!-- <br> -->
                 </div>
                 {% endverbatim %}{% endif %}{% verbatim %}
                 <div ng-if="item.georeferencing_status == 'georeferenced'">

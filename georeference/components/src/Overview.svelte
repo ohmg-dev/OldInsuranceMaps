@@ -1,22 +1,29 @@
 <script>
-import {onMount} from 'svelte';
-import Georeference from './Georeference.svelte';
-
 export let DOCUMENT;
 export let LAYER;
-// export let DOC_IMG_URL;
 export let USER_AUTHENTICATED;
 export let SPLIT_SUMMARY;
-export let GEOREFERENCE_SUMMARY;
-// export let GEOREFERENCE_URL;
-// export let DOC_STATUS;
-// export let CHILD_DOCS;
+export let GEOREFERENCE_SESSIONS;
+export let MASK_SESSIONS;
+export let CSRFTOKEN;
 
-// a little hacky list slicing for more easy verbosity below
-const seshF = GEOREFERENCE_SUMMARY.sessions[0];
-const seshL = GEOREFERENCE_SUMMARY.sessions.length > 1 ? GEOREFERENCE_SUMMARY.sessions.slice(1) : [];
-
-
+function refresh() {
+	fetch(DOCUMENT.urls.progress_page, {
+		method: 'POST',
+		headers: {
+          'Content-Type': 'application/json;charset=utf-8',
+          'X-CSRFToken': CSRFTOKEN,
+        },
+	})
+	.then(response => response.json())
+	.then(result => {
+		DOCUMENT = result.DOCUMENT;
+    LAYER = result.LAYER;
+    SPLIT_SUMMARY = result.SPLIT_SUMMARY;
+    GEOREFERENCE_SESSIONS = result.GEOREFERENCE_SESSIONS;
+    MASK_SESSIONS = result.MASK_SESSIONS;
+	});
+}
 
 </script>
 
@@ -30,11 +37,14 @@ const seshL = GEOREFERENCE_SUMMARY.sessions.length > 1 ? GEOREFERENCE_SUMMARY.se
         <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
         <a href="/account/register">sign up</a> to work on this document
       </em></p>
-    </div>  
+    </div>
     {/if}
   </div>
   <content>
     <section>
+      <div>
+        <h4 style="">Progress Page <button id="refresh-button" title="refresh overview" on:click={refresh}><i class="fa fa-refresh" /></button></h4>
+      </div>
       <div>
         <h3>1. Preparation</h3>
         {#if DOCUMENT.status == "unprepared"}
@@ -94,15 +104,16 @@ const seshL = GEOREFERENCE_SUMMARY.sessions.length > 1 ? GEOREFERENCE_SUMMARY.se
           {:else}
           <p><em>you must be signed in to georeference this document</em></p>
           {/if}
-        {:else if DOCUMENT.status == "georeferenced"}
-          <p>Georeferenced by 
-            <a href={seshF.user.profile}>{seshF.user.name}</a>, {seshF.date_str}
-            - {seshF.gcps_ct} GCP{#if seshF.gcps_ct != 1}s{/if}
-          </p>
-          {#each seshL as sesh}
-          <p>Updated by 
-            <a href={sesh.user.profile}>{sesh.user.name}</a>, {sesh.date_str}
-            - {sesh.gcps_ct} GCP{#if sesh.gcps_ct != 1}s{/if}
+        <!-- {:else if DOCUMENT.status == "georeferenced"} -->
+        {:else}
+          {#each GEOREFERENCE_SESSIONS as sesh, n}
+          <p>
+          {#if n == 0}Georeferenced by {:else}Updated by {/if}
+            <a href={sesh.user.profile}>{sesh.user.name}</a>, {sesh.date_str} -
+            <em>
+            {sesh.gcps_ct} control point{#if sesh.gcps_ct != 1}s{/if} --
+            {sesh.status}
+            </em>
           </p>
           {/each}
           <p>
@@ -110,10 +121,41 @@ const seshL = GEOREFERENCE_SUMMARY.sessions.length > 1 ? GEOREFERENCE_SUMMARY.se
             <i class="fa fa-edit"></i>
             edit georeferencing</a>
           </p>
-        {:else if DOCUMENT.status == "georeferencing"}
+        <!-- {:else if DOCUMENT.status == "georeferencing"}
           <em><p>
             currently processing...
-          </p></em>
+          </p></em> -->
+        {/if}
+      </div>
+      <div>
+        <h3>3. Trimming</h3>
+        {#if DOCUMENT.status != "georeferenced"}
+        <p><em>n/a</em></p>
+        {:else if MASK_SESSIONS.length == 0}
+        <p>
+          <a href="{LAYER.urls.trim}">
+          <i class="fa fa-crop"></i>
+          trim layer</a>
+        </p>
+        {:else}
+        {#each MASK_SESSIONS as sesh, n}
+          <p>
+          {#if n == 0}Trimmed by {:else}Adjusted by {/if}
+            <a href={sesh.user.profile}>{sesh.user.name}</a>, {sesh.date_str} -
+            <em>
+            {#if sesh.vertex_ct == 0}
+            no mask
+            {:else}
+            {sesh.vertex_ct} vertices
+            {/if}
+            </em>
+          </p>
+          {/each}
+          <p>
+            <a href="{LAYER.urls.trim}">
+            <i class="fa fa-crop"></i>
+            edit trimming</a>
+          </p>
         {/if}
       </div>
     </section>
@@ -160,7 +202,7 @@ const seshL = GEOREFERENCE_SUMMARY.sessions.length > 1 ? GEOREFERENCE_SUMMARY.se
     max-height: 250px;
   }
 
-  .signin-reminder {
+  /* .signin-reminder {
     background: #e6e6e6;
     text-align: center;
     padding: 5px;
@@ -169,7 +211,7 @@ const seshL = GEOREFERENCE_SUMMARY.sessions.length > 1 ? GEOREFERENCE_SUMMARY.se
 
   .signin-reminder p {
     margin: 0px;
-  }
+  } */
 
   .documents-column {
 		display: flex;
@@ -211,6 +253,14 @@ const seshL = GEOREFERENCE_SUMMARY.sessions.length > 1 ? GEOREFERENCE_SUMMARY.se
 	.document-item ul {
 		list-style-type: none;
 		padding: 0;
+	}
+
+  #refresh-button {
+		float: right;
+	}
+
+	#refresh-button i {
+		font-size: .75em;
 	}
 
 </style>

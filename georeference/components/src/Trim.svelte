@@ -36,10 +36,11 @@
   export let CSRFTOKEN;
   export let LAYER;
   export let MAPBOX_API_KEY;
-  // export let LAYER_ID;
   export let GEOSERVER_WMS;
-  export let LAYER_EXTENT;
   export let INCOMING_MASK_COORDINATES;
+  export let USER_AUTHENTICATED;
+
+  let disableInterface = !USER_AUTHENTICATED;
 
   let previewMode = "n/a";
   let maskPolygonCoords = [];
@@ -296,6 +297,8 @@
   function submitMask() { processMask("submit") }
 
   function processMask(operation) {
+
+    if (operation == "submit") { disableInterface = true }
   
     const data = JSON.stringify({
       "mask_coords": maskPolygonCoords,
@@ -320,13 +323,27 @@
         }
       }
       if (operation == "submit") {
-        window.location.href = result['redirect_to'];
+        window.location.href = LAYER.urls.detail;
       }
     });
   }
   </script>
   
   <div class="svelte-component-main">
+    {#if disableInterface}
+    <div class="interface-mask">
+      {#if !USER_AUTHENTICATED}
+      <div class="signin-reminder">
+        <p><em>
+          <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+          <a href="/account/register">sign up</a> to proceed
+        </em></p>
+      </div>
+      {:else}
+      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      {/if}
+    </div>
+    {/if}
     <nav>
       <div id="interaction-options" class="tb-top-item">
       </div>

@@ -185,14 +185,6 @@ class GeoreferenceSession(models.Model):
         verbose_name = "Georeference Session"
         verbose_name_plural = "Georeference Sessions"
 
-    STATUS_CHOICES = (
-        ("unstarted", "unstarted"),
-        ("failed", "failed"),
-        ("georeferencing", "georeferencing"),
-        ("layercreation", "layercreation"),
-        ("success", "success"),
-    )
-
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
     layer = models.ForeignKey(Layer, null=True, blank=True, on_delete=models.CASCADE)
     gcps_used = JSONField(null=True, blank=True)
@@ -209,9 +201,8 @@ class GeoreferenceSession(models.Model):
         null=False,
         blank=False)
     status = models.CharField(
-        default="unstarted",
-        choices=STATUS_CHOICES,
-        max_length=20,
+        default="initializing",
+        max_length=100,
     )
     note = models.CharField(
         blank=True,
@@ -226,6 +217,7 @@ class GeoreferenceSession(models.Model):
 
         set_status(self.document, "georeferencing")
 
+        self.update_status("initializing georeferencer")
         try:
             g = Georeferencer(
                 transformation=self.transformation_used,
@@ -233,22 +225,30 @@ class GeoreferenceSession(models.Model):
             )
             g.load_gcps_from_geojson(self.gcps_used)
         except Exception as e:
-            self.status = "failed"
-            self.message = f"error initializing Georeferencer: {e.message}"
+            self.update_status("failed")
+            self.note = f"{e.message}"
             self.save()
             # revert to previous tkeyword status
             set_status(self.document, "prepared")
             return None
 
-        out_path = g.georeference(
-            self.document.doc_file.path,
-            out_format="GTiff",
-            addo=True,
-        )
+        self.update_status("georeferencing")
+        try:
+            out_path = g.georeference(
+                self.document.doc_file.path,
+                out_format="GTiff",
+                addo=True,
+            )
+        except Exception as e:
+            self.update_status("failed")
+            self.note = f"{e.message}"
+            self.save()
+            # revert to previous tkeyword status
+            set_status(self.document, "prepared")
+            return None
 
         # self.transformation_used = g.transformation["id"]
-        self.status = "layercreation"
-        self.save()
+        self.update_status("creating layer")
 
         ## need to remove commas from the titles, otherwise the layer will not
         ## be valid in the catalog list when trying to add it to a Map. the 
@@ -298,13 +298,14 @@ class GeoreferenceSession(models.Model):
 
         ## if there was an existing layer that's been overwritten, regenerate thumb.
         else:
+            self.update_status("regenerating thumbnail")
             thumb = create_thumbnail(layer, overwrite=True)
             layer.thumbnail_url = thumb
 
         layer.save()
         self.layer = layer
-        self.status = "success"
-        self.save()
+
+        self.update_status("saving control points")
 
         # save the successful gcps to the canonical GCPGroup for the document
         GCPGroup().save_from_geojson(
@@ -316,7 +317,13 @@ class GeoreferenceSession(models.Model):
         set_status(self.document, "georeferenced")
         set_status(layer, "georeferenced")
 
+        self.update_status("completed")
+
         return layer
+
+    def update_status(self, status):
+        self.status = status
+        self.save()
     
     def serialize(self):
         return {
@@ -330,6 +337,7 @@ class GeoreferenceSession(models.Model):
             "gcps_ct": len(self.gcps_used["features"]),
             "transformation": self.transformation_used,
             "epsg": self.crs_epsg_used,
+            "status": self.status,
         }
 
 
@@ -524,12 +532,9 @@ class GCPGroup(models.Model):
 class LayerMask(models.Model):
 
     layer = models.ForeignKey(Layer, on_delete=models.CASCADE)
-    polygon = models.PolygonField(null=True, blank=True, srid=3857)
+    polygon = models.PolygonField(srid=3857)
 
     def as_sld(self, indent=False):
-
-        if self.polygon is None:
-            return None
 
         sld = f'''<?xml version="1.0" encoding="UTF-8"?>
 <StyledLayerDescriptor version="1.0.0"
@@ -569,6 +574,48 @@ class LayerMask(models.Model):
 
         return sld
 
+    def apply_mask(self):
+
+        cat = get_gs_catalog()
+
+        gs_full_style = cat.get_style(self.layer.name, workspace="geonode")
+        trim_style_name = f"{self.layer.name}_trim"
+
+        # create (overwrite if existing) trim style in GeoServer using mask sld
+        gs_trim_style = cat.create_style(
+            trim_style_name,
+            self.as_sld(),
+            overwrite=True,
+            workspace="geonode",
+        )
+
+        # get the GeoServer layer for this GeoNode layer
+        gs_layer = cat.get_layer(self.layer.name)
+
+        # add the full and trim styles to the GeoServer alternate style list
+        gs_alt_styles = gs_layer._get_alternate_styles()
+        gs_alt_styles += [gs_full_style, gs_trim_style]
+        gs_layer._set_alternate_styles(gs_alt_styles)
+
+        # set the trim style as the default in GeoServer
+        gs_layer._set_default_style(gs_trim_style)
+
+        # save these changes to the GeoServer layer
+        cat.save(gs_layer)
+
+        # create/update the GeoNode Style object for the trim style
+        trim_style_gn = save_style(gs_trim_style, self.layer)
+
+        # add new trim style to GeoNode list styles, set as default, save
+        self.layer.styles.add(trim_style_gn)
+        self.layer.default_style = trim_style_gn
+        self.layer.save()
+
+        # update thumbnail with new trim style
+        thumb = create_thumbnail(self.layer, overwrite=True)
+        self.layer.thumbnail_url = thumb
+        self.layer.save()
+
 class MaskSession(models.Model):
 
     class Meta:
@@ -576,7 +623,7 @@ class MaskSession(models.Model):
         verbose_name_plural = "Mask Sessions"
 
     layer = models.ForeignKey(Layer, on_delete=models.CASCADE)
-    coords_used = JSONField(null=True, blank=True)
+    polygon = models.PolygonField(null=True, blank=True, srid=3857)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
@@ -595,61 +642,52 @@ class MaskSession(models.Model):
 
     def run(self):
 
-        mask = LayerMask.objects.get(layer=self.layer)
-        cat = get_gs_catalog()
+        # create/update a LayerMask for this layer and apply it as style
+        if self.polygon is not None:
 
-        gs_full_style = cat.get_style(self.layer.name, workspace="geonode")
-        gn_full_style = Style.objects.get(name=self.layer.name)
-        trim_style_name = f"{self.layer.name}_trim"
+            try:
+                mask = LayerMask.objects.get(layer=self.layer)
+                mask.polygon = self.polygon
+                mask.save()
+            except LayerMask.DoesNotExist:
+                mask = LayerMask.objects.create(
+                    layer=self.layer,
+                    polygon=self.polygon,
+                )
+            mask.apply_mask()
 
-        # if there is no polygon saved to the LayerMask, then clean up old
-        # mask styles if necessary
-        if mask.polygon is None:
-            # delete the existing trim style if necessary
-            # set the full style back as the default
+        # if there is no polygon, then clean up old mask styles and reset the
+        # default style to original (if needed)
+        else:
+
+            # delete the LayerMask object
+            LayerMask.objects.filter(layer=self.layer).delete()
+
+            # delete the existing trim style in Geoserver if necessary
+            cat = get_gs_catalog()
+            trim_style_name = f"{self.layer.name}_trim"
             gs_trim_style = cat.get_style(trim_style_name, workspace="geonode")
             if gs_trim_style is not None:
                 cat.delete(gs_trim_style, recurse=True)
 
-            # delete the trimmed style in GeoNode
+            # delete the existing trimmed style in GeoNode
             Style.objects.filter(name=trim_style_name).delete()
 
             # set the full style back to the default in GeoNode
+            gn_full_style = Style.objects.get(name=self.layer.name)
             self.layer.default_style = gn_full_style
             self.layer.save()
 
-        # otherwise, create/update a mask style for this layer and set as default
-        else:
-            # create (overwrite if existing) trim style in GeoServer using mask sld
-            gs_trim_style = cat.create_style(
-                trim_style_name,
-                mask.as_sld(),
-                overwrite=True,
-                workspace="geonode",
-            )
-
-            # get the GeoServer layer for this GeoNode layer
-            gs_layer = cat.get_layer(self.layer.name)
-
-            # add the full and trim styles to the GeoServer alternate style list
-            gs_alt_styles = gs_layer._get_alternate_styles()
-            gs_alt_styles += [gs_full_style, gs_trim_style]
-            gs_layer._set_alternate_styles(gs_alt_styles)
-
-            # set the trim style as the default in GeoServer
-            gs_layer._set_default_style(gs_trim_style)
-
-            # save these changes to the GeoServer layer
-            cat.save(gs_layer)
-
-            # create/update the GeoNode Style object for the trim style
-            trim_style_gn = save_style(gs_trim_style, self.layer)
-
-            # add new trim style to GeoNode list styles, set as default, save
-            self.layer.styles.add(trim_style_gn)
-            self.layer.default_style = trim_style_gn
-            self.layer.save()
-
-            thumb = create_thumbnail(self.layer, overwrite=True)
-            self.layer.thumbnail_url = thumb
-            self.layer.save()
+    def serialize(self):
+        vertex_ct = 0
+        if self.polygon is not None:
+            vertex_ct = len(self.polygon.coords[0]) - 1
+        return {
+            "user": {
+                "name": self.user.username,
+                "profile": full_reverse("profile_detail", args=(self.user.username, )),
+            },
+            "date": (self.created.month, self.created.day, self.created.year),
+            "date_str": self.created.strftime("%m/%d/%Y"),
+            "vertex_ct": vertex_ct,
+        }
