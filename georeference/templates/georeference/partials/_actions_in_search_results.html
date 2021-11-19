@@ -1,0 +1,10 @@
+{% verbatim %}
+<div ng-if="item.georeferencing_status != 'n/a'" style="background:#f2f2f2; padding:3px; border-radius:4px; display:inline-block; margin:5px 0px;">
+  <span style="padding-left: 4px">Georeferencing</span> 
+  <div style="display:inline; padding: 0px 4px;" ng-repeat="link in item.georeference_links">
+    <a href="{{ link.url }}" title="{{ link.title }}">
+    <i class="fa {{ link.icon }}" style="margin:0px;"></i>
+    </a>
+  </div>
+</div>
+{% endverbatim %}

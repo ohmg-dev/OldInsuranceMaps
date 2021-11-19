@@ -27,7 +27,6 @@ function refresh() {
 
 </script>
 
-
 <main>
   <div class="title-bar">
     <h1>{DOCUMENT.title}</h1>
@@ -52,7 +51,7 @@ function refresh() {
         <p>
           <a href="{DOCUMENT.urls.split}">
           <i class="fa fa-cut"></i>
-          prepare document for georeferencing</a>
+          prepare document</a>
         </p>
         {:else if DOCUMENT.status == "splitting"}
           <em><p>
@@ -90,7 +89,7 @@ function refresh() {
       </div>
       <div>
         <h3>2. Georeferencing</h3>
-        {#if DOCUMENT.status == "unprepared"}
+        {#if DOCUMENT.status == "unprepared" || DOCUMENT.status == "splitting"}
         <p><em>n/a</em></p>
         {:else if SPLIT_SUMMARY.child_docs.length > 0}
         <p><em>each child document above must be georeferenced individually</em></p>
@@ -99,12 +98,11 @@ function refresh() {
           <p>
             <a href="{DOCUMENT.urls.georeference}">
             <i class="fa fa-map-pin"></i>
-            georeference this document</a>
+            georeference document</a>
           </p>
           {:else}
           <p><em>you must be signed in to georeference this document</em></p>
           {/if}
-        <!-- {:else if DOCUMENT.status == "georeferenced"} -->
         {:else}
           {#each GEOREFERENCE_SESSIONS as sesh, n}
           <p>
@@ -112,15 +110,17 @@ function refresh() {
             <a href={sesh.user.profile}>{sesh.user.name}</a>, {sesh.date_str} -
             <em>
             {sesh.gcps_ct} control point{#if sesh.gcps_ct != 1}s{/if} --
-            {sesh.status}
+            {sesh.status}{#if sesh.status != "completed"}...{/if}
             </em>
           </p>
           {/each}
+          {#if DOCUMENT.status != "georeferencing"}
           <p>
             <a href="{DOCUMENT.urls.georeference}">
             <i class="fa fa-edit"></i>
             edit georeferencing</a>
           </p>
+          {/if}
         <!-- {:else if DOCUMENT.status == "georeferencing"}
           <em><p>
             currently processing...
@@ -201,17 +201,6 @@ function refresh() {
     max-width: 250px;
     max-height: 250px;
   }
-
-  /* .signin-reminder {
-    background: #e6e6e6;
-    text-align: center;
-    padding: 5px;
-    margin: 5px;
-  }
-
-  .signin-reminder p {
-    margin: 0px;
-  } */
 
   .documents-column {
     display: flex;

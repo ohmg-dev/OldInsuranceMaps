@@ -86,14 +86,13 @@ class SplitView(View):
             "CSRFTOKEN": csrf.get_token(request),
             "DOCUMENT": doc_proxy.serialize(),
             "IMG_SIZE": doc_proxy.image_size,
-            "INCOMING_DIVISIONS": doc_proxy.segments,
             "INCOMING_CUTLINES": doc_proxy.cutlines,
             "USER_AUTHENTICATED": request.user.is_authenticated,
         }
         
         return render(
             request,
-            "georeference/interfaces/split.html",
+            "georeference/split.html",
             context={"svelte_params": svelte_params},
         )
 
@@ -159,7 +158,7 @@ class TrimView(View):
 
         return render(
             request,
-            "georeference/interfaces/trim.html",
+            "georeference/trim.html",
             context={
                 "svelte_params": svelte_params,
             }
@@ -237,7 +236,7 @@ class GeoreferenceView(View):
 
         return render(
             request,
-            "georeference/interfaces/georeference.html",
+            "georeference/georeference.html",
             context={
                 'svelte_params': svelte_params,
             }

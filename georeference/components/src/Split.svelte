@@ -17,7 +17,6 @@ import VectorLayer from 'ol/layer/Vector';
 
 import Projection from 'ol/proj/Projection';
 
-import Zoom from 'ol/control/Zoom';
 import MousePosition from 'ol/control/MousePosition';
 import {createStringXY} from 'ol/coordinate';
 
@@ -27,247 +26,213 @@ import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 
 import Styles from './js/ol-styles';
+import LineString from 'ol/geom/LineString';
 const styles = new Styles();
 
 export let DOCUMENT;
 export let IMG_SIZE;
 export let CSRFTOKEN;
-export let INCOMING_DIVISIONS;
 export let INCOMING_CUTLINES;
 export let USER_AUTHENTICATED;
 
-let polygonCount = 0;
+let docView;
 let showPreview = true;
 
-let iface = null;
 let cutLines = [];
+let divisions = [];
 
 let currentInteraction = 'draw';
-let mapInteractions = [
-  {id: 'draw', name: 'Draw'},
-  {id: 'modify', name: 'Modify'}
-];
+
+let unchanged = true;
+
+let splitBtnLabel;
+$: {
+  if (divisions.length > 0) {
+    splitBtnLabel = "Split";
+  } else {
+    splitBtnLabel = "No Split Needed";
+  }
+}
 
 let disableInterface = !USER_AUTHENTICATED;
 
 const imgWidth = IMG_SIZE[0];
 const imgHeight = IMG_SIZE[1];
+const imgBorderPoly = [[[0,0], [imgWidth, 0], [imgWidth, imgHeight], [0, imgHeight], [0,0]]];
 
-const extent = [0, 0, imgWidth, imgHeight];
-const mapCenter = [imgWidth/2, imgHeight/2];
-
-let projection = new Projection({
-  code: 'whatdoesthismatter',
-  units: 'pixels',
-  extent: extent,
+const borderFeature = new Feature({
+  geometry: new Polygon(imgBorderPoly),
 });
 
-let SplitInterface = {  
+const projection = new Projection({
+  code: 'whatdoesthismatter',
+  units: 'pixels',
+  extent: [0, 0, imgWidth, imgHeight],
+});
 
-  init: function () {
+function resetInterface() {
+  const mapCenter = [imgWidth/2, imgHeight/2];
+  const view = new View({
+    projection: projection,
+    center: mapCenter,
+    zoom: 1,
+    maxZoom: 8,
+  })
+  docView.map.setView(view)
 
-    let mousePositionControl = new MousePosition({
-      coordinateFormat: createStringXY(0),
+  docView.cutLayerSource.clear();
+  docView.previewLayerSource.clear();
+  cutLines = [];
+  INCOMING_CUTLINES.forEach(function(line) {
+    docView.cutLayerSource.addFeature(
+      new Feature({ geometry: new LineString(line) })
+    );
+  });
+  unchanged = true;
+}
+
+function DocViewer(elementId) {
+
+  const targetElement = document.getElementById(elementId);
+
+  const mousePositionControl = new MousePosition({
+    coordinateFormat: createStringXY(0),
+    projection: projection,
+    undefinedHTML: '&nbsp;',
+  });
+
+  const map = new Map({
+    target: targetElement,
+    view: new View(),
+  });
+  map.addControl(mousePositionControl);
+
+  // add layers to map
+  const img_layer = new ImageLayer({
+    source: new ImageStatic({
+      url: DOCUMENT.urls.image,
       projection: projection,
-      undefinedHTML: '&nbsp;',
-      // comment the following two lines to have the mouse position
-      // be placed within the map.
-      // className: 'custom-mouse-position',
-      // target: document.getElementById('mouse-position'),
+      imageExtent: projection.getExtent(),
+    }),
+  })
+  map.addLayer(img_layer);
 
-    });
+  const previewLayer = new VectorLayer({
+    source: new VectorSource(),
+    style: styles.splitPreviewStyle,
+  });
+  map.addLayer(previewLayer);
 
-    let zoomControl = new Zoom({
-      // target: 'zoom-control',
-      // className: 'zoom-control',
-    });
+  const borderLayer = new VectorLayer({
+    source: new VectorSource(),
+    style: styles.splitBorderStyle,
+  });
+  borderLayer.getSource().addFeature(borderFeature);
+  map.addLayer(borderLayer);
 
-    this.map = new Map({
-      target: 'doc-viewer',
-      view: new View({
-        projection: projection,
-        center: mapCenter,
-        zoom: 1,
-        maxZoom: 8,
-      }),
-      controls: [zoomControl, mousePositionControl]
-    });
+  const cutLayerSource = new VectorSource();
+  cutLayerSource.on('addfeature', function (e) {
+    cutLines.push(e.feature.getGeometry().getCoordinates())
+    unchanged = false;
+    previewSplit()
+  })
+  const cutLayer = new VectorLayer({
+    source: cutLayerSource,
+    style: styles.splitCutLayer,
+  });
+  map.addLayer(cutLayer);
 
+  // add interactions
+  const draw = new Draw({
+    source: cutLayerSource,
+    type: 'LineString',
+  });
+  map.addInteraction(draw);
 
-    // this.map.addControl(mousePositionControl);
+  const selectInteraction = new Select({
+    layers: [cutLayer],
+  });
 
-    this.initLayers();
-    this.initInteractions(this);
-    this.initSnapping(this);
+  const modify = new Modify({
+    hitDetection: cutLayer,
+    source: cutLayerSource
+  });
 
-    iface = this;
-  },
+  modify.on(['modifystart', 'modifyend'], function (evt) {
+    targetElement.style.cursor = evt.type === 'modifystart' ? 'grabbing' : 'grab';
+  });
 
-  initLayers: function () {
-
-    this.img_layer = new ImageLayer({
-      source: new ImageStatic({
-        url: DOCUMENT.urls.image,
-        projection: projection,
-        imageExtent: extent,
-      }),
-    })
-    this.map.addLayer(this.img_layer);
-
-    this.previewLayer = new VectorLayer({
-      source: new VectorSource(),
-      style: styles.splitPreviewStyle,
-    });
-    this.map.addLayer(this.previewLayer);
-
-    this.borderLayer = new VectorLayer({
-      source: new VectorSource(),
-      style: styles.splitBorderStyle,
-    });
-    let border = new Feature({
-      geometry: new Polygon([[
-        [0,0], [imgWidth, 0], [imgWidth, imgHeight], [0, imgHeight], [0,0]
-      ]]),
-    });
-    this.borderLayer.getSource().addFeature(border);
-    this.map.addLayer(this.borderLayer);
-
-    this.cutLayer = new VectorLayer({
-      source: new VectorSource(),
-      style: styles.splitCutLayer,
-      // zIndex: 1002,
-    });
-    this.map.addLayer(this.cutLayer);
-
-  },
-  initInteractions: function (obj) {
-
-    // create and add draw interaction
-    self = obj;
-    self.drawInteraction = new Draw({
-      source: self.cutLayer.getSource(),
-      type: 'LineString',
-    });
-    self.map.addInteraction(self.drawInteraction);
-    self.drawInteraction.on('drawend', self.updateCutLines);
-
-    // create and add select and modify interactions (used for modify action)
-    self.selectInteraction = new Select({
-      layers: [self.cutLayer],
-    });
-    // self.map.addInteraction(self.selectInteraction);
-
-    // self.modifyInteraction = new Modify({
-    //   features: self.selectInteraction.getFeatures(),
-    // });
-    self.modifyInteraction = new Modify({
-      hitDetection: self.cutLayer,
-      source: self.cutLayer.getSource()
-    });
-
-
-    let mapEl = document.getElementById('doc-viewer');
-    self.modifyInteraction.on(['modifystart', 'modifyend'], function (evt) {
-      mapEl.style.cursor = evt.type === 'modifystart' ? 'grabbing' : 'grab';
-    });
-
-    let overlaySource = self.modifyInteraction.getOverlay().getSource();
-    overlaySource.on(['addfeature', 'removefeature'], function (evt) {
-      mapEl.style.cursor = evt.type === 'addfeature' ? 'grab' : '';
-    });
-    self.modifyInteraction.on('modifyend', self.updateCutLines)
-
-    self.map.addInteraction(self.modifyInteraction);
-
-
-    // set events for modify action
-    let selectedFeatures = self.selectInteraction.getFeatures();
-
-    self.selectInteraction.on('change:active', function () {
-      selectedFeatures.forEach(function (each) {
-        selectedFeatures.remove(each);
-      });
-    });
-
-  },
-  initSnapping: function (obj) {
-    self = obj;
-    let snapToCutLines = new Snap({
-      source: self.cutLayer.getSource(),
-    });
-    var snapToBorder = new Snap({
-      source: self.borderLayer.getSource(),
-    })
-    self.map.addInteraction(snapToCutLines);
-    self.map.addInteraction(snapToBorder);
-  },
-  reset: function () {
-    iface.cutLayer.getSource().once('change', function() {})
-    iface.cutLayer.getSource().clear();
-    iface.previewLayer.getSource().clear();
+  const overlaySource = modify.getOverlay().getSource();
+  overlaySource.on(['addfeature', 'removefeature'], function (evt) {
+    targetElement.style.cursor = evt.type === 'addfeature' ? 'grab' : '';
+  });
+  modify.on('modifyend', function(e) {
     cutLines = [];
-    polygonCount = 0;
-  },
-  refreshPreviewLayer: function(polygons) {
-    iface.previewLayer.getSource().clear();
-    polygonCount = polygons.length;
-    polygons.forEach(function (item, index) {
+    cutLayerSource.forEachFeature( function(feature) {
+      cutLines.push(feature.getGeometry().getCoordinates())
+    });
+    unchanged = false;
+    previewSplit()
+  });
+  map.addInteraction(modify)
+
+  const snapToCutLines = new Snap({
+    source: cutLayer.getSource(),
+  });
+  const snapToBorder = new Snap({
+    source: borderLayer.getSource(),
+  })
+  map.addInteraction(snapToCutLines);
+  map.addInteraction(snapToBorder);
+
+  this.draw = draw;
+  this.modify = modify;
+  this.cutLayerSource = cutLayerSource;
+  this.previewLayerSource = previewLayer.getSource();
+  this.previewLayer = previewLayer;
+  this.map = map;
+}
+
+// function refreshPreviewLayer(polygons) e
+$: {
+  if (docView) {
+    docView.previewLayerSource.clear();
+    divisions.forEach(function (item, index) {
       let feature = new Feature({
         geometry: new Polygon([item]),
         name: index
       });
-      iface.previewLayer.getSource().addFeature(feature);
+      docView.previewLayerSource.addFeature(feature);
     })
-  },
-  updateCutLines: function (event) {
-    let tempList = [];
-    iface.cutLayer.getSource().forEachFeature( function(feature) {
-      tempList.push(feature.getGeometry().getCoordinates())
-    });
-    // if this is triggered by a Draw event, then the current feature must be
-    // added to the feature list because it isn't present instantaneously in cutLayer
-    if (event.type == "drawend") {
-      tempList.push(event.feature.getGeometry().getCoordinates())
-    };
-    cutLines = tempList;
-    previewSplit()
   }
 }
+// $: refreshPreviewLayer(divisions)
 
 onMount(() => {
-  SplitInterface.init();
-
-  if (INCOMING_DIVISIONS != null) {iface.refreshPreviewLayer(INCOMING_DIVISIONS)}
+  docView = new DocViewer("doc-viewer");
+  resetInterface();
 });
 
 $: {
-  if (iface != null) {
-    let mapEl = document.getElementById('doc-viewer');
+  if (docView) {
     // switch interactions based on the radio buttons
     if (currentInteraction == "draw") {
-      iface.drawInteraction.setActive(true);
-      // iface.selectInteraction.setActive(false);
-      iface.modifyInteraction.setActive(false);
-      // mapEl.style.cursor = 'copy'
+      docView.draw.setActive(true);
+      docView.modify.setActive(false);
     } else if (currentInteraction == "modify") {
-
-
-      iface.drawInteraction.setActive(false);
-      // iface.selectInteraction.setActive(true);
-      iface.modifyInteraction.setActive(true);
+      docView.draw.setActive(false);
+      docView.modify.setActive(true);
     }
 
     // toggle the visibility of the preview layer based on the checkbox
-    iface.previewLayer.setVisible(showPreview);
+    docView.previewLayer.setVisible(showPreview);
   }
 }
 
-let key;
-
 function handleKeydown(event) {
-  key = event.key;
+  const key = event.key;
   if (key == "Escape") {
-    if (iface) { iface.drawInteraction.abortDrawing()}
+    if (docView) { docView.draw.abortDrawing()}
   } else if (key == "a" || key == "A") {
     currentInteraction = "draw"
   } else if (key == "e" || key == "E") {
@@ -275,16 +240,15 @@ function handleKeydown(event) {
   }
 }
 
-
-function previewSplit() { if ( cutLines.length > 0) { processCutlines("preview") } };
-function runSplit() { processCutlines("submit", false) };
-function noSplitNeeded() { processCutlines("submit", true) };
-
-function processCutlines(operation, noSplit) {
+function process(operation) {
 
   if (operation == "submit") {disableInterface = true};
 
-  let data = JSON.stringify({"lines": cutLines, "operation": operation, "no_split": noSplit});
+  let data = JSON.stringify({
+    "lines": cutLines,
+    "operation": operation,
+    "no_split": divisions.length <= 1,
+  });
 
   fetch(DOCUMENT.urls.split, {
       method: 'POST',
@@ -299,10 +263,13 @@ function processCutlines(operation, noSplit) {
       if (operation == "submit") {
         window.location.href = DOCUMENT.urls.progress_page;
       } else if (operation == "preview") {
-        iface.refreshPreviewLayer(result['polygons'])
+        divisions = result['polygons'];
       }
     });
 }
+
+function previewSplit() { if ( cutLines.length > 0) { process("preview") } };
+function runSplit() { process("submit") };
 
 </script>
 
@@ -340,19 +307,14 @@ function processCutlines(operation, noSplit) {
     </label>
     </div>
     <div class="tb-top-item">
-            {#if polygonCount > 1}
-            <em>{polygonCount} {polygonCount === 1 ? 'part' : 'parts'} will be made</em>
+            {#if divisions.length > 1}
+            <em>{divisions.length} {divisions.length === 1 ? 'part' : 'parts'} will be made</em>
             {/if}
-            <button on:click={runSplit} disabled="{polygonCount <= 1 }">Split!</button>
-            <button on:click={noSplitNeeded} disabled="{polygonCount > 1 }">Don't Split</button>
-            <button title="reset interface" disabled={unchanged} on:click={iface.reset}><i id="fs-icon" class="fa fa-refresh" /></button>
+            <button on:click={runSplit} disabled={unchanged}>{splitBtnLabel}</button>
+            <button title="reset interface" disabled={unchanged} on:click={resetInterface}><i id="fs-icon" class="fa fa-refresh" /></button>
     </div>
   </nav>
   <div class="map-container" style="border-top: 1.5px solid rgb(150, 150, 150)">
       <div id="doc-viewer" class="map-item rounded-bottom"></div>
   </div>
 </div>
-
-
-<style>
-</style>

@@ -27,24 +27,67 @@ class GeoreferenceMiddleware:
             data = json.loads(response._container[0].decode("utf-8"))
             for item in data['objects']:
 
-                # use the detail url to get the type of item
-                item['type'] = item['detail_url'].split("/")[1].rstrip("s")
-
                 # set defaults that will pass through quietly for irrelevant items (i.e. Maps)
-                item['georeferencing_status'] = "n/a"
-                item['urls'] = {"progress_page": ''}
+                item['georeference_status'] = "n/a"
+                item['georeference_links'] = []
 
-                # generate urls for documents
-                if item['type'] == "document":
-                    document = DocumentProxy(item['id'])
-                    item['georeferencing_status'] = document.status
-                    item['urls'].update(document.get_extended_urls())
+                # create the appropriate proxy model based on item type
+                try:
+                    resource_type = item['detail_url'].split("/")[1].rstrip("s")
+                except IndexError:
+                    resource_type = None
+                proxy = None
+                if resource_type == "document":
+                    proxy = DocumentProxy(item['id'])
+                if resource_type == "layer":
+                    proxy = LayerProxy(item['id'])
+                
+                if proxy is not None:
+                    status = proxy.status
+                    proxy_urls = proxy.get_extended_urls()
+                    links = [{
+                        "title": "Progress Page",
+                        "icon": "fa-list-ol",
+                        "url": proxy_urls['progress_page'],
+                    }]
+                    if status == "unprepared":
+                        links.append({
+                            "title": "Prepare Document",
+                            "icon": "fa-cut",
+                            "url": proxy_urls['split'],
+                        })
+                    if status == "prepared":
+                        links.append({
+                            "title": "Georeference Document",
+                            "icon": "fa-map-pin",
+                            "url": proxy_urls['georeference'],
+                        })
+                    if status == "georeferenced":
+                        links.append({
+                            "title": "Edit Georeferencing",
+                            "icon": "fa-map-pin",
+                            "url": proxy_urls['georeference'],
+                        })
+                        if resource_type == "document":
+                            links.append({
+                                "title": "Go To Georeferenced Layer",
+                                "icon": "fa-image",
+                                "url": proxy_urls['layer_detail'],
+                            })
+                        if resource_type == "layer":
+                            links.append({
+                                "title": "Trim Layer",
+                                "icon": "fa-crop",
+                                "url": proxy_urls['trim'],
+                            })
+                            links.append({
+                                "title": "Go To Original Document",
+                                "icon": "fa-newspaper-o",
+                                "url": proxy_urls['document_detail'],
+                            })
 
-                # generate urls for layers
-                if item['type'] == "layer":
-                    layer = LayerProxy(item['id'])
-                    item['georeferencing_status'] = layer.status
-                    item['urls'].update(layer.get_extended_urls())
+                    item['georeference_links'] = links
+                    item['georeferencing_status'] = status
 
             response._container = [json.dumps(data).encode()]
         return response

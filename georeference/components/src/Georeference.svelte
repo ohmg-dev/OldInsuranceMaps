@@ -580,11 +580,7 @@ $: asGeoJSON = () => {
   return featureCollection
 }
 
-// wrappers for the backend view to process GCPs
-function previewGCPs() { processGCPs("preview") }
-function submitGCPs() { processGCPs("submit") }
-
-function processGCPs(operation){
+function process(operation){
   if (gcpList.length < 3) {
     previewMode = "n/a";
     return
@@ -616,19 +612,20 @@ function processGCPs(operation){
         window.location.href = DOCUMENT.urls.progress_page;
       }
     });
-
 }
+
+// wrappers for the backend view to process GCPs
+function previewGCPs() { process("preview"); }
+function submitGCPs() { process("submit"); }
 
 // A couple of functions that are attached to the window itself
 
 // wrapper function to call view for db cleanup as needed
-function cleanupOnLeave (e) {
-  processGCPs("cleanup");
-}
+function cleanupOnLeave (e) { process("cleanup"); }
 
 function handleKeydown(e) {
-  // only allow these shortcuts if the maps have focus
-  // so they aren't activated while typing a note.
+  // only allow these shortcuts if the maps have focus,
+  // so shortcuts aren't activated while typing a note.
   if (document.activeElement.id == "") {
     switch(e.key) {
       case "Escape":
@@ -691,7 +688,7 @@ function handleKeydown(e) {
       <!-- (C) MENU ITEMS -->
       <div id="hamitems">
         
-        <button on:click={submitGCPs} disabled={gcpList.length < 3}>Submit GCPs</button>
+        <button on:click={submitGCPs} disabled={gcpList.length < 3}>Save Control Points</button>
         <button title="reset interface" disabled={unchanged} on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
       </div>
     </div>
@@ -719,7 +716,7 @@ function handleKeydown(e) {
         <span class="hidden-small">Note:</span>
         <input type="text" id="{noteInputElId}" style="height:30px; width:250px;" disabled={gcpList.length == 0} on:change={updateNote}>
       </label>
-    <button title="remove" on:click={removeActiveGCP}><i class="fa fa-trash" /></button>
+    <button title="remove active control point" on:click={removeActiveGCP}><i class="fa fa-trash" /></button>
     </div>
     {/if}
     <div>
@@ -750,8 +747,6 @@ function handleKeydown(e) {
 label {
   margin: 0px;
 }
-
-
 
 .map-item {
   width: 50%;

@@ -41,8 +41,18 @@ let previewMode = "n/a";
 let maskPolygonCoords = [];
 let maskSLDContent;
 
+let submitBtnLabel;
+$: {
+  if (INCOMING_MASK_COORDINATES.length == 0) {
+    submitBtnLabel = "Set Mask";
+  } else if (maskPolygonCoords.length == 0) {
+    submitBtnLabel = "Remove Mask";
+  } else {
+    submitBtnLabel = "Update Mask";
+  }
+}
+
 $: unchanged = JSON.stringify(maskPolygonCoords) == JSON.stringify(INCOMING_MASK_COORDINATES);
-$: submitBtnLabel = INCOMING_MASK_COORDINATES.length == 0 ? "Save Mask" : "Update Mask";
 $: maskToRemove = INCOMING_MASK_COORDINATES.length > 0 || maskPolygonCoords.length > 0;
 
 let mapView;
@@ -113,7 +123,6 @@ const trimShapeLayer = new VectorLayer({
   });
 trimShapeSource.on("addfeature", function(e) {
   updateMaskPolygon(e.feature.getGeometry().getCoordinates()[0]);
-  mapView.drawInteraction.setActive(false)
 })
 
 function removeMask() {
@@ -191,7 +200,6 @@ function MapViewer (elementId) {
     target: targetElement,
     layers: [
       basemaps[0].layer,
-    //   origLayer,
       trimmedLayer,
       trimShapeLayer,
     ],
@@ -204,7 +212,6 @@ function MapViewer (elementId) {
   const draw = new Draw({
     source: trimShapeSource,
     type: 'Polygon',
-    style: trimDraw,
   });
   draw.setActive(true);
   map.addInteraction(draw)
@@ -245,10 +252,13 @@ function setBasemap(basemapId) {
 }
 $: setBasemap(currentBasemap);
 
-function updateSLDContent() { processMask("preview") }
-function submitMask() { processMask("submit") }
+$: {
+  if (mapView) {
+    mapView.drawInteraction.setActive(maskPolygonCoords.length == 0);
+  }
+}
 
-function processMask(operation) {
+function process(operation) {
 
   if (operation == "submit") { disableInterface = true }
 
@@ -279,6 +289,10 @@ function processMask(operation) {
     }
   });
 }
+
+function updateSLDContent() { process("preview") }
+function submitMask() { process("submit") }
+
 </script>
 
 <div class="svelte-component-main">
@@ -297,33 +311,26 @@ function processMask(operation) {
   </div>
   {/if}
   <nav>
-    <div id="interaction-options" class="tb-top-item">
-    </div>
     <div class="tb-top-item"><em>{currentTxt}</em></div>
-    <div class="tb-top-item">
-    Preview:
-    <select class="basemap-select" title="set preview mode" bind:value={previewMode} disabled={previewMode == "n/a"}>
-      <option value="n/a" disabled>n/a</option>
-      <option value="none">hide</option>
-      <option value="transparent">transparent</option>
-      <option value="full">opaque</option>
-    </select>
-    Basemap:
-    <select class="basemap-select" title="select basemap" bind:value={currentBasemap}>
-      {#each basemaps as basemap}
-      <option value={basemap.id}>{basemap.label}</option>
-      {/each}
-    </select>
-    </div>
     <div>
       <button title="remove mask" on:click={removeMask} disabled={!maskToRemove}><i class="fa fa-trash" /></button>
-      <button title="reset" on:click={resetInterface} disabled={unchanged}><i class="fa fa-refresh" /></button>
-      <button on:click={submitMask}>{submitBtnLabel}</button>
+      <button on:click={submitMask} disabled={unchanged}>{submitBtnLabel}</button>
+      <button title="reset interface" on:click={resetInterface} disabled={unchanged}><i class="fa fa-refresh" /></button>
     </div>
   </nav>
   <div class="map-container">
     <div id="map-viewer" class="map-item rounded-bottom"></div>
   </div>
+  <nav>
+    <div></div>
+    <div>
+      <select title="select basemap" bind:value={currentBasemap}>
+        {#each basemaps as basemap}
+        <option value={basemap.id}>{basemap.label}</option>
+        {/each}
+      </select>
+    </div>
+  </nav>
 </div>
   
 <style>
