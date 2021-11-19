@@ -8,21 +8,21 @@ export let MASK_SESSIONS;
 export let CSRFTOKEN;
 
 function refresh() {
-	fetch(DOCUMENT.urls.progress_page, {
-		method: 'POST',
-		headers: {
+  fetch(DOCUMENT.urls.progress_page, {
+    method: 'POST',
+    headers: {
           'Content-Type': 'application/json;charset=utf-8',
           'X-CSRFToken': CSRFTOKEN,
         },
-	})
-	.then(response => response.json())
-	.then(result => {
-		DOCUMENT = result.DOCUMENT;
+  })
+  .then(response => response.json())
+  .then(result => {
+    DOCUMENT = result.DOCUMENT;
     LAYER = result.LAYER;
     SPLIT_SUMMARY = result.SPLIT_SUMMARY;
     GEOREFERENCE_SESSIONS = result.GEOREFERENCE_SESSIONS;
     MASK_SESSIONS = result.MASK_SESSIONS;
-	});
+  });
 }
 
 </script>
@@ -214,53 +214,53 @@ function refresh() {
   } */
 
   .documents-column {
-		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap;
-		gap: 20px;
-	}
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
 
   .document-item {
-		/* padding: 20px; */
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-		border: 1px solid gray;
-		background: white;
+    /* padding: 20px; */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid gray;
+    background: white;
 
-	}
+  }
 
-	.document-item img {
-		margin: 15px;
-		max-height: 200px;
-		max-width: 200px;
-	}
+  .document-item img {
+    margin: 15px;
+    max-height: 200px;
+    max-width: 200px;
+  }
 
-	.document-item div:first-child {
-		text-align: center;
-	}
+  .document-item div:first-child {
+    text-align: center;
+  }
 
-	.document-item div:first-child, .document-item div:last-child {
-		padding: 10px;
-		background: #e6e6e6;
-		width: 100%;
-	}
+  .document-item div:first-child, .document-item div:last-child {
+    padding: 10px;
+    background: #e6e6e6;
+    width: 100%;
+  }
 
-	.document-item p, .document-item ul {
-		margin: 0px;
-	}
+  .document-item p, .document-item ul {
+    margin: 0px;
+  }
 
-	.document-item ul {
-		list-style-type: none;
-		padding: 0;
-	}
+  .document-item ul {
+    list-style-type: none;
+    padding: 0;
+  }
 
   #refresh-button {
-		float: right;
-	}
+    float: right;
+  }
 
-	#refresh-button i {
-		font-size: .75em;
-	}
+  #refresh-button i {
+    font-size: .75em;
+  }
 
 </style>
