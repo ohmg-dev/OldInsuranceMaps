@@ -1,5 +1,5 @@
-
-import './css/shared.css';
+import './css/interface.css';
+import './js/ol-styles.js';
 import Split from './Split.svelte';
 import './css/ol-overrides.css'
 

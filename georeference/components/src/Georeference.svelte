@@ -26,14 +26,12 @@
   import MousePosition from 'ol/control/MousePosition';
   import {createStringXY} from 'ol/coordinate';
 
-  import Style from 'ol/style/Style';
-  import Stroke from 'ol/style/Stroke';
-  import Fill from 'ol/style/Fill';
-  import RegularShape from 'ol/style/RegularShape';
-
   import Draw from 'ol/interaction/Draw';
   import Modify from 'ol/interaction/Modify';
   import Snap from 'ol/interaction/Snap';
+
+  import Styles from './js/ol-styles';
+  const styles = new Styles();
 
   export let DOCUMENT;
   export let IMG_SIZE;
@@ -61,6 +59,8 @@
   let mapView;
   let gcpList = [];
 
+  let unchanged = true;
+
   const imgWidth = IMG_SIZE[0];
   const imgHeight = IMG_SIZE[1];
 
@@ -70,43 +70,6 @@
   let currentTxt = beginTxt;
 
   const noteInputElId = "note-input";
-
-  const gcpDefault = new Style({
-    image: new RegularShape({
-      radius1: 10,
-      radius2: 1,
-      points: 4,
-      rotation: .79,
-      fill: new Fill({color: 'black'}),
-      stroke: new Stroke({
-        color: 'black', width: 2
-      })
-    })
-  });
-  const gcpHighlight = new Style({
-    image: new RegularShape({
-      radius1: 10,
-      radius2: 1,
-      points: 4,
-      rotation: .79,
-      fill: new Fill({color: 'rgb(0, 255, 0)'}),
-      stroke: new Stroke({
-        color: 'rgb(0, 255, 0)', width: 2
-      })
-    })
-  });
-  const gcpHover = new Style({
-    image: new RegularShape({
-      radius1: 10,
-      radius2: 1,
-      points: 4,
-      rotation: .79,
-      fill: new Fill({color: 'red'}),
-      stroke: new Stroke({
-        color: 'red', width: 2
-      })
-    })
-  });
 
   let currentTransformation = "poly1";
   const transformations = [
@@ -168,8 +131,9 @@
     if (!e.feature.getProperties().listId) {
 			e.feature.setProperties({'listId': activeGCP})
 		}
-		e.feature.setStyle(gcpHighlight);
+		e.feature.setStyle(styles.gcpHighlight);
     inProgress = true;
+    unchanged = false;
   })
 
   const mapGCPSource = new VectorSource();
@@ -185,7 +149,7 @@
 	      'note': '',
 	    });
     }
-    e.feature.setStyle(gcpHighlight);
+    e.feature.setStyle(styles.gcpHighlight);
     syncGCPList();
     inProgress = false;
   })
@@ -214,7 +178,7 @@
     const modify = new Modify({
       hitDetection: hitDetection,
       source: source,
-      style: gcpHover,
+      style: styles.gcpHover,
     });
 
     modify.on(['modifystart', 'modifyend'], function (e) {
@@ -237,7 +201,7 @@
     return new Draw({
       source: source,
       type: 'Point',
-      style: new Style(),
+      style: styles.empty,
     });
   }
 
@@ -265,7 +229,7 @@
 
     const gcpLayer = new VectorLayer({
       source: docGCPSource,
-      style: gcpDefault,
+      style: styles.gcpDefault,
     });
 
     // create map
@@ -317,7 +281,7 @@
     this.map = map;
     this.element = targetElement;
     this.drawInteraction = draw;
-
+    this.modifyInteraction = modify;
   }
 
   function MapViewer (elementId) {
@@ -326,7 +290,7 @@
 
       const gcpLayer = new VectorLayer({
         source: mapGCPSource,
-        style: gcpDefault,
+        style: styles.gcpDefault,
       });
 
       // create map
@@ -365,6 +329,7 @@
       this.map = map;
       this.element = targetElement;
       this.drawInteraction = draw;
+      this.modifyInteraction = modify;
   }
 
   onMount(() => {
@@ -374,8 +339,8 @@
   });
 
   function loadIncomingGCPs() {
-		docGCPSource.refresh();
-		mapGCPSource.refresh();
+		docGCPSource.clear();
+		mapGCPSource.clear();
 		if (INCOMING_GCPS) {
 			let listId = 1;
 			let inGCPs = new GeoJSON().readFeatures(INCOMING_GCPS, {
@@ -409,6 +374,7 @@
 		syncGCPList();
 		activeGCP = gcpList.length + 1;
 		inProgress = false;
+    unchanged = true;
 	}
 
   function setActiveGCPOnClick(e) {
@@ -569,12 +535,12 @@
 
     // highlight features for active GCP
     docGCPSource.getFeatures().forEach( function (feat) {
-      feat.setStyle(gcpDefault);
-      if (feat.getProperties().listId == activeId) { feat.setStyle(gcpHighlight) }
+      feat.setStyle(styles.gcpDefault);
+      if (feat.getProperties().listId == activeId) { feat.setStyle(styles.gcpHighlight) }
     })
     mapGCPSource.getFeatures().forEach( function (feat) {
-      feat.setStyle(gcpDefault)
-      if (feat.getProperties().listId == activeId) { feat.setStyle(gcpHighlight) }
+      feat.setStyle(styles.gcpDefault)
+      if (feat.getProperties().listId == activeId) { feat.setStyle(styles.gcpHighlight) }
     })
   }
   $: displayActiveGCP(activeGCP)
@@ -743,22 +709,9 @@
     
       <!-- (C) MENU ITEMS -->
       <div id="hamitems">
-        <div>
-          <select title="set preview mode" bind:value={previewMode} disabled={previewMode == "n/a"}>
-            {#if previewMode == "n/a"}<option value="n/a" disabled>preview n/a</option>{/if}
-            <option value="none">no preview</option>
-            <option value="transparent">1/2 preview</option>
-            <option value="full">full preview</option>
-          </select>
-        </div>
-        &nbsp;
-        <div>
-          <select title="select basemap" bind:value={currentBasemap}>
-            {#each basemaps as basemap}
-            <option value={basemap.id}>{basemap.label}</option>
-            {/each}
-          </select>
-        </div>
+        
+        <button on:click={submitGCPs} disabled={gcpList.length < 3}>Submit GCPs</button>
+        <button title="reset interface" disabled={unchanged} on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
       </div>
     </div>
   </nav>
@@ -786,18 +739,27 @@
         <input type="text" id="{noteInputElId}" style="height:30px; width:250px;" disabled={gcpList.length == 0} on:change={updateNote}>
       </label>
     <button title="remove" on:click={removeActiveGCP}><i class="fa fa-trash" /></button>
-    <button title="clear all GCPs" on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
     </div>
     {/if}
     <div>
       <span style="color:lightgray">{startloads}/{endloads}</span>
+      <select title="set preview mode" bind:value={previewMode} disabled={previewMode == "n/a"}>
+        {#if previewMode == "n/a"}<option value="n/a" disabled>preview n/a</option>{/if}
+        <option value="none">no preview</option>
+        <option value="transparent">1/2 preview</option>
+        <option value="full">full preview</option>
+      </select>
+      <select title="select basemap" bind:value={currentBasemap}>
+        {#each basemaps as basemap}
+        <option value={basemap.id}>{basemap.label}</option>
+        {/each}
+      </select>
       <!-- svelte-ignore a11y-no-onchange -->
       <select class="trans-select" title="select transformation type" bind:value={currentTransformation} on:change={previewGCPs}>
         {#each transformations as trans}
           <option value={trans.id}>{trans.name}</option>
         {/each}
       </select>
-      <button on:click={submitGCPs} disabled={gcpList.length < 3}>Submit GCPs</button>
     </div>
   </nav>
 </div>

@@ -24,14 +24,13 @@
   import MousePosition from 'ol/control/MousePosition';
   import {createStringXY} from 'ol/coordinate';
 
-  import Style from 'ol/style/Style';
-  import Stroke from 'ol/style/Stroke';
-  import Fill from 'ol/style/Fill';
-  import RegularShape from 'ol/style/RegularShape';
-  
   import Draw from 'ol/interaction/Draw';
   import Modify from 'ol/interaction/Modify';
   import Snap from 'ol/interaction/Snap';
+
+  // import trimDraw from './js/styles.js'
+  import Styles from './js/ol-styles'
+  const styles = new Styles();
 
   export let CSRFTOKEN;
   export let LAYER;
@@ -53,47 +52,6 @@
   let mapView;
 
   let currentTxt = "still under construction!";
-
-  const gcpDefault = new Style({
-    image: new RegularShape({
-    radius1: 10,
-    radius2: 1,
-    points: 4,
-    rotation: .79,
-    fill: new Fill({color: 'black'}),
-    stroke: new Stroke({
-      color: 'black', width: 2
-    })
-    })
-  });
-  const gcpHighlight = new Style({
-    image: new RegularShape({
-    radius1: 10,
-    radius2: 1,
-    points: 4,
-    rotation: .79,
-    fill: new Fill({color: 'rgb(0, 255, 0)'}),
-    stroke: new Stroke({
-      color: 'rgb(0, 255, 0)', width: 2
-    })
-    })
-  });
-  const gcpHover = new Style({
-    image: new RegularShape({
-    radius1: 10,
-    radius2: 1,
-    points: 4,
-    rotation: .79,
-    fill: new Fill({color: 'red'}),
-    stroke: new Stroke({
-      color: 'red', width: 2
-    })
-    })
-  });
-
-  const outlineStyle = new Style({
-      stroke: new Stroke({ color: '#fae200', width: 2, })
-    })
 
   function defaultSLD() {
     let sld = '<?xml version="1.0" encoding="UTF-8"?>'
@@ -155,7 +113,7 @@
   const trimShapeSource = new VectorSource();
   const trimShapeLayer = new VectorLayer({
       source: trimShapeSource,
-      style: outlineStyle,
+      style: styles.trimDraw,
     });
   trimShapeSource.on("addfeature", function(e) {
     updateMaskPolygon(e.feature.getGeometry().getCoordinates()[0]);
@@ -210,7 +168,7 @@
     const modify = new Modify({
     hitDetection: hitDetection,
     source: source,
-    style: gcpHover,
+    style: styles.gcpHover,
     });
   
     modify.on(['modifystart', 'modifyend'], function (e) {
@@ -250,9 +208,7 @@
     const draw = new Draw({
       source: trimShapeSource,
       type: 'Polygon',
-      style: new Style({
-        stroke: new Stroke({ color: '#fae200', width: 2, })
-      }),
+      style: trimDraw,
     });
     draw.setActive(true);
     map.addInteraction(draw)

@@ -9,32 +9,25 @@
 
   import Polygon from 'ol/geom/Polygon';
 
-  import IIIF from 'ol/source/IIIF';
   import ImageStatic from 'ol/source/ImageStatic';
   import VectorSource from 'ol/source/Vector';
 
-  import IIIFInfo from 'ol/format/IIIFInfo';
-
-  import TileLayer from 'ol/layer/Tile';
   import ImageLayer from 'ol/layer/Image';
   import VectorLayer from 'ol/layer/Vector';
 
   import Projection from 'ol/proj/Projection';
 
-
   import Zoom from 'ol/control/Zoom';
   import MousePosition from 'ol/control/MousePosition';
   import {createStringXY} from 'ol/coordinate';
-
-  import Style from 'ol/style/Style';
-  import Stroke from 'ol/style/Stroke';
-  import Fill from 'ol/style/Fill';
 
   import Draw from 'ol/interaction/Draw';
   import Select from 'ol/interaction/Select';
   import Modify from 'ol/interaction/Modify';
   import Snap from 'ol/interaction/Snap';
-import { disable } from 'ol/rotationconstraint';
+
+  import Styles from './js/ol-styles';
+  const styles = new Styles();
 
   export let DOCUMENT;
   export let IMG_SIZE;
@@ -69,7 +62,7 @@ import { disable } from 'ol/rotationconstraint';
     extent: extent,
   });
 
-  let SplitInterface = {
+  let SplitInterface = {  
 
     init: function () {
 
@@ -118,26 +111,18 @@ import { disable } from 'ol/rotationconstraint';
           projection: projection,
           imageExtent: extent,
         }),
-        // zIndex: 999,
       })
       this.map.addLayer(this.img_layer);
 
       this.previewLayer = new VectorLayer({
         source: new VectorSource(),
-        style: new Style({
-          fill: new Fill({ color: 'rgba(255, 29, 51, 0.1)', }),
-          stroke: new Stroke({ color: 'rgba(255, 29, 51, 1)', width: 7.5, }),
-        }),
-        // zIndex: 1000,
+        style: styles.splitPreviewStyle,
       });
       this.map.addLayer(this.previewLayer);
 
       this.borderLayer = new VectorLayer({
         source: new VectorSource(),
-        style: new Style({
-          stroke: new Stroke({ color: '#fae200', width: 2, })
-        }),
-        // zIndex: 1001,
+        style: styles.splitBorderStyle,
       });
       let border = new Feature({
         geometry: new Polygon([[
@@ -149,9 +134,7 @@ import { disable } from 'ol/rotationconstraint';
 
       this.cutLayer = new VectorLayer({
         source: new VectorSource(),
-        style: new Style({
-          stroke: new Stroke({ color: '#fae200', width: 2, })
-        }),
+        style: styles.splitCutLayer,
         // zIndex: 1002,
       });
       this.map.addLayer(this.cutLayer);
@@ -332,9 +315,11 @@ import { disable } from 'ol/rotationconstraint';
     <div class="signin-reminder">
       <p><em>
         <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
-        <a href="/account/register">sign up</a> to work on this document
+        <a href="/account/register">sign up</a> to proceed
       </em></p>
     </div>
+    {:else}
+    <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
     {/if}
   </div>
   {/if}
@@ -360,7 +345,7 @@ import { disable } from 'ol/rotationconstraint';
             {/if}
             <button on:click={runSplit} disabled="{polygonCount <= 1 }">Split!</button>
             <button on:click={noSplitNeeded} disabled="{polygonCount > 1 }">Don't Split</button>
-            <button title="reset interface" on:click={iface.reset}><i id="fs-icon" class="fa fa-refresh" /></button>
+            <button title="reset interface" disabled={unchanged} on:click={iface.reset}><i id="fs-icon" class="fa fa-refresh" /></button>
     </div>
   </nav>
   <div class="map-container" style="border-top: 1.5px solid rgb(150, 150, 150)">
