@@ -109,10 +109,7 @@
   "cookie_law_info_cookie_bar_as": "banner",
   "cookie_law_info_popup_showagain_position": "bottom-right",
   "cookie_law_info_widget_position": "left",
-  "jumbotron_slide_show": [
-   1,
-   2
-  ],
+  "jumbotron_slide_show": [],
   "partners": []
  }
 }
