@@ -3,7 +3,7 @@
 {% load staticfiles %}
 
 <!-- This template extends the geonode template of the same path/name, and
-inserts a slightly different body block (to disallow layer upload for non-admin)-->
+inserts a slightly different body block (to disallow layer upload for non-staff)-->
 {% block body %}
 <div class="page-header">
   {% if user.is_staff %}
