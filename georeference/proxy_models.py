@@ -106,7 +106,7 @@ class DocumentProxy(object):
         if segmentation is not None:
             return segmentation.cutlines
         else:
-            None
+            return []
 
     @property
     def gcp_group(self):
@@ -121,7 +121,7 @@ class DocumentProxy(object):
         if gcp_group is not None:
             return gcp_group.as_geojson
         else:
-            None
+            return None
 
     @property
     def transformation(self):
@@ -318,16 +318,7 @@ class LayerProxy(object):
             "progress_page": doc_urls.get("progress_page", ""),
             "document_detail": doc_urls.get("detail", ""),
         }
-    
-    def get_mask_coords(self):
 
-        mask, created = LayerMask.objects.get_or_create(layer_id=self.id)
-        if mask.polygon:
-            coords = mask.polygon.coords[0]
-        else:
-            coords = []
-        return coords
-    
     def get_extended_urls(self):
 
         urls = self.urls
