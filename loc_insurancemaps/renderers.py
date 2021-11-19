@@ -36,18 +36,12 @@ def generate_full_thumbnail_content(document):
     full_image = Image.open(image_path)
     # img = ImageOps.fit(img, size, Image.ANTIALIAS)
     width, height = full_image.size
-    print(width, height)
     # only resize if one of the dimensions is larger than 200
     if width > 200 or height > 200:
-        print("resizing")
         biggest_dim = max([width, height])
-        
         ratio = 200/biggest_dim
-        print(ratio)
         new_width, new_height = int(ratio*width), int(ratio*height)
         new_size = (new_width, new_height)
-        print(new_size)
-
         image = ImageOps.fit(full_image, new_size, Image.ANTIALIAS)
     else:
         image = full_image
