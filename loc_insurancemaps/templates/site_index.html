@@ -124,7 +124,11 @@
             {% with facet_type='home' %}
              {% facets as facets %}
               <div class="col-md-6" style="min-height: 275px;">
-                <p><a href="{% url "volumes_list" %}"><i class="fa fa-user fa-4x"></i></a></p>
+                <p><a href="{% url "volumes_list" %}">
+                  <!-- <img src="{% static 'img/icons/am-book-upright.png' %}"/>
+                  <i class="fa fa-user fa-4x"></i> -->
+                  <span class="icon icon-volume"></span>
+                </a></p>
                 {% with 0 as volume_ct %}
                 <h2><a href="{% url "volumes_list" %}">{{ volume_ct|default:_("No") }} {% blocktrans count counter=volume_ct %}Volume{% plural %}Volumes{% endblocktrans %}</a></h2>
                 <p>{% trans 'Generally, an old insurance map volume represents a single year for a single community. Registered users can load volumes to begin working with them.' %}</p>
@@ -132,7 +136,10 @@
                 {% endwith %}
               </div>
               <div class="col-md-6" style="min-height: 275px;">
-                <p><a href="{% url "document_browse" %}"><i class="fa fa-newspaper-o fa-4x"></i></a></p>
+                <p><a href="{% url "document_browse" %}">
+                  <!-- <i class="fa fa-newspaper-o fa-4x"></i> -->
+                  <span class="icon icon-document"></span>
+                </a></p>
                 <h2><a href="{% url "document_browse" %}">{{ facets.document|default:_("No") }} {% blocktrans count counter=facets.document %}Document{% plural %}Documents{% endblocktrans %}</a></h2>
                 <p>{% trans "When a volume is loaded, its sheets become documents in this system. Documents can be georeferenced by any registered user." %}</p>
                 {% if user.is_authenticated %}
@@ -142,8 +149,10 @@
                 {% endif %}
               </div>
               <div class="col-md-6" style="min-height: 275px;">
-                <p><a href="{% url "layer_browse" %}"><i class="fa fa-square-o fa-4x rotate-45"></i></a></p>
-                <h2><a href="{% url "layer_browse" %}">{{ facets.layer|default:_("No") }} {% blocktrans count counter=facets.layer %}Layer{% plural %}Layers{% endblocktrans %}</a></h2>
+                <a href="{% url "layer_browse" %}">
+                  <span class="icon icon-layer"></span>
+                  <h2>{{ facets.layer|default:_("No") }} {% blocktrans count counter=facets.layer %}Layer{% plural %}Layers{% endblocktrans %}</h2>
+                </a>
                 <p>{% trans "Once a Document has been georeferenced, it becomes a geospatial layer. Layers can be used in any external mapping software." %}</p>
                 {% if user.is_authenticated %}
                 <p class="text-center"><a class="btn btn-default" href="{% url "layer_upload" %}" role="button">{% trans "Add layers" %} &raquo;</a></p>
@@ -152,7 +161,9 @@
                 {% endif %}
               </div>
               <div class="col-md-6" style="min-height: 275px;">
-                <p><a href="{% url "maps_browse" %}"><i class="fa fa-map-marker fa-4x"></i></a></p>
+                <p><a href="{% url "maps_browse" %}">
+                  <span class="icon icon-folded-map"></span>
+                </a></p>
                 <h2><a href="{% url "maps_browse" %}">{{ facets.map|default:_("No") }} {% blocktrans count counter=facets.map %}Web Map{% plural %}Web Maps{% endblocktrans %}</a></h2>
                 <p>{% trans "Data is available for browsing, aggregating and styling to generate maps which can be saved, downloaded, shared publicly or restricted to specify users only." %}</p>
                 {% if user.is_authenticated %}
@@ -173,7 +184,9 @@
             {% with facet_type='home' %}
              {% facets as facets %}
               <div class="col-md-6 col-md-offset-3" style="min-height: 275px;">
-                <p><a href="{% url "profile_browse" %}"><i class="fa fa-user fa-4x"></i></a></p>
+                <p><a href="{% url "profile_browse" %}">
+                  <span class="icon icon-user"></span>
+                </a></p>
                 <h2><a href="{% url "profile_browse" %}">{{ facets.user|default:_("No") }} {% blocktrans count counter=facets.user %}User{% plural %}Users{% endblocktrans %}</a></h2>
                 <p>{% trans "Anyone can sign up to work on georeferencing this content." %}</p>
                 <p><a class="btn btn-default" href="{% url "profile_browse" %}" role="button">{% trans "See all users" %} &raquo;</a></p>

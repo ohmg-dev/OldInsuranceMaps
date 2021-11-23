@@ -1,0 +1,30 @@
+.icon-volume {
+    mask: url(../icons/noun_UprightBook_2089467.svg);
+}
+.icon-document {
+    mask: url(../icons/noun_Scroll_2592600.svg);
+}
+.icon-layer {
+    mask: url(../icons/noun_Layer_2583171.svg);
+}
+.icon-folded-map {
+    mask: url(../icons/noun_FoldedMap_2592599.svg);
+}
+.icon-user {
+    mask: url(../icons/noun_User_1236015.svg);
+}
+.icon {
+    display: inline-block;
+    width: 70px;
+    height: 70px;
+    background: black;
+    mask-size: cover;
+}
+.icon:hover,
+.icon:focus {
+    background: red;
+}
+
+/* .icon-header:hover .icon {
+    background: red;
+} */
