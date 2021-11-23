@@ -1,3 +1,4 @@
+import os
 import json
 import logging
 from PIL import Image, ImageDraw, ImageFilter
@@ -21,6 +22,7 @@ from geonode.base.models import Region
 from geonode.utils import resolve_object, build_social_links
 from geonode.security.views import _perms_info_json
 from geonode.documents.models import Document
+from geonode.layers.models import Layer
 from geonode.documents.views import _resolve_document
 from geonode.documents.enumerations import DOCUMENT_TYPE_MAP
 from geonode.groups.conf import settings as groups_settings
@@ -199,6 +201,64 @@ class HomePage(View):
             context=context_dict
         )
 
+class Volumes(View):
+
+    def get(self, request):
+
+        started_volumes = Volume.objects.filter(status="started").order_by("city", "year")
+        lc = CollectionConnection(delay=0, verbose=True)
+        city_list = lc.get_city_list_by_state("louisiana")
+
+        volumes_values = started_volumes.values_list(
+            "identifier",
+            "city",
+            "county_equivalent",
+            "state",
+            "year",
+            "sheet_ct",
+            "volume_no",
+            "loaded_by__username",
+        )
+        loaded_volumes = []
+        for v in volumes_values:
+            title = f"{v[1]}, {v[2]}, {v[4]}"
+            if v[6] is not None:
+                title += f", Vol. {v[6]}"
+            # if v[6] is not None:
+            #     title = f"{v[1]}, {v[2]}, {v[4]}, Vol. {v[6]}"
+            loaded_volumes.append({
+                "identifier": v[0],
+                "city": v[1],
+                "county_equivalent": v[2],
+                "state": v[3],
+                "year": v[4],
+                "sheet_ct": v[5],
+                "volume_no": v[6],
+                "loaded_by": {
+                    "name": v[7],
+                    "profile": reverse("profile_detail", args=(v[7], )),
+                },
+                "title": title,
+                "urls": {
+                    "summary": reverse("volume_summary", args=(v[0],))
+                }
+            })
+
+        context_dict = {
+            "svelte_params": {
+                "STARTED_VOLUMES": loaded_volumes,
+                "STATE_CHOICES": STATE_CHOICES,
+                "CITY_QUERY_URL": reverse('lc_api'),
+                'USER_TYPE': get_user_type(request.user),
+                'CITY_LIST': city_list,
+            }
+        }
+        return render(
+            request,
+            "lc/volumes.html",
+            context=context_dict
+        )
+
 class VolumeDetail(View):
 
     def get(self, request, volumeid):
@@ -206,18 +266,22 @@ class VolumeDetail(View):
         try:
             volume = Volume.objects.get(pk=volumeid)
         except Volume.DoesNotExist:
-            lc = CollectionConnection(delay=0, verbose=True)
-            volume = lc.import_volume(volumeid)
+            volume = Importer().import_volume(volumeid)
             if volume is None:
                 raise Http404
 
-        volume_json = volume.to_json()
+        volume_json = volume.serialize()
+
+        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
+        gs = gs.rstrip("/") + "/"
+        geoserver_ows = f"{gs}ows/"
+
         context_dict = {
             "svelte_params": {
                 "VOLUME": volume_json,
-                "POST_URL": reverse("volume_summary", args=(volumeid,)),
                 "CSRFTOKEN": csrf.get_token(request),
                 'USER_TYPE': get_user_type(request.user),
+                'GEOSERVER_WMS': geoserver_ows,
             }
         }
         return render(
@@ -237,19 +301,33 @@ class VolumeDetail(View):
                 queue="update"
             )
             volume = Volume.objects.get(pk=volumeid)
-            volume_json = volume.to_json()
+            volume_json = volume.serialize()
 
             # set a few things manually here that may not be set on the Volume
             # yet due to async operations
-            volume_json["loaded_by"] = request.user.username
-            volume_json["loaded_by_url"] = reverse("profile_detail", args=(request.user.username, ))
+            volume_json["loaded_by"] = {
+                "name": request.user.username,
+                "profile": reverse("profile_detail", args=(request.user.username, )),
+            }
             volume_json["status"] = "initializing..."
 
             return JsonResponse(volume_json)
         
+        elif operation == "set-index-layers":
+
+            volume = Volume.objects.get(pk=volumeid)
+
+            layerids = body.get("indexLayerIds")
+            layers = Layer.objects.filter(alternate__in=layerids)
+            volume.index_layers.set(layers)
+
+            volume_json = volume.serialize()
+            return JsonResponse(volume_json)
+            
+        
         elif operation == "refresh":
             volume = Volume.objects.get(pk=volumeid)
-            volume_json = volume.to_json()
+            volume_json = volume.serialize()
             return JsonResponse(volume_json)
 
 class SimpleAPI(View):

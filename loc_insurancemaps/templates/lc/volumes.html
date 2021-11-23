@@ -4,12 +4,12 @@
 {% load base_tags %}
 {% load django_svelte %}
 
-{% block title %}{{ svelte_params.VOLUME.title }}{% endblock title %}
+{% block title %}Volumes - {{ block.super }}{% endblock title %}
 
 {% block hero%}
 <div class="container-outer">
 <div class="container" style="background:white;">
-  {% display_svelte "Volume.svelte" svelte_params %}
+  {% display_svelte "Volumes.svelte" svelte_params %}
 </div>
 </div>
 {% endblock hero %}

@@ -4,6 +4,7 @@ import pytz
 from datetime import datetime
 
 from django.conf import settings
+from django.urls import reverse
 
 from geonode.base.models import Region
 
@@ -40,8 +41,10 @@ def filter_volumes_for_use(volumes):
 
 def load_city_name_misspellings(state_name):
 
-    data = {}
+    lookup = {}
     file_path = os.path.join(settings.LOCAL_ROOT, "reference_data", "city-name-misspellings.json")
+    if not os.path.isfile(file_path):
+        return lookup
     with open(file_path, "r") as o:
         data = json.load(o)
     lookup = data.get(state_name.lower(), {})
@@ -64,14 +67,26 @@ def full_capitalize(in_str):
 
 class LOCParser(object):
 
-    def __init__(self):
+    def __init__(self, item=None, fileset=None, include_regions=False):
 
-        # these are set when the json is passed to the appropriate methods.
-        self.item = None
-        self.fileset = None
+        # passing in an item will automatically parse it as a volume
+        if item:
+            self.item = item
+            self.parse_item_identifier()
+            self.parse_location_info(include_regions=include_regions)
+            self.parse_volume_number()
+            self.parse_sheet_count()
+            self.parse_date_info()
+            self.parse_manifest_url()
+            self.create_item_title()
+
+        # passing in a fileset will automatically parse it
+        if fileset:
+            self.fileset = fileset
+            self.parse_fileset()
 
     def parse_item_identifier(self):
-        self.id = self.item["id"].rstrip("/").split("/")[-1]
+        self.identifier = self.item["id"].rstrip("/").split("/")[-1]
 
     def parse_sheet_count(self):
         self.sheet_ct = None
@@ -83,7 +98,7 @@ class LOCParser(object):
     def parse_location_info(self, include_regions=False):
 
         self.city = None
-        self.county_eq = None
+        self.county_equivalent = None
         self.state = None
         self.regions = []
         self.extra_location_tags = []
@@ -143,10 +158,10 @@ class LOCParser(object):
             for lt in location_tags:
                 for ct in c_terms:
                     if ct in lt.lower():
-                        self.county_eq = full_capitalize(lt)
+                        self.county_equivalent = full_capitalize(lt)
                         used_tags.append(lt)
         else:
-            self.county_eq = county_seg
+            self.county_equivalent = county_seg
             for lt in location_tags:
                 if lt in county_seg.lower():
                     used_tags.append(lt)
@@ -154,7 +169,7 @@ class LOCParser(object):
         # print leftover tags
         location_tags = [i for i in location_tags if not i in used_tags]
         if len(location_tags) > 0:
-            msg = f"WARNING: unparsed location tags - {self.id} - {title} - {location_tags}"
+            msg = f"WARNING: unparsed location tags - {self.identifier} - {title} - {location_tags}"
             print(msg)
 
         self.extra_location_tags = location_tags
@@ -163,7 +178,7 @@ class LOCParser(object):
         ## can't combine __iexact and __in, so not sure how to do this...
         if include_regions is True:
             self.regions += list(Region.objects.filter(name__iexact=self.city))
-            self.regions += list(Region.objects.filter(name__iexact=self.county_eq))
+            self.regions += list(Region.objects.filter(name__iexact=self.county_equivalent))
             self.regions += list(Region.objects.filter(name__iexact=self.state))
             for tag in location_tags:
                 self.regions += list(Region.objects.filter(name__iexact=tag))
@@ -215,56 +230,67 @@ class LOCParser(object):
         seg3 = f"{self.sheet_ct} Sheet{'s' if self.sheet_ct != 1 else ''}"
 
         self.title = " | ".join([seg2, seg1, seg3])
-        
 
-    def parse_item(self, item, include_regions=False):
+    def serialize_to_volume(self):
 
-        self.item = item
-        self.parse_item_identifier()
-        self.parse_location_info(include_regions=include_regions)
-        self.parse_volume_number()
-        self.parse_sheet_count()
-        self.parse_date_info()
-        self.parse_manifest_url()
-        self.create_item_title()
+        from .models import Volume
 
-        parsed_item = {
-            "id": self.id,
-            "volume_no": self.volume_no,
-            "sheet_ct": self.sheet_ct,
-            "year": self.year,
-            "datetime": self.datetime,
-            "month": self.month,
+        try:
+            v = Volume.objects.get(identifier=self.identifier)
+            status = v.status
+        except Volume.DoesNotExist:
+            status = "not started"
+
+        return {
+            "identifier": self.identifier,
             "city": self.city,
-            "county_eq": self.county_eq,
+            "county_equivalent": self.county_equivalent,
             "state": self.state,
+            "year": self.year,
+            "month": self.month,
+            "volume_no": self.volume_no,
+            "lc_item": self.item,
+            "lc_manifest_url": self.lc_manifest_url,
             "regions": self.regions,
             "extra_location_tags": self.extra_location_tags,
+            "sheet_ct": self.sheet_ct,
             "title": self.title,
-            "lc_manifest_url": self.lc_manifest_url,
+            "status": status,
+            "urls": {
+                "summary": reverse("volume_summary", args=(self.identifier,)),
+            },
         }
 
-        return parsed_item
+    def volume_kwargs(self):
 
+        data = self.serialize_to_volume()
+        del data["status"]
+        del data["urls"]
+        del data["title"]
+        del data["regions"]
+        return data
 
-
-    def parse_fileset(self, fileset):
+    def parse_fileset(self):
         """this could be much improved to take better advantage of IIIF service
         returns."""
 
-        info = {
-            "jp2_url": None,
-            "sheet_number": None,
-            "iiif_service": None,
-        }
-
-        for f in fileset:
+        for f in self.fileset:
             if f['mimetype'] == "image/jp2":
-                info["jp2_url"] = f['url']
+                self.jp2_url = f['url']
                 filename = f['url'].split("/")[-1]
                 name = os.path.splitext(filename)[0]
-                info["sheet_number"] = name.split("-")[-1].lstrip("0")
+                self.sheet_number = name.split("-")[-1].lstrip("0")
             if 'image-services' in f['url'] and '/full/' in f['url']:
-                info["iiif_service"] = f['url'].split("/full/")[0]
+                self.iiif_service = f['url'].split("/full/")[0]
 
-        return info
+    def serialize_to_fileset(self):
+
+        return {
+            "jp2_url": self.jp2_url,
+            "sheet_number": self.sheet_number,
+            "iiif_service": self.iiif_service,
+        }
+
+
+
+

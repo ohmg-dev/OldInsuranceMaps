@@ -26,13 +26,14 @@ from django.views.generic import TemplateView
 from geonode.urls import urlpatterns
 from geonode.monitoring import register_url_event
 
-from .views import item_detail, SimpleAPI, VolumeDetail, HomePage
+from .views import item_detail, SimpleAPI, VolumeDetail, HomePage, Volumes
 
 urlpatterns += [
-    path('lc/volume/<str:docdoi>/', item_detail, {"loc_type": "volume"}, name='volume_detail'),
-    path('lc/sheet/<str:docdoi>/', item_detail, {"loc_type": "sheet"}, name='sheet_detail'),
-    path('lc/api/', SimpleAPI.as_view() , name='lc_api'),
-    path('lc/<str:volumeid>/', VolumeDetail.as_view(), name="volume_summary"),
+    path('loc/volumes/', Volumes.as_view(), name='volumes_list'),
+    path('loc/volume/<str:docdoi>/', item_detail, {"loc_type": "volume"}, name='volume_detail'),
+    path('loc/sheet/<str:docdoi>/', item_detail, {"loc_type": "sheet"}, name='sheet_detail'),
+    path('loc/api/', SimpleAPI.as_view() , name='lc_api'),
+    path('loc/<str:volumeid>/', VolumeDetail.as_view(), name="volume_summary"),
 ]
 
 if 'georeference' in settings.INSTALLED_APPS:

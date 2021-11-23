@@ -6,8 +6,9 @@ import logging
 import requests
 
 from django.conf import settings
-from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.urls import reverse
 
 from geonode.maps.models import Map
 from geonode.layers.models import Layer
@@ -159,10 +160,10 @@ class CollectionConnection(object):
 
         cities = {}
         for item in items:
-            parsed = LOCParser().parse_item(item)
-            if parsed["state"] != state:
+            parsed = LOCParser(item=item)
+            if parsed.state != state:
                 continue
-            city = parsed["city"]
+            city = parsed.city
             cities[city] = cities.get(city, 0) + 1
         cities_list = [(k, v) for k, v in cities.items()]
 
@@ -177,62 +178,14 @@ class CollectionConnection(object):
         if self.verbose:
             print(f"{len(items)} items retrieved")
 
-        volumes = list()
-        for item in items:
-
-            parsed = LOCParser().parse_item(item)
-
-            d_facet = f"date__gte={parsed['year']}-01-01T00:00:00.000Z"
-            r_facet = f"region__name__in={parsed['city']}"
-
-            parsed['url'] = reverse("volume_summary", args=(parsed['id'],))
-            try:
-                v = Volume.objects.get(identifier=parsed['id'])
-                parsed['status'] = v.status
-            except Volume.DoesNotExist:
-                parsed['status'] = "not started"
-            parsed['started'] = Volume.objects.filter(identifier=parsed['id']).exists()
-            parsed['docs_search_url'] = f"{settings.SITEURL}documents/?{r_facet}&{d_facet}"
-
-            volumes.append(parsed)
-
-        return sorted(volumes, key=lambda k: k['title'])
-
-    def import_volume(self, identifier):
-
-        response = self.get_item(identifier)
-        if response.get("status") == 404:
-            return None
-        volume = Volume().create_from_lc_json(response)
-        return volume
-
-    def import_volumes(self, state=None, city=None, year=None):
-        """deprecated: volumes should only be imported one by one"""
-
-        lc = CollectionConnection(
-            delay=self.delay,
-            verbose=self.verbose,
-        )
-
-        items = lc.get_items(
-            locations=[i for i in [state, city] if not i is None],
-            year=year,
-        )
-
-        if self.verbose:
-            print(f"{len(items)} items retrieved")
-
         volumes = []
         for item in items:
-            parsed = LOCParser().parse_item(item)
-            if parsed["state"] != state:
-                continue
+            parsed = LOCParser(item=item)
+            
+            serialized = parsed.serialize_to_volume()
+            volumes.append(serialized)
 
-            if not self.dry_run:
-                vol = Volume().create_from_lc_json(item)
-                volumes.append(vol)
-
-        return volumes
+        return sorted(volumes, key=lambda k: k['title'])
 
 class Importer(object):
 
@@ -241,6 +194,24 @@ class Importer(object):
         self.verbose = verbose
         self.dry_run = dry_run
         self.delay = delay
+
+    def import_volume(self, identifier):
+
+        lc = CollectionConnection(delay=0, verbose=True)
+        response = lc.get_item(identifier)
+        if response.get("status") == 404:
+            return None
+
+        parsed = LOCParser(item=response['item'], include_regions=True)
+        volume_kwargs = parsed.volume_kwargs()
+
+        # add resources to args, not in item (they exist adjacent)
+        volume_kwargs["lc_resources"] = response['resources']
+
+        volume = Volume.objects.create(**volume_kwargs)
+        volume.regions.set(parsed.regions)
+
+        return volume
 
     def import_sheets(self, volume_id):
 
