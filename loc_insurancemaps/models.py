@@ -34,6 +34,7 @@ from geonode.maps.signals import map_changed_signal
 from geonode.people.models import Profile
 
 from georeference.models import SplitDocumentLink
+from georeference.proxy_models import DocumentProxy, LayerProxy
 
 from .utils import LOCParser
 from .enumerations import (
@@ -105,17 +106,17 @@ class Sheet(models.Model):
 
         with transaction.atomic():
 
-            parsed = LOCParser().parse_fileset(fileset)
+            parsed = LOCParser(fileset=fileset)
 
             try:
                 sheet = Sheet.objects.get(
                     volume=volume,
-                    sheet_no=parsed["sheet_number"]
+                    sheet_no=parsed.sheet_number
                 )
             except Sheet.DoesNotExist:
                 sheet = Sheet(
                     volume=volume,
-                    sheet_no=parsed["sheet_number"]
+                    sheet_no=parsed.sheet_number
                 )
             doc = Document()
 
@@ -125,7 +126,7 @@ class Sheet(models.Model):
                 user = Profile.objects.get(username="admin")
             doc.owner = user
 
-            jp2_url = parsed["jp2_url"]
+            jp2_url = parsed.jp2_url
             if jp2_url is not None:
                 tmp_path = os.path.join(temp_img_dir, jp2_url.split("/")[-1])
 
@@ -147,8 +148,8 @@ class Sheet(models.Model):
                 doc.save()
 
             sheet.document = doc
-            sheet.sheet_no = parsed["sheet_number"]
-            sheet.iiif_service = parsed["iiif_service"]
+            sheet.sheet_no = parsed.sheet_number
+            sheet.iiif_service = parsed.iiif_service
             sheet.save()
 
             doc.title = sheet.__str__()
@@ -177,19 +178,13 @@ class Sheet(models.Model):
         or more documents in use for this Sheet.
         """
 
-        sgt = Thesaurus.objects.get(identifier="sgt")
-        sgt_keywords = ThesaurusKeyword.objects.filter(thesaurus=sgt)
+        doc_proxy = DocumentProxy(self.document.id)
+        if len(doc_proxy.child_docs) > 0:
+            return doc_proxy.child_docs
+        else:
+            return [doc_proxy]
 
-        for tk in self.document.tkeywords.all():
-            if tk in sgt_keywords:
-                return [self.document]
-        
-        ## if tk is in the status dict set, then further checking needed
-        links = SplitDocumentLink.objects.filter(document=self.document)
-        documents = [Document.objects.get(pk=i.object_id) for i in links]
-        return documents
-
-    def to_json(self):
+    def serialize(self):
         return {
             "sheet_no": self.sheet_no,
             "sheet_name": self.__str__(),
@@ -233,6 +228,11 @@ class Volume(models.Model):
         blank=True,
         null=True,
         on_delete=models.CASCADE)
+    index_layers = models.ManyToManyField(
+        Layer,
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
 
@@ -251,40 +251,6 @@ class Volume(models.Model):
         return format_json_display(self.lc_resources)
 
     lc_resources_formatted.short_description = 'LC Resources'
-    
-    def create_from_lc_json(self, response):
-
-        parsed = LOCParser().parse_item(response['item'], include_regions=True)
-
-        with transaction.atomic():
-
-            try:
-                vol = Volume.objects.get(identifier=parsed['id'])
-            except Volume.DoesNotExist:
-                vol = Volume()
-                vol.identifier = parsed['id']
-
-            vol.lc_item = response['item']
-            vol.lc_resources = response['resources']
-
-            vol.city = parsed['city']
-            vol.county_equivalent = parsed['county_eq']
-            vol.state = parsed['state']
-            vol.year = parsed['year']
-            vol.month = parsed['month']
-            vol.volume_no = parsed['volume_no']
-            vol.extra_location_tags = parsed['extra_location_tags']
-
-            vol.lc_manifest_url = parsed["lc_manifest_url"]
-
-            vol.sheet_ct = parsed['sheet_ct']
-
-            vol.save()
-
-            for r in parsed['regions']:
-                vol.regions.add(r)
-
-        return vol
 
     def import_sheets(self, user):
 
@@ -313,103 +279,86 @@ class Volume(models.Model):
     def sheets(self):
         return Sheet.objects.filter(volume=self)
     
-    @property
-    def sheets_json(self):
-        return [i.to_json() for i in self.sheets]
-    
-    @property
-    def documents_json(self):
+    def get_all_documents(self):
+        all_documents = []
+        for sheet in self.sheets:
+            all_documents += sheet.real_documents
+
+        return all_documents
+
+    def serialize_items(self):
 
         sgt = Thesaurus.objects.get(identifier="sgt")
         sgt_keywords = ThesaurusKeyword.objects.filter(thesaurus=sgt)
-
-        documents = []
-        for sheet in self.sheets:
-            documents += sheet.real_documents
-
         sorted_items = {tk.about: [] for tk in sgt_keywords}
         sorted_items['layers'] = []
-        layers = []
-        for document in documents:
+
+        for doc_proxy in self.get_all_documents():
             try:
-                thumb = FullThumbnail.objects.get(document=document)
+                thumb = FullThumbnail.objects.get(document=doc_proxy.resource)
             except FullThumbnail.DoesNotExist:
-                thumb = FullThumbnail(document=document)
+                thumb = FullThumbnail(document=doc_proxy.resource)
                 thumb.save()
 
-            detail_url = reverse('document_detail', args=(document.id,))
-            split_url = reverse('split_view', args=(document.id,))
-            georeference_url = reverse('georeference_view', args=(document.id,))
-            georeference_summary_url = reverse('georeference_summary', args=(document.id,))
+            doc_json = doc_proxy.serialize()
+
+            # overwrite the default thumb url with the FullThumbnail url
+            doc_json["urls"]["thumbnail"] = thumb.image.url
 
             # hacky method for pulling out the sheet number from the doc title
             try:
-                page_str = document.title.split("|")[1].split("p")[1]
+                page_str = doc_proxy.title.split("|")[-1].split("p")[1]
             except IndexError:
-                page_str = document.title
+                page_str = doc_proxy.title
+            doc_json["page_str"] = page_str
 
-            doc_json = {
-                "id": document.pk,
-                "title": document.title,
-                "page_str": page_str,
-                "urls": {
-                    "detail": detail_url,
-                    "thumbnail": thumb.image.url,
-                    "split": split_url,
-                    "georeference": georeference_url,
-                    "georeference_summary": georeference_summary_url,
-                }
-            }
+            sorted_items[doc_proxy.status].append(doc_json)
 
-            for tk in document.tkeywords.all():
-                if tk in sgt_keywords:
-                    sorted_items[tk.about].append(doc_json)
+            layer_proxy = doc_proxy.get_layer_proxy()
+            if not layer_proxy is None:
+                layer_json = layer_proxy.serialize()
+                layer_json["page_str"] = page_str
+                sorted_items['layers'].append(layer_json)
 
-            ## must also collect layers resulting from georeferenced documents
-            if "georeferenced" in [tk.about for tk in document.tkeywords.all()]:
-                layer = None
-                links = DocumentResourceLink.objects.filter(document=document)
-                for link in links:
-                    obj = link.content_type.get_object_for_this_type(pk=link.object_id)
-                    if isinstance(obj, Layer):
-                        layer = obj
-                        break
-                if layer is not None:
-                    trim_url = reverse('trim_view', args=(layer.alternate,))
-                    detail_url = reverse('layer_detail', args=(layer.alternate,))
-                    layer_json = {
-                        "id": layer.pk,
-                        "title": layer.title,
-                        "page_str": page_str,
-                        "urls": {
-                            "detail": detail_url,
-                            "thumbnail": layer.thumbnail_url,
-                            "georeference": georeference_url,
-                            "trim": trim_url,
-                            "georeference_summary": georeference_summary_url,
-                        }
-                    }
-                    sorted_items["layers"].append(layer_json)
+            continue
 
         return sorted_items
 
-    def to_json(self):
-        items = self.documents_json
+    def get_urls(self):
+
+        # put these search result urls into Volume.serialize()
+        d_facet = f"date__gte={self.year}-01-01T00:00:00.000Z"
+        r_facet = f"region__name__in={self.city}"
+        # doc_search = f"{settings.SITEURL}documents/?{r_facet}&{d_facet}"
+        return {
+            "doc_search": f"{settings.SITEURL}documents/?{r_facet}&{d_facet}",
+            "loc":  f"https://loc.gov/item/{self.identifier}",
+            "summary": reverse("volume_summary", args=(self.identifier,))
+        }
+
+    def serialize(self):
+        items = self.serialize_items()
         items_ct = sum([len(v) for v in items.values()])
         if self.loaded_by is None:
-            loaded_by = ""
-            loaded_by_url = ""
+            loaded_by = {"name": "", "profile": ""}
         else:
-            loaded_by = self.loaded_by.username
-            loaded_by_url = reverse("profile_detail", args=(self.loaded_by.username, ))
+            loaded_by = {
+                "name": self.loaded_by.username,
+                "profile": reverse("profile_detail", args=(self.loaded_by.username, )),
+            }
+        index_layers = [LayerProxy(i.alternate) for i in self.index_layers.all()]
+        index_layers_json = [i.serialize() for i in index_layers]
         return {
             "identifier": self.identifier,
             "title": self.__str__(),
             "status": self.status,
-            "sheet_ct": self.sheet_ct,
+            "sheet_ct": {
+                "total": self.sheet_ct,
+                "loaded": len(self.sheets),
+            },
             "items_ct": items_ct,
             "items": items,
-            "loc_url": f"https://loc.gov/item/{self.identifier}",
             "loaded_by": loaded_by,
-            "loaded_by_url": loaded_by_url,
+            "urls": self.get_urls(),
+            "index_layers": index_layers_json,
         }
