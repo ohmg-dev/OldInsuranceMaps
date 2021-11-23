@@ -1,4 +1,5 @@
 <script>
+export let STARTED_VOLUMES;
 export let STATE_CHOICES;
 export let CITY_QUERY_URL;
 export let USER_TYPE;
@@ -27,7 +28,7 @@ function updateVolumeList(city) {
 		.then(response => response.json())
 		.then(result => {
 			if ( result.length > 0) {
-				currentCountyEq = result[0]["county_eq"]
+				currentCountyEq = result[0]["county_equivalent"]
 			}
 			volumes = result;
 			loadingVolumes = false;
@@ -55,32 +56,89 @@ function updateFilteredList(filterText) {
 let filterInput;
 $: updateFilteredList(filterInput)
 
+let faq1Hidden = true;
+let faq2Hidden = true;
+let faq3Hidden = true;
+let faq4Hidden = true;
 </script>
 
 <main>
-	<div style="display:flex; flex-direction:row;">
-		<div class="pane">
-			<h1>Welcome</h1>
-			<p>
-				This is an open platform for georeferencing and viewing old insurance maps in
-				the Library of Congress <a href="https://www.loc.gov/collections/sanborn-maps/about-this-collection/">Sanborn Maps Collection</a>.
-			</p>	
+	<div class="toggler">
+		<div>
+			<button on:click={() => faq1Hidden = !faq1Hidden}>
+				What are volumes?
+				<i class="fa {faq1Hidden ? 'fa-chevron-right' : 'fa-chevron-down'}"></i>
+			</button>
+			<div class="faq-content" hidden={faq1Hidden}>
+				<p>In the Library of Congress 
+				<a href="https://www.loc.gov/collections/sanborn-maps/about-this-collection/">digital Sanborn Maps collection</a>,
+				each item is typically a full edition&mdash;the complete survey of a city in a given year. However, in
+				large cities like New Orleans, multiple volumes were created for an edition, each one stored 
+				as separate items. Thus, we have chosen <strong>volume</strong> as used as the highest level 
+				of grouping for content in this project. Each volume has one or more <strong>sheets</strong>.
+				</p>
+			</div>
 		</div>
-		<div class="pane">
-			<h2>How to Use This Site</h2>
-			<ul>
-				<li>If a volume has been started, you'll be able to view it status page.</li>
-				<li>If you have an account, you can start a new volume.</li>
-				<li>If a volume is greyed out <span style="color: grey">(like this)</span> then it
-					is not available for this project. <a href="/about#included-volumes" target="_blank">learn why <i class="fa fa-external-link"></i></a></li>
-			</ul>		
+		<div>
+			<button on:click={() => faq2Hidden = !faq2Hidden}>
+				What does started/not started mean?
+				<i class="fa {faq2Hidden ? 'fa-chevron-right' : 'fa-chevron-down'}"></i>
+			</button>
+			<div class="faq-content" hidden={faq2Hidden}>
+				<p>
+					If you are signed in you can "start" a volume by loading its sheets. Once or more sheets are loaded,
+					you can begin transforming them from scanned images to geopatial layers through the
+					georeferencing process.
+				</p>
+			</div>
+		</div>
+		<div>
+			<button on:click={() => faq3Hidden = !faq3Hidden}>
+				Why isn't my city listed?
+				<i class="fa {faq3Hidden ? 'fa-chevron-right' : 'fa-chevron-down'}"></i>
+			</button>
+			<div class="faq-content" hidden={faq3Hidden}>
+				<p>
+					Unfortunately, if a city does not appear in the list, that means there is no item 
+					in the collection for it. However, do check for old names of your city, or the 
+					names of adjacent communinities that may have combined with yours over the years.
+				</p>
+			</div>
+		</div>
+		<div>
+			<button on:click={() => faq4Hidden = !faq4Hidden}>
+				Why are some volumes <span style="color: grey">greyed out?</span>
+				<i class="fa {faq4Hidden ? 'fa-chevron-right' : 'fa-chevron-down'}"></i>
+			</button>
+			<div class="faq-content" hidden={faq4Hidden}>
+				<p>
+					This means the volume exists in the Library of Congress collection, but is not
+					available in this project. This is because while we want to provide wide geographic and temporal coverage
+					throughout Louisiana, we also need to make disk space manageable.
+					We devised the following criteria to determine avialability:
+				</p>
+				<ul>
+					<li>Include the earliest edition for every community, regardless of date.</li>
+					<li>For New Orleans, <em>only</em> include the earliest edition (1885, in two volumes).</li>
+					<li>For all other communities, exclude editions published after 1910.</li>
+				</ul>
+				<p>
+					These criteria produce 266 volumes covering 138 communities, containing 1499 sheets.
+					If you are very interested in georeferencing a volume that is greyed out, please get in touch!  
+				</p>
+				<p>
+					<em>
+						If you are very interested in georeferencing a volume that is greyed out, please get in touch!  
+					</em>
+				</p>
+			</div>
 		</div>
 	</div>
-	<hr>
+	<h3>Find a Volume</h3>
 	<div style="display:flex; flex-direction:row;">
-		<div class="pane">
+		<div class="pane" style="height:299px">
 			<input type="text" id="filterInput" placeholder="Filter by name.." bind:value={filterInput}>
-			<div id="city-list" style="max-height: 350px; overflow-y:auto;">
+			<div id="city-list" style="height:250px; overflow-y:auto;">
 				{#each cityOptions as city}
 				<label for={city[0]}>
 					<input type="radio" id={city[0]} bind:group={currentCity} value={city[0]}>
@@ -89,7 +147,7 @@ $: updateFilteredList(filterInput)
 				{/each}
 			</div>
 		</div>
-		<div class="pane">
+		<div class="pane" style="height:299px; overflow-y:auto;">
 			{#if volumes.length > 0 }
 			<h3 style="margin-top: 10px;">{currentCity}, {currentCountyEq}:</h3>
 				<ul class="volume-list">
@@ -98,7 +156,7 @@ $: updateFilteredList(filterInput)
 					{#if volume.include == false}
 						<span style="color:grey;">{volume.title}</span>
 					{:else}
-						<a href="{volume.url}">{volume.title}</a> ({volume.status})
+						<a href="{volume.urls.summary}">{volume.title}</a> ({volume.status})
 					{/if}
 					</li>
 				{/each}
@@ -109,9 +167,54 @@ $: updateFilteredList(filterInput)
 			{/if}
 		</div>
 	</div>
+	<h3>Started Volumes</h3>
+	<div>
+		<ul class="started-volume-list">
+		{#each STARTED_VOLUMES as v}
+		<li>
+			<a href={v.urls.summary} alt={v.title} title="View summary of {v.title}">
+				{v.title}
+			</a>
+			| {v.sheet_ct} sheet{#if v.sheet_ct!=1}s{/if}
+			| started by <a href={v.loaded_by.profile}>{v.loaded_by.name}</a>
+		</li>
+		{/each}
+		</ul>
+	</div>
 </main>
 
 <style>
+
+.started-volume-list {
+	/* list-style: none; */
+	/* padding-left: 0px; */
+}
+
+.started-volume-list li {
+	/* display: inline-block; */
+}
+
+.faq-content {
+	padding: 10px;
+	border: 1px solid grey;
+	background: lightgrey;
+	border-radius: 4px;
+}
+
+.faq-content p {
+	margin: 0;
+}
+
+.toggler div button {
+    background: unset;
+    border: unset;
+    box-shadow: unset;
+	color: #812525;
+}
+
+.toggler div button i {
+	font-size: .75em;
+}
 
 #filterInput {
   width: 100%; /* Full-width */
