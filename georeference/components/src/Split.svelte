@@ -56,6 +56,17 @@ $: {
 
 let disableInterface = !USER_AUTHENTICATED;
 
+let currentTxt;
+$: {
+  if (divisions.length == 0) {
+    currentTxt = "Draw lines to cut the image into separate pieces, if necessary."
+  } else {
+    const linesTxt = cutLines.length + " " + (cutLines.length === 1 ? 'line' : 'lines');
+    const divsTxt = divisions.length + " " + (divisions.length === 1 ? 'part' : 'parts') + " will be made";
+    currentTxt = linesTxt + " | " + divsTxt;
+  }
+}
+
 const imgWidth = IMG_SIZE[0];
 const imgHeight = IMG_SIZE[1];
 const imgBorderPoly = [[[0,0], [imgWidth, 0], [imgWidth, imgHeight], [0, imgHeight], [0,0]]];
@@ -83,6 +94,7 @@ function resetInterface() {
   docView.cutLayerSource.clear();
   docView.previewLayerSource.clear();
   cutLines = [];
+  divisions = [];
   INCOMING_CUTLINES.forEach(function(line) {
     docView.cutLayerSource.addFeature(
       new Feature({ geometry: new LineString(line) })
@@ -306,11 +318,10 @@ function runSplit() { process("submit") };
       Show Preview
     </label>
     </div>
+    <div><em>{currentTxt}</em></div>
     <div class="tb-top-item">
-            {#if divisions.length > 1}
-            <em>{divisions.length} {divisions.length === 1 ? 'part' : 'parts'} will be made</em>
-            {/if}
-            <button on:click={runSplit} disabled={unchanged}>{splitBtnLabel}</button>
+            
+            <button on:click={runSplit}>{splitBtnLabel}</button>
             <button title="reset interface" disabled={unchanged} on:click={resetInterface}><i id="fs-icon" class="fa fa-refresh" /></button>
     </div>
   </nav>
