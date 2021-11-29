@@ -147,6 +147,31 @@ class Command(BaseCommand):
             ("MEDIA_ROOT", ""),
         ]
 
+        if self.resolve_var("EMAIL_ENABLE", False) is True:
+            vars += [
+                ('EMAIL_ENABLE', True),
+                ('DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend'),
+                ('DJANGO_EMAIL_HOST', 'localhost'),
+                ('DJANGO_EMAIL_PORT', 587),
+                ('DJANGO_EMAIL_HOST_USER', ''),
+                ('DJANGO_EMAIL_HOST_PASSWORD', ''),
+                ('DJANGO_EMAIL_USE_TLS', False),
+                ('DJANGO_EMAIL_USE_SSL', False),
+                ('DEFAULT_FROM_EMAIL', 'admin@localhost'),
+            ]
+
+        if self.resolve_var("ACCOUNT_OPEN_SIGNUP", False) is True:
+            vars += [
+                ('ACCOUNT_OPEN_SIGNUP', True),
+                ('ACCOUNT_EMAIL_REQUIRED', True),
+                ('ACCOUNT_CONFIRM_EMAIL_ON_GET', False),
+                ('ACCOUNT_EMAIL_VERIFICATION', True),
+                ('ACCOUNT_EMAIL_CONFIRMATION_EMAIL', True),
+                ('ACCOUNT_EMAIL_CONFIRMATION_REQUIRED', True),
+                ('ACCOUNT_AUTHENTICATION_METHOD', 'username_email'),
+                ('AUTO_ASSIGN_REGISTERED_MEMBERS_TO_REGISTERED_MEMBERS_GROUP_NAME', True),
+            ]
+
         kv_list = []
         for var in vars:
             value = self.resolve_var(var[0], var[1])
@@ -287,6 +312,31 @@ sudo pkill -f celery
             ("BROKER_URL", ""),
             ("ASYNC_SIGNALS", False),
         ]
+
+        if self.resolve_var("EMAIL_ENABLE", False) is True:
+            vars += [
+                ('EMAIL_ENABLE', True),
+                ('DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend'),
+                ('DJANGO_EMAIL_HOST', 'localhost'),
+                ('DJANGO_EMAIL_PORT', 587),
+                ('DJANGO_EMAIL_HOST_USER', ''),
+                ('DJANGO_EMAIL_HOST_PASSWORD', ''),
+                ('DJANGO_EMAIL_USE_TLS', False),
+                ('DJANGO_EMAIL_USE_SSL', False),
+                ('DEFAULT_FROM_EMAIL', 'admin@localhost'),
+            ]
+
+        if self.resolve_var("ACCOUNT_OPEN_SIGNUP", False) is True:
+            vars += [
+                ('ACCOUNT_OPEN_SIGNUP', True),
+                ('ACCOUNT_EMAIL_REQUIRED', True),
+                ('ACCOUNT_CONFIRM_EMAIL_ON_GET', False),
+                ('ACCOUNT_EMAIL_VERIFICATION', True),
+                ('ACCOUNT_EMAIL_CONFIRMATION_EMAIL', True),
+                ('ACCOUNT_EMAIL_CONFIRMATION_REQUIRED', True),
+                ('ACCOUNT_AUTHENTICATION_METHOD', 'username_email'),
+                ('AUTO_ASSIGN_REGISTERED_MEMBERS_TO_REGISTERED_MEMBERS_GROUP_NAME', True),
+            ]
 
         env_section = ""
         for var in vars:
@@ -487,7 +537,7 @@ upstream {project_name} {{
 }}
 
 server {{
-    
+
     listen 80 default_server;
     listen [::]:80 default_server;
     server_name {SITE_HOST_NAME};
