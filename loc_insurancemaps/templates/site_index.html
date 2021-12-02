@@ -86,44 +86,25 @@
   {% endblock hero %}
 
   {% block mainbody %}
-
-      {% block bigsearch %}
-      {% if block.super %}
-      {{ block.super }}
-      {% else %}
-      <div class="big-search">
-      	<div class="container">
-      		<h1>{% trans "Search for Data." %}</h1>
-      		<div class="search">
-      			<form id="main_search" action="{% url "search" %}" >
-      				<span class="fa fa-search fa-3x"></span>
-      				{% if HAYSTACK_SEARCH %}
-      				<input id="main_search_input" type="text" placeholder="{% trans 'Search' %}" class="form-control" name="q" autocomplete="off">
-                    <input type="hidden" name="abstract__icontains" id="main_search_abstract_input" placeholder="{% trans 'Search' %}" >
-                    <input type="hidden" name="purpose__icontains" id="main_search_purpose_input" placeholder="{% trans 'Search' %}" >
-                    <input type="hidden" name="f_method" id="main_filtering_type" value="or" >
-      				{% else %}
-      				<input id="main_search_input" type="text" placeholder="{% trans 'Search' %}" class="form-control" autocomplete="off" name="title__icontains">
-                    <input type="hidden" name="abstract__icontains" id="main_search_abstract_input">
-                    <input type="hidden" name="purpose__icontains" id="main_search_purpose_input">
-                    <input type="hidden" name="f_method" id="main_filtering_type" value="or" >
-      				{% endif %}
-      			</form>
-      		</div>
-      		<p><a class="btn btn-default btn-lg" href="{% url "search" %}">{% trans "Advanced Search" %}</a></p>
-      	</div>
+  <div class="background-bg">
+    {% block bigsearch %}
+    {% endblock bigsearch %}
+    <section>
+      <div class="row">
+        <div class="col-xs-12">
+          <h1>How it works</h1>
+        </div>
       </div>
-      {% endif %}
-      {% endblock bigsearch %}
+    </section>
 
 	  {% block showcase %}
-      <section id="showcase">
+      <section id="showcase" class="background-fg">
         <div class="row">
           <div class="container text-center">
             <div class="row home-facets">
             {% with facet_type='home' %}
              {% facets as facets %}
-              <div class="col-md-6" style="min-height: 275px;">
+              <div class="col-md-6 showcase-tile">
                 <p><a href="{% url "volumes_list" %}">
                   <!-- <img src="{% static 'img/icons/am-book-upright.png' %}"/>
                   <i class="fa fa-user fa-4x"></i> -->
@@ -135,7 +116,7 @@
                 <p><a class="btn btn-default" href="{% url "volumes_list" %}" role="button">{% trans "Explore volumes" %} &raquo;</a></p>
                 {% endwith %}
               </div>
-              <div class="col-md-6" style="min-height: 275px;">
+              <div class="col-md-6 showcase-tile">
                 <p><a href="{% url "document_browse" %}">
                   <!-- <i class="fa fa-newspaper-o fa-4x"></i> -->
                   <span class="icon icon-document"></span>
@@ -148,7 +129,7 @@
                 <p class="text-center"><a class="btn btn-default" href="{% url "document_browse" %}" role="button">{% trans "Explore documents" %} &raquo;</a></p>
                 {% endif %}
               </div>
-              <div class="col-md-6" style="min-height: 275px;">
+              <div class="col-md-6 showcase-tile">
                 <a href="{% url "layer_browse" %}">
                   <span class="icon icon-layer"></span>
                   <h2>{{ facets.layer|default:_("No") }} {% blocktrans count counter=facets.layer %}Layer{% plural %}Layers{% endblocktrans %}</h2>
@@ -160,7 +141,7 @@
                 <p class="text-center"><a class="btn btn-default" href="{% url "layer_browse" %}" role="button">{% trans "Explore layers" %} &raquo;</a></p>
                 {% endif %}
               </div>
-              <div class="col-md-6" style="min-height: 275px;">
+              <div class="col-md-6 showcase-tile">
                 <p><a href="{% url "maps_browse" %}">
                   <span class="icon icon-folded-map"></span>
                 </a></p>
@@ -199,7 +180,7 @@
 	  {% endblock showcase %}
 
 	  {% block datasets %}
-    <section id="datasets">
+    <section id="datasets" class="background-fg">
       {% get_visibile_resources request.user %}
       <div ng-app="featured" ng-if="featured.length > 0" ng-cloak class="row">
           <div class="container text-center">
@@ -267,6 +248,7 @@
       {% endif %}
       {% endblock cookielawinfo %}
 
+  </div>
   {% endblock mainbody %}
 
 {% endblock middle %}

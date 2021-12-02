@@ -96,10 +96,10 @@ let settingIndexLayer = false;
 
 <main>
 	<div class="title-bar">
-		<h2>{VOLUME.title}</h2>
+		<h1>{VOLUME.title}</h1>
 		<p><a href={VOLUME.urls.loc} target="_blank">View item in Library of Congress <i class="fa fa-external-link"></i></a></p>
 	</div>
-	<hr class="loc-hr">
+	<hr>
 	<figure>
 		<div id="index-map" hidden={VOLUME.index_layers.length == 0}></div>
 		<figcaption>
@@ -113,7 +113,7 @@ let settingIndexLayer = false;
 		</figcaption>
 	</figure>
 	
-	<hr class="loc-hr">
+	<hr>
 	{#if USER_TYPE == 'anonymous' }
 	<div class="signin-reminder">
 	<p><em>
@@ -231,6 +231,10 @@ main {
 	margin-bottom: 10px;
 }
 
+hr {
+	border-top-color:rgb(149, 149, 149);
+}
+
 #index-map {
 	height: 450px;
 	width: 100%;
@@ -242,7 +246,7 @@ figcaption {
 }
 
 	.loc-hr {
-		border-top-color:rgb(149, 149, 149);
+		
 	}
 
 	.sheets-status-bar {
@@ -280,7 +284,7 @@ figcaption {
 		flex-direction: column;
 		justify-content: space-between;
 		border: 1px solid gray;
-		background: #123b4f;
+		background: white;
 
 	}
 
@@ -318,12 +322,8 @@ figcaption {
 		font-size: .75em;
 	}
 
-	h1, h2, h3 {
-		/* color: #ff3e00; */
-	}
-
 	h1 {
-		font-size: 4em;
+		font-size: 2.5em;
 		font-weight: 100;
 		text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
 	}

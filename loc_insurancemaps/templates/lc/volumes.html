@@ -4,11 +4,11 @@
 {% load base_tags %}
 {% load django_svelte %}
 
-{% block title %}Volumes - {{ block.super }}{% endblock title %}
+{% block title %}Search Volumes{% endblock title %}
 
 {% block hero%}
-<div class="container-outer">
-<div class="container" style="background:white;">
+<div class="container-outer background-bg">
+<div class="container background-fg">
   {% display_svelte "Volumes.svelte" svelte_params %}
 </div>
 </div>

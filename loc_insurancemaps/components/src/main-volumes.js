@@ -1,3 +1,4 @@
+import '../../static/css/site_base.css';
 import Volumes from './Volumes.svelte';
 
 const volumes = new Volumes({

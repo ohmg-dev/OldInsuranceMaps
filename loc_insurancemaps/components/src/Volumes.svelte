@@ -56,88 +56,32 @@ function updateFilteredList(filterText) {
 let filterInput;
 $: updateFilteredList(filterInput)
 
-let faq1Hidden = true;
-let faq2Hidden = true;
-let faq3Hidden = true;
-let faq4Hidden = true;
 </script>
 
 <main>
-	<div class="toggler">
-		<div>
-			<button on:click={() => faq1Hidden = !faq1Hidden}>
-				What are volumes?
-				<i class="fa {faq1Hidden ? 'fa-chevron-right' : 'fa-chevron-down'}"></i>
-			</button>
-			<div class="faq-content" hidden={faq1Hidden}>
-				<p>In the Library of Congress 
-				<a href="https://www.loc.gov/collections/sanborn-maps/about-this-collection/">digital Sanborn Maps collection</a>,
-				each item is typically a full edition&mdash;the complete survey of a city in a given year. However, in
-				large cities like New Orleans, multiple volumes were created for an edition, each one stored 
-				as separate items. Thus, we have chosen <strong>volume</strong> as used as the highest level 
-				of grouping for content in this project. Each volume has one or more <strong>sheets</strong>.
-				</p>
-			</div>
-		</div>
-		<div>
-			<button on:click={() => faq2Hidden = !faq2Hidden}>
-				What does started/not started mean?
-				<i class="fa {faq2Hidden ? 'fa-chevron-right' : 'fa-chevron-down'}"></i>
-			</button>
-			<div class="faq-content" hidden={faq2Hidden}>
-				<p>
-					If you are signed in you can "start" a volume by loading its sheets. Once or more sheets are loaded,
-					you can begin transforming them from scanned images to geopatial layers through the
-					georeferencing process.
-				</p>
-			</div>
-		</div>
-		<div>
-			<button on:click={() => faq3Hidden = !faq3Hidden}>
-				Why isn't my city listed?
-				<i class="fa {faq3Hidden ? 'fa-chevron-right' : 'fa-chevron-down'}"></i>
-			</button>
-			<div class="faq-content" hidden={faq3Hidden}>
-				<p>
-					Unfortunately, if a city does not appear in the list, that means there is no item 
-					in the collection for it. However, do check for old names of your city, or the 
-					names of adjacent communinities that may have combined with yours over the years.
-				</p>
-			</div>
-		</div>
-		<div>
-			<button on:click={() => faq4Hidden = !faq4Hidden}>
-				Why are some volumes <span style="color: grey">greyed out?</span>
-				<i class="fa {faq4Hidden ? 'fa-chevron-right' : 'fa-chevron-down'}"></i>
-			</button>
-			<div class="faq-content" hidden={faq4Hidden}>
-				<p>
-					This means the volume exists in the Library of Congress collection, but is not
-					available in this project. This is because while we want to provide wide geographic and temporal coverage
-					throughout Louisiana, we also need to make disk space manageable.
-					We devised the following criteria to determine avialability:
-				</p>
-				<ul>
-					<li>Include the earliest edition for every community, regardless of date.</li>
-					<li>For New Orleans, <em>only</em> include the earliest edition (1885, in two volumes).</li>
-					<li>For all other communities, exclude editions published after 1910.</li>
-				</ul>
-				<p>
-					These criteria produce 266 volumes covering 138 communities, containing 1499 sheets.
-					If you are very interested in georeferencing a volume that is greyed out, please get in touch!  
-				</p>
-				<p>
-					<em>
-						If you are very interested in georeferencing a volume that is greyed out, please get in touch!  
-					</em>
-				</p>
-			</div>
-		</div>
+	<h1>Volumes</h1>
+	<div>
+		{#if STARTED_VOLUMES.length == 0}
+		<p>No volumes have been started yet.</p>
+		{:else}
+		<ul class="started-volume-list">
+		{#each STARTED_VOLUMES as v}
+		<li>
+			<a href={v.urls.summary} alt={v.title} title="View summary of {v.title}">
+				{v.title}
+			</a>
+			| {v.sheet_ct} sheet{#if v.sheet_ct!=1}s{/if}
+			| started by <a href={v.loaded_by.profile}>{v.loaded_by.name}</a>
+		</li>
+		{/each}
+		</ul>
+		{/if}
 	</div>
-	<h3>Find a Volume</h3>
+	<hr>
+	<h3>Find a new volume to start...</h3>
 	<div style="display:flex; flex-direction:row;">
 		<div class="pane" style="height:299px">
-			<input type="text" id="filterInput" placeholder="Filter by name.." bind:value={filterInput}>
+			<input type="text" id="filterInput" placeholder="Filter by name..." bind:value={filterInput}>
 			<div id="city-list" style="height:250px; overflow-y:auto;">
 				{#each cityOptions as city}
 				<label for={city[0]}>
@@ -167,23 +111,13 @@ let faq4Hidden = true;
 			{/if}
 		</div>
 	</div>
-	<h3>Started Volumes</h3>
-	<div>
-		<ul class="started-volume-list">
-		{#each STARTED_VOLUMES as v}
-		<li>
-			<a href={v.urls.summary} alt={v.title} title="View summary of {v.title}">
-				{v.title}
-			</a>
-			| {v.sheet_ct} sheet{#if v.sheet_ct!=1}s{/if}
-			| started by <a href={v.loaded_by.profile}>{v.loaded_by.name}</a>
-		</li>
-		{/each}
-		</ul>
-	</div>
 </main>
 
 <style>
+
+hr {
+	border-top-color:rgb(149, 149, 149);
+}
 
 .started-volume-list {
 	/* list-style: none; */
@@ -240,18 +174,17 @@ let faq4Hidden = true;
   background-color: #eee; /* Add a hover effect to all links, except for headers */
 }
 
-	main {
+	/* main {
 		display: flex;
 		flex-direction: column;
 		color: black;
 		font-size: 1.25em;
 		padding: 1em;
-		/* max-width: 240px; */
 		margin: 0 auto;
-		/* background: #2c689c;
-		background: #ffd78b; */
-
-	}
+	} */
+	main { 
+	margin-bottom: 10px;
+}
 
 	main a {
 		color: #1647a4;
@@ -281,21 +214,14 @@ let faq4Hidden = true;
 		margin-bottom: 20px;
 	}
 
-	/* h1, h2, h3 {
-		color: #ff3e00;
-		color: #136f6f;
-		color: #373737;
-		color: #028BAF;
-	} */
-
 	h1 {
-		/* font-size: 4em;*/
-		font-weight: 400; 
+		font-size: 2.5em;
+		font-weight: 100;
 		text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
 	}
 
 	h2, h3 {
-		/* text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4); */
+		text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
 	}
 
 	@media (min-width: 640px) {

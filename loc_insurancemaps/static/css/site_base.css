@@ -7,12 +7,16 @@ footer a:hover {
 	color: #ffffff !important;
 }
 
-/* #wrap {
-	background: unset;
-} */
+#wrap {
+	margin-top: 60px !important;
+}
 
 h1, h2, h3, h4, h5, h6 {
 	font-weight: 400;
+}
+
+.showcase-tile {
+	min-height: 285px;
 }
 
 .navbar-inverse .navbar-nav > li > a {
@@ -30,9 +34,22 @@ h1, h2, h3, h4, h5, h6 {
 	border-bottom-left-radius: 5px;
 }
 
-.container-outer {
+/* .container-outer {
 	margin-top: -11px;
 	background: #EAE0C1;
+} */
+
+.redtitle {
+	color: red;
+}
+
+.background-bg {
+	background:#F7F1E1;
+}
+
+.background-fg {
+	background:#EAE0C1 !important;
+	box-shadow:gray 0px 0px 5px;
 }
 
 /* pure css loading bar */
