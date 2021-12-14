@@ -21,7 +21,7 @@
 from django.conf import settings
 from django.urls import path
 from django.conf.urls import url, include
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 
 from geonode.urls import urlpatterns
 from geonode.monitoring import register_url_event
@@ -41,6 +41,11 @@ if 'georeference' in settings.INSTALLED_APPS:
 
 homepage = register_url_event()(HomePage.as_view())
 
+## these url patterns overwrite existing geonode patterns
 urlpatterns = [
     url(r'^/?$', homepage, name='home'),
+    path('help/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
+    path('about/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
+    path('developer/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
  ] + urlpatterns
+ 
