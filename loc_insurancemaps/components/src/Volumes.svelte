@@ -59,7 +59,7 @@ $: updateFilteredList(filterInput)
 </script>
 
 <main>
-	<h1>Volumes</h1>
+	<h1>Volumes in Progress</h1>
 	<div>
 		{#if STARTED_VOLUMES.length == 0}
 		<p>No volumes have been started yet.</p>
@@ -79,6 +79,14 @@ $: updateFilteredList(filterInput)
 	</div>
 	<hr>
 	<h3>Find a new volume to start...</h3>
+	{#if USER_TYPE == 'anonymous' }
+	<div class="signin-reminder">
+	<p><em>
+		<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+		<a href="/account/register">sign up</a> to load new volumes
+	</em></p>
+	</div>
+	{/if}
 	<div style="display:flex; flex-direction:row;">
 		<div class="pane" style="height:299px">
 			<input type="text" id="filterInput" placeholder="Filter by name..." bind:value={filterInput}>
@@ -119,35 +127,15 @@ hr {
 	border-top-color:rgb(149, 149, 149);
 }
 
-.started-volume-list {
-	/* list-style: none; */
-	/* padding-left: 0px; */
+.signin-reminder {
+	background: #e6e6e6;
+	text-align: center;
+	padding: 5px;
+	margin: 5px;
 }
 
-.started-volume-list li {
-	/* display: inline-block; */
-}
-
-.faq-content {
-	padding: 10px;
-	border: 1px solid grey;
-	background: lightgrey;
-	border-radius: 4px;
-}
-
-.faq-content p {
-	margin: 0;
-}
-
-.toggler div button {
-    background: unset;
-    border: unset;
-    box-shadow: unset;
-	color: #812525;
-}
-
-.toggler div button i {
-	font-size: .75em;
+.signin-reminder p {
+	margin: 0px;
 }
 
 #filterInput {
@@ -185,14 +173,6 @@ hr {
 	main { 
 	margin-bottom: 10px;
 }
-
-	main a {
-		color: #1647a4;
-		color: #ff8f31;
-		color: #ff3e00;
-		color: #007363;
-		color: #812525;
-	}
 
 	.pane {
 		flex-grow: 1;

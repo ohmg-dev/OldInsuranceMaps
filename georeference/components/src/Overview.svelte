@@ -67,7 +67,7 @@ function refresh() {
             {:else if SPLIT_SUMMARY.child_docs.length > 0}
             split into {SPLIT_SUMMARY.child_docs.length} new document{#if SPLIT_SUMMARY.child_docs.length != 1}s{/if}
             {:else if SPLIT_SUMMARY.parent_doc}
-            split from <a href={SPLIT_SUMMARY.parent_doc.urls.progress_page}>parent document</a>
+            split from <a href={SPLIT_SUMMARY.parent_doc.urls.progress_page}>{SPLIT_SUMMARY.parent_doc.title}</a>
             {/if}
             </em>
           </p>
