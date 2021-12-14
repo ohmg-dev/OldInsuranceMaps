@@ -16,7 +16,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .showcase-tile {
-	min-height: 285px;
+	min-height: 235px;
+}
+.showcase-tile-title {
+	display: inline-block;
+	font-size: 2em;
+}
+.showcase-tile-title a {
+	display: flex;
+	align-items: center;
+}
+.showcase-tile-title a:hover {
+	color: #2c689c;
+}
+.showcase-tile-title a:hover > span.icon {
+	background: #2c689c;
 }
 
 .navbar-inverse .navbar-nav > li > a {
@@ -39,6 +53,10 @@ h1, h2, h3, h4, h5, h6 {
 	background: #EAE0C1;
 } */
 
+.home-facets {
+	padding: 0 !important;
+}
+
 .redtitle {
 	color: red;
 }
@@ -50,6 +68,20 @@ h1, h2, h3, h4, h5, h6 {
 .background-fg {
 	background:#EAE0C1 !important;
 	box-shadow:gray 0px 0px 5px;
+}
+
+.jumbotron {
+	box-shadow: gray 0px 0px 5px;
+}
+
+.jumbotron, .jumbotron p {
+	font-family: 'Josefin Sans' !important;
+	text-shadow: unset !important;
+}
+
+.home .jumbotron .btn-default {
+    border: 2px solid #3a3a3a;
+    color: #3a3a3a;
 }
 
 /* pure css loading bar */

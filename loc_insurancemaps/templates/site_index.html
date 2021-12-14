@@ -1,295 +1,138 @@
-{% extends "geonode_base.html" %}
+{% extends 'index.html' %}
 {% load markdownify %}
 {% load i18n %}
-{% load static from staticfiles %}
 {% load base_tags %}
+{% load static %}
 
-{% block title %} {% trans "Welcome!" %} - {{ block.super }} {% endblock %}
+{% load django_svelte %}
 
-{% block body_class %}home{% endblock %}
-
-{% block middle %}
-  {{ block.super }}
-
-  {% block hero %}
-  {% if block.super %}
-  {{ block.super }}
-  {% else %}
-
-{% if custom_theme.welcome_theme == 'JUMBOTRON_BG' or not slides %}
-<div class="jumbotron">
-  <div class="container gn-container">
-      {% with jumbotron_welcome_title=custom_theme.jumbotron_welcome_title|default:"Welcome"|template_trans %}
-      <h1>{% trans jumbotron_welcome_title %}</h1>
-      {% endwith %}
-      <p></p>
-      {% with jumbotron_welcome_content=custom_theme.jumbotron_welcome_content|default:"GeoNode is an open source platform for sharing geospatial data and maps."|template_trans %}
-      <p>{% trans jumbotron_welcome_content %}</p>
-      {% endwith %}
-      {% if not custom_theme.jumbotron_cta_hide %}
-      <p><a class="btn btn-default btn-lg" target="_blank"
-          href="{{custom_theme.jumbotron_cta_link|default:"https://docs.geonode.org/en/master/usage/index.html"}}"
-          role="button">{{custom_theme.jumbotron_cta_text|default:_("Get Started &raquo;")}}</a></p>
-      {% endif %}
+{% block bigsearch %}
+<section>
+  <div class="container text-center">
+    <div class="row">
+      <div class="col-xs-12">
+        <h2>About this project</h2>
+        <div class="col-md-5 col-md-offset-1">
+          <p>This platform allows users to import and georeference scanned maps from the Library of Congress
+            <a href="https://loc.gov/collections/sanborn-maps">Sanborn Maps Collection</a>. Georeferenced
+            layers can be trimmed and aggregated within public web maps to build seamless mosaics of historical Louisiana communities.</p>
+          <p>
+            To learn how to participate, please visit the <a href="https://docs.oldinsurancemaps.net">full documentation</a>. Or, explore 
+            <a href="{% url 'maps_browse' %}">web maps</a> that others have already created.
+          </p>
+        </div>
+        <div class="col-md-5">
+          <p>
+            This "beta" release will be available through May 2022. At the end of this period, all georeferenced map layers 
+            will be transferred to <a href="https://atlas.ga.lsu.edu">LSU Atlas</a> and made available for long-term public use.
+          </p>
+          <p>
+            We are open to sponsorship, grants, or other partnership models to extend the scope and longevity of this project. Please
+            email acox42 [at] lsu.edu if you or your organization are interested in collaborating.
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
-{% else %}
-<div class="geonode-slide-show">
-	<div class="jumbotron jumbotron--no_bg">
-	   <div class="container gn-container">
-		  <div id="myCarousel" class="carousel slide" data-ride="carousel">
-			 <!-- Indicators -->
-			 {% if slides.count > 1%}
-			 <ol class="carousel-indicators">
-				{% for slide in slides %}
-				<li data-target="#myCarousel" data-slide-to="{{ forloop.counter | add:'-1' }}" class="{% if forloop.counter == 1 %}active{%endif%}"></li>
-				{% endfor %}
-			 </ol>
-			 {% endif %}
-       {% with jumbotron_welcome_title=custom_theme.jumbotron_welcome_title|default:"Welcome"|template_trans %}
-       <h1 class="carousel-header">{% trans jumbotron_welcome_title %}</h1>
-       {% endwith %}
-			 <!-- Wrapper for slides -->
-			 <div class="carousel-inner" role="listbox">
-				{% for slide in slides %}
-				<div class="item {% if forloop.counter == 1 %}active{%endif%}">
-					{% if slide.jumbotron_slide_image %}
-				   <img src="{{ slide.jumbotron_slide_image_thumbnail.url }}" alt="{{ slide.slide_name }}">
-				   {% endif %}
-				   {% if not slide.hide_jumbotron_slide_content %}
-				   <div class="carousel-caption">
-            {% with jumbotron_slide_content=slide.jumbotron_slide_content|markdownify %}
-            {% trans jumbotron_slide_content %}
-            {% endwith %}
-				   </div>
-				   {% endif %}
-				</div>
-				{% endfor %}                
-			 </div>
-			 <!-- Left and right controls -->
-			 {% if slides.count > 1%}
-			 <a class="left carousel-control" href="#myCarousel" data-slide="prev">
-			 <span class="glyphicon glyphicon-chevron-left"></span>
-			 <span class="sr-only">Previous</span>
-			 </a>
-			 <a class="right carousel-control" href="#myCarousel" data-slide="next">
-			 <span class="glyphicon glyphicon-chevron-right"></span>
-			 <span class="sr-only">Next</span>
-			 </a>
-			 {% endif %}
-		  </div>
-	   </div>
-	</div>
- </div>
-{% endif %}
-  {% endif %}
-  {% endblock hero %}
+</section>
+{% endblock bigsearch %}
 
-  {% block mainbody %}
-  <div class="background-bg">
-    {% block bigsearch %}
-    {% endblock bigsearch %}
-    <section>
-      <div class="row">
-        <div class="col-xs-12">
-          <h1>How it works</h1>
+{% block showcase %}
+<section id="showcase" class="background-fg">
+  <div class="row">
+    <div class="container text-center">
+      <div class="row home-facets">
+      {% with facet_type='home' %}
+        {% facets as facets %}
+        <div class="col-md-5 col-md-offset-1 showcase-tile">
+          <div class="showcase-tile-title">
+            <a href="{% url 'volumes_list' %}">
+              <span class="icon icon-volume"></span>&nbsp;
+              <span>{{ volume_ct|default:_("No") }} {% blocktrans count counter=volume_ct %}Volume{% plural %}Volumes{% endblocktrans %}</span>
+            </a>
+          </div>
+          <p>{% trans 'Registered users load old fire insurance map Volumes to begin georeferencing their map content.' %}</p>
+          <p><a class="btn btn-default" href="{% url "volumes_list" %}" role="button">{% trans "Load and Browse Volumes" %} &raquo;</a></p>
         </div>
+        <div class="col-md-5 showcase-tile">
+          <div class="showcase-tile-title">
+            <a href="{% url 'document_browse' %}">
+              <span class="icon icon-document"></span>&nbsp;
+              <span>{{ facets.document|default:_("No") }} {% blocktrans count counter=facets.document %}Document{% plural %}Documents{% endblocktrans %}</span>
+            </a>
+          </div>
+          <p>{% trans "Documents are created when a Volume's sheets are loaded by a user, and can then be georeferenced." %}</p>
+          <p class="text-center">
+            <a class="btn btn-default" href="{% url "document_browse" %}" role="button">{% trans "Browse Documents" %} &raquo;</a>
+          </p>
+        </div>
+        <div class="col-md-5 col-md-offset-1 showcase-tile">
+          <div class="showcase-tile-title">
+            <a href="{% url "layer_browse" %}">
+              <span class="icon-layer icon"></span>&nbsp;
+              <span>{{ facets.layer|default:_("No") }} {% blocktrans count counter=facets.layer %}Layer{% plural %}Layers{% endblocktrans %}</span>
+            </a>
+          </div>
+          <p>{% trans "Georeferenced Documents become geospatial Layers. Layers can be viewed here or shared as OGC-compliant web map services." %}</p>
+          <p class="text-center"><a class="btn btn-default" href="{% url "layer_upload" %}" role="button">{% trans "Browse Layers" %} &raquo;</a></p>
+        </div>
+        <div class="col-md-5 showcase-tile">
+          <div class="showcase-tile-title">
+            <a href="{% url "maps_browse" %}">
+              <span class="icon icon-folded-map"></span>&nbsp;
+              <span>{{ facets.map|default:_("No") }} {% blocktrans count counter=facets.map %}Web Map{% plural %}Web Maps{% endblocktrans %}</span>
+            </a>
+          </div>
+          <p>{% trans "Layers can be combined in interactive web maps to create seamless historical map mosaics." %}</p>
+          <p>
+            <a class="btn btn-default" href="{% url "maps_browse" %}" role="button">{% trans "Browse Web Maps" %} &raquo;</a>
+            {% if user.is_authenticated %}
+            <a class="btn btn-default" href="{% url "new_map" %}" role="button">{% trans "Create a Web Map" %} &raquo;</a>
+            {% endif %}
+          </p>
+        </div>
+      {% endwith %}
+      {% with facet_type='home' %}
+      {% facets as facets %}
+        <div class="col-md-4 col-md-offset-4 showcase-tile">
+          <div class="showcase-tile-title">
+            <a href="{% url "profile_browse" %}">
+              <span class="icon-user icon"></span>&nbsp;
+              <span>{{ facets.user|default:_("No") }} {% blocktrans count counter=facets.user %}User{% plural %}Users{% endblocktrans %}</span>
+            </a>
+          </div>
+          <p>{% trans "Anyone can sign up to work on georeferencing this content." %}</p>
+          <p>
+            {% if user.is_authenticated %}
+            <a class="btn btn-default" href="/invitations/geonode-send-invite/" role="button">{% trans "Send Invite" %} &raquo;</a>
+            {% else %}
+            <a class="btn btn-default" href="{% url "account_signup" %}" role="button">{% trans "Register" %} &raquo;</a>
+            {% endif %}
+            <a class="btn btn-default" href="{% url "profile_browse" %}" role="button">{% trans "Browse Users" %} &raquo;</a>
+          </p>
+        </div>
+      {% endwith %}
       </div>
-    </section>
-
-	  {% block showcase %}
-      <section id="showcase" class="background-fg">
-        <div class="row">
-          <div class="container text-center">
-            <div class="row home-facets">
-            {% with facet_type='home' %}
-             {% facets as facets %}
-              <div class="col-md-6 showcase-tile">
-                <p><a href="{% url "volumes_list" %}">
-                  <!-- <img src="{% static 'img/icons/am-book-upright.png' %}"/>
-                  <i class="fa fa-user fa-4x"></i> -->
-                  <span class="icon icon-volume"></span>
-                </a></p>
-                {% with 0 as volume_ct %}
-                <h2><a href="{% url "volumes_list" %}">{{ volume_ct|default:_("No") }} {% blocktrans count counter=volume_ct %}Volume{% plural %}Volumes{% endblocktrans %}</a></h2>
-                <p>{% trans 'Generally, an old insurance map volume represents a single year for a single community. Registered users can load volumes to begin working with them.' %}</p>
-                <p><a class="btn btn-default" href="{% url "volumes_list" %}" role="button">{% trans "Explore volumes" %} &raquo;</a></p>
-                {% endwith %}
-              </div>
-              <div class="col-md-6 showcase-tile">
-                <p><a href="{% url "document_browse" %}">
-                  <!-- <i class="fa fa-newspaper-o fa-4x"></i> -->
-                  <span class="icon icon-document"></span>
-                </a></p>
-                <h2><a href="{% url "document_browse" %}">{{ facets.document|default:_("No") }} {% blocktrans count counter=facets.document %}Document{% plural %}Documents{% endblocktrans %}</a></h2>
-                <p>{% trans "When a volume is loaded, its sheets become documents in this system. Documents can be georeferenced by any registered user." %}</p>
-                {% if user.is_authenticated %}
-                <p class="text-center"><a class="btn btn-default" href="{% url "document_browse" %}" role="button">{% trans "Add documents" %} &raquo;</a></p>
-                {% else %}
-                <p class="text-center"><a class="btn btn-default" href="{% url "document_browse" %}" role="button">{% trans "Explore documents" %} &raquo;</a></p>
-                {% endif %}
-              </div>
-              <div class="col-md-6 showcase-tile">
-                <a href="{% url "layer_browse" %}">
-                  <span class="icon icon-layer"></span>
-                  <h2>{{ facets.layer|default:_("No") }} {% blocktrans count counter=facets.layer %}Layer{% plural %}Layers{% endblocktrans %}</h2>
-                </a>
-                <p>{% trans "Once a Document has been georeferenced, it becomes a geospatial layer. Layers can be used in any external mapping software." %}</p>
-                {% if user.is_authenticated %}
-                <p class="text-center"><a class="btn btn-default" href="{% url "layer_upload" %}" role="button">{% trans "Add layers" %} &raquo;</a></p>
-                {% else %}
-                <p class="text-center"><a class="btn btn-default" href="{% url "layer_browse" %}" role="button">{% trans "Explore layers" %} &raquo;</a></p>
-                {% endif %}
-              </div>
-              <div class="col-md-6 showcase-tile">
-                <p><a href="{% url "maps_browse" %}">
-                  <span class="icon icon-folded-map"></span>
-                </a></p>
-                <h2><a href="{% url "maps_browse" %}">{{ facets.map|default:_("No") }} {% blocktrans count counter=facets.map %}Web Map{% plural %}Web Maps{% endblocktrans %}</a></h2>
-                <p>{% trans "Data is available for browsing, aggregating and styling to generate maps which can be saved, downloaded, shared publicly or restricted to specify users only." %}</p>
-                {% if user.is_authenticated %}
-                <p><a class="btn btn-default" href="{% url "new_map" %}" role="button">{% trans "Create maps" %} &raquo;</a></p>
-                {% else %}
-                <p><a class="btn btn-default" href="{% url "maps_browse" %}" role="button">{% trans "Explore maps" %} &raquo;</a></p>
-                {% endif %}
-              </div>
-            {% endwith %}
-            </div>
-          </div>
-        </div>
-      </section>
-      <section>
-        <div class="row">
-          <div class="container text-center">
-            <div class="row home-facets">
-            {% with facet_type='home' %}
-             {% facets as facets %}
-              <div class="col-md-6 col-md-offset-3" style="min-height: 275px;">
-                <p><a href="{% url "profile_browse" %}">
-                  <span class="icon icon-user"></span>
-                </a></p>
-                <h2><a href="{% url "profile_browse" %}">{{ facets.user|default:_("No") }} {% blocktrans count counter=facets.user %}User{% plural %}Users{% endblocktrans %}</a></h2>
-                <p>{% trans "Anyone can sign up to work on georeferencing this content." %}</p>
-                <p><a class="btn btn-default" href="{% url "profile_browse" %}" role="button">{% trans "See all users" %} &raquo;</a></p>
-              </div>
-            {% endwith %}
-            </div>
-          </div>
-        </div>
-      </section>
-	  {% endblock showcase %}
-
-	  {% block datasets %}
-    <section id="datasets" class="background-fg">
-      {% get_visibile_resources request.user %}
-      <div ng-app="featured" ng-if="featured.length > 0" ng-cloak class="row">
-          <div class="container text-center">
-            <h2>{% trans "Featured Datasets" %}</h2>
-            <div class="row">
-                {% verbatim %}
-                <div ng-repeat="item in featured" class="col-xs-6 col-sm-6 col-md-3">
-                  <a href="{{ item.detail_url }}"><img ng-src="{{ item.thumbnail_url }}" style="width: 100%" /></a>
-                  <h4>{{ item.title | limitTo: 20 }}{{item.title.length > 20 ? '...' : ''}}</h4>
-                </div>
-                {% endverbatim %}
-            </div>
-          </div>
-      </div>
-      </div>
-    </section>
-    {% endblock datasets %}
-
-      {% block partners %}
-        {% if custom_theme.partners.all %}
-        <section id="partners">
-        <div class="container text-center">
-          {% with partners_title=custom_theme.partners_title|default:"Our partners"|template_trans %}
-          <h2>{% trans partners_title %}</h2>
-          {% endwith %}
-          <div class="row">
-              {% for partner in custom_theme.partners.all %}
-              <div class="col-md-2">
-                <a style="font-size: 12px" href="{{ partner.partner_link|safe }}" target="_blank">
-                  {% if partner.logo %}
-                  <div class="partner_logo" style="background-image: url({{partner.logo.url}})">
-                  {% else %}
-                  {{ partner.title|safe }}
-                  {% endif %}
-                  </div>
-                </a>
-              </div>
-              {% endfor %}
-          </div>
-        </div>
-        </section>
-        {% endif %}
-      {% endblock partners %}
-
-      {% block cookielawinfo %}
-      {% if custom_theme.cookie_law_info_bar_enabled %}
-          <div id="cookie-law-info-bar">
-              <h5 class="cli_messagebar_head">{{ custom_theme.cookie_law_info_bar_head }}</h5>
-              <span>{{ custom_theme.cookie_law_info_bar_text|safe }}
-                  <a data-cli_action="accept" id="cookie_action_close_header" target="_blank"  class="medium cli-plugin-button cli-plugin-main-button cookie_action_close_header cli_action_button" style="display:inline-block; ">{% trans "Accept" %}</a>
-                  <a id="cookie_action_close_header_reject" class="medium cli-plugin-button cli-plugin-main-button cookie_action_close_header_reject cli_action_button"  data-cli_action="reject">{% trans "Reject" %}</a>
-                  <a id="CONSTANT_OPEN_URL" href='{{ custom_theme.cookie_law_info_leave_url }}' class="medium cli-plugin-button cli-plugin-main-button" style="display:inline-block;">{% trans "Leave" %}</a>
-              </span>
-          </div>
-          <div id="cookie-law-info-again" style="display:none;">
-              <span id="cookie_hdr_showagain">{{ custom_theme.cookie_law_info_showagain_head }}</span>
-          </div>
-          <div class="cli-modal-backdrop cli-fade cli-settings-overlay"></div>
-          <div class="cli-modal-backdrop cli-fade cli-popupbar-overlay"></div>
-          <script type="text/javascript">
-            /* <![CDATA[ */
-            cli_cookiebar_settings='{"animate_speed_hide":"{{custom_theme.cookie_law_info_animate_speed_hide}}","animate_speed_show":"{{custom_theme.cookie_law_info_animate_speed_show}}","background":"{{custom_theme.cookie_law_info_background}}","border":"{{custom_theme.cookie_law_info_border}}","border_on":{{custom_theme.cookie_law_info_border_on}},"button_1_button_colour":"{{custom_theme.cookie_law_info_button_1_button_colour}}","button_1_button_hover":"{{custom_theme.cookie_law_info_button_1_button_hover}}","button_1_link_colour":"{{custom_theme.cookie_law_info_button_1_link_colour}}","button_1_as_button":{{custom_theme.cookie_law_info_button_1_as_button}},"button_1_new_win":{{custom_theme.cookie_law_info_button_1_new_win}},"button_2_button_colour":"{{custom_theme.cookie_law_info_button_2_button_colour}}","button_2_button_hover":"{{custom_theme.cookie_law_info_button_2_button_hover}}","button_2_link_colour":"{{custom_theme.cookie_law_info_button_2_link_colour}}","button_2_as_button":{{custom_theme.cookie_law_info_button_2_as_button}},"button_2_hidebar":{{custom_theme.cookie_law_info_button_2_hidebar}},"button_3_button_colour":"{{custom_theme.cookie_law_info_button_3_button_colour}}","button_3_button_hover":"{{custom_theme.cookie_law_info_button_3_button_hover}}","button_3_link_colour":"{{custom_theme.cookie_law_info_button_3_link_colour}}","button_3_as_button":{{custom_theme.cookie_law_info_button_3_as_button}},"button_3_new_win":{{custom_theme.cookie_law_info_button_3_new_win}},"button_4_button_colour":"{{custom_theme.cookie_law_info_button_4_button_colour}}","button_4_button_hover":"{{custom_theme.cookie_law_info_button_4_button_hover}}","button_4_link_colour":"{{custom_theme.cookie_law_info_button_4_link_colour}}","button_4_as_button":{{custom_theme.cookie_law_info_button_4_as_button}},"font_family":"{{custom_theme.cookie_law_info_font_family}}","header_fix":{{custom_theme.cookie_law_info_header_fix}},"notify_animate_hide":{{custom_theme.cookie_law_info_notify_animate_hide}},"notify_animate_show":{{custom_theme.cookie_law_info_notify_animate_show}},"notify_div_id":"{{custom_theme.cookie_law_info_notify_div_id}}","notify_position_horizontal":"{{custom_theme.cookie_law_info_notify_position_horizontal}}","notify_position_vertical":"{{custom_theme.cookie_law_info_notify_position_vertical}}","scroll_close":{{custom_theme.cookie_law_info_scroll_close}},"scroll_close_reload":{{custom_theme.cookie_law_info_scroll_close_reload}},"accept_close_reload":{{custom_theme.cookie_law_info_accept_close_reload}},"reject_close_reload":{{custom_theme.cookie_law_info_reject_close_reload}},"showagain_tab":{{custom_theme.cookie_law_info_showagain_tab}},"showagain_background":"{{custom_theme.cookie_law_info_showagain_background}}","showagain_border":"{{custom_theme.cookie_law_info_showagain_border}}","showagain_div_id":"{{custom_theme.cookie_law_info_showagain_div_id}}","showagain_x_position":"{{custom_theme.cookie_law_info_showagain_x_position}}","text":"{{custom_theme.cookie_law_info_text}}","show_once_yn":{{custom_theme.cookie_law_info_show_once_yn}},"show_once":"{{custom_theme.cookie_law_info_show_once}}","logging_on":{{custom_theme.cookie_law_info_logging_on}},"as_popup":{{custom_theme.cookie_law_info_as_popup}},"popup_overlay":{{custom_theme.cookie_law_info_popup_overlay}},"bar_heading_text":"{{custom_theme.cookie_law_info_bar_heading_text}}","cookie_bar_as":"{{custom_theme.cookie_law_info_cookie_bar_as}}","popup_showagain_position":"{{custom_theme.cookie_law_info_popup_showagain_position}}","widget_position":"{{custom_theme.cookie_law_info_widget_position}}"}';
-            /* ]]> */
-          </script>
-      {% endif %}
-      {% endblock cookielawinfo %}
-
+    </div>
   </div>
-  {% endblock mainbody %}
+</section>
+{% endblock showcase %}
 
-{% endblock middle %}
-
-{% block extra_script %}
-    <script type="text/javascript">
-      $('#main_search').on('submit', (e) => {
-          $('#main_search_abstract_input')[0].value =$('#main_search_input')[0].value;
-          $('#main_search_purpose_input')[0].value = $('#main_search_input')[0].value;
-      });
-    </script>
-{{ block.super }}
-{% if DEBUG_STATIC %}
-<script src="{% static "lib/js/angular.js" %}"></script>
-{% endif %}
-<script type="text/javascript">
-    FEATURED_URL = '{% url "api_dispatch_list" api_name="api" resource_name="featured" %}'
-    'use strict';
-    (function(){
-      var module = angular.module('featured', []);
-      module.run(function($http, $rootScope){
-		$http.get(FEATURED_URL).then(successCallback, errorCallback);
-
-		function successCallback(data) {
-			//success code
-          $rootScope.featured = data.data.objects;
-		};
-
-		function errorCallback(error) {
-			//error code
-		};
-      });
-    })();
-</script>
-<script>
-	$('[data-toggle="tooltip"]').tooltip({container: 'body'});
-</script>
-<script type='text/javascript'>
-/* <![CDATA[ */
-var Cli_Data = {"nn_cookie_ids":[],"cookielist":[]};
-/* ]]> */
-</script>
-<script type="text/javascript" src="{% static 'geonode/js/cookie-law-info/cookie-law-info-public.js' %}"></script>
-{% endblock extra_script %}
+{% block datasets %}
+<section id="datasets" >
+  {% get_visibile_resources request.user %}
+  <div ng-app="featured" ng-if="featured.length > 0" ng-cloak class="row">
+      <div class="container text-center">
+        <h2>{% trans "Featured Content" %}</h2>
+        <div class="row">
+            {% verbatim %}
+            <div ng-repeat="item in featured" class="col-xs-6 col-sm-6 col-md-3">
+              <a href="{{ item.detail_url }}"><img ng-src="{{ item.thumbnail_url }}" style="width: 100%" /></a>
+              <h4>{{ item.title | limitTo: 20 }}{{item.title.length > 20 ? '...' : ''}}</h4>
+            </div>
+            {% endverbatim %}
+        </div>
+      </div>
+  </div>
+</section>
+{% endblock datasets %}

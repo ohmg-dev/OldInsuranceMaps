@@ -58,6 +58,8 @@ INSTALLED_APPS += (
 TEMPLATES[0]['DIRS'].insert(0, os.path.join(LOCAL_ROOT, "templates"))
 STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "static"))
 STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "components", "public", "build"))
+# add context processor
+TEMPLATES[0]['OPTIONS']['context_processors'].append("loc_insurancemaps.context_processors.loc_info")
 
 # conditionally add static files from the 'georeference' app, as well as
 # Mapserver information, used for the georeferencing preview layer
