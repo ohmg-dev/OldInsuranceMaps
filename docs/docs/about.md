@@ -1,16 +1,5 @@
 # About
 
-Here's [where](https://github.com) I host my code.
-
-```js
-console.log("ff")
-```
-
-```python
-def fun(argg):
-    print("asdf")
-```
-
 ## Tech Overview
 
 This platform is the result of a few layered applications. The primary application is [GeoNode](https://geonode.org), an open source geospatial content management system. On top of GeoNode are two custom applications, [georeference](#georeference) and [loc_insurancemaps](#loc_insurancemaps).
@@ -25,9 +14,9 @@ GeoNode is built from (or otherwise incorporates) the following major components
 [OpenLayers](https://openlayers.org) &#8226;
 [RabbitMQ](https://rabbitmq.com)
 
-For more, visit the [full documentation](https://docs.geonode.org).
+For more, visit [GeoNode's documentation](https://docs.geonode.org).
 
-## georeference
+### georeference
 
 This application is designed as a generic GeoNode extension that allows one to georeference Document resources (i.e. turn them into Layer resources). On the front end, it provides the following urls:
 
@@ -40,7 +29,7 @@ This application is designed as a generic GeoNode extension that allows one to g
 
 All interfaces are written using [Svelte](https://svelte.dev). [Mapserver](https://mapserver.org) is used to generate the WMS preview used during georeferencing from a VRT that is dynamically updated with ground control points.
 
-Earlier iterations of this extension incorporated [IIIF](https://iiif.org) and work from Bert Spaan at [allmaps.org](https://allmaps.org). Some remnants of this work remain, and reincorporating IIIF could be a direction for future work.
+Earlier iterations of this extension incorporated [IIIF](https://iiif.org) and work from Bert Spaan at [allmaps.org](https://allmaps.org). Some remnants of this work remain, and reincorporating IIIF may be good a direction for future work.
 
 ### loc_insurancemaps
 
