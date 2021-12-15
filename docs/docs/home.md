@@ -1,17 +1,18 @@
-# Welcome to MkDocs
+# Home
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+## Preface
 
-## Commands
+Thanks for visiting the Louisiana Maps Georeferencing Commons (LaMGC), currently hosted at [oldinsurancemaps.net](https://oldinsurancemaps.net). This platform is the basis of my MS Geography thesis at Louisiana State University, which aims to provide a new take on public engagement with digital archives through crowdsource georeferencing. See the [about page](/about) for more information.
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+## Introduction
 
-## Project layout
+This project aims to:
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        something.md
+- Be a platform for collaborative map georeferencing
+- Provide open access to existing online map archives
+
+Not a georeferencing platform *per se*, but a community archive based on Library of Congress materials with georeferencing capabilities.
+
+## Sanborn Fire Insurance Maps 
+
+## Crowdsourced Georeferencing
