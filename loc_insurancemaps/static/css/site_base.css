@@ -15,6 +15,10 @@ h1, h2, h3, h4, h5, h6 {
 	font-weight: 400;
 }
 
+.tify-header {
+	font-family: 'Josefin Sans', sans-serif !important;
+}
+
 .showcase-tile {
 	min-height: 235px;
 }

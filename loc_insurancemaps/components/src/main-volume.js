@@ -1,3 +1,4 @@
+import './css/shared.css';
 import Volume from './Volume.svelte';
 
 const volume = new Volume({

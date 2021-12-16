@@ -1,6 +1,7 @@
 <script>
+import {TableSort} from 'svelte-tablesort'
+
 export let STARTED_VOLUMES;
-export let STATE_CHOICES;
 export let CITY_QUERY_URL;
 export let USER_TYPE;
 export let CITY_LIST;
@@ -59,42 +60,50 @@ $: updateFilteredList(filterInput)
 </script>
 
 <main>
-	<h1>Volumes in Progress</h1>
+	<h1>Volumes in progress</h1>
+	<p>The following volumes have been loaded, and are in the process of being georeferenced. As more people use the system, this list will grow.</p>
 	<div>
 		{#if STARTED_VOLUMES.length == 0}
-		<p>No volumes have been started yet.</p>
+		<p><em>No volumes have been started yet.</em></p>
 		{:else}
-		<ul class="started-volume-list">
-		{#each STARTED_VOLUMES as v}
-		<li>
-			<a href={v.urls.summary} alt={v.title} title="View summary of {v.title}">
-				{v.title}
-			</a>
-			| {v.sheet_ct} sheet{#if v.sheet_ct!=1}s{/if}
-			| started by <a href={v.loaded_by.profile}>{v.loaded_by.name}</a>
-		</li>
-		{/each}
-		</ul>
+		<TableSort items={STARTED_VOLUMES}>
+			<tr slot="thead">
+				<th data-sort="title" style="max-width:300px;">Community</th>
+				<th data-sort="year" style="width:65px;">Year</th>
+				<th data-sort="sheet_ct" style="width:65px;">Sheets</th>
+				<th data-sort="loaded_by.name">Loaded by</th>
+			</tr>
+			<tr slot="tbody" let:item={v}>
+				<td>
+					<a href={v.urls.summary} alt={v.title} title={v.title}>{v.city}, {v.county_equivalent}</a>
+				</td>
+				<td>{v.year}</td>
+				<td style="text-align:center;">{v.sheet_ct}</td>
+				<td><a href={v.loaded_by.profile}>{v.loaded_by.name}</a></td>
+			</tr>
+		</TableSort>
 		{/if}
 	</div>
 	<hr>
-	<h3>Find a new volume to start...</h3>
+	<h3>Start a new volume</h3>
+	<p>Access available volumes here to start a new one. <a href="https://docs.oldinsurancemaps.net/">Learn more about this <i class="fa fa-external-link"></i></a></p>
 	{#if USER_TYPE == 'anonymous' }
 	<div class="signin-reminder">
 	<p><em>
+		<!-- svelte-ignore a11y-invalid-attribute -->
 		<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
 		<a href="/account/register">sign up</a> to load new volumes
 	</em></p>
 	</div>
 	{/if}
-	<div style="display:flex; flex-direction:row;">
+	<div class="find-volumes-section">
 		<div class="pane" style="height:299px">
 			<input type="text" id="filterInput" placeholder="Filter by name..." bind:value={filterInput}>
 			<div id="city-list" style="height:250px; overflow-y:auto;">
 				{#each cityOptions as city}
 				<label for={city[0]}>
 					<input type="radio" id={city[0]} bind:group={currentCity} value={city[0]}>
-					{city[0]} - {city[1]} volume{#if city[1] != 1}s{/if}
+					{city[0]} ({city[1]})
 				</label>
 				{/each}
 			</div>
@@ -114,7 +123,6 @@ $: updateFilteredList(filterInput)
 				{/each}
 				</ul>
 			{:else}
-			<h3 style="margin-top: 10px;">&larr; Select a Community</h3>
 			<div class={loadingVolumes || loadingCities ? 'lds-ellipsis': ''} ><div></div><div></div><div></div><div></div></div>
 			{/if}
 		</div>
@@ -122,21 +130,6 @@ $: updateFilteredList(filterInput)
 </main>
 
 <style>
-
-hr {
-	border-top-color:rgb(149, 149, 149);
-}
-
-.signin-reminder {
-	background: #e6e6e6;
-	text-align: center;
-	padding: 5px;
-	margin: 5px;
-}
-
-.signin-reminder p {
-	margin: 0px;
-}
 
 #filterInput {
   width: 100%; /* Full-width */
@@ -150,9 +143,8 @@ hr {
   border: 1px solid #ddd; /* Add a border to all links */
   margin-top: -1px; /* Prevent double borders */
   background-color: #f6f6f6; /* Grey background color */
-  padding: 12px; /* Add some padding */
+  padding: 5px; /* Add some padding */
   text-decoration: none; /* Remove default text underline */
-  font-size: 18px; /* Increase the font-size */
   color: black; /* Add a black text color */
   display: block; /* Make it into a block element to fill the whole list */
   margin-bottom: 0px;
@@ -162,130 +154,44 @@ hr {
   background-color: #eee; /* Add a hover effect to all links, except for headers */
 }
 
-	/* main {
-		display: flex;
-		flex-direction: column;
-		color: black;
-		font-size: 1.25em;
-		padding: 1em;
-		margin: 0 auto;
-	} */
-	main { 
+main { 
 	margin-bottom: 10px;
 }
 
-	.pane {
-		flex-grow: 1;
-		width: 50%;
-	}
+.pane {
+	flex-grow: 1;
+	width: 50%;
+}
 
-	.pane + .pane {
-		margin-left: 2%;
-	}
+.pane + .pane {
+	margin-left: 2%;
+}
 
-	.select-menus {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
+@media (min-width: 640px) {
+	main {
+		max-width: none;
 	}
+}
 
-	.select-item {
-		width: 100%;
-		margin-bottom: 20px;
-	}
+.volume-list {
+	list-style: none;
+	text-align: left;
+	padding: 0;
+}
 
-	h1 {
-		font-size: 2.5em;
-		font-weight: 100;
-		text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
-	}
+.find-volumes-section {
+  display: flex;
+  flex-direction: row;
+}
 
-	h2, h3 {
-		text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
-	}
+/* Responsive layout - makes a one column layout instead of a two-column layout */
+@media (max-width: 800px) {
+  .find-volumes-section {
+    flex-direction: column;
+  }
+  .pane {
+	  width: 100%
+  }
+}
 
-	@media (min-width: 640px) {
-		main {
-			max-width: none;
-		}
-	}
-
-	select {
-		color: rgb(59, 57, 57);
-		width: 100%;
-		height: 2em;
-		font-size: 1.25em;
-		/* font-weight: 700; */
-	}
-
-	select:disabled {
-		color: #acacac;
-	}
-
-	.volume-list {
-		list-style: none;
-		text-align: left;
-		padding: 0;
-	}
-
-	.volume-list li {
-	}
-
-	/* pure css loading bar */
-	/* from https://loading.io/css/ */
-	.lds-ellipsis {
-		display: inline-block;
-		position: relative;
-		width: 80px;
-		height: 80px;
-	}
-	.lds-ellipsis div {
-		position: absolute;
-		top: 33px;
-		width: 13px;
-		height: 13px;
-		border-radius: 50%;
-		background: #000;
-		animation-timing-function: cubic-bezier(0, 1, 1, 0);
-	}
-	.lds-ellipsis div:nth-child(1) {
-		left: 8px;
-		animation: lds-ellipsis1 0.6s infinite;
-	}
-	.lds-ellipsis div:nth-child(2) {
-		left: 8px;
-		animation: lds-ellipsis2 0.6s infinite;
-	}
-	.lds-ellipsis div:nth-child(3) {
-		left: 32px;
-		animation: lds-ellipsis2 0.6s infinite;
-	}
-	.lds-ellipsis div:nth-child(4) {
-		left: 56px;
-		animation: lds-ellipsis3 0.6s infinite;
-	}
-	@keyframes lds-ellipsis1 {
-		0% {
-			transform: scale(0);
-		}
-		100% {
-			transform: scale(1);
-		}
-	}
-	@keyframes lds-ellipsis3 {
-		0% {
-			transform: scale(1);
-		}
-		100% {
-			transform: scale(0);
-		}
-		}
-		@keyframes lds-ellipsis2 {
-		0% {
-			transform: translate(0, 0);
-		}
-		100% {
-			transform: translate(24px, 0);
-		}
-	}
 </style>
