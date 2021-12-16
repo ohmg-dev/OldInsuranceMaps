@@ -174,7 +174,7 @@ class SplitSession(models.Model):
                 "profile": full_reverse("profile_detail", args=(self.user.username, )),
             },
             "date": (self.created.month, self.created.day, self.created.year),
-            "date_str": self.created.strftime("%m/%d/%Y"),
+            "date_str": self.created.strftime("%Y-%m-%d"),
             "no_split_needed": self.no_split_needed,
         }
 
@@ -332,7 +332,7 @@ class GeoreferenceSession(models.Model):
                 "profile": full_reverse("profile_detail", args=(self.user.username, )),
             },
             "date": (self.created.month, self.created.day, self.created.year),
-            "date_str": self.created.strftime("%m/%d/%Y"),
+            "date_str": self.created.strftime("%Y-%m-%d"),
             "gcps_geojson": self.gcps_used,
             "gcps_ct": len(self.gcps_used["features"]),
             "transformation": self.transformation_used,
@@ -688,6 +688,6 @@ class MaskSession(models.Model):
                 "profile": full_reverse("profile_detail", args=(self.user.username, )),
             },
             "date": (self.created.month, self.created.day, self.created.year),
-            "date_str": self.created.strftime("%m/%d/%Y"),
+            "date_str": self.created.strftime("%Y-%m-%d"),
             "vertex_ct": vertex_ct,
         }
