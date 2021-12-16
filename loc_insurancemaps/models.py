@@ -329,10 +329,18 @@ class Volume(models.Model):
         # put these search result urls into Volume.serialize()
         d_facet = f"date__gte={self.year}-01-01T00:00:00.000Z"
         r_facet = f"region__name__in={self.city}"
-        # doc_search = f"{settings.SITEURL}documents/?{r_facet}&{d_facet}"
+
+        loc_item = f"https://loc.gov/item/{self.identifier}",
+        try:
+            resource_url = self.lc_item['resources'][0]['url']
+            if self.sheet_ct > 1:
+                resource_url += "?st=gallery"
+        except IndexError:
+            resource_url = loc_item
         return {
             "doc_search": f"{settings.SITEURL}documents/?{r_facet}&{d_facet}",
-            "loc":  f"https://loc.gov/item/{self.identifier}",
+            "loc_item": loc_item,
+            "loc_resource": resource_url,
             "summary": reverse("volume_summary", args=(self.identifier,))
         }
 
