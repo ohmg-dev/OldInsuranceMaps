@@ -9,12 +9,12 @@ For clarity, certain words are capitalized herein where they refer to objects th
 The complete workflow goes like this:
 
 1. [Load the Volume](#loading-a-volume)
-2. [Prepare the Documents](#preparing-documents) (some sheets contain must be "split" into separate Documents)
+2. [Prepare the Documents](#preparing-documents) (some sheets must be "split" into separate Documents)
 3. [Georeference the prepared Documents](#georeferencing-documents) (create ground control points)
 4. [Trim the georeferenced Layers](#trimming-layers) ("trim" the edges of a sheet to allow seamless mosaics)
 5. [Create a new Web Map](#creating-web-maps) (put all of the layers into a single web map and share!)
 
-The breakdown of these steps facilitates a collaborative and iterative workflow. While you *could* complete the entire workflow in one session, it is easier to just do one or two tasks here and there. Georeferencing and trimming (3 & 4 above) both iterative processes, so you can come back later to improve upon your past work, or that of another user.
+The breakdown of these steps facilitates a collaborative and iterative workflow. While you *could* complete the entire workflow in one session, it is easier to just do one or two tasks here and there. Georeferencing and trimming (3 & 4 above) are both iterative processes, so you can come back later to improve upon your past work, or that of another user.
 
 ## Loading a Volume
 

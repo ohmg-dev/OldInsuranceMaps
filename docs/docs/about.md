@@ -23,7 +23,7 @@ This application is designed as a generic GeoNode extension that allows one to g
 ```python
 /split/<doc_id>			# the splitting interface for a Document
 /georeference/<doc_id>	# the georeferencing interface for a Document
-/trim/<layer_alternate>	# the trimming interface for a Layer
+/trim/<layer_id>		# the trimming interface for a Layer
 /progress/<doc_id>		# the georeferencing progress page for a Document
 ```
 
