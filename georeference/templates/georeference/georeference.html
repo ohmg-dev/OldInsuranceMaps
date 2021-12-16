@@ -15,11 +15,14 @@
 
 {% block middle %}
 <div class="container" style="width: 100%">
-    <h3>Georeferencing: {{ svelte_params.DOCUMENT.title }}</h3>
-    <p><a href="{{ svelte_params.DOCUMENT.urls.progress_page }}">&larr; go to progress page</a></p>
-
-    <p><em><a href="#" data-toggle="collapse" data-target=".more-info">I don't know how to do this.</a></em></p>
-    <div class="more-info collapse" style="background:lightgray; border-radius:7px; padding:20px; margin-top:20px; margin-bottom:20px;">
+    <div style="float:right; text-align:center; margin-top: 15px;">
+        <a href="{{ svelte_params.DOCUMENT.urls.progress_page }}">progress overview &rarr;</a><br>
+        <a href="{{ svelte_params.DOCUMENT.urls.detail }}">document detail &rarr;</a>
+    </div>
+    <h1 style="font-size: 2.1em">{{ svelte_params.DOCUMENT.title }}</h1>
+    <hr>
+    <h4>Create 3 or more ground control points to georeference this document. <a href="#" data-toggle="collapse" data-target=".help-panel">Tell me more about this &darr;</a></h4>
+    <div class="help-panel collapse" style="font-size:1.25em; background:lightgray; border-radius: 7px; padding:20px; margin-top:20px; margin-bottom:20px;">
         <div class="row">
             <div class="col-xs-12">
                 <p>

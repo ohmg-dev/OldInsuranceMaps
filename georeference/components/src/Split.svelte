@@ -150,7 +150,7 @@ function DocViewer(elementId) {
   })
   const cutLayer = new VectorLayer({
     source: cutLayerSource,
-    style: styles.splitCutLayer,
+    style: styles.splitBorderStyle,
   });
   map.addLayer(cutLayer);
 
@@ -158,6 +158,7 @@ function DocViewer(elementId) {
   const draw = new Draw({
     source: cutLayerSource,
     type: 'LineString',
+    style: styles.polyDraw,
   });
   map.addInteraction(draw);
 
@@ -167,7 +168,8 @@ function DocViewer(elementId) {
 
   const modify = new Modify({
     hitDetection: cutLayer,
-    source: cutLayerSource
+    source: cutLayerSource,
+    style: styles.polyModify,
   });
 
   modify.on(['modifystart', 'modifyend'], function (evt) {

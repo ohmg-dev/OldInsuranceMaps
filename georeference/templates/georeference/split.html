@@ -19,13 +19,16 @@
 
 {% block body_outer %}
 
-<div class="interface-header" style="margin-bottom:20px; font-size:1.25em;">
+<!-- <div class="interface-header" style="margin-bottom:20px; font-size:1.25em;"> -->
 
-    <h3>Preparing: {{ svelte_params.DOCUMENT.title }}</h3>
-    <p><a href="{{ svelte_params.DOCUMENT.urls.progress_page }}">&larr; go to progress page</a></p>
-
-    <h4>Check: Does this image need to be split before it can be georeferenced? <a href="#" data-toggle="collapse" data-target=".more-info">Tell me more about this.</a></h4>
-    <div class="more-info collapse" style="background:lightgray; border-radius:7px; padding:20px; margin-top:20px; margin-bottom:20px;">
+    <div style="float:right; text-align:center; margin-top: 15px;">
+        <a href="{{ svelte_params.DOCUMENT.urls.progress_page }}">progress overview &rarr;</a><br>
+        <a href="{{ svelte_params.DOCUMENT.urls.detail }}">document detail &rarr;</a>
+    </div>
+    <h1 style="font-size: 2.1em;">{{ svelte_params.DOCUMENT.title }}</h1>
+    <hr>
+    <h4>Check: Does this image need to be split before it can be georeferenced? <a href="#" data-toggle="collapse" data-target=".help-panel">Tell me more about this &darr;</a></h4>
+    <div class="help-panel collapse" style="font-size:1.25em; background:lightgray; border-radius: 7px; padding:20px; margin-top:20px; margin-bottom:20px;">
         <div class="row">
             <div class="col-xs-12">
                 <p>Sometimes, old maps will cover discontiguous areas, especially when the mapmakers were trying to 
@@ -71,7 +74,7 @@
             </div>
         </div>
     </div>
-</div>
+<!-- </div> -->
 
 {% display_svelte "Split.svelte" svelte_params %}
 

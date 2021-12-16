@@ -1,15 +1,20 @@
 import Style from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
+import Circle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
 import RegularShape from 'ol/style/RegularShape';
+
+const btnBlue = '#2c689c';
+
+const interactionPointer = new Circle({
+  fill: new Fill({ color: btnBlue, }),
+  stroke: new Stroke({ color: '#ffffff', width: 1, }),
+  radius: 5,
+})
 
 class Styles {
 
   empty = new Style();
-
-  trimDraw = new Style({
-    stroke: new Stroke({ color: '#fae200', width: 2, })
-  });
 
   gcpHover = new Style({
     image: new RegularShape({
@@ -17,9 +22,9 @@ class Styles {
       radius2: 1,
       points: 4,
       rotation: .79,
-      fill: new Fill({color: 'red'}),
+      fill: new Fill({color: "#27ebe7"}),
       stroke: new Stroke({
-        color: 'red', width: 2
+        color: "#27ebe7", width: 2
       })
     })
   });
@@ -43,28 +48,29 @@ class Styles {
       radius2: 1,
       points: 4,
       rotation: .79,
-      fill: new Fill({color: 'rgb(0, 255, 0)'}),
+      fill: new Fill({color: "#bb2c80" }),
       stroke: new Stroke({
-        color: 'rgb(0, 255, 0)', width: 2
+        color: "#bb2c80", width: 2
       })
     })
   });
 
   splitPreviewStyle = new Style({
     fill: new Fill({ color: 'rgba(255, 29, 51, 0.1)', }),
-    stroke: new Stroke({ color: 'rgba(255, 29, 51, 1)', width: 7.5, }),
-  });
-
-  outlineStyle = new Style({
-    stroke: new Stroke({ color: '#fae200', width: 2, })
+    stroke: new Stroke({ color: 'rgba(250, 226, 0, .9)', width: 7.5, }),
   });
 
   splitBorderStyle = new Style({
-    stroke: new Stroke({ color: '#fae200', width: 2, })
+    stroke: new Stroke({ color: btnBlue, width: 2, })
   });
 
-  splitCutLayer = new Style({
-    stroke: new Stroke({ color: '#fae200', width: 2, })
+  polyDraw = new Style({  
+    stroke: new Stroke({ color: btnBlue, width: 2, }),
+    image: interactionPointer,
+  });
+
+  polyModify = new Style({
+    image: interactionPointer,
   });
 
 } 

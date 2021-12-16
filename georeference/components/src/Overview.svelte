@@ -33,6 +33,7 @@ function refresh() {
     {#if !USER_AUTHENTICATED}
     <div class="signin-reminder">
       <p><em>
+        <!-- svelte-ignore a11y-invalid-attribute -->
         <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
         <a href="/account/register">sign up</a> to work on this document
       </em></p>
@@ -42,43 +43,49 @@ function refresh() {
   <content>
     <section>
       <div>
-        <h4 style="">Progress Page <button id="refresh-button" title="refresh overview" on:click={refresh}><i class="fa fa-refresh" /></button></h4>
+        <h4 style="">Current status: {DOCUMENT.status} <button id="refresh-button" title="refresh overview" on:click={refresh}><i class="fa fa-refresh" /></button></h4>
       </div>
       <div>
         <h3>1. Preparation</h3>
         {#if DOCUMENT.status == "unprepared"}
-        <p>This document must be prepared before it can be georeferenced.</p>
         <p>
           <a href="{DOCUMENT.urls.split}">
           <i class="fa fa-cut"></i>
           prepare document</a>
         </p>
+        <p>This document must be prepared before it can be georeferenced.</p>
         {:else if DOCUMENT.status == "splitting"}
           <em><p>
-            currently processing...
+            Splitting in progress...
           </p></em>
         {:else}
-          <p>Evaluated by 
+          <p>Prepared by 
             <a href={SPLIT_SUMMARY.split_by.profile}>{SPLIT_SUMMARY.split_by.name}</a>,
-            {SPLIT_SUMMARY.date_str} - 
-            <em>
+            {SPLIT_SUMMARY.date_str}
+          </p>
+          <p>Result:
             {#if SPLIT_SUMMARY.no_split_needed}
-            no split needed
+            No split needed.
             {:else if SPLIT_SUMMARY.child_docs.length > 0}
-            split into {SPLIT_SUMMARY.child_docs.length} new document{#if SPLIT_SUMMARY.child_docs.length != 1}s{/if}
+            Split into {SPLIT_SUMMARY.child_docs.length} new document{#if SPLIT_SUMMARY.child_docs.length != 1}s{/if},
+            each must be georeferenced individually.
             {:else if SPLIT_SUMMARY.parent_doc}
-            split from <a href={SPLIT_SUMMARY.parent_doc.urls.progress_page}>{SPLIT_SUMMARY.parent_doc.title}</a>
+            Split from <a href={SPLIT_SUMMARY.parent_doc.urls.progress_page}>{SPLIT_SUMMARY.parent_doc.title}</a>.
             {/if}
-            </em>
           </p>
           {#if SPLIT_SUMMARY.child_docs.length > 0}
           <div class="documents-column">
             {#each SPLIT_SUMMARY.child_docs as child}
             <div class="document-item">
+              <div>
+                {child.title}
+              </div>
               <img src={child.urls.thumbnail} alt={child.title} title={child.title}>
               <div>
                 <ul>
-                  <li><a href={child.urls.progress_page} title="view summary">view summary &rarr;</a></li>
+                  <li><a href={child.urls.georeference} title="Georeference document">georeference &rarr;</a></li>
+                  <li><a href={child.urls.progress_page} title="View progress">progress overview &rarr;</a></li>
+                  <li><a href={child.urls.progress_page} title="Document detail">document detail &rarr;</a></li>
                 </ul>
               </div>
             </div>
@@ -89,21 +96,22 @@ function refresh() {
       </div>
       <div>
         <h3>2. Georeferencing</h3>
-        {#if DOCUMENT.status == "unprepared" || DOCUMENT.status == "splitting"}
-        <p><em>n/a</em></p>
-        {:else if SPLIT_SUMMARY.child_docs.length > 0}
-        <p><em>each child document above must be georeferenced individually</em></p>
-        {:else if DOCUMENT.status == "prepared"}
-          {#if USER_AUTHENTICATED}
-          <p>
-            <a href="{DOCUMENT.urls.georeference}">
-            <i class="fa fa-map-pin"></i>
-            georeference document</a>
-          </p>
+        <p>
+          {#if DOCUMENT.status == "unprepared" || DOCUMENT.status == "splitting" || DOCUMENT.status == null}
+          <span style="color:gray;">
+            <i class="fa fa-map-pin"></i>georeference document
+          </span>
+          {:else if DOCUMENT.status == "georeferencing" }
+          <em><p>
+            Georeferencing in progress...
+          </p></em>
           {:else}
-          <p><em>you must be signed in to georeference this document</em></p>
+          <a href="{DOCUMENT.urls.georeference}">
+            <i class="fa fa-map-pin"></i>georeference document
+          </a>
           {/if}
-        {:else}
+        </p>
+        <!-- {#if DOCUMENT.status == "georeferenced"} -->
           {#each GEOREFERENCE_SESSIONS as sesh, n}
           <p>
           {#if n == 0}Georeferenced by {:else}Updated by {/if}
@@ -114,49 +122,32 @@ function refresh() {
             </em>
           </p>
           {/each}
-          {#if DOCUMENT.status != "georeferencing"}
-          <p>
-            <a href="{DOCUMENT.urls.georeference}">
-            <i class="fa fa-edit"></i>
-            edit georeferencing</a>
-          </p>
-          {/if}
-        <!-- {:else if DOCUMENT.status == "georeferencing"}
-          <em><p>
-            currently processing...
-          </p></em> -->
-        {/if}
+        <!-- {/if} -->
       </div>
       <div>
         <h3>3. Trimming</h3>
-        {#if DOCUMENT.status != "georeferenced"}
-        <p><em>n/a</em></p>
-        {:else if MASK_SESSIONS.length == 0}
         <p>
+          {#if DOCUMENT.status != "georeferenced"}
+          <span style="color:gray;">
+            <i class="fa fa-crop"></i>trim layer
+          </span>
+          {:else}
           <a href="{LAYER.urls.trim}">
-          <i class="fa fa-crop"></i>
-          trim layer</a>
+            <i class="fa fa-crop"></i>trim layer
+          </a>
+          {/if}
         </p>
-        {:else}
         {#each MASK_SESSIONS as sesh, n}
-          <p>
-          {#if n == 0}Trimmed by {:else}Adjusted by {/if}
-            <a href={sesh.user.profile}>{sesh.user.name}</a>, {sesh.date_str} -
-            <em>
-            {#if sesh.vertex_ct == 0}
-            no mask
-            {:else}
-            {sesh.vertex_ct} vertices
-            {/if}
-            </em>
-          </p>
-          {/each}
-          <p>
-            <a href="{LAYER.urls.trim}">
-            <i class="fa fa-crop"></i>
-            edit trimming</a>
-          </p>
-        {/if}
+        <p>
+        {#if n == 0}Trimmed by {:else}Adjusted by {/if}
+          <a href={sesh.user.profile}>{sesh.user.name}</a>, {sesh.date_str} -
+          {#if sesh.vertex_ct == 0}
+          no mask
+          {:else}
+          {sesh.vertex_ct} vertices
+          {/if}
+        </p>
+        {/each}
       </div>
     </section>
     <section class="full-image-panel">
@@ -190,6 +181,11 @@ function refresh() {
     display: flex;
     flex-direction: column;
     width: 50%;
+  }
+
+  i {
+    width: 20px;
+    text-align: center;
   }
 
   .full-image-panel {

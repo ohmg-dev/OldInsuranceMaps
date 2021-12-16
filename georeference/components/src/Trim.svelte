@@ -119,7 +119,7 @@ let currentBasemap = basemaps[0].id;
 const trimShapeSource = new VectorSource();
 const trimShapeLayer = new VectorLayer({
     source: trimShapeSource,
-    style: styles.trimDraw,
+    style: styles.polyDraw,
   });
 trimShapeSource.on("addfeature", function(e) {
   updateMaskPolygon(e.feature.getGeometry().getCoordinates()[0]);
@@ -173,7 +173,7 @@ function makeModifyInteraction(hitDetection, source, targetElement) {
   const modify = new Modify({
   hitDetection: hitDetection,
   source: source,
-  style: styles.gcpHover,
+  style: styles.polyModify,
   });
 
   modify.on(['modifystart', 'modifyend'], function (e) {
@@ -212,6 +212,7 @@ function MapViewer (elementId) {
   const draw = new Draw({
     source: trimShapeSource,
     type: 'Polygon',
+    style: styles.polyDraw,
   });
   draw.setActive(true);
   map.addInteraction(draw)
@@ -254,7 +255,7 @@ $: setBasemap(currentBasemap);
 
 $: {
   if (mapView) {
-    mapView.drawInteraction.setActive(maskPolygonCoords.length == 0);
+    mapView.drawInteraction.setActive(maskPolygonCoords.length == 0); 
   }
 }
 
