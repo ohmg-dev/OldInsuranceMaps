@@ -344,3 +344,69 @@ class LayerProxy(object):
             "status": self.status,
             "urls": self.get_extended_urls(),
         }
+
+def get_georeference_info(resource_type, resource_id):
+
+    # set default status
+    status = "n/a"
+    # create full suite of links, without any urls
+    linkset = {
+        "overview": {
+            "title": "Progress Overview",
+            "icon": "fa-list-ol",
+            "url": "",
+        },
+        "prepare": {
+            "title": "Prepare Document",
+            "icon": "fa-cut",
+            "url": "",
+        },
+        "georeference": {
+            "title": "Georeference Document",
+            "icon": "fa-map-pin",
+            "url": "",
+        },
+        "trim": {
+            "title": "Trim Layer",
+            "icon": "fa-crop",
+            "url": "",
+        },
+        "related": {
+            "title": "",
+            "icon": "fa-exchange",
+            "url": "",
+        },
+    }
+
+    print(f"getting info for {resource_type}: {resource_id}")
+
+    proxy = None
+    if resource_type == "document":
+        proxy = DocumentProxy(resource_id)
+    if resource_type == "layer":
+        proxy = LayerProxy(resource_id)
+
+    if proxy is not None:
+        status = proxy.status
+        proxy_urls = proxy.get_extended_urls()
+
+        linkset["overview"]["url"] = proxy_urls['progress_page']
+        if status == "unprepared":
+            linkset["prepare"]["url"] = proxy_urls['split']
+        if status == "prepared":
+            linkset["georeference"]["url"] = proxy_urls['georeference']
+        if status == "georeferenced":
+            linkset["georeference"]["title"] = "Edit Georeferencing"
+            linkset["georeference"]["url"] = proxy_urls['georeference']
+            if resource_type == "layer":
+                linkset["trim"]["url"] = proxy_urls['trim']
+                linkset["related"]["title"] = "Jump to source Document"
+                linkset["related"]["url"] = proxy_urls['document_detail']
+            if resource_type == "document":
+                linkset["related"]["title"] = "Jump to georeferenced Layer"
+                linkset["related"]["url"] = proxy_urls['layer_detail']
+
+    return {
+        'georeference_links': list(linkset.values()),
+        'georeference_status': status,
+    }

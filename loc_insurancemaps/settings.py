@@ -74,6 +74,7 @@ if 'georeference' in INSTALLED_APPS:
     MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
 
     MIDDLEWARE += ("georeference.middleware.GeoreferenceMiddleware", )
+    TEMPLATES[0]['OPTIONS']['context_processors'].append("georeference.context_processors.georeference_info")
 
 # no trailing slash on server location
 IIIF_SERVER_ENABLED = False
