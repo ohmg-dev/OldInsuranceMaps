@@ -228,6 +228,7 @@ class Volume(models.Model):
         blank=True,
         null=True,
         on_delete=models.CASCADE)
+    load_date = models.DateTimeField(null=True, blank=True)
     index_layers = models.ManyToManyField(
         Layer,
         null=True,
@@ -256,6 +257,7 @@ class Volume(models.Model):
 
         self.status = "initializing..."
         self.loaded_by = user
+        self.load_date = datetime.now()
         self.save()
 
         print("importing all sheeets")
@@ -348,11 +350,12 @@ class Volume(models.Model):
         items = self.serialize_items()
         items_ct = sum([len(v) for v in items.values()])
         if self.loaded_by is None:
-            loaded_by = {"name": "", "profile": ""}
+            loaded_by = {"name": "", "profile": "", "date": ""}
         else:
             loaded_by = {
                 "name": self.loaded_by.username,
                 "profile": reverse("profile_detail", args=(self.loaded_by.username, )),
+                "date": self.load_date.strftime("%Y-%m-%d"),
             }
         index_layers = [LayerProxy(i.alternate) for i in self.index_layers.all()]
         index_layers_json = [i.serialize() for i in index_layers]
