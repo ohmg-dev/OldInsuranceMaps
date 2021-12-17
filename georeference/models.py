@@ -119,6 +119,8 @@ class SplitSession(models.Model):
 
         if self.no_split_needed is True:
             set_status(self.document, "prepared")
+            self.document.metadata_only = False
+            self.document.save()
         else:
             s = Splitter(
                 image_file=self.document.doc_file.path,
