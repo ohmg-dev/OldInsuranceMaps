@@ -121,10 +121,15 @@ class Sheet(models.Model):
             doc = Document()
 
             doc.uuid = str(uuid.uuid4())
+            doc.metadata_only = True
 
+            # set owner to user
             if user is None:
                 user = Profile.objects.get(username="admin")
             doc.owner = user
+
+            # set license
+            doc.license = License.objects.get(name="Public Domain")
 
             jp2_url = parsed.jp2_url
             if jp2_url is not None:
@@ -145,7 +150,7 @@ class Sheet(models.Model):
                 os.remove(tmp_path)
                 os.remove(jpg_path)
 
-                doc.save()
+            doc.save()
 
             sheet.document = doc
             sheet.sheet_no = parsed.sheet_number
