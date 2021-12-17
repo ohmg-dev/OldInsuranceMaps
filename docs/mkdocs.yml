@@ -10,7 +10,7 @@ dev_addr: '127.0.0.1:8001'
 
 nav:
   - Home: home.md
-  - Guide: guide.md
+  - User Guide: user-guide.md
   - Content: content.md
   - About: about.md
 
