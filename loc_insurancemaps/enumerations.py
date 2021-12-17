@@ -12,7 +12,7 @@ MONTH_CHOICES = [
     (11, "NOV."),
     (12, "DEC."),
 ]
-MONTH_LOOKUP = {i[0]:i[1] for i in MONTH_CHOICES}
+# MONTH_LOOKUP = {i[0]:i[1] for i in MONTH_CHOICES}
 STATE_CHOICES = [
     ('alabama', 'Alabama'),
     ('alaska', 'Alaska'),

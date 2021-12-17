@@ -153,7 +153,7 @@ class Sheet(models.Model):
             sheet.save()
 
             doc.title = sheet.__str__()
-            doc.date = datetime(volume.year, 1, 1)
+            doc.date = datetime(volume.year, int(volume.month), 1, 12, 0)
             for r in volume.regions.all():
                 doc.regions.add(r)
             # set the detail_url with the same function that is used in search

@@ -10,7 +10,6 @@ from geonode.base.models import Region
 
 from .enumerations import (
     STATE_CHOICES,
-    MONTH_LOOKUP,
 )
 
 def filter_volumes_for_use(volumes):
@@ -197,7 +196,7 @@ class LOCParser(object):
             d = pytz.utc.localize(dt)
             self.datetime = d
             self.year = d.year
-            self.month = MONTH_LOOKUP[d.month]
+            self.month = d.month
         except ValueError:
             try:
                 dt = datetime.strptime(date_tag, "%Y")
