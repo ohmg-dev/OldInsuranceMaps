@@ -21,6 +21,7 @@
     <li><a href="{% url "volumes_list" %}">{% trans "Volumes" %}</a></li>
     <li><a href="{% url "document_browse" %}?limit={{ CLIENT_RESULTS_LIMIT }}">{% trans "Documents" %}</a></li>
     <li><a href="{% url "layer_browse" %}?limit={{ CLIENT_RESULTS_LIMIT }}">{% trans "Layers" %}</a></li>
+    <li><a href="{% url "maps_browse" %}?limit={{ CLIENT_RESULTS_LIMIT }}">{% trans "Web Maps" %}</a></li>
     {% if user.is_staff and not READ_ONLY_MODE %}
         <li><a href="{% url "services" %}?limit={{ CLIENT_RESULTS_LIMIT }}">{% trans "Remote Services" %}</a></li>
         <li role="separator" class="divider"></li>
@@ -29,6 +30,7 @@
             <li><a href="{% url "layer_create" %}">{% trans "Create Layer" %}</a></li>
         {% endif %}
         <li><a href="{% url "document_upload" %}">{% trans "Upload Document" %}</a></li>
+    {% else %}
     {% endif %}
     {% if user.is_superuser or user.is_staff %}
         {%  if not READ_ONLY_MODE %}
@@ -36,19 +38,6 @@
         {% endif %}
     {% endif %}
     </ul>
-</li>
-<li id="nav_maps">
-    {% if user.is_authenticated %}
-    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Web Maps" %}<i class="fa fa-angle-down fa-lg"></i></a>
-    <ul class="dropdown-menu">
-        <li><a href="{% url "maps_browse" %}?limit={{ CLIENT_RESULTS_LIMIT }}">{% trans "Explore Web Maps" %}</a></li>
-        {% if not READ_ONLY_MODE %}
-        <li> <a href="{% url "new_map" %}">{% trans "Create Web Map" %}</a></li>
-        {% endif %}
-    </ul>
-    {% else %}
-    <a href="{% url "maps_browse" %}?limit={{ CLIENT_RESULTS_LIMIT }}">{% trans "Web Maps" %}</a>
-    {% endif %}
 </li>
 {% if GEONODE_APPS_ENABLE and GEONODE_APPS_NAV_MENU_ENABLE %}
 <li id="nav_maps">

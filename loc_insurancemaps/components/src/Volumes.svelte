@@ -86,13 +86,13 @@ $: updateFilteredList(filterInput)
 	</div>
 	<hr>
 	<h3>Start a new volume</h3>
-	<p>Access available volumes here to start a new one. <a href="https://docs.oldinsurancemaps.net/">Learn more about this <i class="fa fa-external-link"></i></a></p>
+	<p>Access available volumes here to start working on a new one. <a href="https://docs.oldinsurancemaps.net/" target="_blank">Learn more about this <i class="fa fa-external-link"></i></a></p>
 	{#if USER_TYPE == 'anonymous' }
 	<div class="signin-reminder">
 	<p><em>
 		<!-- svelte-ignore a11y-invalid-attribute -->
 		<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
-		<a href="/account/register">sign up</a> to load new volumes
+		<a href="/account/register">sign up</a> to start new volumes
 	</em></p>
 	</div>
 	{/if}

@@ -149,10 +149,11 @@ let settingIndexLayer = false;
 		<div class="documents-column">
 			{#if VOLUME.items.unprepared.length == 0}
 				<p><em>
-				{#if VOLUME.loaded_by.name != ""} <!-- this means they have been loaded already -->
-				All documents have been prepared.
-				{:else}
+				{#if VOLUME.sheet_ct.loaded == 0} <!-- this means they have been loaded already -->
+				
 				Sheets will appear here as documents as they are loaded.
+				{:else}
+				All documents have been prepared.
 				{/if}
 				</em></p>
 			{:else}
@@ -273,6 +274,11 @@ figcaption {
 	flex-direction: row;
 	flex-wrap: wrap;
 	gap: 20px;
+	padding-bottom: 15px;
+}
+
+.documents-column p {
+	margin: 0px;
 }
 
 .document-item {
