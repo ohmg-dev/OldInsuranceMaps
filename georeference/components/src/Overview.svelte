@@ -28,9 +28,11 @@ function refresh() {
 </script>
 
 <main>
-  <div class="title-bar">
+  <!-- <div class="title-bar">
     <h1>{DOCUMENT.title}</h1>
-    {#if !USER_AUTHENTICATED}
+    
+  </div> -->
+  {#if !USER_AUTHENTICATED}
     <div class="signin-reminder">
       <p><em>
         <!-- svelte-ignore a11y-invalid-attribute -->
@@ -39,7 +41,6 @@ function refresh() {
       </em></p>
     </div>
     {/if}
-  </div>
   <content>
     <section>
       <div>

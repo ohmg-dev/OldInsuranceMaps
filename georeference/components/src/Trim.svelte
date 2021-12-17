@@ -55,9 +55,12 @@ $: {
 $: unchanged = JSON.stringify(maskPolygonCoords) == JSON.stringify(INCOMING_MASK_COORDINATES);
 $: maskToRemove = INCOMING_MASK_COORDINATES.length > 0 || maskPolygonCoords.length > 0;
 
-let mapView;
 
-let currentTxt = "still under construction!";
+let drawTxt = "Draw a polygon around the content you wish to retain. Click to begin, double-click to finish.";
+let modifyTxt = "Click and drag on the polygon edges to modify it.";
+let currentTxt = drawTxt;
+
+let mapView;
 
 function defaultSLD() {
   let sld = '<?xml version="1.0" encoding="UTF-8"?>'
@@ -123,6 +126,10 @@ const trimShapeLayer = new VectorLayer({
   });
 trimShapeSource.on("addfeature", function(e) {
   updateMaskPolygon(e.feature.getGeometry().getCoordinates()[0]);
+  currentTxt = modifyTxt;
+})
+trimShapeSource.on("removefeature", function(e) {
+  currentTxt = drawTxt;
 })
 
 function removeMask() {
@@ -295,7 +302,7 @@ function updateSLDContent() { process("preview") }
 function submitMask() { process("submit") }
 
 </script>
-
+<div class="tb-top-item"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
@@ -312,27 +319,21 @@ function submitMask() { process("submit") }
   </div>
   {/if}
   <nav>
-    <div class="tb-top-item"><em>{currentTxt}</em></div>
+    <label title="Change basemap">
+      Basemap
+      <select bind:value={currentBasemap}>
+        {#each basemaps as basemap}
+        <option value={basemap.id}>{basemap.label}</option>
+        {/each}
+      </select>
+    </label>
     <div>
-      <button title="remove mask" on:click={removeMask} disabled={!maskToRemove}><i class="fa fa-trash" /></button>
-      <button on:click={submitMask} disabled={unchanged}>{submitBtnLabel}</button>
-      <button title="reset interface" on:click={resetInterface} disabled={unchanged}><i class="fa fa-refresh" /></button>
+      <button title="Remove mask" on:click={removeMask} disabled={!maskToRemove}><i class="fa fa-trash" /></button>
+      <button title={submitBtnLabel} on:click={submitMask} disabled={unchanged}>{submitBtnLabel}</button>
+      <button title="Reset interface" on:click={resetInterface} disabled={unchanged}><i class="fa fa-refresh" /></button>
     </div>
   </nav>
   <div class="map-container">
     <div id="map-viewer" class="map-item rounded-bottom"></div>
   </div>
-  <nav>
-    <div></div>
-    <div>
-      <select title="select basemap" bind:value={currentBasemap}>
-        {#each basemaps as basemap}
-        <option value={basemap.id}>{basemap.label}</option>
-        {/each}
-      </select>
-    </div>
-  </nav>
 </div>
-  
-<style>
-</style>

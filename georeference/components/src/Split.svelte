@@ -59,11 +59,11 @@ let disableInterface = !USER_AUTHENTICATED;
 let currentTxt;
 $: {
   if (divisions.length == 0) {
-    currentTxt = "Draw lines to cut the image into separate pieces, if necessary."
+    currentTxt = "If this image needs to be split, draw lines across it as needed. Click to start, double click to finish."
   } else {
     const linesTxt = cutLines.length + " " + (cutLines.length === 1 ? 'line' : 'lines');
     const divsTxt = divisions.length + " " + (divisions.length === 1 ? 'part' : 'parts') + " will be made";
-    currentTxt = linesTxt + " | " + divsTxt;
+    currentTxt = "Split summary: " + linesTxt + " | " + divsTxt;
   }
 }
 
@@ -288,7 +288,7 @@ function runSplit() { process("submit") };
 </script>
 
 <svelte:window on:keydown={handleKeydown}/>
-
+<div><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
@@ -320,7 +320,7 @@ function runSplit() { process("submit") };
       Show Preview
     </label>
     </div>
-    <div><em>{currentTxt}</em></div>
+    
     <div class="tb-top-item">
             
             <button on:click={runSplit}>{splitBtnLabel}</button>

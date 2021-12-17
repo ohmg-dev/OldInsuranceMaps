@@ -45,7 +45,10 @@ export let MAPSERVER_LAYERNAME;
 export let MAPBOX_API_KEY;
 export let USER_AUTHENTICATED;
 
-let disableInterface = !USER_AUTHENTICATED;
+console.log(DOCUMENT)
+
+let disableInterface = !USER_AUTHENTICATED || DOCUMENT.status == "georeferencing";
+console.log(disableInterface)
 
 let previewMode = "n/a";
 
@@ -651,7 +654,7 @@ function handleKeydown(e) {
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:beforeunload={cleanupOnLeave}/>
-
+<div class="hidden-small"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
@@ -663,14 +666,15 @@ function handleKeydown(e) {
       </em></p>
     </div>
     {:else}
+    <p>currently processing control points<br><a href={DOCUMENT.urls.progress_page}>back to progress overview</a></p>
     <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
     {/if}
   </div>
   {/if}
-  <nav id="hamnav">
+  <nav>
     <div>
-      <button title="enter fullscreen mode" on:click={toggleFullscreen}><i id="fs-icon" class="fa fa-arrows-alt" /></button>
-      <select title="set panel size" bind:value={panelFocus} disabled={syncPanelWidth}>
+      <button title="Enter fullscreen" on:click={toggleFullscreen}><i id="fs-icon" class="fa fa-arrows-alt" /></button>
+      <select title="Set panel size" bind:value={panelFocus} disabled={syncPanelWidth}>
         <option value="equal">equal panels</option>
         <option value="left">more left</option>
         <option value="right">more right</option>
@@ -678,19 +682,10 @@ function handleKeydown(e) {
       <label><input type=checkbox bind:checked={syncPanelWidth}> autosize</label>
 
     </div>
-    <div class="hidden-small"><em>{currentTxt}</em></div>
-    <div>     
-
-      <!-- (B) THE HAMBURGER -->
-      <label class="hamlabel" for="hamburger">&#9776;</label>
-      <input type="checkbox" id="hamburger"/>
     
-      <!-- (C) MENU ITEMS -->
-      <div id="hamitems">
-        
-        <button on:click={submitGCPs} disabled={gcpList.length < 3}>Save Control Points</button>
-        <button title="reset interface" disabled={unchanged} on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
-      </div>
+    <div>     
+        <button on:click={submitGCPs} disabled={gcpList.length < 3} title="Save control pointsw">Save Control Points</button>
+        <button title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
     </div>
   </nav>
   <div class="map-container">
@@ -699,45 +694,60 @@ function handleKeydown(e) {
     <div id="preview-loading" class={previewLoading ? 'lds-ellipsis': ''}><div></div><div></div><div></div><div></div></div>
   </div>
   <nav>
-    {#if gcpList.length == 0}
-    <div>
-      <em>no control points added yet...</em>
-    </div>
-    {:else}
-    <div id="summary-panel">
-      <select style="width: 400px;" bind:value={activeGCP}>
-        {#each gcpList as gcp}
-          <option value={gcp.listId}>
-            {gcp.listId} | ({gcp.pixelX}, {gcp.pixelY}) ({gcp.coordX}, {gcp.coordY}) | {gcp.username}
-          </option>
-        {/each}
-      </select>
-      <label>
-        <span class="hidden-small">Note:</span>
+    <div style="display:flex; flex-direction:column;">
+      {#if gcpList.length == 0}
+      <div>
+        <em>no control points added yet...</em>
+      </div>
+      {:else}
+      <div id="summary-panel" style="display:flex; flex-direction:row">
+        <select class="gcp-select" bind:value={activeGCP}>
+          {#each gcpList as gcp}
+            <option value={gcp.listId}>
+              {gcp.listId} | ({gcp.pixelX}, {gcp.pixelY}) ({gcp.coordX}, {gcp.coordY}) | {gcp.username}
+            </option>
+          {/each}
+        </select>
+        <button title="Remove control point {activeGCP} (d)" on:click={removeActiveGCP}><i class="fa fa-trash" /></button>
+      </div>
+      <label style="margin-top:5px;" title="Add note about control point {activeGCP}">
+        <span class="">Note:</span>
         <input type="text" id="{noteInputElId}" style="height:30px; width:250px;" disabled={gcpList.length == 0} on:change={updateNote}>
       </label>
-    <button title="remove active control point" on:click={removeActiveGCP}><i class="fa fa-trash" /></button>
+      {/if}
     </div>
-    {/if}
-    <div>
-      <span style="color:lightgray">{startloads}/{endloads}</span>
-      <select title="set preview mode" bind:value={previewMode} disabled={previewMode == "n/a"}>
-        {#if previewMode == "n/a"}<option value="n/a" disabled>preview n/a</option>{/if}
-        <option value="none">no preview</option>
-        <option value="transparent">1/2 preview</option>
-        <option value="full">full preview</option>
-      </select>
-      <select title="select basemap" bind:value={currentBasemap}>
-        {#each basemaps as basemap}
-        <option value={basemap.id}>{basemap.label}</option>
-        {/each}
-      </select>
-      <!-- svelte-ignore a11y-no-onchange -->
-      <select class="trans-select" title="select transformation type" bind:value={currentTransformation} on:change={previewGCPs}>
-        {#each transformations as trans}
-          <option value={trans.id}>{trans.name}</option>
-        {/each}
-      </select>
+    <div style="display:flex; flex-direction:column; text-align:right;">
+      <div>
+        <span style="color:lightgray">{startloads}/{endloads}</span>
+        <label title="Change basemap">
+          Preview
+          <select title="Set preview (w)" bind:value={previewMode} disabled={previewMode == "n/a"}>
+            {#if previewMode == "n/a"}<option value="n/a" disabled>preview n/a</option>{/if}
+            <option value="none">none</option>
+            <option value="transparent">1/2</option>
+            <option value="full">full</option>
+          </select>
+        </label>
+        <label title="Change basemap">
+          Basemap
+          <select  style="width:151px;" bind:value={currentBasemap}>
+            {#each basemaps as basemap}
+            <option value={basemap.id}>{basemap.label}</option>
+            {/each}
+          </select>
+        </label>
+      </div>
+      <div>
+        <label style="margin-top:5px;" title="Set georeferencing transformation">
+          Transformation:
+          <!-- svelte-ignore a11y-no-onchange -->
+          <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={previewGCPs}>
+            {#each transformations as trans}
+              <option value={trans.id}>{trans.name}</option>
+            {/each}
+          </select>
+        </label>
+      </div>
     </div>
   </nav>
 </div>
@@ -752,46 +762,14 @@ label {
   width: 50%;
 }
 
-/* [ON BIG SCREEN] */
-/* (A) WRAPPER */
-#hamnav {
-  width: 100%;
-  /* background: #000; */
-}
+.gcp-select {
+    max-width: 400px;
+  }
 
-/* (B) HORIZONTAL MENU ITEMS */
-#hamitems { display: flex; }
-#hamitems div {
-  flex-grow: 1;
-  /* flex-basis: 0; */
-  /* padding: 10px; */
-  text-decoration: none;
-  text-align: center;
-}
-/* #hamitems a:hover { background: #401408; } */
-
-/* (C) HIDE HAMBURGER */
-#hamnav label.hamlabel, #hamburger { display: none; }
-
-/* [ON SMALL SCREENS] */
 @media screen and (max-width: 768px){
-  /* (A) BREAK INTO VERTICAL MENU */
-  #hamitems div {
-    box-sizing: border-box;
-    display: block;
-    width: 100%;
+  .gcp-select {
+    max-width: 300px;
   }
-  /* (B) SHOW HAMBURGER ICON */
-  #hamnav label.hamlabel { 
-    display: inline-block;
-    font-style: normal;
-    font-size: 1.2em;
-    padding: 10px;
-  }
-
-  /* (C) TOGGLE SHOW/HIDE MENU */
-  #hamitems { display: none; }
-  #hamnav input:checked ~ #hamitems { display: block; }
 }
 
 </style>
