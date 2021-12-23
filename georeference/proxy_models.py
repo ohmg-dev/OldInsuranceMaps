@@ -164,7 +164,8 @@ class DocumentProxy(object):
         if layer_proxy is not None:
             layer_urls = layer_proxy.urls
         return {
-            "layer_detail": layer_urls.get("detail", "")
+            "layer_detail": layer_urls.get("detail", ""),
+            "layer_trim": layer_urls.get("trim", ""),
         }
 
     def get_split_summary(self):
@@ -378,8 +379,6 @@ def get_georeference_info(resource_type, resource_id):
         },
     }
 
-    print(f"getting info for {resource_type}: {resource_id}")
-
     proxy = None
     if resource_type == "document":
         proxy = DocumentProxy(resource_id)
@@ -404,6 +403,7 @@ def get_georeference_info(resource_type, resource_id):
                 linkset["related"]["url"] = proxy_urls['document_detail']
             if resource_type == "document":
                 linkset["related"]["title"] = "Jump to georeferenced Layer"
+                linkset["trim"]["url"] = proxy_urls['layer_trim']
                 linkset["related"]["url"] = proxy_urls['layer_detail']
 
     return {
