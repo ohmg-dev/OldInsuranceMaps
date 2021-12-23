@@ -100,8 +100,10 @@ let settingIndexLayer = false;
 			Preview volume contents in Library of Congress <i class="fa fa-external-link"></i>
 		</a>
 		This is a good way to figure out what parts of town are covered in this volume.
-		{#if VOLUME.loaded_by.name == ""}To begin, click Load Sheets below.{/if}
 	</p>
+	{#if VOLUME.loaded_by.name == "" && USER_TYPE != "anonymous"}
+		To begin, click Load Sheets below.
+	{/if}
 	<hr hidden={VOLUME.index_layers.length == 0}>
 	<figure style="width:75%; border: 1px solid gray;" hidden={VOLUME.index_layers.length == 0}>
 		<div id="index-map" hidden={VOLUME.index_layers.length == 0}></div>
@@ -132,7 +134,6 @@ let settingIndexLayer = false;
 		</div>
 		{/if}
 	<div class="sheets-status-bar">
-		
 		{#if VOLUME.loaded_by.name != "" && !sheetsLoading}
 			<p><em>{VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.loaded != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}</em></p>
 		{/if}

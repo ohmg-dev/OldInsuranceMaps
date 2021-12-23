@@ -680,11 +680,9 @@ function handleKeydown(e) {
         <option value="right">more right</option>
       </select>
       <label><input type=checkbox bind:checked={syncPanelWidth}> autosize</label>
-
     </div>
-    
-    <div>     
-        <button on:click={submitGCPs} disabled={gcpList.length < 3} title="Save control pointsw">Save Control Points</button>
+    <div>
+        <button on:click={submitGCPs} disabled={gcpList.length < 3 || unchanged} title="Save control points">Save Control Points</button>
         <button title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
     </div>
   </nav>
