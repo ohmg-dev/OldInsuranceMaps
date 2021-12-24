@@ -33,8 +33,38 @@ h1, h2, h3, h4, h5, h6 {
 .showcase-tile-title a:hover {
 	color: #2c689c;
 }
-.showcase-tile-title a:hover > span.icon {
+.showcase-tile-title a:hover > span.i {
 	background: #2c689c;
+}
+.showcase-tile-title a:hover > span.i {
+	background: #2c689c;
+}
+
+.search-result-item-title-bar {
+	padding: 5px;
+	background: #f5f5f5;
+	border-top-right-radius: 5px;
+	border-top-left-radius: 5px;
+}
+
+.search-result-item-title-bar h4 {
+	margin: 0px;
+}
+.item-details {
+	background: unset;
+}
+.item-details .item-items {
+	border-top: unset;
+}
+.item-details .item-items ul {
+	margin: 0 0 0 -15px;
+	padding: 0.2em;
+}
+
+.search-result-item-list {
+	margin: 0 0 0 -15px;
+    padding: 0.5em;
+    list-style: none;
 }
 
 .navbar-inverse .navbar-nav > li > a {

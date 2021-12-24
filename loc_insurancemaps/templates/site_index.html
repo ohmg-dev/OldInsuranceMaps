@@ -53,7 +53,7 @@
         <div class="col-md-5 col-md-offset-1 showcase-tile">
           <div class="showcase-tile-title">
             <a href="{% url 'volumes_list' %}">
-              <span class="icon icon-volume"></span>&nbsp;
+              <span class="i i-volume i-volume-lg"></span>&nbsp;
               <span>{{ volume_ct|default:_("No") }} {% blocktrans count counter=volume_ct %}Volume{% plural %}Volumes{% endblocktrans %}</span>
             </a>
           </div>
@@ -63,7 +63,7 @@
         <div class="col-md-5 showcase-tile">
           <div class="showcase-tile-title">
             <a href="{% url 'document_browse' %}">
-              <span class="icon icon-document"></span>&nbsp;
+              <span class="i i-document i-document-lg"></span>&nbsp;
               <span>{{ facets.document|default:_("No") }} {% blocktrans count counter=facets.document %}Document{% plural %}Documents{% endblocktrans %}</span>
             </a>
           </div>
@@ -75,7 +75,7 @@
         <div class="col-md-5 col-md-offset-1 showcase-tile">
           <div class="showcase-tile-title">
             <a href="{% url "layer_browse" %}">
-              <span class="icon-layer icon"></span>&nbsp;
+              <span class="i i-layer i-layer-lg"></span>&nbsp;
               <span>{{ facets.layer|default:_("No") }} {% blocktrans count counter=facets.layer %}Layer{% plural %}Layers{% endblocktrans %}</span>
             </a>
           </div>
@@ -85,7 +85,7 @@
         <div class="col-md-5 showcase-tile">
           <div class="showcase-tile-title">
             <a href="{% url "maps_browse" %}">
-              <span class="icon icon-folded-map"></span>&nbsp;
+              <span class="i i-webmap i-webmap-lg"></span>&nbsp;
               <span>{{ facets.map|default:_("No") }} {% blocktrans count counter=facets.map %}Web Map{% plural %}Web Maps{% endblocktrans %}</span>
             </a>
           </div>
@@ -103,7 +103,7 @@
         <div class="col-md-4 col-md-offset-4 showcase-tile">
           <div class="showcase-tile-title">
             <a href="{% url "profile_browse" %}">
-              <span class="icon-user icon"></span>&nbsp;
+              <span class="i i-user i-user-lg"></span>&nbsp;
               <span>{{ facets.user|default:_("No") }} {% blocktrans count counter=facets.user %}User{% plural %}Users{% endblocktrans %}</span>
             </a>
           </div>
