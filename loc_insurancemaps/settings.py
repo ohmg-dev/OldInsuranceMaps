@@ -54,13 +54,6 @@ INSTALLED_APPS += (
     PROJECT_NAME,
 )
 
-# add static files and templates that are in the local (loc_insurancemaps) app
-TEMPLATES[0]['DIRS'].insert(0, os.path.join(LOCAL_ROOT, "templates"))
-STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "static"))
-STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "components", "public", "build"))
-# add context processor
-TEMPLATES[0]['OPTIONS']['context_processors'].append("loc_insurancemaps.context_processors.loc_info")
-
 # conditionally add static files from the 'georeference' app, as well as
 # Mapserver information, used for the georeferencing preview layer
 if 'georeference' in INSTALLED_APPS:
@@ -75,6 +68,13 @@ if 'georeference' in INSTALLED_APPS:
 
     MIDDLEWARE += ("georeference.middleware.GeoreferenceMiddleware", )
     TEMPLATES[0]['OPTIONS']['context_processors'].append("georeference.context_processors.georeference_info")
+
+# add static files and templates that are in the local (loc_insurancemaps) app
+TEMPLATES[0]['DIRS'].insert(0, os.path.join(LOCAL_ROOT, "templates"))
+STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "static"))
+STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "components", "public", "build"))
+# add context processor
+TEMPLATES[0]['OPTIONS']['context_processors'].append("loc_insurancemaps.context_processors.loc_info")
 
 # no trailing slash on server location
 IIIF_SERVER_ENABLED = False
