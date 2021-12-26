@@ -169,6 +169,7 @@ function makeModifyInteraction(hitDetection, source, targetElement) {
     targetElement.style.cursor = e.type === 'modifystart' ? 'grabbing' : 'pointer';
     if (e.type == "modifyend") {
       activeGCP = e.features.item(0).getProperties().listId;
+      unchanged = false;
       syncGCPList();
     }
   });
@@ -612,7 +613,7 @@ function process(operation){
         previewSource.setUrl(sourceUrl.replace(/\/[^\/]*$/, '/'+Math.random()));
         previewSource.refresh()
       } else if (operation == "submit") {
-        window.location.href = DOCUMENT.urls.progress_page;
+        window.location.href = DOCUMENT.urls.detail;
       }
     });
 }

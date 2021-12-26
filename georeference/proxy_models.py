@@ -46,11 +46,11 @@ class DocumentProxy(object):
 
         self.urls = {
             "thumbnail": document.thumbnail_url,
-            "detail": document.detail_url,
+            "detail": document.detail_url + "#georeference",
             "image": full_reverse('document_download', args=(document.id,)),
             "split": full_reverse("split_view", args=(document.id, )),
             "georeference": full_reverse("georeference_view", args=(document.id, )),
-            "progress_page": full_reverse("georeference_summary", args=(document.id, )),
+            "progress_page": document.detail_url + "#georeference",
         }
 
         self.resource = document
