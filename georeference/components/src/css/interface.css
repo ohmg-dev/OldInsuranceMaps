@@ -173,3 +173,23 @@
     transform: translate(24px, 0);
   }
 }
+
+table.tablesort {
+	width:100%;
+}
+
+th.sortable, td {
+	padding: 5px;
+}
+
+thead tr {
+  background-color: #eaeaea;
+}
+
+tbody tr:nth-child(even){
+  background-color: #f6f6f6;
+}
+
+tbody tr:nth-child(odd){
+  background-color: #ffffff;
+}
