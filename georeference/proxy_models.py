@@ -236,6 +236,42 @@ class DocumentProxy(object):
             "urls": self.get_extended_urls(),
         }
 
+    def get_actions(self):
+        actions = []
+
+        if self.parent_doc is not None:
+            sesh = self.parent_doc.split_session.serialize()
+            split_action = {
+                "type": "split",
+                "user": sesh['split_by'],
+                "date": sesh['date_str'],
+                "details": "split from " + self.parent_doc.title,
+            }
+        elif self.split_session is not None:
+            sesh = self.split_session.serialize()
+            if sesh['no_split_needed'] is True:
+                details = "no split needed"
+            else:
+                details = f"{sesh['segments_ct']} segments"
+            split_action = {
+                "type": "split",
+                "user": sesh['split_by'],
+                "date": sesh['date_str'],
+                "details": details,
+            }
+        else:
+            return []
+        actions.append(split_action)
+
+        for sesh in self.get_georeference_sessions(serialized=True):
+            actions.append({
+                "type": "georeference",
+                "user": sesh['user'],
+                "date": sesh['date_str'],
+                "details": f"{sesh['gcps_ct']} GCPs",
+            })
+        return actions
+
 class LayerProxy(object):
     
     def __init__(self, identifier, raise_404_on_error=False):
@@ -333,6 +369,17 @@ class LayerProxy(object):
         else:
             return sessions
     
+    def get_action_history(self):
+        actions = []
+        for sesh in self.get_mask_sessions(serialized=True):
+            actions.append({
+                "type": "mask",
+                "date": sesh['date_str'],
+                "user": sesh['user'],
+                "details": sesh['vertex_ct'],
+            })
+        return actions
+
     def serialize(self):
 
         return {
