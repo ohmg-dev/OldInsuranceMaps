@@ -393,17 +393,66 @@ class LayerProxy(object):
             "urls": self.get_extended_urls(),
         }
 
-def get_georeference_info(resource_type, resource_id):
+def get_georeferencing_summary(resourceid):
+    """Used in a context processor or view to generate all information
+    needed for the georeference info panel in the Document or Layer
+    detail pages."""
+
+    if str(resourceid).isdigit():
+        doc_proxy = DocumentProxy(resourceid)
+        layer_proxy = doc_proxy.get_layer_proxy()
+        resource_type = "document"
+    else:
+        layer_proxy = LayerProxy(resourceid)
+        doc_proxy = layer_proxy.get_document_proxy()
+        resource_type = "layer"
+
+    actions = doc_proxy.get_actions()
+    urls = {
+        "refresh": full_reverse('summary_json', args=(doc_proxy.id,)),
+        "document_detail": doc_proxy.urls['detail'],
+        "layer_detail": "",
+        "split": doc_proxy.urls['split'],
+        "georeference": doc_proxy.urls['georeference'],
+        "trim": "",
+    }
+    mask_sessions = []
+    layer_alternate = ""
+
+    if layer_proxy is not None:
+        layer_alternate = layer_proxy.alternate
+        urls['layer_detail'] = layer_proxy.urls['detail']
+        urls['trim'] = layer_proxy.urls['trim']
+        mask_sessions = layer_proxy.get_mask_sessions(serialized=True)
+        actions += layer_proxy.get_action_history()
+
+    context = {
+        "STATUS": doc_proxy.status,
+        "RESOURCE_TYPE": resource_type,
+        "DOCUMENT_ID": doc_proxy.id,
+        "LAYER_ALTERNATE": layer_alternate,
+        "URLS": urls,
+        "SPLIT_SUMMARY": doc_proxy.get_split_summary(),
+        "GEOREFERENCE_SESSIONS": doc_proxy.get_georeference_sessions(serialized=True),
+        "MASK_SESSIONS": mask_sessions,
+        "ACTION_HISTORY": actions,
+    }
+    return context
+
+def get_search_item_info(resource_type, resource_id):
+    """Returns a set of georeferencing-related links and status
+    for use in middleware that augments the search result items in
+    the documents, layers, and haystack search pages."""
 
     # set default status
     status = "n/a"
     # create full suite of links, without any urls
     linkset = {
-        "overview": {
-            "title": "Progress Overview",
-            "icon": "fa-list-ol",
-            "url": "",
-        },
+        # "overview": {
+        #     "title": "Progress Overview",
+        #     "icon": "fa-list-ol",
+        #     "url": "",
+        # },
         "prepare": {
             "title": "Prepare Document",
             "icon": "fa-cut",
@@ -436,7 +485,7 @@ def get_georeference_info(resource_type, resource_id):
         status = proxy.status
         proxy_urls = proxy.get_extended_urls()
 
-        linkset["overview"]["url"] = proxy_urls['progress_page']
+        # linkset["overview"]["url"] = proxy_urls['progress_page']
         if status == "unprepared":
             linkset["prepare"]["url"] = proxy_urls['split']
         if status == "prepared":

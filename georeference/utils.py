@@ -23,6 +23,32 @@ def full_reverse(view_name, **kwargs):
     full_url = base + reverse(view_name, **kwargs)
     return full_url
 
+def analyze_url(request):
+
+    p = request.path
+
+    # really messy parsing to get the layer alternate from the url
+    resource_type, res_id = None, None
+    if p.startswith("/layers/"):
+        resource_type = "layer"
+        if not p.startswith("/layers/?") and p != "/layers/":
+            spath = request.path.split("/")
+            malt = spath[spath.index("layers") + 1]
+            try:
+                res_id = ":".join([malt.split(":")[-2], malt.split(":")[-1]])
+            except IndexError:
+                pass
+
+    # slightly cleaner parsing to get the document id from the url
+    if request.path.startswith("/documents/"):
+        resource_type = "document"
+        spath = request.path.split("/")
+        maybe_id = spath[spath.index("documents") + 1]
+        if maybe_id.isdigit():
+            res_id = maybe_id
+
+    return (resource_type, res_id)
+
 def make_db_cursor():
 
     ## make connection to postgis database

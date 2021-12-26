@@ -1,26 +1,13 @@
-from .proxy_models import get_georeference_info
+from .utils import analyze_url
+from .proxy_models import get_georeferencing_summary
 
 def georeference_info(request):
 
-    info = {}
-    p = request.path
+    resource_type, res_id = analyze_url(request)
 
-    # really messy parsing to get the layer alternate from the url
-    if p.startswith("/layers/"):
-        if not p.startswith("/layers/?") and p != "/layers/":
-            spath = request.path.split("/")
-            malt = spath[spath.index("layers") + 1]
-            try:
-                alt = ":".join([malt.split(":")[-2], malt.split(":")[-1]])
-                info = get_georeference_info("layer", alt)
-            except IndexError:
-                pass
+    if None in [resource_type, res_id]:
+        return {}
 
-    # slightly cleaner parsing to get the document id from the url
-    if request.path.startswith("/documents/"):
-        spath = request.path.split("/")
-        maybe_id = spath[spath.index("documents") + 1]
-        if maybe_id.isdigit():
-            info = get_georeference_info("document", maybe_id)
-
-    return info
+    return {
+        'svelte_params': get_georeferencing_summary(res_id),
+    }

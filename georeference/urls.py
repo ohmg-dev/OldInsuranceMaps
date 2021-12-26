@@ -6,6 +6,7 @@ from .views import (
     TrimView,
     GeoreferenceView,
     GeoreferenceSummary,
+    SummaryJSON,
 )
 
 urlpatterns = [
@@ -20,4 +21,5 @@ urlpatterns = [
     path('georeference/<int:docid>/', GeoreferenceView.as_view(), name="georeference_view"),
 
     path('progress/<int:docid>', GeoreferenceSummary.as_view(), name="georeference_summary"),
+    path('summary-json/<int:docid>', SummaryJSON.as_view(), name="summary_json")
 ]

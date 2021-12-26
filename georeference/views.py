@@ -73,6 +73,17 @@ class GeoreferenceSummary(View):
         response = self.generate_summary_context(docid)
         return JsonResponse(response)
 
+class SummaryJSON(View):
+
+    def get(self, request, docid):
+
+        from .proxy_models import get_georeferencing_summary
+        if docid:
+            response = get_georeferencing_summary(docid)
+            return JsonResponse(response)
+        else:
+            return JsonResponse({})
+
 class SplitView(View):
 
     def get(self, request, docid):
