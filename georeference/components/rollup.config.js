@@ -85,6 +85,7 @@ let exportable = [];
   "Georeference",
   "Trim",
   "Overview",
+  "InfoPanel",
 ].forEach((d) => exportable.push(componentExportDetails(d)));
 
 export default exportable;
