@@ -152,9 +152,9 @@ let settingIndexLayer = false;
 				<p><em>
 				{#if VOLUME.sheet_ct.loaded == 0} <!-- this means they have been loaded already -->
 				
-				Sheets will appear here as documents as they are loaded.
+				Sheets will appear here as they are loaded.
 				{:else}
-				All documents have been prepared.
+				All sheets have been prepared.
 				{/if}
 				</em></p>
 			{:else}
@@ -185,7 +185,7 @@ let settingIndexLayer = false;
 			{:else}
 				{#each VOLUME.items.prepared as document}
 				<div class="document-item">
-					<div><p>sheet {document.page_str}</p></div>
+					<div><p>{document.title}</p></div>
 					<img src={document.urls.thumbnail} alt={document.title}>
 					<div>
 						<ul>
@@ -221,7 +221,7 @@ let settingIndexLayer = false;
 			{:else}
 				{#each VOLUME.items.layers as layer}
 				<div class="document-item">
-					<div><p>sheet {layer.page_str}</p></div>
+					<div><p>{layer.title}</p></div>
 					<img src={layer.urls.thumbnail} alt={document.title}>
 					<div>
 						<ul>
