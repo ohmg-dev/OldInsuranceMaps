@@ -39,6 +39,7 @@ from georeference.proxy_models import DocumentProxy, LayerProxy
 from .utils import LOCParser
 from .enumerations import (
     STATE_CHOICES,
+    STATE_ABBREV,
     MONTH_CHOICES,
 )
 from .renderers import convert_img_format, generate_full_thumbnail_content
@@ -241,8 +242,7 @@ class Volume(models.Model):
     )
 
     def __str__(self):
-
-        display_str = f"{self.city}, {self.get_state_display()} | {self.year}"
+        display_str = f"{self.city}, {STATE_ABBREV[self.state]} | {self.year}"
         if self.volume_no is not None:
             display_str += f" | Vol. {self.volume_no}"
 
