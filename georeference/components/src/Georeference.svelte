@@ -662,12 +662,13 @@ function handleKeydown(e) {
     {#if !USER_AUTHENTICATED}
     <div class="signin-reminder">
       <p><em>
+        <!-- svelte-ignore a11y-invalid-attribute -->
         <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
         <a href="/account/register">sign up</a> to proceed
       </em></p>
     </div>
     {:else}
-    <p>currently processing control points<br><a href={DOCUMENT.urls.progress_page}>back to progress overview</a></p>
+    <p>currently processing control points<br><a href={DOCUMENT.urls.detail}>redirecting to document detail</a></p>
     <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
     {/if}
   </div>
@@ -684,6 +685,7 @@ function handleKeydown(e) {
     </div>
     <div>
         <button on:click={submitGCPs} disabled={gcpList.length < 3 || unchanged} title="Save control points">Save Control Points</button>
+        <button title="Return to document detail" onclick="window.location.href='{DOCUMENT.urls.detail}'">Cancel</button>
         <button title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
     </div>
   </nav>

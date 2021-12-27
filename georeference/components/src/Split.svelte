@@ -256,12 +256,11 @@ function handleKeydown(event) {
 
 function process(operation) {
 
-  if (operation == "submit") {disableInterface = true};
+  if (operation == "split") {disableInterface = true};
 
   let data = JSON.stringify({
     "lines": cutLines,
     "operation": operation,
-    "no_split": divisions.length <= 1,
   });
 
   fetch(DOCUMENT.urls.split, {
@@ -274,16 +273,15 @@ function process(operation) {
     })
     .then(response => response.json())
     .then(result => {
-      if (operation == "submit") {
-        window.location.href = DOCUMENT.urls.progress_page;
+      if (operation == "split" || operation == "no_split") {
+        window.location.href = DOCUMENT.urls.detail;
       } else if (operation == "preview") {
-        divisions = result['polygons'];
+        divisions = result['divisions'];
       }
     });
 }
 
 function previewSplit() { if ( cutLines.length > 0) { process("preview") } };
-function runSplit() { process("submit") };
 
 </script>
 
@@ -295,11 +293,13 @@ function runSplit() { process("submit") };
     {#if !USER_AUTHENTICATED}
     <div class="signin-reminder">
       <p><em>
+        <!-- svelte-ignore a11y-invalid-attribute -->
         <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
         <a href="/account/register">sign up</a> to proceed
       </em></p>
     </div>
     {:else}
+    <p>currently splitting document<br><a href={DOCUMENT.urls.detail}>redirecting to document detail</a></p>
     <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
     {/if}
   </div>
@@ -322,9 +322,10 @@ function runSplit() { process("submit") };
     </div>
     
     <div class="tb-top-item">
-            
-            <button on:click={runSplit}>{splitBtnLabel}</button>
-            <button title="reset interface" disabled={unchanged} on:click={resetInterface}><i id="fs-icon" class="fa fa-refresh" /></button>
+      <button on:click={() => {process("split")}} disabled={divisions.length<=1}>Split</button>
+      <button on:click={() => {process("no_split")}} disabled={divisions.length>0}>No Split Needed</button>
+      <button title="Return to document detail" onclick="window.location.href='{DOCUMENT.urls.detail}'">Cancel</button>
+      <button title="reset interface" disabled={unchanged} on:click={resetInterface}><i id="fs-icon" class="fa fa-refresh" /></button>
     </div>
   </nav>
   <div class="map-container" style="border-top: 1.5px solid rgb(150, 150, 150)">

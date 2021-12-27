@@ -161,7 +161,7 @@ function updateMaskPolygon(coordinates) {
       const lat = Math.round(coord[1]*10)/10;
       maskPolygonCoords.push([lng, lat])
     })
-    updateSLDContent();
+    process("preview");
   }
 }
 
@@ -187,7 +187,7 @@ function makeModifyInteraction(hitDetection, source, targetElement) {
   targetElement.style.cursor = e.type === 'modifystart' ? 'grabbing' : 'pointer';
   if (e.type == "modifyend") {
     updateMaskPolygon(e.features.item(0).getGeometry().getCoordinates()[0]);
-    updateSLDContent()
+    process("preview");
   }
   });
 
@@ -298,9 +298,6 @@ function process(operation) {
   });
 }
 
-function updateSLDContent() { process("preview") }
-function submitMask() { process("submit") }
-
 </script>
 <div class="tb-top-item"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
@@ -309,11 +306,13 @@ function submitMask() { process("submit") }
     {#if !USER_AUTHENTICATED}
     <div class="signin-reminder">
       <p><em>
+        <!-- svelte-ignore a11y-invalid-attribute -->
         <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
         <a href="/account/register">sign up</a> to proceed
       </em></p>
     </div>
     {:else}
+    <p>setting mask style on layer<br><span style="color:#2c689c;">redirecting to layer detail when complete</span></p>
     <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
     {/if}
   </div>
@@ -328,8 +327,9 @@ function submitMask() { process("submit") }
       </select>
     </label>
     <div>
+      <button title={submitBtnLabel} on:click={() => {process("submit")}} disabled={unchanged}>{submitBtnLabel}</button>
+      <button title="Return to layer detail" onclick="window.location.href='{LAYER.urls.detail}'">Cancel</button>
       <button title="Remove mask" on:click={removeMask} disabled={!maskToRemove}><i class="fa fa-trash" /></button>
-      <button title={submitBtnLabel} on:click={submitMask} disabled={unchanged}>{submitBtnLabel}</button>
       <button title="Reset interface" on:click={resetInterface} disabled={unchanged}><i class="fa fa-refresh" /></button>
     </div>
   </nav>
