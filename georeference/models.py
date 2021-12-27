@@ -113,12 +113,11 @@ class SplitSession(models.Model):
         metadata_only so that it no longer shows up in the search page lists.
         """
 
-        # obtain the canonical Segmentation which will be saved at the end of
-        # this process
-        set_status(self.document, "splitting")
+        tkm = TKeywordManager()
+        tkm.set_status(self.document, "splitting")
 
-        if self.no_split_needed is True:
-            set_status(self.document, "prepared")
+        if self.split_needed is False:
+            tkm.set_status(self.document, "prepared")
             self.document.metadata_only = False
             self.document.save()
         else:
@@ -153,13 +152,13 @@ class SplitSession(models.Model):
 
                 for r in self.document.regions.all():
                     new_doc.regions.add(r)
-                set_status(new_doc, "prepared")
+                tkm.set_status(new_doc, "prepared")
 
             if len(new_images) > 1:
                 self.document.metadata_only = True
                 self.document.save()
 
-            unset_status(self.document)
+            tkm.set_status(self.document, "split")
 
         # save the parameters from this session to the canonical Segmentation object
         segmentation = Segmentation.objects.get_or_create(document=self.document)[0]
@@ -217,7 +216,8 @@ class GeoreferenceSession(models.Model):
 
     def run(self):
 
-        set_status(self.document, "georeferencing")
+        tkm = TKeywordManager()
+        tkm.set_status(self.document, "georeferencing")
 
         self.update_status("initializing georeferencer")
         try:
@@ -231,7 +231,7 @@ class GeoreferenceSession(models.Model):
             self.note = f"{e.message}"
             self.save()
             # revert to previous tkeyword status
-            set_status(self.document, "prepared")
+            tkm.set_status(self.document, "prepared")
             return None
 
         self.update_status("georeferencing")
@@ -246,7 +246,7 @@ class GeoreferenceSession(models.Model):
             self.note = f"{e.message}"
             self.save()
             # revert to previous tkeyword status
-            set_status(self.document, "prepared")
+            tkm.set_status(self.document, "prepared")
             return None
 
         # self.transformation_used = g.transformation["id"]
@@ -258,8 +258,8 @@ class GeoreferenceSession(models.Model):
         title = self.document.title.replace(",", " -")
 
         ## first look to see if there is a layer alreaded linked to this document.
-        ## this would indicate that it has already been georeferenced before,
-        ## and the existing layer should be overwritten.
+        ## this would indicate that it has already been georeferenced, and in this
+        ## case the existing layer should be overwritten.
         existing_layer = None
         try:
             link = GeoreferencedDocumentLink.objects.get(document=self.document)
@@ -316,8 +316,8 @@ class GeoreferenceSession(models.Model):
             self.transformation_used
         )
 
-        set_status(self.document, "georeferenced")
-        set_status(layer, "georeferenced")
+        tkm.set_status(self.document, "georeferenced")
+        tkm.set_status(layer, "georeferenced")
 
         self.update_status("completed")
 

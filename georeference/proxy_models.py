@@ -19,9 +19,7 @@ from .models import (
 )
 from .utils import (
     full_reverse,
-    get_status,
-    mapserver_add_layer,
-    mapserver_remove_layer,
+    TKeywordManager,
 )
 
 logger = logging.getLogger(__name__)
@@ -57,7 +55,7 @@ class DocumentProxy(object):
 
     @property
     def status(self):
-        return get_status(self.resource)
+        return TKeywordManager().get_status(self.resource)
 
     @property
     def child_docs(self):
@@ -300,7 +298,7 @@ class LayerProxy(object):
 
     @property
     def status(self):
-        return get_status(self.resource)
+        return TKeywordManager().get_status(self.resource)
 
     @property
     def mask(self):

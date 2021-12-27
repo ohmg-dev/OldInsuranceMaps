@@ -61,34 +61,49 @@ def make_db_cursor():
 
 ## ~~ Status TKeyword Management ~~
 
-def get_tk_lookup():
-    tk_lookup = {
-        "unprepared": ThesaurusKeyword.objects.get(about="unprepared"),
-        "splitting": ThesaurusKeyword.objects.get(about="splitting"),
-        "prepared": ThesaurusKeyword.objects.get(about="prepared"),
-        "georeferencing": ThesaurusKeyword.objects.get(about="georeferencing"),
-        "georeferenced": ThesaurusKeyword.objects.get(about="georeferenced"),
-    }
-    return tk_lookup
+class TKeywordManager(object):
 
-def get_status(resource):
-    status = None
-    tk_lookup = get_tk_lookup()
-    for tk in tk_lookup.values():
-        if tk in resource.tkeywords.all():
-            status = tk.about
-    return status
+    def __init__(self):
 
-def unset_status(resource):
-    tk_lookup = get_tk_lookup()
-    for tk in tk_lookup.values():
-        if tk in resource.tkeywords.all():
-            resource.tkeywords.remove(tk)
+        try:
+            self.lookup = {
+                "unprepared": ThesaurusKeyword.objects.get(about="unprepared"),
+                "splitting": ThesaurusKeyword.objects.get(about="splitting"),
+                "split": ThesaurusKeyword.objects.get(about="split"),
+                "prepared": ThesaurusKeyword.objects.get(about="prepared"),
+                "georeferencing": ThesaurusKeyword.objects.get(about="georeferencing"),
+                "georeferenced": ThesaurusKeyword.objects.get(about="georeferenced"),
+                "trimming": ThesaurusKeyword.objects.get(about="trimming"),
+                "trimmed": ThesaurusKeyword.objects.get(about="trimmed"),
+            }
+        except ThesaurusKeyword.DoesNotExist:
+            raise NotImplementedError
 
-def set_status(resource, status):
-    tk_lookup = get_tk_lookup()
-    unset_status(resource)
-    resource.tkeywords.add(tk_lookup[status])
+    def get_status(self, resource):
+        status = None
+        for tk in self.lookup.values():
+            if tk in resource.tkeywords.all():
+                status = tk.about
+        return status
+
+    def unset_status(self, resource):
+        for tk in self.lookup.values():
+            if tk in resource.tkeywords.all():
+                resource.tkeywords.remove(tk)
+
+    def set_status(self, resource, status):
+        self.unset_status(resource)
+        resource.tkeywords.add(self.lookup[status])
+
+    def post_georeference(self, resource):
+
+        status_list = [
+            "georeferencing",
+            "georeferenced",
+            "trimming",
+            "trimmed",
+        ]
+        return self.get_status(resource) in status_list
 
 ## ~~ IIIF support ~~
 
