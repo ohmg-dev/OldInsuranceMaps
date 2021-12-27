@@ -1,8 +1,6 @@
 import os
-import base64
 import logging
 import psycopg2
-from PIL import Image
 
 from django.conf import settings
 from django.urls import reverse
@@ -105,95 +103,6 @@ class TKeywordManager(object):
         ]
         return self.get_status(resource) in status_list
 
-## ~~ IIIF support ~~
-
-def document_as_iiif_resource(document, iiif_server=False):
-
-    img = Image.open(document.doc_file)
-    width, height = img.size
-
-    resource = {
-      "@type": "dctypes:Image",
-      "width": width,
-      "height": height
-    }
-
-    if iiif_server is True:
-        iiif2_base = f"{settings.IIIF_SERVER_LOCATION}/iiif/2"
-        fname = os.path.basename(document.doc_file.name)
-        resource["@id"] = f"{iiif2_base}/{fname}/full/max/0/default.jpg",
-        resource["service"] = {
-            "@context": "http://iiif.io/api/image/2/context.json",
-            "@id": f"{iiif2_base}/{fname}",
-            "profile": "http://iiif.io/api/image/2/level2.json",
-            "protocol": "http://iiif.io/api/image"
-        }
-    else:
-        img_url = settings.SITEURL.rstrip("/") + document.doc_file.url
-        resource["@id"] = img_url
-
-    return resource
-
-def document_as_iiif_canvas(document, resource=None, iiif_server=False):
-
-    this_url = reverse('document_canvas', args=(document.id,))
-    canvas_id = settings.SITEURL.rstrip("/") + this_url
-
-    if resource is None:
-        resource = document_as_iiif_resource(document, iiif_server=iiif_server)
-
-    canvas = {
-      "@context": "http://iiif.io/api/presentation/2/context.json",
-      "@id": canvas_id,
-      "@type": "sc:Canvas",
-      "label": "CanvasLabel",
-      "width": resource["width"],
-      "height": resource["height"],
-      "images": [
-        {
-          "@type": "oa:Annotation",
-          "motivation": "sc:painting",
-          "on": canvas_id,
-          "resource": resource
-        }
-      ]
-    }
-
-    return canvas
-
-def document_as_iiif_manifest(document, canvas=None, iiif_server=False):
-    """ creates a manifest for the document's image """
-
-    # this base64 encoding seems optional, but would probably be good to work in
-    base_url = "http://localhost:8080/cantaloupe/iiii/2/"
-    urlSafeEncodedBytes = base64.urlsafe_b64encode(base_url.encode("utf-8"))
-    urlSafeEncodedStr = str(urlSafeEncodedBytes, "utf-8")
-
-    this_url = reverse('document_manifest', args=(document.id,))
-    manifest_id = settings.SITEURL.rstrip("/") + this_url
-
-    if canvas is None:
-        canvas = document_as_iiif_canvas(document, iiif_server=iiif_server)
-
-    manifest = {
-      "@context": "http://iiif.io/api/presentation/2/context.json",
-      "@type": "sc:Manifest",
-      "@id": manifest_id,
-      "label": document.title,
-      "description": "Description.",
-      "attribution": "Attribution",
-      "thumbnail": document.thumbnail_url,
-      "sequences": [
-        {
-          "@type": "sc:Sequence",
-          "canvases": [
-            canvas
-          ]
-        }
-      ]
-    }
-
-    return manifest
 
 ## ~~ Geoserver VRT utilities ~~
 from geonode.geoserver.helpers import OGC_Servers_Handler

@@ -458,29 +458,6 @@ class GCPGroup(models.Model):
         return gcp_list
 
     @property
-    def as_annotation(self):
-
-        ## this template acquisition should be refactored...
-        anno_template = os.path.join(os.path.dirname(__file__), "annotation-template-georeference.json")
-        with open(anno_template, "r") as o:
-            anno = json.loads(o.read())
-
-        ## WARNING: the order of the coordinates in the geometry below
-        ## may need to be switched. see as_geojson() for example.
-        for gcp in self.gcps:
-            gcp_feat = {
-                "type": "Feature",
-                "properties": {
-                  "id": str(gcp.pk),
-                  "pixel": [gcp.pixel_x, gcp.pixel_y]
-                },
-                "geometry": json.loads(gcp.geom.geojson)
-              }
-            anno['items'][0]['body']['features'].append(gcp_feat)
-
-        return anno
-
-    @property
     def as_geojson(self):
 
         geo_json = {
