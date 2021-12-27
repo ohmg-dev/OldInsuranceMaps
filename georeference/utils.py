@@ -241,14 +241,21 @@ def create_layer_from_vrt(vrt_path, workspace="geonode"):
         "store": store,
     }
 
-## ~~ Mapserver-related functions ~~
 
-def initialize_mapfile():
+class MapServerManager(object):
+    """Small suite of tools used to manipulate the MapServer mapfile."""
 
-    file_path = settings.MAPSERVER_MAPFILE
-    print(f"creating new mapfile: {file_path}")
+    def __init__(self):
 
-    file_content = f"""MAP
+        try:
+            self.mapfile = settings.MAPSERVER_MAPFILE
+            self.endpoint = settings.MAPSERVER_ENDPOINT
+        except AttributeError:
+            raise NotImplementedError
+
+    def initialize_mapfile(self):
+
+        file_content = f"""MAP
 NAME "Georeference Previews"
 STATUS ON
 EXTENT -2200000 -712631 3072800 3840000
@@ -257,7 +264,7 @@ UNITS METERS
 WEB
 METADATA
     "wms_title"          "GeoNode Gereferencer Preview Server"  ##required
-    "wms_onlineresource" "{settings.MAPSERVER_ENDPOINT}?"   ##required
+    "wms_onlineresource" "{self.endpoint}?"   ##required
     "wms_srs"            "EPSG:3857"  ##recommended
     "wms_enable_request" "*"   ##necessary
 END
@@ -274,89 +281,85 @@ END
 END # Map File
 """
 
-    with open(file_path, "w") as out:
-        out.write(file_content)
+        with open(self.mapfile, "w") as out:
+            out.write(file_content)
 
-    return file_path
+        return self.mapfile
 
-def mapserver_add_layer(file_path):
+    def add_layer(self, file_path):
 
-    vrt_path = get_path_variant(file_path, "VRT")
+        vrt_path = get_path_variant(file_path, "VRT")
 
-    mapfile = settings.MAPSERVER_MAPFILE
+        if not os.path.isfile(self.mapfile):
+            self.initialize_mapfile()
 
-    if not os.path.isfile(mapfile):
-        initialize_mapfile()
+        layer_name = os.path.splitext(os.path.basename(vrt_path))[0]
+        output = []
+        already_exists = False
+        with open(self.mapfile, "r") as openf:
 
-    layer_name = os.path.splitext(os.path.basename(vrt_path))[0]
-    output = []
-    already_exists = False
-    with open(mapfile, "r") as openf:
+            for line in openf.readlines():
+                if line != "END # Map File\n":
+                    output.append(line)
+                if vrt_path in line:
+                    already_exists = True
+        
+        if not already_exists:
+            output += [
+                '  LAYER\n',
+                f'    NAME "{layer_name}"\n',
+                '    METADATA\n',
+                f'      "wms_title" "{layer_name}"\n',
+                '    END\n',
+                '    TYPE RASTER\n',
+                '    STATUS ON\n',
+                f'    DATA "{vrt_path}"\n',
+                '    OFFSITE 255 255 255\n',
+                '    TRANSPARENCY 100\n'
+                '    PROJECTION\n',
+                '     "init=epsg:3857"\n',
+                '    END\n',
+                '  END # Layer\n',
+                # '\n',
+                'END # Map File\n',
+            ]
+        else:
+            output += ['END # Map File\n']
 
-        for line in openf.readlines():
-            if line != "END # Map File\n":
-                output.append(line)
-            if vrt_path in line:
-                already_exists = True
-    
-    if not already_exists:
-        output += [
-            '  LAYER\n',
-            f'    NAME "{layer_name}"\n',
-            '    METADATA\n',
-            f'      "wms_title" "{layer_name}"\n',
-            '    END\n',
-            '    TYPE RASTER\n',
-            '    STATUS ON\n',
-            f'    DATA "{vrt_path}"\n',
-            '    OFFSITE 255 255 255\n',
-            '    TRANSPARENCY 100\n'
-            '    PROJECTION\n',
-            '     "init=epsg:3857"\n',
-            '    END\n',
-            '  END # Layer\n',
-            # '\n',
-            'END # Map File\n',
-        ]
-    else:
-        output += ['END # Map File\n']
+        with open(self.mapfile, "w") as openf:
+            openf.writelines(output)
+        
+        return layer_name
 
-    with open(mapfile, "w") as openf:
-        openf.writelines(output)
-    
-    return layer_name
+    def remove_layer(self, file_path):
 
-def mapserver_remove_layer(file_path):
+        vrt_path = get_path_variant(file_path, "VRT")
 
-    vrt_path = get_path_variant(file_path, "VRT")
-    mapfile = settings.MAPSERVER_MAPFILE
+        basename = os.path.basename(vrt_path)
+        output = []
+        current_layer = {"source": "", "lines": []}
+        with open(self.mapfile, "r") as openf:
+            in_layer = False
+            skip_layer = False
+            for line in openf.readlines():
 
-    basename = os.path.basename(vrt_path)
-    output = []
-    current_layer = {"source": "", "lines": []}
-    with open(mapfile, "r") as openf:
-        in_layer = False
-        skip_layer = False
-        for line in openf.readlines():
+                if line == "  LAYER\n":
+                    in_layer = True
+                
+                if not in_layer:
+                    output.append(line)
+                
+                if in_layer is True:
+                    current_layer['lines'].append(line)
 
-            if line == "  LAYER\n":
-                in_layer = True
-            
-            if not in_layer:
-                output.append(line)
-            
-            if in_layer is True:
-                current_layer['lines'].append(line)
+                if basename in line:
+                    skip_layer = True
 
-            if basename in line:
-                skip_layer = True
+                if line == "  END # Layer\n":
+                    in_layer = False
+                    if skip_layer is False:
+                        output += current_layer['lines']
+                    current_layer['lines'] = []
 
-            if line == "  END # Layer\n":
-                in_layer = False
-                if skip_layer is False:
-                    output += current_layer['lines']
-                current_layer['lines'] = []
-    
-    with open(mapfile, "w") as openf:
-        openf.writelines(output)
-
+        with open(self.mapfile, "w") as openf:
+            openf.writelines(output)

@@ -23,7 +23,7 @@ from .proxy_models import (
     DocumentProxy,
     LayerProxy,
 )
-from .splitter import Splitter
+from .utils import MapServerManager
 from .georeferencer import Georeferencer
 
 
@@ -182,12 +182,7 @@ class GeoreferenceView(View):
         """
 
         doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
-
-        username = request.user.username
-        # this can go away once proper decorators are added that disallow
-        # unauthenticated people from viewing the page
-        if username == "":
-            username = "<anonymous>"
+        ms = MapServerManager()
 
         svelte_params = {
             "CSRFTOKEN": csrf.get_token(request),
@@ -196,9 +191,9 @@ class GeoreferenceView(View):
             "INCOMING_GCPS": doc_proxy.gcps_geojson,
             "INCOMING_TRANSFORMATION": doc_proxy.transformation,
             "REGION_EXTENT": doc_proxy.get_best_region_extent(),
-            "USERNAME": username,
-            "MAPSERVER_ENDPOINT": settings.MAPSERVER_ENDPOINT,
-            "MAPSERVER_LAYERNAME": doc_proxy.add_mapserver_layer(),
+            "USERNAME": request.user.username,
+            "MAPSERVER_ENDPOINT": ms.endpoint,
+            "MAPSERVER_LAYERNAME": ms.add_layer(doc_proxy.doc_file.path),
             "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
             "USER_AUTHENTICATED": request.user.is_authenticated,
         }
@@ -220,6 +215,7 @@ class GeoreferenceView(View):
             return BadPostRequest
 
         doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
+        ms = MapServerManager()
 
         body = json.loads(request.body)
         gcp_geojson = body.get("gcp_geojson", {})
@@ -232,7 +228,7 @@ class GeoreferenceView(View):
         }
 
         # if preview mode, modify/create the vrt for this map.
-        # the vrt layer should already served to the interface via mapserver,
+        # the vrt layer should already be served to the interface via mapserver,
         # and it will be automatically reloaded there.
         if operation == "preview":
 
@@ -268,14 +264,14 @@ class GeoreferenceView(View):
                 queue="update"
             )
 
-            doc_proxy.remove_mapserver_layer()
+            ms.remove_layer(doc_proxy.doc_file.path)
             response["status"] = "success"
             response["message"] = "all good"
             return JsonResponse(response)
 
         elif operation == "cleanup":
 
-            doc_proxy.remove_mapserver_layer()
+            ms.remove_layer(doc_proxy.doc_file.path)
             response["status"] = "success"
             response["message"] = "all good"
             return JsonResponse(response)

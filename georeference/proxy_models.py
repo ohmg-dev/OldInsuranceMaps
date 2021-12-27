@@ -220,13 +220,6 @@ class DocumentProxy(object):
         urls.update(self.get_layer_urls())
         return urls
 
-    def add_mapserver_layer(self):
-        ms_layer = mapserver_add_layer(self.doc_file.path)
-        return ms_layer
-
-    def remove_mapserver_layer(self):
-        mapserver_remove_layer(self.doc_file.path)
-
     def serialize(self):
 
         return {

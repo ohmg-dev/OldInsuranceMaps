@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
-from georeference.utils import initialize_mapfile
+from georeference.utils import MapServerManager
 
 class Command(BaseCommand):
     help = 'management commands for mapserver integration'
@@ -20,8 +20,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
+        ms = MapServerManager()
+
         if options["operation"] == "mapfile":
-            initialize_mapfile()
+            ms.initialize_mapfile()
 
         if options["operation"] == "apache":
             pass
