@@ -1,49 +1,73 @@
 <script>
 import { slide } from 'svelte/transition';
-import {TableSort} from 'svelte-tablesort';
 
 export let USER_AUTHENTICATED;
 export let CSRFTOKEN;
-
-export let DOCUMENT_ID;
-export let LAYER_ALTERNATE;
 export let STATUS;
 export let RESOURCE_TYPE;
 export let URLS;
 export let SPLIT_SUMMARY;
-export let GEOREFERENCE_SESSIONS;
-export let MASK_SESSIONS;
+export let GEOREFERENCE_SUMMARY;
+export let TRIM_SUMMARY;
 export let ACTION_HISTORY;
 
 let showPrep = false;
 let showGeoreference = false;
 let showTrim = false;
 
+let splitBtnEnabled = false;
+let noSplitBtnEnabled = false;
+let undoBtnTitle = "Undo this preparation";
+
 let georeferenceBtnEnable = false;
 let georeferenceBtnTitle = "Create Control Points";
 let trimBtnEnable = false;
 let trimBtnTitle = "Create Mask";
 
+let splitNeeded;
+let undoBtnEnabled;
+let processing;
+
 $: {
+  processing = STATUS == "splitting" || STATUS == "georeferencing" || STATUS == "trimming"
+  splitNeeded = SPLIT_SUMMARY ? SPLIT_SUMMARY.split_needed : "unknown";
+  console.log(splitNeeded)
+  undoBtnEnabled = SPLIT_SUMMARY ? SPLIT_SUMMARY.allow_reset : false;
   switch(STATUS) {
     case "unprepared":
       showPrep = true;
+      if (USER_AUTHENTICATED) {
+        splitBtnEnabled = true;
+        noSplitBtnEnabled = true;
+      }
+      showGeoreference = false;
+      georeferenceBtnEnable = false;
+      showTrim = false;
+      trimBtnEnable = false;
       break
     case "splitting":
-      showPrep = true;
+      undoBtnEnabled = false;
       break;
     case "split":
       showPrep = true;
       break;
     case "prepared":
+      splitBtnEnabled = false;
+      noSplitBtnEnabled = false;
       showGeoreference = true;
       georeferenceBtnEnable = true;
       break;
     case "georeferenced":
-      georeferenceBtnTitle = "Edit Control Points";
       georeferenceBtnEnable = true;
+      georeferenceBtnTitle = "Edit Control Points";
       trimBtnEnable = true;
       showTrim = true;
+      break;
+    case "trimmed":
+      georeferenceBtnEnable = true;
+      georeferenceBtnTitle = "Edit Control Points";
+      trimBtnTitle = "Edit Mask";
+      trimBtnEnable = true;
       break;
   }
 }
@@ -54,15 +78,35 @@ function refresh() {
   .then(result => {
     STATUS = result.STATUS;
     SPLIT_SUMMARY = result.SPLIT_SUMMARY;
-    GEOREFERENCE_SESSIONS = result.GEOREFERENCE_SESSIONS;
-    MASK_SESSIONS = result.MASK_SESSIONS;
+    GEOREFERENCE_SUMMARY = result.GEOREFERENCE_SUMMARY;
+    TRIM_SUMMARY = result.TRIM_SUMMARY;
   });
+}
+
+function setSplit(operation) {
+
+  let data = JSON.stringify({
+    "operation": operation,
+  });
+
+  fetch(URLS.split, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+        'X-CSRFToken': CSRFTOKEN,
+      },
+      body: data,
+    })
+    .then(response => response.json())
+    .then(result => {
+      refresh()
+    });
 }
 </script>
 
 <main>
-  <section style="border-bottom:1px solid lightgray;">
-    <p><strong>Status:</strong> {STATUS}
+  <section >
+    <p><strong>Status:</strong> {STATUS}{processing ? " in progress..." : ""}
       <button id="refresh-button" title="refresh overview" on:click={refresh}><i class="fa fa-refresh" /></button>
     </p>
     {#if RESOURCE_TYPE == "layer"}
@@ -75,64 +119,61 @@ function refresh() {
     <h4 on:click={() => showPrep = !showPrep}>1. Preparation <i class="fa fa-{showPrep == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
     {#if showPrep}
     <div transition:slide>
-      <button 
-        title={georeferenceBtnTitle}
-        disabled={!georeferenceBtnEnable}
-        onclick="window.location.href='{URLS.split}'">
-        <i class="fa fa-cut" />Split Document
-      </button>
-      <button 
-        title={georeferenceBtnTitle}
-        disabled={!georeferenceBtnEnable}
-        onclick="window.location.href='{URLS.georeference}'">
-        <i class="fa  fa-check-square-o" />No Split Needed
-      </button>
-    {#if STATUS == "unprepared"}
-    <p>
-      <a href="{URLS.split}">
-      <i class="fa fa-cut"></i>
-      prepare document</a>
-    </p>
-    <p>This document must be prepared before it can be georeferenced.</p>
-    {:else if STATUS == "splitting"}
-      <em><p>
-        Splitting in progress...
-      </p></em>
-    {:else}
-      <p>Prepared by 
-        <a href={SPLIT_SUMMARY.split_by.profile}>{SPLIT_SUMMARY.split_by.name}</a>,
-        {SPLIT_SUMMARY.date_str}
-      </p>
-      <p>Result:
-        {#if SPLIT_SUMMARY.no_split_needed}
-        No split needed.
-        {:else if SPLIT_SUMMARY.child_docs.length > 0}
-        Split into {SPLIT_SUMMARY.child_docs.length} new document{#if SPLIT_SUMMARY.child_docs.length != 1}s{/if},
-        each must be georeferenced individually.
-        {:else if SPLIT_SUMMARY.parent_doc}
-        Split from <a href={SPLIT_SUMMARY.parent_doc.urls.progress_page}>{SPLIT_SUMMARY.parent_doc.title}</a>.
-        {/if}
-      </p>
-      {#if SPLIT_SUMMARY.child_docs.length > 0}
-      <div class="documents-column">
-        {#each SPLIT_SUMMARY.child_docs as child}
-        <div class="document-item">
-          <div>
-            {child.title}
-          </div>
-          <img src={child.urls.thumbnail} alt={child.title} title={child.title}>
-          <div>
-            <ul>
-              <li><a href={child.urls.georeference} title="Georeference document">georeference &rarr;</a></li>
-              <li><a href={child.urls.progress_page} title="View progress">progress overview &rarr;</a></li>
-              <li><a href={child.urls.progress_page} title="Document detail">document detail &rarr;</a></li>
-            </ul>
-          </div>
-        </div>
-        {/each}
+      <div class="section-btn-row">
+        <button 
+          title={georeferenceBtnTitle}
+          disabled={!splitBtnEnabled}
+          onclick="window.location.href='{URLS.split}'"
+          class="{splitNeeded == true ? 'btn-chosen': ''}">
+          <i class="fa fa-cut" />Split Document
+        </button>
+        <button 
+          title={georeferenceBtnTitle}
+          disabled={!noSplitBtnEnabled}
+          on:click={() => {setSplit("no_split")}}
+          class="{splitNeeded == false ? 'btn-chosen': ''}">
+          <i class="fa fa-check-square-o" />No Split Needed
+        </button>
+        <button 
+          title={undoBtnTitle}
+          disabled={!undoBtnEnabled}
+          on:click={() => {setSplit("reset")}}>
+          <i class="fa fa-undo" />
+        </button>
       </div>
-      {/if}
-    {/if}
+      <div class="section-body">
+        {#if SPLIT_SUMMARY}
+          <p>{SPLIT_SUMMARY.date_str} by 
+            <a href={SPLIT_SUMMARY.user.profile}>{SPLIT_SUMMARY.user.name}</a>:
+            {#if !SPLIT_SUMMARY.split_needed}
+            No split needed.
+            {:else if SPLIT_SUMMARY.child_docs.length > 0}
+            Split into {SPLIT_SUMMARY.child_docs.length} new document{#if SPLIT_SUMMARY.child_docs.length != 1}s{/if},
+            each must be georeferenced individually.
+            {:else if SPLIT_SUMMARY.parent_doc}
+            Split from <a href={SPLIT_SUMMARY.parent_doc.urls.progress_page}>{SPLIT_SUMMARY.parent_doc.title}</a>.
+            {/if}
+          </p>
+          {#if SPLIT_SUMMARY.child_docs.length > 0}
+          <div class="documents-column">
+            {#each SPLIT_SUMMARY.child_docs as child}
+            <div class="document-item">
+              <div>
+                {child.title}
+              </div>
+              <img src={child.urls.thumbnail} alt={child.title} title={child.title}>
+              <div>
+                <ul>
+                  <li><strong>Status:</strong> {child.status}</li>
+                  <li><a href={child.urls.progress_page} title="Document detail">document detail &rarr;</a></li>
+                </ul>
+              </div>
+            </div>
+            {/each}
+          </div>
+          {/if}
+        {/if}
+      </div>
     </div>
     {/if}
   </section>
@@ -140,97 +181,114 @@ function refresh() {
     <h4 on:click={() => showGeoreference = !showGeoreference}>2. Georeferencing <i class="fa fa-{showGeoreference == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
     {#if showGeoreference}
     <div transition:slide>
-      <button 
-        title={georeferenceBtnTitle}
-        disabled={!georeferenceBtnEnable}
-        onclick="window.location.href='{URLS.georeference}'">
-        <i class="fa fa-map-pin" />{georeferenceBtnTitle}
-      </button>
-    <p>
-      {#if STATUS == "georeferencing"}
-      <em><p>
-        georeferencing in progress...
-      </p></em>
-      {/if}
-    </p>
-    <!-- {#if DOCUMENT.status == "georeferenced"} -->
-      {#each GEOREFERENCE_SESSIONS as sesh, n}
-      <p>
-      {#if n == 0}Georeferenced by {:else}Updated by {/if}
-        <a href={sesh.user.profile}>{sesh.user.name}</a>, {sesh.date_str} -
-        <em>
-        {sesh.gcps_ct} control point{#if sesh.gcps_ct != 1}s{/if} --
-        {sesh.status}{#if sesh.status != "completed"}...{/if}
-        </em>
-      </p>
-      {/each}
-    {#if GEOREFERENCE_SESSIONS.length > 0}
-    <table>
-      <caption>Georeferencing Sessions</caption>
-      <tr>
-        <th style="max-width:300px;">Date</th>
-        <th style="width:65px;">User</th>
-        <th style="width:65px;">GCPs</th>
-        <th>Status</th>
-      </tr>
-      {#each GEOREFERENCE_SESSIONS as sesh, n}
-      <tr>
-        <td>{sesh.date_str}</td>
-        <td><a href={sesh.user.profile}>{sesh.user.name}</a></td>
-        <td>{sesh.gcps_ct}</td>
-        <td>{sesh.status}</td>
-      </tr>
-      {/each}
-    </table>
-    {/if}
+      <div class="section-btn-row">
+        <button 
+          title={georeferenceBtnTitle}
+          disabled={!georeferenceBtnEnable}
+          onclick="window.location.href='{URLS.georeference}'">
+          <i class="fa fa-map-pin" />{georeferenceBtnTitle}
+        </button>
+      </div>
+      <div class="section-body">
+        {#if GEOREFERENCE_SUMMARY.gcp_geojson}
+        <table>
+          <caption>{GEOREFERENCE_SUMMARY.gcp_geojson.features.length} Control Points</caption>
+          <tr>
+            <th>Pixel X</th>
+            <th>Pixel Y</th>
+            <th>Lng</th>
+            <th>Lat</th>
+            <th>User</th>
+            <th>Note</th>
+          </tr>
+          {#each GEOREFERENCE_SUMMARY.gcp_geojson.features as feat}
+          <tr>
+            <td class="coord-digit">{feat.properties.image[0]}</td>
+            <td class="coord-digit">{feat.properties.image[1]}</td>
+            <td class="coord-digit">{Math.round(feat.geometry.coordinates[0]*1000000)/1000000}</td>
+            <td class="coord-digit">{Math.round(feat.geometry.coordinates[0]*1000000)/1000000}</td>
+            <td>{feat.properties.username}</td>
+            <td>{feat.properties.note}</td>
+          </tr>
+          {/each}
+        </table>
+        {/if}
+        {#if GEOREFERENCE_SUMMARY.sessions.length > 0}
+        <table>
+          <caption>Georeferencing Sessions</caption>
+          <tr>
+            <th>Date</th>
+            <th>User</th>
+            <th>GCPs</th>
+            <th>Status</th>
+          </tr>
+          {#each GEOREFERENCE_SUMMARY.sessions as sesh, n}
+          <tr>
+            <td>{sesh.datetime}</td>
+            <td><a href={sesh.user.profile}>{sesh.user.name}</a></td>
+            <td>{sesh.gcps_ct}</td>
+            <td>{sesh.status}</td>
+          </tr>
+          {/each}
+        </table>
+        {/if}
+      </div>
     </div>
     {/if}
   </section>
-  <section style="border-bottom:1px solid lightgray;">
+  <section>
     <h4 on:click={() => showTrim = !showTrim}>3. Trimming <i class="fa fa-{showTrim == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
     {#if showTrim}
       <div transition:slide>
-        <button 
-        title={trimBtnTitle}
-        disabled={!trimBtnEnable}
-        onclick="window.location.href='{URLS.trim}'">
-        <i class="fa fa-crop" />{trimBtnTitle}
-      </button>
-        {#each MASK_SESSIONS as sesh, n}
-        <p>
-        {#if n == 0}Trimmed by {:else}Adjusted by {/if}
-          <a href={sesh.user.profile}>{sesh.user.name}</a>, {sesh.date_str} -
-          {#if sesh.vertex_ct == 0}
-          no mask
-          {:else}
-          {sesh.vertex_ct} vertices
-          {/if}
-        </p>
-        {/each}
+        <div class="section-btn-row">
+          <button 
+            title={trimBtnTitle}
+            disabled={!trimBtnEnable}
+            onclick="window.location.href='{URLS.trim}'">
+            <i class="fa fa-crop" />{trimBtnTitle}
+          </button>
         </div>
-      {/if}
+        <div class="section-body">
+          {#if TRIM_SUMMARY.sessions.length > 0}
+          <table>
+            <caption>Trimming Sessions</caption>
+            <tr>
+              <th>Date</th>
+              <th>User</th>
+              <th>Vertices</th>
+            </tr>
+            {#each TRIM_SUMMARY.sessions as sesh}
+            <tr>
+              <td>{sesh.datetime}</td>
+              <td><a href={sesh.user.profile}>{sesh.user.name}</a></td>
+              <td>{sesh.vertex_ct}</td>
+            </tr>
+            {/each}
+          </table>
+          {/if}
+        </div>
+      </div>
+    {/if}
   </section>
-  
   {#if ACTION_HISTORY.length > 0}
   <section>
     <table>
-      <caption>History</caption>
+      <caption>Georeference History</caption>
       <tr>
-        <th style="max-width:300px;">Action Type</th>
-        <th style="width:65px;">User</th>
-        <th style="width:65px;">Date</th>
+        <th>Action</th>
+        <th>User</th>
+        <th>Date</th>
         <th>Details</th>
       </tr>
-      {#each ACTION_HISTORY as action, n}
+      {#each ACTION_HISTORY as action}
       <tr>
         <td>{action.type}</td>
         <td><a href={action.user.profile}>{action.user.name}</a></td>
-        <td>{action.date}</td>
+        <td>{action.datetime}</td>
         <td>{action.details}</td>
       </tr>
       {/each}
     </table>
-    
   </section>
   {/if}
 </main>
@@ -248,15 +306,25 @@ i {
 }
 
 button:enabled {
-  color: #fff;
+  color: white;
   background-color: #2c689c;
   border-radius: 4px;
   border: 1px solid transparent;
 }
 
 button:hover:enabled {
+  color: white;
   background-color: #204d74;
   border-color: #193b58;
+}
+
+.btn-chosen {
+  border: 2px solid #2c2c2c;
+  border-radius: 4px;
+}
+
+section {
+  border-bottom: 1px dashed #ddd;
 }
 
 section h4 i {
@@ -267,41 +335,41 @@ section h4 {
   cursor: pointer;
 }
 
-/* section .content {
-  -o-transition: all 1s;
-  -moz-transition: all 1s;
-  -webkit-transition: all 1s;
-  transition: all 1s;
-} */
-
-.section-content {
-  -webkit-transition-property: height, visibility;
-  transition-property: height, visibility;
-  -webkit-transition-duration: 0.35s;
-  transition-duration: 0.35s;
-  -webkit-transition-timing-function: ease;
-  transition-timing-function: ease;
+.section-body {
+  margin: 10px 0px;
 }
 
-/* table.tablesort {
-	width:100%;
+table {
+	min-width:100%;
+  border: 1px solid #ddd;
 }
 
-th.sortable, td {
-	padding: 5px;
+table caption {
+  color: #333;
+  text-align: center;
 }
 
-thead tr {
-  background-color: #eaeaea;
+th, td {
+	padding: 4px;
 }
 
-tbody tr:nth-child(even){
+th {
+  font-variant: small-caps;
+  font-size: .85em;
+}
+
+tr:nth-child(even) {
   background-color: #f6f6f6;
 }
 
-tbody tr:nth-child(odd){
+tr:nth-child(odd) {
   background-color: #ffffff;
-} */
+}
+
+.coord-digit {
+  font-family: Menlo, monospace;
+  font-size: .85em;
+}
 
 .documents-column {
   display: flex;
@@ -311,7 +379,6 @@ tbody tr:nth-child(odd){
 }
 
 .document-item {
-  /* padding: 20px; */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
