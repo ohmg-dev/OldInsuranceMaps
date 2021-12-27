@@ -35,6 +35,7 @@ from geonode.people.models import Profile
 
 from georeference.models import SplitDocumentLink
 from georeference.proxy_models import DocumentProxy, LayerProxy
+from georeference.utils import TKeywordManager
 
 from .utils import LOCParser
 from .enumerations import (
@@ -295,9 +296,8 @@ class Volume(models.Model):
 
     def serialize_items(self):
 
-        sgt = Thesaurus.objects.get(identifier="sgt")
-        sgt_keywords = ThesaurusKeyword.objects.filter(thesaurus=sgt)
-        sorted_items = {tk.about: [] for tk in sgt_keywords}
+        tkm = TKeywordManager()
+        sorted_items = {tk: [] for tk in tkm.lookup.keys()}
         sorted_items['layers'] = []
 
         for doc_proxy in self.get_all_documents():

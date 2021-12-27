@@ -166,7 +166,6 @@ let settingIndexLayer = false;
 						<ul>
 							<li><a href={document.urls.split} title="prepare this document">prepare &rarr;</a></li>
 							<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
-							<li><a href={document.urls.progress_page} title="view summary">progress overview &rarr;</a></li>
 						</ul>
 					</div>
 				</div>
@@ -191,7 +190,6 @@ let settingIndexLayer = false;
 						<ul>
 							<li><a href={document.urls.georeference} title="georeference this document">georeference &rarr;</a></li>
 							<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
-							<li><a href={document.urls.progress_page} title="view summary">progress overview &rarr;</a></li>
 						</ul>
 					</div>
 				</div>
@@ -227,7 +225,6 @@ let settingIndexLayer = false;
 						<ul>
 							<li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li>
 							<li><a href={layer.urls.detail} title={layer.title}>layer detail &rarr;</a></li>
-							<li><a href={layer.urls.progress_page} title="view summary">progress overview &rarr;</a></li>
 						</ul>
 						{#if settingIndexLayer}
 						<label>
