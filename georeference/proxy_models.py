@@ -11,8 +11,7 @@ from .models import (
     GeoreferencedDocumentLink,
     SplitDocumentLink,
     LayerMask,
-    Segmentation,
-    SplitSession,
+    SplitEvaluation,
     GeoreferenceSession,
     MaskSession,
     GCPGroup,
@@ -58,6 +57,13 @@ class DocumentProxy(object):
         return TKeywordManager().get_status(self.resource)
 
     @property
+    def split_evaluation(self):
+        try:
+            return SplitEvaluation.objects.get(document=self.resource)
+        except SplitEvaluation.DoesNotExist:
+            return None
+
+    @property
     def child_docs(self):
         links = SplitDocumentLink.objects.filter(document=self.id)
         return [DocumentProxy(i.object_id) for i in links]
@@ -72,39 +78,16 @@ class DocumentProxy(object):
         return parent
 
     @property
-    def split_session(self):
-        sesh = SplitSession.objects.filter(document=self.resource)
-        if len(sesh) == 0:
-            return None
-        else:
-            return sesh[0]
-    
-    @property
     def image_size(self):
         return Image.open(self.doc_file).size
 
     @property
-    def segmentation(self):
-        try:
-            return Segmentation.objects.get(document=self.id)
-        except Segmentation.DoesNotExist:
-            return None
-
-    @property
-    def segments(self):
-        segmentation = self.segmentation
-        if segmentation is not None:
-            return segmentation.segments
-        else:
-            None
-    
-    @property
     def cutlines(self):
-        segmentation = self.segmentation
-        if segmentation is not None:
-            return segmentation.cutlines
-        else:
-            return []
+        cutlines = []
+        if self.split_evaluation is not None:
+            if self.split_evaluation.cutlines is not None:
+                cutlines = self.split_evaluation.cutlines
+        return cutlines
 
     @property
     def gcp_group(self):
@@ -169,27 +152,36 @@ class DocumentProxy(object):
     def get_split_summary(self):
 
         if self.parent_doc is not None:
-            sesh = self.parent_doc.split_session
+            evaluation = self.parent_doc.split_evaluation
         else:
-            sesh = self.split_session
-
+            evaluation = self.split_evaluation
         # this would be an unevaluated document
-        if sesh is None:
+        if evaluation is None:
             return None
-        
-        sesh_info = sesh.serialize()
+
+        info = evaluation.serialize()
 
         parent_json = None
         if self.parent_doc:
             parent_json = self.parent_doc.serialize()
         child_json = [i.serialize() for i in self.child_docs]
 
-        sesh_info.update({
+        info.update({
             "parent_doc": parent_json,
             "child_docs": child_json,
         })
 
-        return sesh_info
+        return info
+
+    def get_georeference_summary(self):
+
+        sessions = self.get_georeference_sessions(serialized=True)
+
+        return {
+            "sessions": sessions,
+            "gcp_geojson": self.gcps_geojson,
+            "transformation": self.transformation,
+        }
 
     def get_georeference_sessions(self, serialized=False):
         sessions = GeoreferenceSession.objects.filter(document=self.id).order_by("created")
@@ -225,29 +217,33 @@ class DocumentProxy(object):
             "title": self.title,
             "status": self.status,
             "urls": self.get_extended_urls(),
+            "split_evaluation": self.split_evaluation.serialize() if \
+                self.split_evaluation else None,
         }
 
     def get_actions(self):
         actions = []
 
         if self.parent_doc is not None:
-            sesh = self.parent_doc.split_session.serialize()
+            sesh = self.parent_doc.split_evaluation.serialize()
             split_action = {
                 "type": "split",
-                "user": sesh['split_by'],
+                "user": sesh['user'],
                 "date": sesh['date_str'],
+                "datetime": sesh['datetime'],
                 "details": "split from " + self.parent_doc.title,
             }
-        elif self.split_session is not None:
-            sesh = self.split_session.serialize()
-            if sesh['no_split_needed'] is True:
+        elif self.split_evaluation is not None:
+            sesh = self.split_evaluation.serialize()
+            if sesh['split_needed'] is False:
                 details = "no split needed"
             else:
-                details = f"{sesh['segments_ct']} segments"
+                details = f"{sesh['divisions_ct']} segments"
             split_action = {
                 "type": "split",
-                "user": sesh['split_by'],
+                "user": sesh['user'],
                 "date": sesh['date_str'],
+                "datetime": sesh['datetime'],
                 "details": details,
             }
         else:
@@ -259,6 +255,7 @@ class DocumentProxy(object):
                 "type": "georeference",
                 "user": sesh['user'],
                 "date": sesh['date_str'],
+                "datetime": sesh['datetime'],
                 "details": f"{sesh['gcps_ct']} GCPs",
             })
         return actions
@@ -364,12 +361,19 @@ class LayerProxy(object):
         actions = []
         for sesh in self.get_mask_sessions(serialized=True):
             actions.append({
-                "type": "mask",
+                "type": "trim",
                 "date": sesh['date_str'],
+                "datetime": sesh['datetime'],
                 "user": sesh['user'],
                 "details": sesh['vertex_ct'],
             })
         return actions
+    
+    def get_trim_summary(self):
+
+        return {
+            "sessions": self.get_mask_sessions(serialized=True)
+        }
 
     def serialize(self):
 
@@ -407,15 +411,19 @@ def get_georeferencing_summary(resourceid):
         "georeference": doc_proxy.urls['georeference'],
         "trim": "",
     }
-    mask_sessions = []
+    trim_summary = {
+        "sessions": []
+    }
     layer_alternate = ""
 
     if layer_proxy is not None:
         layer_alternate = layer_proxy.alternate
         urls['layer_detail'] = layer_proxy.urls['detail']
         urls['trim'] = layer_proxy.urls['trim']
-        mask_sessions = layer_proxy.get_mask_sessions(serialized=True)
+        trim_summary = layer_proxy.get_trim_summary()
         actions += layer_proxy.get_action_history()
+
+    sorted_actions = sorted(actions, key = lambda e: e["datetime"])
 
     context = {
         "STATUS": doc_proxy.status,
@@ -424,9 +432,9 @@ def get_georeferencing_summary(resourceid):
         "LAYER_ALTERNATE": layer_alternate,
         "URLS": urls,
         "SPLIT_SUMMARY": doc_proxy.get_split_summary(),
-        "GEOREFERENCE_SESSIONS": doc_proxy.get_georeference_sessions(serialized=True),
-        "MASK_SESSIONS": mask_sessions,
-        "ACTION_HISTORY": actions,
+        "GEOREFERENCE_SUMMARY": doc_proxy.get_georeference_summary(),
+        "TRIM_SUMMARY": trim_summary,
+        "ACTION_HISTORY": sorted_actions,
     }
     return context
 
@@ -439,11 +447,11 @@ def get_search_item_info(resource_type, resource_id):
     status = "n/a"
     # create full suite of links, without any urls
     linkset = {
-        # "overview": {
-        #     "title": "Progress Overview",
-        #     "icon": "fa-list-ol",
-        #     "url": "",
-        # },
+        "overview": {
+            "title": "Progress Overview",
+            "icon": "fa-list-ol",
+            "url": "",
+        },
         "prepare": {
             "title": "Prepare Document",
             "icon": "fa-cut",
@@ -476,7 +484,7 @@ def get_search_item_info(resource_type, resource_id):
         status = proxy.status
         proxy_urls = proxy.get_extended_urls()
 
-        # linkset["overview"]["url"] = proxy_urls['progress_page']
+        linkset["overview"]["url"] = proxy_urls['detail']
         if status == "unprepared":
             linkset["prepare"]["url"] = proxy_urls['split']
         if status == "prepared":

@@ -20,22 +20,18 @@
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from django.contrib.auth import get_user_model
-from geonode.documents.models import Document
-from geonode.layers.models import Layer
 
-# from .splitter import Splitter
 from .models import (
+    SplitEvaluation,
     GeoreferenceSession,
-    SplitSession,
 )
 
 logger = get_task_logger(__name__)
 
 @shared_task
 def split_image_as_task(sessionid):
-    session = SplitSession.objects.get(pk=sessionid)
-    session.run()
+    evaluation = SplitEvaluation.objects.get(pk=sessionid)
+    evaluation.run()
 
 @shared_task
 def georeference_document_as_task(sessionid):

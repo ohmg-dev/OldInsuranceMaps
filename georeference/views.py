@@ -16,12 +16,13 @@ from georeference.tasks import (
 from .models import (
     LayerMask,
     MaskSession,
-    SplitSession,
+    SplitEvaluation,
     GeoreferenceSession,
 )
 from .proxy_models import (
     DocumentProxy,
     LayerProxy,
+    get_georeferencing_summary,
 )
 from .utils import MapServerManager
 from .georeferencer import Georeferencer
@@ -35,7 +36,6 @@ class SummaryJSON(View):
 
     def get(self, request, docid):
 
-        from .proxy_models import get_georeferencing_summary
         if docid:
             response = get_georeferencing_summary(docid)
             return JsonResponse(response)
@@ -73,32 +73,44 @@ class SplitView(View):
         doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
 
         body = json.loads(request.body)
-        cutlines = body.get("lines", [])
-        operation = body.get("operation", "preview")
-        no_split = body.get("no_split")
+        cutlines = body.get("lines")
+        operation = body.get("operation")
 
         if operation == "preview":
-            splitter = Splitter(image_file=doc_proxy.doc_file.path)
-            segments = splitter.generate_divisions(cutlines)
-            return JsonResponse({"success": True, "polygons": segments})
 
-        elif operation == "submit":
-            if no_split is True:
-                segments = None
-                cutlines = None
-            else:
-                splitter = Splitter(image_file=doc_proxy.doc_file.path)
-                segments = splitter.generate_divisions(cutlines)
+            evaluation = SplitEvaluation(
+                document=doc_proxy.resource,
+                cutlines=cutlines,
+            )
+            divisions = evaluation.preview_divisions()
+            return JsonResponse({"success": True, "divisions": divisions})
 
-            session = SplitSession.objects.create(
+        elif operation == "split":
+
+            evaluation = SplitEvaluation.objects.create(
                 document=doc_proxy.resource,
                 user=request.user,
-                no_split_needed=no_split,
-                segments_used=segments,
-                cutlines_used=cutlines,
+                split_needed=True,
+                cutlines=cutlines,
             )
 
-            split_image_as_task.apply_async((session.pk, ), queue="update")
+            split_image_as_task.apply_async((evaluation.pk, ), queue="update")
+
+            return JsonResponse({"success":True})
+        
+        elif operation == "no_split":
+
+            evaluation = SplitEvaluation.objects.create(
+                document=doc_proxy.resource,
+                user=request.user,
+                split_needed=False,
+            )
+            evaluation.run()
+            return JsonResponse({"success":True})
+        
+        elif operation == "reset":
+
+            SplitEvaluation.objects.get(document=doc_proxy.resource).delete()
 
             return JsonResponse({"success":True})
 
