@@ -3,14 +3,14 @@
  "model": "base.thesaurus",
  "pk": 1000,
  "fields": {
-  "identifier": "sgt",
+  "identifier": "georeference",
   "title": "Georeferencing Status",
   "date": "2021-10-08",
   "description": "Georeferencing Status",
-  "slug": "sgt",
-  "about": "sgt",
+  "slug": "georeference",
+  "about": "georeference",
   "card_min": 0,
-  "card_max": 0,
+  "card_max": 1,
   "facet": true,
   "order": 0
  }
@@ -28,6 +28,15 @@
   "model": "base.thesauruskeyword",
   "pk": 1001,
   "fields": {
+   "about": "needs review",
+   "alt_label": "Needs Review",
+   "thesaurus": 1000
+  }
+},
+{
+  "model": "base.thesauruskeyword",
+  "pk": 1002,
+  "fields": {
     "about": "splitting",
     "alt_label": "Splitting - in progress",
     "thesaurus": 1000
@@ -35,7 +44,16 @@
 },
 {
   "model": "base.thesauruskeyword",
-  "pk": 1002,
+  "pk": 1003,
+  "fields": {
+    "about": "split",
+    "alt_label": "Split",
+    "thesaurus": 1000
+  }
+},
+{
+  "model": "base.thesauruskeyword",
+  "pk": 1004,
   "fields": {
     "about": "prepared",
     "alt_label": "Prepared",
@@ -44,7 +62,7 @@
 },
 {
   "model": "base.thesauruskeyword",
-  "pk": 1003,
+  "pk": 1005,
   "fields": {
     "about": "georeferencing",
     "alt_label": "Georeferencing - in progress",
@@ -53,7 +71,7 @@
 },
 {
   "model": "base.thesauruskeyword",
-  "pk": 1004,
+  "pk": 1006,
   "fields": {
     "about": "georeferenced",
     "alt_label": "Georeferenced",
@@ -62,7 +80,7 @@
 },
 {
   "model": "base.thesauruskeyword",
-  "pk": 1005,
+  "pk": 1007,
   "fields": {
     "about": "trimming",
     "alt_label": "Trimming - in progress",
@@ -71,10 +89,10 @@
 },
 {
   "model": "base.thesauruskeyword",
-  "pk": 1006,
+  "pk": 1008,
   "fields": {
-    "about": "complete",
-    "alt_label": "Complete",
+    "about": "trimmed",
+    "alt_label": "Trimmed",
     "thesaurus": 1000
   }
 }
