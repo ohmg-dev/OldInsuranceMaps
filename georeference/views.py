@@ -31,48 +31,6 @@ logger = logging.getLogger("geonode.georeference.views")
 
 BadPostRequest = HttpResponseBadRequest("invalid post content")
 
-class GeoreferenceSummary(View):
-
-    def generate_summary_context(self, docid):
-
-        doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
-        layer_proxy = doc_proxy.get_layer_proxy()
-        if layer_proxy is not None:
-            layer_json = layer_proxy.serialize()
-            mask_sessions = layer_proxy.get_mask_sessions(serialized=True)
-        else:
-            layer_json = None
-            mask_sessions = []
-
-        context = {
-            "DOCUMENT": doc_proxy.serialize(),
-            "LAYER": layer_json,
-            "SPLIT_SUMMARY": doc_proxy.get_split_summary(),
-            "GEOREFERENCE_SESSIONS": doc_proxy.get_georeference_sessions(serialized=True),
-            "MASK_SESSIONS": mask_sessions,
-        }
-
-        return context
-
-    def get(self, request, docid):
-
-        context = self.generate_summary_context(docid)
-        svelte_params = {
-            "CSRFTOKEN": csrf.get_token(request),
-            "USER_AUTHENTICATED": request.user.is_authenticated,
-        }
-        svelte_params.update(context)
-
-        return render(
-            request,
-            "georeference/summary.html",
-            context={"svelte_params": svelte_params})
-
-    def post(self, request, docid):
-        
-        response = self.generate_summary_context(docid)
-        return JsonResponse(response)
-
 class SummaryJSON(View):
 
     def get(self, request, docid):
