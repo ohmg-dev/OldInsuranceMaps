@@ -37,8 +37,6 @@ class Command(BaseCommand):
                 gmodels.GCP,
                 gmodels.GCPGroup,
                 gmodels.GeoreferenceSession,
-                gmodels.SplitSession,
-                gmodels.Segmentation,
                 gmodels.SplitDocumentLink,
                 gmodels.LayerMask,
                 gmodels.MaskSession,
