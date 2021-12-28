@@ -52,7 +52,7 @@
 }
 
 .interface-mask {
-  height: 697px; /* 700 - 2 * 1.5px borders on the main component */
+  height: 597px; /* 600 - 2 * 1.5px borders on the main component */
   width: 100%;
   position: absolute;
   background: rgba(255, 255, 255, 0.75);

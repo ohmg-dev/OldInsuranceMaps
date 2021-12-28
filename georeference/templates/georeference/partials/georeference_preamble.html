@@ -12,11 +12,11 @@
   id="help-panel"
   class="collapse"
   style="font-size:1.25em; background:lightgray; border-radius: 7px; padding:20px; margin-top:20px; margin-bottom:20px;">
-  <h4><strong>Overview</strong></h4>
+  <h4><strong>Background</strong></h4>
   <p>
   Use this interface to create the <strong>ground control points</strong> that will be used to georeference this document. creating a ground control point requires two clicks&mdash;once in the left panel and once in the right. This records a linkage between a spot on the original map document and the real-world latitude/longitude coordinates for that location.
   </p>
-  <figure style="margin-bottom:10px;">
+  <figure style="margin-bottom:10px; text-align:center;">
       <img style="width:100%" src="{% static 'img/alex-3-georeference.jpg' %}" />
       <figcaption style="font-style:italic; font-size:.85em;">Once 3 control points are present, a semi-transparent preview will appear.</figcaption>
   </figure>
@@ -30,11 +30,8 @@
       <li>Start a control point by clicking on the map document (left).</li>
       <li>Finish it by clicking on corresponding location in the web map (right).</li>
       <li>You can pan and zoom in both panels during this process.</li>
-      <li>You can add a note to a control point. This is helpful if you are not 100% confident in your placement, or just want to point something out.</li>
-  </ul>
-  <p>Modify a control point:</p>
-  <ul>
-      <li>You can modify an existing point at any time by clicking and dragging it.</li>
+      <li>You can add a note to a control point. This is helpful if you are not 100% confident in your placement, or just want to point something out to future users.</li>
+      <li>You can modify a control point at any time by clicking and dragging it.</li>
   </ul>
   <p>Deleting a control point:</p>
   <ul>
@@ -43,9 +40,14 @@
   </ul>
   <p>Saving Control Points:</p>
   <ul>
-    <li>Click <code>Save Control Points</code> to start the georeferencing process, which may take a few minutes to complete. You will be redirected back to the Document detail page in the meantime.</li>
     <li>You can only save the control points once you have 3 or more.</li>
-    <li>Click <i class="fa fa-refresh"></i> to reset the interface. This will remove all changes you have made, restoring original control points if they existed.</li>
+    <li>Click <code>Save Control Points</code> when you are satisfied. This will start the warping process, which may take a few minutes to complete. You will be redirected back to the Document detail page in the meantime.</li>
+    <li>Click <i class="fa fa-refresh"></i> to reset the interface. This will remove all changes you have made.</li>
+  </ul>
+  <p>Editing existing control points:</p>
+  <ul>
+      <li>If someone else has already georeferenced this document, feel free to modify their control points (or add more), to improve the georeferencing&mdash;this is meant to be an iterative process.</li>
+      <li>Click <i class="fa fa-refresh"></i> to discard your changes and restore the original control points.</li>
   </ul>
   <p>Managing layers:</p>
   <ul>
@@ -59,9 +61,16 @@
   </ul>
   <p>Transformations:</p>
   <ul>
-    <li>It is recommended that you use the default transformation (Polynomial).</li>
-    <li>Switching to Thin Plate Spline will allow the image to distort and warp to match the control points, which <em>could</em> be necessary in certain circumstances.</li>
-    <li>Learn more about transformation algorithms in the <a href="https://docs.qgis.org/3.16/en/docs/user_manual/working_with_raster/georeferencer.html#available-transformation-algorithms">QGIS documentation</a> (note: we only use the Polynomial 1 transformation here).</li>
+    <li>It is recommended that you use the default transformation, <code>Polynomial</code>.</li>
+    <li>Switching to <code>Thin Plate Spline</code> will allow the image to distort and warp to fit all control points exactly, which <em>could</em> be necessary in rare circumstances.</li>
+    <li>You can read more about GDAL transformation algorithms in the <a href="https://docs.qgis.org/3.16/en/docs/user_manual/working_with_raster/georeferencer.html#available-transformation-algorithms" target="_blank">QGIS documentation <i class="fa fa-external-link"></i></a> (note: we are only using the Polynomial 1 transformation here).</li>
+  </ul>
+  <p>Tips:</p>
+  <ul>
+    <li>Prioritize finding control points that are widely spread across the map.</li>
+    <li>Look for locations that have changed the least over time. For example, the center of street interections, railroad crossings, or, in some cases, the corners or centers of old buildings.</li>
+    <li>Locations to avoid using are the edges of city blocks, sidewalks, or street intersections of which you can only see a portion.</li>
+    <li>Historical maps may have mistakes, or street names may have changed over time.</li>
   </ul>
 </div>
 </div>

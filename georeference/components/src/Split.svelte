@@ -57,7 +57,7 @@ let disableInterface = !USER_AUTHENTICATED;
 
 let currentTxt;
 $: {
-  if (divisions.length == 0) {
+  if (divisions.length <= 1) {
     currentTxt = "If this image needs to be split, draw cut-lines across it as needed. Click once to start or continue a line, double-click to finish."
   } else {
     const linesTxt = cutLines.length + " " + (cutLines.length === 1 ? 'cut-line' : 'cut-lines');
