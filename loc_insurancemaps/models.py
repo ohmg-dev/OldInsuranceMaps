@@ -45,6 +45,20 @@ from .enumerations import (
 )
 from .renderers import convert_img_format, generate_full_thumbnail_content
 
+def get_volume(resource_type, res_id):
+
+    if resource_type == "document":
+        dp = DocumentProxy(res_id)
+    elif resource_type == "layer":
+        p = LayerProxy(res_id)
+        dp = p.get_document_proxy()
+    if dp.parent_doc is not None:
+        doc = dp.parent_doc.get_document()
+    else:
+        doc = dp.get_document()
+    volume = Sheet.objects.get(document=doc).volume
+    return volume
+
 def format_json_display(data):
     """very nice from here:
     https://www.laurencegellert.com/2018/09/django-tricks-for-processing-and-storing-json/"""

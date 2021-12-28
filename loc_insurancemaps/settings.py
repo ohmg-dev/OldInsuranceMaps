@@ -73,8 +73,9 @@ if 'georeference' in INSTALLED_APPS:
 TEMPLATES[0]['DIRS'].insert(0, os.path.join(LOCAL_ROOT, "templates"))
 STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "static"))
 STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "components", "public", "build"))
-# add context processor
+# add context processor and middleware
 TEMPLATES[0]['OPTIONS']['context_processors'].append("loc_insurancemaps.context_processors.loc_info")
+MIDDLEWARE += ("loc_insurancemaps.middleware.LOCMiddleware", )
 
 # no trailing slash on server location
 IIIF_SERVER_ENABLED = False
