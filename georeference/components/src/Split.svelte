@@ -1,5 +1,4 @@
 <script>
-
 import {onMount} from 'svelte';
 
 import 'ol/ol.css';
@@ -59,10 +58,10 @@ let disableInterface = !USER_AUTHENTICATED;
 let currentTxt;
 $: {
   if (divisions.length == 0) {
-    currentTxt = "If this image needs to be split, draw lines across it as needed. Click to start, double click to finish."
+    currentTxt = "If this image needs to be split, draw cut-lines across it as needed. Click once to start or continue a line, double-click to finish."
   } else {
-    const linesTxt = cutLines.length + " " + (cutLines.length === 1 ? 'line' : 'lines');
-    const divsTxt = divisions.length + " " + (divisions.length === 1 ? 'part' : 'parts') + " will be made";
+    const linesTxt = cutLines.length + " " + (cutLines.length === 1 ? 'cut-line' : 'cut-lines');
+    const divsTxt = divisions.length + " new " + (divisions.length === 1 ? 'document' : 'documents') + " will be made";
     currentTxt = "Split summary: " + linesTxt + " | " + divsTxt;
   }
 }
@@ -273,8 +272,10 @@ function process(operation) {
     })
     .then(response => response.json())
     .then(result => {
-      if (operation == "split" || operation == "no_split") {
+      if (operation == "split") {
         window.location.href = DOCUMENT.urls.detail;
+      } else if (operation == "no_split") {
+        window.location.href = DOCUMENT.urls.georeference;
       } else if (operation == "preview") {
         divisions = result['divisions'];
       }

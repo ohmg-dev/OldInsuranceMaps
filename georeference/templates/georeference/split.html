@@ -1,77 +1,12 @@
-{% extends "documents/document_base.html" %}
+{% extends "geonode_base.html" %}
 {% load i18n %}
-{% load dialogos_tags %}
-{% load pinax_ratings_tags %}
-{% load bootstrap_tags %}
-{% load base_tags %}
-{% load guardian_tags %}
 {% load staticfiles %}
 
 {% load django_svelte %}
 
 {% block title %}{{ svelte_params.DOCUMENT.title }} — Split{% endblock %}
 
-{% block head %}
-{{ block.super }}
-{% endblock %}
-
-{% block body_class %}{% trans "documents" %}{% endblock %}
-
 {% block body_outer %}
-
-<div style="float:right; text-align:center; margin-top: 15px;">
-    <a href="{{ svelte_params.DOCUMENT.urls.detail }}">back to document detail &rarr;</a>
-</div>
-<h1 style="font-size: 2.1em;">{{ svelte_params.DOCUMENT.title }}</h1>
-<hr>
-<h4>Check: Does this image need to be split before it can be georeferenced? <a href="#" data-toggle="collapse" data-target=".help-panel">Tell me more about this &darr;</a></h4>
-<div class="help-panel collapse" style="font-size:1.25em; background:lightgray; border-radius: 7px; padding:20px; margin-top:20px; margin-bottom:20px;">
-    <div class="row">
-        <div class="col-xs-12">
-            <p>Sometimes, old maps will cover discontiguous areas, especially when the mapmakers were trying to 
-            fit a lot of content into a single page. In these cases, the image must be split into
-            separate documents, and then each one can be georeferenced individually. Typically, you'll find
-            <strong>strong black lines</strong> delineating different parts of the map. The image must be split along those lines.
-        </div>
-        <div class="col-sm-4" style="text-align: center;">
-            <img height="300px" src="{% static 'img/split-example-p1-anno.jpg' %}" />
-            <p><em>This map must be split into four different pieces.</em></p>
-        </div>
-        <div class="col-sm-4" style="text-align: center;">
-            <img height="300px" src="{% static 'img/split-example-p2-anno.jpg' %}" />
-            <p><em>This map must be split into two pieces.</em></p>
-        </div>
-        <div class="col-sm-4" style="text-align: center;">
-            <img height="300px" src="{% static 'img/split-example-p3-anno.jpg' %}" />
-            <p><em>This map shows only one part of town, so it should not be split.</one></em></p>
-        </div>
-        <div class="col-xs-12">
-            <p>
-                Feel free to inspect the map in the interface below, and then click "Don't Split" if 
-                the process is not necessary. You will then be brought to the georeferencing interface.
-            </p>
-            <p>
-                If the image does need to be split, draw lines across the interface and watch as the preview
-                updates to show you how many new documents will be made.
-            </p>
-            <ul>
-                <li>Click once to start or continue a line&mdash;double-click to end it</li>
-                <li>You can <i class="fa fa-refresh"></i>
-                    the drawing at any time to start over</li>
-                <li>Click "Split!" when you are ready.</li>
-                <li>New documents will be made from each split part, and each one can be georeferenced separately.</li>
-            </ul>
-            <p>
-                <strong>
-                Note: This evaluation is a very important initial step that should only be done once,
-                so if you want to skip this step and jump right into georeferencing, start with <a href="/documents/?limit=20&offset=0&tkeywords__id__in=1002">
-                documents that are ready for georeferencing</a>.
-                </strong>
-            </p>
-        </div>
-    </div>
-</div>
-
-{% display_svelte "Split.svelte" svelte_params %}
-
+    {% include "georeference/partials/split_preamble.html" %}
+    {% display_svelte "Split.svelte" svelte_params %}
 {% endblock %}

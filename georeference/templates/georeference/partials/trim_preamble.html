@@ -1,0 +1,16 @@
+{% load staticfiles %}
+
+<div style="float:right; text-align:center; margin-top: 15px;">
+  <a href="{{ svelte_params.LAYER.urls.detail }}">back to layer detail &rarr;</a>
+</div>
+<h1 style="font-size: 2.1em">{{ svelte_params.LAYER.title }}</h1>
+<hr>
+<h4>Create a mask to trim the edges of this layer.
+    <a href="#" data-toggle="collapse" data-target="#help-panel">Tell me more about this... &darr;</a>
+</h4>
+<div
+  id="help-panel"
+  class="collapse"
+  style="font-size:1.25em; background:lightgray; border-radius: 7px; padding:20px; margin-top:20px; margin-bottom:20px;">
+  <h4><strong>Overview</strong></h4>
+</div>

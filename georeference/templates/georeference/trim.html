@@ -1,38 +1,12 @@
-{% extends "documents/document_base.html" %}
+{% extends "geonode_base.html" %}
 {% load i18n %}
-{% load dialogos_tags %}
-{% load pinax_ratings_tags %}
-{% load bootstrap_tags %}
-{% load base_tags %}
-{% load guardian_tags %}
 {% load staticfiles %}
 
 {% load django_svelte %}
 
 {% block title %}{{ svelte_params.LAYER.title }} — Trim{% endblock %}
 
-{% block head %}
-{{ block.super }}
-{% endblock %}
-
-{% block body_class %}{% trans "documents" %}{% endblock %}
-
 {% block body_outer %}
-
-<div style="float:right; text-align:center; margin-top: 15px;">
-    <a href="{{ svelte_params.LAYER.urls.detail }}">back to layer detail &rarr;</a>
-</div>
-<h1 style="font-size: 2.1em">{{ svelte_params.LAYER.title }}</h1>
-<hr>
-<h4>Draw a mask polygon to trim the edges of this layer. <a href="#" data-toggle="collapse" data-target=".help-panel">Tell me more about this &darr;</a></h4>
-<div class="help-panel collapse" style="font-size:1.25em; background:lightgray; border-radius: 7px; padding:20px; margin-top:20px; margin-bottom:20px;">
-    <div class="row">
-        <div class="col-xs-12">
-            <p><em>content coming soon... <a href="https://docs.oldinsurancemaps.net" target="_blank">full documentation</a></em></p>
-        </div>
-    </div>
-</div>
-
-{% display_svelte "Trim.svelte" svelte_params %}
-
+    {% include "georeference/partials/trim_preamble.html" %}
+    {% display_svelte "Trim.svelte" svelte_params %}
 {% endblock %}

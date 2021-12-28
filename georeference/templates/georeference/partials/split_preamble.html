@@ -1,0 +1,54 @@
+{% load staticfiles %}
+
+<div style="float:right; text-align:center; margin-top: 15px;">
+  <a href="{{ svelte_params.DOCUMENT.urls.detail }}">back to document detail &rarr;</a>
+</div>
+<h1 style="font-size: 2.1em;">{{ svelte_params.DOCUMENT.title }}</h1>
+<hr>
+<h4>Check: Does this image need to be split before it can be georeferenced?
+    <a href="#" data-toggle="collapse" data-target="#help-panel">Tell me more about this... &darr;</a>
+</h4>
+<div
+  id="help-panel"
+  class="collapse"
+  style="font-size:1.25em; background:lightgray; border-radius: 7px; padding:20px; margin-top:20px; margin-bottom:20px;">
+    <h4><strong>Overview</strong></h4>
+    <p>Sometimes an old map document will cover discontiguous areas, especially when the mapmakers were trying to 
+      fit a lot of content into a single page. In these cases, each separate area in the original document must be split into
+      its own new document, so that each area can be georeferenced on its own. Typically, you'll find
+      <strong>strong black lines</strong> delineating different parts of the map. The document must be split along those lines.
+    </p>
+    <div style="display:flex; flex-direction:row;">
+        <figure style="width:33%; padding:10px; text-align:center;">
+            <img width="100%" src="{% static 'img/split-example-p1-anno.jpg' %}" />
+            <figcaption style="font-style:italic; font-size:.85em;">This map must be split into four new documents.</figcaption>
+        </figure>
+        <figure style="width:33%; padding:10px; text-align:center;">
+            <img width="100%" src="{% static 'img/split-example-p2-anno.jpg' %}" />
+            <figcaption style="font-style:italic; font-size:.85em;">This map must be split into two new documents.</figcaption>
+        </figure>
+        <figure style="width:33%; padding:10px; text-align:center;">
+            <img width="100%" src="{% static 'img/split-example-p3-anno.jpg' %}" />
+            <figcaption style="font-style:italic; font-size:.85em;">This map shows only one part of town, so it should not be split.</figcaption>
+        </figure>
+    </div>
+    <p><em>
+        Note: This evaluation is a very important initial step that should only be done once,
+        so if you want to skip this step and jump right into georeferencing, start with <a href="/documents/?limit=20&offset=0&tkeywords__id__in=1002">
+        documents that are ready for georeferencing</a>.
+        </em>
+    </p>
+    <h4><strong>Using the Interface</strong></h4>
+    <p>If this document <strong>does not</strong> to be split:</p>
+    <ul>
+        <li>Click <code>No Split Needed</code>.</li>
+        <li>You will be redirected to the document detail page, from which you can continue the georeferencing process.</li>
+    </ul>
+    <p>If this document <strong>does</strong> need to be split</p>
+    <ul>
+        <li>Use the interface to create as many cut-lines as are needed to fully split this document.</li>
+        <li>If you have one or more valid cut-lines, a preview will appear showing how the image will be split.</li>
+        <li>Click <code>Split</code> when you are ready.</li>
+        <li>You will be redirected to the document detail page, while the split process runs in the background.</li>
+    </ul>
+</div>

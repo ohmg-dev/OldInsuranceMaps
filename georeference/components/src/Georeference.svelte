@@ -440,7 +440,7 @@ function syncGCPList() {
       "note": props.note,
     });
   });
-  previewGCPs();
+  process("preview");
 }
 
 function updateNote() {
@@ -453,7 +453,7 @@ function updateNote() {
 }
 
 // Triggered by the inProgress boolean
-function updateInterface(gcpInProgress) {
+function updateInterface(gcpInProgress, syncPanelWidth) {
 
   if (syncPanelWidth) {
     panelFocus = ( gcpInProgress ? "right" : "left" )
@@ -467,7 +467,7 @@ function updateInterface(gcpInProgress) {
     currentTxt = ( gcpInProgress ? completeTxt : beginTxt );
   }
 }
-$: updateInterface(inProgress)
+$: updateInterface(inProgress, syncPanelWidth)
 
 // triggered by a change in the basemap id
 function setBasemap(basemapId) {
@@ -618,10 +618,6 @@ function process(operation){
     });
 }
 
-// wrappers for the backend view to process GCPs
-function previewGCPs() { process("preview"); }
-function submitGCPs() { process("submit"); }
-
 // A couple of functions that are attached to the window itself
 
 // wrapper function to call view for db cleanup as needed
@@ -684,7 +680,7 @@ function handleKeydown(e) {
       <label><input type=checkbox bind:checked={syncPanelWidth}> autosize</label>
     </div>
     <div>
-        <button on:click={submitGCPs} disabled={gcpList.length < 3 || unchanged} title="Save control points">Save Control Points</button>
+        <button on:click={() => { process("submit") }} disabled={gcpList.length < 3 || unchanged} title="Save control points">Save Control Points</button>
         <button title="Return to document detail" onclick="window.location.href='{DOCUMENT.urls.detail}'">Cancel</button>
         <button title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
     </div>
@@ -742,7 +738,7 @@ function handleKeydown(e) {
         <label style="margin-top:5px;" title="Set georeferencing transformation">
           Transformation:
           <!-- svelte-ignore a11y-no-onchange -->
-          <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={previewGCPs}>
+          <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={() => { process("preview"); }}>
             {#each transformations as trans}
               <option value={trans.id}>{trans.name}</option>
             {/each}
