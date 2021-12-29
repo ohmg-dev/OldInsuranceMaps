@@ -169,7 +169,7 @@ class LOCParser(object):
         location_tags = [i for i in location_tags if not i in used_tags]
         if len(location_tags) > 0:
             msg = f"WARNING: unparsed location tags - {self.identifier} - {title} - {location_tags}"
-            print(msg)
+            # print(msg)
 
         self.extra_location_tags = location_tags
 
