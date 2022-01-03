@@ -1,39 +1,42 @@
-site_name: Louisiana Maps Georeferencing Commons
-site_description: 'Documentation for Old Insurance Maps'
+site_name: La. Historical Map Georeferencer
+site_description: 'Documentation for oldinsurancemaps.net'
 site_author: 'mradamcox'
 site_url: https://oldinsurancemaps.net
 
-# repo_url: https://github.com/Siphalor/mkdocs-custommill
-toc_info: true
+repo_url: https://github.com/mradamcox/loc-insurancemaps
+#toc_info: true
 
 dev_addr: '127.0.0.1:8001'
 
 nav:
-  - Home: home.md
-  - User Guide: user-guide.md
-  - Content: content.md
+  - Overview: overview.md
+  - Connecting to the LOC: connecting-to-loc.md
+  - Georeferencing Process: georeferencing-process.md
+  - Tutorial: tutorial.md
   - About: about.md
 
 theme:
   name: 'custommill'
-  home: home
+  home: overview
   main_color: '#123B4F'
   lighter_gray: '#EAE0C1'
+  toc_depth: 2
 
 markdown_extensions:
   - admonition
   - pymdownx.tabbed
   - markdown_captions
+  - footnotes
 
 extra_css: 
   - css/custom.css
 
 extra:
-  version: 1.1
+  version: 0.1
   nav_links:
   - icon: home
-    text: Go to LaMGC site
+    text: oldinsurancemaps.net
     url: https://oldinsurancemaps.net
-  - icon: book
+  - icon: map
     text: LOC Sanborn Maps
     url: https://loc.gov/collections/sanborn-maps
