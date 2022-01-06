@@ -118,6 +118,15 @@ h1, h2, h3, h4, h5, h6 {
     color: #3a3a3a;
 }
 
+.consent-dl dt {
+	font-weight: bold;
+}
+
+.consent-dl dd {
+	/* font-style: italic; */
+	padding-left: 10px;
+}
+
 /* pure css loading bar */
 /* from https://loading.io/css/ */
 .lds-ellipsis {
