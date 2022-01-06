@@ -30,8 +30,13 @@
                   {% if redirect_field_value %}
                       <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
                   {% endif %}
+                  <!-- study consent section -->
+                  <div style="margin-bottom: 20px;">
+                    <label><input id="consent-input" type="checkbox"> I consent</label>
+                  </div>
+                  <!-- end study consent section -->
                   <div class="form-actions">
-                      <button type="submit" class="btn btn-primary">{% trans "Sign up" %}</button>
+                      <button id="submit-signup" type="submit" class="btn btn-primary disabled">{% trans "Sign up" %}</button>
                   </div>
               </fieldset>
           </form>
@@ -44,6 +49,9 @@
     <script type="text/javascript">
         $(document).ready(function() {
             $('#id_username').focus();
+            $('#consent-input').on('click', function() {
+                $('#submit-signup').toggleClass("disabled");
+            })
         });
     </script>
 {% endblock %}
