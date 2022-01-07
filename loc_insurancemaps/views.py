@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFilter
 
 from guardian.shortcuts import get_perms, get_objects_for_user
 
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.db.models import F
 from django.conf import settings
@@ -263,13 +263,7 @@ class VolumeDetail(View):
 
     def get(self, request, volumeid):
 
-        try:
-            volume = Volume.objects.get(pk=volumeid)
-        except Volume.DoesNotExist:
-            volume = Importer().import_volume(volumeid)
-            if volume is None:
-                raise Http404
-
+        volume = get_object_or_404(Volume, pk=volumeid)
         volume_json = volume.serialize()
 
         gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
