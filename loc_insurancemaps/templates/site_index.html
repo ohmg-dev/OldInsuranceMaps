@@ -54,7 +54,7 @@
           <div class="showcase-tile-title">
             <a href="{% url 'volumes_list' %}">
               <span class="i i-volume i-volume-lg"></span>&nbsp;
-              <span>{{ volume_ct|default:_("No") }} {% blocktrans count counter=volume_ct %}Volume{% plural %}Volumes{% endblocktrans %}</span>
+              <span>{{ volume_ct.started }}/{{ volume_ct.total}} {% blocktrans %}Volumes Started{% endblocktrans %}</span>
             </a>
           </div>
           <p>{% trans 'Registered users load old fire insurance map Volumes to begin georeferencing their map content.' %}</p>
