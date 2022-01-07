@@ -15,7 +15,13 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "operation",
-            choices=["import", "summarize", "clean", "initialize-volume"],
+            choices=[
+                "import",
+                "summarize",
+                "clean",
+                "initialize-volume",
+                "import-volumes"
+            ],
             help="the identifier of the LoC resource to add",
         )
         parser.add_argument(
@@ -100,6 +106,11 @@ class Command(BaseCommand):
                 verbose=options["verbose"],
             )
             i.initialize_volume(options["identifier"])
+
+        if options['operation'] == "import-volumes":
+            from loc_insurancemaps.api import import_all_available_volumes
+
+            import_all_available_volumes("louisiana")
 
         if options['operation'] == "summarize":
 
