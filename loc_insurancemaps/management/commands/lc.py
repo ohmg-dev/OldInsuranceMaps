@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 
-from loc_insurancemaps.api import Importer
+from loc_insurancemaps.api import Importer, import_all_available_volumes
 from loc_insurancemaps.enumerations import STATE_NAMES
 from loc_insurancemaps.utils import LOCParser
 
@@ -108,9 +108,8 @@ class Command(BaseCommand):
             i.initialize_volume(options["identifier"])
 
         if options['operation'] == "import-volumes":
-            from loc_insurancemaps.api import import_all_available_volumes
 
-            import_all_available_volumes("louisiana")
+            import_all_available_volumes("louisiana", verbose=options['verbose'])
 
         if options['operation'] == "summarize":
 

@@ -16,22 +16,23 @@ from geonode.layers.models import Layer
 from georeference.utils import create_layer_from_vrt
 
 from .models import Volume, Sheet
-from .utils import LOCParser, filter_volumes_for_use
+from .utils import LOCParser, filter_volumes_for_use, unsanitize_name
 
 logger = logging.getLogger(__name__)
 
-def import_all_available_volumes(state, apply_filter=True):
+def import_all_available_volumes(state, apply_filter=True, verbose=False):
     """Preparatory step that runs through all cities in the provided
     state, filters the available volumes for those cities, and then
     imports each one to create a new Volume object."""
 
-    lc = CollectionConnection(delay=0, verbose=False)
+    lc = CollectionConnection(delay=0, verbose=verbose)
     cities = lc.get_city_list_by_state(state)
 
     volumes = []
     for city in cities:
         lc.reset()
-        vols = lc.get_volume_list_by_city(city[0], state)
+        city = unsanitize_name(state, city[0])
+        vols = lc.get_volume_list_by_city(city, state)
         if apply_filter is True:
             vols = filter_volumes_for_use(vols)
             volumes += [i for i in vols if i['include'] is True]
