@@ -39,6 +39,7 @@
     {% endif %}
     </ul>
 </li>
+{% comment %}
 {% if GEONODE_APPS_ENABLE and GEONODE_APPS_NAV_MENU_ENABLE %}
 <li id="nav_maps">
 {% if user.is_authenticated %}
@@ -51,9 +52,11 @@
 {% endif %}
 </li>
 {% endif %}
+{% endcomment %}
 <li>
     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "About" %}<i class="fa fa-angle-down fa-lg"></i></a>
     <ul class="dropdown-menu">
+    <li><a href="{% url "about" %}">{% trans "Project Background" %}</a></li>
     <li><a href="https://docs.oldinsurancemaps.net">{% trans "Documentation" %}</a></li>
     <li role="separator" class="divider"></li>
     <li><a href="{% url "profile_browse" %}">{% trans "People" %}</a></li>
@@ -71,6 +74,9 @@
         <li><a href="{% url "group_create" %}">{% trans "Create Group" %}</a></li>
     {% endif %}
     </ul>
+</li>
+<li>
+  <a href="https://docs.oldinsurancemaps.net" class="" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Documentation" %}</a>
 </li>
 {% endblock %}
 
