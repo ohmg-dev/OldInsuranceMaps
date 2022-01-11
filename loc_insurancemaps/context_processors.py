@@ -5,9 +5,10 @@ from .models import Volume, get_volume
 def loc_info(request):
 
     info = {
-        "volume_ct": {
-            "total": Volume.objects.all().count(),
-            "started": Volume.objects.exclude(loaded_by=None).count(),
+        "volumes": {
+            "total_ct": Volume.objects.all().count(),
+            "started_ct": Volume.objects.exclude(loaded_by=None).count(),
+            "id_list": list(Volume.objects.all().values_list("identifier", "city", "year", "volume_no")),
         }
     }
 

@@ -7,34 +7,6 @@
 {% load django_svelte %}
 
 {% block bigsearch %}
-<section>
-  <div class="container text-center">
-    <div class="row">
-      <div class="col-xs-12">
-        <h2>About this project</h2>
-        <div class="col-md-5 col-md-offset-1">
-          <p>This platform allows users to import and georeference scanned maps from the Library of Congress
-            <a href="https://loc.gov/collections/sanborn-maps">Sanborn Maps Collection</a>. Georeferenced
-            layers can be trimmed and aggregated within public web maps to build seamless mosaics of historical Louisiana communities.</p>
-          <p>
-            To learn how to participate, please visit the <a href="https://docs.oldinsurancemaps.net">full documentation</a>. Or, explore 
-            <a href="{% url 'maps_browse' %}">web maps</a> that others have already created.
-          </p>
-        </div>
-        <div class="col-md-5">
-          <p>
-            This "beta" release will be available through May 2022. At the end of this period, all georeferenced map layers 
-            will be transferred to <a href="https://atlas.ga.lsu.edu">LSU Atlas</a> and made available for long-term public use.
-          </p>
-          <p>
-            We are open to sponsorship, grants, or other partnership models to extend the scope and longevity of this project. Please
-            email acox42 [at] lsu.edu if this interests you or your organization.
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 {% endblock bigsearch %}
 
 {% block showcase %}

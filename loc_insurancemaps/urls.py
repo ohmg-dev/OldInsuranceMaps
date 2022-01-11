@@ -43,7 +43,7 @@ homepage = register_url_event()(HomePage.as_view())
 urlpatterns = [
     url(r'^/?$', homepage, name='home'),
     path('help/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
-    path('about/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
+    # path('about/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
     path('developer/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
  ] + urlpatterns
  

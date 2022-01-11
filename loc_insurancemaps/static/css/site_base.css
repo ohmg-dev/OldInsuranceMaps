@@ -15,12 +15,34 @@ h1, h2, h3, h4, h5, h6 {
 	font-weight: 400;
 }
 
+.about-container {
+    display: -webkit-flex;
+    display: flex;
+    height: 100%;
+}
+
+.about-sidenav {
+    background:#EAE0C1 !important;
+	box-shadow:gray 0px 0px 5px;
+	border-radius: 4px;
+    -webkit-flex: 3;
+    flex: 3;
+}
+
+.about-content {
+    padding: 10px;
+    -webkit-flex: 4;
+    flex: 4;
+}
+
 .tify-header {
 	font-family: 'Josefin Sans', sans-serif !important;
 }
 
 .showcase-tile {
-	min-height: 235px;
+	height: 100%;
+	margin-top: 25px;
+	margin-bottom: 25px;
 }
 .showcase-tile-title {
 	display: inline-block;
