@@ -99,10 +99,21 @@ let settingIndexLayer = false;
 		<a href={ VOLUME.urls.loc_resource } target="_blank">
 			Preview volume contents in Library of Congress <i class="fa fa-external-link"></i>
 		</a>
-		This is a good way to figure out what parts of town are covered in this volume.
+		This is the best way to figure out the coverage extent of this volume before loading it.
 	</p>
-	{#if VOLUME.loaded_by.name == "" && USER_TYPE != "anonymous"}
-		To begin, click Load Sheets below.
+
+	{#if VOLUME.sheet_ct.loaded == 0 && USER_TYPE != 'anonymous' && !sheetsLoading}
+		<button on:click={() => { postOperation("initialize") }}>Load Volume</button>
+	{/if}
+
+	{#if USER_TYPE == 'anonymous' }
+	<div class="signin-reminder">
+	<p><em>
+		<!-- svelte-ignore a11y-invalid-attribute -->
+		<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+		<a href="/account/register">sign up</a> to work on this content
+	</em></p>
+	</div>
 	{/if}
 	<hr hidden={VOLUME.index_layers.length == 0}>
 	<figure style="width:75%; border: 1px solid gray;" hidden={VOLUME.index_layers.length == 0}>
@@ -124,25 +135,17 @@ let settingIndexLayer = false;
 			<i class="fa fa-refresh" />
 		</button>
 	</h3>
-	{#if USER_TYPE == 'anonymous' }
-		<div class="signin-reminder">
-		<p><em>
-			<!-- svelte-ignore a11y-invalid-attribute -->
-			<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
-			<a href="/account/register">sign up</a> to work on this content
-		</em></p>
-		</div>
-		{/if}
+	
 	<div class="sheets-status-bar">
 		{#if VOLUME.loaded_by.name != "" && !sheetsLoading}
 			<p><em>{VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.loaded != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}</em></p>
 		{/if}
-		{#if VOLUME.sheet_ct.loaded == 0 && USER_TYPE != 'anonymous' && !sheetsLoading}
-			<button on:click={() => { postOperation("initialize") }}>Load Sheets</button>
-		{/if}
 		{#if sheetsLoading}
 			<p style="float:left;"><em>Loading sheet {VOLUME.sheet_ct.loaded + 1}/{VOLUME.sheet_ct.total}... refresh to see progress (you can safely leave this page).</em></p>
 			<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
+		{/if}
+		{#if VOLUME.sheet_ct.loaded == 0}
+			<p><em>No sheets loaded yet...</em></p>
 		{/if}
 	</div>
 	<div class="documents-box">

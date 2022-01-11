@@ -13,8 +13,8 @@
 <section id="showcase" class="background-fg">
   <div class="row">
     <div class="col-12-xs">
-      <h2>Explore the Content</h2>
-      <p>As more people use the system, these numbers will grow.</p>
+      <h2>Content Overview</h2>
+      <p>Through the course of the project, these numbers will grow.</p>
     </div>
   </div>
   <div class="row" style="padding-top: 25px">
@@ -26,10 +26,10 @@
           <div class="showcase-tile-title">
             <a href="{% url 'volumes_list' %}">
               <span class="i i-volume i-volume-lg"></span>&nbsp;
-              <span>{{ volume_ct.started }}/{{ volume_ct.total}} {% blocktrans %}Volumes Started{% endblocktrans %}</span>
+              <span>{{ volumes.started_ct }}/{{ volumes.total_ct}} {% blocktrans %}Volumes Started{% endblocktrans %}</span>
             </a>
           </div>
-          <p>{% trans 'Registered users load old fire insurance map Volumes to begin georeferencing their map content.' %}</p>
+          <p>{% trans 'Registered users can load old fire insurance maps to begin georeferencing their content.' %}</p>
           <p><a class="btn btn-default" href="{% url "volumes_list" %}" role="button">{% trans "Browse or Load Volumes" %} &raquo;</a></p>
         </div>
         <div class="col-md-5 showcase-tile">
@@ -39,7 +39,7 @@
               <span>{{ facets.document|default:_("No") }} {% blocktrans count counter=facets.document %}Document{% plural %}Documents{% endblocktrans %}</span>
             </a>
           </div>
-          <p>{% trans "Documents are created when a Volume's sheets are loaded by a user, and can then be georeferenced." %}</p>
+          <p>{% trans "When a volume is loaded, a Document is created for each sheet, and users can begin georeferencing them." %}</p>
           <p class="text-center">
             <a class="btn btn-default" href="{% url "document_browse" %}" role="button">{% trans "Browse Documents" %} &raquo;</a>
           </p>
@@ -47,11 +47,11 @@
         <div class="col-md-5 col-md-offset-1 showcase-tile">
           <div class="showcase-tile-title">
             <a href="{% url "layer_browse" %}">
-              <span class="i i-layer i-layer-lg"></span>&nbsp;
-              <span>{{ facets.layer|default:_("No") }} {% blocktrans count counter=facets.layer %}Layer{% plural %}Layers{% endblocktrans %}</span>
+                <span class="i i-layer i-layer-lg"></span>&nbsp;
+                <span>{{ facets.layer|default:_("No") }} {% blocktrans count counter=facets.layer %}Layer{% plural %}Layers{% endblocktrans %}</span>
             </a>
           </div>
-          <p>{% trans "Georeferenced Documents become geospatial Layers. Layers can be viewed here or shared as OGC-compliant web map services." %}</p>
+          <p>{% trans "When a Document is georeferenced it becomes a geospatial Layer. Layers can be viewed, used by external software, or combined here in web maps." %}</p>
           <p class="text-center"><a class="btn btn-default" href="{% url "layer_browse" %}" role="button">{% trans "Browse Layers" %} &raquo;</a></p>
         </div>
         <div class="col-md-5 showcase-tile">
@@ -61,7 +61,7 @@
               <span>{{ facets.map|default:_("No") }} {% blocktrans count counter=facets.map %}Web Map{% plural %}Web Maps{% endblocktrans %}</span>
             </a>
           </div>
-          <p>{% trans "Layers can be combined in interactive web maps to create seamless historical map mosaics." %}</p>
+          <p>{% trans "Interactive web maps can be created on this site, allowing Layers to be combined into seamless historical map mosaics." %}</p>
           <p>
             <a class="btn btn-default" href="{% url "maps_browse" %}" role="button">{% trans "Browse Web Maps" %} &raquo;</a>
             {% if user.is_authenticated %}
@@ -79,7 +79,7 @@
               <span>{{ facets.user|default:_("No") }} {% blocktrans count counter=facets.user %}User{% plural %}Users{% endblocktrans %}</span>
             </a>
           </div>
-          <p>{% trans "Anyone can sign up to work on georeferencing this content." %}</p>
+          <p>{% trans "If you are interested in participating, feel free to sign up and invite others too!" %}</p>
           <p>
             {% if user.is_authenticated %}
             <a class="btn btn-default" href="/invitations/geonode-send-invite/" role="button">{% trans "Send Invite" %} &raquo;</a>
@@ -101,12 +101,16 @@
   {% get_visibile_resources request.user %}
   <div ng-app="featured" ng-if="featured.length > 0" ng-cloak class="row">
       <div class="container text-center">
-        <h2>{% trans "Featured Content" %}</h2>
+        <h2>{% trans "Featured Maps" %}</h2>
         <div class="row">
             {% verbatim %}
             <div ng-repeat="item in featured" class="col-xs-6 col-sm-6 col-md-3">
-              <a href="{{ item.detail_url }}"><img ng-src="{{ item.thumbnail_url }}" style="width: 100%" /></a>
-              <h4>{{ item.title | limitTo: 20 }}{{item.title.length > 20 ? '...' : ''}}</h4>
+              <a ng-if="item.detail_url.indexOf('/maps/') > -1" href="/maps/{{ item.detail_url.substring(6) }}/view""><img ng-src="{{ item.thumbnail_url }}" style="width: 100%" /></a>
+              <a ng-if="item.detail_url.indexOf('/maps/') == -1" href="{{ item.detail_url }}"><img ng-src="{{ item.thumbnail_url }}" style="width: 100%" /></a>
+              <h4>
+                {{ item.title | limitTo: 20 }}{{item.title.length > 20 ? '...' : ''}} &mdash;
+                <a ng-if="item.detail_url.indexOf('/maps/') > -1" href="{{ item.detail_url }}">map detail</a>
+              </h4>
             </div>
             {% endverbatim %}
         </div>
