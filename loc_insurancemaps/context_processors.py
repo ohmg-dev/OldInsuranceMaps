@@ -4,11 +4,14 @@ from .models import Volume, get_volume
 
 def loc_info(request):
 
+    volumes = Volume.objects.all()
+    id_list = list(volumes.order_by("city", "year").values_list("identifier", "city", "year", "volume_no"))
+
     info = {
         "volumes": {
-            "total_ct": Volume.objects.all().count(),
-            "started_ct": Volume.objects.exclude(loaded_by=None).count(),
-            "id_list": list(Volume.objects.all().values_list("identifier", "city", "year", "volume_no")),
+            "total_ct": volumes.count(),
+            "started_ct": volumes.exclude(loaded_by=None).count(),
+            "id_list": id_list,
         }
     }
 
