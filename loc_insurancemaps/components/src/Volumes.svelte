@@ -92,7 +92,7 @@ $: updateFilteredList(filterInput)
 	<p><em>
 		<!-- svelte-ignore a11y-invalid-attribute -->
 		<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
-		<a href="/account/register">sign up</a> to start new volumes
+		<a href="/account/signup">sign up</a> to start new volumes
 	</em></p>
 	</div>
 	{/if}

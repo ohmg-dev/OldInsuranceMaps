@@ -111,7 +111,7 @@ let settingIndexLayer = false;
 	<p><em>
 		<!-- svelte-ignore a11y-invalid-attribute -->
 		<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
-		<a href="/account/register">sign up</a> to work on this content
+		<a href="/account/signup">sign up</a> to work on this content
 	</em></p>
 	</div>
 	{/if}

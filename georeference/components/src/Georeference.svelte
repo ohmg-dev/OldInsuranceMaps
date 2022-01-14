@@ -660,7 +660,7 @@ function handleKeydown(e) {
       <p><em>
         <!-- svelte-ignore a11y-invalid-attribute -->
         <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
-        <a href="/account/register">sign up</a> to proceed
+        <a href="/account/signup">sign up</a> to proceed
       </em></p>
     </div>
     {:else}
