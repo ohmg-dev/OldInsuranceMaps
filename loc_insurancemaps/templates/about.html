@@ -50,7 +50,7 @@
     </p>
     <ul style="padding: 5px">
         {% for volume in volumes.id_list %}
-        <li style="display: inline-block">&bullet; <a href="{% url 'volume_summary' volume.0 %}">{{ volume.1 }}, {{ volume.2 }} {% if volume.3 %}vol. {{ volume.3 }}{% endif %}</a></li>
+        <li style="display: inline-block">&bullet; <a href="{% url 'volume_summary' volume.0 %}">{{ volume.1 }}, {{ volume.2 }} {% if volume.3 %}v{{ volume.3 }}{% endif %}</a></li>
         {% endfor %}
     </ul>
   </div>
