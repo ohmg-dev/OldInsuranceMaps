@@ -77,6 +77,38 @@ STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "components", "public", "build"
 TEMPLATES[0]['OPTIONS']['context_processors'].append("loc_insurancemaps.context_processors.loc_info")
 MIDDLEWARE += ("loc_insurancemaps.middleware.LOCMiddleware", )
 
+# exclude many default profile fields to reduce to identifiable personal information
+PROFILE_EDIT_EXCLUDE_FIELD = [
+    "first_name",
+    "last_name",
+    "profile",
+    "voice",
+    "fax",
+    "delivery",
+    "city",
+    "area",
+    "zipcode",
+    "country",
+    "keywords",
+    "language",
+]
+
+# disable unnecessary search filters for cleaner interface
+SEARCH_FILTERS = {
+    'TEXT_ENABLED': True,
+    'TYPE_ENABLED': True,
+    'CATEGORIES_ENABLED': False,
+    'OWNERS_ENABLED': False,
+    'KEYWORDS_ENABLED': False,
+    'H_KEYWORDS_ENABLED': False,
+    'T_KEYWORDS_ENABLED': True,
+    'DATE_ENABLED': True,
+    'REGION_ENABLED': True,
+    'EXTENT_ENABLED': True,
+    'GROUPS_ENABLED': False,
+    'GROUP_CATEGORIES_ENABLED': False,
+}
+
 # no trailing slash on server location
 IIIF_SERVER_ENABLED = False
 IIIF_SERVER_LOCATION = "http://localhost:8182"
