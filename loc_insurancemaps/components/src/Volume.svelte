@@ -103,7 +103,7 @@ let settingIndexLayer = false;
 	</p>
 
 	{#if VOLUME.sheet_ct.loaded == 0 && USER_TYPE != 'anonymous' && !sheetsLoading}
-		<button on:click={() => { postOperation("initialize") }}>Load Volume</button>
+		<button on:click={() => { postOperation("initialize") }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
 	{/if}
 
 	{#if USER_TYPE == 'anonymous' }
