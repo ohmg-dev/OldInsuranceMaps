@@ -28,11 +28,12 @@ def filter_volumes_for_use(volumes):
         ## use the first volume for the city regardless of date
         if n == 0:
             v['include'] = True
-        ## include the earliest New Orleans volumes
+        ## include the four New Orleans volumes that create the 
+        ## first full mosaic of the city: v1-v2 1885, v3 1887, v4 1893
         elif v['city'] == "New Orleans":
-            if v['year'] == 1885:
+            if v['year'] < 1894:
                 v['include'] = True
-        ## include all other volumes through 1910
+        ## for all other cities, include volumes through 1910
         elif v['year'] < 1911:
             v['include'] = True
 
