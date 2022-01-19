@@ -22,29 +22,29 @@
     </div>
     {% if account_geonode_local_signup %}
         <div class="row">
-          <p>{% trans "Create a new local account" %}</p>
-          <form id="signup_form" method="post" action="{% url "account_signup" %}" autocapitalize="off" {% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
+          <p>{% trans "To participate in this project, please read the informed consent script below before creating an account." %}</p>
+          <form id="signup_form" disabled method="post" action="{% url "account_signup" %}" autocapitalize="off" {% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
               <fieldset>
+                  <!-- study consent section -->
+                  <div style="margin-bottom: 20px; font-size: 1.25em;">
+                    <h4>
+                        <a id="view-consent" href="#" data-toggle="collapse" data-target="#consent-script">
+                            Click to read informed consent form (required) &darr;
+                        </a>
+                    </h4>
+                    <div id="consent-script" class="collapse">
+                        {% include 'lc/_informed-consent-script.html' %}
+                        <label><input id="consent-input" type="checkbox"> I understand and wish to participate.</label>
+                    </div>
+                  </div>
+                  <!-- end study consent section -->
                   {% csrf_token %}
                   {{ form|as_bootstrap }}
                   {% if redirect_field_value %}
                       <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
                   {% endif %}
-                  <!-- study consent section -->
-                  <div style="margin-bottom: 20px; font-size: 1.25em;">
-                    <h4>
-                        <a id="view-consent" href="#" data-toggle="collapse" data-target="#consent-script">
-                            Read Informed Consent Form (required) &darr;
-                        </a>
-                    </h4>
-                    <div id="consent-script" class="collapse">
-                        {% include 'lc/_informed-consent-script.html' %}
-                    </div>
-                    <!-- <label><input id="consent-input" type="checkbox"> I wish to participate.</label> -->
-                  </div>
-                  <!-- end study consent section -->
                   <div class="form-actions">
-                      <button id="submit-signup" type="submit" class="btn btn-primary" disabled>{% trans "Sign up!" %}</button>
+                      <button id="submit-signup" type="submit" class="btn btn-primary">{% trans "Sign up!" %}</button>
                   </div>
               </fieldset>
           </form>
@@ -57,9 +57,17 @@
     <script type="text/javascript">
         $(document).ready(function() {
             $('#id_username').focus();
-            $('#view-consent').on('click', function() {
-                // $('#submit-signup').removeAttr("disabled");
+            $('#consent-input').on('click', function() {
+                setFormState(this.checked)
             });
+            function setFormState(enabled) {
+                $('#signup_form').find('.form-control').each(function (n, el) {
+                    el.disabled = !enabled;
+                });
+                $('#submit-signup').prop('disabled', !enabled);
+            }
+            // disable form on page load
+            setFormState(false);
         });
     </script>
 {% endblock %}
