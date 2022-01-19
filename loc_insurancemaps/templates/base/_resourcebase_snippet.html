@@ -131,7 +131,8 @@
                 </li>
               </ul>
             </div>
-            <div class="col-xs-12 item-items">
+            <!-- add link to volume for Document or Layer items-->
+            <div ng-if="item.resource_type == 'document' || item.resource_type == 'layer'" class="col-xs-12 item-items">
               <ul class="list-inline">
                 <li>
                   <a href="{{ item.volume_url }}" title="{{ item.volume_title }}">Go to Volume &rarr;</a>
