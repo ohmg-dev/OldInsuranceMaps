@@ -18,6 +18,7 @@ class GeoreferenceMiddleware:
         api_paths = [
             '/api/documents/',
             '/api/layers/',
+            '/api/maps/',
             '/api/base/',
         ]
         if path in api_paths:
@@ -29,15 +30,17 @@ class GeoreferenceMiddleware:
                     item['resource_type'] = resource_type
                 except IndexError:
                     item['resource_type'] = ""
-                    item['georeference_links'] = []
-                    item['georeferencing_status'] = "n/a"
                     continue
 
-                info = get_search_item_info(resource_type, item['id'])
+                if resource_type in ['document', 'layer']:
+                    info = get_search_item_info(resource_type, item['id'])
 
-                # set the output item properties
-                item['georeference_links'] = info['georeference_links']
-                item['georeferencing_status'] = info['georeference_status']
+                    # set the output item properties
+                    item['georeference_links'] = info['georeference_links']
+                    item['georeferencing_status'] = info['georeference_status']
+                else:
+                    item['georeference_links'] = []
+                    item['georeferencing_status'] = "n/a"
 
             response._container = [json.dumps(data).encode()]
         return response
