@@ -15,6 +15,12 @@ h1, h2, h3, h4, h5, h6 {
 	font-weight: 400;
 }
 
+/* unset max height so scroll overflow never shows up */
+.navbar-fixed-top .navbar-collapse,
+.navbar-fixed-bottom .navbar-collapse {
+  max-height: none;
+}
+
 .about-container {
     display: -webkit-flex;
     display: flex;
