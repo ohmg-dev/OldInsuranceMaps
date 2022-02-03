@@ -1,6 +1,7 @@
 {% extends "geonode_base.html" %}
 
 {% load i18n %}
+{% load staticfiles %}
 {% block title %} {% trans "About" %} — {{ block.super }} {% endblock %}
 
 {% block body_outer %}
@@ -23,6 +24,15 @@
     <p>
       Georeferenced layers can be trimmed and aggregated within public web maps to build seamless mosaics of historical Louisiana communities.
     </p>
+    <h2>Timeline</h2>
+    <p>
+      <strong>Study Period</strong> - February/March, 2022<br>
+      This stage will see the heaviest use of the site, and users will be sent an optional survey near the end of March.
+    </p>
+    <p>
+      <strong>Data Transfer</strong> - April/May, 2022<br>
+      Single GeoTIFF files will be generated from the mosaics, and transferred to <a href="https://atlas.ga.lsu.edu">LSU Atlas</a> where they will be published for for long-term public use.
+    </p>
     <h2>What volumes are available?</h2>
     <p>
       To provide wide geographic and temporal coverage throughout Louisiana (while also being realistic about disk space) we devised the following criteria:
@@ -32,15 +42,14 @@
         <li>Include only the earliest full coverage of New Orleans (which is in four volumes, published between 1885 and 1893).</li>
       </ul>
       Applied across the state, these criteria produce 268 volumes covering 138 communities, with a combined sheet count of over 1,600.
+      <!-- <figure>
+        <img src="{% static 'img/volumes-grayed-out.png' %}" />
+        <figcaption><em>Mamou: 1919 available (earliest edition), 1927 and 1946 unavailable (published after 1910)</em></figcaption>
+      </figure> -->
     </p>
-    <h2>Timeline</h2>
+    <h3>Why is my city not listed?</h3>
     <p>
-      <strong>Study Period</strong> - February/March, 2022<br>
-      This stage will see the heaviest use of the site, and users will be sent an optional survey near the end of March.
-    </p>
-    <p>
-      <strong>Data Transfer</strong> - April/May, 2022<br>
-      Single GeoTIFF files will be generated from the mosaics, and transferred to <a href="https://atlas.ga.lsu.edu">LSU Atlas</a> where they will be published for for long-term public use.
+      If a city does not appear in the "Start a new volume" list, then there is no Sanborn map of it in the LOC collection. However, do check for old names of your city, or the names of adjacent communinities that may have combined with yours over the years.
     </p>
     <hr>
     <p>

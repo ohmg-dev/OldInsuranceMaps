@@ -1,6 +1,7 @@
 {% extends "geonode_base.html" %}
 
 {% load i18n %}
+{% load staticfiles %}
 {% block title %} {% trans "Getting Started" %} — {{ block.super }} {% endblock %}
 
 {% block body_outer %}
@@ -21,30 +22,30 @@
     </p>
     <h3>2. Find a community you are interested in</h3>
     <p>
-      Use the list on this page or head to <a href="{% url 'volumes_list' %}">volumes</a> to find a set of maps to work on. You will find yourself at the <strong>volume summary</strong>.
+      Use the list on this page or head to <a href="{% url 'volumes_list' %}">volumes</a> to find a set of maps to work on. Once you select a volume, you will find yourself at the <strong>volume summary</strong> page.
     </p>
     <h3>3. Load the volume</h3>
     <p>
-      In the <strong>volume summary</strong> you can load the map sheets into the database. Once loaded, you can begin processing each sheet individually.
+      In the <strong>volume summary</strong> you can load the map sheets into the database. Once loaded, you will see all of the sheets in the "unprepared" list.
+      <figure>
+        <img style="max-width: 640px" src="{% static 'img/v-summary-unprepared.png' %}">
+        <figcaption style="font-style:italic; font-size:.85em;">Two sheets have been loaded for this volume.</figcaption>
+      </figure>
     </p>
     <p>   
       <em>If someone else has already loaded the volume, then just pick a sheet to start working with it.</em>
     </p>
-    <h3>4. Explore maps through georeferencing</h3>
+    <h3>4. Dive in!</h3>
     <p>
-      In this application, the entire georeferencing process comprises three sequential steps:
+      In this application, the entire georeferencing process comprises three sequential steps, each with its own tool interface:
       <ol>
         <li>Preparation</li>
         <li>Georeferencing</li>
         <li>Trimming (optional)</li>
       </ol>
-      In the <strong>volume summary</strong> all sheets will be sorted by which stage of the process they are ready for. You can pick one of these tasks and do it for many sheets, or follow a single sheet through the whole process.
+      These steps need to be completed in order, but they don't have to be completed all in one sitting. In fact, Georeferencing and Trimming can be revisited at any time, so you can improve on your past work, or build from someone else's. Tips for using each tool accompany its interface.
     </p>
-    <hr>
-    <h3><em>Learn more...</em></h3>
-    <p>
-      Full documentation: <a href="https://docs.oldinsurancemaps.net">docs.oldinsurancemaps.net</a>
-    </p>
+    <p>You can learn more about the entire process <a href="https://docs.oldinsurancemaps.net/#georeferencing-process/">in the documentation</a>.</p>
   </div>
   {% include 'lc/_volumes-sidebar.html' %}
 </div>
