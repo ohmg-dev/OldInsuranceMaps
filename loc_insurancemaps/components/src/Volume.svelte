@@ -141,7 +141,7 @@ let settingIndexLayer = false;
 			<p><em>{VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.loaded != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}</em></p>
 		{/if}
 		{#if sheetsLoading}
-			<p style="float:left;"><em>Loading sheet {VOLUME.sheet_ct.loaded + 1}/{VOLUME.sheet_ct.total}... refresh to see progress (you can safely leave this page).</em></p>
+			<p style="float:left;"><em>{VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.loaded != 1}s{/if} loaded... refresh to update (you can safely leave this page).</em></p>
 			<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
 		{/if}
 		{#if VOLUME.sheet_ct.loaded == 0}
