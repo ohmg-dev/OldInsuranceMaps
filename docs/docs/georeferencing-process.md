@@ -2,13 +2,13 @@
 
 In this application, the entire georeferencing process comprises three sequential steps, each with its own tool interface:
 
-1. Preparation<
+1. Preparation
 2. Georeferencing
 3. Trimming (optional)
 
 These steps need to be completed in order, but they don't have to be completed all in one sitting. In fact, Georeferencing and Trimming can be revisited at any time, so you can improve on your past work, or build from someone else's. Tips for using each tool accompany its interface, and similar cotent is presented below as well.
 
-# Split
+# Preparation (Split)
 
 === "Basic concept"
 	Before a Document can be georeferenced, it must be visually evaluated to determine whether it contains more than one part of town in it. If it does, each of these parts must be split into separate Documents.
@@ -74,7 +74,7 @@ Understanding cut-lines:
 - Cut-lines can intersect or extend from each other to handle complex shapes.
 
 
-# Georeference
+# Georeferencing
 
 === "Basic concept"
 	"Georeferencing" is the process that is needed to overlay a scanned historical map onto a modern web map, and it must be performed for each Document individually.
