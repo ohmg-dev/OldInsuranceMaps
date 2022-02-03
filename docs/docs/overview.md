@@ -19,4 +19,6 @@ In recent years, the advancement of geospatial and web technology has provided n
 
 # Structure of the Sanborn Collection 
 
-When the Sanborn Map company originally published these maps, all content for a given city in a given year was released in a single edition. However, in large cities like New Orleans one edition may actually comprise multiple volumes, and in the Library of Congress collection each of these volumes is stored as a separate item. Thus, we use **volume** as the highest level of grouping of historical maps. Each volume has one or more sheets that become **[Documents](#documents)** when the volume is loaded.
+When the Sanborn Map company originally published these maps, all content for a given city in a given year was released in a single edition. However, in large cities like New Orleans one edition may actually comprise multiple volumes, and in the Library of Congress collection each of these volumes is stored as a separate item.
+
+Thus, we use **volume** as the highest level of grouping of historical maps. Each volume has one or more sheets, and when a user starts ("loads") a volume, those sheets are registered as [documents](https://oldinsurancemaps.net/documents) in the system.

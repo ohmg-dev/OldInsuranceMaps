@@ -1,13 +1,13 @@
 # A Note About the Project
 
-There were two basic motivations for this endeavor:
+There were two main motivations for this endeavor:
 
 - Create a platform for collaborative map georeferencing
 - Provide greater access to existing online map archives
 
-Neither of these ideas is new, but I was especially inspired by the idea of the *archival commons*[^1] and wanted to build something with elements of that model&mdash;open access, public curation, and extensibility. The wealth of available open source geospatial software offers so many ways to do this.
+Neither of these ideas is new, but I was especially inspired by the idea of the *archival commons*[^1] and wanted to build something with elements of that model&mdash;open access, public curation, and extensibility. The wealth of available open source geospatial software offers so many ways to do this. I wanted to make this site to present some polished ideas, but consider them more as starting points than a finished product.
 
-Building around the LOC Sanborn collection was a natural fit, as it is a massive repository of archival content in the public domain that has a good [JSON API](https://libraryofcongress.github.io/data-exploration/) around it. I have also long been enamoured with Sanborn maps, and this project is as much a tribute to them as anything else.
+Building around the LOC Sanborn collection was a natural fit, as it is a massive repository of archival content in the public domain that has a good [JSON API](https://libraryofcongress.github.io/data-exploration/) around it. I have also long been enamoured with Sanborn maps, and this project is as much a love letter to them as anything else.
 
 I have presented about the project a couple of times during the development process:
 
@@ -47,7 +47,7 @@ Choosing GeoNode as the base for this georeferencing platform provided the follo
 
 # The Georeference App
 
-This app is designed as a standalone GeoNode extension. In theory, anyone can add this app to their own GeoNode installation indepedently of the LOC app described below (please [open a ticket](https://github.com/mradamcox/loc-insurancemaps/issues) if you are interested in doing so).
+This app is designed as a standalone GeoNode extension. In theory, anyone could install it within their own GeoNode installation, indepedent of the LOC app described below (please [open a ticket](https://github.com/mradamcox/loc-insurancemaps/issues) if you are interested in doing so).
 
 This app facilitates the actual georeferencing process, i.e. it allows users to georeference Documents in the GeoNode CMS, turning them into raster Layers (GeoTIFFs). It consists of three user-accessible tool interfaces, as well as a new summary tab in the Layer and Document detail pages. A quick summary of these tools follows, but more detailed documentation on how to use each one can be found in the [Georeferencing Process](/georeferencing-process) section.
 

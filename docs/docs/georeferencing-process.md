@@ -2,19 +2,25 @@
 
 In this application, the entire georeferencing process comprises three sequential steps, each with its own tool interface:
 
-1. Preparation
-2. Georeferencing
-3. Trimming (optional)
+1. [Preparation (Splitting)](#preparation-splitting)
+2. [Georeferencing](#georeferencing)
+3. [Trimming (optional)](#trimming)
 
-These steps need to be completed in order, but they don't have to be completed all in one sitting. In fact, Georeferencing and Trimming can be revisited at any time, so you can improve on your past work, or build from someone else's. Tips for using each tool accompany its interface, and similar cotent is presented below as well.
+These steps need to be completed in order, but they don't have to be completed all in one sitting. In fact, Georeferencing and Trimming can be revisited at any time, so you can improve on your past work, or build from someone else's.
 
-# Preparation (Split)
+Tips for using each tool accompany its interface, and similar content is presented below as well.
+
+When you are ready, you can [create a web map](#creating-web-maps) from layers that have been georeferenced.
+
+# Preparation (Splitting)
 
 === "Basic concept"
 	Before a Document can be georeferenced, it must be visually evaluated to determine whether it contains more than one part of town in it. If it does, each of these parts must be split into separate Documents.
 
 === "Tell me more..."
 	When an image is georeferenced, as you'll see below, control points are made that link pixel coordinates on the image with latitude/longitude coordinates on the earth. This means that a set of control points must only be linked to a specific geographic area, i.e. a single file.
+
+![The splitting interface, ready to split this document into two new documents.](img/split-interface.png)
 
 ### Background
 
@@ -82,6 +88,8 @@ Understanding cut-lines:
 === "Tell me more..."
 	Georeferencing works by using "ground control points" to embed geospatial information into an image file and turn it into a geosptial dataset. A ground control point consists of two coordinate pairs: one pair that represents the XY pixel location on the document, and a corresponding latitude/longitude coordinate that represents a point on earth.
 
+![The georeferencing interface, with 3 control points added and the preview visible.](img/georeference-interface.png)
+
 ### Background
   
 Use this interface to create the **ground control points** that will be used to georeference this document. creating a ground control point requires two clicks&mdash;once in the left panel and once in the right. This records a linkage between a spot on the original map document and the real-world latitude/longitude coordinates for that location.
@@ -142,13 +150,15 @@ Tips:
 - Historical maps may have mistakes, or street names may have changed over time.
   
 
-# Trim
+# Trimming
 
 === "Basic concept"
-	If you want, you can trim the edges of a border layer away, so that adjacent sheets on the same web map don't obscure each other.
+	You can trim the edges of a border layer away so that adjacent sheets on the same web map don't obscure each other.
 
 === "Tell me more..."
 	This process is accomplished by creating a polygon "mask" that is used to crop extraneous layer content. These mask coordinates are written into an alternate layer style that is set as the new default for the Layer. This approach preserves the original style, which allows users switch back to the full style if they want to see the entire image in a web map.
+
+![The trimming interface with a mask trimming (slightly) the edges of this layer.](img/trim-interface.png)
 
 ### Background
 
@@ -187,3 +197,26 @@ Tips:
 - It may be easiest to outline the layer first and then zoom in to make more subtle changes.
 - The live clipping preview may leave some extraneous piece of the layer outside the mask. You can disregard this.
 - When viewing a trimmed layer in a web map (as shown above) you may see a <code style="color:red;">!</code> next to the layer name. This can be ignored.
+
+
+# Creating Web Maps
+
+=== "Basic concept"
+	Users can author their own Web Maps, and add whichever layers they want to them. This is most obviously useful for aggregating all of the layers for a single city in a single year, but you could also combine layers from different years.
+
+=== "Tell me more..."
+	Creating Web Maps is a core GeoNode functionality, and this project only scratches the surface of what these maps can do. Please see the [GeoNode documentation](https://docs.geonode.org/en/master/usage/managing_maps/index.html) to learn more.<br>_Please note: In GeoNode parlance, what we refer to here as **Web Maps** are simply called **Maps**._
+
+The easiest way to create a web map is to start in the main [layers search page](https://oldinsurancemaps.net/layers). Here you can use some search criteria to find the layers you are interested in, select all of the layers you want with the <i class="fa fa-plus"></i> button, and then click **Create a Map**.
+
+![With one or more layers selected, you can create a new web map from this interface.](img/search-alex-1900-selected.png)
+
+This web map will be visible to anyone and embedded into other websites, and if you view it on a mobile device you can add your current location.
+
+## Adding Layers to an Existing Web Map
+
+You can also add layers to an existing web map. In the top right corner, you'll find the **Catalog** button. This use this list to find and add other layers.
+
+![Adjust layer order in the left-hand panel, change basemaps in the bottom left corner, and save options on the top right corner.](img/new-map-alex-1900-catalog.png)
+
+If you are creating a map to cover an entire large city, this strategy will likely be your only course of action.

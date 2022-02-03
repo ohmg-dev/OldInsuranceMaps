@@ -12,7 +12,7 @@ nav:
   - Overview: overview.md
   # - Sanborn Maps: sanborn-maps.md
   - Georeferencing Process: georeferencing-process.md
-  # - Tutorial: tutorial.md
+  - Tutorial: tutorial.md
   - Extra Info: extra.md
 
 theme:
@@ -43,3 +43,6 @@ extra:
   - icon: map
     text: LOC Sanborn Maps
     url: https://loc.gov/collections/sanborn-maps
+  analytics:
+    provider: google
+    property: G-GEMW6MV9LF
