@@ -210,6 +210,13 @@ END # Map File
 
         return self.mapfile
 
+    def get_layer_name_from_file(self, file_path):
+
+        layer_name = os.path.splitext(os.path.basename(file_path))[0]
+        if layer_name[0].isdigit():
+            layer_name = "x" + layer_name
+        return layer_name
+
     def add_layer(self, file_path):
 
         vrt_path = get_path_variant(file_path, "VRT")
@@ -217,7 +224,7 @@ END # Map File
         if not os.path.isfile(self.mapfile):
             self.initialize_mapfile()
 
-        layer_name = os.path.splitext(os.path.basename(vrt_path))[0]
+        layer_name = self.get_layer_name_from_file(vrt_path)
         output = []
         already_exists = False
         with open(self.mapfile, "r") as openf:
