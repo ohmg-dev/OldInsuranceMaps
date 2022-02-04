@@ -120,10 +120,19 @@ class Sheet(models.Model):
         if not os.path.isdir(temp_img_dir):
             os.mkdir(temp_img_dir)
 
+        parsed = LOCParser(fileset=fileset)
+
+        ## This is a tricky situation. With the atomic block, everything is saved at once
+        ## which is very desirable, and causes sheets to appear on the volume summary page
+        ## when they are ready (keyword set, full thumbnail made). However, within this block
+        ## the action of saving the doc file seems to trigger the default geonode thumbnail
+        ## creation, which forks its own background process and begins trying to find the
+        ## Document immediately, causing a number of errors and retries until the document
+        ## does exist. Reorganizing this would be really good, but it must be done in tandem
+        ## with the collection methods that bring the documents to the Volume summary page.
         with transaction.atomic():
 
-            parsed = LOCParser(fileset=fileset)
-
+            ## first, create the sheet and document and link them
             try:
                 sheet = Sheet.objects.get(
                     volume=volume,
@@ -134,10 +143,18 @@ class Sheet(models.Model):
                     volume=volume,
                     sheet_no=parsed.sheet_number
                 )
-            doc = Document()
 
+            doc = Document()
             doc.uuid = str(uuid.uuid4())
             doc.metadata_only = True
+            doc.title = sheet.__str__()
+
+            ## make date
+            if volume.month is None:
+                month = 1
+            else:
+                month = int(volume.month)
+            doc.date = datetime(volume.year, month, 1, 12, 0)
 
             # set owner to user
             if user is None:
@@ -147,45 +164,49 @@ class Sheet(models.Model):
             # set license
             doc.license = License.objects.get(name="Public Domain")
 
+            # a few things need to happen only after the initial save
+            doc.save()
+
+            doc.tkeywords.add(ThesaurusKeyword.objects.get(about="unprepared"))
+
+            # set the detail_url with the same function that is used in search
+            # result indexing. this must be done after the doc has been saved once.
+            doc.detail_url = doc.get_absolute_url()
+
+            # m2m regions relation also needs to happen after initial save()
+            for r in volume.regions.all():
+                doc.regions.add(r)
+
+            sheet.document = doc
+            sheet.save()
+
+            ## second, download the file and set it in the Document.
             jp2_url = parsed.jp2_url
-            if jp2_url is not None:
+            if jp2_url is None:
+                print("no jp2 file to download, aborting document creation")
+
+            else:
                 tmp_path = os.path.join(temp_img_dir, jp2_url.split("/")[-1])
 
                 # basic download code: https://stackoverflow.com/a/18043472/3873885
                 response = requests.get(jp2_url, stream=True)
                 with open(tmp_path, 'wb') as out_file:
                     shutil.copyfileobj(response.raw, out_file)
-                del response
 
                 # convert the downloaded jp2 to jpeg (needed for OpenLayers static image)
                 jpg_path = convert_img_format(tmp_path, format="JPEG")
-
                 with open(jpg_path, "rb") as new_file:
                     doc.doc_file.save(os.path.basename(jpg_path), File(new_file))
 
                 os.remove(tmp_path)
                 os.remove(jpg_path)
 
+                try:
+                    thumb = FullThumbnail.objects.get(document=doc)
+                except FullThumbnail.DoesNotExist:
+                    thumb = FullThumbnail(document=doc)
+                    thumb.save()
             doc.save()
-
-            sheet.document = doc
-            sheet.sheet_no = parsed.sheet_number
-            sheet.iiif_service = parsed.iiif_service
-            sheet.save()
-
-            doc.title = sheet.__str__()
-            doc.date = datetime(volume.year, int(volume.month), 1, 12, 0)
-            for r in volume.regions.all():
-                doc.regions.add(r)
-            # set the detail_url with the same function that is used in search
-            # result indexing. this must be done after the doc has been saved once.
-            doc.detail_url = doc.get_absolute_url()
-            doc.save()
-
-            doc.tkeywords.add(ThesaurusKeyword.objects.get(about="unprepared"))
-
-            thumb = FullThumbnail(document=doc)
-            thumb.save()
 
         return sheet
 
