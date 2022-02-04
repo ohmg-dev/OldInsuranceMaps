@@ -86,6 +86,9 @@ class FullThumbnail(models.Model):
 
     def generate_thumbnail(self):
 
+        if bool(self.document.doc_file) is False:
+            return
+
         if self.image:
             if os.path.isfile(self.image.path):
                 os.remove(self.image.path)
@@ -336,6 +339,8 @@ class Volume(models.Model):
         sorted_items['layers'] = []
 
         for doc_proxy in self.get_all_documents():
+            if doc_proxy.status is None:
+                continue
             try:
                 thumb = FullThumbnail.objects.get(document=doc_proxy.resource)
             except FullThumbnail.DoesNotExist:
@@ -344,8 +349,10 @@ class Volume(models.Model):
 
             doc_json = doc_proxy.serialize()
 
-            # overwrite the default thumb url with the FullThumbnail url
-            doc_json["urls"]["thumbnail"] = thumb.image.url
+            try:
+                doc_json["urls"]["thumbnail"] = thumb.image.url
+            except ValueError:
+                doc_json["urls"]["thumbnail"] = ""
 
             # hacky method for pulling out the sheet number from the doc title
             try:
