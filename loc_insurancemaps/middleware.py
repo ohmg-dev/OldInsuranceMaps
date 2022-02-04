@@ -32,7 +32,7 @@ class LOCMiddleware:
                     item['volume_url'] = ""
                     continue
 
-                if res_id is not None:
+                if res_id is not None and resource_type in ["document", "layer"]:
                     vol = get_volume(resource_type, res_id)
                     item['volume_title'] = vol.__str__()
                     item['volume_url'] = full_reverse('volume_summary', args=(vol.pk,))
