@@ -120,10 +120,11 @@ class CollectionConnection(object):
         url = self.query_url
         if page is not None:
             url += f"&sp={page}"
-        if self.verbose:
-            print(f"query url: {url}")
         self.load_cache(url)
-        if no_cache is False and self.data is None:
+        run_search = no_cache is True or self.data is None
+        if self.verbose:
+            print(f"query url: {url} | delay: {self.delay} | using cache: {not run_search}")
+        if run_search:
             if self.verbose and self.delay > 0:
                 print(f"waiting {self.delay} seconds before making a request...")
             time.sleep(self.delay)
