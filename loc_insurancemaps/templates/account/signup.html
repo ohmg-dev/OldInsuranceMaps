@@ -38,6 +38,7 @@
                     </div>
                   </div>
                   <!-- end study consent section -->
+                  <em>Your username will be visible to others on the site, so if that field has autofilled with your email address, please change it. Thanks!</em>
                   {% csrf_token %}
                   {{ form|as_bootstrap }}
                   {% if redirect_field_value %}
