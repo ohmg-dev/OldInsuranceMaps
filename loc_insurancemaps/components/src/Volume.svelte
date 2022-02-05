@@ -19,7 +19,7 @@ export let USER_TYPE;
 export let GEOSERVER_WMS;
 
 let sheetsLoading = VOLUME.status == "initializing...";
-
+let loadTip = false
 let indexLayers = [];
 function setIndexLayerList() {
 	indexLayers = [];
@@ -97,10 +97,12 @@ let settingIndexLayer = false;
 	<h1>{ VOLUME.title }</h1>
 	<p>
 		<a href={ VOLUME.urls.loc_resource } target="_blank">
-			Preview volume contents in Library of Congress <i class="fa fa-external-link"></i>
+			Preview in Library of Congress <i class="fa fa-external-link"></i>
 		</a>
-		This is the best way to figure out the coverage extent of this volume before loading it.
+		<!-- svelte-ignore a11y-invalid-attribute -->
+		&nbsp;<a href="#" on:click={() => loadTip = !loadTip}><i class="fa fa-info-circle"></i></a>
 	</p>
+	<p hidden={!loadTip}>&uarr; Before loading, this is the best way to see if the volume covers your part of town.</p>
 
 	{#if VOLUME.sheet_ct.loaded == 0 && USER_TYPE != 'anonymous' && !sheetsLoading}
 		<button on:click={() => { postOperation("initialize") }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
@@ -139,12 +141,10 @@ let settingIndexLayer = false;
 	<div class="sheets-status-bar">
 		{#if VOLUME.loaded_by.name != "" && !sheetsLoading}
 			<p><em>{VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.loaded != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}</em></p>
-		{/if}
-		{#if sheetsLoading}
+		{:else if sheetsLoading}
 			<p style="float:left;"><em>{VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.loaded != 1}s{/if} loaded... refresh to update (you can safely leave this page).</em></p>
 			<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
-		{/if}
-		{#if VOLUME.sheet_ct.loaded == 0}
+		{:else if VOLUME.sheet_ct.loaded == 0}
 			<p><em>No sheets loaded yet...</em></p>
 		{/if}
 	</div>
@@ -154,7 +154,6 @@ let settingIndexLayer = false;
 			{#if VOLUME.items.unprepared.length == 0}
 				<p><em>
 				{#if VOLUME.sheet_ct.loaded == 0} <!-- this means they have been loaded already -->
-				
 				Sheets will appear here as they are loaded.
 				{:else}
 				All sheets have been prepared.
@@ -263,7 +262,6 @@ figcaption {
 	display: inline-block;
 	vertical-align: middle;
 	font-size: .9em;
-	margin: 5px;
 }
 
 .sheets-status-bar p {
