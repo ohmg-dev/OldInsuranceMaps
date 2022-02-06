@@ -19,7 +19,7 @@ theme:
   name: 'custommill'
   home: overview
   main_color: '#123B4F'
-  lighter_gray: '#EAE0C1'
+  lighter_gray: '#F7F1E1'
   toc_depth: 1
 
 markdown_extensions:
