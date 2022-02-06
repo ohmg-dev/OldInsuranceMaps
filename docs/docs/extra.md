@@ -1,22 +1,3 @@
-# A Note About the Project
-
-There were two main motivations for this endeavor:
-
-- Create a platform for collaborative map georeferencing
-- Provide greater access to existing online map archives
-
-Neither of these ideas is new, but I was especially inspired by the idea of the *archival commons*[^1] and wanted to build something with elements of that model&mdash;open access, public curation, and extensibility. The wealth of available open source geospatial software offers so many ways to do this. I wanted to make this site to present some polished ideas, but consider them more as starting points than a finished product.
-
-Building around the LOC Sanborn collection was a natural fit, as it is a massive repository of archival content in the public domain that has a good [JSON API](https://libraryofcongress.github.io/data-exploration/) around it. I have also long been enamoured with Sanborn maps, and this project is as much a love letter to them as anything else.
-
-I have presented about the project a couple of times during the development process:
-
-**"Extending GeoNode to Support Historical Map Georeferencing"** <br>
-[GeoNode Virtual Summit - Dec. 2020](https://summit.geonode.org/schedule/#session-110) | [slides](https://docs.google.com/presentation/d/e/2PACX-1vSwbTO3jKrwGFKwouZdPSWfQVB3sws8I7bdH_CiSoNTt3l3wefu3s50NAxXn4N7M9CkW09hf9xZh63j/pub?start=false&loop=false&delayms=3000)
-
-**"Creating a Public Space for Georeferencing Sanborn Maps"** <br>
-[NACIS - Oklahoma City - Oct. 2021](https://nacis2021.sched.com/event/lXOu/cartographic-resources) | [video](https://www.youtube.com/watch?v=g7agzL4G5q8) ~ [slides](https://docs.google.com/presentation/d/10khtmm8TOkZpsWNo-Yfvip4HqXHhwrPycIJYsBg1mA4/edit?usp=sharing)
-
 # Tech Overview
 
 Technologically, this platform is the result of a few layered applications.
@@ -123,6 +104,23 @@ This application creates database models and scaffolding to support the acquisit
 All interfaces are written using [Svelte](https://svelte.dev). A custom GeoNode theme was created as well to manage general color branding, etc.
 
 Icons in this app are by [Alex Muravev](https://thenounproject.com/alex2900/) and [Olga](https://thenounproject.com/olgamur_2015/) from the [Noun Project](https://thenounproject.com).
+
+# A Note About the Project
+
+There were two main motivations for this endeavor:
+
+- Create a platform for collaborative map georeferencing
+- Provide greater access to existing online map archives
+
+Neither of these ideas is new, but I was especially inspired by the idea of the *archival commons*[^1] and wanted to build something with elements of that model&mdash;open access, public curation, and extensibility. The wealth of available open source geospatial software offers so many ways to do this. I wanted to make this site to present some polished ideas, but consider them more as starting points than a finished product.
+
+Building around the LOC Sanborn collection was a natural fit, as it is a massive repository of archival content in the public domain that has a good [JSON API](https://libraryofcongress.github.io/data-exploration/) around it. I have also long been enamoured with Sanborn maps, and this project is as much a love letter to them as anything else.
+
+I have presented about the project a few times during the development process:
+
+- [Geo4Lib Camp - Feb. 2022](https://geo4libcamp.github.io/) | [video](https://www.youtube.com/watch?v=FXnzZ8MkDXo&list=PL6aDid_9TtzUI7_bPoulDphsF4Bfp8AOj&index=6)
+- [NACIS - Oklahoma City - Oct. 2021](https://nacis2021.sched.com/event/lXOu/cartographic-resources) | [video](https://www.youtube.com/watch?v=g7agzL4G5q8) ~ [slides](https://docs.google.com/presentation/d/10khtmm8TOkZpsWNo-Yfvip4HqXHhwrPycIJYsBg1mA4/edit?usp=sharing)
+- [GeoNode Virtual Summit - Dec. 2020](https://summit.geonode.org/schedule/#session-110) | [slides](https://docs.google.com/presentation/d/e/2PACX-1vSwbTO3jKrwGFKwouZdPSWfQVB3sws8I7bdH_CiSoNTt3l3wefu3s50NAxXn4N7M9CkW09hf9xZh63j/pub?start=false&loop=false&delayms=3000)
 
 [^1]:
     - Eveleigh, Alexandra. 2014. “Crowding out the Archivist? Locating Crowdsourcing within the Broader Landscape of Participatory Archives.” In Crowdsourcing Our Cultural Heritage, 211–29. Ashgate Publishing Farnham.

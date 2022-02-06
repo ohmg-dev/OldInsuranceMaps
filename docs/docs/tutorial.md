@@ -28,15 +28,17 @@ Also, georeferencing and trimming (3 & 5 above) are both iterative processes, so
 
 From the [Volumes page]("https://oldinsurancemaps.net"), we begin by finding the city and year we are interested in.
 
-!!! todo
-    [image of Alexandria volumes]
+![Choosing Alexandria on the left reveals a list of all available volumes. Out of 11 total volumes, 6 are available to be loaded.](img/alex-search-volumes.png)
 
-Selecting the 1900 volume, we can either preview the contents in the Library of Congress IIIF viewer, or click **Load Sheets** to begin the georeferencing process.
+Selecting the 1900 volume, we are brought to the **volume summary** page.
 
-!!! todo
-    [show image with one sheet loaded]
+![The volume summary presents an overview of the georeferencing progress across an entire volume.](img/alex-1900-before-load.png)
 
-As the sheets load, they are registered in the system as Documents. You can click the refresh button (or reload the page) and newly loaded sheets will appear. After one sheet is ready, we can go ahead and prepare it. The other sheets will continue to load in the background.
+When we click **Load Sheets**, the files begin to load and are presented in the "Unprepared" section of the summary.
+
+![2 of 6 sheets have been loaded.](img/alex-1900-two-loaded.png)
+
+As the sheets load, you can click the refresh button (or reload the page) and newly loaded sheets will appear. After one sheet is ready, we can go ahead and prepare it. The other sheets will continue to load in the background.
 
 # Prepare the Documents
 
