@@ -7,6 +7,11 @@
 {% block title %}{{ svelte_params.DOCUMENT.title }} — Split{% endblock %}
 
 {% block body_outer %}
-    {% include "georeference/partials/split_preamble.html" %}
+    <div style="float:right; text-align:center; margin-top: 15px;">
+        <a href="{{ svelte_params.DOCUMENT.urls.detail }}">back to document detail &rarr;</a>
+    </div>
+    <h1 style="font-size: 2.1em;">{{ svelte_params.DOCUMENT.title }}</h1>
+    <hr>
+    {% display_svelte "SplitPreamble.svelte" svelte_params %}
     {% display_svelte "Split.svelte" svelte_params %}
 {% endblock %}

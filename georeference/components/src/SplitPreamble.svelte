@@ -1,17 +1,57 @@
-{% load staticfiles %}
+<script>
+import { slide } from 'svelte/transition';
 
-<div style="float:right; text-align:center; margin-top: 15px;">
-  <a href="{{ svelte_params.DOCUMENT.urls.detail }}">back to document detail &rarr;</a>
-</div>
-<h1 style="font-size: 2.1em;">{{ svelte_params.DOCUMENT.title }}</h1>
-<hr>
-<h4>Check: Does this image need to be split before it can be georeferenced?
-    <a href="#" data-toggle="collapse" data-target="#help-panel">Tell me more about this... &darr;</a>
-</h4>
-<div
-  id="help-panel"
-  class="collapse"
-  style="font-size:1.25em; background:lightgray; border-radius: 7px; padding:20px; margin-top:20px; margin-bottom:20px;">
+let showBackground = false;
+let showGuide = false;
+let showVideo = false;
+let showTips = false;
+
+function setPanel(show) {
+
+  if (show == "background") {
+    showBackground = !showBackground;
+    showGuide = false;
+    showTips = false;
+    showVideo = false;
+  } else if (show == "guide") {
+    showBackground = false;
+    showGuide = !showGuide;
+    showTips = false;
+    showVideo = false;
+  } else if (show == "tips") {
+    showBackground = false;
+    showGuide = false;
+    showTips = !showTips;
+    showVideo = false;
+  } else if (show == "video") {
+    showBackground = false;
+    showGuide = false;
+    showTips = false;
+    showVideo = !showVideo;
+  } else if (show == "none") {
+    showBackground = false;
+    showGuide = false;
+    showTips = false;
+    showVideo = false;
+  }
+}
+
+</script>
+
+<main>
+  <h4>Check: Does this image need to be split before it can be georeferenced?</h4>
+  <h4>
+      <a href="#" on:click={() => setPanel("background")}>Background &darr;</a>
+      <a href="#" on:click={() => setPanel("guide")}>Guide &darr;</a>
+      <a href="#" on:click={() => setPanel("tips")}>Tips &darr;</a>
+      <a href="#" on:click={() => setPanel("video")}>Video &darr;</a>
+      {#if showGuide || showVideo || showTips || showBackground}
+        &nbsp;
+        <a href="#" on:click={() => setPanel("none")}><i class="fa fa-close"></i></a>
+      {/if}
+  </h4>
+  {#if showBackground}
+  <div transition:slide class="help-panel">
     <h4><strong>Background</strong></h4>
     <p>Sometimes an old map document will cover discontiguous areas, especially when the mapmakers were trying to 
       fit a lot of content into a single page. In these cases, each separate area in the original document must be split into
@@ -20,24 +60,29 @@
     </p>
     <div style="display:flex; flex-direction:row;">
         <figure style="width:33%; padding:10px; text-align:center;">
-            <img width="100%" src="{% static 'img/split-example-p1-anno.jpg' %}" />
-            <figcaption style="font-style:italic; font-size:.85em;">This map must be split into four new documents.</figcaption>
+            <img width="100%" src="/static/img/split-example-p1-anno.jpg" />
+            <figcaption>This map must be split into four new documents.</figcaption>
         </figure>
         <figure style="width:33%; padding:10px; text-align:center;">
-            <img width="100%" src="{% static 'img/split-example-p2-anno.jpg' %}" />
-            <figcaption style="font-style:italic; font-size:.85em;">This map must be split into two new documents.</figcaption>
+            <img width="100%" src="/static/img/split-example-p2-anno.jpg" />
+            <figcaption>This map must be split into two new documents.</figcaption>
         </figure>
         <figure style="width:33%; padding:10px; text-align:center;">
-            <img width="100%" src="{% static 'img/split-example-p3-anno.jpg' %}" />
-            <figcaption style="font-style:italic; font-size:.85em;">This map shows only one part of town, so it should not be split.</figcaption>
+            <img width="100%" src="/static/img/split-example-p3-anno.jpg" />
+            <figcaption>This map shows only one part of town, so it should not be split.</figcaption>
         </figure>
     </div>
+    <hr>
     <p><em>
         Note: This evaluation is a very important initial step that should only be done once,
         so if you want to skip this step and jump right into georeferencing, start with <a href="/documents/?limit=20&offset=0&tkeywords__id__in=1004">
         documents that are ready for georeferencing</a>.
         </em>
     </p>
+  </div>
+  {/if}
+  {#if showGuide}
+  <div transition:slide class="help-panel">
     <h4><strong>Using the Interface</strong></h4>
     <p>If this document <strong>does not</strong> to be split:</p>
     <ul>
@@ -72,4 +117,43 @@
         <li>Only cut-lines that fully cross a segment of the document will be used&mdash;all others will safely be ignored.</li>
         <li>Cut-lines can intersect or extend from each other to handle complex shapes.</li>
     </ul>
-</div>
+  </div>
+  {/if}
+  {#if showTips}
+  <div transition:slide class="help-panel">
+    <h4><strong>Tips</strong></h4>
+    <ul>
+      <li>Use <code>Esc</code> to abort a line you are in the middle of drawing.</li>
+      <li>You don't need to be exact with where the lines end: they can extend across the border of the image.</li>
+    </ul>
+  </div>
+  {/if}
+  {#if showVideo}
+  <div transition:slide class="help-panel">
+    <h4><em>coming soon!</em></h4>
+  </div>
+  {/if}
+</main>
+
+<style>
+
+main {
+  display: flex;
+  flex-direction: column;
+}
+
+figcaption {
+  font-style: italic;
+  font-size: .85em;
+}
+
+.help-panel {
+  font-size: 1.25em;
+  background: lightgray;
+  border-radius: 7px;
+  padding: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+</style>
