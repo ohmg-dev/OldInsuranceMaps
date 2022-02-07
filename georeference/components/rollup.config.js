@@ -82,8 +82,11 @@ let exportable = [];
 // Add your component names here!
 [
   "Split",
+  "SplitPreamble",
   "Georeference",
+  "GeoreferencePreamble",
   "Trim",
+  "TrimPreamble",
   "InfoPanel",
 ].forEach((d) => exportable.push(componentExportDetails(d)));
 
