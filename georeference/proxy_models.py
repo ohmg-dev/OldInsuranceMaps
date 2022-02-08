@@ -489,7 +489,7 @@ def get_search_item_info(resource_type, resource_id):
             linkset["prepare"]["url"] = proxy_urls['split']
         if status == "prepared":
             linkset["georeference"]["url"] = proxy_urls['georeference']
-        if status == "georeferenced":
+        if status == "georeferenced" or status == "trimmed":
             linkset["georeference"]["title"] = "Edit Georeferencing"
             linkset["georeference"]["url"] = proxy_urls['georeference']
             if resource_type == "layer":
