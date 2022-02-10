@@ -239,6 +239,8 @@ class Sheet(models.Model):
             "doc_id": self.document.pk,
         }
 
+def default_ordered_layers_dict():
+    return {"layers": [], "index_layers": []}
 
 class Volume(models.Model):
 
@@ -277,10 +279,16 @@ class Volume(models.Model):
         null=True,
         on_delete=models.CASCADE)
     load_date = models.DateTimeField(null=True, blank=True)
+    # this field is no longer in use
     index_layers = models.ManyToManyField(
         Layer,
         null=True,
         blank=True
+    )
+    ordered_layers = JSONField(
+        null=True,
+        blank=True,
+        default=default_ordered_layers_dict
     )
 
     def __str__(self):
@@ -373,6 +381,11 @@ class Volume(models.Model):
                 layer_json["page_str"] = page_str
                 sorted_items['layers'].append(layer_json)
 
+                # add layer id to ordering list if its not yet there
+                existing = self.ordered_layers["layers"] + self.ordered_layers["index_layers"]
+                if not layer_proxy.alternate in existing:
+                    self.ordered_layers["layers"].append(layer_proxy.alternate)
+                    self.save(update_fields=["ordered_layers"])
             continue
 
         return sorted_items
@@ -396,6 +409,17 @@ class Volume(models.Model):
             "loc_resource": resource_url,
             "summary": reverse("volume_summary", args=(self.identifier,))
         }
+
+    def hydrate_ordered_layers(self):
+
+        hydrated = { "layers": [], "index_layers": [] }
+        try:
+            hydrated["layers"] = [LayerProxy(i).serialize() for i in self.ordered_layers["layers"]],
+            hydrated["index_layers"] = [LayerProxy(i).serialize() for i in self.ordered_layers["index_layers"]]
+        except Exception as e:
+            logger.warn(e)
+
+        return hydrated
 
     def serialize(self):
         items = self.serialize_items()
@@ -423,4 +447,5 @@ class Volume(models.Model):
             "loaded_by": loaded_by,
             "urls": self.get_urls(),
             "index_layers": index_layers_json,
+            "ordered_layers": self.hydrate_ordered_layers(),
         }
