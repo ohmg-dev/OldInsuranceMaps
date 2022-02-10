@@ -299,7 +299,7 @@ class GeoreferenceSession(models.Model):
         try:
             link = GeoreferencedDocumentLink.objects.get(document=self.document)
             existing_layer = Layer.objects.get(pk=link.object_id)
-        except GeoreferencedDocumentLink.DoesNotExist:
+        except (GeoreferencedDocumentLink.DoesNotExist, Layer.DoesNotExist):
             pass
 
         ## create the layer, passing in the existing_layer if present
