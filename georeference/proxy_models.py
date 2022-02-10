@@ -120,7 +120,7 @@ class DocumentProxy(object):
         try:
             link = GeoreferencedDocumentLink.objects.get(document=self.id)
             layer = Layer.objects.get(id=link.object_id)
-        except GeoreferencedDocumentLink.DoesNotExist:
+        except (GeoreferencedDocumentLink.DoesNotExist, Layer.DoesNotExist):
             layer = None
         return layer
 
