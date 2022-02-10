@@ -98,7 +98,7 @@ function setLayersFromVolume(setExtent) {
 		// create the actual ol layers and add to group.
 		const newLayer = new TileLayer({
 			source: new TileWMS({
-				url: "http://localhost:8080/geoserver/wms/",
+				url: GEOSERVER_WMS,
 				params: {
 					'LAYERS': layerDef.geoserver_id,
 					'TILED': true,
