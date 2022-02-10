@@ -4,6 +4,7 @@ import json
 import time
 import uuid
 import shutil
+import logging
 import requests
 from datetime import datetime
 
@@ -44,6 +45,8 @@ from .enumerations import (
     MONTH_CHOICES,
 )
 from .renderers import convert_img_format, generate_full_thumbnail_content
+
+logger = logging.getLogger(__name__)
 
 def get_volume(resource_type, res_id):
 
@@ -304,16 +307,17 @@ class Volume(models.Model):
         self.load_date = datetime.now()
         self.save()
 
-        print("importing all sheeets")
+        logger.info(f"{self.__str__()} | beginning load")
 
         try:
             sheets = []
-            for fileset in self.lc_resources[0]['files']:
-                print("importing sheet...")
+            files_to_import = self.lc_resources[0]['files']
+            for n, fileset in enumerate(files_to_import):
+                logger.info(f"{self.__str__()} | importing sheet {n}/{len(files_to_import)}...")
                 sheet = Sheet().create_from_fileset(fileset, self, user)
                 sheets.append(sheet)                
         except Exception as e:
-            print(e)
+            logger.warn(e)
             self.status = "not started"
             self.save()
 
