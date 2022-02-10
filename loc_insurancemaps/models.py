@@ -414,11 +414,10 @@ class Volume(models.Model):
 
         hydrated = { "layers": [], "index_layers": [] }
         try:
-            hydrated["layers"] = [LayerProxy(i).serialize() for i in self.ordered_layers["layers"]],
+            hydrated["layers"] = [LayerProxy(i).serialize() for i in self.ordered_layers["layers"]]
             hydrated["index_layers"] = [LayerProxy(i).serialize() for i in self.ordered_layers["index_layers"]]
         except Exception as e:
             logger.warn(e)
-
         return hydrated
 
     def serialize(self):
