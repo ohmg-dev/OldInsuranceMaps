@@ -28,6 +28,9 @@ export let GEOSERVER_WMS;
 
 $: sheetsLoading = VOLUME.status == "initializing...";
 let loadTip = false;
+let unpreparedTip = false;
+let preparedTip = false;
+let georeferencedTip = false;
 
 let map;
 let showMap = VOLUME.ordered_layers.layers.length != 0 || VOLUME.ordered_layers.index_layers.length != 0;
@@ -205,11 +208,13 @@ function toggleFullscreen () {
 		<a href={ VOLUME.urls.loc_resource } target="_blank">
 			Preview in Library of Congress <i class="fa fa-external-link"></i>
 		</a>
-		<!-- svelte-ignore a11y-invalid-attribute -->
-		&nbsp;<a href="#" on:click={() => loadTip = !loadTip}><i class="fa fa-info-circle"></i></a>
+		<i class="fa fa-info-circle help-icon" on:click={() => loadTip = !loadTip}></i>
 	</p>
-	<p hidden={!loadTip}>&uarr; Before loading, this is the best way to see if the volume covers your part of town.</p>
-
+	{#if loadTip}
+	<div transition:slide>
+		<p>&uarr; Before loading, this is the best way to see if the volume covers your part of town.</p>
+	</div>
+	{/if}
 	{#if VOLUME.sheet_ct.loaded == 0 && USER_TYPE != 'anonymous' && !sheetsLoading}
 		<button on:click={() => { postOperation("initialize") }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
 	{/if}
@@ -272,7 +277,7 @@ function toggleFullscreen () {
 		{/if}
 	</div>
 	{:else}
-	<p><em>a preview map will be shown here once one or more sheets have been georeferenced...</em></p>
+	<p><em>A preview map will be shown here once one or more sheets have been georeferenced.</em></p>
 	{/if}
 	<hr>
 	<h3 style="">
@@ -293,7 +298,19 @@ function toggleFullscreen () {
 		{/if}
 	</div>
 	<div class="documents-box">
-		<h4>Unprepared ({VOLUME.items.unprepared.length})</h4>
+		<h4>Unprepared ({VOLUME.items.unprepared.length})
+			<i class="fa fa-info-circle help-icon" on:click={() => unpreparedTip = !unpreparedTip}></i>
+		</h4>
+		{#if unpreparedTip}
+		<div transition:slide>
+			<p>Unprepared sheets need to be evaluated, and, if they contain more than one mapped area, split into separate pieces.</p>
+			{#if VOLUME.items.unprepared.length != 0}
+			<ul>
+				<li>Choose a sheet and click <strong>prepare &rarr;</strong> to start the process.</li>
+			</ul>
+			{/if}
+		</div>
+		{/if}
 		<div class="documents-column">
 			{#if VOLUME.items.unprepared.length == 0}
 				<p><em>
@@ -323,7 +340,18 @@ function toggleFullscreen () {
 			{#if VOLUME.items.splitting.length > 0}
 				&mdash; {VOLUME.items.splitting.length} processing...
 			{/if}
+			<i class="fa fa-info-circle help-icon" on:click={() => preparedTip = !preparedTip}></i>
 		</h4>
+		{#if preparedTip}
+		<div transition:slide>
+			<p>Once a sheet has been prepared it is ready to be georeferenced.</p>
+			{#if VOLUME.items.prepared.length != 0}
+			<ul>
+				<li>Choose a document and click <strong>georeference &rarr;</strong> to start the process.</li>
+			</ul>
+			{/if}
+		</div>
+		{/if}
 		<div class="documents-column">
 			{#if VOLUME.items.prepared.length == 0}
 				<p><em>Documents will accumulate here when they are ready to be georeferenced.</em></p>
@@ -347,7 +375,19 @@ function toggleFullscreen () {
 			{#if VOLUME.items.georeferencing.length > 0}
 				&mdash; {VOLUME.items.georeferencing.length} processing...
 			{/if}
+			<i class="fa fa-info-circle help-icon" on:click={() => georeferencedTip = !georeferencedTip}></i>
 		</h4>
+		{#if georeferencedTip}
+		<div transition:slide>
+			<p>Georeferenced documents are represented here as layers, and will also be shown in the preview map at the top of this page. Additionally, some volumes will have <em>index layers</em> that show the entire extent of the volume.</p>
+			{#if VOLUME.items.georeferenced.length != 0}
+			<ul>
+				<li>Click <strong>trim &rarr;</strong> to add a mask polygon and trim the edges of the layer.</li>
+				<li>Click <strong>Set Index Layers</strong> to designate which layers should be treated as <em>index layers</em> in the preview map (they will be underneath the main layers).</li>
+			</ul>
+			{/if}
+		</div>
+		{/if}
 		{#if USER_TYPE != 'anonymous'}
 		<div style="margin-top:10px; margin-bottom:10px;">
 			{#if VOLUME.items.layers.length > 0}
@@ -402,6 +442,14 @@ nav {
 
 nav p {
 	margin: 0;
+}
+
+i.help-icon {
+	cursor: pointer;
+	color: #2c689c;
+}
+i.help-icon:hover {
+	color: #1b4060;
 }
 
 .map-panel {
