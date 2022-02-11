@@ -121,14 +121,14 @@ function setSplit(operation) {
     <div transition:slide>
       <div class="section-btn-row">
         <button 
-          title={georeferenceBtnTitle}
+          title="Click to split this document"
           disabled={!splitBtnEnabled}
           onclick="window.location.href='{URLS.split}'"
           class="{splitNeeded == true ? 'btn-chosen': ''}">
           <i class="fa fa-cut" />Split Document
         </button>
         <button 
-          title={georeferenceBtnTitle}
+          title="Click to set this document as prepared"
           disabled={!noSplitBtnEnabled}
           on:click={() => {setSplit("no_split")}}
           class="{splitNeeded == false ? 'btn-chosen': ''}">
@@ -138,7 +138,7 @@ function setSplit(operation) {
           title={undoBtnTitle}
           disabled={!undoBtnEnabled}
           on:click={() => {setSplit("reset")}}>
-          <i class="fa fa-undo" />
+          <i class="fa fa-undo" />Undo
         </button>
       </div>
       <div class="section-body">
