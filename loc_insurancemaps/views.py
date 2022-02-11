@@ -35,11 +35,10 @@ class HomePage(View):
 
     def get(self, request):
 
-        lc = CollectionConnection(delay=0, verbose=True)
+        lc = CollectionConnection(delay=0)
         city_list = lc.get_city_list_by_state("louisiana")
         context_dict = {
-            "svelte_params": {
-                "STATE_CHOICES": STATE_CHOICES,
+            "search_params": {
                 "CITY_QUERY_URL": reverse('lc_api'),
                 'USER_TYPE': get_user_type(request.user),
                 'CITY_LIST': city_list,
@@ -57,7 +56,7 @@ class Volumes(View):
     def get(self, request):
 
         started_volumes = Volume.objects.filter(status="started").order_by("city", "year")
-        lc = CollectionConnection(delay=0, verbose=True)
+        lc = CollectionConnection(delay=0)
         city_list = lc.get_city_list_by_state("louisiana")
 
         volumes_values = started_volumes.values_list(
@@ -96,9 +95,10 @@ class Volumes(View):
             })
 
         context_dict = {
-            "svelte_params": {
+            "list_params": {
                 "STARTED_VOLUMES": loaded_volumes,
-                "STATE_CHOICES": STATE_CHOICES,
+            },
+            "search_params": {
                 "CITY_QUERY_URL": reverse('lc_api'),
                 'USER_TYPE': get_user_type(request.user),
                 'CITY_LIST': city_list,

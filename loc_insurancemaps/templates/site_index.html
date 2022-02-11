@@ -4,7 +4,18 @@
 {% load base_tags %}
 {% load static %}
 
+{% load django_svelte %}
+
 {% block bigsearch %}
+<section id="volume-search" class="background-bg">
+  <div class="container text-center">
+  <div class="row">
+    <div class="col-12-xs">
+      {% display_svelte "VolumeSearch.svelte" svelte_params %} 
+    </div>
+  </div>
+</div>
+</section>
 {% endblock bigsearch %}
 
 {% block showcase %}
