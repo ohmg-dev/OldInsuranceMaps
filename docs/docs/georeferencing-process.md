@@ -1,5 +1,8 @@
 # Overview of Steps
 
+!!! note
+    These steps are best carried out on a laptop/desktop computer, though a nimble mobile user should be able to perform them as well.
+
 In this application, the entire georeferencing process comprises three sequential steps, each with its own tool interface:
 
 1. [Preparation (Splitting)](#preparation-splitting)
