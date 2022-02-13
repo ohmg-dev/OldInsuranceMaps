@@ -89,7 +89,7 @@ In the search results pages, a list of links are added to each item, allowing qu
 All interfaces are written using [Svelte](https://svelte.dev). [Mapserver](https://mapserver.org) is used to generate the WMS preview used during georeferencing from a VRT that is dynamically updated with ground control points.
 
 !!! note
-Earlier iterations of this app incorporated [IIIF](https://iiif.org) with the intention of building from Bert Spaan's work at [allmaps.org](https://allmaps.org). Remnants of this approach have been moved into a separate app called `iiif_support`, and could be reincorporated in the future.
+    Earlier iterations of this app incorporated [IIIF](https://iiif.org) with the intention of building from Bert Spaan's work at [allmaps.org](https://allmaps.org). Remnants of this approach have been moved into a separate app called `iiif_support`, and could be reincorporated in the future.
 
 # The LOC Insurance Maps App
 

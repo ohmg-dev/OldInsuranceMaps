@@ -15,10 +15,10 @@ When you are ready, you can [create a web map](#creating-web-maps) from layers t
 # Preparation (Splitting)
 
 === "Basic concept"
-Before a Document can be georeferenced, it must be visually evaluated to determine whether it contains more than one part of town in it. If it does, each of these parts must be split into separate Documents.
+    Before a Document can be georeferenced, it must be visually evaluated to determine whether it contains more than one part of town in it. If it does, each of these parts must be split into separate Documents.
 
 === "Tell me more..."
-When an image is georeferenced, as you'll see below, control points are made that link pixel coordinates on the image with latitude/longitude coordinates on the earth. This means that a set of control points must only be linked to a specific geographic area, i.e. a single file.
+    When an image is georeferenced, as you'll see below, control points are made that link pixel coordinates on the image with latitude/longitude coordinates on the earth. This means that a set of control points must only be linked to a specific geographic area, i.e. a single file.
 
 ![The splitting interface, ready to split this document into two new documents.](img/split-interface.png)
 
@@ -82,10 +82,10 @@ Understanding cut-lines:
 # Georeferencing
 
 === "Basic concept"
-"Georeferencing" is the process that is needed to overlay a scanned historical map onto a modern web map, and it must be performed for each Document individually.
+    "Georeferencing" is the process that is needed to overlay a scanned historical map onto a modern web map, and it must be performed for each Document individually.
 
 === "Tell me more..."
-Georeferencing works by using "ground control points" to embed geospatial information into an image file and turn it into a geosptial dataset. A ground control point consists of two coordinate pairs: one pair that represents the XY pixel location on the document, and a corresponding latitude/longitude coordinate that represents a point on earth.
+    Georeferencing works by using "ground control points" to embed geospatial information into an image file and turn it into a geosptial dataset. A ground control point consists of two coordinate pairs: one pair that represents the XY pixel location on the document, and a corresponding latitude/longitude coordinate that represents a point on earth.
 
 ![The georeferencing interface, with 3 control points added and the preview visible.](img/georeference-interface.png)
 
@@ -151,10 +151,10 @@ Tips:
 # Trimming
 
 === "Basic concept"
-You can trim the edges of a border layer away so that adjacent sheets on the same web map don't obscure each other.
+    You can trim the edges of a border layer away so that adjacent sheets on the same web map don't obscure each other.
 
 === "Tell me more..."
-This process is accomplished by creating a polygon "mask" that is used to crop extraneous layer content. These mask coordinates are written into an alternate layer style that is set as the new default for the Layer. This approach preserves the original style, which allows users switch back to the full style if they want to see the entire image in a web map.
+    This process is accomplished by creating a polygon "mask" that is used to crop extraneous layer content. These mask coordinates are written into an alternate layer style that is set as the new default for the Layer. This approach preserves the original style, which allows users switch back to the full style if they want to see the entire image in a web map.
 
 ![The trimming interface with a mask trimming (slightly) the edges of this layer.](img/trim-interface.png)
 
@@ -199,10 +199,10 @@ Tips:
 # Creating Web Maps
 
 === "Basic concept"
-Users can author their own Web Maps, and add whichever layers they want to them. This is most obviously useful for aggregating all of the layers for a single city in a single year, but you could also combine layers from different years.
+    Users can author their own Web Maps, and add whichever layers they want to them. This is most obviously useful for aggregating all of the layers for a single city in a single year, but you could also combine layers from different years.
 
 === "Tell me more..."
-Creating Web Maps is a core GeoNode functionality, and this project only scratches the surface of what these maps can do. Please see the [GeoNode documentation](https://docs.geonode.org/en/master/usage/managing_maps/index.html) to learn more.<br>_Please note: In GeoNode parlance, what we refer to here as **Web Maps** are simply called **Maps**._
+    Creating Web Maps is a core GeoNode functionality, and this project only scratches the surface of what these maps can do. Please see the [GeoNode documentation](https://docs.geonode.org/en/master/usage/managing_maps/index.html) to learn more.<br>_Please note: In GeoNode parlance, what we refer to here as **Web Maps** are simply called **Maps**._
 
 The easiest way to create a web map is to start in the main [layers search page](https://oldinsurancemaps.net/layers). Here you can use some search criteria to find the layers you are interested in, select all of the layers you want with the <i class="fa fa-plus"></i> button, and then click **Create a Map**.
 
@@ -212,7 +212,7 @@ This web map will be visible to anyone and embedded into other websites, and if 
 
 ## Adding Layers to an Existing Web Map
 
-You can also add layers to an existing web map. In the top right corner, you'll find the **Catalog** button. This uses a list to find and add other layers.
+You can also add layers to an existing web map. In the top right corner, you'll find the **Catalog** button. Use this list to find and add other layers.
 
 ![Adjust layer order in the left-hand panel, change basemaps in the bottom left corner, and save options on the top right corner.](img/new-map-alex-1900-catalog.png)
 
