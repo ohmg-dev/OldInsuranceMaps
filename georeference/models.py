@@ -61,8 +61,11 @@ class GeoreferencedDocumentLink(DocumentResourceLink):
         verbose_name_plural = "Georeferenced Document Links"
 
     def __str__(self):
-        layer = Layer.objects.get(pk=self.object_id)
-        return f"{self.document.__str__()} --> {layer.alternate}"
+        try:
+            layer_name = Layer.objects.get(pk=self.object_id).alternate
+        except Layer.DoesNotExist:
+            layer_name = "None"
+        return f"{self.document.__str__()} --> {layer_name}"
 
 class SplitEvaluation(models.Model):
 
