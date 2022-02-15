@@ -101,7 +101,7 @@ class SplitEvaluation(models.Model):
             docs_to_check = [self.document]
 
         tkm = TKeywordManager()
-        return any([tkm.post_georeference(d) for d in docs_to_check])
+        return any([tkm.is_georeferenced(d) for d in docs_to_check])
 
     def get_children(self):
         """Returns a list of all the child documents created by this
