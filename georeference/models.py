@@ -271,14 +271,9 @@ class GeoreferenceSession(models.Model):
             # revert to previous tkeyword status
             tkm.set_status(self.document, "prepared")
             return None
-
         self.update_status("georeferencing")
         try:
-            out_path = g.georeference(
-                self.document.doc_file.path,
-                out_format="GTiff",
-                addo=True,
-            )
+            out_path = g.make_tif(self.document.doc_file.path)
         except Exception as e:
             self.update_status("failed")
             self.note = f"{e.message}"

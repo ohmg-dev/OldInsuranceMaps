@@ -249,10 +249,7 @@ class GeoreferenceView(View):
             g.load_gcps_from_geojson(gcp_geojson)
             g.set_transformation(transformation)
             try:
-                out_path = g.georeference(
-                    doc_proxy.doc_file.path,
-                    out_format="VRT",
-                )
+                out_path = g.make_vrt(doc_proxy.doc_file.path)
                 response["status"] = "success"
                 response["message"] = "all good"
             except Exception as e:
