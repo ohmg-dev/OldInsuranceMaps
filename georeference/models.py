@@ -225,7 +225,7 @@ class GeoreferenceSession(models.Model):
         verbose_name_plural = "Georeference Sessions"
 
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
-    layer = models.ForeignKey(Layer, null=True, blank=True, on_delete=models.CASCADE)
+    layer = models.ForeignKey(Layer, models.SET_NULL, null=True, blank=True)
     gcps_used = JSONField(null=True, blank=True)
     transformation_used = models.CharField(null=True, blank=True, max_length=20)
     crs_epsg_used = models.IntegerField(null=True, blank=True)
