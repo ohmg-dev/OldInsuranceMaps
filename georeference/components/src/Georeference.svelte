@@ -121,22 +121,6 @@ docGCPSource.on('addfeature', function (e) {
 })
 
 const mapGCPSource = new VectorSource();
-mapGCPSource.on(['addfeature'], function (e) {
-
-  // if this is an incoming gcp, the listID (and all other properties)
-  // will already be set. Otherwise, it must be set here.
-  if (!e.feature.getProperties().listId) {
-    e.feature.setProperties({
-      'id': uuid(),
-      'listId': activeGCP,
-      'username': USERNAME,
-      'note': '',
-    });
-  }
-  e.feature.setStyle(styles.gcpHighlight);
-  syncGCPList();
-  inProgress = false;
-})
 
 // create the preview layer from mapserver
 const previewSource = new TileWMS({
@@ -326,6 +310,7 @@ onMount(() => {
 function loadIncomingGCPs() {
   docGCPSource.clear();
   mapGCPSource.clear();
+  let mapGCPs = []
   if (INCOMING_GCPS) {
     let listId = 1;
     let inGCPs = new GeoJSON().readFeatures(INCOMING_GCPS, {
@@ -336,7 +321,7 @@ function loadIncomingGCPs() {
     inGCPs.forEach( function(inGCP) {
 
       inGCP.setProperties({"listId": listId})
-      mapGCPSource.addFeature(inGCP);
+      mapGCPs.push(inGCP)
 
       const gcpProps = inGCP.getProperties()
       const docFeat = new Feature({
@@ -350,13 +335,32 @@ function loadIncomingGCPs() {
       listId += 1;
     });
     previewMode = "transparent";
+    mapGCPSource.addFeatures(mapGCPs);
     mapView.map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
+    syncGCPList();
   } else {
     const extent3857 = transformExtent(REGION_EXTENT, "EPSG:4326", "EPSG:3857");
     mapView.map.getView().fit(extent3857);
   }
+
+  // only add this event handler 
+  mapGCPSource.on(['addfeature'], function (e) {
+    // if this is an incoming gcp, the listID (and all other properties)
+    // will already be set. Otherwise, it must be set here.
+    if (!e.feature.getProperties().listId) {
+      e.feature.setProperties({
+        'id': uuid(),
+        'listId': activeGCP,
+        'username': USERNAME,
+        'note': '',
+      });
+    }
+    e.feature.setStyle(styles.gcpHighlight);
+    syncGCPList();
+    inProgress = false;
+  })
   currentTransformation = (INCOMING_TRANSFORMATION ? INCOMING_TRANSFORMATION : "poly1")
-  syncGCPList();
+  
   activeGCP = gcpList.length + 1;
   inProgress = false;
   unchanged = true;
