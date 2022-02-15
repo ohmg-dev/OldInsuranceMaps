@@ -256,7 +256,6 @@ class GeoreferenceSession(models.Model):
 
         tkm = TKeywordManager()
         tkm.set_status(self.document, "georeferencing")
-
         self.update_status("initializing georeferencer")
         try:
             g = Georeferencer(
@@ -353,13 +352,14 @@ class GeoreferenceSession(models.Model):
         tkm.set_status(layer, "georeferenced")
 
         self.update_status("completed")
+        self.save()
 
         return layer
 
     def update_status(self, status):
         self.status = status
-        self.save()
-    
+        self.save(update_fields=['status'])
+
     def serialize(self):
         return {
             "user": {
