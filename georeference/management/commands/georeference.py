@@ -46,6 +46,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
+        print("this operation is out of date")
+        exit()
+
         g = Georeferencer(epsg_code=3857)
 
         if options["points_file"] is not None:
@@ -53,7 +56,7 @@ class Command(BaseCommand):
 
         if options["transformation"] is not None:
             g.set_transformation(options["transformation"])
-
+  
         if options["source"] is not None:
             g.georeference(options["source"], vrt=options["vrt"])
             # if options["vrt"] is True:
