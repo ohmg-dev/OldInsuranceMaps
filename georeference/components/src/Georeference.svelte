@@ -45,10 +45,7 @@ export let MAPSERVER_LAYERNAME;
 export let MAPBOX_API_KEY;
 export let USER_AUTHENTICATED;
 
-console.log(DOCUMENT)
-
 let disableInterface = !USER_AUTHENTICATED || DOCUMENT.status == "georeferencing";
-console.log(disableInterface)
 
 let previewMode = "n/a";
 

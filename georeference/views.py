@@ -51,7 +51,7 @@ class SplitView(View):
 
         doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
 
-        svelte_params = {
+        split_params = {
             "CSRFTOKEN": csrf.get_token(request),
             "DOCUMENT": doc_proxy.serialize(),
             "IMG_SIZE": doc_proxy.image_size,
@@ -62,7 +62,10 @@ class SplitView(View):
         return render(
             request,
             "georeference/split.html",
-            context={"svelte_params": svelte_params},
+            context={
+                "preamble_params": {}, # overwrite the default with empty
+                "split_params": split_params
+            },
         )
 
     def post(self, request, docid):
@@ -128,7 +131,7 @@ class TrimView(View):
         gs = gs.rstrip("/") + "/"
         geoserver_ows = f"{gs}ows/"
 
-        svelte_params = {
+        trim_params = {
             "LAYER": layer_proxy.serialize(),
             "CSRFTOKEN": csrf.get_token(request),
             "GEOSERVER_WMS": geoserver_ows,
@@ -141,7 +144,8 @@ class TrimView(View):
             request,
             "georeference/trim.html",
             context={
-                "svelte_params": svelte_params,
+                "preamble_params": {}, # overwrite the default with empty
+                "trim_params": trim_params,
             }
         )
 
@@ -196,7 +200,7 @@ class GeoreferenceView(View):
         doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
         ms = MapServerManager()
 
-        svelte_params = {
+        georeference_params = {
             "CSRFTOKEN": csrf.get_token(request),
             "DOCUMENT": doc_proxy.serialize(),
             "IMG_SIZE": doc_proxy.image_size,
@@ -214,7 +218,8 @@ class GeoreferenceView(View):
             request,
             "georeference/georeference.html",
             context={
-                'svelte_params': svelte_params,
+                'preamble_params': {}, # overwrite the default with empty
+                'georeference_params': georeference_params,
             }
         )
 
