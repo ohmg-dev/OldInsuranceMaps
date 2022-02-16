@@ -61,8 +61,11 @@ class GeoreferencedDocumentLink(DocumentResourceLink):
         verbose_name_plural = "Georeferenced Document Links"
 
     def __str__(self):
-        layer = Layer.objects.get(pk=self.object_id)
-        return f"{self.document.__str__()} --> {layer.alternate}"
+        try:
+            layer_name = Layer.objects.get(pk=self.object_id).alternate
+        except Layer.DoesNotExist:
+            layer_name = "None"
+        return f"{self.document.__str__()} --> {layer_name}"
 
 class SplitEvaluation(models.Model):
 
@@ -98,7 +101,7 @@ class SplitEvaluation(models.Model):
             docs_to_check = [self.document]
 
         tkm = TKeywordManager()
-        return any([tkm.post_georeference(d) for d in docs_to_check])
+        return any([tkm.is_georeferenced(d) for d in docs_to_check])
 
     def get_children(self):
         """Returns a list of all the child documents created by this
@@ -222,7 +225,7 @@ class GeoreferenceSession(models.Model):
         verbose_name_plural = "Georeference Sessions"
 
     document = models.ForeignKey(Document, on_delete=models.CASCADE)
-    layer = models.ForeignKey(Layer, null=True, blank=True, on_delete=models.CASCADE)
+    layer = models.ForeignKey(Layer, models.SET_NULL, null=True, blank=True)
     gcps_used = JSONField(null=True, blank=True)
     transformation_used = models.CharField(null=True, blank=True, max_length=20)
     crs_epsg_used = models.IntegerField(null=True, blank=True)
@@ -253,7 +256,6 @@ class GeoreferenceSession(models.Model):
 
         tkm = TKeywordManager()
         tkm.set_status(self.document, "georeferencing")
-
         self.update_status("initializing georeferencer")
         try:
             g = Georeferencer(
@@ -268,14 +270,9 @@ class GeoreferenceSession(models.Model):
             # revert to previous tkeyword status
             tkm.set_status(self.document, "prepared")
             return None
-
         self.update_status("georeferencing")
         try:
-            out_path = g.georeference(
-                self.document.doc_file.path,
-                out_format="GTiff",
-                addo=True,
-            )
+            out_path = g.make_tif(self.document.doc_file.path)
         except Exception as e:
             self.update_status("failed")
             self.note = f"{e.message}"
@@ -355,13 +352,14 @@ class GeoreferenceSession(models.Model):
         tkm.set_status(layer, "georeferenced")
 
         self.update_status("completed")
+        self.save()
 
         return layer
 
     def update_status(self, status):
         self.status = status
-        self.save()
-    
+        self.save(update_fields=['status'])
+
     def serialize(self):
         return {
             "user": {

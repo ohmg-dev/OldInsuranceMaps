@@ -137,8 +137,11 @@ LOGGING = {
     'disable_existing_loggers': True,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d '
+            'format': '%(levelname)s %(asctime)s %(name)s %(funcName)s %(process)d '
                       '%(thread)d %(message)s'
+        },
+        'moderate': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(message)s'
         },
         'simple': {
             'format': '%(message)s',
@@ -153,29 +156,49 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'simple'
+            'formatter': 'verbose'
         },
         'console-vb': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
+        ## haven't gotten this to work yet
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
         },
-        'file': {
+        'geonode': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'geonode.log'),
+            'formatter': 'moderate',
+        },
+        'info': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'info.log'),
+            'formatter': 'moderate',
+        },
+        'georeference-debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(LOG_DIR, 'info.log')
-        }
+            'filename': os.path.join(LOG_DIR, 'georeference-debug.log'),
+            'formatter': 'verbose',
+        },
+        'loc_insurancemaps-debug': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'loc_insurancemaps-debug.log'),
+            'formatter': 'verbose',
+        },
     },
     "loggers": {
         "django": {
             "handlers": ["console"], "level": "ERROR", },
         "geonode": {
-            "handlers": ["console", "file"], "level": "INFO", },
+            "handlers": ["geonode"], "level": "DEBUG", },
         "geoserver-restconfig.catalog": {
             "handlers": ["console"], "level": "ERROR", },
         "owslib": {
@@ -188,8 +211,13 @@ LOGGING = {
             "handlers": ["console"], "level": "DEBUG", },
         "geonode_logstash.logstash": {
             "handlers": ["console"], "level": "DEBUG", },
+        # logging for this app specifically
         "georeference.tests": {
             "handlers": ["console"], "level": "DEBUG", },
+        "georeference": {
+            "handlers": ["info", "georeference-debug"], "level": "DEBUG", },
+        "loc_insurancemaps": {
+            "handlers": ["info", "loc_insurancemaps-debug"], "level": "DEBUG", },
     },
 }
 

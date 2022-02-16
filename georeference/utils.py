@@ -93,7 +93,7 @@ class TKeywordManager(object):
         self.unset_status(resource)
         resource.tkeywords.add(self.lookup[status])
 
-    def post_georeference(self, resource):
+    def is_georeferenced(self, resource):
 
         status_list = [
             "georeferencing",

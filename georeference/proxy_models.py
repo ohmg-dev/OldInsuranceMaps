@@ -260,6 +260,50 @@ class DocumentProxy(object):
             })
         return actions
 
+    def revert_georeferencing(self):
+
+        sessions = GeoreferenceSession.objects.filter(document=self.resource).order_by("-created")
+        if len(sessions) == 0:
+            logger.info(f"doc: {self.id} | no GeoreferenceSession to revert")
+            return
+        elif len(sessions) == 1:
+            latest = sessions[0]
+            reapply = None
+        elif len(sessions):
+            latest = sessions[0]
+            reapply = sessions[1]
+
+        logger.debug(f"doc: {self.id} | revert GeoreferenceSession {latest.pk}")
+
+        logger.debug(f"doc: {self.id} | delete GeoreferencedDocumentLink")
+        try:
+            GeoreferencedDocumentLink.objects.get(document=self.id).delete()
+        except Exception as e:
+            print(e)
+
+        if latest.layer is None:
+            logger.debug(f"doc: {self.id} | no layer to delete")
+        else:
+            logger.debug(f"doc: {self.id} | delete layer: {latest.layer.alternate}")
+            latest.layer.delete()
+
+        logger.debug(f"doc: {self.id} | delete session: {latest.pk}")
+        latest.delete()
+
+        # delete the GCPGroup/GCPs and then reset to "prepared" if this was the only session
+        if reapply is None:
+            logger.debug(f"doc: {self.id} | delete GCPGroup/GCPs")
+            GCPGroup.objects.get(document=self.resource).delete()
+            TKeywordManager().set_status(self.resource, "prepared")
+
+        else:
+            logger.info(f"doc: {self.id} | re-run previous session: {reapply.pk}")
+            reapply.run()
+            # finally, for all previous sessions reset the newly re-created layer
+            for old_session in GeoreferenceSession.objects.filter(document=self.resource):
+                old_session.layer = reapply.layer
+                old_session.save()
+
 class LayerProxy(object):
     
     def __init__(self, identifier, raise_404_on_error=False):

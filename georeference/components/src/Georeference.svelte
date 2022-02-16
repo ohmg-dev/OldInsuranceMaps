@@ -45,15 +45,13 @@ export let MAPSERVER_LAYERNAME;
 export let MAPBOX_API_KEY;
 export let USER_AUTHENTICATED;
 
-console.log(DOCUMENT)
-
 let disableInterface = !USER_AUTHENTICATED || DOCUMENT.status == "georeferencing";
-console.log(disableInterface)
 
 let previewMode = "n/a";
 
 let activeGCP = 1;
 let inProgress = false;
+let loadingInitial = false;
 
 let panelFocus = "equal";
 let syncPanelWidth = false;
@@ -122,7 +120,6 @@ docGCPSource.on('addfeature', function (e) {
 
 const mapGCPSource = new VectorSource();
 mapGCPSource.on(['addfeature'], function (e) {
-
   // if this is an incoming gcp, the listID (and all other properties)
   // will already be set. Otherwise, it must be set here.
   if (!e.feature.getProperties().listId) {
@@ -134,7 +131,8 @@ mapGCPSource.on(['addfeature'], function (e) {
     });
   }
   e.feature.setStyle(styles.gcpHighlight);
-  syncGCPList();
+  // check the loadingInitial flag to save unnecessary calls to backend
+  if (!loadingInitial) {syncGCPList();}
   inProgress = false;
 })
 
@@ -324,6 +322,7 @@ onMount(() => {
 });
 
 function loadIncomingGCPs() {
+  loadingInitial = true;
   docGCPSource.clear();
   mapGCPSource.clear();
   if (INCOMING_GCPS) {
@@ -351,13 +350,14 @@ function loadIncomingGCPs() {
     });
     previewMode = "transparent";
     mapView.map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
+    syncGCPList();
   } else {
     const extent3857 = transformExtent(REGION_EXTENT, "EPSG:4326", "EPSG:3857");
     mapView.map.getView().fit(extent3857);
   }
   currentTransformation = (INCOMING_TRANSFORMATION ? INCOMING_TRANSFORMATION : "poly1")
-  syncGCPList();
   activeGCP = gcpList.length + 1;
+  loadingInitial = false;
   inProgress = false;
   unchanged = true;
 }
