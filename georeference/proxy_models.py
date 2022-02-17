@@ -260,43 +260,52 @@ class DocumentProxy(object):
             })
         return actions
 
-    def revert_georeferencing(self):
+    def undo_georeferencing(self, reapply_last=False):
+        """Removes GeoreferencingSessions and Layer for this document. If reapply_last=True, 
+        then only remove the latest session and rerun the one before it."""
 
+        logger.debug(f"doc: {self.id} | undo georeferencing")
+
+        ##  get all of the sessions for this document, ordered so most recent is first
         sessions = GeoreferenceSession.objects.filter(document=self.resource).order_by("-created")
-        if len(sessions) == 0:
+        if sessions.count() == 0:
             logger.info(f"doc: {self.id} | no GeoreferenceSession to revert")
-            return
-        elif len(sessions) == 1:
-            latest = sessions[0]
-            reapply = None
-        elif len(sessions):
-            latest = sessions[0]
-            reapply = sessions[1]
-
-        logger.debug(f"doc: {self.id} | revert GeoreferenceSession {latest.pk}")
-
-        logger.debug(f"doc: {self.id} | delete GeoreferencedDocumentLink")
-        try:
-            GeoreferencedDocumentLink.objects.get(document=self.id).delete()
-        except Exception as e:
-            print(e)
-
-        if latest.layer is None:
-            logger.debug(f"doc: {self.id} | no layer to delete")
-        else:
-            logger.debug(f"doc: {self.id} | delete layer: {latest.layer.alternate}")
-            latest.layer.delete()
-
-        logger.debug(f"doc: {self.id} | delete session: {latest.pk}")
-        latest.delete()
-
-        # delete the GCPGroup/GCPs and then reset to "prepared" if this was the only session
-        if reapply is None:
-            logger.debug(f"doc: {self.id} | delete GCPGroup/GCPs")
-            GCPGroup.objects.get(document=self.resource).delete()
+            ## clean up any GCPGroup that could be leftover somehow
+            GCPGroup.objects.filter(document=self.resource).delete()
             TKeywordManager().set_status(self.resource, "prepared")
 
+        ## if reapply is False or there is only one session, wipe the slate clean
+        elif sessions.count() == 1 or reapply_last is False:
+
+            ## delete the Layer
+            layer = self.get_layer()
+            if layer is None:
+                logger.debug(f"doc: {self.id} | no Layer to delete")
+            else:
+                logger.debug(f"doc: {self.id} | delete Layer: {layer}")
+                layer.delete()
+
+            ## remove the link between the Document and the Layer
+            try:
+                GeoreferencedDocumentLink.objects.get(document=self.id).delete()
+                logger.debug(f"doc: {self.id} | delete GeoreferencedDocumentLink")
+            except GeoreferencedDocumentLink.DoesNotExist:
+                logger.debug(f"doc: {self.id} | no GeoreferencedDocumentLink to delete")
+            
+            ## remove all sessions
+            logger.info(f"doc: {self.id} | delete all sessions: {[s.pk for s in sessions]}")
+            sessions.delete()
+            GCPGroup.objects.filter(document=self.resource).delete()
+            TKeywordManager().set_status(self.resource, "prepared")
+
+        ## otherwise retain all but the last session and then reapply the one before it
         else:
+            latest = list(sessions)[0]
+            logger.info(f"doc: {self.id} | delete GeoreferenceSession: {latest.pk}")
+            latest.delete()
+            #reaquire sessions, seems like it may be necessary??
+            sessions = GeoreferenceSession.objects.filter(document=self.resource).order_by("-created")
+            reapply = list(sessions)[0]
             logger.info(f"doc: {self.id} | re-run previous session: {reapply.pk}")
             reapply.run()
             # finally, for all previous sessions reset the newly re-created layer
