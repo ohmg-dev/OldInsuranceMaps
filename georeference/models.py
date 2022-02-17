@@ -357,6 +357,7 @@ class GeoreferenceSession(models.Model):
         return layer
 
     def update_status(self, status):
+        logger.debug(f"GeoreferenceSession {self.id} | set status: {status}")
         self.status = status
         self.save(update_fields=['status'])
 

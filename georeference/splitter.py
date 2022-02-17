@@ -1,5 +1,6 @@
 import os
 import math
+import time
 import logging
 from PIL import Image, ImageDraw, ImageFilter
 
@@ -156,8 +157,6 @@ class Splitter(object):
 
         out_shapes = [i["geom"].coords[0] for i in candidates if i["final"] is True]
 
-        print(f"{len(out_shapes)} output shapes")
-
         self.divisions = out_shapes
 
         return out_shapes
@@ -165,9 +164,7 @@ class Splitter(object):
     def split_image(self, out_format="jpg"):
         """ """
 
-        # update the session info, now that it's about to be run
-        print("splitting image...")
-
+        start = time.time()
         format_lookup = {"jpg": "JPEG", "png": "PNG"}
 
         img = Image.open(self.img_file)
@@ -217,5 +214,8 @@ class Splitter(object):
             out_image.save(out_path, format_lookup[out_format])
 
             out_paths.append(out_path)
+
+        t = round(time.time()-start, 3)
+        logger.info(f"{os.path.basename(self.img_file)} split completed | {t} seconds | {len(out_paths)} parts")
 
         return out_paths
