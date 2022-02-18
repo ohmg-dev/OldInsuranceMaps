@@ -17,6 +17,7 @@ class Command(BaseCommand):
             default=[
                 "retry",
                 "revert",
+                "revert-all",
             ],
             help="specify the operation to carry out",
         )
@@ -43,7 +44,9 @@ class Command(BaseCommand):
             exit()
 
         if options["operation"] == "revert":
-            dp.revert_georeferencing()
+            dp.undo_georeferencing(reapply_last=True)
+        elif options["operation"] == "revert-all":
+            dp.undo_georeferencing()
         elif options["operation"] == "retry":
             latest = list(dp.get_georeference_sessions())[-1]
             latest.run()

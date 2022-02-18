@@ -319,26 +319,26 @@ class GeoreferenceSession(models.Model):
             )
 
             # set attributes in the layer straight from the document
-            layer.date = self.document.date
-            layer.abstract = self.document.abstract
-            layer.category = self.document.category
             for keyword in self.document.keywords.all():
                 layer.keywords.add(keyword)
             for region in self.document.regions.all():
                 layer.regions.add(region)
-            layer.restriction_code_type = self.document.restriction_code_type
-            layer.attribution = self.document.attribution
-            layer.license = self.document.license
+            Layer.objects.filter(pk=layer.pk).update(
+                date=self.document.date,
+                abstract=self.document.abstract,
+                category=self.document.category,
+                license=self.document.license,
+                restriction_code_type=self.document.restriction_code_type,
+                attribution=self.document.attribution,
+            )
 
         ## if there was an existing layer that's been overwritten, regenerate thumb.
         else:
             self.update_status("regenerating thumbnail")
             thumb = create_thumbnail(layer, overwrite=True)
-            layer.thumbnail_url = thumb
+            Layer.objects.filter(pk=layer.pk).update(thumbnail_url=thumb)
 
-        layer.save()
         self.layer = layer
-
         self.update_status("saving control points")
 
         # save the successful gcps to the canonical GCPGroup for the document
@@ -357,6 +357,7 @@ class GeoreferenceSession(models.Model):
         return layer
 
     def update_status(self, status):
+        logger.debug(f"GeoreferenceSession {self.id} | set status: {status}")
         self.status = status
         self.save(update_fields=['status'])
 
