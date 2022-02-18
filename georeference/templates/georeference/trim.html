@@ -4,14 +4,14 @@
 
 {% load django_svelte %}
 
-{% block title %}{{ svelte_params.LAYER.title }} — Trim{% endblock %}
+{% block title %}{{ trim_params.LAYER.title }} — Trim{% endblock %}
 
 {% block body_outer %}
     <div style="float:right; text-align:center; margin-top: 15px;">
-        <a href="{{ svelte_params.LAYER.urls.detail }}">back to layer detail &rarr;</a>
+        <a href="{{ trim_params.LAYER.urls.detail }}">back to layer detail &rarr;</a>
     </div>
-    <h1 style="font-size: 2.1em">{{ svelte_params.LAYER.title }}</h1>
+    <h1 style="font-size: 2.1em">{{ trim_params.LAYER.title }}</h1>
     <hr>
-    {% display_svelte "TrimPreamble.svelte" %}
-    {% display_svelte "Trim.svelte" svelte_params %}
+    {% display_svelte "TrimPreamble.svelte" preamble_params %}
+    {% display_svelte "Trim.svelte" trim_params %}
 {% endblock %}

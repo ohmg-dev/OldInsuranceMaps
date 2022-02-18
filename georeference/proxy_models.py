@@ -260,6 +260,59 @@ class DocumentProxy(object):
             })
         return actions
 
+    def undo_georeferencing(self, reapply_last=False):
+        """Removes GeoreferencingSessions and Layer for this document. If reapply_last=True, 
+        then only remove the latest session and rerun the one before it."""
+
+        logger.debug(f"doc: {self.id} | undo georeferencing")
+
+        ##  get all of the sessions for this document, ordered so most recent is first
+        sessions = GeoreferenceSession.objects.filter(document=self.resource).order_by("-created")
+        if sessions.count() == 0:
+            logger.info(f"doc: {self.id} | no GeoreferenceSession to revert")
+            ## clean up any GCPGroup that could be leftover somehow
+            GCPGroup.objects.filter(document=self.resource).delete()
+            TKeywordManager().set_status(self.resource, "prepared")
+
+        ## if reapply is False or there is only one session, wipe the slate clean
+        elif sessions.count() == 1 or reapply_last is False:
+
+            ## delete the Layer
+            layer = self.get_layer()
+            if layer is None:
+                logger.debug(f"doc: {self.id} | no Layer to delete")
+            else:
+                logger.debug(f"doc: {self.id} | delete Layer: {layer}")
+                layer.delete()
+
+            ## remove the link between the Document and the Layer
+            try:
+                GeoreferencedDocumentLink.objects.get(document=self.id).delete()
+                logger.debug(f"doc: {self.id} | delete GeoreferencedDocumentLink")
+            except GeoreferencedDocumentLink.DoesNotExist:
+                logger.debug(f"doc: {self.id} | no GeoreferencedDocumentLink to delete")
+            
+            ## remove all sessions
+            logger.info(f"doc: {self.id} | delete all sessions: {[s.pk for s in sessions]}")
+            sessions.delete()
+            GCPGroup.objects.filter(document=self.resource).delete()
+            TKeywordManager().set_status(self.resource, "prepared")
+
+        ## otherwise retain all but the last session and then reapply the one before it
+        else:
+            latest = list(sessions)[0]
+            logger.info(f"doc: {self.id} | delete GeoreferenceSession: {latest.pk}")
+            latest.delete()
+            #reaquire sessions, seems like it may be necessary??
+            sessions = GeoreferenceSession.objects.filter(document=self.resource).order_by("-created")
+            reapply = list(sessions)[0]
+            logger.info(f"doc: {self.id} | re-run previous session: {reapply.pk}")
+            reapply.run()
+            # finally, for all previous sessions reset the newly re-created layer
+            for old_session in GeoreferenceSession.objects.filter(document=self.resource):
+                old_session.layer = reapply.layer
+                old_session.save()
+
 class LayerProxy(object):
     
     def __init__(self, identifier, raise_404_on_error=False):

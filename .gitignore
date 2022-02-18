@@ -5,6 +5,7 @@ mapserver.map
 
 
 _system-configs
+.env
 .env_local
 nohup.out
 

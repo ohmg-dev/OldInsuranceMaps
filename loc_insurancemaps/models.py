@@ -378,7 +378,7 @@ class Volume(models.Model):
             layer_proxy = doc_proxy.get_layer_proxy()
             if not layer_proxy is None:
                 layer_json = layer_proxy.serialize()
-                layer_json["page_str"] = page_str
+                layer_json["page_str"] = layer_proxy.title
                 sorted_items['layers'].append(layer_json)
 
                 # add layer id to ordering list if its not yet there
@@ -413,11 +413,18 @@ class Volume(models.Model):
     def hydrate_ordered_layers(self):
 
         hydrated = { "layers": [], "index_layers": [] }
-        try:
-            hydrated["layers"] = [LayerProxy(i).serialize() for i in self.ordered_layers["layers"]]
-            hydrated["index_layers"] = [LayerProxy(i).serialize() for i in self.ordered_layers["index_layers"]]
-        except Exception as e:
-            logger.warn(e)
+        for layer_id in self.ordered_layers["layers"]:
+            try:
+                hy_layer = LayerProxy(layer_id).serialize()
+                hydrated["layers"].append(hy_layer)
+            except Layer.DoesNotExist as e:
+                logger.warn(e)
+        for layer_id in self.ordered_layers["index_layers"]:
+            try:
+                hy_layer = LayerProxy(layer_id).serialize()
+                hydrated["index_layers"].append(hy_layer)
+            except Layer.DoesNotExist as e:
+                logger.warn(e)
         return hydrated
 
     def serialize(self):

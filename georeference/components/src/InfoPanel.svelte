@@ -17,7 +17,7 @@ let showTrim = false;
 
 let splitBtnEnabled = false;
 let noSplitBtnEnabled = false;
-let undoBtnTitle = "Undo this preparation";
+let undoBtnTitle = "Undo this determination";
 
 let georeferenceBtnEnable = false;
 let georeferenceBtnTitle = "Create Control Points";
@@ -31,7 +31,6 @@ let processing;
 $: {
   processing = STATUS == "splitting" || STATUS == "georeferencing" || STATUS == "trimming"
   splitNeeded = SPLIT_SUMMARY ? SPLIT_SUMMARY.split_needed : "unknown";
-  console.log(splitNeeded)
   undoBtnEnabled = SPLIT_SUMMARY ? SPLIT_SUMMARY.allow_reset : false;
   switch(STATUS) {
     case "unprepared":
@@ -80,6 +79,7 @@ function refresh() {
     SPLIT_SUMMARY = result.SPLIT_SUMMARY;
     GEOREFERENCE_SUMMARY = result.GEOREFERENCE_SUMMARY;
     TRIM_SUMMARY = result.TRIM_SUMMARY;
+    ACTION_HISTORY = result.ACTION_HISTORY;
   });
 }
 
