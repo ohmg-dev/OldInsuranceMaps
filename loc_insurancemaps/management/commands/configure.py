@@ -234,7 +234,7 @@ sudo supervisorctl reload
         LOCAL_ROOT = self.resolve_var("LOCAL_ROOT", None)
         project_name = os.path.basename(LOCAL_ROOT)
         top_dir = os.path.dirname(LOCAL_ROOT)
-        env_file = os.path.join(top_dir, ".env_local")
+        env_file = os.path.join(top_dir, ".env")
         user = self.resolve_var("USER", "username")
         celery_path = os.path.join(os.path.dirname(sys.executable), "celery")
 
