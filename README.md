@@ -7,4 +7,4 @@ This app is a customized deployment of [GeoNode](https://geonode.org), built fro
 
 ---
 
-Please don't hesitate to [open a ticket](https://oldinsurancemaps.net) if you have trouble with the site or find a bug.
+Please don't hesitate to [open a ticket](https://github.com/mradamcox/loc-insurancemaps/issues/new/choose) if you have trouble with the site or find a bug.
