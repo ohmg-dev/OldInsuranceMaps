@@ -7,6 +7,7 @@ from django.views import View
 from django.urls import reverse
 from django.http import JsonResponse
 from django.middleware import csrf
+from django.conf import settings
 
 from geonode.base.models import Region
 from geonode.layers.models import Layer
@@ -127,6 +128,7 @@ class VolumeDetail(View):
                 "CSRFTOKEN": csrf.get_token(request),
                 'USER_TYPE': get_user_type(request.user),
                 'GEOSERVER_WMS': geoserver_ows,
+                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
             }
         }
         return render(
