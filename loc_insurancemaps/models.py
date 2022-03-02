@@ -12,9 +12,10 @@ from pygments import highlight
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers.data import JsonLexer, JsonLdLexer
 
-from django.db import models, transaction
-from django.db.models import signals
 from django.conf import settings
+from django.db import models, transaction
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.urls import reverse
 from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import Group
@@ -105,6 +106,18 @@ class FullThumbnail(models.Model):
             self.generate_thumbnail()        
         super(FullThumbnail, self).save(*args, **kwargs)
 
+## disconnect the existing Document post_save (which just creates the thumbnail)
+## and connect the creation of a FullThumbnail.
+post_save.disconnect(receiver=post_save_document, sender=Document)
+@receiver(post_save, sender=Document)
+def create_full_thumbnail(sender, instance, **kwargs):
+    if bool(instance.doc_file) is False:
+        return
+    if not FullThumbnail.objects.filter(document=instance).exists():
+        thumb = FullThumbnail(document=instance)
+        thumb.save()
+        instance.thumbnail_url = thumb.image.url
+        instance.save(update_fields=["thumbnail_url"])
 
 class Sheet(models.Model):
     """Sheet serves mainly as a middle model between Volume and Document.
@@ -128,14 +141,6 @@ class Sheet(models.Model):
 
         parsed = LOCParser(fileset=fileset)
 
-        ## This is a tricky situation. With the atomic block, everything is saved at once
-        ## which is very desirable, and causes sheets to appear on the volume summary page
-        ## when they are ready (keyword set, full thumbnail made). However, within this block
-        ## the action of saving the doc file seems to trigger the default geonode thumbnail
-        ## creation, which forks its own background process and begins trying to find the
-        ## Document immediately, causing a number of errors and retries until the document
-        ## does exist. Reorganizing this would be really good, but it must be done in tandem
-        ## with the collection methods that bring the documents to the Volume summary page.
         with transaction.atomic():
 
             ## first, create the sheet and document and link them
@@ -189,8 +194,7 @@ class Sheet(models.Model):
             ## second, download the file and set it in the Document.
             jp2_url = parsed.jp2_url
             if jp2_url is None:
-                print("no jp2 file to download, aborting document creation")
-
+                logger.warn(f"Sheet {sheet.pk}: No jp2 to download (Document {doc.pk} will be empty)")
             else:
                 tmp_path = os.path.join(temp_img_dir, jp2_url.split("/")[-1])
 
@@ -207,11 +211,8 @@ class Sheet(models.Model):
                 os.remove(tmp_path)
                 os.remove(jpg_path)
 
-                try:
-                    thumb = FullThumbnail.objects.get(document=doc)
-                except FullThumbnail.DoesNotExist:
-                    thumb = FullThumbnail(document=doc)
-                    thumb.save()
+            ## this final save will trigger the FullThumbnail creation, now that
+            ## the doc has a doc_file attaches.
             doc.save()
 
         return sheet
@@ -353,18 +354,8 @@ class Volume(models.Model):
         for doc_proxy in self.get_all_documents():
             if doc_proxy.status is None:
                 continue
-            try:
-                thumb = FullThumbnail.objects.get(document=doc_proxy.resource)
-            except FullThumbnail.DoesNotExist:
-                thumb = FullThumbnail(document=doc_proxy.resource)
-                thumb.save()
 
             doc_json = doc_proxy.serialize()
-
-            try:
-                doc_json["urls"]["thumbnail"] = thumb.image.url
-            except ValueError:
-                doc_json["urls"]["thumbnail"] = ""
 
             # hacky method for pulling out the sheet number from the doc title
             try:
