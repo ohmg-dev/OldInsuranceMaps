@@ -321,7 +321,7 @@ class Volume(models.Model):
             sheets = []
             files_to_import = self.lc_resources[0]['files']
             for n, fileset in enumerate(files_to_import):
-                logger.info(f"{self.__str__()} | importing sheet {n}/{len(files_to_import)}...")
+                logger.info(f"{self.__str__()} | importing sheet {n+1}/{len(files_to_import)}...")
                 sheet = Sheet().create_from_fileset(fileset, self, user)
                 sheets.append(sheet)                
         except Exception as e:
