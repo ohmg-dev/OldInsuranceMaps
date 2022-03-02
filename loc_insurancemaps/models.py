@@ -280,12 +280,6 @@ class Volume(models.Model):
         null=True,
         on_delete=models.CASCADE)
     load_date = models.DateTimeField(null=True, blank=True)
-    # this field is no longer in use
-    index_layers = models.ManyToManyField(
-        Layer,
-        null=True,
-        blank=True
-    )
     ordered_layers = JSONField(
         null=True,
         blank=True,
@@ -429,8 +423,6 @@ class Volume(models.Model):
                 "profile": reverse("profile_detail", args=(self.loaded_by.username, )),
                 "date": self.load_date.strftime("%Y-%m-%d"),
             }
-        index_layers = [LayerProxy(i.alternate) for i in self.index_layers.all()]
-        index_layers_json = [i.serialize() for i in index_layers]
         return {
             "identifier": self.identifier,
             "title": self.__str__(),
@@ -443,6 +435,5 @@ class Volume(models.Model):
             "items": items,
             "loaded_by": loaded_by,
             "urls": self.get_urls(),
-            "index_layers": index_layers_json,
             "ordered_layers": self.hydrate_ordered_layers(),
         }
