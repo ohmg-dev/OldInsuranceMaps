@@ -60,44 +60,37 @@ class Volumes(View):
         lc = CollectionConnection(delay=0)
         city_list = lc.get_city_list_by_state("louisiana")
 
-        volumes_values = started_volumes.values_list(
-            "identifier",
-            "city",
-            "county_equivalent",
-            "state",
-            "year",
-            "sheet_ct",
-            "volume_no",
-            "loaded_by__username",
-        )
-        loaded_volumes = []
-        for v in volumes_values:
-            title = f"{v[1]}, {v[2]}, {v[4]}"
-            if v[6] is not None:
-                title += f", Vol. {v[6]}"
-            # if v[6] is not None:
-            #     title = f"{v[1]}, {v[2]}, {v[4]}, Vol. {v[6]}"
-            loaded_volumes.append({
-                "identifier": v[0],
-                "city": v[1],
-                "county_equivalent": v[2],
-                "state": v[3],
-                "year": v[4],
-                "sheet_ct": v[5],
-                "volume_no": v[6],
+        loaded_summary = []
+        for vol in started_volumes:
+            items = vol.sort_lookups()
+            year_vol = vol.year
+            if vol.volume_no is not None:
+                year_vol = f"{vol.year} vol. {vol.volume_no}"
+            vol_content = {
+                "identifier": vol.identifier,
+                "city": vol.city,
+                "county_equivalent": vol.county_equivalent,
+                "state": vol.state,
+                "year_vol": year_vol,
+                "sheet_ct": vol.sheet_ct,
+                "unprepared_ct": len(items['unprepared']),
+                "prepared_ct": len(items['prepared']),
+                "georeferenced_ct": len(items['georeferenced']),
+                "volume_no": vol.volume_no,
                 "loaded_by": {
-                    "name": v[7],
-                    "profile": reverse("profile_detail", args=(v[7], )),
+                    "name": vol.loaded_by.username,
+                    "profile": reverse("profile_detail", args=(vol.loaded_by.username, )),
                 },
-                "title": title,
+                "title": vol.__str__(),
                 "urls": {
-                    "summary": reverse("volume_summary", args=(v[0],))
+                    "summary": reverse("volume_summary", args=(vol.identifier,))
                 }
-            })
+            }
+            loaded_summary.append(vol_content)
 
         context_dict = {
             "list_params": {
-                "STARTED_VOLUMES": loaded_volumes,
+                "STARTED_VOLUMES": loaded_summary,
             },
             "search_params": {
                 "CITY_QUERY_URL": reverse('lc_api'),
