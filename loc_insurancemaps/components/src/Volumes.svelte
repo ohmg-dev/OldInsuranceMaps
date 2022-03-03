@@ -15,17 +15,23 @@ export let STARTED_VOLUMES;
 		<TableSort items={STARTED_VOLUMES}>
 			<tr slot="thead">
 				<th data-sort="title" style="max-width:300px;">Community</th>
-				<th data-sort="year" style="width:65px;">Year</th>
-				<th data-sort="sheet_ct" style="width:65px;">Sheets</th>
-				<th data-sort="loaded_by.name">Loaded by</th>
+				<th data-sort="year_vol">Year</th>
+				<th data-sort="sheet_ct" style="width:55px; text-align:center;">Sheets</th>
+				<th data-sort="loaded_by.name" style="text-align:center;">Loaded by</th>
+				<th data-sort="unprepared_ct" style="width:25px; text-align:center; border-left: 1px solid gray;">U</th>
+				<th data-sort="prepared_ct" style="width:25px; text-align:center;">P</th>
+				<th data-sort="georeferenced_ct" style="width:25px; text-align:center;">G</th>
 			</tr>
 			<tr slot="tbody" let:item={v}>
 				<td>
-					<a href={v.urls.summary} alt={v.title} title={v.title}>{v.city}, {v.county_equivalent}</a>
+					<a href={v.urls.summary} alt="{v.title}" title="{v.title}">{v.city}, {v.county_equivalent}</a>
 				</td>
-				<td>{v.year}</td>
+				<td>{v.year_vol}</td>
 				<td style="text-align:center;">{v.sheet_ct}</td>
-				<td><a href={v.loaded_by.profile}>{v.loaded_by.name}</a></td>
+				<td style="text-align:center;"><a href={v.loaded_by.profile}>{v.loaded_by.name}</a></td>
+				<td style="text-align:center; border-left:1px solid gray;">{v.unprepared_ct}</td>
+				<td style="text-align:center;">{v.prepared_ct}</td>
+				<td style="text-align:center;">{v.georeferenced_ct}</td>
 			</tr>
 		</TableSort>
 		{/if}

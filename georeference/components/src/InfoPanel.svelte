@@ -161,7 +161,9 @@ function setSplit(operation) {
               <div>
                 {child.title}
               </div>
-              <img src={child.urls.thumbnail} alt={child.title} title={child.title}>
+              <div style="text-align:center;">
+                <img src={child.urls.thumbnail} alt={child.title} title={child.title}>
+              </div>
               <div>
                 <ul>
                   <li><strong>Status:</strong> {child.status}</li>
@@ -389,8 +391,8 @@ tr:nth-child(odd) {
 
 .document-item img {
   margin: 15px;
-  max-height: 200px;
-  max-width: 200px;
+  max-height: 115px;
+  width: auto;
 }
 
 .document-item div:first-child {

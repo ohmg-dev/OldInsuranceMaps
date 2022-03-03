@@ -7,8 +7,6 @@ import requests
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db import transaction
-from django.urls import reverse
 
 from geonode.maps.models import Map
 from geonode.layers.models import Layer
