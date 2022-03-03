@@ -24,7 +24,6 @@ import requests
 from PIL import Image, ImageOps, ImageDraw, ImageFilter, ImageFont
 
 from django.conf import settings
-from django.core.files.base import ContentFile
 
 from geonode.base.thumb_utils import thumb_path
 from geonode.documents.models import Document

@@ -1,7 +1,5 @@
 import os
 import json
-# import pytz
-import time
 import uuid
 import shutil
 import logging
@@ -12,30 +10,25 @@ from pygments import highlight
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers.data import JsonLexer, JsonLdLexer
 
+
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField
+from django.core.files import File
+from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
-from django.urls import reverse
-from django.contrib.postgres.fields import JSONField
-from django.contrib.auth.models import Group
-from django.core.files import File
-from django.core.files.base import ContentFile
 from django.utils.safestring import mark_safe
+from django.urls import reverse
 
-from geonode.base.models import Region, License, Link, ThesaurusKeyword, Thesaurus
-from geonode.documents.models import DocumentResourceLink
+from geonode.base.models import Region, License
 from geonode.layers.models import Layer
 from geonode.documents.models import (
     Document,
-    pre_save_document,
     post_save_document,
-    pre_delete_document,
 )
-from geonode.maps.signals import map_changed_signal
 from geonode.people.models import Profile
 
-from georeference.models import SplitDocumentLink
 from georeference.proxy_models import DocumentProxy, LayerProxy
 from georeference.utils import TKeywordManager
 

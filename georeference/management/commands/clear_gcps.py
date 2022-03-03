@@ -1,4 +1,3 @@
-from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 
 from georeference.models import GCP, GCPGroup
