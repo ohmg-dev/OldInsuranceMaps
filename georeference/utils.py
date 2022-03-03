@@ -88,8 +88,9 @@ class TKeywordManager(object):
                 resource.tkeywords.remove(tk)
 
     def set_status(self, resource, status):
-        self.unset_status(resource)
-        resource.tkeywords.add(self.lookup[status])
+        if self.get_status(resource) != status:
+            self.unset_status(resource)
+            resource.tkeywords.add(self.lookup[status])
 
     def is_georeferenced(self, resource):
 
