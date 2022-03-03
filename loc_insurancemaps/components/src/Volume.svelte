@@ -272,7 +272,7 @@ function cancelLayerConfig() {
 	setLayersFromVolume();
 }
 
-let settingIndexLayer = false;
+let settingKeyMapLayer = false;
 
 function toggleFullscreen () {
   if (document.fullscreenElement == null) {
@@ -502,16 +502,16 @@ document.addEventListener("fullscreenchange", function(){
 			{:else}
 			<p><em>
 				Click <strong>trim &rarr;</strong> to add a mask polygon and trim the edges of a layer.<br>
-				Click <strong>Set Index Layers</strong> to designate which layers show the <strong>key map</strong> for this volume (if applicable).
+				Click <strong>Create Key Map</strong> to designate which layers show the <strong>key map</strong> for this volume (if applicable).
 			</em></p>
 			{#if USER_TYPE != 'anonymous'}
 			<div style="margin-top:10px; margin-bottom:10px;">
-				{#if VOLUME.items.layers.length > 0}
-				<button on:click={() => settingIndexLayer = !settingIndexLayer}>Set Index Layers</button>
+				{#if VOLUME.items.layers.length > 0 && !settingKeyMapLayer}
+				<button on:click={() => settingKeyMapLayer = !settingKeyMapLayer}>Create Key Map</button>
 				{/if}
-				{#if settingIndexLayer}
-				<button on:click={() => { settingIndexLayer = false; postOperation("set-index-layers"); }}>Save</button>
-				<button on:click={() => { settingIndexLayer = false; setLayersFromVolume(); }}>Cancel</button>
+				{#if settingKeyMapLayer}
+				<button on:click={() => { settingKeyMapLayer = false; postOperation("set-index-layers"); }}>Save</button>
+				<button on:click={() => { settingKeyMapLayer = false; setLayersFromVolume(); }}>Cancel</button>
 				{/if}
 			</div>
 			{/if}
@@ -525,9 +525,9 @@ document.addEventListener("fullscreenchange", function(){
 							<li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li>
 							<li><a href={layer.urls.detail} title={layer.title}>layer detail &rarr;</a></li>
 						</ul>
-						{#if settingIndexLayer}
+						{#if settingKeyMapLayer}
 						<label>
-							<input type=checkbox bind:group={mapIndexLayerIds} value={layer.alternate}> Set as index layer
+							<input type=checkbox bind:group={mapIndexLayerIds} value={layer.alternate}> Use layer in Key Map
 						</label>
 						{/if}
 					</div>
