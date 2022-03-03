@@ -309,7 +309,7 @@ document.addEventListener("fullscreenchange", function(){
 	</div>
 	{/if}
 	{#if VOLUME.sheet_ct.loaded == 0 && USER_TYPE != 'anonymous' && !sheetsLoading}
-		<button on:click={() => { postOperation("initialize") }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
+		<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
 	{/if}
 
 	{#if USER_TYPE == 'anonymous' }
@@ -360,7 +360,7 @@ document.addEventListener("fullscreenchange", function(){
 				</div>
 				<div class="layer-section-subheader">
 					{#if VOLUME.ordered_layers.index_layers.length == 0}
-					<em>no layers set for key map</em>
+					<em>no key map set</em>
 					{:else}
 					<input type=range bind:value={kGV} min=0 max=100>
 					{/if}
