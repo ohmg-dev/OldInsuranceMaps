@@ -50,17 +50,30 @@ from .renderers import convert_img_format, generate_full_thumbnail_content
 logger = logging.getLogger(__name__)
 
 def get_volume(resource_type, res_id):
+    """Attempt to get the volume from which a Document or Layer
+    is derived. Return None if not applicable/no volume exists."""
 
+    volume = None
     if resource_type == "document":
         dp = DocumentProxy(res_id)
     elif resource_type == "layer":
         p = LayerProxy(res_id)
         dp = p.get_document_proxy()
-    if dp.parent_doc is not None:
-        doc = dp.parent_doc.get_document()
-    else:
-        doc = dp.get_document()
-    volume = Sheet.objects.get(document=doc).volume
+    # in some cases this function gets called just before the link between
+    # the Layer and the Document has been made. Return None in this case.
+    if dp is not None:
+        if dp.parent_doc is not None:
+            doc = dp.parent_doc.get_document()
+        else:
+            doc = dp.get_document()
+
+        try:
+            volume = Sheet.objects.get(document=doc).volume
+        except Sheet.DoesNotExist:
+            pass
+        except Exception as e:
+            logger.error(e)
+
     return volume
 
 def format_json_display(data):
