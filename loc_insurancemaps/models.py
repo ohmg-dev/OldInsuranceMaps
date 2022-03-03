@@ -191,8 +191,6 @@ class Sheet(models.Model):
             # a few things need to happen only after the initial save
             doc.save()
 
-            doc.tkeywords.add(ThesaurusKeyword.objects.get(about="unprepared"))
-
             # set the detail_url with the same function that is used in search
             # result indexing. this must be done after the doc has been saved once.
             doc.detail_url = doc.get_absolute_url()
@@ -331,7 +329,13 @@ class Volume(models.Model):
             for n, fileset in enumerate(files_to_import):
                 logger.info(f"{self.__str__()} | importing sheet {n+1}/{len(files_to_import)}...")
                 sheet = Sheet().create_from_fileset(fileset, self, user)
-                sheets.append(sheet)                
+                sheets.append(sheet)
+
+                # set the status once the Sheet and Document are fully created,
+                # which triggers the document's addition Volume.document_lookup
+                tkm = TKeywordManager()
+                tkm.set_status(sheet.document, "unprepared")
+
         except Exception as e:
             logger.warn(e)
             self.status = "not started"
