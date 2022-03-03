@@ -14,7 +14,7 @@ from pygments.lexers.data import JsonLexer, JsonLdLexer
 
 from django.conf import settings
 from django.db import models, transaction
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from django.urls import reverse
 from django.contrib.postgres.fields import JSONField
@@ -296,6 +296,16 @@ class Volume(models.Model):
         blank=True,
         default=default_ordered_layers_dict
     )
+    document_lookup = JSONField(
+        null=True,
+        blank=True,
+        default=dict,
+    )
+    layer_lookup = JSONField(
+        null=True,
+        blank=True,
+        default=dict,
+    )
 
     def __str__(self):
         display_str = f"{self.city}, {STATE_ABBREV[self.state]} | {self.year}"
@@ -354,44 +364,7 @@ class Volume(models.Model):
         all_documents = []
         for sheet in self.sheets:
             all_documents += sheet.real_documents
-
         return all_documents
-
-    def serialize_items(self):
-
-        tkm = TKeywordManager()
-        sorted_items = {tk: [] for tk in tkm.lookup.keys()}
-        sorted_items['layers'] = []
-
-        for doc_proxy in self.get_all_documents():
-            if doc_proxy.status is None:
-                continue
-
-            doc_json = doc_proxy.serialize()
-
-            # hacky method for pulling out the sheet number from the doc title
-            try:
-                page_str = doc_proxy.title.split("|")[-1].split("p")[1]
-            except IndexError:
-                page_str = doc_proxy.title
-            doc_json["page_str"] = page_str
-
-            sorted_items[doc_proxy.status].append(doc_json)
-
-            layer_proxy = doc_proxy.get_layer_proxy()
-            if not layer_proxy is None:
-                layer_json = layer_proxy.serialize()
-                layer_json["page_str"] = layer_proxy.title
-                sorted_items['layers'].append(layer_json)
-
-                # add layer id to ordering list if its not yet there
-                existing = self.ordered_layers["layers"] + self.ordered_layers["index_layers"]
-                if not layer_proxy.alternate in existing:
-                    self.ordered_layers["layers"].append(layer_proxy.alternate)
-                    self.save(update_fields=["ordered_layers"])
-            continue
-
-        return sorted_items
 
     def get_urls(self):
 
@@ -417,30 +390,85 @@ class Volume(models.Model):
 
         hydrated = { "layers": [], "index_layers": [] }
         for layer_id in self.ordered_layers["layers"]:
-            try:
-                hy_layer = LayerProxy(layer_id).serialize()
-                hydrated["layers"].append(hy_layer)
-            except Layer.DoesNotExist as e:
-                logger.warn(e)
+            hydrated["layers"].append(self.layer_lookup[layer_id])
         for layer_id in self.ordered_layers["index_layers"]:
-            try:
-                hy_layer = LayerProxy(layer_id).serialize()
-                hydrated["index_layers"].append(hy_layer)
-            except Layer.DoesNotExist as e:
-                logger.warn(e)
+            hydrated["index_layers"].append(self.layer_lookup[layer_id])
         return hydrated
 
+    def populate_lookups(self):
+        """Update both document_lookup and layer_lookup fields
+        for this Volume by examining the original loaded Sheets and
+        re-evaluating every descendant Document and Layer.
+        """
+
+        for document in self.get_all_documents():
+            self.update_document_lookup(document.id, update_layer=True)
+
+    def update_document_lookup(self, doc_id, update_layer=False):
+        """Take the input document id (pk), get the serialized DocumentProxy
+        content and save it back to the lookup table."""
+
+        doc_proxy = DocumentProxy(doc_id)
+        doc_json = doc_proxy.serialize()
+
+        # hacky method for pulling out the sheet number from the doc title
+        try:
+            page_str = doc_proxy.title.split("|")[-1].split("p")[1]
+        except IndexError:
+            page_str = doc_proxy.title
+        doc_json["page_str"] = page_str
+
+        self.document_lookup[doc_id] = doc_json
+        self.save(update_fields=["document_lookup"])
+
+        if update_layer is True:
+            self.update_layer_lookup(doc_proxy=doc_proxy)
+
+    def update_layer_lookup(self, layer_alternate=None, doc_proxy=None):
+        """Pass either a layer alternate or an instance of DocumentProxy. The
+        latter is specifically to allow this method to be called from within
+        update_document_lookup() in the most efficient manner.
+
+        If both are passed in, only layer_alternate will used."""
+
+        lp = None
+        if layer_alternate is not None:
+            lp = LayerProxy(layer_alternate)
+        elif doc_proxy is not None:
+            lp = doc_proxy.get_layer_proxy()
+
+        if lp is not None:
+            layer_json = lp.serialize()
+            layer_json["page_str"] = lp.title
+
+            self.layer_lookup[lp.alternate] = layer_json
+            self.save(update_fields=["layer_lookup"])
+
+            # add layer id to ordered_layers list if its not yet there
+            existing = self.ordered_layers["layers"] + self.ordered_layers["index_layers"]
+            if not lp.alternate in existing:
+                self.ordered_layers["layers"].append(lp.alternate)
+                self.save(update_fields=["ordered_layers"])
+
+    def sort_lookups(self):
+
+        sorted_items = {tk: [] for tk in TKeywordManager().lookup.keys()}
+        for v in self.document_lookup.values():
+            if v['status'] is not None:
+                sorted_items[v['status']].append(v)
+
+        sorted_items['layers'] = list(self.layer_lookup.values())
+        return sorted_items
+
     def serialize(self):
-        items = self.serialize_items()
-        items_ct = sum([len(v) for v in items.values()])
-        if self.loaded_by is None:
-            loaded_by = {"name": "", "profile": "", "date": ""}
-        else:
-            loaded_by = {
-                "name": self.loaded_by.username,
-                "profile": reverse("profile_detail", args=(self.loaded_by.username, )),
-                "date": self.load_date.strftime("%Y-%m-%d"),
-            }
+        items = self.sort_lookups()
+        loaded_by = {"name": "", "profile": "", "date": ""}
+        if self.loaded_by is not None:
+            loaded_by["name"] = self.loaded_by.username
+            loaded_by["profile"] = reverse("profile_detail", args=(self.loaded_by.username, ))
+            loaded_by["date"] = self.load_date.strftime("%Y-%m-%d")
+        ordered_layers = self.hydrate_ordered_layers()
+        urls = self.get_urls()
         return {
             "identifier": self.identifier,
             "title": self.__str__(),
@@ -449,9 +477,48 @@ class Volume(models.Model):
                 "total": self.sheet_ct,
                 "loaded": len(self.sheets),
             },
-            "items_ct": items_ct,
             "items": items,
             "loaded_by": loaded_by,
-            "urls": self.get_urls(),
-            "ordered_layers": self.hydrate_ordered_layers(),
+            "urls": urls,
+            "ordered_layers": ordered_layers,
         }
+
+def resource_status_changed(sender, instance, action, **kwargs):
+    """Trigger the document_lookup and layer_lookup updates on a volume
+    whenever a Document or Layer has its georeferencing status changed."""
+    volume = None
+    if action == "post_add":
+        new_status = TKeywordManager().get_status(instance)
+        if new_status is not None:
+            model_name = instance._meta.model.__name__
+            if model_name == "Document":
+                volume = get_volume("document", instance.pk)
+                if volume is not None:
+                    volume.update_document_lookup(instance.pk)
+            if model_name == "Layer":
+                volume = get_volume("layer", instance.pk)
+                if volume is not None:
+                    volume.update_layer_lookup(instance.alternate)
+
+# trigger whenever a tkeyword is changed on a Document or Layer
+m2m_changed.connect(resource_status_changed, sender=Document.tkeywords.through)
+m2m_changed.connect(resource_status_changed, sender=Layer.tkeywords.through)
+
+def post_save_thumbnail_link(sender, instance, **kwargs):
+    """This function is triggered whenever a new thumbnail is created
+    through default GeoNode operations. It is needed to trigger an update
+    of the volume layer_lookup, because GeoNode creates thumbs through
+    background tasks, which can take place after the final georeferencing
+    status change is made for a document or layer."""
+    if instance.name == "Thumbnail":
+        try:
+            layer = Layer.objects.get(pk=instance.resource_id)
+        except Layer.DoesNotExist:
+            return
+        volume = get_volume("layer", layer.pk)
+        if volume is None:
+            return
+        volume.update_layer_lookup(layer.pk)
+
+# trigger on the creation of the Link object that is created along with thumbs.
+post_save.connect(post_save_thumbnail_link, sender=Link)
