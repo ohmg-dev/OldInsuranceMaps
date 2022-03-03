@@ -158,11 +158,16 @@ class VolumeDetail(View):
             volume = Volume.objects.get(pk=volumeid)
 
             index_layers = body.get("indexLayerIds", [])
-            volume.ordered_layers["index_layers"] = index_layers
-            # remove index layers from main layer list
-            volume.ordered_layers["layers"] = [i for i in volume.ordered_layers['layers'] if not i in index_layers]
-            volume.save(update_fields=["ordered_layers"])
 
+            volume.ordered_layers["index_layers"] = index_layers
+            # remove key map layers from main layer list
+            volume.ordered_layers["layers"] = [i for i in volume.ordered_layers['layers'] if not i in index_layers]
+            # move old key map layers back into the main layer list
+            for l in volume.layer_lookup.keys():
+                if not l in volume.ordered_layers["layers"] and not l in index_layers:
+                    volume.ordered_layers["layers"].append(l)
+
+            volume.save(update_fields=["ordered_layers"])
             volume_json = volume.serialize()
             return JsonResponse(volume_json)
 
