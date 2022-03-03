@@ -62,6 +62,9 @@ class DocumentProxy(object):
             return SplitEvaluation.objects.get(document=self.resource)
         except SplitEvaluation.DoesNotExist:
             return None
+        except SplitEvaluation.MultipleObjectsReturned:
+            logger.warn(f"Multiple SplitEvaluations found for Document {self.id}")
+            return list(SplitEvaluation.objects.filter(document=self.resource))[0]
 
     @property
     def child_docs(self):
