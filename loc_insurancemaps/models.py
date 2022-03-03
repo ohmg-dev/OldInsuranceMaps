@@ -316,12 +316,10 @@ class Volume(models.Model):
 
     def import_sheets(self, user):
 
-        self.status = "initializing..."
+        self.update_status("initializing...")
         self.loaded_by = user
         self.load_date = datetime.now()
-        self.save()
-
-        logger.info(f"{self.__str__()} | beginning load")
+        self.save(update_fields=["loaded_by", "load_date"])
 
         try:
             sheets = []
@@ -337,13 +335,16 @@ class Volume(models.Model):
                 tkm.set_status(sheet.document, "unprepared")
 
         except Exception as e:
-            logger.warn(e)
-            self.status = "not started"
-            self.save()
+            logger.error(e)
+            self.update_status("not started")
 
-        self.status = "started"
-        self.save()
+        self.update_status("started")
         return sheets
+
+    def update_status(self, status):
+        self.status = status
+        self.save(update_fields=['status'])
+        logger.info(f"{self.__str__()} | status: {self.status}")
 
     @property
     def sheets(self):
