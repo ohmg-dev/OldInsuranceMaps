@@ -461,14 +461,27 @@ class Volume(models.Model):
         return sorted_items
 
     def serialize(self):
+        """Serialize this Volume into a comprehensive JSON summary."""
+
+        # a quick, in-place check to see if any layer thumbnails are missing,
+        # and refresh that layer lookup if so.
+        for k, v in self.layer_lookup.items():
+            if "missing_thumb" in v["urls"]["thumbnail"]:
+                self.update_layer_lookup(k)
+
+        # now sort all of the lookups (by status) into a single set of items
         items = self.sort_lookups()
+
+        # generate extra links and info for the user that loaded the volume
         loaded_by = {"name": "", "profile": "", "date": ""}
         if self.loaded_by is not None:
             loaded_by["name"] = self.loaded_by.username
             loaded_by["profile"] = reverse("profile_detail", args=(self.loaded_by.username, ))
             loaded_by["date"] = self.load_date.strftime("%Y-%m-%d")
+
+        # hydrate ordered_layers
         ordered_layers = self.hydrate_ordered_layers()
-        urls = self.get_urls()
+
         return {
             "identifier": self.identifier,
             "title": self.__str__(),
@@ -479,7 +492,7 @@ class Volume(models.Model):
             },
             "items": items,
             "loaded_by": loaded_by,
-            "urls": urls,
+            "urls": self.get_urls(),
             "ordered_layers": ordered_layers,
         }
 
@@ -504,21 +517,23 @@ def resource_status_changed(sender, instance, action, **kwargs):
 m2m_changed.connect(resource_status_changed, sender=Document.tkeywords.through)
 m2m_changed.connect(resource_status_changed, sender=Layer.tkeywords.through)
 
-def post_save_thumbnail_link(sender, instance, **kwargs):
-    """This function is triggered whenever a new thumbnail is created
-    through default GeoNode operations. It is needed to trigger an update
-    of the volume layer_lookup, because GeoNode creates thumbs through
-    background tasks, which can take place after the final georeferencing
-    status change is made for a document or layer."""
-    if instance.name == "Thumbnail":
-        try:
-            layer = Layer.objects.get(pk=instance.resource_id)
-        except Layer.DoesNotExist:
-            return
-        volume = get_volume("layer", layer.pk)
-        if volume is None:
-            return
-        volume.update_layer_lookup(layer.pk)
+## DEPRECATED -- THIS SHOULD BE FULLY HANDLED MORE SIMPLY NOW AT THE BEGINNING
+## OF Volume.serailize()
+# def post_save_thumbnail_link(sender, instance, **kwargs):
+#     """This function is triggered whenever a new thumbnail is created
+#     through default GeoNode operations. It is needed to trigger an update
+#     of the volume layer_lookup, because GeoNode creates thumbs through
+#     background tasks, which can take place after the final georeferencing
+#     status change is made for a document or layer."""
+#     if instance.name == "Thumbnail":
+#         try:
+#             layer = Layer.objects.get(pk=instance.resource_id)
+#         except Layer.DoesNotExist:
+#             return
+#         volume = get_volume("layer", layer.pk)
+#         if volume is None:
+#             return
+#         volume.update_layer_lookup(layer.pk)
 
-# trigger on the creation of the Link object that is created along with thumbs.
-post_save.connect(post_save_thumbnail_link, sender=Link)
+# # trigger on the creation of the Link object that is created along with thumbs.
+# post_save.connect(post_save_thumbnail_link, sender=Link)
