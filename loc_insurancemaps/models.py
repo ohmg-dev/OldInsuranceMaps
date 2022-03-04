@@ -109,12 +109,10 @@ class FullThumbnail(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.image:
-            self.generate_thumbnail()        
+            self.generate_thumbnail()
         super(FullThumbnail, self).save(*args, **kwargs)
 
-## disconnect the existing Document post_save (which just creates the thumbnail)
-## and connect the creation of a FullThumbnail.
-post_save.disconnect(receiver=post_save_document, sender=Document)
+## connect the creation of a FullThumbnail to Document post_save signal
 @receiver(post_save, sender=Document)
 def create_full_thumbnail(sender, instance, **kwargs):
     if bool(instance.doc_file) is False:
@@ -122,8 +120,6 @@ def create_full_thumbnail(sender, instance, **kwargs):
     if not FullThumbnail.objects.filter(document=instance).exists():
         thumb = FullThumbnail(document=instance)
         thumb.save()
-        instance.thumbnail_url = thumb.image.url
-        instance.save(update_fields=["thumbnail_url"])
 
 class Sheet(models.Model):
     """Sheet serves mainly as a middle model between Volume and Document.
@@ -410,6 +406,12 @@ class Volume(models.Model):
         except IndexError:
             page_str = doc_proxy.title
         doc_json["page_str"] = page_str
+
+        # replace default thumbnail with FullThumbnail if present
+        full_thumbs = FullThumbnail.objects.filter(document_id=doc_id)
+        if len(full_thumbs) > 0:
+            thumb = list(full_thumbs)[0]
+            doc_json['urls']['thumbnail'] = thumb.image.url
 
         self.document_lookup[doc_id] = doc_json
         self.save(update_fields=["document_lookup"])
