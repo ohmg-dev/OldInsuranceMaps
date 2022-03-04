@@ -7,7 +7,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "operation",
-            default=[
+            choices=[
                 "retry",
                 "revert",
                 "revert-all",
