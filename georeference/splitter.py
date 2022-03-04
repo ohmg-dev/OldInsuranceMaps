@@ -2,6 +2,7 @@ import os
 import math
 import time
 import logging
+
 from PIL import Image, ImageDraw, ImageFilter
 
 from django.conf import settings

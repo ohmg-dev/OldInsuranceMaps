@@ -5,7 +5,7 @@ import logging
 from django.conf import settings
 from django.shortcuts import render
 from django.views import View
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.middleware import csrf
 from django.contrib.gis.geos import Polygon
 

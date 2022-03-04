@@ -1,13 +1,6 @@
-import json
-
-from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 
-from geonode.documents.models import Document
-from geonode.layers.models import Layer
-
 from georeference.proxy_models import DocumentProxy, LayerProxy
-from georeference.models import GCPGroup, GeoreferenceSession
 
 class Command(BaseCommand):
     help = 'Command line access point for the internal georeferencing utilities.'

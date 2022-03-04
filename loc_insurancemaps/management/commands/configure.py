@@ -311,6 +311,7 @@ sudo pkill -f celery
             ("MONITORING_ENABLED", False),
             ("BROKER_URL", ""),
             ("ASYNC_SIGNALS", False),
+            ("THEME_ACCOUNT_CONTACT_EMAIL", "admin@example.com"),
         ]
 
         if self.resolve_var("EMAIL_ENABLE", False) is True:
