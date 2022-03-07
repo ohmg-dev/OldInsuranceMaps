@@ -512,6 +512,13 @@ def resource_status_changed(sender, instance, action, **kwargs):
 m2m_changed.connect(resource_status_changed, sender=Document.tkeywords.through)
 m2m_changed.connect(resource_status_changed, sender=Layer.tkeywords.through)
 
+# refresh the lookup for a layer after it is saved.
+def refresh_layer_lookup(sender, instance, **kwargs):
+    volume = get_volume("layer", instance.pk)
+    if volume is not None:
+        volume.update_layer_lookup(instance.alternate)
+post_save.connect(refresh_layer_lookup, sender=Layer)
+
 ## DEPRECATED -- THIS SHOULD BE FULLY HANDLED MORE SIMPLY NOW AT THE BEGINNING
 ## OF Volume.serailize()
 # def post_save_thumbnail_link(sender, instance, **kwargs):
