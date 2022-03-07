@@ -32,6 +32,8 @@ import Snap from 'ol/interaction/Snap';
 
 import Styles from './js/ol-styles';
 const styles = new Styles();
+import Utils from './js/ol-utils';
+const utils = new Utils();
 
 export let DOCUMENT;
 export let IMG_SIZE;
@@ -62,6 +64,12 @@ let gcpList = [];
 
 let unchanged = true;
 
+let docFullMaskLayer;
+let mapFullMaskLayer;
+
+let docRotate;
+let mapRotate;
+
 const imgWidth = IMG_SIZE[0];
 const imgHeight = IMG_SIZE[1];
 
@@ -90,21 +98,7 @@ function uuid() {
   return uuidValue;
 }
 
-const osmLayer = new TileLayer({
-  source: new OSM(),
-})
-
-const imageryLayer = new TileLayer({
-  source: new XYZ({
-    url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/{z}/{x}/{y}?access_token='+MAPBOX_API_KEY,
-    tileSize: 512,
-  })
-});
-
-const basemaps = [
-  { id: "osm", layer: osmLayer, label: "Streets" },
-  { id: "satellite", layer: imageryLayer, label: "Streets+Satellite" },
-]
+const basemaps = utils.makeBasemaps(MAPBOX_API_KEY);
 let currentBasemap = basemaps[0].id;
 
 const docGCPSource = new VectorSource();
@@ -207,7 +201,6 @@ function DocumentViewer (elementId) {
       projection: docProjection,
       imageExtent: docExtent,
     }),
-    // zIndex: 999,
   })
 
   const gcpLayer = new VectorLayer({
@@ -226,6 +219,9 @@ function DocumentViewer (elementId) {
       maxZoom: 8,
     })
   });
+
+  docFullMaskLayer = utils.generateFullMaskLayer(map)
+  map.addLayer(docFullMaskLayer)
 
   // create interactions
   const draw = makeDrawInteraction(docGCPSource);
@@ -248,9 +244,12 @@ function DocumentViewer (elementId) {
       return formatted
     },
     projection: docProjection,
-    undefinedHTML: '&nbsp;',
+    undefinedHTML: 'n/a',
   });
   map.addControl(mousePositionControl);
+
+  docRotate = utils.makeRotateCenterLayer();
+  map.addLayer(docRotate.layer);
 
   // add some click actions to the map
   map.on("click", setActiveGCPOnClick);
@@ -283,6 +282,11 @@ function MapViewer (elementId) {
       view: new View(),
     });
 
+    map.addLayer(previewLayer)
+
+    mapFullMaskLayer = utils.generateFullMaskLayer(map)
+    map.addLayer(mapFullMaskLayer)
+
     // create interactions
     const draw = makeDrawInteraction(mapGCPSource);
     draw.setActive(false);
@@ -296,12 +300,15 @@ function MapViewer (elementId) {
     let mousePositionControl = new MousePosition({
       projection: 'EPSG:4326',
       coordinateFormat: createStringXY(6),
-      undefinedHTML: '&nbsp;',
+      undefinedHTML: 'n/a',
     });
     map.addControl(mousePositionControl);
 
     // add some click actions to the map
     map.on("click", setActiveGCPOnClick)
+
+    mapRotate = utils.makeRotateCenterLayer()
+    map.addLayer(mapRotate.layer)
 
     // add transition actions to the map element
     function updateMapEl() {map.updateSize()}
@@ -319,7 +326,20 @@ onMount(() => {
   docView = new DocumentViewer('doc-viewer');
   mapView = new MapViewer('map-viewer');
   loadIncomingGCPs();
+  disabledMap(disableInterface)
 });
+
+function disabledMap(disabled) {
+  if (mapView) {
+    mapView.map.getInteractions().forEach(x => x.setActive(!disabled));
+	  mapFullMaskLayer.setVisible(disabled);
+  }
+  if (docView) {
+    docView.map.getInteractions().forEach(x => x.setActive(!disabled));
+	  docFullMaskLayer.setVisible(disabled);
+  }
+}
+$: disabledMap(disableInterface)
 
 function loadIncomingGCPs() {
   loadingInitial = true;
@@ -485,16 +505,10 @@ $: setBasemap(currentBasemap);
 function setPreviewVisibility(mode) {
   if (!mapView) { return }
   if (mode == "full" || mode == "transparent") {
-    // first set the opacity of the layer
-    const newOpacity = ( mode == "full" ? 1 : .6 );
-    previewLayer.setOpacity(newOpacity);
-    // now add the layer if necessary
-    if (mapView.map.getLayers().getArray().length == 2){
-      mapView.map.getLayers().insertAt(1, previewLayer)
-    }
+    previewLayer.setVisible(true)
+    previewLayer.setOpacity(mode == "full" ? 1 : .6);
   } else if (mode == "none" || mode == "n/a") {
-    // remove the layer
-    mapView.map.removeLayer(previewLayer);
+    previewLayer.setVisible(false)
     startloads = 0;
     endloads = 0;
   }
@@ -623,6 +637,7 @@ function process(operation){
 // wrapper function to call view for db cleanup as needed
 function cleanupOnLeave (e) { process("cleanup"); }
 
+let keyPressed = {};
 function handleKeydown(e) {
   // only allow these shortcuts if the maps have focus,
   // so shortcuts aren't activated while typing a note.
@@ -646,11 +661,32 @@ function handleKeydown(e) {
         break;
     }
   }
+  // toggle the center icon to help with rotation
+  if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = true}
+	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = true}
+	if (keyPressed.shift && keyPressed.alt) {
+    if (mapView && docView) {
+      utils.showRotateCenter(docView.map, docRotate.layer, docRotate.feature)
+      utils.showRotateCenter(mapView.map, mapRotate.layer, mapRotate.feature)
+    }
+	}
 }
+
+function handleKeyup(e) {
+  // remove the center point if rotation is to be disabled
+	if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = false}
+	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = false}
+	if (!keyPressed.shift && !keyPressed.alt) {
+		if (mapView && docView) {
+      utils.removeRotateCenter(docRotate.layer)
+      utils.removeRotateCenter(mapRotate.layer)
+    }
+	}
+};
 
 </script>
 
-<svelte:window on:keydown={handleKeydown} on:beforeunload={cleanupOnLeave}/>
+<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={cleanupOnLeave}/>
 <div class="hidden-small"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
@@ -688,7 +724,7 @@ function handleKeydown(e) {
   <div class="map-container">
     <div id="doc-viewer" class="map-item"></div>
     <div id="map-viewer" class="map-item"></div>
-    <div id="preview-loading" class={previewLoading ? 'lds-ellipsis': ''}><div></div><div></div><div></div><div></div></div>
+    <div id="preview-loading" style="top: 55px; right: 35px;" class={previewLoading ? 'lds-ellipsis': ''}><div></div><div></div><div></div><div></div></div>
   </div>
   <nav>
     <div style="display:flex; flex-direction:column;">

@@ -115,6 +115,7 @@ function setPanel(show) {
     <h4><strong>Tips</strong></h4>
     <ul>
       <li>Before starting, pan and zoom around to become familiar with the document and the area.</li>
+      <li>To rotate either panel, hold down <code>Shift + Alt</code> and then click and drag in the map.</li>
       <li>Prioritize finding control points that are widely spread across the map.</li>
       <li>Look for locations that have changed the least over time:
         <ul>
