@@ -275,11 +275,19 @@ function cancelLayerConfig() {
 let settingKeyMapLayer = false;
 
 function toggleFullscreen () {
-  if (document.fullscreenElement == null) {
-    let promise = document.getElementsByClassName('map-container')[0].requestFullscreen();
-  } else {
-	document.exitFullscreen();
-  }
+	// https://www.w3schools.com/howto/howto_js_fullscreen.asp
+	const elem = document.getElementsByClassName('map-container')[0]
+	if (document.fullscreenElement == null) {
+		if (elem.requestFullscreen) {
+			elem.requestFullscreen();
+		} else if (elem.webkitRequestFullscreen) { /* Safari */
+			elem.webkitRequestFullscreen();
+		} else if (elem.msRequestFullscreen) { /* IE11 */
+			elem.msRequestFullscreen();
+		}
+	} else {
+		document.exitFullscreen();
+	}
 }
 
 let fullscreenBtnIcon = 'fa-arrows-alt';
