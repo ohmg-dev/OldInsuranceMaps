@@ -141,7 +141,7 @@ function initMap() {
 	baseGroup.getLayers().push(osmLayer)
 	baseGroup.getLayers().push(imageryLayer)
 
-	// map.addLayer(baseGroup);
+	map.addLayer(baseGroup);
 	map.addLayer(keyGroup);
 	map.addLayer(mainGroup);
 
