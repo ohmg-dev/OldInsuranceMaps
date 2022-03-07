@@ -27,6 +27,8 @@ import Modify from 'ol/interaction/Modify';
 
 import Styles from './js/ol-styles';
 const styles = new Styles();
+import Utils from './js/ol-utils';
+const utils = new Utils();
 
 export let CSRFTOKEN;
 export let LAYER;
@@ -101,22 +103,8 @@ const trimmedLayer = new TileLayer({
   })
 });
 
-const osmLayer = new TileLayer({
-  source: new OSM(),
-})
-
-const imageryLayer = new TileLayer({
-  opacity: .75,
-  source: new XYZ({
-  url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/{z}/{x}/{y}?access_token='+MAPBOX_API_KEY,
-  tileSize: 512,
-  })
-});
-
-const basemaps = [
-  { id: "osm", layer: osmLayer, label: "Streets" },
-  { id: "satellite", layer: imageryLayer, label: "Streets+Satellite" },
-]
+const basemaps = utils.makeBasemaps(MAPBOX_API_KEY)
+basemaps[1].layer.setOpacity(.75)
 let currentBasemap = basemaps[0].id;
 
 const trimShapeSource = new VectorSource();
