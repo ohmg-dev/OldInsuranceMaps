@@ -20,9 +20,12 @@ import VectorSource from 'ol/source/Vector';
 
 import Feature from 'ol/Feature';
 import Polygon from 'ol/geom/Polygon';
+import Point from 'ol/geom/Point';
 
 import Style from 'ol/style/Style';
 import Fill from 'ol/style/Fill';
+import Stroke from 'ol/style/Stroke';
+import RegularShape from 'ol/style/RegularShape';
 
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
@@ -111,6 +114,8 @@ function setVisibility(group, vis) {
 $: setVisibility(keyGroup, kGV)
 $: setVisibility(mainGroup, mGV)
 
+let mapFullMaskLayer;
+let centerPointLayer;
 function initMap() {
 	map = new Map({ 
 		target: "map",
@@ -136,14 +141,19 @@ function initMap() {
 	baseGroup.getLayers().push(osmLayer)
 	baseGroup.getLayers().push(imageryLayer)
 
-	map.addLayer(baseGroup);
+	// map.addLayer(baseGroup);
 	map.addLayer(keyGroup);
 	map.addLayer(mainGroup);
 
-	makeMaskLayer(map)
-}
+	mapFullMaskLayer = makeMaskLayer(map);
+	map.addLayer(mapFullMaskLayer);
 
-let mapFullMaskLayer;
+	centerPointLayer = makeRotateCenterLayer();
+	map.addLayer(centerPointLayer);
+
+};
+
+
 function makeMaskLayer(map) {
 	let projExtent = map.getView().getProjection().getExtent()
 	const polygon = new Polygon([[
@@ -153,7 +163,7 @@ function makeMaskLayer(map) {
 		[projExtent[0], projExtent[3]],
 		[projExtent[0], projExtent[1]],
 	]])	
-	mapFullMaskLayer = new VectorLayer({
+	const layer = new VectorLayer({
 		source: new VectorSource({
 			features: [ new Feature({ geometry: polygon }) ]
 		}),
@@ -162,8 +172,47 @@ function makeMaskLayer(map) {
 		}),
 		zIndex: 500,
 	});
-	map.addLayer(mapFullMaskLayer);
-	mapFullMaskLayer.setVisible(false);
+	layer.setVisible(false);
+	return layer
+}
+
+let centerPointFeature;
+function makeRotateCenterLayer() {
+	centerPointFeature = new Feature()
+	const pointStyle = new Style({
+		image: new RegularShape({
+			radius1: 10,
+			radius2: 1,
+			points: 4,
+			rotateWithView: true,
+			fill: new Fill({color: "#FF0000" }),
+			stroke: new Stroke({
+				color: "#FF0000", width: 2
+			})
+		})
+	})
+	const layer = new VectorLayer({
+		source: new VectorSource({
+			features: [ centerPointFeature ]
+		}),
+		style: pointStyle,
+		zIndex: 501,
+	});
+	return layer
+}
+
+function showRotateCenter() {
+	if (map && centerPointLayer) {
+		const centerCoords = map.getView().getCenter();
+		const point = new Point(centerCoords)
+		centerPointFeature.setGeometry(point)
+		centerPointLayer.setVisible(true)
+	}
+}
+function removeRotateCenter() {
+	if (centerPointLayer) {
+		centerPointLayer.setVisible(false)
+	}
 }
 
 function disabledMap(disabled) {
@@ -350,7 +399,24 @@ document.addEventListener("fullscreenchange", function(){
 	}
 }, false);
 
+let keyPressed = {};
+function handleKeydown(e) {
+	if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = true}
+	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = true}
+	if (keyPressed.shift && keyPressed.alt) {
+		showRotateCenter()
+	}
+};
+function handleKeyup(e) {
+	if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = false}
+	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = false}
+	if (!keyPressed.shift && !keyPressed.alt) {
+		removeRotateCenter()
+	}
+};
+
 </script>
+<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup}/>
 <main>
 	<h1>{ VOLUME.title }</h1>
 	<p>
