@@ -706,6 +706,11 @@ class MaskSession(models.Model):
             self.layer.default_style = gn_full_style
             self.layer.save()
 
+            # update thumbnail
+            thumb = create_thumbnail(self.layer, overwrite=True)
+            self.layer.thumbnail_url = thumb
+            self.layer.save()
+
             tkm.set_status(self.layer, "georeferenced")
             tkm.set_status(document, "georeferenced")
 
