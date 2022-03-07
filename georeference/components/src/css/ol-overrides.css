@@ -2,6 +2,13 @@
     font-size: 2em !important;
 }
 
+.ol-mouse-position {
+    background: rgba(255,255,255,0.5) !important;
+    padding: 1px 5px !important;
+    cursor: default !important;
+    border-radius: 4px !important;
+}
+
 .ol-zoom-in {
     background: #2c689c !important;
 }
