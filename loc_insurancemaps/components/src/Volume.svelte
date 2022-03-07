@@ -9,8 +9,6 @@ import Map from 'ol/Map';
 import ZoomToExtent from 'ol/control/ZoomToExtent';
 import {FullScreen, defaults as defaultControls} from 'ol/control';
 
-import LayerGroup from 'ol/layer/Group';
-
 import {createEmpty} from 'ol/extent';
 import {extend} from 'ol/extent';
 import {transformExtent} from 'ol/proj';
@@ -18,8 +16,17 @@ import {transformExtent} from 'ol/proj';
 import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import TileWMS from 'ol/source/TileWMS';
+import VectorSource from 'ol/source/Vector';
+
+import Feature from 'ol/Feature';
+import Polygon from 'ol/geom/Polygon';
+
+import Style from 'ol/style/Style';
+import Fill from 'ol/style/Fill';
 
 import TileLayer from 'ol/layer/Tile';
+import VectorLayer from 'ol/layer/Vector';
+import LayerGroup from 'ol/layer/Group';
 
 export let VOLUME;
 export let CSRFTOKEN;
@@ -36,6 +43,8 @@ let showMap = layersPresent
 let showUnprepared = false;
 let showPrepared = false;
 let showGeoreferenced = false;
+
+let refreshingLookups = false;
 
 let kGV = 100;
 let mGV = 100;
@@ -130,6 +139,36 @@ function initMap() {
 	map.addLayer(baseGroup);
 	map.addLayer(keyGroup);
 	map.addLayer(mainGroup);
+
+	makeMaskLayer(map)
+}
+
+let mapFullMaskLayer;
+function makeMaskLayer(map) {
+	let projExtent = map.getView().getProjection().getExtent()
+	const polygon = new Polygon([[
+		[projExtent[0], projExtent[1]],
+		[projExtent[2], projExtent[1]],
+		[projExtent[2], projExtent[3]],
+		[projExtent[0], projExtent[3]],
+		[projExtent[0], projExtent[1]],
+	]])	
+	mapFullMaskLayer = new VectorLayer({
+		source: new VectorSource({
+			features: [ new Feature({ geometry: polygon }) ]
+		}),
+		style: new Style({
+			fill: new Fill({ color: 'rgba(255, 255, 255, 0.2)' }),
+		}),
+		zIndex: 500,
+	});
+	map.addLayer(mapFullMaskLayer);
+	mapFullMaskLayer.setVisible(false);
+}
+
+function disabledMap(disabled) {
+	map.getInteractions().forEach(x => x.setActive(!disabled));
+	mapFullMaskLayer.setVisible(disabled);
 }
 
 $: {
@@ -238,6 +277,9 @@ function postOperation(operation) {
 	} else if (operation == "set-layer-order") {
 		orderableLayers.forEach( function(l) { layerIds.push(l.id)});
 		orderableIndexLayers.forEach( function(l) { indexLayerIds.push(l.id)});
+	} else if (operation == "refresh-lookups") {
+		refreshingLookups = true;
+		disabledMap(true);
 	}
 	const data = JSON.stringify({
 		"operation": operation,
@@ -256,7 +298,13 @@ function postOperation(operation) {
 	.then(result => {
 		VOLUME = result;
 		sheetsLoading = VOLUME.status == "initializing...";
-		setLayersFromVolume();
+		let resetExtent = false
+		if (operation == "refresh-lookups") {
+			resetExtent = true;
+			refreshingLookups = false;
+			disabledMap(false);
+		}
+		setLayersFromVolume(resetExtent);
 		if (showMap == false && (VOLUME.ordered_layers.layers.length != 0 || VOLUME.ordered_layers.layers.length != 0)) {
 			window.location.href = VOLUME.urls.summary;
 		}
@@ -348,6 +396,15 @@ document.addEventListener("fullscreenchange", function(){
 				<button class="control-btn" title="Reset extent" on:click={setMapExtent}>
 					<i id="fs-icon" class="fa fa-refresh" />
 				</button>
+				{#if USER_TYPE != "anonymous"}
+				{#if !refreshingLookups}
+				<button id="repair-button" class="control-btn" title="Repair Extent (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
+					<i id="fs-icon" class="fa fa-wrench" />
+				</button>
+				{:else}
+				<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
+				{/if}
+				{/if}
 				<button class="control-btn" title={fullscreenBtnTitle} on:click={toggleFullscreen}>
 					<i id="fs-icon" class="fa {fullscreenBtnIcon}" />
 				</button>
@@ -531,6 +588,7 @@ document.addEventListener("fullscreenchange", function(){
 					<div>
 						<ul>
 							<li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li>
+							<li><a href={layer.urls.georeference} title="edit georeferencing">edit georeferencing &rarr;</a></li>
 							<li><a href={layer.urls.detail} title={layer.title}>layer detail &rarr;</a></li>
 						</ul>
 						{#if settingKeyMapLayer}
