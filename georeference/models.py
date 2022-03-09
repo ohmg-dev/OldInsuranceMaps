@@ -12,6 +12,7 @@ from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.files import File
 from django.db.models import signals
+from django.utils import timezone
 
 from geonode.documents.models import Document, DocumentResourceLink
 from geonode.layers.models import Layer, Style
@@ -728,3 +729,237 @@ class MaskSession(models.Model):
             "datetime": self.created.strftime("%Y-%m-%d - %H:%M"),
             "vertex_ct": vertex_ct,
         }
+
+def get_default_session_data(session_type):
+    """Return a dict of the keys/types for a sessions's data field.
+    Also used for type-checking during validation."""
+
+    if session_type == "p":
+        return {
+            "split_needed": bool(),
+            "cutlines": list(),
+            "divisions": list(),
+        }
+    elif session_type == "g":
+        return {
+            "gcps": dict(),
+            "transformation": str(),
+            "epsg": int(),
+        }
+    elif session_type == "t":
+        return {
+            "polygon": dict(),
+        }
+    else:
+        raise Exception(f"Invalid session type: {session_type}")
+
+class PrepSessionManager(models.Manager):
+
+    _type = 'p'
+
+    def get_queryset(self):
+        return super(PrepSessionManager, self).get_queryset().filter(type=self._type)
+
+    def create(self, **kwargs):
+        kwargs.update({
+            'type': self._type,
+            'data': get_default_session_data(self._type),
+        })
+        return super(PrepSessionManager, self).create(**kwargs)
+
+class GeorefSessionManager(models.Manager):
+
+    _type = 'g'
+
+    def get_queryset(self):
+        return super(GeorefSessionManager, self).get_queryset().filter(type=self._type)
+
+    def create(self, **kwargs):
+        kwargs.update({
+            'type': self._type,
+            'data': get_default_session_data(self._type),
+        })
+        return super(GeorefSessionManager, self).create(**kwargs)
+
+class TrimSessionManager(models.Manager):
+
+    _type = 't'
+
+    def get_queryset(self):
+        return super(TrimSessionManager, self).get_queryset().filter(type=self._type)
+
+    def create(self, **kwargs):
+        kwargs.update({
+            'type': self._type,
+            'data': get_default_session_data(self._type),
+        })
+        return super(TrimSessionManager, self).create(**kwargs)
+
+SESSION_TYPES = (
+    ('p', 'Preparation'),
+    ('g', 'Georeference'),
+    ('t', 'Trim'),
+)
+SESSION_STAGES = (
+    ('input', 'Input'),
+    ('processing', 'Processing'),
+    ('success', 'Success'),
+    ('failure', 'Failure'),
+)
+
+class SessionBase(models.Model):
+
+    type = models.CharField(
+        max_length=1,
+        choices=SESSION_TYPES,
+        blank=True,
+    )
+    stage = models.CharField(
+        max_length=11,
+        choices=SESSION_STAGES,
+        default="input",
+    )
+    document = models.ForeignKey(
+        Document,
+        models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    layer = models.ForeignKey(
+        Layer,
+        models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    data = JSONField(
+        default=dict,
+        blank=True,
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    date_created = models.DateTimeField(
+        default=timezone.now,
+    )
+    date_modified = models.DateTimeField(
+        default=timezone.now,
+    )
+    date_run = models.DateTimeField(
+        blank=True,
+        null=True,
+    )
+    status_note = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+    )
+
+    def start(self):
+        raise NotImplementedError("Must be implemented in proxy models.")
+
+    def run(self):
+        raise NotImplementedError("Must be implemented in proxy models.")
+
+    def cancel(self):
+        raise NotImplementedError("Must be implemented in proxy models.")
+
+    def undo(self):
+        raise NotImplementedError("Must be implemented in proxy models.")
+
+    def update_stage(self, stage):
+        self.stage = stage
+        logger.info(f"{self.__str__()} | stage: {self.stage.label}")
+        self.save(update_fields=["stage"])
+
+    def update_status_note(self, status_note):
+        self.status_note = status_note
+        logger.info(f"{self.__str__()} | status note: {self.status_note}")
+        self.save(update_fields=["status_note"])
+
+    def validate_data(self):
+        """Compares the contents of the session's data field with the
+        appropriate set of keys and types for this session type. Does not
+        validate data value content like GeoJSON, etc."""
+
+        for k, v in self.data.items():
+            lookup = get_default_session_data(self.type)
+            if k not in lookup.keys():
+                raise KeyError(f"{self.__str__()} data | Invalid key: {k}")
+            if not isinstance(v, type(lookup[k])):
+                raise TypeError(f"{self.__str__()} data | Invalid type: {k} is {type(v)}, must be {type(lookup[k])}")
+
+    def save(self, *args, **kwargs):
+        self.validate_data()
+        self.date_modified = timezone.now()
+        return super(SessionBase, self).save(*args, **kwargs)
+
+    def serialize(self):
+
+        return {
+            "user": {
+                "name": self.user.username,
+                "profile": full_reverse("profile_detail", args=(self.user.username, )),
+            },
+            # "date": (self.date_run.month, self.date_run.day, self.date_run.year),
+            # "date_str": self.date_run.strftime("%Y-%m-%d"),
+            # "datetime": self.date_run.strftime("%Y-%m-%d - %H:%M"),
+            "data": self.data,
+            "stage": self.stage,
+        }
+
+
+class PrepSession(SessionBase):
+    objects = PrepSessionManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = "Preparation Session"
+        # hack: prepend spaces for sort in Django admin
+        verbose_name_plural = "   Preparation Sessions"
+
+    def save(self, *args, **kwargs):
+        self.type = 'p'
+        if not self.document:
+            logger.warn(f"{self.__str__()} has no Document.")
+        if not self.pk:
+            self.data = get_default_session_data(self.type)
+        return super(PrepSession, self).save(*args, **kwargs)
+
+
+class GeorefSession(SessionBase):
+    objects = GeorefSessionManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = "Georeference Session"
+        # hack: prepend spaces for sort in Django admin
+        verbose_name_plural = "  Georeference Sessions"
+
+    def save(self, *args, **kwargs):
+        self.type = 'g'
+        if not self.document:
+            logger.warn(f"{self.__str__()} has no Document.")
+        if not self.pk:
+            self.data = get_default_session_data(self.type)
+        return super(GeorefSession, self).save(*args, **kwargs)
+
+
+class TrimSession(SessionBase):
+    objects = TrimSessionManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = "Trim Session"
+        # hack: prepend spaces for sort in Django admin
+        verbose_name_plural = " Trim Sessions"
+
+    def save(self, *args, **kwargs):
+        self.type = 't'
+        if not self.layer:
+            logger.warn(f"{self.__str__()} has no Layer.")
+        if not self.pk:
+            self.data = get_default_session_data(self.type)
+        return super(TrimSession, self).save(*args, **kwargs)
