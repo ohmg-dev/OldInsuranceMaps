@@ -801,10 +801,9 @@ SESSION_TYPES = (
     ('t', 'Trim'),
 )
 SESSION_STAGES = (
-    ('input', 'Input'),
-    ('processing', 'Processing'),
-    ('success', 'Success'),
-    ('failure', 'Failure'),
+    ('input', 'input'),
+    ('processing', 'processing'),
+    ('finished', 'finished'),
 )
 
 class SessionBase(models.Model):
@@ -818,6 +817,10 @@ class SessionBase(models.Model):
         max_length=11,
         choices=SESSION_STAGES,
         default="input",
+    )
+    status = models.CharField(
+        max_length=50,
+        default="getting user input",
     )
     document = models.ForeignKey(
         Document,
@@ -851,7 +854,7 @@ class SessionBase(models.Model):
         blank=True,
         null=True,
     )
-    status_note = models.CharField(
+    note = models.CharField(
         blank=True,
         null=True,
         max_length=255,
@@ -920,6 +923,9 @@ class PrepSession(SessionBase):
         # hack: prepend spaces for sort in Django admin
         verbose_name_plural = "   Preparation Sessions"
 
+    def __str__(self):
+        return f"Preparation Session ({self.pk})"
+
     def save(self, *args, **kwargs):
         self.type = 'p'
         if not self.document:
@@ -938,6 +944,9 @@ class GeorefSession(SessionBase):
         # hack: prepend spaces for sort in Django admin
         verbose_name_plural = "  Georeference Sessions"
 
+    def __str__(self):
+        return f"Georeference Session ({self.pk})"
+
     def save(self, *args, **kwargs):
         self.type = 'g'
         if not self.document:
@@ -955,6 +964,9 @@ class TrimSession(SessionBase):
         verbose_name = "Trim Session"
         # hack: prepend spaces for sort in Django admin
         verbose_name_plural = " Trim Sessions"
+
+    def __str__(self):
+        return f"Trim Session ({self.pk})"
 
     def save(self, *args, **kwargs):
         self.type = 't'

@@ -65,10 +65,11 @@ class Command(BaseCommand):
                             ps.data['divisions'] = s.generate_divisions(se.cutlines)
 
                         if tkm.get_status(ps.document) == "splitting":
-                            ps.stage = "processing"
+                            ps.stage = "input"
+                            ps.status = "getting user input"
                         else:
-                            ps.stage = "success"
-                        ps.status_note = f"(migrated on {timezone.now()})"
+                            ps.stage = "finished"
+                            ps.status = "success"
                         ps.save()
                     except Exception as e:
                         print(f"error migrating: SplitEvaluation {se.pk}")
@@ -86,7 +87,8 @@ class Command(BaseCommand):
                         gs.data["gcps"] = grs.gcps_used
                         gs.data["epsg"] = grs.crs_epsg_used
                         gs.data["transformation"] = grs.transformation_used
-                        gs.status_note = f"(migrated on {timezone.now()})"
+                        gs.stage = "finished"
+                        gs.status = "success"
                         gs.save()
                     except Exception as e:
                         print(f"error migrating: GeoreferenceSession {grs.pk}")
@@ -104,7 +106,8 @@ class Command(BaseCommand):
                             ts.data["polygon"] = json.loads(ms.polygon.geojson)
                         else:
                             ts.data["polygon"] = {}
-                        ts.status_note = f"(migrated on {timezone.now()})"
+                        ts.stage = "finished"
+                        ts.status = "success"
                         ts.save()
                     except Exception as e:
                         print(f"error migrating: MaskSession {ms.pk}")

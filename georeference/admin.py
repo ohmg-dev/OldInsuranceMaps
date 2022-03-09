@@ -31,7 +31,7 @@ admin.site.register(MaskSession)
 
 class SessionAdmin(admin.ModelAdmin):
     readonly_fields = ('date_created', 'date_modified', 'date_run')
-    list_display = ('__str__', 'document', 'user', 'stage', 'date_created', 'date_modified', 'date_run')
+    list_display = ('__str__', 'document', 'user', 'stage', 'status', 'note', 'date_created', 'date_modified', 'date_run')
     list_filter = ('stage', )
 
 class PrepSessionAdmin(SessionAdmin):
