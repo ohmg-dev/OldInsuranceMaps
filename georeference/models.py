@@ -1036,6 +1036,7 @@ class PrepSession(SessionBase):
         TKeywordManager().set_status(self.document, "unprepared")
         self.document.metadata_only = False
         self.document.save()
+        self.delete()
 
     def generate_final_status_note(self):
 
