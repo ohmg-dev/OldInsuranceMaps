@@ -4,6 +4,11 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
+from georeference.models import (
+    PrepSession,
+    GeorefSession,
+    TrimSession,
+)
 from georeference.proxy_models import DocumentProxy, LayerProxy
 from georeference.utils import TKeywordManager
 from georeference.splitter import Splitter
@@ -14,19 +19,29 @@ class Command(BaseCommand):
         parser.add_argument(
             "operation",
             choices=[
-                "migrate-sessions",
+                "migrate-legacy",
+                "run",
             ],
             help="specify the operation to carry out",
         )
         parser.add_argument(
             "--clean",
             action="store_true",
-            help="remove all instances of new sessions before migrating old ones",
+            help="remove all instances of new sessions before migrating legacy ones",
+        )
+        parser.add_argument(
+            "--id",
+            help="session id to manage",
         )
 
     def handle(self, *args, **options):
 
-        if options["operation"] == "migrate-sessions":
+        if options["operation"] == "run":
+
+            session = GeorefSession.objects.get(pk=options["id"])
+            session.run()
+
+        if options["operation"] == "migrate-legacy":
             tkm = TKeywordManager()
             try:
                 from georeference.models import (
@@ -36,11 +51,6 @@ class Command(BaseCommand):
                 )
             except ImportError:
                 exit()
-            from georeference.models import (
-                PrepSession,
-                GeorefSession,
-                TrimSession,
-            )
             if options['clean'] is True:
                 PrepSession.objects.all().delete()
                 GeorefSession.objects.all().delete()
