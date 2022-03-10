@@ -875,15 +875,17 @@ class SessionBase(models.Model):
     def serialize(self):
         raise NotImplementedError("Must be implemented in proxy models.")
 
-    def update_stage(self, stage):
+    def update_stage(self, stage, save=True):
         self.stage = stage
         logger.info(f"{self.__str__()} | stage: {self.stage}")
-        self.save(update_fields=["stage"])
+        if save:
+            self.save(update_fields=["stage"])
 
-    def update_status(self, status):
+    def update_status(self, status, save=True):
         self.status = status
         logger.info(f"{self.__str__()} | status: {self.status}")
-        self.save(update_fields=["status"])
+        if save:
+            self.save(update_fields=["status"])
 
     def validate_data(self):
         """Compares the contents of the session's data field with the
@@ -1005,8 +1007,8 @@ class PrepSession(SessionBase):
 
             tkm.set_status(self.document, "split")
 
-        self.update_status("success")
-        self.update_stage("finished")
+        self.update_status("success", save=False)
+        self.update_stage("finished", save=False)
         self.save()
         return
 
@@ -1104,8 +1106,10 @@ class GeorefSession(SessionBase):
         tkm.set_status(self.document, "georeferencing")
 
         self.date_run = timezone.now()
-        self.update_stage("processing")
-        self.update_status("initializing georeferencer")
+        self.update_stage("processing", save=False)
+        self.update_status("initializing georeferencer", save=False)
+        self.save()
+
         try:
             g = Georeferencer(
                 transformation=self.data['transformation'],
@@ -1113,19 +1117,19 @@ class GeorefSession(SessionBase):
             )
             g.load_gcps_from_geojson(self.data['gcps'])
         except Exception as e:
-            self.stage = "finished"
-            self.status = "failed"
+            self.update_stage("finished", save=False)
+            self.update_status("failed", save=False)
             self.note = f"{e}"
             self.save()
             # revert to previous tkeyword status
             tkm.set_status(self.document, "prepared")
             return None
-        self.update_status("georeferencing")
+        self.update_status("warping")
         try:
             out_path = g.make_tif(self.document.doc_file.path)
         except Exception as e:
-            self.stage = "finished"
-            self.status = "failed"
+            self.update_stage("finished", save=False)
+            self.update_status("failed", save=False)
             self.note = f"{e}"
             self.save()
             # revert to previous tkeyword status
@@ -1202,8 +1206,8 @@ class GeorefSession(SessionBase):
         tkm.set_status(self.document, "georeferenced")
         tkm.set_status(layer, "georeferenced")
 
-        self.stage = "finished"
-        self.status = "success"
+        self.update_stage("finished", save=False)
+        self.update_status("success", save=False)
         self.save()
 
         return layer
