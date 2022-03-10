@@ -1212,6 +1212,22 @@ class GeorefSession(SessionBase):
 
         return layer
 
+    def cancel(self):
+        """
+        Cancel/delete this session.
+
+        If this is the only georeferencing session for the document, then
+        set the status to 'prepared', otherwise set status to 'georeferenced'.
+        """
+
+        tkm = TKeywordManager()
+        logger.info(f"{self.__str__()} | cancelling and deleting session")
+        if GeorefSession.objects.filter(document=self.document).exclude(pk=self.pk).exists():
+            tkm.set_status(self.document, "georeferenced")
+        else:
+            tkm.set_status(self.document, "prepared")
+        self.delete()
+
     def generate_final_status_note(self):
 
         try:
