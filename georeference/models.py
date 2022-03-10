@@ -872,6 +872,9 @@ class SessionBase(models.Model):
     def undo(self):
         raise NotImplementedError("Must be implemented in proxy models.")
 
+    def serialize(self):
+        raise NotImplementedError("Must be implemented in proxy models.")
+
     def update_stage(self, stage):
         self.stage = stage
         logger.info(f"{self.__str__()} | stage: {self.stage}")
@@ -898,20 +901,6 @@ class SessionBase(models.Model):
         self.validate_data()
         self.date_modified = timezone.now()
         return super(SessionBase, self).save(*args, **kwargs)
-
-    def serialize(self):
-
-        return {
-            "user": {
-                "name": self.user.username,
-                "profile": full_reverse("profile_detail", args=(self.user.username, )),
-            },
-            # "date": (self.date_run.month, self.date_run.day, self.date_run.year),
-            # "date_str": self.date_run.strftime("%Y-%m-%d"),
-            # "datetime": self.date_run.strftime("%Y-%m-%d - %H:%M"),
-            "data": self.data,
-            "stage": self.stage,
-        }
 
 
 class PrepSession(SessionBase):
@@ -1064,6 +1053,30 @@ class PrepSession(SessionBase):
         if self.stage == "finished":
             self.note = self.generate_final_status_note()
         return super(PrepSession, self).save(*args, **kwargs)
+
+    def serialize(self):
+
+        if self.date_run:
+            date = (self.date_run.month, self.date_run.day, self.date_run.year)
+            date_str = self.date_run.strftime("%Y-%m-%d")
+            datetime = self.date_run.strftime("%Y-%m-%d - %H:%M")
+        else:
+            date = (None, None, None)
+            date_str = ""
+            datetime = ""
+
+        return {
+            "allow_reset": not self.georeferenced_downstream,
+            "user": {
+                "name": self.user.username,
+                "profile": full_reverse("profile_detail", args=(self.user.username, )),
+            },
+            "date": date,
+            "date_str": date_str,
+            "datetime": datetime,
+            "split_needed": self.data['split_needed'],
+            "divisions_ct": len(self.get_children()),
+        }
 
 
 class GeorefSession(SessionBase):
