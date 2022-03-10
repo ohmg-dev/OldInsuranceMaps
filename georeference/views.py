@@ -130,7 +130,7 @@ class SplitView(View):
             try:
                 sesh = PrepSession.objects.get(document=doc_proxy.resource)
             except PrepSession.DoesNotExist:
-                return JsonResponse({"success":False, "msg": "no session to cancel"})
+                return JsonResponse({"success":False, "message": "no session to cancel"})
             sesh.cancel()
             return JsonResponse({"success":True})
 
@@ -139,9 +139,8 @@ class SplitView(View):
             try:
                 sesh = PrepSession.objects.get(document=doc_proxy.resource)
             except PrepSession.DoesNotExist:
-                return JsonResponse({"success":False, "msg": "no session to undo"})
+                return JsonResponse({"success":False, "message": "no session to undo"})
             sesh.undo()
-            sesh.delete()
             return JsonResponse({"success":True})
 
         else:
