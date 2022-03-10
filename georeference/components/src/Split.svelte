@@ -28,11 +28,11 @@ import Styles from './js/ol-styles';
 import LineString from 'ol/geom/LineString';
 const styles = new Styles();
 
+export let LOCK;
 export let DOCUMENT;
 export let IMG_SIZE;
 export let CSRFTOKEN;
 export let INCOMING_CUTLINES;
-export let USER_AUTHENTICATED;
 
 let docView;
 let showPreview = true;
@@ -44,16 +44,12 @@ let currentInteraction = 'draw';
 
 let unchanged = true;
 
-let splitBtnLabel;
-$: {
-  if (divisions.length > 0) {
-    splitBtnLabel = "Split";
-  } else {
-    splitBtnLabel = "No Split Needed";
-  }
+let disableInterface = LOCK.enabled;
+let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
+let leaveOkay = true;
+if (LOCK.stage == "in-progress") {
+  leaveOkay = false;
 }
-
-let disableInterface = !USER_AUTHENTICATED;
 
 let currentTxt;
 $: {
@@ -206,7 +202,6 @@ function DocViewer(elementId) {
   this.map = map;
 }
 
-// function refreshPreviewLayer(polygons) e
 $: {
   if (docView) {
     docView.previewLayerSource.clear();
@@ -219,7 +214,6 @@ $: {
     })
   }
 }
-// $: refreshPreviewLayer(divisions)
 
 onMount(() => {
   docView = new DocViewer("doc-viewer");
@@ -255,7 +249,11 @@ function handleKeydown(event) {
 
 function process(operation) {
 
-  if (operation == "split") {disableInterface = true};
+  if (operation == "split" || operation == "no_split" || operation == "cancel") {
+    disableReason = operation;
+    leaveOkay = true;
+    disableInterface = true;
+  };
 
   let data = JSON.stringify({
     "lines": cutLines,
@@ -272,37 +270,67 @@ function process(operation) {
     })
     .then(response => response.json())
     .then(result => {
-      if (operation == "split") {
+      if (operation == "preview") {
+        divisions = result['divisions'];
+      } else if (operation == "split") {
         window.location.href = DOCUMENT.urls.detail;
       } else if (operation == "no_split") {
         window.location.href = DOCUMENT.urls.georeference;
-      } else if (operation == "preview") {
-        divisions = result['divisions'];
+      } else if (operation == "cancel") {
+        window.location.href = DOCUMENT.urls.detail;
       }
     });
 }
 
 function previewSplit() { if ( cutLines.length > 0) { process("preview") } };
 
+function confirmLeave () {
+  event.preventDefault();
+  event.returnValue = "";
+  return "...";
+}
+
+function cleanup () {
+  // if this is an in-progress session
+  if (LOCK.stage == "in-progress") {
+    // and if a preparation submission hasn't been made
+    if (disableReason != 'split' && disableReason != 'no_split') {
+        // then cancel the session (delete it)
+        process("cancel")
+    }
+  }
+}
+
 </script>
 
-<svelte:window on:keydown={handleKeydown}/>
+<svelte:window on:keydown={handleKeydown} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 <div><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
-    {#if !USER_AUTHENTICATED}
     <div class="signin-reminder">
+      {#if disableReason == "unauthenticated"}
       <p><em>
         <!-- svelte-ignore a11y-invalid-attribute -->
         <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
         <a href="/account/signup">sign up</a> to proceed
       </em></p>
+      {:else if disableReason == "input" || disableReason == "processing"}
+      <p>someone else is already preparing this document</p>
+      {:else if disableReason == "finished"}
+      <p>this document has already been prepared</p>
+      {:else if disableReason == "split"}
+      <p>processing document split... redirecting to document detail in the meantime.</p>
+      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      {:else if disableReason == "no_split"}
+      <p>processing submission... document ready to georeference.</p>
+      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      {:else if disableReason == "cancel"}
+      <p>cancelling preparation.</p>
+      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      
+      {/if}
     </div>
-    {:else}
-    <p>currently splitting document<br><a href={DOCUMENT.urls.detail}>redirecting to document detail</a></p>
-    <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
-    {/if}
   </div>
   {/if}
   <nav id="hamnav">
@@ -325,8 +353,8 @@ function previewSplit() { if ( cutLines.length > 0) { process("preview") } };
     <div class="tb-top-item">
       <button on:click={() => {process("split")}} disabled={divisions.length<=1}>Split</button>
       <button on:click={() => {process("no_split")}} disabled={divisions.length>0}>No Split Needed</button>
-      <button title="Return to document detail" onclick="window.location.href='{DOCUMENT.urls.detail}'">Cancel</button>
-      <button title="reset interface" disabled={unchanged} on:click={resetInterface}><i id="fs-icon" class="fa fa-refresh" /></button>
+      <button title="Cancel this preparation" on:click={() => process("cancel")}>Cancel</button>
+      <button title="Reset interface" disabled={unchanged} on:click={resetInterface}><i id="fs-icon" class="fa fa-refresh" /></button>
     </div>
   </nav>
   <div class="map-container" style="border-top: 1.5px solid rgb(150, 150, 150)">

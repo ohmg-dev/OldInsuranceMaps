@@ -874,13 +874,13 @@ class SessionBase(models.Model):
 
     def update_stage(self, stage):
         self.stage = stage
-        logger.info(f"{self.__str__()} | stage: {self.stage.label}")
+        logger.info(f"{self.__str__()} | stage: {self.stage}")
         self.save(update_fields=["stage"])
 
-    def update_status_note(self, status_note):
-        self.status_note = status_note
-        logger.info(f"{self.__str__()} | status note: {self.status_note}")
-        self.save(update_fields=["status_note"])
+    def update_status(self, status):
+        self.status = status
+        logger.info(f"{self.__str__()} | status: {self.status}")
+        self.save(update_fields=["status"])
 
     def validate_data(self):
         """Compares the contents of the session's data field with the
@@ -926,12 +926,125 @@ class PrepSession(SessionBase):
     def __str__(self):
         return f"Preparation Session ({self.pk})"
 
+    @property
+    def georeferenced_downstream(self):
+        """Returns True if the related document or its children (if it
+        has been split) have already been georeferenced."""
+
+        if self.data["split_needed"] is True:
+            docs_to_check = self.get_children()
+        else:
+            docs_to_check = [self.document]
+
+        tkm = TKeywordManager()
+        return any([tkm.is_georeferenced(d) for d in docs_to_check])
+
+    def get_children(self):
+        """Returns a list of all the child documents that have been created
+        by a split operation from this session."""
+
+        ct = ContentType.objects.get(app_label="documents", model="document")
+        child_ids = SplitDocumentLink.objects.filter(
+            document=self.document,
+            content_type=ct,
+        ).values_list("object_id", flat=True)
+        return list(Document.objects.filter(pk__in=child_ids))
+
+    def start(self):
+        tkm = TKeywordManager()
+        tkm.set_status(self.document, "splitting")
+
+    def run(self):
+        """
+        Runs the document split process based on prestored segmentation info
+        that has been generated for this document. New Documents are made for
+        each child image, SplitDocumentLinks are created to link this parent
+        Document with its children. The parent document is also marked as
+        metadata_only so that it no longer shows up in the search page lists.
+        """
+
+        if self.stage == "processing" or self.stage == "finished":
+            logger.warn(f"{self.__str__()} | abort run: session is already processing or finished.")
+            return
+
+        self.update_stage("processing")
+        tkm = TKeywordManager()
+        tkm.set_status(self.document, "splitting")
+
+        if self.data['split_needed'] is False:
+            tkm.set_status(self.document, "prepared")
+            self.document.metadata_only = False
+            self.document.save()
+        else:
+            self.update_status("splitting document image")
+            s = Splitter(image_file=self.document.doc_file.path)
+            self.data['divisions'] = s.generate_divisions(self.data['cutlines'])
+            new_images = s.split_image()
+
+            for n, file_path in enumerate(new_images, start=1):
+                self.update_status(f"creating new document [{n}]")
+                fname = os.path.basename(file_path)
+                new_doc = Document.objects.get(pk=self.document.pk)
+                new_doc.pk = None
+                new_doc.id = None
+                new_doc.uuid = None
+                new_doc.thumbnail_url = None
+                new_doc.metadata_only = False
+                new_doc.title = f"{self.document.title} [{n}]"
+                with open(file_path, "rb") as openf:
+                    new_doc.doc_file.save(fname, File(openf))
+                new_doc.save()
+
+                os.remove(file_path)
+
+                ct = ContentType.objects.get(app_label="documents", model="document")
+                SplitDocumentLink.objects.create(
+                    document=self.document,
+                    content_type=ct,
+                    object_id=new_doc.pk,
+                )
+
+                for r in self.document.regions.all():
+                    new_doc.regions.add(r)
+                tkm.set_status(new_doc, "prepared")
+
+            if len(new_images) > 1:
+                self.document.metadata_only = True
+                self.document.save()
+
+            tkm.set_status(self.document, "split")
+
+        self.update_status("success")
+        self.update_stage("finished")
+        self.save()
+        return
+
+    def cancel(self):
+        """Cancel this session. Sets the document status back to
+        'unprepared' and deletes this session."""
+
+        logger.info(f"{self.__str__()} | cancelling and deleting session")
+        tkm = TKeywordManager()
+        tkm.set_status(self.document, "unprepared")
+        self.delete()
+
+    def generate_final_status_note(self):
+
+        if self.data['split_needed'] is False:
+            n = "no split needed"
+        else:
+            pks = [str(i.pk) for i in self.get_children()]
+            n = f"split into {len(pks)} new docs ({', '.join(pks)})"
+        return n
+
     def save(self, *args, **kwargs):
         self.type = 'p'
         if not self.document:
             logger.warn(f"{self.__str__()} has no Document.")
         if not self.pk:
             self.data = get_default_session_data(self.type)
+        if self.stage == "finished":
+            self.note = self.generate_final_status_note()
         return super(PrepSession, self).save(*args, **kwargs)
 
 

@@ -15,6 +15,9 @@ from .models import (
     GeoreferenceSession,
     MaskSession,
     GCPGroup,
+    PrepSession,
+    GeorefSession,
+    TrimSession,
 )
 from .utils import (
     full_reverse,
@@ -22,6 +25,26 @@ from .utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+class Lock(object):
+    """
+    Defines a Lock object that can be used for resources.
+    """
+    __slots__ = ["enabled", "type", "stage"]
+
+    def __init__(self, enabled, type, stage):
+        """Constructor"""
+        super(Lock, self).__setattr__("enabled", enabled)
+        super(Lock, self).__setattr__("type", type)
+        super(Lock, self).__setattr__("stage", stage)
+
+    @property
+    def as_dict(self):
+        return {
+            "enabled": self.enabled,
+            "type": self.type,
+            "stage": self.stage,
+        }
 
 class DocumentProxy(object):
 
@@ -67,6 +90,27 @@ class DocumentProxy(object):
             return list(SplitEvaluation.objects.filter(document=self.resource))[0]
 
     @property
+    def preparation_session(self):
+        try:
+            return PrepSession.objects.get(document=self.resource)
+        except PrepSession.DoesNotExist:
+            if self.parent_doc is not None:
+                return self.parent_doc.preparation_session
+            else:
+                return None
+        except PrepSession.MultipleObjectsReturned:
+            logger.warn(f"Multiple PrepSessions found for Document {self.id}")
+            return list(PrepSession.objects.filter(document=self.resource))[0]
+
+    @property
+    def georeference_sessions(self):
+        return GeorefSession.objects.filter(document=self.id).order_by("date_run")
+
+    @property
+    def trim_sessions(self):
+        return TrimSession.objects.filter(document=self.id).order_by("date_run")
+
+    @property
     def child_docs(self):
         links = SplitDocumentLink.objects.filter(document=self.id)
         return [DocumentProxy(i.object_id) for i in links]
@@ -87,9 +131,8 @@ class DocumentProxy(object):
     @property
     def cutlines(self):
         cutlines = []
-        if self.split_evaluation is not None:
-            if self.split_evaluation.cutlines is not None:
-                cutlines = self.split_evaluation.cutlines
+        if not self.parent_doc and self.preparation_session:
+            cutlines = self.preparation_session.data['cutlines']
         return cutlines
 
     @property
@@ -114,6 +157,46 @@ class DocumentProxy(object):
             return gcp_group.transformation
         else:
             None
+
+    @property
+    def preparation_lock(self):
+
+        lock = Lock(False, "preparation", None)
+        if self.preparation_session is not None:
+            lock.enabled = True
+            lock.stage = self.preparation_session.stage
+        return lock
+
+    @property
+    def georeference_lock(self):
+
+        lock = Lock(False, "georeference", None)
+        for gs in self.georeference_sessions:
+            if gs.stage != "finished":
+                lock.enabled = True
+                lock.stage = gs.stage
+        return lock
+    
+    @property
+    def trim_lock(self):
+
+        lock = Lock(False, "trim", None)
+        for ts in self.trim_sessions:
+            if ts.stage != "finished":
+                lock.enabled = True
+                lock.stage = ts.stage
+        return lock
+
+    @property
+    def lock(self):
+        if self.preparation_lock.enabled:
+            return self.preparation_lock
+        elif self.georeference_lock.enabled:
+            return self.georeference_lock 
+        elif self.trim_lock.enabled:
+            return self.trim_lock 
+        else:
+            return Lock(False, None, None)
 
     def get_document(self):
         return Document.objects.get(id=self.id)
@@ -154,15 +237,15 @@ class DocumentProxy(object):
 
     def get_split_summary(self):
 
-        if self.parent_doc is not None:
-            evaluation = self.parent_doc.split_evaluation
-        else:
-            evaluation = self.split_evaluation
+        # if self.parent_doc is not None:
+        #     evaluation = self.parent_doc.split_evaluation
+        # else:
+        #     evaluation = self.split_evaluation
         # this would be an unevaluated document
-        if evaluation is None:
+        if self.preparation_session is None:
             return None
 
-        info = evaluation.serialize()
+        info = self.preparation_session.serialize()
 
         parent_json = None
         if self.parent_doc:
@@ -215,6 +298,10 @@ class DocumentProxy(object):
 
     def serialize(self):
 
+        parent_doc = self.parent_doc
+        if parent_doc is not None:
+            parent_doc = parent_doc.serialize()
+
         return {
             "id": self.id,
             "title": self.title,
@@ -222,6 +309,7 @@ class DocumentProxy(object):
             "urls": self.get_extended_urls(),
             "split_evaluation": self.split_evaluation.serialize() if \
                 self.split_evaluation else None,
+            "parent_doc": parent_doc,
         }
 
     def get_actions(self):

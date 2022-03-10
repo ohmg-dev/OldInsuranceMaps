@@ -12,12 +12,17 @@ from django.contrib.gis.geos import Polygon
 from georeference.tasks import (
     split_image_as_task,
     georeference_document_as_task,
+    run_preparation_session,
+    run_georeference_session,
 )
 from .models import (
     LayerMask,
     MaskSession,
     SplitEvaluation,
     GeoreferenceSession,
+    PrepSession,
+    GeorefSession,
+    TrimSession,
 )
 from .proxy_models import (
     DocumentProxy,
@@ -26,6 +31,7 @@ from .proxy_models import (
 )
 from .utils import MapServerManager
 from .georeferencer import Georeferencer
+from .splitter import Splitter
 
 
 logger = logging.getLogger("geonode.georeference.views")
@@ -50,13 +56,26 @@ class SplitView(View):
         """
 
         doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
+        lock = doc_proxy.preparation_lock
+
+        if not lock.enabled:
+            if request.user.is_authenticated:
+                sesh = PrepSession.objects.create(
+                    document=doc_proxy.resource,
+                    user=request.user,
+                )
+                sesh.start()
+                lock.stage = "in-progress"
+            else:
+                lock.enabled = True
+                lock.type = "unauthenticated"
 
         split_params = {
+            "LOCK": lock.as_dict,
             "CSRFTOKEN": csrf.get_token(request),
             "DOCUMENT": doc_proxy.serialize(),
             "IMG_SIZE": doc_proxy.image_size,
             "INCOMING_CUTLINES": doc_proxy.cutlines,
-            "USER_AUTHENTICATED": request.user.is_authenticated,
         }
         
         return render(
@@ -81,40 +100,38 @@ class SplitView(View):
 
         if operation == "preview":
 
-            evaluation = SplitEvaluation(
-                document=doc_proxy.resource,
-                cutlines=cutlines,
-            )
-            divisions = evaluation.preview_divisions()
+            s = Splitter(image_file=doc_proxy.resource.doc_file.path)
+            divisions = s.generate_divisions(cutlines)
             return JsonResponse({"success": True, "divisions": divisions})
 
         elif operation == "split":
 
-            evaluation = SplitEvaluation.objects.create(
-                document=doc_proxy.resource,
-                user=request.user,
-                split_needed=True,
-                cutlines=cutlines,
-            )
-
-            split_image_as_task.apply_async((evaluation.pk, ), queue="update")
-
+            sesh, created = PrepSession.objects.get_or_create(document=doc_proxy.resource)
+            if sesh.user is None:
+                sesh.user = request.user
+            sesh.data['split_needed'] = True
+            sesh.data['cutlines'] = cutlines
+            sesh.save(update_fields=["data", "user"])
+            run_preparation_session.apply_async((sesh.pk, ), queue="update")
             return JsonResponse({"success":True})
         
         elif operation == "no_split":
 
-            evaluation = SplitEvaluation.objects.create(
-                document=doc_proxy.resource,
-                user=request.user,
-                split_needed=False,
-            )
-            evaluation.run()
+            sesh, created = PrepSession.objects.get_or_create(document=doc_proxy.resource)
+            if sesh.user is None:
+                sesh.user = request.user
+            sesh.data['split_needed'] = False
+            sesh.save(update_fields=["data", "user"])
+            sesh.run()
             return JsonResponse({"success":True})
-        
-        elif operation == "reset":
 
-            SplitEvaluation.objects.get(document=doc_proxy.resource).delete()
+        elif operation == "cancel":
 
+            try:
+                sesh = PrepSession.objects.get(document=doc_proxy.resource)
+            except PrepSession.DoesNotExist:
+                return JsonResponse({"success":False, "msg": "no session to cancel"})
+            sesh.cancel()
             return JsonResponse({"success":True})
 
         else:
