@@ -5,7 +5,7 @@ import logging
 from django.conf import settings
 from django.shortcuts import render
 from django.views import View
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponseBadRequest, Http404
 from django.middleware import csrf
 from django.contrib.gis.geos import Polygon
 
@@ -155,9 +155,31 @@ class GeoreferenceView(View):
         """
 
         doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
+        if doc_proxy.resource.metadata_only is True:
+            raise Http404
+        if doc_proxy.status in ["unprepared", "splitting"]:
+            raise Http404
+        lock = doc_proxy.georeference_lock
+
+        sesh_id = None
+        if not lock.enabled:
+            if request.user.is_authenticated:
+                sesh = GeorefSession.objects.create(
+                    document=doc_proxy.resource,
+                    user=request.user,
+                )
+                sesh.start()
+                sesh_id = sesh.pk
+                lock.stage = "in-progress"
+            else:
+                lock.enabled = True
+                lock.type = "unauthenticated"
+
         ms = MapServerManager()
 
         georeference_params = {
+            "LOCK": lock.as_dict,
+            "SESSION_ID": sesh_id,
             "CSRFTOKEN": csrf.get_token(request),
             "DOCUMENT": doc_proxy.serialize(),
             "IMG_SIZE": doc_proxy.image_size,
@@ -168,7 +190,6 @@ class GeoreferenceView(View):
             "MAPSERVER_ENDPOINT": ms.endpoint,
             "MAPSERVER_LAYERNAME": ms.add_layer(doc_proxy.doc_file.path),
             "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-            "USER_AUTHENTICATED": request.user.is_authenticated,
         }
 
         return render(
@@ -195,6 +216,7 @@ class GeoreferenceView(View):
         gcp_geojson = body.get("gcp_geojson", {})
         transformation = body.get("transformation", "poly1")
         operation = body.get("operation", "preview")
+        sesh_id = body.get("sesh_id", None)
 
         response = {
             "status": "",
@@ -215,37 +237,56 @@ class GeoreferenceView(View):
                 response["status"] = "success"
                 response["message"] = "all good"
             except Exception as e:
-                print("exception caught")
-                print(e)
+                logger.error(e)
                 response["status"] = "fail"
                 response["message"] = str(e)
             return JsonResponse(response)
 
         elif operation == "submit":
 
-            session = GeoreferenceSession.objects.create(
-                document=doc_proxy.resource,
-                user=request.user,
-                gcps_used=gcp_geojson,
-                transformation_used=transformation,
-                crs_epsg_used=3857,
-            )
-            georeference_document_as_task.apply_async(
-                (session.pk,),
-                queue="update"
-            )
+            if sesh_id is None:
+                return JsonResponse({
+                    "success":False,
+                    "message": "no session id: view must be called existing on session"
+                })
+
+            try:
+                sesh = GeorefSession.objects.get(pk=sesh_id)
+            except GeorefSession.DoesNotExist:
+                return JsonResponse({
+                    "success":False,
+                    "message": f"session {sesh_id} not found: view must be called existing on session"
+                })
+
+            sesh.data['epsg'] = 3857
+            sesh.data['gcps'] = gcp_geojson
+            sesh.data['transformation'] = transformation
+            sesh.save(update_fields=["data"])
+            run_georeference_session.apply_async((sesh.pk, ), queue="update")
 
             ms.remove_layer(doc_proxy.doc_file.path)
-            response["status"] = "success"
-            response["message"] = "all good"
-            return JsonResponse(response)
+            return JsonResponse({
+                "success": True,
+                "message": "all good",
+            })
 
-        elif operation == "cleanup":
+        elif operation == "cancel":
 
             ms.remove_layer(doc_proxy.doc_file.path)
-            response["status"] = "success"
-            response["message"] = "all good"
-            return JsonResponse(response)
+            if sesh_id is None:
+                return JsonResponse({
+                    "success":False,
+                    "message": "no session id provided to cancel"
+                })
+            try:
+                sesh = GeorefSession.objects.get(pk=sesh_id)
+            except GeorefSession.DoesNotExist:
+                return JsonResponse({
+                    "success":False,
+                    "message": f"session {sesh_id} not found: abort cancel",
+                })
+            sesh.cancel()
+            return JsonResponse({"success":True})
 
         else:
             return BadPostRequest

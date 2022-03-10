@@ -35,6 +35,8 @@ const styles = new Styles();
 import Utils from './js/ol-utils';
 const utils = new Utils();
 
+export let LOCK;
+export let SESSION_ID;
 export let DOCUMENT;
 export let IMG_SIZE;
 export let CSRFTOKEN;
@@ -45,9 +47,6 @@ export let INCOMING_TRANSFORMATION;
 export let MAPSERVER_ENDPOINT;
 export let MAPSERVER_LAYERNAME;
 export let MAPBOX_API_KEY;
-export let USER_AUTHENTICATED;
-
-let disableInterface = !USER_AUTHENTICATED || DOCUMENT.status == "georeferencing";
 
 let previewMode = "n/a";
 
@@ -72,6 +71,13 @@ let mapRotate;
 
 const imgWidth = IMG_SIZE[0];
 const imgHeight = IMG_SIZE[1];
+
+let disableInterface = LOCK.enabled;
+let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
+let leaveOkay = true;
+if (LOCK.stage == "in-progress") {
+  leaveOkay = false;
+}
 
 const beginTxt = "Click a recognizable location on the map document (left panel)"
 const completeTxt = "Now find and click on the corresponding location in the web map (right panel)"
@@ -599,17 +605,22 @@ $: asGeoJSON = () => {
 }
 
 function process(operation){
-  if (gcpList.length < 3) {
+  if (gcpList.length < 3 && (operation == "preview" || operation == "submit")) {
     previewMode = "n/a";
     return
   };
 
-  if (operation == "submit") {disableInterface = true};
+  if (operation == "submit" || operation == "cancel") {
+    leaveOkay = true;
+    disableInterface = true;
+    disableReason = operation;
+  };
 
   const data = JSON.stringify({
     "gcp_geojson": asGeoJSON(),
     "transformation": currentTransformation,
     "operation": operation,
+    "sesh_id": SESSION_ID,
   });
   fetch(DOCUMENT.urls.georeference, {
       method: 'POST',
@@ -628,14 +639,11 @@ function process(operation){
         previewSource.refresh()
       } else if (operation == "submit") {
         window.location.href = DOCUMENT.urls.detail;
+      } else if (operation == "cancel") {
+        window.location.href = DOCUMENT.urls.detail;
       }
     });
 }
-
-// A couple of functions that are attached to the window itself
-
-// wrapper function to call view for db cleanup as needed
-function cleanupOnLeave (e) { process("cleanup"); }
 
 let keyPressed = {};
 function handleKeydown(e) {
@@ -684,25 +692,48 @@ function handleKeyup(e) {
 	}
 };
 
+function confirmLeave () {
+  event.preventDefault();
+  event.returnValue = "";
+  return "...";
+}
+
+function cleanup () {
+  // if this is an in-progress session
+  if (LOCK.stage == "in-progress") {
+    // and if a preparation submission hasn't been made and a
+    // cancel post isn't already taking place
+    if (disableReason != 'submit' && disableReason != 'cancel') {
+        // then cancel the session (delete it)
+        process("cancel")
+    }
+  }
+}
+
 </script>
 
-<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={cleanupOnLeave}/>
+<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 <div class="hidden-small"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
-    {#if !USER_AUTHENTICATED}
     <div class="signin-reminder">
+      {#if disableReason == "unauthenticated"}
       <p><em>
         <!-- svelte-ignore a11y-invalid-attribute -->
-        <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
-        <a href="/account/signup">sign up</a> to proceed
+        <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in</a> or
+        <a href="/account/signup">sign up</a> to proceed.
       </em></p>
+      {:else if disableReason == "input" || disableReason == "processing"}
+      <p>Someone is already georeferencing this document.</p>
+      {:else if disableReason == "submit"}
+      <p>Saving control points and georeferencing document... redirecting to document detail page.</p>
+      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      {:else if disableReason == "cancel"}
+      <p>Cancelling georeferencing.</p>
+      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      {/if}
     </div>
-    {:else}
-    <p>currently processing control points<br><a href={DOCUMENT.urls.detail}>redirecting to document detail</a></p>
-    <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
-    {/if}
   </div>
   {/if}
   <nav>
@@ -717,7 +748,7 @@ function handleKeyup(e) {
     </div>
     <div>
         <button on:click={() => { process("submit") }} disabled={gcpList.length < 3 || unchanged} title="Save control points">Save Control Points</button>
-        <button title="Return to document detail" onclick="window.location.href='{DOCUMENT.urls.detail}'">Cancel</button>
+        <button title="Cancel georeferencing" on:click={() => { process("cancel") }}>Cancel</button>
         <button title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
     </div>
   </nav>
