@@ -148,75 +148,6 @@ class SplitView(View):
             return BadPostRequest
 
 
-class TrimView(View):
-
-    def get(self, request, layeralternate):
-
-        layer_proxy = LayerProxy(layeralternate, raise_404_on_error=True)
-
-        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
-        gs = gs.rstrip("/") + "/"
-        geoserver_ows = f"{gs}ows/"
-
-        trim_params = {
-            "LAYER": layer_proxy.serialize(),
-            "CSRFTOKEN": csrf.get_token(request),
-            "GEOSERVER_WMS": geoserver_ows,
-            "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-            "INCOMING_MASK_COORDINATES": layer_proxy.mask_coords,
-            "USER_AUTHENTICATED": request.user.is_authenticated,
-        }
-
-        return render(
-            request,
-            "georeference/trim.html",
-            context={
-                "preamble_params": {}, # overwrite the default with empty
-                "trim_params": trim_params,
-            }
-        )
-
-    def post(self, request, layeralternate):
-
-        if not request.body:
-            return BadPostRequest
-            
-        layer_proxy = LayerProxy(layeralternate, raise_404_on_error=True)
-
-        body = json.loads(request.body)
-        polygon_coords = body.get("mask_coords", [])
-        operation = body.get("operation")
-
-        if len(polygon_coords) >= 3:
-            polygon = Polygon(polygon_coords)
-        else:
-            polygon = None
-
-        if operation == "preview":
-
-            if polygon is not None:
-                preview_sld = LayerMask(
-                    layer=layer_proxy.resource,
-                    polygon=polygon,
-                ).as_sld()
-            else:
-                preview_sld = None
-
-            return JsonResponse({"success": True, "sld_content": preview_sld})
-
-        elif operation == "submit":
-
-            ts = MaskSession.objects.create(
-                layer=layer_proxy.resource,
-                user=request.user,
-                polygon=polygon,
-            )
-            ts.run()
-            return JsonResponse({"success": True})
-
-        else:
-            return BadPostRequest
-
 class GeoreferenceView(View):
 
     def get(self, request, docid):
@@ -316,6 +247,76 @@ class GeoreferenceView(View):
             response["status"] = "success"
             response["message"] = "all good"
             return JsonResponse(response)
+
+        else:
+            return BadPostRequest
+
+
+class TrimView(View):
+
+    def get(self, request, layeralternate):
+
+        layer_proxy = LayerProxy(layeralternate, raise_404_on_error=True)
+
+        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
+        gs = gs.rstrip("/") + "/"
+        geoserver_ows = f"{gs}ows/"
+
+        trim_params = {
+            "LAYER": layer_proxy.serialize(),
+            "CSRFTOKEN": csrf.get_token(request),
+            "GEOSERVER_WMS": geoserver_ows,
+            "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+            "INCOMING_MASK_COORDINATES": layer_proxy.mask_coords,
+            "USER_AUTHENTICATED": request.user.is_authenticated,
+        }
+
+        return render(
+            request,
+            "georeference/trim.html",
+            context={
+                "preamble_params": {}, # overwrite the default with empty
+                "trim_params": trim_params,
+            }
+        )
+
+    def post(self, request, layeralternate):
+
+        if not request.body:
+            return BadPostRequest
+            
+        layer_proxy = LayerProxy(layeralternate, raise_404_on_error=True)
+
+        body = json.loads(request.body)
+        polygon_coords = body.get("mask_coords", [])
+        operation = body.get("operation")
+
+        if len(polygon_coords) >= 3:
+            polygon = Polygon(polygon_coords)
+        else:
+            polygon = None
+
+        if operation == "preview":
+
+            if polygon is not None:
+                preview_sld = LayerMask(
+                    layer=layer_proxy.resource,
+                    polygon=polygon,
+                ).as_sld()
+            else:
+                preview_sld = None
+
+            return JsonResponse({"success": True, "sld_content": preview_sld})
+
+        elif operation == "submit":
+
+            ts = MaskSession.objects.create(
+                layer=layer_proxy.resource,
+                user=request.user,
+                polygon=polygon,
+            )
+            ts.run()
+            return JsonResponse({"success": True})
 
         else:
             return BadPostRequest
