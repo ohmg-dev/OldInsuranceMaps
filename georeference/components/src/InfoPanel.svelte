@@ -137,7 +137,7 @@ function setSplit(operation) {
         <button 
           title={undoBtnTitle}
           disabled={!undoBtnEnabled}
-          on:click={() => {setSplit("reset")}}>
+          on:click={() => {setSplit("undo")}}>
           <i class="fa fa-undo" />Undo
         </button>
       </div>

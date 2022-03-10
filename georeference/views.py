@@ -134,6 +134,16 @@ class SplitView(View):
             sesh.cancel()
             return JsonResponse({"success":True})
 
+        elif operation == "undo":
+
+            try:
+                sesh = PrepSession.objects.get(document=doc_proxy.resource)
+            except PrepSession.DoesNotExist:
+                return JsonResponse({"success":False, "msg": "no session to undo"})
+            sesh.undo()
+            sesh.delete()
+            return JsonResponse({"success":True})
+
         else:
             return BadPostRequest
 

@@ -1028,6 +1028,24 @@ class PrepSession(SessionBase):
         tkm.set_status(self.document, "unprepared")
         self.delete()
 
+    def undo(self):
+        """Reverses the effects of this preparation session: remove child documents and
+        links to them, then delete this session."""
+
+        # first check to make sure this determination can be reversed.
+        if self.georeferenced_downstream is True:
+            logger.warn(f"Removing SplitEvaluation {self.pk} even though downstream georeferencing has occurred.")
+
+        # if a split was made, remove all descendant documents before deleting
+        for child in self.get_children():
+            child.delete()
+
+        SplitDocumentLink.objects.filter(document=self.document).delete()
+
+        TKeywordManager().set_status(self.document, "unprepared")
+        self.document.metadata_only = False
+        self.document.save()
+
     def generate_final_status_note(self):
 
         if self.data['split_needed'] is False:
