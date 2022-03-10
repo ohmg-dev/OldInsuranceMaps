@@ -956,6 +956,8 @@ class PrepSession(SessionBase):
             logger.warn(f"{self.__str__()} | abort run: session is already processing or finished.")
             return
 
+        self.date_run = timezone.now()
+
         self.update_stage("processing")
         tkm = TKeywordManager()
         tkm.set_status(self.document, "splitting")
@@ -1091,12 +1093,137 @@ class GeorefSession(SessionBase):
     def __str__(self):
         return f"Georeference Session ({self.pk})"
 
+    def start(self):
+        tkm = TKeywordManager()
+        tkm.set_status(self.document, "georeferencing")
+
+    def run(self):
+
+        tkm = TKeywordManager()
+        tkm.set_status(self.document, "georeferencing")
+
+        self.date_run = timezone.now()
+        self.update_stage("processing")
+        self.update_status("initializing georeferencer")
+        try:
+            g = Georeferencer(
+                transformation=self.data['transformation'],
+                epsg_code=self.data['epsg'],
+            )
+            g.load_gcps_from_geojson(self.data['gcps'])
+        except Exception as e:
+            self.stage = "finished"
+            self.status = "failed"
+            self.note = f"{e}"
+            self.save()
+            # revert to previous tkeyword status
+            tkm.set_status(self.document, "prepared")
+            return None
+        self.update_status("georeferencing")
+        try:
+            out_path = g.make_tif(self.document.doc_file.path)
+        except Exception as e:
+            self.stage = "finished"
+            self.status = "failed"
+            self.note = f"{e}"
+            self.save()
+            # revert to previous tkeyword status
+            tkm.set_status(self.document, "prepared")
+            return None
+
+        # self.transformation_used = g.transformation["id"]
+        self.update_status("creating layer")
+
+        ## need to remove commas from the titles, otherwise the layer will not
+        ## be valid in the catalog list when trying to add it to a Map. the 
+        ## message in the catalog will read "Missing OGC reference metadata".
+        title = self.document.title.replace(",", " -")
+
+        ## first look to see if there is a layer alreaded linked to this document.
+        ## this would indicate that it has already been georeferenced, and in this
+        ## case the existing layer should be overwritten.
+        existing_layer = None
+        try:
+            link = GeoreferencedDocumentLink.objects.get(document=self.document)
+            existing_layer = Layer.objects.get(pk=link.object_id)
+        except (GeoreferencedDocumentLink.DoesNotExist, Layer.DoesNotExist):
+            pass
+
+        ## create the layer, passing in the existing_layer if present
+        layer = file_upload(
+            out_path,
+            layer=existing_layer,
+            overwrite=True,
+            title=title,
+            user=self.user,
+        )
+
+        ## if there was no existing layer, create a new link between the
+        ## document and the new layer
+        if existing_layer is None:
+            ct = ContentType.objects.get(app_label="layers", model="layer")
+            GeoreferencedDocumentLink.objects.create(
+                document=self.document,
+                content_type=ct,
+                object_id=layer.pk,
+            )
+
+            # set attributes in the layer straight from the document
+            for keyword in self.document.keywords.all():
+                layer.keywords.add(keyword)
+            for region in self.document.regions.all():
+                layer.regions.add(region)
+            Layer.objects.filter(pk=layer.pk).update(
+                date=self.document.date,
+                abstract=self.document.abstract,
+                category=self.document.category,
+                license=self.document.license,
+                restriction_code_type=self.document.restriction_code_type,
+                attribution=self.document.attribution,
+            )
+
+        ## if there was an existing layer that's been overwritten, regenerate thumb.
+        else:
+            self.update_status("regenerating thumbnail")
+            thumb = create_thumbnail(layer, overwrite=True)
+            Layer.objects.filter(pk=layer.pk).update(thumbnail_url=thumb)
+
+        self.layer = layer
+        self.update_status("saving control points")
+
+        # save the successful gcps to the canonical GCPGroup for the document
+        GCPGroup().save_from_geojson(
+            self.data['gcps'],
+            self.document,
+            self.data['transformation'],
+        )
+
+        tkm.set_status(self.document, "georeferenced")
+        tkm.set_status(layer, "georeferenced")
+
+        self.stage = "finished"
+        self.status = "success"
+        self.save()
+
+        return layer
+
+    def generate_final_status_note(self):
+
+        try:
+            gcp_ct = len(self.data['gcps']['features'])
+            n = f"{gcp_ct} GCPs used"
+        except KeyError:
+            n = f"error reading GCPs"
+        return n
+
     def save(self, *args, **kwargs):
         self.type = 'g'
         if not self.document:
             logger.warn(f"{self.__str__()} has no Document.")
         if not self.pk:
             self.data = get_default_session_data(self.type)
+        if self.stage == "finished" and self.status == "success":
+            self.note = self.generate_final_status_note()
         return super(GeorefSession, self).save(*args, **kwargs)
 
 
