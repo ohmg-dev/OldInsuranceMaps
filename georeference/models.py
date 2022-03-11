@@ -1030,6 +1030,10 @@ class PrepSession(SessionBase):
         """Cancel this session. Sets the document status back to
         'unprepared' and deletes this session."""
 
+        if self.stage != "input":
+            logger.warn(f"{self.__str__()} | can't cancel session that is past the input stage.")
+            return
+
         logger.info(f"{self.__str__()} | cancelling and deleting session")
         tkm = TKeywordManager()
         tkm.set_status(self.document, "unprepared")
@@ -1233,6 +1237,10 @@ class GeorefSession(SessionBase):
         If this is the only georeferencing session for the document, then
         set the status to 'prepared', otherwise set status to 'georeferenced'.
         """
+
+        if self.stage != "input":
+            logger.warn(f"{self.__str__()} | can't cancel session that is past the input stage.")
+            return
 
         tkm = TKeywordManager()
         logger.info(f"{self.__str__()} | cancelling and deleting session")
