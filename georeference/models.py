@@ -7,7 +7,7 @@ import logging
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, GEOSGeometry
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.files import File
@@ -748,7 +748,7 @@ def get_default_session_data(session_type):
         }
     elif session_type == "t":
         return {
-            "polygon": dict(),
+            "mask_ewkt": str(),
         }
     else:
         raise Exception(f"Invalid session type: {session_type}")
@@ -886,6 +886,20 @@ class SessionBase(models.Model):
         logger.info(f"{self.__str__()} | status: {self.status}")
         if save:
             self.save(update_fields=["status"])
+
+    def get_document_for_layer(self):
+
+        if self.layer is None:
+            return None
+        ct = ContentType.objects.get(app_label="layers", model="layer")
+        try:
+            document = GeoreferencedDocumentLink.objects.get(
+                content_type=ct,
+                object_id=self.layer.pk,
+            ).document
+            return document
+        except Document.DoesNotExist:
+            return None
 
     def validate_data(self):
         """Compares the contents of the session's data field with the
@@ -1329,6 +1343,69 @@ class TrimSession(SessionBase):
 
     def __str__(self):
         return f"Trim Session ({self.pk})"
+
+    def start(self):
+        tkm = TKeywordManager()
+        tkm.set_status(self.layer, "trimming")
+
+    def cancel(self):
+        """
+        Cancel/delete this session.
+
+        If this is the only georeferencing session for the document, then
+        set the status to 'prepared', otherwise set status to 'georeferenced'.
+        """
+
+        if self.stage != "input":
+            logger.warn(f"{self.__str__()} | can't cancel session that is past the input stage.")
+            return
+
+        tkm = TKeywordManager()
+        logger.info(f"{self.__str__()} | cancelling and deleting session")
+        if TrimSession.objects.filter(document=self.document).exclude(pk=self.pk).exists():
+            tkm.set_status(self.document, "trimmed")
+        else:
+            tkm.set_status(self.document, "georeferenced")
+        self.delete()
+
+    def run(self):
+
+        tkm = TKeywordManager()
+        tkm.set_status(self.layer, "trimming")
+
+        document = self.get_document_for_layer()
+        if document is not None:
+            tkm.set_status(document, "trimming")
+
+        # create/update a LayerMask for this layer and apply it as style
+        if self.data['mask_ewkt']:
+            
+            mask = GEOSGeometry(self.data['mask_ewkt'])
+            lm, created = LayerMask.objects.get_or_create(
+                layer=self.layer,
+                defaults={"polygon": mask}
+            )
+            if not created:
+                lm.polygon = mask
+                lm.save()
+            lm.apply_mask()
+
+            tkm.set_status(self.layer, "trimmed")
+            if document is not None:
+                tkm.set_status(document, "trimmed")
+
+    def undo(self):
+
+        tkm = TKeywordManager()
+        tkm.set_status(self.layer, "georeferenced")
+        document = self.get_document_for_layer()
+
+        if document is not None:
+            tkm.set_status(document, "georeferenced")
+
+        LayerMask.objects.filter(layer=self.layer).delete()
+
+        self.set_status("unapplied")
 
     def save(self, *args, **kwargs):
         self.type = 't'

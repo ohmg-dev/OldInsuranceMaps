@@ -331,30 +331,31 @@ class TrimView(View):
         polygon_coords = body.get("mask_coords", [])
         operation = body.get("operation")
 
-        if len(polygon_coords) >= 3:
-            polygon = Polygon(polygon_coords)
-        else:
-            polygon = None
+        if operation in ["preview", "submit"]:
+            if len(polygon_coords) < 3:
+                return JsonResponse({"success": False, "message": "not enough coords"})
+            try:
+                mask = Polygon(polygon_coords)
+            except ValueError as e:
+                logger.warn(f"error in trim preview: {e}")
+                return JsonResponse({"success": False, "message": str(e)})
 
         if operation == "preview":
 
-            if polygon is not None:
-                preview_sld = LayerMask(
-                    layer=layer_proxy.resource,
-                    polygon=polygon,
-                ).as_sld()
-            else:
-                preview_sld = None
-
+            preview_sld = LayerMask(
+                layer=layer_proxy.resource,
+                polygon=mask,
+            ).as_sld()
             return JsonResponse({"success": True, "sld_content": preview_sld})
 
         elif operation == "submit":
 
-            ts = MaskSession.objects.create(
+            ts = TrimSession.objects.create(
                 layer=layer_proxy.resource,
                 user=request.user,
-                polygon=polygon,
             )
+            ts.data['mask_ewkt'] = mask.ewkt
+            ts.save()
             ts.run()
             return JsonResponse({"success": True})
 
