@@ -1228,6 +1228,76 @@ class GeorefSession(SessionBase):
             tkm.set_status(self.document, "prepared")
         self.delete()
 
+    def undo(self, undo_all=False):
+        """
+        Remove this GeorefSession and revert the Document/Layer to previous
+        state. If undo_all is True, revert all sessions (clean slate).
+
+        If this is the only GeorefSession on the Document, or if undo_all
+        is True, then remove the Layer and set the document to "prepared".
+        Otherwise, reapply the latest session after removing this one.
+
+        If undo_all is False and this isn't the most recent session on
+        the Document, abort the undo operation.
+        """
+
+        tkm = TKeywordManager()
+
+        ##  get all of the sessions for this document, ordered so most recent is first
+        sessions = GeorefSession.objects.filter(document=self.document).order_by("-date_run")
+        if self != list(sessions)[0] and undo_all is False:
+            logger.warn(f"{self.__str__()} | can't undo this session, it's not the latest one.")
+            return
+        else:
+            logger.info(f"{self.__str__()} | undo session (undo_all = {undo_all})")
+
+        ## If this is the only session, or undo_all is True then wipe the slate clean
+        if sessions.count() == 1 or undo_all is True:
+
+            ## find and delete the Layer
+            layer = None
+            try:
+                link = GeoreferencedDocumentLink.objects.get(document=self.id)
+                layer = Layer.objects.get(id=link.object_id)
+            except (GeoreferencedDocumentLink.DoesNotExist, Layer.DoesNotExist):
+                pass
+
+            if layer is None:
+                logger.debug(f"{self.__str__()} | no Layer to delete")
+            else:
+                logger.debug(f"{self.__str__()} | delete Layer: {layer}")
+                layer.delete()
+
+            ## remove the link between the Document and the Layer
+            try:
+                GeoreferencedDocumentLink.objects.get(document=self.document.id).delete()
+                logger.debug(f"{self.__str__()} | delete GeoreferencedDocumentLink")
+            except GeoreferencedDocumentLink.DoesNotExist:
+                logger.debug(f"{self.__str__()} | no GeoreferencedDocumentLink to delete")
+
+            ## remove all sessions
+            logger.info(f"{self.__str__()} | delete all sessions: {[s.pk for s in sessions]}")
+            sessions.delete()
+            GCPGroup.objects.filter(document=self.document).delete()
+            tkm.set_status(self.document, "prepared")
+
+        ## otherwise delete this session and then re-run the latest one before it.
+        else:
+            logger.info(f"{self.__str__()} | deleted")
+            docid = self.document.pk
+            self.delete()
+
+            #reaquire sessions, seems like it may be necessary??
+            sessions = GeorefSession.objects.filter(document_id=docid).order_by("-date_run")
+            latest = list(sessions)[0]
+            logger.info(f"{latest.__str__()} | re-run session")
+            latest.run()
+
+            # finally, for all previous sessions reset the newly re-created layer
+            for s in sessions:
+                s.layer = latest.layer
+                s.save()
+
     def generate_final_status_note(self):
 
         try:
