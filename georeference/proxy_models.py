@@ -107,10 +107,6 @@ class DocumentProxy(object):
         return GeorefSession.objects.filter(document=self.id).order_by("date_run")
 
     @property
-    def trim_sessions(self):
-        return TrimSession.objects.filter(document=self.id).order_by("date_run")
-
-    @property
     def child_docs(self):
         links = SplitDocumentLink.objects.filter(document=self.id)
         return [DocumentProxy(i.object_id) for i in links]
@@ -176,25 +172,13 @@ class DocumentProxy(object):
                 lock.enabled = True
                 lock.stage = gs.stage
         return lock
-    
-    @property
-    def trim_lock(self):
-
-        lock = Lock(False, "trim", None)
-        for ts in self.trim_sessions:
-            if ts.stage != "finished":
-                lock.enabled = True
-                lock.stage = ts.stage
-        return lock
 
     @property
     def lock(self):
         if self.preparation_lock.enabled:
             return self.preparation_lock
         elif self.georeference_lock.enabled:
-            return self.georeference_lock 
-        elif self.trim_lock.enabled:
-            return self.trim_lock 
+            return self.georeference_lock
         else:
             return Lock(False, None, None)
 
@@ -404,6 +388,20 @@ class LayerProxy(object):
             if mask.polygon:
                 coords = mask.polygon.coords[0]
         return coords
+
+    @property
+    def trim_sessions(self):
+        return TrimSession.objects.filter(layer=self.id).order_by("date_run")
+
+    @property
+    def trim_lock(self):
+
+        lock = Lock(False, "trim", None)
+        for ts in self.trim_sessions:
+            if ts.stage != "finished":
+                lock.enabled = True
+                lock.stage = ts.stage
+        return lock
 
     def get_layer(self):
         return Layer.objects.get(id=self.id)
