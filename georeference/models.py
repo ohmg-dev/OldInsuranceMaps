@@ -904,7 +904,42 @@ class SessionBase(models.Model):
         raise NotImplementedError("Must be implemented in proxy models.")
 
     def serialize(self):
-        raise NotImplementedError("Must be implemented in proxy models.")
+
+        # handle the non- js-serializable attributes
+        doc_id, layer_alt, d_create, d_mod, d_run = None, None, None, None, None
+        d_run_d, d_run_t = None, None
+        if self.document:
+            doc_id = self.document.pk
+        if self.layer:
+            layer_alt = self.layer.alternate
+        if self.date_created:
+            d_create = self.date_created.strftime("%Y-%m-%d - %H:%M")
+        if self.date_modified:
+            d_mod = self.date_modified.strftime("%Y-%m-%d - %H:%M")
+        if self.date_run:
+            d_run = self.date_run.strftime("%Y-%m-%d - %H:%M")
+            d_run_d = self.date_run.strftime("%Y-%m-%d")
+            d_run_t = self.date_run.strftime("%H:%M")
+
+        return {
+            "id": self.pk,
+            "type": self.get_type_display(),
+            "document": doc_id,
+            "layer": layer_alt,
+            "stage": self.stage,
+            "status": self.status,
+            "note": self.note,
+            "data": self.data,
+            "user": {
+                "name": self.user.username,
+                "profile": full_reverse("profile_detail", args=(self.user.username, )),
+            },
+            "date_created": d_create,
+            "date_modified": d_mod,
+            "date_run": d_run,
+            "date_run_date": d_run_d,
+            "date_run_time": d_run_t,
+        }
 
     def update_stage(self, stage, save=True):
         self.stage = stage

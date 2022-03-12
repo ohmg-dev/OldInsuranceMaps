@@ -1,5 +1,6 @@
 import logging
 from PIL import Image
+from itertools import chain
 
 from django.contrib.gis.geos import Polygon
 from django.shortcuts import get_object_or_404
@@ -296,44 +297,15 @@ class DocumentProxy(object):
             "parent_doc": parent_doc,
         }
 
-    def get_actions(self):
-        actions = []
+    def get_sessions(self):
 
-        if self.parent_doc is not None:
-            sesh = self.parent_doc.split_evaluation.serialize()
-            split_action = {
-                "type": "split",
-                "user": sesh['user'],
-                "date": sesh['date_str'],
-                "datetime": sesh['datetime'],
-                "details": "split from " + self.parent_doc.title,
-            }
-        elif self.split_evaluation is not None:
-            sesh = self.split_evaluation.serialize()
-            if sesh['split_needed'] is False:
-                details = "no split needed"
-            else:
-                details = f"{sesh['divisions_ct']} segments"
-            split_action = {
-                "type": "split",
-                "user": sesh['user'],
-                "date": sesh['date_str'],
-                "datetime": sesh['datetime'],
-                "details": details,
-            }
+        ps = self.preparation_session
+        if ps is not None:
+            gs = GeorefSession.objects.filter(document=self.resource).order_by("date_run")
+            return list(chain([ps], gs))
         else:
             return []
-        actions.append(split_action)
 
-        for sesh in self.get_georeference_sessions(serialized=True):
-            actions.append({
-                "type": "georeference",
-                "user": sesh['user'],
-                "date": sesh['date_str'],
-                "datetime": sesh['datetime'],
-                "details": f"{sesh['gcps_ct']} GCPs",
-            })
-        return actions
 
 class LayerProxy(object):
     
@@ -445,18 +417,9 @@ class LayerProxy(object):
             return [i.serialize() for i in sessions]
         else:
             return sessions
-    
-    def get_action_history(self):
-        actions = []
-        for sesh in self.get_mask_sessions(serialized=True):
-            actions.append({
-                "type": "trim",
-                "date": sesh['date_str'],
-                "datetime": sesh['datetime'],
-                "user": sesh['user'],
-                "details": sesh['vertex_ct'],
-            })
-        return actions
+
+    def get_sessions(self):
+        return TrimSession.objects.filter(layer=self.resource).order_by("date_run")
     
     def get_trim_summary(self):
 
@@ -477,7 +440,7 @@ class LayerProxy(object):
             "urls": self.get_extended_urls(),
         }
 
-def get_georeferencing_summary(resourceid):
+def get_info_panel_content(resourceid):
     """Used in a context processor or view to generate all information
     needed for the georeference info panel in the Document or Layer
     detail pages."""
@@ -491,9 +454,8 @@ def get_georeferencing_summary(resourceid):
         doc_proxy = layer_proxy.get_document_proxy()
         resource_type = "layer"
 
-    actions = doc_proxy.get_actions()
     urls = {
-        "refresh": full_reverse('summary_json', args=(doc_proxy.id,)),
+        "refresh": full_reverse('georeference_info', args=(doc_proxy.id,)),
         "document_detail": doc_proxy.urls['detail'],
         "layer_detail": "",
         "split": doc_proxy.urls['split'],
@@ -505,14 +467,17 @@ def get_georeferencing_summary(resourceid):
     }
     layer_alternate = ""
 
+    sessions = doc_proxy.get_sessions()
+
     if layer_proxy is not None:
         layer_alternate = layer_proxy.alternate
         urls['layer_detail'] = layer_proxy.urls['detail']
         urls['trim'] = layer_proxy.urls['trim']
         trim_summary = layer_proxy.get_trim_summary()
-        actions += layer_proxy.get_action_history()
+        sessions = list(chain(sessions, layer_proxy.get_sessions()))
 
-    sorted_actions = sorted(actions, key = lambda e: e["datetime"])
+    serialized = [super(type(i), i).serialize() for i in sessions]
+    serialized.sort(key=lambda i: (i['date_run'] is None, i['date_run']))
 
     context = {
         "STATUS": doc_proxy.status,
@@ -523,7 +488,7 @@ def get_georeferencing_summary(resourceid):
         "SPLIT_SUMMARY": doc_proxy.get_split_summary(),
         "GEOREFERENCE_SUMMARY": doc_proxy.get_georeference_summary(),
         "TRIM_SUMMARY": trim_summary,
-        "ACTION_HISTORY": sorted_actions,
+        "SESSION_HISTORY": serialized,
     }
     return context
 

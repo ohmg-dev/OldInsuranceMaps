@@ -9,7 +9,7 @@ export let URLS;
 export let SPLIT_SUMMARY;
 export let GEOREFERENCE_SUMMARY;
 export let TRIM_SUMMARY;
-export let ACTION_HISTORY;
+export let SESSION_HISTORY;
 
 let showPrep = false;
 let showGeoreference = false;
@@ -79,7 +79,7 @@ function refresh() {
     SPLIT_SUMMARY = result.SPLIT_SUMMARY;
     GEOREFERENCE_SUMMARY = result.GEOREFERENCE_SUMMARY;
     TRIM_SUMMARY = result.TRIM_SUMMARY;
-    ACTION_HISTORY = result.ACTION_HISTORY;
+    SESSION_HISTORY = result.SESSION_HISTORY;
   });
 }
 
@@ -116,7 +116,7 @@ function setSplit(operation) {
     {/if}
   </section>
   <section>
-    <h4 on:click={() => showPrep = !showPrep}>1. Preparation <i class="fa fa-{showPrep == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
+    <h4 class="expandable" on:click={() => showPrep = !showPrep}>1. Preparation <i class="fa fa-{showPrep == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
     {#if showPrep}
     <div transition:slide>
       <div class="section-btn-row">
@@ -178,7 +178,7 @@ function setSplit(operation) {
     {/if}
   </section>
   <section>
-    <h4 on:click={() => showGeoreference = !showGeoreference}>2. Georeferencing <i class="fa fa-{showGeoreference == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
+    <h4 class="expandable" on:click={() => showGeoreference = !showGeoreference}>2. Georeferencing <i class="fa fa-{showGeoreference == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
     {#if showGeoreference}
     <div transition:slide>
       <div class="section-btn-row">
@@ -237,7 +237,7 @@ function setSplit(operation) {
     {/if}
   </section>
   <section>
-    <h4 on:click={() => showTrim = !showTrim}>3. Trimming <i class="fa fa-{showTrim == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
+    <h4 class="expandable" on:click={() => showTrim = !showTrim}>3. Trimming <i class="fa fa-{showTrim == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
     {#if showTrim}
       <div transition:slide>
         <div class="section-btn-row">
@@ -270,22 +270,30 @@ function setSplit(operation) {
       </div>
     {/if}
   </section>
-  {#if ACTION_HISTORY.length > 0}
+  {#if SESSION_HISTORY.length > 0}
   <section>
     <table>
-      <caption>Georeference History</caption>
+      <caption><h4>Full History</h4></caption>
       <tr>
+        <th>#</th>
         <th>Action</th>
         <th>User</th>
+        <th>Stage</th>
+        <th>Status</th>
         <th>Date</th>
+        <th>Time</th>
         <th>Details</th>
       </tr>
-      {#each ACTION_HISTORY as action}
+      {#each SESSION_HISTORY as session}
       <tr>
-        <td>{action.type}</td>
-        <td><a href={action.user.profile}>{action.user.name}</a></td>
-        <td>{action.datetime}</td>
-        <td>{action.details}</td>
+        <td>{session.id}</td>
+        <td>{session.type}</td>
+        <td><a href={session.user.profile}>{session.user.name}</a></td>
+        <td>{session.stage}</td>
+        <td>{session.status}</td>
+        <td>{session.date_run_date != null ? session.date_run_date : '--'}</td>
+        <td>{session.date_run_time != null ? session.date_run_time : '--'}</td>
+        <td>{session.note != null ? session.note : '--'}</td>
       </tr>
       {/each}
     </table>
@@ -330,7 +338,7 @@ section {
 section h4 i {
   font-size: .65em;
 }
-section h4 {
+section h4.expandable {
   color: #2c689c;
   cursor: pointer;
 }

@@ -27,7 +27,7 @@ from .models import (
 from .proxy_models import (
     DocumentProxy,
     LayerProxy,
-    get_georeferencing_summary,
+    get_info_panel_content,
 )
 from .utils import MapServerManager
 from .georeferencer import Georeferencer
@@ -40,10 +40,10 @@ BadPostRequest = HttpResponseBadRequest("invalid post content")
 
 class SummaryJSON(View):
 
-    def get(self, request, docid):
+    def get(self, request, resourceid):
 
-        if docid:
-            response = get_georeferencing_summary(docid)
+        if resourceid:
+            response = get_info_panel_content(resourceid)
             return JsonResponse(response)
         else:
             return JsonResponse({})
