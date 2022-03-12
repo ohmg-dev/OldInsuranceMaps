@@ -1370,14 +1370,15 @@ class TrimSession(SessionBase):
 
         tkm = TKeywordManager()
         logger.info(f"{self.__str__()} | cancelling and deleting session")
-        if TrimSession.objects.filter(document=self.document).exclude(pk=self.pk).exists():
-            tkm.set_status(self.document, "trimmed")
+        if TrimSession.objects.filter(layer=self.layer).exclude(pk=self.pk).exists():
+            tkm.set_status(self.layer, "trimmed")
         else:
-            tkm.set_status(self.document, "georeferenced")
+            tkm.set_status(self.layer, "georeferenced")
         self.delete()
 
     def run(self):
 
+        self.update_stage("processing")
         tkm = TKeywordManager()
         tkm.set_status(self.layer, "trimming")
 
@@ -1401,6 +1402,10 @@ class TrimSession(SessionBase):
             tkm.set_status(self.layer, "trimmed")
             if document is not None:
                 tkm.set_status(document, "trimmed")
+
+        self.update_stage("finished", save=False)
+        self.update_status("success", save=False)
+        self.save()
 
     def undo(self):
 

@@ -30,14 +30,20 @@ const styles = new Styles();
 import Utils from './js/ol-utils';
 const utils = new Utils();
 
+export let LOCK;
+export let SESSION_ID;
 export let CSRFTOKEN;
 export let LAYER;
 export let MAPBOX_API_KEY;
 export let GEOSERVER_WMS;
 export let INCOMING_MASK_COORDINATES;
-export let USER_AUTHENTICATED;
 
-let disableInterface = !USER_AUTHENTICATED;
+let disableInterface = LOCK.enabled;
+let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
+let leaveOkay = true;
+if (LOCK.stage == "in-progress") {
+  leaveOkay = false;
+}
 
 let previewMode = "n/a";
 let maskPolygonCoords = [];
@@ -55,7 +61,7 @@ $: {
 }
 
 $: unchanged = JSON.stringify(maskPolygonCoords) == JSON.stringify(INCOMING_MASK_COORDINATES);
-$: maskToRemove = INCOMING_MASK_COORDINATES.length > 0 || maskPolygonCoords.length > 0;
+$: maskToRemove = INCOMING_MASK_COORDINATES.length > 0;
 
 
 let drawTxt = "Draw a polygon around the content you wish to retain. Click to begin, double-click to finish.";
@@ -121,12 +127,12 @@ trimShapeSource.on("removefeature", function(e) {
 })
 
 function removeMask() {
-  maskPolygonCoords = [];
   trimShapeSource.clear();
   maskSLDContent = defaultSLD();
   const extent3857 = transformExtent(LAYER.extent, "EPSG:4326", "EPSG:3857");
   mapView.map.getView().fit(extent3857);
   mapView.drawInteraction.setActive(true)
+
 }
 
 function resetInterface() {
@@ -256,11 +262,20 @@ $: {
 
 function process(operation) {
 
-  if (operation == "submit") { disableInterface = true }
+  if (operation == "remove-mask") {
+    removeMask()
+  }
+
+  if (operation == "submit" || operation == "cancel" || operation == "remove-mask") {
+    disableReason = operation;
+    leaveOkay = true;
+    disableInterface = true;
+  };
 
   const data = JSON.stringify({
     "mask_coords": maskPolygonCoords,
     "operation": operation,
+    "sesh_id": SESSION_ID,
   });
   fetch(LAYER.urls.trim, {
     method: 'POST',
@@ -280,29 +295,56 @@ function process(operation) {
         maskSLDContent = result['sld_content'];
       }
     }
-    if (operation == "submit") {
+    if (operation == "submit" || operation == "cancel" || operation == "remove-mask") {
       window.location.href = LAYER.urls.detail;
     }
   });
 }
 
+function confirmLeave () {
+  event.preventDefault();
+  event.returnValue = "";
+  return "...";
+}
+
+function cleanup () {
+  // if this is an in-progress session
+  if (LOCK.stage == "in-progress") {
+    // and if a preparation submission hasn't been made
+    if (disableReason != 'submit' && disableReason != 'remove-mask') {
+        // then cancel the session (delete it)
+        process("cancel")
+    }
+  }
+}
+
 </script>
+
+<svelte:window on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 <div class="tb-top-item"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
-    {#if !USER_AUTHENTICATED}
     <div class="signin-reminder">
+      {#if disableReason == "unauthenticated"}
       <p><em>
         <!-- svelte-ignore a11y-invalid-attribute -->
-        <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+        <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in</a> or
         <a href="/account/signup">sign up</a> to proceed
       </em></p>
+      {:else if disableReason == "input" || disableReason == "processing"}
+      <p>Someone else is already trimming this layer.</p>
+      {:else if disableReason == "submit"}
+      <p>Applying layer mask... redirecting to layer detail when finished.</p>
+      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      {:else if disableReason == "remove-mask"}
+      <p>Removing layer mask... redirecting to layer detail when finished.</p>
+      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      {:else if disableReason == "cancel"}
+      <p>Cancelling layer trimming.</p>
+      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      {/if}
     </div>
-    {:else}
-    <p>setting mask style on layer<br><span style="color:#2c689c;">redirecting to layer detail when complete</span></p>
-    <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
-    {/if}
   </div>
   {/if}
   <nav>
@@ -316,9 +358,9 @@ function process(operation) {
     </label>
     <div>
       <button title={submitBtnLabel} on:click={() => {process("submit")}} disabled={unchanged}>{submitBtnLabel}</button>
-      <button title="Return to layer detail" onclick="window.location.href='{LAYER.urls.detail}'">Cancel</button>
-      <button title="Remove mask" on:click={removeMask} disabled={!maskToRemove}><i class="fa fa-trash" /></button>
+      <button title="Cancel trimming" on:click={() => {process("cancel")}}>Cancel</button>
       <button title="Reset interface" on:click={resetInterface} disabled={unchanged}><i class="fa fa-refresh" /></button>
+      <button title="Remove mask" on:click={() => {process("remove-mask")}} disabled={!maskToRemove}><i class="fa fa-trash" /></button>
     </div>
   </nav>
   <div class="map-container">
