@@ -286,7 +286,6 @@ class TrimView(View):
 
         layer_proxy = LayerProxy(layeralternate, raise_404_on_error=True)
         lock = layer_proxy.trim_lock
-        print(lock.as_dict)
 
         sesh_id = None
         if not lock.enabled:

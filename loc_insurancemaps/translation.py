@@ -1,7 +1,6 @@
 from modeltranslation.translator import translator, TranslationOptions
 from .models import Volume, Sheet
 
-
 class VolumeTranslationOptions(TranslationOptions):
     fields = ()
 
