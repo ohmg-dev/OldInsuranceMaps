@@ -284,11 +284,9 @@ function MapViewer (elementId) {
     // create map
     const map = new Map({
       target: targetElement,
-      layers: [basemaps[0].layer, gcpLayer],
+      layers: [basemaps[0].layer, previewLayer, gcpLayer],
       view: new View(),
     });
-
-    map.addLayer(previewLayer)
 
     mapFullMaskLayer = utils.generateFullMaskLayer(map)
     map.addLayer(mapFullMaskLayer)
