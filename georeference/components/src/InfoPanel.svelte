@@ -215,19 +215,21 @@ function setSplit(operation) {
         {/if}
         {#if GEOREFERENCE_SUMMARY.sessions.length > 0}
         <table>
-          <caption>Georeferencing Sessions</caption>
+          <caption>Sessions</caption>
           <tr>
-            <th>Date</th>
+            <th>Timestamp</th>
             <th>User</th>
-            <th>GCPs</th>
+            <th>Stage</th>
             <th>Status</th>
+            <th>GCPs</th>
           </tr>
           {#each GEOREFERENCE_SUMMARY.sessions as sesh, n}
           <tr>
-            <td>{sesh.datetime}</td>
+            <td>{sesh.date_run != null ? sesh.date_run : "--"}</td>
             <td><a href={sesh.user.profile}>{sesh.user.name}</a></td>
-            <td>{sesh.gcps_ct}</td>
+            <td>{sesh.stage}</td>
             <td>{sesh.status}</td>
+            <td>{sesh.data ? sesh.data.gcps.features.length : "--"}</td>
           </tr>
           {/each}
         </table>
@@ -251,17 +253,22 @@ function setSplit(operation) {
         <div class="section-body">
           {#if TRIM_SUMMARY.sessions.length > 0}
           <table>
-            <caption>Trimming Sessions</caption>
+            <caption>Sessions</caption>
             <tr>
-              <th>Date</th>
+              <th>Timestamp</th>
               <th>User</th>
+              <th>Stage</th>
+              <th>Status</th>
               <th>Vertices</th>
             </tr>
             {#each TRIM_SUMMARY.sessions as sesh}
             <tr>
-              <td>{sesh.datetime}</td>
+              <td>{sesh.date_run != null ? sesh.date_run : "--"}</td>
               <td><a href={sesh.user.profile}>{sesh.user.name}</a></td>
-              <td>{sesh.vertex_ct}</td>
+              <td>{sesh.stage}</td>
+              <td>{sesh.status}</td>
+              <!-- the number of commas = the number of vertices in a wkt polygon -->
+              <td>{sesh.data.mask_ewkt.match(/,/g).length}</td>
             </tr>
             {/each}
           </table>
@@ -280,8 +287,7 @@ function setSplit(operation) {
         <th>User</th>
         <th>Stage</th>
         <th>Status</th>
-        <th>Date</th>
-        <th>Time</th>
+        <th>Timestamp</th>
         <th>Details</th>
       </tr>
       {#each SESSION_HISTORY as session}
@@ -291,8 +297,7 @@ function setSplit(operation) {
         <td><a href={session.user.profile}>{session.user.name}</a></td>
         <td>{session.stage}</td>
         <td>{session.status}</td>
-        <td>{session.date_run_date != null ? session.date_run_date : '--'}</td>
-        <td>{session.date_run_time != null ? session.date_run_time : '--'}</td>
+        <td>{session.date_run != null ? session.date_run : '--'}</td>
         <td>{session.note != null ? session.note : '--'}</td>
       </tr>
       {/each}
@@ -332,7 +337,7 @@ button:hover:enabled {
 }
 
 section {
-  border-bottom: 1px dashed #ddd;
+  border-bottom: 1px dashed rgb(149,149,149);;
 }
 
 section h4 i {

@@ -214,10 +214,6 @@ class SplitEvaluation(models.Model):
             "divisions_ct": len(self.get_children()),
         }
 
-def pre_delete_split_evaluation(instance, sender, **kwargs):
-    instance.cleanup()
-
-signals.pre_delete.connect(pre_delete_split_evaluation, sender=SplitEvaluation)
 
 
 class GeoreferenceSession(models.Model):

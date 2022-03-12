@@ -12,9 +12,6 @@ from .models import (
     GeoreferencedDocumentLink,
     SplitDocumentLink,
     LayerMask,
-    SplitEvaluation,
-    GeoreferenceSession,
-    MaskSession,
     GCPGroup,
     PrepSession,
     GeorefSession,
@@ -79,16 +76,6 @@ class DocumentProxy(object):
     @property
     def status(self):
         return TKeywordManager().get_status(self.resource)
-
-    @property
-    def split_evaluation(self):
-        try:
-            return SplitEvaluation.objects.get(document=self.resource)
-        except SplitEvaluation.DoesNotExist:
-            return None
-        except SplitEvaluation.MultipleObjectsReturned:
-            logger.warn(f"Multiple SplitEvaluations found for Document {self.id}")
-            return list(SplitEvaluation.objects.filter(document=self.resource))[0]
 
     @property
     def preparation_session(self):
@@ -222,11 +209,6 @@ class DocumentProxy(object):
 
     def get_split_summary(self):
 
-        # if self.parent_doc is not None:
-        #     evaluation = self.parent_doc.split_evaluation
-        # else:
-        #     evaluation = self.split_evaluation
-        # this would be an unevaluated document
         if self.preparation_session is None:
             return None
 
@@ -246,20 +228,12 @@ class DocumentProxy(object):
 
     def get_georeference_summary(self):
 
-        sessions = self.get_georeference_sessions(serialized=True)
-
+        sessions = [i.serialize() for i in self.georeference_sessions]
         return {
             "sessions": sessions,
             "gcp_geojson": self.gcps_geojson,
             "transformation": self.transformation,
         }
-
-    def get_georeference_sessions(self, serialized=False):
-        sessions = GeoreferenceSession.objects.filter(document=self.id).order_by("created")
-        if serialized is True:
-            return [i.serialize() for i in sessions]
-        else:
-            return sessions
 
     def get_best_region_extent(self):
         """
@@ -292,8 +266,6 @@ class DocumentProxy(object):
             "title": self.title,
             "status": self.status,
             "urls": self.get_extended_urls(),
-            "split_evaluation": self.split_evaluation.serialize() if \
-                self.split_evaluation else None,
             "parent_doc": parent_doc,
         }
 
@@ -411,20 +383,14 @@ class LayerProxy(object):
         urls.update(self.get_document_urls())
         return urls
 
-    def get_mask_sessions(self, serialized=False):
-        sessions = MaskSession.objects.filter(layer=self.id).order_by("created")
-        if serialized is True:
-            return [i.serialize() for i in sessions]
-        else:
-            return sessions
-
     def get_sessions(self):
         return TrimSession.objects.filter(layer=self.resource).order_by("date_run")
     
     def get_trim_summary(self):
 
         return {
-            "sessions": self.get_mask_sessions(serialized=True)
+            "sessions": [i.serialize() for i in self.trim_sessions],
+            "vertex_ct": len(self.mask_coords),
         }
 
     def serialize(self):
@@ -462,14 +428,13 @@ def get_info_panel_content(resourceid):
         "georeference": doc_proxy.urls['georeference'],
         "trim": "",
     }
-    trim_summary = {
-        "sessions": []
-    }
-    layer_alternate = ""
-
     sessions = doc_proxy.get_sessions()
 
+    trim_summary = { "sessions": [] }
+    layer_alternate = ""
+    status = doc_proxy.status
     if layer_proxy is not None:
+        status = layer_proxy.status
         layer_alternate = layer_proxy.alternate
         urls['layer_detail'] = layer_proxy.urls['detail']
         urls['trim'] = layer_proxy.urls['trim']
@@ -480,7 +445,7 @@ def get_info_panel_content(resourceid):
     serialized.sort(key=lambda i: (i['date_run'] is None, i['date_run']))
 
     context = {
-        "STATUS": doc_proxy.status,
+        "STATUS": status,
         "RESOURCE_TYPE": resource_type,
         "DOCUMENT_ID": doc_proxy.id,
         "LAYER_ALTERNATE": layer_alternate,
