@@ -218,6 +218,20 @@ class GeoreferenceView(View):
         operation = body.get("operation", "preview")
         sesh_id = body.get("sesh_id", None)
 
+        if sesh_id is None:
+            return JsonResponse({
+                "success":False,
+                "message": "no session id: view must be called on existing session"
+            })
+
+        try:
+            sesh = GeorefSession.objects.get(pk=sesh_id)
+        except GeorefSession.DoesNotExist:
+            return JsonResponse({
+                "success":False,
+                "message": f"session {sesh_id} not found: view must be called existing on session"
+            })
+
         response = {
             "status": "",
             "message": ""
@@ -244,20 +258,6 @@ class GeoreferenceView(View):
 
         elif operation == "submit":
 
-            if sesh_id is None:
-                return JsonResponse({
-                    "success":False,
-                    "message": "no session id: view must be called existing on session"
-                })
-
-            try:
-                sesh = GeorefSession.objects.get(pk=sesh_id)
-            except GeorefSession.DoesNotExist:
-                return JsonResponse({
-                    "success":False,
-                    "message": f"session {sesh_id} not found: view must be called existing on session"
-                })
-
             sesh.data['epsg'] = 3857
             sesh.data['gcps'] = gcp_geojson
             sesh.data['transformation'] = transformation
@@ -273,18 +273,6 @@ class GeoreferenceView(View):
         elif operation == "cancel":
 
             ms.remove_layer(doc_proxy.doc_file.path)
-            if sesh_id is None:
-                return JsonResponse({
-                    "success":False,
-                    "message": "no session id provided to cancel"
-                })
-            try:
-                sesh = GeorefSession.objects.get(pk=sesh_id)
-            except GeorefSession.DoesNotExist:
-                return JsonResponse({
-                    "success":False,
-                    "message": f"session {sesh_id} not found: abort cancel",
-                })
             sesh.cancel()
             return JsonResponse({"success":True})
 
