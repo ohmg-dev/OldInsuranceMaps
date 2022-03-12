@@ -16,7 +16,7 @@ from django.contrib.postgres.fields import JSONField
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import models, transaction
-from django.db.models.signals import post_save, m2m_changed
+from django.db.models import signals
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.urls import reverse
@@ -29,6 +29,7 @@ from geonode.documents.models import (
 )
 from geonode.people.models import Profile
 
+from georeference.models import LayerMask
 from georeference.proxy_models import DocumentProxy, LayerProxy
 from georeference.utils import TKeywordManager
 
@@ -112,14 +113,6 @@ class FullThumbnail(models.Model):
             self.generate_thumbnail()
         super(FullThumbnail, self).save(*args, **kwargs)
 
-## connect the creation of a FullThumbnail to Document post_save signal
-@receiver(post_save, sender=Document)
-def create_full_thumbnail(sender, instance, **kwargs):
-    if bool(instance.doc_file) is False:
-        return
-    if not FullThumbnail.objects.filter(document=instance).exists():
-        thumb = FullThumbnail(document=instance)
-        thumb.save()
 
 class Sheet(models.Model):
     """Sheet serves mainly as a middle model between Volume and Document.
@@ -379,16 +372,27 @@ class Volume(models.Model):
 
         hydrated = { "layers": [], "index_layers": [] }
         for layer_id in self.ordered_layers["layers"]:
-            hydrated["layers"].append(self.layer_lookup[layer_id])
+            try:
+                hydrated["layers"].append(self.layer_lookup[layer_id])
+            except KeyError as e:
+                logger.warn(f"{self.__str__()} | layer missing from layer lookup: {layer_id}")
         for layer_id in self.ordered_layers["index_layers"]:
-            hydrated["index_layers"].append(self.layer_lookup[layer_id])
+            try:
+                hydrated["index_layers"].append(self.layer_lookup[layer_id])
+            except KeyError as e:
+                logger.warn(f"{self.__str__()} | layer missing from layer lookup: {layer_id}")
         return hydrated
 
     def populate_lookups(self):
-        """Update both document_lookup and layer_lookup fields
+        """Clean and remake document_lookup and layer_lookup fields
         for this Volume by examining the original loaded Sheets and
         re-evaluating every descendant Document and Layer.
         """
+
+        if len(self.document_lookup) > 0 or len(self.layer_lookup) > 0:
+            self.document_lookup = {}
+            self.layer_lookup = {}
+            self.save(update_fields=["document_lookup", "layer_lookup"])
 
         for document in self.get_all_documents():
             self.update_document_lookup(document.id, update_layer=True)
@@ -491,6 +495,18 @@ class Volume(models.Model):
             "ordered_layers": ordered_layers,
         }
 
+# connect the creation of a FullThumbnail to Document post_save signal
+@receiver(signals.post_save, sender=Document)
+def create_full_thumbnail(sender, instance, **kwargs):
+    if bool(instance.doc_file) is False:
+        return
+    if not FullThumbnail.objects.filter(document=instance).exists():
+        thumb = FullThumbnail(document=instance)
+        thumb.save()
+
+# triggered whenever a tkeyword is changed on a Document or Layer
+@receiver(signals.m2m_changed, sender=Document.tkeywords.through)
+@receiver(signals.m2m_changed, sender=Layer.tkeywords.through)
 def resource_status_changed(sender, instance, action, **kwargs):
     """Trigger the document_lookup and layer_lookup updates on a volume
     whenever a Document or Layer has its georeferencing status changed."""
@@ -508,34 +524,30 @@ def resource_status_changed(sender, instance, action, **kwargs):
                 if volume is not None:
                     volume.update_layer_lookup(instance.alternate)
 
-# trigger whenever a tkeyword is changed on a Document or Layer
-m2m_changed.connect(resource_status_changed, sender=Document.tkeywords.through)
-m2m_changed.connect(resource_status_changed, sender=Layer.tkeywords.through)
-
 # refresh the lookup for a layer after it is saved.
+@receiver(signals.post_save, sender=Layer)
 def refresh_layer_lookup(sender, instance, **kwargs):
     volume = get_volume("layer", instance.pk)
     if volume is not None:
         volume.update_layer_lookup(instance.alternate)
-post_save.connect(refresh_layer_lookup, sender=Layer)
 
-## DEPRECATED -- THIS SHOULD BE FULLY HANDLED MORE SIMPLY NOW AT THE BEGINNING
-## OF Volume.serailize()
-# def post_save_thumbnail_link(sender, instance, **kwargs):
-#     """This function is triggered whenever a new thumbnail is created
-#     through default GeoNode operations. It is needed to trigger an update
-#     of the volume layer_lookup, because GeoNode creates thumbs through
-#     background tasks, which can take place after the final georeferencing
-#     status change is made for a document or layer."""
-#     if instance.name == "Thumbnail":
-#         try:
-#             layer = Layer.objects.get(pk=instance.resource_id)
-#         except Layer.DoesNotExist:
-#             return
-#         volume = get_volume("layer", layer.pk)
-#         if volume is None:
-#             return
-#         volume.update_layer_lookup(layer.pk)
+# pre_delete, remove the reference to the layer in Volume lookups
+# refresh the lookup for a layer after it is saved.
+@receiver(signals.pre_delete, sender=Layer)
+def remove_layer_from_lookup(sender, instance, **kwargs):
+    volume = get_volume("layer", instance.pk)
+    if volume is not None:
+        if instance.alternate in volume.layer_lookup:
+            del volume.layer_lookup[instance.alternate]
+        if instance.alternate in volume.ordered_layers['layers']:
+            volume.ordered_layers['layers'].remove(instance.alternate)
+        if instance.alternate in volume.ordered_layers['index_layers']:
+            volume.ordered_layers['index_layers'].remove(instance.alternate)
+        volume.save(update_fields=["layer_lookup", "ordered_layers"])
 
-# # trigger on the creation of the Link object that is created along with thumbs.
-# post_save.connect(post_save_thumbnail_link, sender=Link)
+# refresh the layer lookup after a LayerMask is deleted.
+@receiver(signals.post_delete, sender=LayerMask)
+def refresh_volume_on_layermask_delete(sender, instance, **kwargs):
+    volume = get_volume("layer", instance.layer.pk)
+    if volume is not None:
+        volume.update_layer_lookup(instance.layer.alternate)
