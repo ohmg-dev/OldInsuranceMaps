@@ -312,23 +312,23 @@ function cleanup () {
       {#if disableReason == "unauthenticated"}
       <p><em>
         <!-- svelte-ignore a11y-invalid-attribute -->
-        <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
-        <a href="/account/signup">sign up</a> to proceed
+        <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in</a> or
+        <a href="/account/signup">sign up</a> to proceed.
       </em></p>
       {:else if disableReason == "input" || disableReason == "processing"}
-      <p>someone else is already preparing this document</p>
+      <p>Someone else is already preparing this document.</p>
       {:else if disableReason == "finished"}
-      <p>this document has already been prepared</p>
+      <p>This document has already been prepared.</p>
       {:else if disableReason == "split"}
-      <p>processing document split... redirecting to document detail in the meantime.</p>
+      <p>Processing document split... redirecting to document detail.</p>
       <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
       {:else if disableReason == "no_split"}
-      <p>processing submission... document ready to georeference.</p>
+      <p>Document prepared and ready to georeference.</p>
       <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
       {:else if disableReason == "cancel"}
-      <p>cancelling preparation.</p>
+      <p>Cancelling preparation.</p>
       <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
-      
+
       {/if}
     </div>
   </div>

@@ -330,7 +330,7 @@ function cleanup () {
       <p><em>
         <!-- svelte-ignore a11y-invalid-attribute -->
         <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in</a> or
-        <a href="/account/signup">sign up</a> to proceed
+        <a href="/account/signup">sign up</a> to proceed.
       </em></p>
       {:else if disableReason == "input" || disableReason == "processing"}
       <p>Someone else is already trimming this layer.</p>
