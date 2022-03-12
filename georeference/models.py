@@ -1444,7 +1444,9 @@ class TrimSession(SessionBase):
 
     def run(self):
 
-        self.update_stage("processing")
+        self.update_stage("processing", save=False)
+        self.date_run = timezone.now()
+        self.save()
         tkm = TKeywordManager()
         tkm.set_status(self.layer, "trimming")
 
