@@ -9,6 +9,8 @@ from django.http import JsonResponse, HttpResponseBadRequest, Http404
 from django.middleware import csrf
 from django.contrib.gis.geos import Polygon
 
+from geonode.layers.models import Layer
+
 from georeference.tasks import (
     split_image_as_task,
     georeference_document_as_task,
@@ -177,6 +179,16 @@ class GeoreferenceView(View):
 
         ms = MapServerManager()
 
+        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
+        gs = gs.rstrip("/") + "/"
+        geoserver_ows = f"{gs}ows/"
+
+        reference_layers_param = request.GET.get('reference', '')
+        reference_layers = []
+        for alt in reference_layers_param.split(","):
+            if Layer.objects.filter(alternate=alt).exists():
+                reference_layers.append(alt)
+
         georeference_params = {
             "LOCK": lock.as_dict,
             "SESSION_ID": sesh_id,
@@ -190,6 +202,8 @@ class GeoreferenceView(View):
             "MAPSERVER_ENDPOINT": ms.endpoint,
             "MAPSERVER_LAYERNAME": ms.add_layer(doc_proxy.doc_file.path),
             "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+            "GEOSERVER_WMS": geoserver_ows,
+            "REFERENCE_LAYERS": reference_layers,
         }
 
         return render(

@@ -19,6 +19,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import TileLayer from 'ol/layer/Tile';
 import ImageLayer from 'ol/layer/Image';
 import VectorLayer from 'ol/layer/Vector';
+import LayerGroup from 'ol/layer/Group';
 
 import Projection from 'ol/proj/Projection';
 import {transformExtent} from 'ol/proj';
@@ -47,6 +48,8 @@ export let INCOMING_TRANSFORMATION;
 export let MAPSERVER_ENDPOINT;
 export let MAPSERVER_LAYERNAME;
 export let MAPBOX_API_KEY;
+export let GEOSERVER_WMS;
+export let REFERENCE_LAYERS;
 
 let previewMode = "n/a";
 
@@ -154,6 +157,24 @@ previewSource.on("tileloadstart", function (e) { startloads++ })
 previewSource.on("tileloadend", function (e) { endloads++ })
 
 const previewLayer = new TileLayer({ source: previewSource });
+
+function getReferenceGroup() {
+  const refGroup = new LayerGroup();
+  REFERENCE_LAYERS.forEach( function (layer) {
+    const newLayer = new TileLayer({
+      source: new TileWMS({
+        url: GEOSERVER_WMS,
+        params: {
+          'LAYERS': layer,
+          'TILED': true,
+        },
+      })
+    });
+    refGroup.getLayers().push(newLayer)
+  });
+  return refGroup
+}
+
 
 // this Modify interaction is created individually for each map panel
 function makeModifyInteraction(hitDetection, source, targetElement) {
@@ -281,10 +302,16 @@ function MapViewer (elementId) {
       style: styles.gcpDefault,
     });
 
+    const refGroup = getReferenceGroup();
     // create map
     const map = new Map({
       target: targetElement,
-      layers: [basemaps[0].layer, previewLayer, gcpLayer],
+      layers: [
+        basemaps[0].layer,
+        refGroup,
+        previewLayer,
+        gcpLayer
+      ],
       view: new View(),
     });
 
@@ -329,6 +356,7 @@ function MapViewer (elementId) {
 onMount(() => {
   docView = new DocumentViewer('doc-viewer');
   mapView = new MapViewer('map-viewer');
+  setPreviewVisibility(previewMode)
   loadIncomingGCPs();
   disabledMap(disableInterface)
 });
