@@ -27,6 +27,7 @@ from geonode.documents.models import (
     Document,
     post_save_document,
 )
+from geonode.documents.renderers import generate_thumbnail_content
 from geonode.people.models import Profile
 
 from georeference.models import LayerMask
@@ -207,6 +208,14 @@ class Sheet(models.Model):
             ## this final save will trigger the FullThumbnail creation, now that
             ## the doc has a doc_file attaches.
             doc.save()
+
+            # manually reset the default Geonode thumbnail as well, because
+            # its background creation will have failed because it is an async task
+            # called from within an async task (i.e. when it's first called,
+            # the document hasn't actually been saved to the db yet).
+            thumbnail_content = generate_thumbnail_content(doc.doc_file.path)
+            filename = f'document-{doc.uuid}-thumb.png'
+            doc.save_thumbnail(filename, thumbnail_content)
 
         return sheet
 
