@@ -209,7 +209,7 @@ function setSplit(operation) {
             <td class="coord-digit">{Math.round(feat.geometry.coordinates[0]*1000000)/1000000}</td>
             <td class="coord-digit">{Math.round(feat.geometry.coordinates[0]*1000000)/1000000}</td>
             <td>{feat.properties.username}</td>
-            <td>{feat.properties.note != null ? feat.properties.note : ""}</td>
+            <td>{feat.properties.note != null ? feat.properties.note : "--"}</td>
           </tr>
           {/each}
         </table>

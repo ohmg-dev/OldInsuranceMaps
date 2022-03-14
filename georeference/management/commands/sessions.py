@@ -77,7 +77,7 @@ class Command(BaseCommand):
                 print("invalid type for this operation: all")
                 exit()
 
-            session = TrimSession.objects.get(pk=options['pk'])
+            session = model.objects.get(pk=options['pk'])
             if options["operation"] == "run":
                 session.run()
             if options["operation"] == "undo":
