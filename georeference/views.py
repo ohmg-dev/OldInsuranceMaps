@@ -12,16 +12,11 @@ from django.contrib.gis.geos import Polygon
 from geonode.layers.models import Layer
 
 from georeference.tasks import (
-    split_image_as_task,
-    georeference_document_as_task,
     run_preparation_session,
     run_georeference_session,
 )
 from .models import (
     LayerMask,
-    MaskSession,
-    SplitEvaluation,
-    GeoreferenceSession,
     PrepSession,
     GeorefSession,
     TrimSession,
