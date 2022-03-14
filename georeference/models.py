@@ -1088,19 +1088,6 @@ class PrepSession(SessionBase):
         self.save()
         return
 
-    def cancel(self):
-        """Cancel this session. Sets the document status back to
-        'unprepared' and deletes this session."""
-
-        if self.stage != "input":
-            logger.warn(f"{self.__str__()} | can't cancel session that is past the input stage.")
-            return
-
-        logger.info(f"{self.__str__()} | cancelling and deleting session")
-        tkm = TKeywordManager()
-        tkm.set_status(self.document, "unprepared")
-        self.delete()
-
     def undo(self):
         """Reverses the effects of this preparation session: remove child documents and
         links to them, then delete this session."""
@@ -1292,26 +1279,6 @@ class GeorefSession(SessionBase):
 
         return layer
 
-    def cancel(self):
-        """
-        Cancel/delete this session.
-
-        If this is the only georeferencing session for the document, then
-        set the status to 'prepared', otherwise set status to 'georeferenced'.
-        """
-
-        if self.stage != "input":
-            logger.warn(f"{self.__str__()} | can't cancel session that is past the input stage.")
-            return
-
-        tkm = TKeywordManager()
-        logger.info(f"{self.__str__()} | cancelling and deleting session")
-        if GeorefSession.objects.filter(document=self.document).exclude(pk=self.pk).exists():
-            tkm.set_status(self.document, "georeferenced")
-        else:
-            tkm.set_status(self.document, "prepared")
-        self.delete()
-
     def undo(self, undo_all=False):
         """
         Remove this GeorefSession and revert the Document/Layer to previous
@@ -1417,26 +1384,6 @@ class TrimSession(SessionBase):
     def start(self):
         tkm = TKeywordManager()
         tkm.set_status(self.layer, "trimming")
-
-    def cancel(self):
-        """
-        Cancel/delete this session.
-
-        If this is the only georeferencing session for the document, then
-        set the status to 'prepared', otherwise set status to 'georeferenced'.
-        """
-
-        if self.stage != "input":
-            logger.warn(f"{self.__str__()} | can't cancel session that is past the input stage.")
-            return
-
-        tkm = TKeywordManager()
-        logger.info(f"{self.__str__()} | cancelling and deleting session")
-        if TrimSession.objects.filter(layer=self.layer).exclude(pk=self.pk).exists():
-            tkm.set_status(self.layer, "trimmed")
-        else:
-            tkm.set_status(self.layer, "georeferenced")
-        self.delete()
 
     def run(self):
 

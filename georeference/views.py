@@ -133,7 +133,11 @@ class SplitView(View):
                 sesh = PrepSession.objects.get(document=doc_proxy.resource)
             except PrepSession.DoesNotExist:
                 return JsonResponse({"success":False, "message": "no session to cancel"})
-            sesh.cancel()
+            if sesh.stage != "input":
+                msg = "can't cancel session that is past the input stage"
+                logger.warn(f"{sesh.__str__()} | {msg}")
+                return JsonResponse({"success":True, "message": msg})
+            sesh.delete()
             return JsonResponse({"success":True})
 
         elif operation == "undo":
@@ -286,8 +290,13 @@ class GeoreferenceView(View):
 
         elif operation == "cancel":
 
+            if sesh.stage != "input":
+                msg = "can't cancel session that is past the input stage"
+                logger.warn(f"{sesh.__str__()} | {msg}")
+                return JsonResponse({"success":True, "message": msg})
+
             ms.remove_layer(doc_proxy.doc_file.path)
-            sesh.cancel()
+            sesh.delete()
             return JsonResponse({"success":True})
 
         else:
@@ -391,24 +400,19 @@ class TrimView(View):
         elif operation == "cancel":
 
             if sesh.stage != "input":
-                return JsonResponse({
-                    "success": False,
-                    "message": "only in-progress sessions can be cancelled.",
-                })
-            sesh.cancel()
+                msg = "can't cancel session that is past the input stage"
+                logger.warn(f"{sesh.__str__()} | {msg}")
+                return JsonResponse({"success":True, "message": msg})
+
+            sesh.delete()
             return JsonResponse({"success": True})
 
         elif operation == "remove-mask":
 
             # first cancel the current session
-            sesh.cancel()
+            sesh.delete()
             # now remove the LayerMask.
             LayerMask.objects.filter(layer=layer_proxy.resource).delete()
-
-            # sessions = TrimSession.objects.filter(pk=sesh_id).order_by("date_run")
-            # if len(sessions) > 0:
-            #     latest = list(sessions)[-1]
-            #     latest.undo()
             return JsonResponse({"success": True})
 
         else:
