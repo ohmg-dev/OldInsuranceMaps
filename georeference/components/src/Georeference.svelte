@@ -158,21 +158,23 @@ previewSource.on("tileloadend", function (e) { endloads++ })
 
 const previewLayer = new TileLayer({ source: previewSource });
 
-function getReferenceGroup() {
-  const refGroup = new LayerGroup();
-  REFERENCE_LAYERS.forEach( function (layer) {
-    const newLayer = new TileLayer({
-      source: new TileWMS({
-        url: GEOSERVER_WMS,
-        params: {
-          'LAYERS': layer,
-          'TILED': true,
-        },
-      })
-    });
-    refGroup.getLayers().push(newLayer)
+const refGroup = new LayerGroup();
+REFERENCE_LAYERS.forEach( function (layer) {
+  const newLayer = new TileLayer({
+    source: new TileWMS({
+      url: GEOSERVER_WMS,
+      params: {
+        'LAYERS': layer,
+        'TILED': true,
+      },
+    })
   });
-  return refGroup
+  refGroup.getLayers().push(newLayer)
+});
+
+let referenceVisible = REFERENCE_LAYERS.length > 0;
+$: {
+  refGroup.setVisible(referenceVisible)
 }
 
 
@@ -302,7 +304,6 @@ function MapViewer (elementId) {
       style: styles.gcpDefault,
     });
 
-    const refGroup = getReferenceGroup();
     // create map
     const map = new Map({
       target: targetElement,
@@ -310,7 +311,7 @@ function MapViewer (elementId) {
         basemaps[0].layer,
         refGroup,
         previewLayer,
-        gcpLayer
+        gcpLayer,
       ],
       view: new View(),
     });
@@ -817,6 +818,10 @@ function cleanup () {
             <option value="transparent">1/2</option>
             <option value="full">full</option>
           </select>
+        </label>
+        <label title="Show reference layers">
+          Reference
+          <input type="checkbox" title="Show reference layers" bind:checked={referenceVisible} disabled={REFERENCE_LAYERS == 0}>
         </label>
         <label title="Change basemap">
           Basemap
