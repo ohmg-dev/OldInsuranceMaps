@@ -70,6 +70,7 @@ class GeoreferencedDocumentLink(DocumentResourceLink):
         return f"{self.document.__str__()} --> {layer_name}"
 
 class SplitEvaluation(models.Model):
+    """DEPRECATED - will be fully removed in 0.1.0-beta 1"""
 
     class Meta:
         verbose_name = "Split Evaluation"
@@ -217,7 +218,7 @@ class SplitEvaluation(models.Model):
 
 
 class GeoreferenceSession(models.Model):
-
+    """DEPRECATED - will be fully removed in 0.1.0-beta 1"""
     class Meta:
         verbose_name = "Georeference Session"
         verbose_name_plural = "Georeference Sessions"
@@ -632,7 +633,7 @@ class LayerMask(models.Model):
         self.layer.save()
 
 class MaskSession(models.Model):
-
+    """DEPRECATED - will be fully removed in 0.1.0-beta 1"""
     class Meta:
         verbose_name = "Mask Session"
         verbose_name_plural = "Mask Sessions"
