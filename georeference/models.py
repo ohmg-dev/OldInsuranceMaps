@@ -628,36 +628,6 @@ class LayerMask(models.Model):
         self.layer.thumbnail_url = thumb
         self.layer.save()
 
-@receiver(signals.pre_delete, sender=LayerMask)
-def pre_delete_layer_mask(sender, instance, **kwargs):
-
-    # delete the existing trim style in Geoserver if necessary
-    cat = get_gs_catalog()
-    trim_style_name = f"{instance.layer.name}_trim"
-    gs_trim_style = cat.get_style(trim_style_name, workspace="geonode")
-    if gs_trim_style is not None:
-        cat.delete(gs_trim_style, recurse=True)
-
-    # delete the existing trimmed style in GeoNode
-    Style.objects.filter(name=trim_style_name).delete()
-
-    # set the full style back to the default in GeoNode
-    gn_full_style = Style.objects.get(name=instance.layer.name)
-    instance.layer.default_style = gn_full_style
-    instance.layer.save()
-
-    # update thumbnail
-    thumb = create_thumbnail(instance.layer, overwrite=True)
-    instance.layer.thumbnail_url = thumb
-    instance.layer.save()
-
-    # set all existing TrimSessions for the layer as "unapplied"
-    for ts in TrimSession.objects.filter(layer=instance.layer):
-        ts.update_status("unapplied")
-    # set layer status to 'georeferenced'
-    tkm = TKeywordManager()
-    tkm.set_status(instance.layer, "georeferenced")
-
 class MaskSession(models.Model):
 
     class Meta:
