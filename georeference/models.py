@@ -866,9 +866,6 @@ class SessionBase(models.Model):
     def run(self):
         raise NotImplementedError("Must be implemented in proxy models.")
 
-    def cancel(self):
-        raise NotImplementedError("Must be implemented in proxy models.")
-
     def undo(self):
         raise NotImplementedError("Must be implemented in proxy models.")
 
