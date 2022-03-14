@@ -9,8 +9,6 @@ import Map from 'ol/Map';
 import ZoomToExtent from 'ol/control/ZoomToExtent';
 import {FullScreen, defaults as defaultControls} from 'ol/control';
 
-import LayerGroup from 'ol/layer/Group';
-
 import {createEmpty} from 'ol/extent';
 import {extend} from 'ol/extent';
 import {transformExtent} from 'ol/proj';
@@ -18,8 +16,20 @@ import {transformExtent} from 'ol/proj';
 import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import TileWMS from 'ol/source/TileWMS';
+import VectorSource from 'ol/source/Vector';
+
+import Feature from 'ol/Feature';
+import Polygon from 'ol/geom/Polygon';
+import Point from 'ol/geom/Point';
+
+import Style from 'ol/style/Style';
+import Fill from 'ol/style/Fill';
+import Stroke from 'ol/style/Stroke';
+import RegularShape from 'ol/style/RegularShape';
 
 import TileLayer from 'ol/layer/Tile';
+import VectorLayer from 'ol/layer/Vector';
+import LayerGroup from 'ol/layer/Group';
 
 export let VOLUME;
 export let CSRFTOKEN;
@@ -36,6 +46,8 @@ let showMap = layersPresent
 let showUnprepared = false;
 let showPrepared = false;
 let showGeoreferenced = false;
+
+let refreshingLookups = false;
 
 let kGV = 100;
 let mGV = 100;
@@ -59,6 +71,14 @@ let showLayerList = true;
 let orderableLayers = [];
 let orderableIndexLayers = [];
 let mapIndexLayerIds = [];
+
+function referenceLayersParam() {
+	let referenceLayers = [];
+	VOLUME.ordered_layers.index_layers.forEach( function(layer) {
+		referenceLayers.push(layer.alternate)
+	})
+	return "reference="+referenceLayers.join(",")
+}
 
 function getClass(n) {
 	if (n == 100) {
@@ -102,6 +122,8 @@ function setVisibility(group, vis) {
 $: setVisibility(keyGroup, kGV)
 $: setVisibility(mainGroup, mGV)
 
+let mapFullMaskLayer;
+let centerPointLayer;
 function initMap() {
 	map = new Map({ 
 		target: "map",
@@ -130,6 +152,80 @@ function initMap() {
 	map.addLayer(baseGroup);
 	map.addLayer(keyGroup);
 	map.addLayer(mainGroup);
+
+	mapFullMaskLayer = makeMaskLayer(map);
+	map.addLayer(mapFullMaskLayer);
+
+	centerPointLayer = makeRotateCenterLayer();
+	map.addLayer(centerPointLayer);
+
+};
+
+
+function makeMaskLayer(map) {
+	let projExtent = map.getView().getProjection().getExtent()
+	const polygon = new Polygon([[
+		[projExtent[0], projExtent[1]],
+		[projExtent[2], projExtent[1]],
+		[projExtent[2], projExtent[3]],
+		[projExtent[0], projExtent[3]],
+		[projExtent[0], projExtent[1]],
+	]])	
+	const layer = new VectorLayer({
+		source: new VectorSource({
+			features: [ new Feature({ geometry: polygon }) ]
+		}),
+		style: new Style({
+			fill: new Fill({ color: 'rgba(255, 255, 255, 0.2)' }),
+		}),
+		zIndex: 500,
+	});
+	layer.setVisible(false);
+	return layer
+}
+
+let centerPointFeature;
+function makeRotateCenterLayer() {
+	centerPointFeature = new Feature()
+	const pointStyle = new Style({
+		image: new RegularShape({
+			radius1: 10,
+			radius2: 1,
+			points: 4,
+			rotateWithView: true,
+			fill: new Fill({color: "#FF0000" }),
+			stroke: new Stroke({
+				color: "#FF0000", width: 2
+			})
+		})
+	})
+	const layer = new VectorLayer({
+		source: new VectorSource({
+			features: [ centerPointFeature ]
+		}),
+		style: pointStyle,
+		zIndex: 501,
+	});
+	return layer
+}
+
+function showRotateCenter() {
+	if (map && centerPointLayer) {
+		const centerCoords = map.getView().getCenter();
+		const point = new Point(centerCoords)
+		centerPointFeature.setGeometry(point)
+		centerPointLayer.setVisible(true)
+	}
+}
+function removeRotateCenter() {
+	if (centerPointLayer) {
+		centerPointLayer.setVisible(false)
+	}
+}
+
+function disabledMap(disabled) {
+	map.getInteractions().forEach(x => x.setActive(!disabled));
+	mapFullMaskLayer.setVisible(disabled);
 }
 
 $: {
@@ -238,6 +334,9 @@ function postOperation(operation) {
 	} else if (operation == "set-layer-order") {
 		orderableLayers.forEach( function(l) { layerIds.push(l.id)});
 		orderableIndexLayers.forEach( function(l) { indexLayerIds.push(l.id)});
+	} else if (operation == "refresh-lookups") {
+		refreshingLookups = true;
+		disabledMap(true);
 	}
 	const data = JSON.stringify({
 		"operation": operation,
@@ -256,7 +355,13 @@ function postOperation(operation) {
 	.then(result => {
 		VOLUME = result;
 		sheetsLoading = VOLUME.status == "initializing...";
-		setLayersFromVolume();
+		let resetExtent = false
+		if (operation == "refresh-lookups") {
+			resetExtent = true;
+			refreshingLookups = false;
+			disabledMap(false);
+		}
+		setLayersFromVolume(resetExtent);
 		if (showMap == false && (VOLUME.ordered_layers.layers.length != 0 || VOLUME.ordered_layers.layers.length != 0)) {
 			window.location.href = VOLUME.urls.summary;
 		}
@@ -275,11 +380,19 @@ function cancelLayerConfig() {
 let settingKeyMapLayer = false;
 
 function toggleFullscreen () {
-  if (document.fullscreenElement == null) {
-    let promise = document.getElementsByClassName('map-container')[0].requestFullscreen();
-  } else {
-	document.exitFullscreen();
-  }
+	// https://www.w3schools.com/howto/howto_js_fullscreen.asp
+	const elem = document.getElementsByClassName('map-container')[0]
+	if (document.fullscreenElement == null) {
+		if (elem.requestFullscreen) {
+			elem.requestFullscreen();
+		} else if (elem.webkitRequestFullscreen) { /* Safari */
+			elem.webkitRequestFullscreen();
+		} else if (elem.msRequestFullscreen) { /* IE11 */
+			elem.msRequestFullscreen();
+		}
+	} else {
+		document.exitFullscreen();
+	}
 }
 
 let fullscreenBtnIcon = 'fa-arrows-alt';
@@ -294,7 +407,24 @@ document.addEventListener("fullscreenchange", function(){
 	}
 }, false);
 
+let keyPressed = {};
+function handleKeydown(e) {
+	if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = true}
+	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = true}
+	if (keyPressed.shift && keyPressed.alt) {
+		showRotateCenter()
+	}
+};
+function handleKeyup(e) {
+	if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = false}
+	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = false}
+	if (!keyPressed.shift && !keyPressed.alt) {
+		removeRotateCenter()
+	}
+};
+
 </script>
+<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup}/>
 <main>
 	<h1>{ VOLUME.title }</h1>
 	<p>
@@ -340,6 +470,15 @@ document.addEventListener("fullscreenchange", function(){
 				<button class="control-btn" title="Reset extent" on:click={setMapExtent}>
 					<i id="fs-icon" class="fa fa-refresh" />
 				</button>
+				{#if USER_TYPE != "anonymous"}
+				{#if !refreshingLookups}
+				<button id="repair-button" class="control-btn" title="Repair Extent (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
+					<i id="fs-icon" class="fa fa-wrench" />
+				</button>
+				{:else}
+				<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
+				{/if}
+				{/if}
 				<button class="control-btn" title={fullscreenBtnTitle} on:click={toggleFullscreen}>
 					<i id="fs-icon" class="fa {fullscreenBtnIcon}" />
 				</button>
@@ -476,7 +615,7 @@ document.addEventListener("fullscreenchange", function(){
 					<img src={document.urls.thumbnail} alt={document.title}>
 					<div>
 						<ul>
-							<li><a href={document.urls.georeference} title="georeference this document">georeference &rarr;</a></li>
+							<li><a href="{document.urls.georeference}?{referenceLayersParam()}" title="georeference this document">georeference &rarr;</a></li>
 							<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
 						</ul>
 					</div>
@@ -523,6 +662,7 @@ document.addEventListener("fullscreenchange", function(){
 					<div>
 						<ul>
 							<li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li>
+							<li><a href="{layer.urls.georeference}?{referenceLayersParam()}" title="edit georeferencing">edit georeferencing &rarr;</a></li>
 							<li><a href={layer.urls.detail} title={layer.title}>layer detail &rarr;</a></li>
 						</ul>
 						{#if settingKeyMapLayer}

@@ -19,6 +19,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import TileLayer from 'ol/layer/Tile';
 import ImageLayer from 'ol/layer/Image';
 import VectorLayer from 'ol/layer/Vector';
+import LayerGroup from 'ol/layer/Group';
 
 import Projection from 'ol/proj/Projection';
 import {transformExtent} from 'ol/proj';
@@ -32,7 +33,11 @@ import Snap from 'ol/interaction/Snap';
 
 import Styles from './js/ol-styles';
 const styles = new Styles();
+import Utils from './js/ol-utils';
+const utils = new Utils();
 
+export let LOCK;
+export let SESSION_ID;
 export let DOCUMENT;
 export let IMG_SIZE;
 export let CSRFTOKEN;
@@ -43,9 +48,8 @@ export let INCOMING_TRANSFORMATION;
 export let MAPSERVER_ENDPOINT;
 export let MAPSERVER_LAYERNAME;
 export let MAPBOX_API_KEY;
-export let USER_AUTHENTICATED;
-
-let disableInterface = !USER_AUTHENTICATED || DOCUMENT.status == "georeferencing";
+export let GEOSERVER_WMS;
+export let REFERENCE_LAYERS;
 
 let previewMode = "n/a";
 
@@ -62,8 +66,21 @@ let gcpList = [];
 
 let unchanged = true;
 
+let docFullMaskLayer;
+let mapFullMaskLayer;
+
+let docRotate;
+let mapRotate;
+
 const imgWidth = IMG_SIZE[0];
 const imgHeight = IMG_SIZE[1];
+
+let disableInterface = LOCK.enabled;
+let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
+let leaveOkay = true;
+if (LOCK.stage == "in-progress") {
+  leaveOkay = false;
+}
 
 const beginTxt = "Click a recognizable location on the map document (left panel)"
 const completeTxt = "Now find and click on the corresponding location in the web map (right panel)"
@@ -90,21 +107,7 @@ function uuid() {
   return uuidValue;
 }
 
-const osmLayer = new TileLayer({
-  source: new OSM(),
-})
-
-const imageryLayer = new TileLayer({
-  source: new XYZ({
-    url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/{z}/{x}/{y}?access_token='+MAPBOX_API_KEY,
-    tileSize: 512,
-  })
-});
-
-const basemaps = [
-  { id: "osm", layer: osmLayer, label: "Streets" },
-  { id: "satellite", layer: imageryLayer, label: "Streets+Satellite" },
-]
+const basemaps = utils.makeBasemaps(MAPBOX_API_KEY);
 let currentBasemap = basemaps[0].id;
 
 const docGCPSource = new VectorSource();
@@ -154,6 +157,26 @@ previewSource.on("tileloadstart", function (e) { startloads++ })
 previewSource.on("tileloadend", function (e) { endloads++ })
 
 const previewLayer = new TileLayer({ source: previewSource });
+
+const refGroup = new LayerGroup();
+REFERENCE_LAYERS.forEach( function (layer) {
+  const newLayer = new TileLayer({
+    source: new TileWMS({
+      url: GEOSERVER_WMS,
+      params: {
+        'LAYERS': layer,
+        'TILED': true,
+      },
+    })
+  });
+  refGroup.getLayers().push(newLayer)
+});
+
+let referenceVisible = REFERENCE_LAYERS.length > 0;
+$: {
+  refGroup.setVisible(referenceVisible)
+}
+
 
 // this Modify interaction is created individually for each map panel
 function makeModifyInteraction(hitDetection, source, targetElement) {
@@ -207,7 +230,6 @@ function DocumentViewer (elementId) {
       projection: docProjection,
       imageExtent: docExtent,
     }),
-    // zIndex: 999,
   })
 
   const gcpLayer = new VectorLayer({
@@ -226,6 +248,9 @@ function DocumentViewer (elementId) {
       maxZoom: 8,
     })
   });
+
+  docFullMaskLayer = utils.generateFullMaskLayer(map)
+  map.addLayer(docFullMaskLayer)
 
   // create interactions
   const draw = makeDrawInteraction(docGCPSource);
@@ -248,9 +273,12 @@ function DocumentViewer (elementId) {
       return formatted
     },
     projection: docProjection,
-    undefinedHTML: '&nbsp;',
+    undefinedHTML: 'n/a',
   });
   map.addControl(mousePositionControl);
+
+  docRotate = utils.makeRotateCenterLayer();
+  map.addLayer(docRotate.layer);
 
   // add some click actions to the map
   map.on("click", setActiveGCPOnClick);
@@ -279,9 +307,17 @@ function MapViewer (elementId) {
     // create map
     const map = new Map({
       target: targetElement,
-      layers: [basemaps[0].layer, gcpLayer],
+      layers: [
+        basemaps[0].layer,
+        refGroup,
+        previewLayer,
+        gcpLayer,
+      ],
       view: new View(),
     });
+
+    mapFullMaskLayer = utils.generateFullMaskLayer(map)
+    map.addLayer(mapFullMaskLayer)
 
     // create interactions
     const draw = makeDrawInteraction(mapGCPSource);
@@ -296,12 +332,15 @@ function MapViewer (elementId) {
     let mousePositionControl = new MousePosition({
       projection: 'EPSG:4326',
       coordinateFormat: createStringXY(6),
-      undefinedHTML: '&nbsp;',
+      undefinedHTML: 'n/a',
     });
     map.addControl(mousePositionControl);
 
     // add some click actions to the map
     map.on("click", setActiveGCPOnClick)
+
+    mapRotate = utils.makeRotateCenterLayer()
+    map.addLayer(mapRotate.layer)
 
     // add transition actions to the map element
     function updateMapEl() {map.updateSize()}
@@ -318,8 +357,22 @@ function MapViewer (elementId) {
 onMount(() => {
   docView = new DocumentViewer('doc-viewer');
   mapView = new MapViewer('map-viewer');
+  setPreviewVisibility(previewMode)
   loadIncomingGCPs();
+  disabledMap(disableInterface)
 });
+
+function disabledMap(disabled) {
+  if (mapView) {
+    mapView.map.getInteractions().forEach(x => x.setActive(!disabled));
+	  mapFullMaskLayer.setVisible(disabled);
+  }
+  if (docView) {
+    docView.map.getInteractions().forEach(x => x.setActive(!disabled));
+	  docFullMaskLayer.setVisible(disabled);
+  }
+}
+$: disabledMap(disableInterface)
 
 function loadIncomingGCPs() {
   loadingInitial = true;
@@ -485,16 +538,10 @@ $: setBasemap(currentBasemap);
 function setPreviewVisibility(mode) {
   if (!mapView) { return }
   if (mode == "full" || mode == "transparent") {
-    // first set the opacity of the layer
-    const newOpacity = ( mode == "full" ? 1 : .6 );
-    previewLayer.setOpacity(newOpacity);
-    // now add the layer if necessary
-    if (mapView.map.getLayers().getArray().length == 2){
-      mapView.map.getLayers().insertAt(1, previewLayer)
-    }
+    previewLayer.setVisible(true)
+    previewLayer.setOpacity(mode == "full" ? 1 : .6);
   } else if (mode == "none" || mode == "n/a") {
-    // remove the layer
-    mapView.map.removeLayer(previewLayer);
+    previewLayer.setVisible(false)
     startloads = 0;
     endloads = 0;
   }
@@ -585,17 +632,22 @@ $: asGeoJSON = () => {
 }
 
 function process(operation){
-  if (gcpList.length < 3) {
+  if (gcpList.length < 3 && (operation == "preview" || operation == "submit")) {
     previewMode = "n/a";
     return
   };
 
-  if (operation == "submit") {disableInterface = true};
+  if (operation == "submit" || operation == "cancel") {
+    leaveOkay = true;
+    disableInterface = true;
+    disableReason = operation;
+  };
 
   const data = JSON.stringify({
     "gcp_geojson": asGeoJSON(),
     "transformation": currentTransformation,
     "operation": operation,
+    "sesh_id": SESSION_ID,
   });
   fetch(DOCUMENT.urls.georeference, {
       method: 'POST',
@@ -614,15 +666,13 @@ function process(operation){
         previewSource.refresh()
       } else if (operation == "submit") {
         window.location.href = DOCUMENT.urls.detail;
+      } else if (operation == "cancel") {
+        window.location.href = DOCUMENT.urls.detail;
       }
     });
 }
 
-// A couple of functions that are attached to the window itself
-
-// wrapper function to call view for db cleanup as needed
-function cleanupOnLeave (e) { process("cleanup"); }
-
+let keyPressed = {};
 function handleKeydown(e) {
   // only allow these shortcuts if the maps have focus,
   // so shortcuts aren't activated while typing a note.
@@ -646,27 +696,71 @@ function handleKeydown(e) {
         break;
     }
   }
+  // toggle the center icon to help with rotation
+  if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = true}
+	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = true}
+	if (keyPressed.shift && keyPressed.alt) {
+    if (mapView && docView) {
+      utils.showRotateCenter(docView.map, docRotate.layer, docRotate.feature)
+      utils.showRotateCenter(mapView.map, mapRotate.layer, mapRotate.feature)
+    }
+	}
+}
+
+function handleKeyup(e) {
+  // remove the center point if rotation is to be disabled
+	if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = false}
+	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = false}
+	if (!keyPressed.shift && !keyPressed.alt) {
+		if (mapView && docView) {
+      utils.removeRotateCenter(docRotate.layer)
+      utils.removeRotateCenter(mapRotate.layer)
+    }
+	}
+};
+
+function confirmLeave () {
+  event.preventDefault();
+  event.returnValue = "";
+  return "...";
+}
+
+function cleanup () {
+  // if this is an in-progress session
+  if (LOCK.stage == "in-progress") {
+    // and if a preparation submission hasn't been made and a
+    // cancel post isn't already taking place
+    if (disableReason != 'submit' && disableReason != 'cancel') {
+        // then cancel the session (delete it)
+        process("cancel")
+    }
+  }
 }
 
 </script>
 
-<svelte:window on:keydown={handleKeydown} on:beforeunload={cleanupOnLeave}/>
+<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 <div class="hidden-small"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
-    {#if !USER_AUTHENTICATED}
     <div class="signin-reminder">
+      {#if disableReason == "unauthenticated"}
       <p><em>
         <!-- svelte-ignore a11y-invalid-attribute -->
-        <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
-        <a href="/account/signup">sign up</a> to proceed
+        <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in</a> or
+        <a href="/account/signup">sign up</a> to proceed.
       </em></p>
+      {:else if disableReason == "input" || disableReason == "processing"}
+      <p>Someone is already georeferencing this document.</p>
+      {:else if disableReason == "submit"}
+      <p>Saving control points and georeferencing document... redirecting to document detail page.</p>
+      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      {:else if disableReason == "cancel"}
+      <p>Cancelling georeferencing.</p>
+      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      {/if}
     </div>
-    {:else}
-    <p>currently processing control points<br><a href={DOCUMENT.urls.detail}>redirecting to document detail</a></p>
-    <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
-    {/if}
   </div>
   {/if}
   <nav>
@@ -681,14 +775,14 @@ function handleKeydown(e) {
     </div>
     <div>
         <button on:click={() => { process("submit") }} disabled={gcpList.length < 3 || unchanged} title="Save control points">Save Control Points</button>
-        <button title="Return to document detail" onclick="window.location.href='{DOCUMENT.urls.detail}'">Cancel</button>
+        <button title="Cancel georeferencing" on:click={() => { process("cancel") }}>Cancel</button>
         <button title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
     </div>
   </nav>
   <div class="map-container">
     <div id="doc-viewer" class="map-item"></div>
     <div id="map-viewer" class="map-item"></div>
-    <div id="preview-loading" class={previewLoading ? 'lds-ellipsis': ''}><div></div><div></div><div></div><div></div></div>
+    <div id="preview-loading" style="top: 55px; right: 35px;" class={previewLoading ? 'lds-ellipsis': ''}><div></div><div></div><div></div><div></div></div>
   </div>
   <nav>
     <div style="display:flex; flex-direction:column;">
@@ -724,6 +818,10 @@ function handleKeydown(e) {
             <option value="transparent">1/2</option>
             <option value="full">full</option>
           </select>
+        </label>
+        <label title="Show reference layers">
+          Reference
+          <input type="checkbox" title="Show reference layers" bind:checked={referenceVisible} disabled={REFERENCE_LAYERS == 0}>
         </label>
         <label title="Change basemap">
           Basemap

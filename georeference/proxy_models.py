@@ -1,5 +1,6 @@
 import logging
 from PIL import Image
+from itertools import chain
 
 from django.contrib.gis.geos import Polygon
 from django.shortcuts import get_object_or_404
@@ -11,10 +12,10 @@ from .models import (
     GeoreferencedDocumentLink,
     SplitDocumentLink,
     LayerMask,
-    SplitEvaluation,
-    GeoreferenceSession,
-    MaskSession,
     GCPGroup,
+    PrepSession,
+    GeorefSession,
+    TrimSession,
 )
 from .utils import (
     full_reverse,
@@ -22,6 +23,26 @@ from .utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+class Lock(object):
+    """
+    Defines a Lock object that can be used for resources.
+    """
+    __slots__ = ["enabled", "type", "stage"]
+
+    def __init__(self, enabled, type, stage):
+        """Constructor"""
+        super(Lock, self).__setattr__("enabled", enabled)
+        super(Lock, self).__setattr__("type", type)
+        super(Lock, self).__setattr__("stage", stage)
+
+    @property
+    def as_dict(self):
+        return {
+            "enabled": self.enabled,
+            "type": self.type,
+            "stage": self.stage,
+        }
 
 class DocumentProxy(object):
 
@@ -57,14 +78,21 @@ class DocumentProxy(object):
         return TKeywordManager().get_status(self.resource)
 
     @property
-    def split_evaluation(self):
+    def preparation_session(self):
         try:
-            return SplitEvaluation.objects.get(document=self.resource)
-        except SplitEvaluation.DoesNotExist:
-            return None
-        except SplitEvaluation.MultipleObjectsReturned:
-            logger.warn(f"Multiple SplitEvaluations found for Document {self.id}")
-            return list(SplitEvaluation.objects.filter(document=self.resource))[0]
+            return PrepSession.objects.get(document=self.resource)
+        except PrepSession.DoesNotExist:
+            if self.parent_doc is not None:
+                return self.parent_doc.preparation_session
+            else:
+                return None
+        except PrepSession.MultipleObjectsReturned:
+            logger.warn(f"Multiple PrepSessions found for Document {self.id}")
+            return list(PrepSession.objects.filter(document=self.resource))[0]
+
+    @property
+    def georeference_sessions(self):
+        return GeorefSession.objects.filter(document=self.id).order_by("date_run")
 
     @property
     def child_docs(self):
@@ -87,9 +115,8 @@ class DocumentProxy(object):
     @property
     def cutlines(self):
         cutlines = []
-        if self.split_evaluation is not None:
-            if self.split_evaluation.cutlines is not None:
-                cutlines = self.split_evaluation.cutlines
+        if not self.parent_doc and self.preparation_session:
+            cutlines = self.preparation_session.data['cutlines']
         return cutlines
 
     @property
@@ -114,6 +141,34 @@ class DocumentProxy(object):
             return gcp_group.transformation
         else:
             None
+
+    @property
+    def preparation_lock(self):
+
+        lock = Lock(False, "preparation", None)
+        if self.preparation_session is not None:
+            lock.enabled = True
+            lock.stage = self.preparation_session.stage
+        return lock
+
+    @property
+    def georeference_lock(self):
+
+        lock = Lock(False, "georeference", None)
+        for gs in self.georeference_sessions:
+            if gs.stage != "finished":
+                lock.enabled = True
+                lock.stage = gs.stage
+        return lock
+
+    @property
+    def lock(self):
+        if self.preparation_lock.enabled:
+            return self.preparation_lock
+        elif self.georeference_lock.enabled:
+            return self.georeference_lock
+        else:
+            return Lock(False, None, None)
 
     def get_document(self):
         return Document.objects.get(id=self.id)
@@ -154,15 +209,10 @@ class DocumentProxy(object):
 
     def get_split_summary(self):
 
-        if self.parent_doc is not None:
-            evaluation = self.parent_doc.split_evaluation
-        else:
-            evaluation = self.split_evaluation
-        # this would be an unevaluated document
-        if evaluation is None:
+        if self.preparation_session is None:
             return None
 
-        info = evaluation.serialize()
+        info = self.preparation_session.serialize()
 
         parent_json = None
         if self.parent_doc:
@@ -178,20 +228,12 @@ class DocumentProxy(object):
 
     def get_georeference_summary(self):
 
-        sessions = self.get_georeference_sessions(serialized=True)
-
+        sessions = [i.serialize() for i in self.georeference_sessions]
         return {
             "sessions": sessions,
             "gcp_geojson": self.gcps_geojson,
             "transformation": self.transformation,
         }
-
-    def get_georeference_sessions(self, serialized=False):
-        sessions = GeoreferenceSession.objects.filter(document=self.id).order_by("created")
-        if serialized is True:
-            return [i.serialize() for i in sessions]
-        else:
-            return sessions
 
     def get_best_region_extent(self):
         """
@@ -215,106 +257,27 @@ class DocumentProxy(object):
 
     def serialize(self):
 
+        parent_doc = self.parent_doc
+        if parent_doc is not None:
+            parent_doc = parent_doc.serialize()
+
         return {
             "id": self.id,
             "title": self.title,
             "status": self.status,
             "urls": self.get_extended_urls(),
-            "split_evaluation": self.split_evaluation.serialize() if \
-                self.split_evaluation else None,
+            "parent_doc": parent_doc,
         }
 
-    def get_actions(self):
-        actions = []
+    def get_sessions(self):
 
-        if self.parent_doc is not None:
-            sesh = self.parent_doc.split_evaluation.serialize()
-            split_action = {
-                "type": "split",
-                "user": sesh['user'],
-                "date": sesh['date_str'],
-                "datetime": sesh['datetime'],
-                "details": "split from " + self.parent_doc.title,
-            }
-        elif self.split_evaluation is not None:
-            sesh = self.split_evaluation.serialize()
-            if sesh['split_needed'] is False:
-                details = "no split needed"
-            else:
-                details = f"{sesh['divisions_ct']} segments"
-            split_action = {
-                "type": "split",
-                "user": sesh['user'],
-                "date": sesh['date_str'],
-                "datetime": sesh['datetime'],
-                "details": details,
-            }
+        ps = self.preparation_session
+        if ps is not None:
+            gs = GeorefSession.objects.filter(document=self.resource).order_by("date_run")
+            return list(chain([ps], gs))
         else:
             return []
-        actions.append(split_action)
 
-        for sesh in self.get_georeference_sessions(serialized=True):
-            actions.append({
-                "type": "georeference",
-                "user": sesh['user'],
-                "date": sesh['date_str'],
-                "datetime": sesh['datetime'],
-                "details": f"{sesh['gcps_ct']} GCPs",
-            })
-        return actions
-
-    def undo_georeferencing(self, reapply_last=False):
-        """Removes GeoreferencingSessions and Layer for this document. If reapply_last=True, 
-        then only remove the latest session and rerun the one before it."""
-
-        logger.debug(f"doc: {self.id} | undo georeferencing")
-
-        ##  get all of the sessions for this document, ordered so most recent is first
-        sessions = GeoreferenceSession.objects.filter(document=self.resource).order_by("-created")
-        if sessions.count() == 0:
-            logger.info(f"doc: {self.id} | no GeoreferenceSession to revert")
-            ## clean up any GCPGroup that could be leftover somehow
-            GCPGroup.objects.filter(document=self.resource).delete()
-            TKeywordManager().set_status(self.resource, "prepared")
-
-        ## if reapply is False or there is only one session, wipe the slate clean
-        elif sessions.count() == 1 or reapply_last is False:
-
-            ## delete the Layer
-            layer = self.get_layer()
-            if layer is None:
-                logger.debug(f"doc: {self.id} | no Layer to delete")
-            else:
-                logger.debug(f"doc: {self.id} | delete Layer: {layer}")
-                layer.delete()
-
-            ## remove the link between the Document and the Layer
-            try:
-                GeoreferencedDocumentLink.objects.get(document=self.id).delete()
-                logger.debug(f"doc: {self.id} | delete GeoreferencedDocumentLink")
-            except GeoreferencedDocumentLink.DoesNotExist:
-                logger.debug(f"doc: {self.id} | no GeoreferencedDocumentLink to delete")
-            
-            ## remove all sessions
-            logger.info(f"doc: {self.id} | delete all sessions: {[s.pk for s in sessions]}")
-            sessions.delete()
-            GCPGroup.objects.filter(document=self.resource).delete()
-            TKeywordManager().set_status(self.resource, "prepared")
-
-        ## otherwise retain all but the last session and then reapply the one before it
-        else:
-            latest = list(sessions)[0]
-            logger.info(f"doc: {self.id} | delete GeoreferenceSession: {latest.pk}")
-            latest.delete()
-            #reaquire sessions, seems like it may be necessary??
-            sessions = GeoreferenceSession.objects.filter(document=self.resource).order_by("-created")
-            reapply = list(sessions)[0]
-            logger.info(f"doc: {self.id} | re-run previous session: {reapply.pk}")
-            reapply.run()
-            # finally, for all previous sessions reset the newly re-created layer
-            for old_session in GeoreferenceSession.objects.filter(document=self.resource):
-                old_session.layer = reapply.layer
-                old_session.save()
 
 class LayerProxy(object):
     
@@ -370,6 +333,20 @@ class LayerProxy(object):
                 coords = mask.polygon.coords[0]
         return coords
 
+    @property
+    def trim_sessions(self):
+        return TrimSession.objects.filter(layer=self.id).order_by("date_run")
+
+    @property
+    def trim_lock(self):
+
+        lock = Lock(False, "trim", None)
+        for ts in self.trim_sessions:
+            if ts.stage != "finished":
+                lock.enabled = True
+                lock.stage = ts.stage
+        return lock
+
     def get_layer(self):
         return Layer.objects.get(id=self.id)
 
@@ -406,29 +383,14 @@ class LayerProxy(object):
         urls.update(self.get_document_urls())
         return urls
 
-    def get_mask_sessions(self, serialized=False):
-        sessions = MaskSession.objects.filter(layer=self.id).order_by("created")
-        if serialized is True:
-            return [i.serialize() for i in sessions]
-        else:
-            return sessions
-    
-    def get_action_history(self):
-        actions = []
-        for sesh in self.get_mask_sessions(serialized=True):
-            actions.append({
-                "type": "trim",
-                "date": sesh['date_str'],
-                "datetime": sesh['datetime'],
-                "user": sesh['user'],
-                "details": sesh['vertex_ct'],
-            })
-        return actions
+    def get_sessions(self):
+        return TrimSession.objects.filter(layer=self.resource).order_by("date_run")
     
     def get_trim_summary(self):
 
         return {
-            "sessions": self.get_mask_sessions(serialized=True)
+            "sessions": [i.serialize() for i in self.trim_sessions],
+            "vertex_ct": len(self.mask_coords),
         }
 
     def serialize(self):
@@ -444,7 +406,7 @@ class LayerProxy(object):
             "urls": self.get_extended_urls(),
         }
 
-def get_georeferencing_summary(resourceid):
+def get_info_panel_content(resourceid):
     """Used in a context processor or view to generate all information
     needed for the georeference info panel in the Document or Layer
     detail pages."""
@@ -458,31 +420,32 @@ def get_georeferencing_summary(resourceid):
         doc_proxy = layer_proxy.get_document_proxy()
         resource_type = "layer"
 
-    actions = doc_proxy.get_actions()
     urls = {
-        "refresh": full_reverse('summary_json', args=(doc_proxy.id,)),
+        "refresh": full_reverse('georeference_info', args=(doc_proxy.id,)),
         "document_detail": doc_proxy.urls['detail'],
         "layer_detail": "",
         "split": doc_proxy.urls['split'],
         "georeference": doc_proxy.urls['georeference'],
         "trim": "",
     }
-    trim_summary = {
-        "sessions": []
-    }
-    layer_alternate = ""
+    sessions = doc_proxy.get_sessions()
 
+    trim_summary = { "sessions": [] }
+    layer_alternate = ""
+    status = doc_proxy.status
     if layer_proxy is not None:
+        status = layer_proxy.status
         layer_alternate = layer_proxy.alternate
         urls['layer_detail'] = layer_proxy.urls['detail']
         urls['trim'] = layer_proxy.urls['trim']
         trim_summary = layer_proxy.get_trim_summary()
-        actions += layer_proxy.get_action_history()
+        sessions = list(chain(sessions, layer_proxy.get_sessions()))
 
-    sorted_actions = sorted(actions, key = lambda e: e["datetime"])
+    serialized = [super(type(i), i).serialize() for i in sessions]
+    serialized.sort(key=lambda i: (i['date_run'] is None, i['date_run']))
 
     context = {
-        "STATUS": doc_proxy.status,
+        "STATUS": status,
         "RESOURCE_TYPE": resource_type,
         "DOCUMENT_ID": doc_proxy.id,
         "LAYER_ALTERNATE": layer_alternate,
@@ -490,7 +453,7 @@ def get_georeferencing_summary(resourceid):
         "SPLIT_SUMMARY": doc_proxy.get_split_summary(),
         "GEOREFERENCE_SUMMARY": doc_proxy.get_georeference_summary(),
         "TRIM_SUMMARY": trim_summary,
-        "ACTION_HISTORY": sorted_actions,
+        "SESSION_HISTORY": serialized,
     }
     return context
 

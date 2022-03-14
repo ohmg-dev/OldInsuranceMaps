@@ -186,6 +186,12 @@ class VolumeDetail(View):
             volume_json = volume.serialize()
             return JsonResponse(volume_json)
 
+        elif operation == "refresh-lookups":
+            volume = Volume.objects.get(pk=volumeid)
+            volume.populate_lookups()
+            volume_json = volume.serialize()
+            return JsonResponse(volume_json)
+
 class SimpleAPI(View):
 
     def get(self, request):

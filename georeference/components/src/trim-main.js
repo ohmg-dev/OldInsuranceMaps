@@ -1,5 +1,6 @@
 import './css/interface.css';
 import './js/ol-styles.js';
+import './js/ol-utils.js';
 import Trim from './Trim.svelte';
 import './css/ol-overrides.css'
 

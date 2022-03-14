@@ -20,7 +20,7 @@
 
 import os
 
-__version__ = (0, 0, 1, 'beta', 0)
+__version__ = (0, 1, 0, 'beta', 0)
 
 
 default_app_config = "loc_insurancemaps.apps.AppConfig"

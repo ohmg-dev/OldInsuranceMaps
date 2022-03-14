@@ -9,7 +9,7 @@ export let URLS;
 export let SPLIT_SUMMARY;
 export let GEOREFERENCE_SUMMARY;
 export let TRIM_SUMMARY;
-export let ACTION_HISTORY;
+export let SESSION_HISTORY;
 
 let showPrep = false;
 let showGeoreference = false;
@@ -79,7 +79,7 @@ function refresh() {
     SPLIT_SUMMARY = result.SPLIT_SUMMARY;
     GEOREFERENCE_SUMMARY = result.GEOREFERENCE_SUMMARY;
     TRIM_SUMMARY = result.TRIM_SUMMARY;
-    ACTION_HISTORY = result.ACTION_HISTORY;
+    SESSION_HISTORY = result.SESSION_HISTORY;
   });
 }
 
@@ -116,7 +116,7 @@ function setSplit(operation) {
     {/if}
   </section>
   <section>
-    <h4 on:click={() => showPrep = !showPrep}>1. Preparation <i class="fa fa-{showPrep == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
+    <h4 class="expandable" on:click={() => showPrep = !showPrep}>1. Preparation <i class="fa fa-{showPrep == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
     {#if showPrep}
     <div transition:slide>
       <div class="section-btn-row">
@@ -137,7 +137,7 @@ function setSplit(operation) {
         <button 
           title={undoBtnTitle}
           disabled={!undoBtnEnabled}
-          on:click={() => {setSplit("reset")}}>
+          on:click={() => {setSplit("undo")}}>
           <i class="fa fa-undo" />Undo
         </button>
       </div>
@@ -165,6 +165,7 @@ function setSplit(operation) {
               <div>
                 <ul>
                   <li><strong>Status:</strong> {child.status}</li>
+                  <li><a href={child.urls.georeference} title="Document detail">georeference &rarr;</a></li>
                   <li><a href={child.urls.progress_page} title="Document detail">document detail &rarr;</a></li>
                 </ul>
               </div>
@@ -178,7 +179,7 @@ function setSplit(operation) {
     {/if}
   </section>
   <section>
-    <h4 on:click={() => showGeoreference = !showGeoreference}>2. Georeferencing <i class="fa fa-{showGeoreference == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
+    <h4 class="expandable" on:click={() => showGeoreference = !showGeoreference}>2. Georeferencing <i class="fa fa-{showGeoreference == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
     {#if showGeoreference}
     <div transition:slide>
       <div class="section-btn-row">
@@ -208,26 +209,28 @@ function setSplit(operation) {
             <td class="coord-digit">{Math.round(feat.geometry.coordinates[0]*1000000)/1000000}</td>
             <td class="coord-digit">{Math.round(feat.geometry.coordinates[0]*1000000)/1000000}</td>
             <td>{feat.properties.username}</td>
-            <td>{feat.properties.note != null ? feat.properties.note : ""}</td>
+            <td>{feat.properties.note != null ? feat.properties.note : "--"}</td>
           </tr>
           {/each}
         </table>
         {/if}
         {#if GEOREFERENCE_SUMMARY.sessions.length > 0}
         <table>
-          <caption>Georeferencing Sessions</caption>
+          <caption>Sessions</caption>
           <tr>
-            <th>Date</th>
+            <th>Timestamp</th>
             <th>User</th>
-            <th>GCPs</th>
+            <th>Stage</th>
             <th>Status</th>
+            <th>GCPs</th>
           </tr>
           {#each GEOREFERENCE_SUMMARY.sessions as sesh, n}
           <tr>
-            <td>{sesh.datetime}</td>
+            <td>{sesh.date_run != null ? sesh.date_run : "--"}</td>
             <td><a href={sesh.user.profile}>{sesh.user.name}</a></td>
-            <td>{sesh.gcps_ct}</td>
+            <td>{sesh.stage}</td>
             <td>{sesh.status}</td>
+            <td>{sesh.data ? sesh.data.gcps.features.length : "--"}</td>
           </tr>
           {/each}
         </table>
@@ -237,7 +240,7 @@ function setSplit(operation) {
     {/if}
   </section>
   <section>
-    <h4 on:click={() => showTrim = !showTrim}>3. Trimming <i class="fa fa-{showTrim == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
+    <h4 class="expandable" on:click={() => showTrim = !showTrim}>3. Trimming <i class="fa fa-{showTrim == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
     {#if showTrim}
       <div transition:slide>
         <div class="section-btn-row">
@@ -251,17 +254,22 @@ function setSplit(operation) {
         <div class="section-body">
           {#if TRIM_SUMMARY.sessions.length > 0}
           <table>
-            <caption>Trimming Sessions</caption>
+            <caption>Sessions</caption>
             <tr>
-              <th>Date</th>
+              <th>Timestamp</th>
               <th>User</th>
+              <th>Stage</th>
+              <th>Status</th>
               <th>Vertices</th>
             </tr>
             {#each TRIM_SUMMARY.sessions as sesh}
             <tr>
-              <td>{sesh.datetime}</td>
+              <td>{sesh.date_run != null ? sesh.date_run : "--"}</td>
               <td><a href={sesh.user.profile}>{sesh.user.name}</a></td>
-              <td>{sesh.vertex_ct}</td>
+              <td>{sesh.stage}</td>
+              <td>{sesh.status}</td>
+              <!-- the number of commas = the number of vertices in a wkt polygon -->
+              <td>{sesh.data.mask_ewkt.match(/,/g).length}</td>
             </tr>
             {/each}
           </table>
@@ -270,22 +278,28 @@ function setSplit(operation) {
       </div>
     {/if}
   </section>
-  {#if ACTION_HISTORY.length > 0}
+  {#if SESSION_HISTORY.length > 0}
   <section>
     <table>
-      <caption>Georeference History</caption>
+      <caption><h4>Full History</h4></caption>
       <tr>
+        <th>#</th>
         <th>Action</th>
         <th>User</th>
-        <th>Date</th>
+        <th>Stage</th>
+        <th>Status</th>
+        <th>Timestamp (UTC)</th>
         <th>Details</th>
       </tr>
-      {#each ACTION_HISTORY as action}
+      {#each SESSION_HISTORY as session}
       <tr>
-        <td>{action.type}</td>
-        <td><a href={action.user.profile}>{action.user.name}</a></td>
-        <td>{action.datetime}</td>
-        <td>{action.details}</td>
+        <td>{session.id}</td>
+        <td>{session.type}</td>
+        <td><a href={session.user.profile}>{session.user.name}</a></td>
+        <td>{session.stage}</td>
+        <td>{session.status}</td>
+        <td>{session.date_run != null ? session.date_run : '--'}</td>
+        <td>{session.note != null ? session.note : '--'}</td>
       </tr>
       {/each}
     </table>
@@ -324,13 +338,13 @@ button:hover:enabled {
 }
 
 section {
-  border-bottom: 1px dashed #ddd;
+  border-bottom: 1px dashed rgb(149,149,149);;
 }
 
 section h4 i {
   font-size: .65em;
 }
-section h4 {
+section h4.expandable {
   color: #2c689c;
   cursor: pointer;
 }
