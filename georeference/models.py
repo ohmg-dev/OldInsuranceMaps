@@ -482,18 +482,19 @@ class GCPGroup(models.Model):
         return geo_json
 
     def save_from_geojson(self, geojson, document, transformation=None):
-        print("saving gcps")
 
-        group, created = GCPGroup.objects.get_or_create(document=document)
+        group, group_created = GCPGroup.objects.get_or_create(document=document)
 
         group.crs_epsg = 3857 # don't see this changing any time soon...
         group.transformation = transformation
         group.save()
 
+        gcps_new, gcps_mod, gcps_del = 0, 0, 0
+
         # first remove any existing gcps that have been deleted
         for gcp in group.gcps:
             if str(gcp.id) not in [i['properties'].get('id') for i in geojson['features']]:
-                print(f"deleting gcp {gcp.id}")
+                gcps_del += 0
                 gcp.delete()
 
         for feature in geojson['features']:
@@ -507,7 +508,8 @@ class GCPGroup(models.Model):
                     'gcp_group': group,
                     'created_by': user
                 })
-            print("new gcp created?", created)
+            if created:
+                gcps_new += 1
 
             pixel_x = feature['properties']['image'][0]
             pixel_y = feature['properties']['image'][1]
@@ -520,16 +522,17 @@ class GCPGroup(models.Model):
 
             # only update the point if one of its coordinate pairs have changed,
             # this also triggered when new GCPs have None for pixels and geom.
-            if new_pixel != old_pixel or not new_geom.equals(gcp.geom):
+            if new_pixel != old_pixel or not new_geom.equals(gcp.geom) or gcp.note != feature['properties']['note']:
+                gcp.note = feature['properties']['note']
                 gcp.pixel_x = new_pixel[0]
                 gcp.pixel_y = new_pixel[1]
                 gcp.geom = new_geom
                 gcp.last_modified_by = user
                 gcp.save()
-                print("coordinates saved/updated")
-            else:
-                print("gcp coordinates unchanged, no save made")
-
+                if not created:
+                    gcps_mod += 1
+        gcps_ct = len(geojson['features'])
+        logger.info(f"GCPGroup {group.pk} | GCPs ct: {gcps_ct}, new: {gcps_new}, mod: {gcps_mod}, del: {gcps_del}")
         return group
 
     def save_from_annotation(self, annotation, document):
