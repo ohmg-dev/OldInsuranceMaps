@@ -165,6 +165,7 @@ function setSplit(operation) {
               <div>
                 <ul>
                   <li><strong>Status:</strong> {child.status}</li>
+                  <li><a href={child.urls.georeference} title="Document detail">georeference &rarr;</a></li>
                   <li><a href={child.urls.progress_page} title="Document detail">document detail &rarr;</a></li>
                 </ul>
               </div>
@@ -287,7 +288,7 @@ function setSplit(operation) {
         <th>User</th>
         <th>Stage</th>
         <th>Status</th>
-        <th>Timestamp</th>
+        <th>Timestamp (UTC)</th>
         <th>Details</th>
       </tr>
       {#each SESSION_HISTORY as session}
