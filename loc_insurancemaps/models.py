@@ -10,23 +10,17 @@ from pygments import highlight
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers.data import JsonLexer, JsonLdLexer
 
-
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import models, transaction
-from django.db.models.signals import post_save, m2m_changed
-from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 
 from geonode.base.models import Region, License
-from geonode.layers.models import Layer
-from geonode.documents.models import (
-    Document,
-    post_save_document,
-)
+from geonode.documents.models import Document
+from geonode.documents.renderers import generate_thumbnail_content
 from geonode.people.models import Profile
 
 from georeference.proxy_models import DocumentProxy, LayerProxy
@@ -112,14 +106,6 @@ class FullThumbnail(models.Model):
             self.generate_thumbnail()
         super(FullThumbnail, self).save(*args, **kwargs)
 
-## connect the creation of a FullThumbnail to Document post_save signal
-@receiver(post_save, sender=Document)
-def create_full_thumbnail(sender, instance, **kwargs):
-    if bool(instance.doc_file) is False:
-        return
-    if not FullThumbnail.objects.filter(document=instance).exists():
-        thumb = FullThumbnail(document=instance)
-        thumb.save()
 
 class Sheet(models.Model):
     """Sheet serves mainly as a middle model between Volume and Document.
@@ -214,6 +200,14 @@ class Sheet(models.Model):
             ## this final save will trigger the FullThumbnail creation, now that
             ## the doc has a doc_file attaches.
             doc.save()
+
+            # manually reset the default Geonode thumbnail as well, because
+            # its background creation will have failed because it is an async task
+            # called from within an async task (i.e. when it's first called,
+            # the document hasn't actually been saved to the db yet).
+            thumbnail_content = generate_thumbnail_content(doc.doc_file.path)
+            filename = f'document-{doc.uuid}-thumb.png'
+            doc.save_thumbnail(filename, thumbnail_content)
 
         return sheet
 
@@ -379,16 +373,27 @@ class Volume(models.Model):
 
         hydrated = { "layers": [], "index_layers": [] }
         for layer_id in self.ordered_layers["layers"]:
-            hydrated["layers"].append(self.layer_lookup[layer_id])
+            try:
+                hydrated["layers"].append(self.layer_lookup[layer_id])
+            except KeyError as e:
+                logger.warn(f"{self.__str__()} | layer missing from layer lookup: {layer_id}")
         for layer_id in self.ordered_layers["index_layers"]:
-            hydrated["index_layers"].append(self.layer_lookup[layer_id])
+            try:
+                hydrated["index_layers"].append(self.layer_lookup[layer_id])
+            except KeyError as e:
+                logger.warn(f"{self.__str__()} | layer missing from layer lookup: {layer_id}")
         return hydrated
 
     def populate_lookups(self):
-        """Update both document_lookup and layer_lookup fields
+        """Clean and remake document_lookup and layer_lookup fields
         for this Volume by examining the original loaded Sheets and
         re-evaluating every descendant Document and Layer.
         """
+
+        if len(self.document_lookup) > 0 or len(self.layer_lookup) > 0:
+            self.document_lookup = {}
+            self.layer_lookup = {}
+            self.save(update_fields=["document_lookup", "layer_lookup"])
 
         for document in self.get_all_documents():
             self.update_document_lookup(document.id, update_layer=True)
@@ -490,52 +495,3 @@ class Volume(models.Model):
             "urls": self.get_urls(),
             "ordered_layers": ordered_layers,
         }
-
-def resource_status_changed(sender, instance, action, **kwargs):
-    """Trigger the document_lookup and layer_lookup updates on a volume
-    whenever a Document or Layer has its georeferencing status changed."""
-    volume = None
-    if action == "post_add":
-        new_status = TKeywordManager().get_status(instance)
-        if new_status is not None:
-            model_name = instance._meta.model.__name__
-            if model_name == "Document":
-                volume = get_volume("document", instance.pk)
-                if volume is not None:
-                    volume.update_document_lookup(instance.pk)
-            if model_name == "Layer":
-                volume = get_volume("layer", instance.pk)
-                if volume is not None:
-                    volume.update_layer_lookup(instance.alternate)
-
-# trigger whenever a tkeyword is changed on a Document or Layer
-m2m_changed.connect(resource_status_changed, sender=Document.tkeywords.through)
-m2m_changed.connect(resource_status_changed, sender=Layer.tkeywords.through)
-
-# refresh the lookup for a layer after it is saved.
-def refresh_layer_lookup(sender, instance, **kwargs):
-    volume = get_volume("layer", instance.pk)
-    if volume is not None:
-        volume.update_layer_lookup(instance.alternate)
-post_save.connect(refresh_layer_lookup, sender=Layer)
-
-## DEPRECATED -- THIS SHOULD BE FULLY HANDLED MORE SIMPLY NOW AT THE BEGINNING
-## OF Volume.serailize()
-# def post_save_thumbnail_link(sender, instance, **kwargs):
-#     """This function is triggered whenever a new thumbnail is created
-#     through default GeoNode operations. It is needed to trigger an update
-#     of the volume layer_lookup, because GeoNode creates thumbs through
-#     background tasks, which can take place after the final georeferencing
-#     status change is made for a document or layer."""
-#     if instance.name == "Thumbnail":
-#         try:
-#             layer = Layer.objects.get(pk=instance.resource_id)
-#         except Layer.DoesNotExist:
-#             return
-#         volume = get_volume("layer", layer.pk)
-#         if volume is None:
-#             return
-#         volume.update_layer_lookup(layer.pk)
-
-# # trigger on the creation of the Link object that is created along with thumbs.
-# post_save.connect(post_save_thumbnail_link, sender=Link)

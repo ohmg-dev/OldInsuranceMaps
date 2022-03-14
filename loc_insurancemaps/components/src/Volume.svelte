@@ -72,6 +72,14 @@ let orderableLayers = [];
 let orderableIndexLayers = [];
 let mapIndexLayerIds = [];
 
+function referenceLayersParam() {
+	let referenceLayers = [];
+	VOLUME.ordered_layers.index_layers.forEach( function(layer) {
+		referenceLayers.push(layer.alternate)
+	})
+	return "reference="+referenceLayers.join(",")
+}
+
 function getClass(n) {
 	if (n == 100) {
 		return "full-circle"
@@ -607,7 +615,7 @@ function handleKeyup(e) {
 					<img src={document.urls.thumbnail} alt={document.title}>
 					<div>
 						<ul>
-							<li><a href={document.urls.georeference} title="georeference this document">georeference &rarr;</a></li>
+							<li><a href="{document.urls.georeference}?{referenceLayersParam()}" title="georeference this document">georeference &rarr;</a></li>
 							<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
 						</ul>
 					</div>
@@ -654,7 +662,7 @@ function handleKeyup(e) {
 					<div>
 						<ul>
 							<li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li>
-							<li><a href={layer.urls.georeference} title="edit georeferencing">edit georeferencing &rarr;</a></li>
+							<li><a href="{layer.urls.georeference}?{referenceLayersParam()}" title="edit georeferencing">edit georeferencing &rarr;</a></li>
 							<li><a href={layer.urls.detail} title={layer.title}>layer detail &rarr;</a></li>
 						</ul>
 						{#if settingKeyMapLayer}

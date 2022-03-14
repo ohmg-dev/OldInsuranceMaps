@@ -290,7 +290,3 @@ class LOCParser(object):
             "sheet_number": self.sheet_number,
             "iiif_service": self.iiif_service,
         }
-
-
-
-

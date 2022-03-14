@@ -24,6 +24,8 @@ from celery.utils.log import get_task_logger
 from .models import (
     SplitEvaluation,
     GeoreferenceSession,
+    PrepSession,
+    GeorefSession,
 )
 
 logger = get_task_logger(__name__)
@@ -36,4 +38,14 @@ def split_image_as_task(sessionid):
 @shared_task
 def georeference_document_as_task(sessionid):
     session = GeoreferenceSession.objects.get(pk=sessionid)
+    session.run()
+
+@shared_task
+def run_preparation_session(sessionid):
+    session = PrepSession.objects.get(pk=sessionid)
+    session.run()
+
+@shared_task
+def run_georeference_session(sessionid):
+    session = GeorefSession.objects.get(pk=sessionid)
     session.run()
