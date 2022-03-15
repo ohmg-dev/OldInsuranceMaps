@@ -8,7 +8,7 @@ export let STARTED_VOLUMES;
 <main>
 	<h1>Volumes in progress</h1>
 	<p>The following volumes have been loaded, and are in the process of being georeferenced. As more people use the system, this list will grow.</p>
-	<div>
+	<div style="overflow-x:auto;">
 		{#if STARTED_VOLUMES.length == 0}
 		<p><em>No volumes have been started yet.</em></p>
 		{:else}
