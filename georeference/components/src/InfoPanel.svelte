@@ -207,7 +207,7 @@ function setSplit(operation) {
             <td class="coord-digit">{feat.properties.image[0]}</td>
             <td class="coord-digit">{feat.properties.image[1]}</td>
             <td class="coord-digit">{Math.round(feat.geometry.coordinates[0]*1000000)/1000000}</td>
-            <td class="coord-digit">{Math.round(feat.geometry.coordinates[0]*1000000)/1000000}</td>
+            <td class="coord-digit">{Math.round(feat.geometry.coordinates[1]*1000000)/1000000}</td>
             <td>{feat.properties.username}</td>
             <td>{feat.properties.note != null ? feat.properties.note : "--"}</td>
           </tr>
