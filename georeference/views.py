@@ -109,6 +109,7 @@ class SplitView(View):
             sesh.data['split_needed'] = True
             sesh.data['cutlines'] = cutlines
             sesh.save(update_fields=["data", "user"])
+            logger.info(f"{sesh.__str__()} | begin run() as task")
             run_preparation_session.apply_async((sesh.pk, ), queue="update")
             return JsonResponse({"success":True})
         
@@ -127,6 +128,7 @@ class SplitView(View):
             try:
                 sesh = PrepSession.objects.get(document=doc_proxy.resource)
             except PrepSession.DoesNotExist:
+                logger.warn("can't find PrepSession to delete.")
                 return JsonResponse({"success":False, "message": "no session to cancel"})
             if sesh.stage != "input":
                 msg = "can't cancel session that is past the input stage"
@@ -275,6 +277,7 @@ class GeoreferenceView(View):
             sesh.data['gcps'] = gcp_geojson
             sesh.data['transformation'] = transformation
             sesh.save(update_fields=["data"])
+            logger.info(f"{sesh.__str__()} | begin run() as task")
             run_georeference_session.apply_async((sesh.pk, ), queue="update")
 
             ms.remove_layer(doc_proxy.doc_file.path)
