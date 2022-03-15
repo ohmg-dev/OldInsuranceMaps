@@ -269,7 +269,7 @@ function setSplit(operation) {
               <td>{sesh.stage}</td>
               <td>{sesh.status}</td>
               <!-- the number of commas = the number of vertices in a wkt polygon -->
-              <td>{sesh.data.mask_ewkt.match(/,/g).length}</td>
+              <td>{sesh.data.mask_ewkt != null ? sesh.data.mask_ewkt.match(/,/g).length : "--"}</td>
             </tr>
             {/each}
           </table>
