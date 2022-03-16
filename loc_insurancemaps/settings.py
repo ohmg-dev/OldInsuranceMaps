@@ -221,6 +221,31 @@ LOGGING = {
     },
 }
 
+# cleanup some celery logging as suggested here:
+# https://stackoverflow.com/a/20719461/3873885
+if DEBUG:
+    celery_log_level = 'DEBUG'
+else:
+    celery_log_level = 'INFO'
+
+LOGGING['loggers']['celery'] = {
+    'handlers': ['console'],
+    'level': celery_log_level,
+    'propagate': True,
+}
+for i in ['worker', 'concurrency', 'beat']:
+    LOGGING['loggers']['celery.' + i] = {
+        'handlers': [],
+        'level': 'WARNING',
+        'propagate': True,
+    }
+for i in ['job', 'consumer', 'mediator', 'control', 'bootsteps']:
+    LOGGING['loggers']['celery.worker.' + i] = {
+        'handlers': [],
+        'level': 'WARNING',
+        'propagate': True,
+    }
+
 CENTRALIZED_DASHBOARD_ENABLED = ast.literal_eval(os.getenv('CENTRALIZED_DASHBOARD_ENABLED', 'False'))
 if CENTRALIZED_DASHBOARD_ENABLED and USER_ANALYTICS_ENABLED and 'geonode_logstash' not in INSTALLED_APPS:
     INSTALLED_APPS += ('geonode_logstash',)
