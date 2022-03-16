@@ -468,19 +468,19 @@ function handleKeyup(e) {
 		<div id="layer-panel" style="display: {showLayerList == true ? 'flex' : 'none'}">
 			<div class="layer-section-header" style="border-top-width: 1px;">
 				<button class="control-btn" title="Reset extent" on:click={setMapExtent}>
-					<i id="fs-icon" class="fa fa-refresh" />
+					<i class="fa fa-refresh" />
 				</button>
 				{#if USER_TYPE != "anonymous"}
 				{#if !refreshingLookups}
 				<button id="repair-button" class="control-btn" title="Repair Extent (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
-					<i id="fs-icon" class="fa fa-wrench" />
+					<i class="fa fa-wrench" />
 				</button>
 				{:else}
 				<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
 				{/if}
 				{/if}
 				<button class="control-btn" title={fullscreenBtnTitle} on:click={toggleFullscreen}>
-					<i id="fs-icon" class="fa {fullscreenBtnIcon}" />
+					<i class="fa {fullscreenBtnIcon}" />
 				</button>
 			</div>
 			<div id="layer-list" style="flex:2;">
@@ -544,7 +544,7 @@ function handleKeyup(e) {
 	<hr>
 	<h3 style="">
 		Georeferencing Overview
-		<button id="refresh-button" title="refresh overview" on:click={() => { postOperation("refresh") }}>
+		<button class="control-btn" style="float:right;" title="refresh overview" on:click={() => { postOperation("refresh") }}>
 			<i class="fa fa-refresh" />
 		</button>
 	</h3>
@@ -743,11 +743,15 @@ hr.hr-dashed {
 
 .control-btn {
 	height: 30px;
+	width: 30px;
+	border-radius: 4px;
+	font-size: 19.2px;
 }
 
 .layer-section-header {
 	display: flex;
 	justify-content: space-between;
+	flex-wrap: wrap;
 	align-items: center;
 	font-size: 1.2em;
 	border-top: 2px solid grey;
@@ -823,14 +827,6 @@ hr.hr-dashed {
 .document-item ul {
 	list-style-type: none;
 	padding: 0;
-}
-
-#refresh-button {
-	float: right;
-}
-
-#refresh-button i {
-	font-size: .75em;
 }
 
 @media screen and (max-width: 768px){
