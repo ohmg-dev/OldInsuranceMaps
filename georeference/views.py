@@ -30,8 +30,7 @@ from .utils import MapServerManager
 from .georeferencer import Georeferencer
 from .splitter import Splitter
 
-
-logger = logging.getLogger("geonode.georeference.views")
+logger = logging.getLogger(__name__)
 
 BadPostRequest = HttpResponseBadRequest("invalid post content")
 
