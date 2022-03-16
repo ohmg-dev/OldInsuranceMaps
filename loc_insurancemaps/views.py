@@ -77,10 +77,8 @@ class Volumes(View):
                 "prepared_ct": len(items['prepared']),
                 "georeferenced_ct": len(items['georeferenced']),
                 "volume_no": vol.volume_no,
-                "loaded_by": {
-                    "name": vol.loaded_by.username,
-                    "profile": reverse("profile_detail", args=(vol.loaded_by.username, )),
-                },
+                "loaded_by_name": vol.loaded_by.username,
+                "loaded_by_profile": reverse("profile_detail", args=(vol.loaded_by.username, )),
                 "title": vol.__str__(),
                 "urls": {
                     "summary": reverse("volume_summary", args=(vol.identifier,))
