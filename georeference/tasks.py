@@ -24,6 +24,7 @@ from celery import shared_task
 
 from .celeryapp import app
 from .models import (
+    SessionBase,
     PrepSession,
     GeorefSession,
     TrimSession,
@@ -47,6 +48,4 @@ def run_georeference_session(sessionid):
     name='georeference.tasks.delete_expired_sessions',
 )
 def delete_expired(self):
-    PrepSession().delete_expired(seconds=20)
-    GeorefSession().delete_expired(seconds=20)
-    TrimSession().delete_expired(seconds=20)
+    SessionBase().delete_expired_sessions()
