@@ -32,6 +32,7 @@ const utils = new Utils();
 
 export let LOCK;
 export let SESSION_ID;
+export let SESSION_LENGTH;
 export let CSRFTOKEN;
 export let LAYER;
 export let MAPBOX_API_KEY;
@@ -43,6 +44,24 @@ let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
 let leaveOkay = true;
 if (LOCK.stage == "in-progress") {
   leaveOkay = false;
+}
+
+// show the extend session prompt 15 seconds before the session expires
+setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
+
+let autoRedirect;
+function promptRefresh() {
+  if (!leaveOkay) {
+    const modal = document.getElementById("expirationModal");
+    modal.style.display = "block";
+    leaveOkay = true;
+    autoRedirect = setTimeout(cancelAndRedirectToDetail, 15000);
+  }
+}
+
+function cancelAndRedirectToDetail() {
+  process("cancel");
+  window.location.href=LAYER.urls.detail;
 }
 
 let previewMode = "n/a";
@@ -272,6 +291,13 @@ function process(operation) {
     disableInterface = true;
   };
 
+  if (operation == "extend-session") {
+    leaveOkay = false;
+    clearTimeout(autoRedirect)
+    document.getElementById("expirationModal").style.display = "none";
+    setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
+  }
+
   const data = JSON.stringify({
     "mask_coords": maskPolygonCoords,
     "operation": operation,
@@ -321,6 +347,14 @@ function cleanup () {
 </script>
 
 <svelte:window on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
+
+<div id="expirationModal" class="modal">
+  <div class="modal-content">
+    <p>This trimming session is expiring, and will be cancelled soon.</p>
+    <button on:click={() => {process("extend-session")}}>Give me more time!</button>
+  </div>
+</div>
+
 <div class="tb-top-item"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}

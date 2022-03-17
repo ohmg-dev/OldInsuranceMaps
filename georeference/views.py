@@ -206,6 +206,7 @@ class GeoreferenceView(View):
         georeference_params = {
             "LOCK": lock.as_dict,
             "SESSION_ID": sesh_id,
+            "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
             "CSRFTOKEN": csrf.get_token(request),
             "DOCUMENT": doc_proxy.serialize(),
             "IMG_SIZE": doc_proxy.image_size,
@@ -299,6 +300,11 @@ class GeoreferenceView(View):
                 "message": "all good",
             })
 
+        elif operation == "extend-session":
+
+            sesh.extend()
+            return JsonResponse({"success":True})
+
         elif operation == "cancel":
 
             if sesh.stage != "input":
@@ -342,6 +348,7 @@ class TrimView(View):
         trim_params = {
             "LOCK": lock.as_dict,
             "SESSION_ID": sesh_id,
+            "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
             "LAYER": layer_proxy.serialize(),
             "CSRFTOKEN": csrf.get_token(request),
             "GEOSERVER_WMS": geoserver_ows,
@@ -417,6 +424,11 @@ class TrimView(View):
 
             sesh.delete()
             return JsonResponse({"success": True})
+
+        elif operation == "extend-session":
+
+            sesh.extend()
+            return JsonResponse({"success":True})
 
         elif operation == "remove-mask":
 

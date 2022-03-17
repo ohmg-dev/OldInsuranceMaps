@@ -38,6 +38,7 @@ const utils = new Utils();
 
 export let LOCK;
 export let SESSION_ID;
+export let SESSION_LENGTH;
 export let DOCUMENT;
 export let IMG_SIZE;
 export let CSRFTOKEN;
@@ -80,6 +81,24 @@ let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
 let leaveOkay = true;
 if (LOCK.stage == "in-progress") {
   leaveOkay = false;
+}
+
+// show the extend session prompt 15 seconds before the session expires
+setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
+
+let autoRedirect;
+function promptRefresh() {
+  if (!leaveOkay) {
+    const modal = document.getElementById("expirationModal");
+    modal.style.display = "block";
+    leaveOkay = true;
+    autoRedirect = setTimeout(cancelAndRedirectToDetail, 15000);
+  }
+}
+
+function cancelAndRedirectToDetail() {
+  process("cancel");
+  window.location.href=DOCUMENT.urls.detail;
 }
 
 const beginTxt = "Click a recognizable location on the map document (left panel)"
@@ -643,6 +662,13 @@ function process(operation){
     disableReason = operation;
   };
 
+  if (operation == "extend-session") {
+    leaveOkay = false;
+    clearTimeout(autoRedirect)
+    document.getElementById("expirationModal").style.display = "none";
+    setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
+  }
+
   const data = JSON.stringify({
     "gcp_geojson": asGeoJSON(),
     "transformation": currentTransformation,
@@ -659,8 +685,8 @@ function process(operation){
     })
     .then(response => response.json())
     .then(result => {
-      if (previewMode == "n/a") { previewMode = "transparent"};
       if (operation == "preview") {
+        if (previewMode == "n/a") { previewMode = "transparent"};
         let sourceUrl = previewSource.getUrls()[0];
         previewSource.setUrl(sourceUrl.replace(/\/[^\/]*$/, '/'+Math.random()));
         previewSource.refresh()
@@ -740,6 +766,14 @@ function cleanup () {
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
+
+<div id="expirationModal" class="modal">
+  <div class="modal-content">
+    <p>This georeferencing session is expiring, and will be cancelled soon.</p>
+    <button on:click={() => {process("extend-session")}}>Give me more time!</button>
+  </div>
+</div>
+
 <div class="hidden-small"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
