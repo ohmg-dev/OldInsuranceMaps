@@ -1,8 +1,9 @@
 import os
 import uuid
 import json
-from osgeo import gdal, osr
 import logging
+from osgeo import gdal, osr
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -1121,6 +1122,22 @@ class PrepSession(SessionBase):
             "divisions_ct": len(self.get_children()),
         }
 
+    def delete_expired(self, **kwargs):
+        """
+        This method will remove all instances whose creation datetime
+        is older than the specified interval.
+
+        Use default timedelta kwargs as input, like hours=1 or minutes=10
+        """
+        cutoff = timezone.now() - timedelta(**kwargs)
+        sessions = PrepSession.objects.filter(stage="input", date_created__lt=cutoff)
+        if sessions.exists():
+            ids = [str(i) for i in sessions.values_list('pk', flat=True)]
+            ids_str = ",".join(ids)
+            # sessions.delete()
+            msg = f"Deleted expired PrepSessions ({len(ids)}): {ids_str}"
+            logger.info(msg)
+
 
 class GeorefSession(SessionBase):
     objects = GeorefSessionManager()
@@ -1339,6 +1356,23 @@ class GeorefSession(SessionBase):
             self.note = self.generate_final_status_note()
         return super(GeorefSession, self).save(*args, **kwargs)
 
+    def delete_expired(self, **kwargs):
+        """
+        This method will remove all instances whose creation datetime
+        is older than the specified interval.
+
+        Use default timedelta kwargs as input, like hours=1 or minutes=10
+
+        THIS MUST BE ON EACH PROXY MODEL SO THAT THE PROPER SIGNALS ARE FIRED.
+        """
+        cutoff = timezone.now() - timedelta(**kwargs)
+        sessions = GeorefSession.objects.filter(stage="input", date_created__lt=cutoff)
+        if sessions.exists():
+            ids = [str(i) for i in sessions.values_list('pk', flat=True)]
+            ids_str = ",".join(ids)
+            # sessions.delete()
+            msg = f"Expired GeorefSessions deleted ({len(ids)}): {ids_str}"
+            logger.info(msg)
 
 class TrimSession(SessionBase):
     objects = TrimSessionManager()
@@ -1409,3 +1443,19 @@ class TrimSession(SessionBase):
         if not self.pk:
             self.data = get_default_session_data(self.type)
         return super(TrimSession, self).save(*args, **kwargs)
+
+    def delete_expired(self, **kwargs):
+        """
+        This method will remove all instances whose creation datetime
+        is older than the specified interval.
+
+        Use default timedelta kwargs as input, like hours=1 or minutes=10
+        """
+        cutoff = timezone.now() - timedelta(**kwargs)
+        sessions = TrimSession.objects.filter(stage="input", date_created__lt=cutoff)
+        if sessions.exists():
+            ids = [str(i) for i in sessions.values_list('pk', flat=True)]
+            ids_str = ",".join(ids)
+            # sessions.delete()
+            msg = f"Expired TrimSessions deleted ({len(ids)}): {ids_str}"
+            logger.info(msg)
