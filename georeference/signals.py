@@ -70,9 +70,9 @@ def pre_delete_trimsession(sender, instance, **kwargs):
     if instance.stage == "input" and instance.layer is not None:
         tkm = TKeywordManager()
         if LayerMask.objects.filter(layer=instance.layer).exists():
-            new_status = "georeferenced"
+            new_status = "trimmed"
         else:
-            new_status = "prepared"
+            new_status = "georeferenced"
         logger.info(f"{instance.__str__()} | delete session and set layer {instance.layer.pk} - '{new_status}'")
         tkm.set_status(instance.layer, new_status)
 
