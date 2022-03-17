@@ -74,6 +74,9 @@ if 'georeference' in INSTALLED_APPS:
         'schedule': 15.0,
     }
 
+    # prep/georef/trim session duration before expiration (seconds)
+    GEOREFERENCE_SESSION_LENGTH = 30
+
 # add static files and templates that are in the local (loc_insurancemaps) app
 TEMPLATES[0]['DIRS'].insert(0, os.path.join(LOCAL_ROOT, "templates"))
 STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "static"))
