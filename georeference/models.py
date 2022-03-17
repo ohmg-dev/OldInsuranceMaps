@@ -1134,7 +1134,7 @@ class PrepSession(SessionBase):
         if sessions.exists():
             ids = [str(i) for i in sessions.values_list('pk', flat=True)]
             ids_str = ",".join(ids)
-            # sessions.delete()
+            sessions.delete()
             msg = f"Deleted expired PrepSessions ({len(ids)}): {ids_str}"
             logger.info(msg)
 
@@ -1370,7 +1370,7 @@ class GeorefSession(SessionBase):
         if sessions.exists():
             ids = [str(i) for i in sessions.values_list('pk', flat=True)]
             ids_str = ",".join(ids)
-            # sessions.delete()
+            sessions.delete()
             msg = f"Expired GeorefSessions deleted ({len(ids)}): {ids_str}"
             logger.info(msg)
 
@@ -1456,6 +1456,6 @@ class TrimSession(SessionBase):
         if sessions.exists():
             ids = [str(i) for i in sessions.values_list('pk', flat=True)]
             ids_str = ",".join(ids)
-            # sessions.delete()
+            sessions.delete()
             msg = f"Expired TrimSessions deleted ({len(ids)}): {ids_str}"
             logger.info(msg)

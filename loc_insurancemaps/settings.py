@@ -69,6 +69,11 @@ if 'georeference' in INSTALLED_APPS:
     MIDDLEWARE += ("georeference.middleware.GeoreferenceMiddleware", )
     TEMPLATES[0]['OPTIONS']['context_processors'].append("georeference.context_processors.georeference_info")
 
+    CELERY_BEAT_SCHEDULE['delete_expired_sessions'] = {
+        'task': 'georeference.tasks.delete_expired_sessions',
+        'schedule': 15.0,
+    }
+
 # add static files and templates that are in the local (loc_insurancemaps) app
 TEMPLATES[0]['DIRS'].insert(0, os.path.join(LOCAL_ROOT, "templates"))
 STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "static"))
