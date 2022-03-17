@@ -32,6 +32,7 @@ import VectorLayer from 'ol/layer/Vector';
 import LayerGroup from 'ol/layer/Group';
 
 export let VOLUME;
+export let OTHER_VOLUMES;
 export let CSRFTOKEN;
 export let USER_TYPE;
 export let GEOSERVER_WMS;
@@ -438,10 +439,18 @@ function handleKeyup(e) {
 		<p>&uarr; Before loading, this is the best way to see if the volume covers your part of town.</p>
 	</div>
 	{/if}
+	{#if OTHER_VOLUMES.length > 1}
+	<div><p>
+	Jump to &rarr;
+	{#each OTHER_VOLUMES as ov, n}
+	{#if n != 0}&nbsp;&bullet;&nbsp;{/if}
+	{#if ov.url}<a href={ov.url} title={ov.name}>{ov.year}</a>{:else}{ov.year}{/if}
+	{/each}
+	</p></div>
+	{/if}
 	{#if VOLUME.sheet_ct.loaded == 0 && USER_TYPE != 'anonymous' && !sheetsLoading}
 		<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
 	{/if}
-
 	{#if USER_TYPE == 'anonymous' }
 	<div class="signin-reminder">
 	<p><em>
@@ -451,7 +460,6 @@ function handleKeyup(e) {
 	</em></p>
 	</div>
 	{/if}
-
 	<hr>
 	<h3>Map Overview</h3>
 	<div class="sheets-status-bar">
