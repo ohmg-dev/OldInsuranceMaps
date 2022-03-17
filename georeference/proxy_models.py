@@ -194,7 +194,7 @@ class DocumentProxy(object):
     @property
     def preparation_lock(self):
 
-        lock = SessionLock(docid=self.id)
+        lock = SessionLock()
         if self.preparation_session is not None:
             lock.set_from_session(self.preparation_session)
         return lock
