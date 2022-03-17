@@ -562,6 +562,9 @@ function handleKeyup(e) {
 		<h4 class="section-toggle" on:click={() => showUnprepared = !showUnprepared}>
 			<i class="fa {showUnprepared == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
 			Unprepared ({VOLUME.items.unprepared.length})
+			{#if VOLUME.items.processing.unprep != 0}
+				&mdash; {VOLUME.items.processing.unprep} processing...
+			{/if}
 		</h4>
 		{#if showUnprepared}
 		<div transition:slide>
@@ -582,10 +585,17 @@ function handleKeyup(e) {
 					<div><p>sheet {document.page_str}</p></div>
 					<img src={document.urls.thumbnail} alt={document.title}>
 					<div>
+						{#if document.lock && document.lock.enabled}
+						<ul style="text-align:center">
+							<li><em>session in progress...</em></li>
+							<li>{document.lock.username}</li>
+						</ul>
+						{:else}
 						<ul>
 							<li><a href={document.urls.split} title="prepare this document">prepare &rarr;</a></li>
 							<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
 						</ul>
+						{/if}
 					</div>
 				</div>
 				{/each}
@@ -597,8 +607,8 @@ function handleKeyup(e) {
 		<h4 class="section-toggle" on:click={() => showPrepared = !showPrepared}>
 			<i class="fa {showPrepared == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
 			Prepared ({VOLUME.items.prepared.length})
-			{#if VOLUME.items.splitting.length > 0}
-				&mdash; {VOLUME.items.splitting.length} processing...
+			{#if VOLUME.items.processing.prep != 0}
+				&mdash; {VOLUME.items.processing.prep} processing...
 			{/if}
 		</h4>
 		{#if showPrepared}
@@ -614,10 +624,17 @@ function handleKeyup(e) {
 					<div><p>{document.title}</p></div>
 					<img src={document.urls.thumbnail} alt={document.title}>
 					<div>
+						{#if document.lock && document.lock.enabled}
+						<ul style="text-align:center">
+							<li><em>session in progress...</em></li>
+							<li>{document.lock.username}</li>
+						</ul>
+						{:else}
 						<ul>
 							<li><a href="{document.urls.georeference}?{referenceLayersParam()}" title="georeference this document">georeference &rarr;</a></li>
 							<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
 						</ul>
+						{/if}
 					</div>
 				</div>
 				{/each}
@@ -629,8 +646,8 @@ function handleKeyup(e) {
 		<h4 class="section-toggle" on:click={() => showGeoreferenced = !showGeoreferenced}>
 			<i class="fa {showGeoreferenced == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
 			Georeferenced ({VOLUME.items.layers.length})
-			{#if VOLUME.items.georeferencing.length > 0}
-				&mdash; {VOLUME.items.georeferencing.length} processing...
+			{#if VOLUME.items.processing.geo_trim != 0}
+				&mdash; {VOLUME.items.processing.geo_trim} processing...
 			{/if}
 		</h4>
 		{#if showGeoreferenced}
@@ -660,11 +677,18 @@ function handleKeyup(e) {
 					<div><p>{layer.title}</p></div>
 					<img src={layer.urls.thumbnail} alt={document.title}>
 					<div>
+						{#if layer.lock && layer.lock.enabled}
+						<ul style="text-align:center">
+							<li><em>session in progress...</em></li>
+							<li>{layer.lock.username}</li>
+						</ul>
+						{:else}
 						<ul>
 							<li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li>
 							<li><a href="{layer.urls.georeference}?{referenceLayersParam()}" title="edit georeferencing">edit georeferencing &rarr;</a></li>
 							<li><a href={layer.urls.detail} title={layer.title}>layer detail &rarr;</a></li>
 						</ul>
+						{/if}
 						{#if settingKeyMapLayer}
 						<label>
 							<input type=checkbox bind:group={mapIndexLayerIds} value={layer.alternate}> Use layer in Key Map

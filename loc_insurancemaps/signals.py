@@ -46,6 +46,20 @@ def resource_status_changed(sender, instance, action, **kwargs):
                 if volume is not None:
                     volume.update_layer_lookup(instance.alternate)
 
+# refresh the lookup if a session is created or deleted.
+@receiver([signals.post_delete, signals.post_save], sender=PrepSession)
+@receiver([signals.post_delete, signals.post_save], sender=GeorefSession)
+@receiver([signals.post_delete, signals.post_save], sender=TrimSession)
+def handle_session_deletion(sender, instance, **kwargs):
+    if instance.document is not None:
+        volume = get_volume("document", instance.document.pk)
+        if volume is not None:
+            volume.update_document_lookup(instance.document.pk)
+    if instance.layer is not None:
+        volume = get_volume("layer", instance.layer.pk)
+        if volume is not None:
+            volume.update_layer_lookup(instance.layer.alternate)
+
 # refresh the lookup for a layer after it is saved.
 @receiver(signals.post_save, sender=Layer)
 def refresh_layer_lookup(sender, instance, **kwargs):

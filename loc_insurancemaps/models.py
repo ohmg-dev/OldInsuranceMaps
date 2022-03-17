@@ -60,7 +60,6 @@ def get_volume(resource_type, res_id):
             pass
         except Exception as e:
             logger.error(e)
-
     return volume
 
 def format_json_display(data):
@@ -452,10 +451,29 @@ class Volume(models.Model):
 
     def sort_lookups(self):
 
-        sorted_items = {tk: [] for tk in TKeywordManager().lookup.keys()}
+        sorted_items = {
+            "unprepared": [],
+            "prepared": [],
+            "georeferenced": [],
+            "processing": {
+                "unprep": 0,
+                "prep": 0,
+                "geo_trim": 0,
+            }
+        }
         for v in self.document_lookup.values():
-            if v['status'] is not None:
-                sorted_items[v['status']].append(v)
+            if v['status'] in ["unprepared", "splitting"]:
+                sorted_items['unprepared'].append(v)
+                if v['status'] == "splitting":
+                    sorted_items['processing']['unprep'] += 1
+            if v['status'] in ["prepared", "georeferencing"]:
+                sorted_items['prepared'].append(v)
+                if v['status'] == "georeferencing":
+                    sorted_items['processing']['prep'] += 1
+            if v['status'] in ["georeferenced", "trimming", "trimmed"]:
+                sorted_items['georeferenced'].append(v)
+                if v['status'] == "trimming":
+                    sorted_items['processing']['geo_trim'] += 1
 
         sorted_items['layers'] = list(self.layer_lookup.values())
         return sorted_items

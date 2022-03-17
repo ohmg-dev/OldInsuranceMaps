@@ -309,6 +309,7 @@ class DocumentProxy(object):
             "status": self.status,
             "urls": self.get_extended_urls(),
             "parent_doc": parent_doc,
+            "lock": self.lock.as_dict,
         }
 
     def get_sessions(self):
@@ -449,6 +450,7 @@ class LayerProxy(object):
             "extent": self.extent,
             "status": self.status,
             "urls": self.get_extended_urls(),
+            "lock": self.lock.as_dict,
         }
 
 def get_info_panel_content(resourceid):
