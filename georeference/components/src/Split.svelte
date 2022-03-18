@@ -350,7 +350,8 @@ function cleanup () {
         <a href="/account/signup">sign up</a> to proceed.
       </em></p>
       {:else if disableReason == "input" || disableReason == "processing"}
-      <p>Someone else is already preparing this document.</p>
+      <!-- svelte-ignore a11y-invalid-attribute -->
+      <p>Someone else is already preparing this document (<a href="javascript:window.location.reload(true)">refresh</a>).</p>
       {:else if disableReason == "finished"}
       <p>This document has already been prepared.</p>
       {:else if disableReason == "split"}

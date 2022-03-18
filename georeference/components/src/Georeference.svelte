@@ -112,8 +112,7 @@ function cancelAndRedirectToDetail() {
 
 const beginTxt = "Click a recognizable location on the map document (left panel)"
 const completeTxt = "Now find and click on the corresponding location in the web map (right panel)"
-
-let currentTxt = beginTxt;
+$: currentTxt = !inProgress ? beginTxt : completeTxt;
 
 const noteInputElId = "note-input";
 
@@ -205,7 +204,6 @@ let referenceVisible = REFERENCE_LAYERS.length > 0;
 $: {
   refGroup.setVisible(referenceVisible)
 }
-
 
 // this Modify interaction is created individually for each map panel
 function makeModifyInteraction(hitDetection, source, targetElement) {
@@ -835,7 +833,8 @@ function cleanup () {
         <a href="/account/signup">sign up</a> to proceed.
       </em></p>
       {:else if disableReason == "input" || disableReason == "processing"}
-      <p>Someone is already georeferencing this document.</p>
+      <!-- svelte-ignore a11y-invalid-attribute -->
+      <p>Someone is already georeferencing this document (<a href="javascript:window.location.reload(true)">refresh</a>).</p>
       {:else if disableReason == "submit"}
       <p>Saving control points and georeferencing document... redirecting to document detail page.</p>
       <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
@@ -896,7 +895,7 @@ function cleanup () {
         <label title="Change basemap">
           Preview
           <select title="Set preview (w)" bind:value={previewMode} disabled={previewMode == "n/a"}>
-            {#if previewMode == "n/a"}<option value="n/a" disabled>preview n/a</option>{/if}
+            {#if previewMode == "n/a"}<option value="n/a" disabled>n/a</option>{/if}
             <option value="none">none</option>
             <option value="transparent">1/2</option>
             <option value="full">full</option>
