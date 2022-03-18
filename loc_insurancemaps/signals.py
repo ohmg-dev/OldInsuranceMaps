@@ -26,12 +26,17 @@ def create_full_thumbnail(sender, instance, **kwargs):
         thumb = FullThumbnail(document=instance)
         thumb.save()
 
-# triggered whenever a tkeyword is changed on a Document or Layer
+# triggered whenever a tkeyword is changed on a Document or Layer,
 @receiver(signals.m2m_changed, sender=Document.tkeywords.through)
 @receiver(signals.m2m_changed, sender=Layer.tkeywords.through)
 def resource_status_changed(sender, instance, action, **kwargs):
-    """Trigger the document_lookup and layer_lookup updates on a volume
-    whenever a Document or Layer has its georeferencing status changed."""
+    """
+    Trigger the document_lookup and layer_lookup updates on a volume
+    whenever a Document or Layer has its georeferencing status changed.
+
+    This is effectively connected to the creation/deletion of sessions
+    because those actions change the tkeywords.
+    """
     volume = None
     if action == "post_add":
         new_status = TKeywordManager().get_status(instance)

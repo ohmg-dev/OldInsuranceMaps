@@ -367,7 +367,7 @@ function cleanup () {
         <a href="/account/signup">sign up</a> to proceed.
       </em></p>
       {:else if disableReason == "input" || disableReason == "processing"}
-      <p>Someone else is already trimming this layer.</p>
+      <p>Someone else is already trimming this layer (<a href="javascript:window.location.reload(true)">refresh</a>).</p>
       {:else if disableReason == "submit"}
       <p>Applying layer mask... redirecting to layer detail when finished.</p>
       <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
