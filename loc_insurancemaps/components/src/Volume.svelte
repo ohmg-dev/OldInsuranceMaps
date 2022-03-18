@@ -71,7 +71,22 @@ let showLayerList = true;
 
 let orderableLayers = [];
 let orderableIndexLayers = [];
-let mapIndexLayerIds = [];
+let mapIndexLayerIds = []; 
+
+const keyImgUrl = "/static/img/key-nola-1940.png"
+const keyImgCaption = "Sanborn Map Key"
+
+function showImgModal(imgUrl, caption) {
+	const modalImg = document.getElementById("modalImg")
+	modalImg.src = imgUrl;
+	modalImg.alt = caption;
+	document.getElementById("imgCaption").firstChild.innerHTML = caption;
+	document.getElementById("vModal").style.display = "block";
+}
+function closeModal() {
+	document.getElementById("vModal").style.display = "none";
+	document.getElementById("modalImg").src = "";
+}
 
 function referenceLayersParam() {
 	let referenceLayers = [];
@@ -426,6 +441,14 @@ function handleKeyup(e) {
 
 </script>
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup}/>
+
+<div id="vModal" class="modal">
+	<button id="closeModal" class="close" on:click={closeModal}>&times;</button>
+	<div class="modal-content" style="text-align:center;">
+		<img id="modalImg" alt="" src="">
+		<div id="imgCaption"><h5>~</h5></div>
+	</div>
+</div>
 <main>
 	<h1>{ VOLUME.title }</h1>
 	<p>
@@ -478,15 +501,9 @@ function handleKeyup(e) {
 				<button class="control-btn" title="Reset extent" on:click={setMapExtent}>
 					<i class="fa fa-refresh" />
 				</button>
-				{#if USER_TYPE != "anonymous"}
-				{#if !refreshingLookups}
-				<button id="repair-button" class="control-btn" title="Repair Extent (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
-					<i class="fa fa-wrench" />
+				<button id="show-key-img" on:click={() => {showImgModal(keyImgUrl, keyImgCaption)}} class="control-btn">
+					<i class="fa fa-key" />
 				</button>
-				{:else}
-				<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
-				{/if}
-				{/if}
 				<button class="control-btn" title={fullscreenBtnTitle} on:click={toggleFullscreen}>
 					<i class="fa {fullscreenBtnIcon}" />
 				</button>
@@ -550,12 +567,22 @@ function handleKeyup(e) {
 		</div>
 	</div>
 	<hr>
-	<h3 style="">
-		Georeferencing Overview
-		<button class="control-btn" style="float:right;" title="refresh overview" on:click={() => { postOperation("refresh") }}>
-			<i class="fa fa-refresh" />
-		</button>
-	</h3>
+	<div style="display:flex; justify-content:space-between; align-items:center;">
+		<h3>Georeferencing Overview</h3>
+		<div>
+			{#if refreshingLookups}
+			<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+			{/if}
+			<button class="control-btn" title="Refresh Summary" on:click={() => { postOperation("refresh") }}>
+				<i class="fa fa-refresh" />
+			</button>
+			{#if USER_TYPE != "anonymous"}
+			<button id="repair-button" class="control-btn" title="Repair Summary (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
+				<i class="fa fa-wrench" />
+			</button>
+			{/if}
+		</div>
+	</div>
 	<div class="sheets-status-bar">
 		{#if VOLUME.loaded_by.name != "" && !sheetsLoading}
 			<p><em>{VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.loaded != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}</em></p>
@@ -591,7 +618,7 @@ function handleKeyup(e) {
 				{#each VOLUME.items.unprepared as document}
 				<div class="document-item">
 					<div><p>sheet {document.page_str}</p></div>
-					<img src={document.urls.thumbnail} alt={document.title}>
+					<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
 					<div>
 						{#if document.lock && document.lock.enabled}
 						<ul style="text-align:center">
@@ -630,7 +657,7 @@ function handleKeyup(e) {
 				{#each VOLUME.items.prepared as document}
 				<div class="document-item">
 					<div><p>{document.title}</p></div>
-					<img src={document.urls.thumbnail} alt={document.title}>
+					<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
 					<div>
 						{#if document.lock && document.lock.enabled}
 						<ul style="text-align:center">
