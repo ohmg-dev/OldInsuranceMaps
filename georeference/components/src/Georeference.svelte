@@ -330,7 +330,16 @@ function DocumentViewer (elementId) {
   map.addLayer(docRotate.layer);
 
   // add some click actions to the map
-  map.on("click", setActiveGCPOnClick);
+  map.on("click", function(e) {
+    let found = false;
+    e.map.forEachFeatureAtPixel(e.pixel, function(feature) {
+      if (feature.getProperties().listId) {
+        activeGCP = feature.getProperties().listId;
+        found = true;
+      }
+    });
+    if (!found && !draw.getActive() && !inProgress) {activeGCP = null}
+  });
 
   // add transition actions to the map element
   function updateMapEl() {map.updateSize()}
@@ -430,6 +439,7 @@ onMount(() => {
   setPreviewVisibility(previewMode)
   loadIncomingGCPs();
   disabledMap(disableInterface)
+  inProgress = false;
 });
 
 function disabledMap(disabled) {
