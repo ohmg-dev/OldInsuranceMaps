@@ -73,8 +73,15 @@ let mapFullMaskLayer;
 let docRotate;
 let mapRotate;
 
-const imgWidth = IMG_SIZE[0];
-const imgHeight = IMG_SIZE[1];
+$: docCursorStyle = inProgress ? 'default' : 'crosshair';
+$: mapCursorStyle = inProgress ? 'crosshair' : 'default';
+
+$: {
+  if (docView && mapView) {
+    docView.element.style.cursor = docCursorStyle;
+    mapView.element.style.cursor = mapCursorStyle;
+  }
+}
 
 let disableInterface = LOCK.enabled;
 let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
@@ -216,7 +223,8 @@ function makeModifyInteraction(hitDetection, source, targetElement) {
 
   let overlaySource = modify.getOverlay().getSource();
   overlaySource.on(['addfeature', 'removefeature'], function (e) {
-    targetElement.style.cursor = e.type === 'addfeature' ? 'pointer' : '';
+    const fallback = targetElement.id == 'doc-viewer' ? docCursorStyle : mapCursorStyle;
+    targetElement.style.cursor = e.type === 'addfeature' ? 'pointer' : fallback;
   });
   return modify
 }
@@ -233,6 +241,9 @@ function makeDrawInteraction(source) {
 function DocumentViewer (elementId) {
 
   const targetElement = document.getElementById(elementId);
+
+  const imgWidth = IMG_SIZE[0];
+  const imgHeight = IMG_SIZE[1];
 
   // items needed by layers and map
   // set the extent and projection with 0, 0 at the **top left** of the image
