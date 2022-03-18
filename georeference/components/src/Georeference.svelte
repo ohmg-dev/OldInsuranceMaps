@@ -279,7 +279,6 @@ function DocumentViewer (elementId) {
     layers: [docLayer, gcpLayer],
     view: new View({
       projection: docProjection,
-      center: [imgWidth/2, -imgHeight/2],
       zoom: 1,
       maxZoom: 8,
     })
@@ -343,6 +342,10 @@ function DocumentViewer (elementId) {
   this.element = targetElement;
   this.drawInteraction = draw;
   this.modifyInteraction = modify;
+
+  this.resetExtent = function () {
+    map.getView().fit(docExtent, {padding: [10, 10, 10, 10]})
+  }
 }
 
 function MapViewer (elementId) {
@@ -410,6 +413,15 @@ function MapViewer (elementId) {
     this.element = targetElement;
     this.drawInteraction = draw;
     this.modifyInteraction = modify;
+
+    this.resetExtent = function () {
+      if (INCOMING_GCPS) {
+        map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
+      } else {
+        const extent3857 = transformExtent(REGION_EXTENT, "EPSG:4326", "EPSG:3857");
+        map.getView().fit(extent3857);
+      }
+    }
 }
 
 onMount(() => {
@@ -460,12 +472,10 @@ function loadIncomingGCPs() {
       listId += 1;
     });
     previewMode = "transparent";
-    mapView.map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
-    syncGCPList();
-  } else {
-    const extent3857 = transformExtent(REGION_EXTENT, "EPSG:4326", "EPSG:3857");
-    mapView.map.getView().fit(extent3857);
   }
+  syncGCPList();
+  docView.resetExtent()
+  mapView.resetExtent()
   currentTransformation = (INCOMING_TRANSFORMATION ? INCOMING_TRANSFORMATION : "poly1")
   loadingInitial = false;
   inProgress = false;
