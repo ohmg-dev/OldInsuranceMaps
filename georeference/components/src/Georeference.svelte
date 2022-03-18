@@ -54,7 +54,6 @@ export let REFERENCE_LAYERS;
 
 let previewMode = "n/a";
 
-let activeGCP = 1;
 let inProgress = false;
 let loadingInitial = false;
 
@@ -64,6 +63,9 @@ let syncPanelWidth = false;
 let docView;
 let mapView;
 let gcpList = [];
+
+let activeGCP = null;
+$: nextGCP = gcpList.length + 1;
 
 let unchanged = true;
 
@@ -138,11 +140,11 @@ let currentBasemap = basemaps[0].id;
 
 const docGCPSource = new VectorSource();
 docGCPSource.on('addfeature', function (e) {
-  activeGCP = gcpList.length + 1;
+
   if (!e.feature.getProperties().listId) {
-    e.feature.setProperties({'listId': activeGCP})
+    e.feature.setProperties({'listId': nextGCP})
   }
-  e.feature.setStyle(styles.gcpHighlight);
+  activeGCP = e.feature.getProperties().listId;
   inProgress = true;
   unchanged = false;
 })
@@ -154,15 +156,16 @@ mapGCPSource.on(['addfeature'], function (e) {
   if (!e.feature.getProperties().listId) {
     e.feature.setProperties({
       'id': uuid(),
-      'listId': activeGCP,
+      'listId': nextGCP,
       'username': USERNAME,
       'note': '',
     });
   }
   e.feature.setStyle(styles.gcpHighlight);
   // check the loadingInitial flag to save unnecessary calls to backend
-  if (!loadingInitial) {syncGCPList();}
+  if (!loadingInitial) {syncGCPList()}
   inProgress = false;
+  activeGCP = e.feature.getProperties().listId;
 })
 
 // create the preview layer from mapserver
@@ -381,7 +384,16 @@ function MapViewer (elementId) {
     map.addControl(mousePositionControl);
 
     // add some click actions to the map
-    map.on("click", setActiveGCPOnClick)
+    map.on("click", function(e) {
+      let found = false;
+      e.map.forEachFeatureAtPixel(e.pixel, function(feature) {
+        if (feature.getProperties().listId) {
+          activeGCP = feature.getProperties().listId;
+          found = true;
+        }
+      });
+      if (!found && !draw.getActive()) {activeGCP = null}
+    });
 
     mapRotate = utils.makeRotateCenterLayer()
     map.addLayer(mapRotate.layer)
@@ -453,16 +465,10 @@ function loadIncomingGCPs() {
     mapView.map.getView().fit(extent3857);
   }
   currentTransformation = (INCOMING_TRANSFORMATION ? INCOMING_TRANSFORMATION : "poly1")
-  activeGCP = gcpList.length + 1;
   loadingInitial = false;
   inProgress = false;
   unchanged = true;
-}
-
-function setActiveGCPOnClick(e) {
-  e.map.forEachFeatureAtPixel(e.pixel, function(feature) {
-    activeGCP = feature.getProperties().listId;
-  });
+  activeGCP = null;
 }
 
 function removeActiveGCP() {
@@ -486,7 +492,7 @@ function removeGCP(gcpListID) {
       }
     });
     resetListIds();
-    activeGCP = (gcpList.length == 0 ? 1 : activeGCP - 1);
+    activeGCP = null;
     inProgress = false;
   }
 }
@@ -600,13 +606,15 @@ function displayActiveGCP(activeId) {
 
   // set note display content
   const el = document.getElementById(noteInputElId);
-  if (inProgress) {
-    el.value = "";
-  } else {
-    mapGCPSource.getFeatures().forEach( function (feat) {
-      let props = feat.getProperties();
-      if (props.listId == activeId) { el.value = props.note }
-    })
+  if (el) {
+    if (inProgress) {
+      el.value = "";
+    } else {
+      mapGCPSource.getFeatures().forEach( function (feat) {
+        let props = feat.getProperties();
+        if (props.listId == activeId) { el.value = props.note }
+      })
+    }
   }
 
   // highlight features for active GCP
