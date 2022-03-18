@@ -282,10 +282,22 @@ function DocumentViewer (elementId) {
   docFullMaskLayer = utils.generateFullMaskLayer(map)
   map.addLayer(docFullMaskLayer)
 
+  function coordWithinDoc (coordinate) {
+    const x = coordinate[0];
+    const y = -coordinate[1];
+    // set n/a if the mouse is outside of the document image itself
+    if (x < 0 || x > imgWidth || y < 0 || y > imgHeight) {
+      return false
+    } else {
+      return true
+    }
+  }
+
   // create interactions
-  const draw = makeDrawInteraction(docGCPSource);
-  draw.setActive(true);
-  targetElement.style.cursor = 'crosshair';
+  function drawWithinDocCondition (mapBrowserEvent) {
+    return coordWithinDoc(mapBrowserEvent.coordinate)
+  }
+  const draw = makeDrawInteraction(docGCPSource, drawWithinDocCondition);
   map.addInteraction(draw)
 
   const modify = makeModifyInteraction(gcpLayer, docGCPSource, targetElement)
@@ -295,12 +307,14 @@ function DocumentViewer (elementId) {
   // create controls
   const mousePositionControl = new MousePosition({
     coordinateFormat: function(coordinate) {
-      const x = Math.round(coordinate[0]);
-      const y = -Math.round(coordinate[1]);
-      let formatted = `${x}, ${y}`;
-      // set empty if the mouse is outside of the image itself
-      if (x < 0 || x > imgWidth || y < 0 || y > imgHeight) {formatted = ""}
-      return formatted
+      // set n/a if the mouse is outside of the document image itself
+      if (coordWithinDoc(coordinate)) {
+        const x = Math.round(coordinate[0]);
+        const y = -Math.round(coordinate[1]);
+        return `${x}, ${y}`
+      } else {
+        return 'n/a'
+      }
     },
     projection: docProjection,
     undefinedHTML: 'n/a',
