@@ -233,12 +233,15 @@ function makeModifyInteraction(hitDetection, source, targetElement) {
 }
 
 // this Draw interaction is created individually for each map panel
-function makeDrawInteraction(source) {
-  return new Draw({
+function makeDrawInteraction(source, condition) {
+  const draw = new Draw({
     source: source,
     type: 'Point',
     style: styles.empty,
+    condition: condition,
   });
+  draw.setActive(false);
+  return draw
 }
 
 function DocumentViewer (elementId) {
@@ -368,7 +371,6 @@ function MapViewer (elementId) {
 
     // create interactions
     const draw = makeDrawInteraction(mapGCPSource);
-    draw.setActive(false);
     map.addInteraction(draw)
 
     const modify = makeModifyInteraction(gcpLayer, mapGCPSource, targetElement)
@@ -555,22 +557,18 @@ function updateNote() {
   })
 }
 
-// Triggered by the inProgress boolean
-function updateInterface(gcpInProgress, syncPanelWidth) {
-
+$: {
   if (syncPanelWidth) {
-    panelFocus = ( gcpInProgress ? "right" : "left" )
-    setPanelWidths(panelFocus)
-  }
-  if (docView && mapView) {
-    docView.drawInteraction.setActive(!gcpInProgress);
-    mapView.drawInteraction.setActive(gcpInProgress);
-    docView.element.style.cursor = ( gcpInProgress ? 'default' : 'crosshair' );
-    mapView.element.style.cursor = ( gcpInProgress ? 'crosshair' : 'default' );
-    currentTxt = ( gcpInProgress ? completeTxt : beginTxt );
+    panelFocus = ( inProgress ? "right" : "left" )
   }
 }
-$: updateInterface(inProgress, syncPanelWidth)
+
+$: {
+  if (docView && mapView) {
+    docView.drawInteraction.setActive(!inProgress);
+    mapView.drawInteraction.setActive(inProgress);
+  }
+}
 
 // triggered by a change in the basemap id
 function setBasemap(basemapId) {
@@ -629,10 +627,9 @@ function displayActiveGCP(activeId) {
 }
 $: displayActiveGCP(activeGCP)
 
-// Triggered by a (manual) change in which panel should have focus
-function setPanelWidths (focusOn) {
+$: {
   if (docView && mapView) {
-    switch(focusOn) {
+    switch(panelFocus) {
       case "equal":
         docView.element.style.width = "50%";
         mapView.element.style.width = "50%";
@@ -648,7 +645,6 @@ function setPanelWidths (focusOn) {
     }
   }
 }
-$: setPanelWidths(panelFocus);
 
 function toggleFullscreen () {
   if (document.fullscreenElement == null) {
