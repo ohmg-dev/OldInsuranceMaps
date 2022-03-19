@@ -151,7 +151,7 @@ function removeMask() {
   const extent3857 = transformExtent(LAYER.extent, "EPSG:4326", "EPSG:3857");
   mapView.map.getView().fit(extent3857);
   mapView.drawInteraction.setActive(true)
-
+  mapView.map.getView().setRotation(0);
 }
 
 function resetInterface() {
@@ -245,7 +245,7 @@ function MapViewer (elementId) {
   let mousePositionControl = new MousePosition({
     projection: 'EPSG:4326',
     coordinateFormat: createStringXY(6),
-    undefinedHTML: '&nbsp;',
+    undefinedHTML: 'n/a',
   });
   map.addControl(mousePositionControl);
 
