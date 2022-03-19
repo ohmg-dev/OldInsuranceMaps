@@ -71,11 +71,11 @@ if 'georeference' in INSTALLED_APPS:
 
     CELERY_BEAT_SCHEDULE['delete_expired_sessions'] = {
         'task': 'georeference.tasks.delete_expired_sessions',
-        'schedule': 15.0,
+        'schedule': 60.0,
     }
 
     # prep/georef/trim session duration before expiration (seconds)
-    GEOREFERENCE_SESSION_LENGTH = 6000
+    GEOREFERENCE_SESSION_LENGTH = 600
 
 # add static files and templates that are in the local (loc_insurancemaps) app
 TEMPLATES[0]['DIRS'].insert(0, os.path.join(LOCAL_ROOT, "templates"))
