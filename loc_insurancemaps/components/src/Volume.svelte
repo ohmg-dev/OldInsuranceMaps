@@ -443,7 +443,7 @@ function handleKeyup(e) {
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup}/>
 
 <div id="vModal" class="modal">
-	<button id="closeModal" class="close" on:click={closeModal}>&times;</button>
+	<button id="closeModal" class="close close-vmodal" on:click={closeModal}>&times;</button>
 	<div class="modal-content" style="text-align:center;">
 		<img id="modalImg" alt="" src="">
 		<div id="imgCaption"><h5>~</h5></div>
