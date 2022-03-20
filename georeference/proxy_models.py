@@ -1,9 +1,13 @@
+
 import logging
 from PIL import Image
 from itertools import chain
+from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.gis.geos import Polygon
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from geonode.documents.models import Document
 from geonode.layers.models import Layer
@@ -24,25 +28,70 @@ from .utils import (
 
 logger = logging.getLogger(__name__)
 
-class Lock(object):
+class SessionLock(object):
     """
     Defines a Lock object that can be used for resources.
     """
-    __slots__ = ["enabled", "type", "stage"]
 
-    def __init__(self, enabled, type, stage):
-        """Constructor"""
-        super(Lock, self).__setattr__("enabled", enabled)
-        super(Lock, self).__setattr__("type", type)
-        super(Lock, self).__setattr__("stage", stage)
+    def __init__(self, doc_proxy=None, layer_proxy=None):
+
+        self.enabled = False
+        self.type = ""
+        self.stage = ""
+        self.username = ""
+        self.timeleft = None
+
+        if doc_proxy is not None:
+            if doc_proxy.preparation_session is not None:
+                if doc_proxy.preparation_session.stage == "input":
+                    self.set_from_session(doc_proxy.preparation_session)
+            for gs in doc_proxy.georeference_sessions:
+                if gs.stage == "input":
+                    self.set_from_session(gs)
+
+        elif layer_proxy is not None:
+            for ts in layer_proxy.trim_sessions:
+                if ts.stage == "input":
+                    self.set_from_session(ts)
 
     @property
     def as_dict(self):
+
+        if self.timeleft is not None:
+            if self.timeleft.seconds == 0:
+                timeleft_str = "0m 0s"
+            else:
+                hours, remainder = divmod(self.timeleft.seconds, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                hrs_int = int(hours)
+                min_int = str(int(minutes))
+                sec_int = str(int(seconds))
+                timeleft_str = f"{min_int}m {sec_int}s"
+                if hrs_int != 0:
+                    timeleft_str = f"{hrs_int}h " + timeleft_str
+        else:
+            timeleft_str = "n/a"
+
         return {
             "enabled": self.enabled,
             "type": self.type,
             "stage": self.stage,
+            "username": self.username,
+            "timeleft": timeleft_str,
         }
+
+    def set_from_session(self, session):
+        self.enabled = True
+        self.type = session.type
+        self.stage = session.stage
+        if session.user is not None:
+            self.username = session.user.username
+        allowed_length = settings.GEOREFERENCE_SESSION_LENGTH
+        cutoff = timezone.now() - timedelta(seconds=allowed_length)
+        timeleft = session.date_created - cutoff
+        if timeleft < timedelta():
+            timeleft = timedelta()
+        self.timeleft = timeleft
 
 class DocumentProxy(object):
 
@@ -145,30 +194,23 @@ class DocumentProxy(object):
     @property
     def preparation_lock(self):
 
-        lock = Lock(False, "preparation", None)
+        lock = SessionLock()
         if self.preparation_session is not None:
-            lock.enabled = True
-            lock.stage = self.preparation_session.stage
+            lock.set_from_session(self.preparation_session)
         return lock
 
     @property
     def georeference_lock(self):
 
-        lock = Lock(False, "georeference", None)
+        lock = SessionLock()
         for gs in self.georeference_sessions:
             if gs.stage != "finished":
-                lock.enabled = True
-                lock.stage = gs.stage
+                lock.set_from_session(gs)
         return lock
 
     @property
     def lock(self):
-        if self.preparation_lock.enabled:
-            return self.preparation_lock
-        elif self.georeference_lock.enabled:
-            return self.georeference_lock
-        else:
-            return Lock(False, None, None)
+        return SessionLock(doc_proxy=self)
 
     def get_document(self):
         return Document.objects.get(id=self.id)
@@ -267,6 +309,7 @@ class DocumentProxy(object):
             "status": self.status,
             "urls": self.get_extended_urls(),
             "parent_doc": parent_doc,
+            "lock": self.lock.as_dict,
         }
 
     def get_sessions(self):
@@ -340,12 +383,15 @@ class LayerProxy(object):
     @property
     def trim_lock(self):
 
-        lock = Lock(False, "trim", None)
+        lock = SessionLock()
         for ts in self.trim_sessions:
             if ts.stage != "finished":
-                lock.enabled = True
-                lock.stage = ts.stage
+                lock.set_from_session(ts)
         return lock
+
+    @property
+    def lock(self):
+        return SessionLock(layer_proxy=self)
 
     def get_layer(self):
         return Layer.objects.get(id=self.id)
@@ -404,6 +450,7 @@ class LayerProxy(object):
             "extent": self.extent,
             "status": self.status,
             "urls": self.get_extended_urls(),
+            "lock": self.lock.as_dict,
         }
 
 def get_info_panel_content(resourceid):

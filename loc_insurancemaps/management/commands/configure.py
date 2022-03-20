@@ -222,7 +222,7 @@ files = /etc/supervisor/conf.d/*.conf
 sudo cp {conf_path} /etc/supervisor/supervisord.conf
 
 # kill celery workers and reload supervisor
-sudo pkill celery
+sudo pkill celery -f
 sudo supervisorctl reload
 """
         full_deploy_path = self.write_file(deploy_path, deploy_content)
@@ -262,9 +262,8 @@ stopwaitsecs=600
 sudo ln -sf {celery_conf} /etc/supervisor/conf.d/{os.path.basename(celery_conf)}
 
 # Restart supervisor
+sudo pkill celery -f
 sudo supervisorctl reload
-
-sudo pkill -f celery
 """
         full_deploy_path = self.write_file(deploy_path, deploy_content)
 
@@ -290,6 +289,7 @@ sudo pkill -f celery
             ("SITE_HOST_NAME", ""),
             ("SITEURL", ""),
             ("ALLOWED_HOSTS", []),
+            ("PROXY_ALLOWED_HOSTS", []),
             ("LOCKDOWN_GEONODE", False),
             ("SESSION_EXPIRED_CONTROL_ENABLED", True),
             ("MONITORING_ENABLED", False),
@@ -450,8 +450,8 @@ sudo ln -sf {service_file} /etc/systemd/system
 
 # refresh service
 sudo systemctl daemon-reload
-sudo pkill uwsgi
 sudo systemctl stop {service_name}
+sudo pkill uwsgi -f
 sudo systemctl start {service_name}
 """
         full_deploy_path = self.write_file(deploy_path, deploy_content)

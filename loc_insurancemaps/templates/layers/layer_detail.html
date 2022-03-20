@@ -44,7 +44,7 @@
     }
     </style>
 
-    <h2 class="page-title">{{ resource.title|default:resource.alternate }}</h2>
+    <h2>{{ resource.title|default:resource.alternate }}</h2>
     {% if storeType == 'remoteStore' %}
     <em>
       <i class="fa fa-power-off {% if online %}text-success{% else %}text-danger{% endif %}"></i> {% trans "Service is" %} {% if online %}{% trans "online" %}{% else %}{% trans "offline" %}{% endif %} 
@@ -293,18 +293,22 @@
           </div>
           <div class="modal-body">
             <div class="tabbable">
+                
                 <ul class="nav nav-tabs">
+                    {% comment %}
                     {% if links %}
-                    <li class="active"><a href="#download_tab1" data-toggle="tab">{% trans "Images" %}</a></li>
+                    <li><a href="#download_tab1" data-toggle="tab">{% trans "Images" %}</a></li>
                     {% endif %}
+                    {% endcomment %}
                     {% if links_download %}
-                    <li><a href="#download_tab2" data-toggle="tab">{% trans "Data" %}</a></li>
+                    <li class="active"><a href="#download_tab2" data-toggle="tab">{% trans "Data" %}</a></li>
                     {% endif %}
                 </ul>
+
                 <div class="tab-content">
                 {% if links %}
-                    <div class="tab-pane active" id="download_tab1">
-                        <li class="active">
+                    <div class="tab-pane" id="download_tab1">
+                        <li class="">
                             <ul>
                               {% for link in links %}
                                 <li><a href="{{ link.url }}" target="_blank">{% trans link.name %}</a></li>
@@ -318,7 +322,7 @@
                     {#  if links doesn't exist, make this tab active by default #}
                     <div class="tab-pane active" id="download_tab2">
                     {% else %}
-                    <div class="tab-pane" id="download_tab2">
+                    <div class="tab-pane active" id="download_tab2">
                     {% endif %}
                       </br>
 
@@ -412,8 +416,9 @@
                       </div>
 
                       <!-- DOWNLOAD FILTER - END -->
-
+                      {% comment %}
                       <h4>{% trans "Pick your download format:" %}</h4>
+                      {% endcomment %}
                       <ul>
                         {% for link in links_download %}
                           {% if link.name == 'Original Dataset' %}
@@ -424,8 +429,11 @@
                             <!-- Hide the link instead. Uncomment the lines below to present a warning to the users. -->
                             <!-- li><a href="javascript:thumbnailFeedbacks('{% trans "No data available for this resource. Please contact a system administrator or a manager." %}', '{% trans "Warning" %}');" id="{{ link.name | slugify }}" class="urls">{% trans link.name %}</a></li -->
                             {% endif %}
+                          {% comment %}
                           {% else %}
+                          adsf
                             <li><a href="{{ link.url }}" target="_blank" id="{{ link.name | slugify }}" class="urls">{% trans link.name %}</a></li>
+                          {% endcomment %}
                           {% endif %}
                         {% endfor %}
                       </ul>

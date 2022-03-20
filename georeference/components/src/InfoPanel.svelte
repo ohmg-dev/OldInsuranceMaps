@@ -207,7 +207,7 @@ function setSplit(operation) {
             <td class="coord-digit">{feat.properties.image[0]}</td>
             <td class="coord-digit">{feat.properties.image[1]}</td>
             <td class="coord-digit">{Math.round(feat.geometry.coordinates[0]*1000000)/1000000}</td>
-            <td class="coord-digit">{Math.round(feat.geometry.coordinates[0]*1000000)/1000000}</td>
+            <td class="coord-digit">{Math.round(feat.geometry.coordinates[1]*1000000)/1000000}</td>
             <td>{feat.properties.username}</td>
             <td>{feat.properties.note != null ? feat.properties.note : "--"}</td>
           </tr>
@@ -269,7 +269,7 @@ function setSplit(operation) {
               <td>{sesh.stage}</td>
               <td>{sesh.status}</td>
               <!-- the number of commas = the number of vertices in a wkt polygon -->
-              <td>{sesh.data.mask_ewkt.match(/,/g).length}</td>
+              <td>{sesh.data.mask_ewkt != null ? sesh.data.mask_ewkt.match(/,/g).length : "--"}</td>
             </tr>
             {/each}
           </table>

@@ -32,6 +32,7 @@ const utils = new Utils();
 
 export let LOCK;
 export let SESSION_ID;
+export let SESSION_LENGTH;
 export let CSRFTOKEN;
 export let LAYER;
 export let MAPBOX_API_KEY;
@@ -43,6 +44,24 @@ let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
 let leaveOkay = true;
 if (LOCK.stage == "in-progress") {
   leaveOkay = false;
+}
+
+// show the extend session prompt 15 seconds before the session expires
+setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
+
+let autoRedirect;
+function promptRefresh() {
+  if (!leaveOkay) {
+    const modal = document.getElementById("expirationModal");
+    modal.style.display = "block";
+    leaveOkay = true;
+    autoRedirect = setTimeout(cancelAndRedirectToDetail, 15000);
+  }
+}
+
+function cancelAndRedirectToDetail() {
+  process("cancel");
+  window.location.href=LAYER.urls.detail;
 }
 
 let previewMode = "n/a";
@@ -132,7 +151,7 @@ function removeMask() {
   const extent3857 = transformExtent(LAYER.extent, "EPSG:4326", "EPSG:3857");
   mapView.map.getView().fit(extent3857);
   mapView.drawInteraction.setActive(true)
-
+  mapView.map.getView().setRotation(0);
 }
 
 function resetInterface() {
@@ -226,7 +245,7 @@ function MapViewer (elementId) {
   let mousePositionControl = new MousePosition({
     projection: 'EPSG:4326',
     coordinateFormat: createStringXY(6),
-    undefinedHTML: '&nbsp;',
+    undefinedHTML: 'n/a',
   });
   map.addControl(mousePositionControl);
 
@@ -271,6 +290,13 @@ function process(operation) {
     leaveOkay = true;
     disableInterface = true;
   };
+
+  if (operation == "extend-session") {
+    leaveOkay = false;
+    clearTimeout(autoRedirect)
+    document.getElementById("expirationModal").style.display = "none";
+    setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
+  }
 
   const data = JSON.stringify({
     "mask_coords": maskPolygonCoords,
@@ -321,6 +347,14 @@ function cleanup () {
 </script>
 
 <svelte:window on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
+
+<div id="expirationModal" class="modal">
+  <div class="modal-content">
+    <p>This trimming session is expiring, and will be cancelled soon.</p>
+    <button on:click={() => {process("extend-session")}}>Give me more time!</button>
+  </div>
+</div>
+
 <div class="tb-top-item"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
@@ -333,7 +367,7 @@ function cleanup () {
         <a href="/account/signup">sign up</a> to proceed.
       </em></p>
       {:else if disableReason == "input" || disableReason == "processing"}
-      <p>Someone else is already trimming this layer.</p>
+      <p>Someone else is already trimming this layer (<a href="javascript:window.location.reload(true)">refresh</a>).</p>
       {:else if disableReason == "submit"}
       <p>Applying layer mask... redirecting to layer detail when finished.</p>
       <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>

@@ -57,8 +57,6 @@ $: updateFilteredList(filterInput)
 </script>
 
 <main>
-	<h3>Search for volumes</h3>
-	<p>Access available volumes here to start working on a new one. <a href="https://docs.oldinsurancemaps.net/" target="_blank">Learn more about this <i class="fa fa-external-link"></i></a></p>
 	{#if USER_TYPE == 'anonymodus' }
 	<div class="signin-reminder">
 	<p><em>

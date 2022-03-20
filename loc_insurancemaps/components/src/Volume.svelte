@@ -32,6 +32,7 @@ import VectorLayer from 'ol/layer/Vector';
 import LayerGroup from 'ol/layer/Group';
 
 export let VOLUME;
+export let OTHER_VOLUMES;
 export let CSRFTOKEN;
 export let USER_TYPE;
 export let GEOSERVER_WMS;
@@ -70,7 +71,22 @@ let showLayerList = true;
 
 let orderableLayers = [];
 let orderableIndexLayers = [];
-let mapIndexLayerIds = [];
+let mapIndexLayerIds = []; 
+
+const keyImgUrl = "/static/img/key-nola-1940.png"
+const keyImgCaption = "Sanborn Map Key"
+
+function showImgModal(imgUrl, caption) {
+	const modalImg = document.getElementById("modalImg")
+	modalImg.src = imgUrl;
+	modalImg.alt = caption;
+	document.getElementById("imgCaption").firstChild.innerHTML = caption;
+	document.getElementById("vModal").style.display = "block";
+}
+function closeModal() {
+	document.getElementById("vModal").style.display = "none";
+	document.getElementById("modalImg").src = "";
+}
 
 function referenceLayersParam() {
 	let referenceLayers = [];
@@ -425,6 +441,14 @@ function handleKeyup(e) {
 
 </script>
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup}/>
+
+<div id="vModal" class="modal">
+	<button id="closeModal" class="close close-vmodal" on:click={closeModal}>&times;</button>
+	<div class="modal-content" style="text-align:center;">
+		<img id="modalImg" alt="" src="">
+		<div id="imgCaption"><h5>~</h5></div>
+	</div>
+</div>
 <main>
 	<h1>{ VOLUME.title }</h1>
 	<p>
@@ -438,10 +462,18 @@ function handleKeyup(e) {
 		<p>&uarr; Before loading, this is the best way to see if the volume covers your part of town.</p>
 	</div>
 	{/if}
+	{#if OTHER_VOLUMES.length > 1}
+	<div><p>
+	Jump to &rarr;
+	{#each OTHER_VOLUMES as ov, n}
+	{#if n != 0}&nbsp;&bullet;&nbsp;{/if}
+	{#if ov.url}<a href={ov.url} title={ov.name}>{ov.year}</a>{:else}{ov.year}{/if}
+	{/each}
+	</p></div>
+	{/if}
 	{#if VOLUME.sheet_ct.loaded == 0 && USER_TYPE != 'anonymous' && !sheetsLoading}
 		<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
 	{/if}
-
 	{#if USER_TYPE == 'anonymous' }
 	<div class="signin-reminder">
 	<p><em>
@@ -451,7 +483,6 @@ function handleKeyup(e) {
 	</em></p>
 	</div>
 	{/if}
-
 	<hr>
 	<h3>Map Overview</h3>
 	<div class="sheets-status-bar">
@@ -468,19 +499,13 @@ function handleKeyup(e) {
 		<div id="layer-panel" style="display: {showLayerList == true ? 'flex' : 'none'}">
 			<div class="layer-section-header" style="border-top-width: 1px;">
 				<button class="control-btn" title="Reset extent" on:click={setMapExtent}>
-					<i id="fs-icon" class="fa fa-refresh" />
+					<i class="fa fa-refresh" />
 				</button>
-				{#if USER_TYPE != "anonymous"}
-				{#if !refreshingLookups}
-				<button id="repair-button" class="control-btn" title="Repair Extent (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
-					<i id="fs-icon" class="fa fa-wrench" />
+				<button id="show-key-img" on:click={() => {showImgModal(keyImgUrl, keyImgCaption)}} class="control-btn">
+					<i class="fa fa-key" />
 				</button>
-				{:else}
-				<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
-				{/if}
-				{/if}
 				<button class="control-btn" title={fullscreenBtnTitle} on:click={toggleFullscreen}>
-					<i id="fs-icon" class="fa {fullscreenBtnIcon}" />
+					<i class="fa {fullscreenBtnIcon}" />
 				</button>
 			</div>
 			<div id="layer-list" style="flex:2;">
@@ -542,12 +567,22 @@ function handleKeyup(e) {
 		</div>
 	</div>
 	<hr>
-	<h3 style="">
-		Georeferencing Overview
-		<button id="refresh-button" title="refresh overview" on:click={() => { postOperation("refresh") }}>
-			<i class="fa fa-refresh" />
-		</button>
-	</h3>
+	<div style="display:flex; justify-content:space-between; align-items:center;">
+		<h3>Georeferencing Overview</h3>
+		<div>
+			{#if refreshingLookups}
+			<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+			{/if}
+			<button class="control-btn" title="Refresh Summary" on:click={() => { postOperation("refresh") }}>
+				<i class="fa fa-refresh" />
+			</button>
+			{#if USER_TYPE != "anonymous"}
+			<button id="repair-button" class="control-btn" title="Repair Summary (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
+				<i class="fa fa-wrench" />
+			</button>
+			{/if}
+		</div>
+	</div>
 	<div class="sheets-status-bar">
 		{#if VOLUME.loaded_by.name != "" && !sheetsLoading}
 			<p><em>{VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.loaded != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}</em></p>
@@ -562,6 +597,9 @@ function handleKeyup(e) {
 		<h4 class="section-toggle" on:click={() => showUnprepared = !showUnprepared}>
 			<i class="fa {showUnprepared == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
 			Unprepared ({VOLUME.items.unprepared.length})
+			{#if VOLUME.items.processing.unprep != 0}
+				&mdash; {VOLUME.items.processing.unprep} processing...
+			{/if}
 		</h4>
 		{#if showUnprepared}
 		<div transition:slide>
@@ -580,12 +618,19 @@ function handleKeyup(e) {
 				{#each VOLUME.items.unprepared as document}
 				<div class="document-item">
 					<div><p>sheet {document.page_str}</p></div>
-					<img src={document.urls.thumbnail} alt={document.title}>
+					<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
 					<div>
+						{#if document.lock && document.lock.enabled}
+						<ul style="text-align:center">
+							<li><em>session in progress...</em></li>
+							<li>{document.lock.username}</li>
+						</ul>
+						{:else}
 						<ul>
 							<li><a href={document.urls.split} title="prepare this document">prepare &rarr;</a></li>
 							<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
 						</ul>
+						{/if}
 					</div>
 				</div>
 				{/each}
@@ -597,8 +642,8 @@ function handleKeyup(e) {
 		<h4 class="section-toggle" on:click={() => showPrepared = !showPrepared}>
 			<i class="fa {showPrepared == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
 			Prepared ({VOLUME.items.prepared.length})
-			{#if VOLUME.items.splitting.length > 0}
-				&mdash; {VOLUME.items.splitting.length} processing...
+			{#if VOLUME.items.processing.prep != 0}
+				&mdash; {VOLUME.items.processing.prep} processing...
 			{/if}
 		</h4>
 		{#if showPrepared}
@@ -612,12 +657,19 @@ function handleKeyup(e) {
 				{#each VOLUME.items.prepared as document}
 				<div class="document-item">
 					<div><p>{document.title}</p></div>
-					<img src={document.urls.thumbnail} alt={document.title}>
+					<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
 					<div>
+						{#if document.lock && document.lock.enabled}
+						<ul style="text-align:center">
+							<li><em>session in progress...</em></li>
+							<li>{document.lock.username}</li>
+						</ul>
+						{:else}
 						<ul>
 							<li><a href="{document.urls.georeference}?{referenceLayersParam()}" title="georeference this document">georeference &rarr;</a></li>
 							<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
 						</ul>
+						{/if}
 					</div>
 				</div>
 				{/each}
@@ -629,8 +681,8 @@ function handleKeyup(e) {
 		<h4 class="section-toggle" on:click={() => showGeoreferenced = !showGeoreferenced}>
 			<i class="fa {showGeoreferenced == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
 			Georeferenced ({VOLUME.items.layers.length})
-			{#if VOLUME.items.georeferencing.length > 0}
-				&mdash; {VOLUME.items.georeferencing.length} processing...
+			{#if VOLUME.items.processing.geo_trim != 0}
+				&mdash; {VOLUME.items.processing.geo_trim} processing...
 			{/if}
 		</h4>
 		{#if showGeoreferenced}
@@ -660,11 +712,18 @@ function handleKeyup(e) {
 					<div><p>{layer.title}</p></div>
 					<img src={layer.urls.thumbnail} alt={document.title}>
 					<div>
+						{#if layer.lock && layer.lock.enabled}
+						<ul style="text-align:center">
+							<li><em>session in progress...</em></li>
+							<li>{layer.lock.username}</li>
+						</ul>
+						{:else}
 						<ul>
 							<li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li>
 							<li><a href="{layer.urls.georeference}?{referenceLayersParam()}" title="edit georeferencing">edit georeferencing &rarr;</a></li>
 							<li><a href={layer.urls.detail} title={layer.title}>layer detail &rarr;</a></li>
 						</ul>
+						{/if}
 						{#if settingKeyMapLayer}
 						<label>
 							<input type=checkbox bind:group={mapIndexLayerIds} value={layer.alternate}> Use layer in Key Map
@@ -743,11 +802,15 @@ hr.hr-dashed {
 
 .control-btn {
 	height: 30px;
+	width: 30px;
+	border-radius: 4px;
+	font-size: 19.2px;
 }
 
 .layer-section-header {
 	display: flex;
 	justify-content: space-between;
+	flex-wrap: wrap;
 	align-items: center;
 	font-size: 1.2em;
 	border-top: 2px solid grey;
@@ -823,14 +886,6 @@ hr.hr-dashed {
 .document-item ul {
 	list-style-type: none;
 	padding: 0;
-}
-
-#refresh-button {
-	float: right;
-}
-
-#refresh-button i {
-	font-size: .75em;
 }
 
 @media screen and (max-width: 768px){

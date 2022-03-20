@@ -38,6 +38,7 @@ const utils = new Utils();
 
 export let LOCK;
 export let SESSION_ID;
+export let SESSION_LENGTH;
 export let DOCUMENT;
 export let IMG_SIZE;
 export let CSRFTOKEN;
@@ -53,7 +54,6 @@ export let REFERENCE_LAYERS;
 
 let previewMode = "n/a";
 
-let activeGCP = 1;
 let inProgress = false;
 let loadingInitial = false;
 
@@ -64,6 +64,9 @@ let docView;
 let mapView;
 let gcpList = [];
 
+let activeGCP = null;
+$: nextGCP = gcpList.length + 1;
+
 let unchanged = true;
 
 let docFullMaskLayer;
@@ -72,8 +75,15 @@ let mapFullMaskLayer;
 let docRotate;
 let mapRotate;
 
-const imgWidth = IMG_SIZE[0];
-const imgHeight = IMG_SIZE[1];
+$: docCursorStyle = inProgress ? 'default' : 'crosshair';
+$: mapCursorStyle = inProgress ? 'crosshair' : 'default';
+
+$: {
+  if (docView && mapView) {
+    docView.element.style.cursor = docCursorStyle;
+    mapView.element.style.cursor = mapCursorStyle;
+  }
+}
 
 let disableInterface = LOCK.enabled;
 let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
@@ -82,10 +92,27 @@ if (LOCK.stage == "in-progress") {
   leaveOkay = false;
 }
 
+// show the extend session prompt 15 seconds before the session expires
+setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
+
+let autoRedirect;
+function promptRefresh() {
+  if (!leaveOkay) {
+    const modal = document.getElementById("expirationModal");
+    modal.style.display = "block";
+    leaveOkay = true;
+    autoRedirect = setTimeout(cancelAndRedirectToDetail, 15000);
+  }
+}
+
+function cancelAndRedirectToDetail() {
+  process("cancel");
+  window.location.href=DOCUMENT.urls.detail;
+}
+
 const beginTxt = "Click a recognizable location on the map document (left panel)"
 const completeTxt = "Now find and click on the corresponding location in the web map (right panel)"
-
-let currentTxt = beginTxt;
+$: currentTxt = !inProgress ? beginTxt : completeTxt;
 
 const noteInputElId = "note-input";
 
@@ -112,11 +139,11 @@ let currentBasemap = basemaps[0].id;
 
 const docGCPSource = new VectorSource();
 docGCPSource.on('addfeature', function (e) {
-  activeGCP = gcpList.length + 1;
+
   if (!e.feature.getProperties().listId) {
-    e.feature.setProperties({'listId': activeGCP})
+    e.feature.setProperties({'listId': nextGCP})
   }
-  e.feature.setStyle(styles.gcpHighlight);
+  activeGCP = e.feature.getProperties().listId;
   inProgress = true;
   unchanged = false;
 })
@@ -128,15 +155,16 @@ mapGCPSource.on(['addfeature'], function (e) {
   if (!e.feature.getProperties().listId) {
     e.feature.setProperties({
       'id': uuid(),
-      'listId': activeGCP,
+      'listId': nextGCP,
       'username': USERNAME,
       'note': '',
     });
   }
   e.feature.setStyle(styles.gcpHighlight);
   // check the loadingInitial flag to save unnecessary calls to backend
-  if (!loadingInitial) {syncGCPList();}
+  if (!loadingInitial) {syncGCPList()}
   inProgress = false;
+  activeGCP = e.feature.getProperties().listId;
 })
 
 // create the preview layer from mapserver
@@ -177,7 +205,6 @@ $: {
   refGroup.setVisible(referenceVisible)
 }
 
-
 // this Modify interaction is created individually for each map panel
 function makeModifyInteraction(hitDetection, source, targetElement) {
   const modify = new Modify({
@@ -197,23 +224,30 @@ function makeModifyInteraction(hitDetection, source, targetElement) {
 
   let overlaySource = modify.getOverlay().getSource();
   overlaySource.on(['addfeature', 'removefeature'], function (e) {
-    targetElement.style.cursor = e.type === 'addfeature' ? 'pointer' : '';
+    const fallback = targetElement.id == 'doc-viewer' ? docCursorStyle : mapCursorStyle;
+    targetElement.style.cursor = e.type === 'addfeature' ? 'pointer' : fallback;
   });
   return modify
 }
 
 // this Draw interaction is created individually for each map panel
-function makeDrawInteraction(source) {
-  return new Draw({
+function makeDrawInteraction(source, condition) {
+  const draw = new Draw({
     source: source,
     type: 'Point',
     style: styles.empty,
+    condition: condition,
   });
+  draw.setActive(false);
+  return draw
 }
 
 function DocumentViewer (elementId) {
 
   const targetElement = document.getElementById(elementId);
+
+  const imgWidth = IMG_SIZE[0];
+  const imgHeight = IMG_SIZE[1];
 
   // items needed by layers and map
   // set the extent and projection with 0, 0 at the **top left** of the image
@@ -243,7 +277,6 @@ function DocumentViewer (elementId) {
     layers: [docLayer, gcpLayer],
     view: new View({
       projection: docProjection,
-      center: [imgWidth/2, -imgHeight/2],
       zoom: 1,
       maxZoom: 8,
     })
@@ -252,10 +285,22 @@ function DocumentViewer (elementId) {
   docFullMaskLayer = utils.generateFullMaskLayer(map)
   map.addLayer(docFullMaskLayer)
 
+  function coordWithinDoc (coordinate) {
+    const x = coordinate[0];
+    const y = -coordinate[1];
+    // set n/a if the mouse is outside of the document image itself
+    if (x < 0 || x > imgWidth || y < 0 || y > imgHeight) {
+      return false
+    } else {
+      return true
+    }
+  }
+
   // create interactions
-  const draw = makeDrawInteraction(docGCPSource);
-  draw.setActive(true);
-  targetElement.style.cursor = 'crosshair';
+  function drawWithinDocCondition (mapBrowserEvent) {
+    return coordWithinDoc(mapBrowserEvent.coordinate)
+  }
+  const draw = makeDrawInteraction(docGCPSource, drawWithinDocCondition);
   map.addInteraction(draw)
 
   const modify = makeModifyInteraction(gcpLayer, docGCPSource, targetElement)
@@ -265,12 +310,14 @@ function DocumentViewer (elementId) {
   // create controls
   const mousePositionControl = new MousePosition({
     coordinateFormat: function(coordinate) {
-      const x = Math.round(coordinate[0]);
-      const y = -Math.round(coordinate[1]);
-      let formatted = `${x}, ${y}`;
-      // set empty if the mouse is outside of the image itself
-      if (x < 0 || x > imgWidth || y < 0 || y > imgHeight) {formatted = ""}
-      return formatted
+      // set n/a if the mouse is outside of the document image itself
+      if (coordWithinDoc(coordinate)) {
+        const x = Math.round(coordinate[0]);
+        const y = -Math.round(coordinate[1]);
+        return `${x}, ${y}`
+      } else {
+        return 'n/a'
+      }
     },
     projection: docProjection,
     undefinedHTML: 'n/a',
@@ -281,7 +328,16 @@ function DocumentViewer (elementId) {
   map.addLayer(docRotate.layer);
 
   // add some click actions to the map
-  map.on("click", setActiveGCPOnClick);
+  map.on("click", function(e) {
+    let found = false;
+    e.map.forEachFeatureAtPixel(e.pixel, function(feature) {
+      if (feature.getProperties().listId) {
+        activeGCP = feature.getProperties().listId;
+        found = true;
+      }
+    });
+    if (!found && !draw.getActive() && !inProgress) {activeGCP = null}
+  });
 
   // add transition actions to the map element
   function updateMapEl() {map.updateSize()}
@@ -293,6 +349,11 @@ function DocumentViewer (elementId) {
   this.element = targetElement;
   this.drawInteraction = draw;
   this.modifyInteraction = modify;
+
+  this.resetExtent = function () {
+    map.getView().setRotation(0);
+    map.getView().fit(docExtent, {padding: [10, 10, 10, 10]});
+  }
 }
 
 function MapViewer (elementId) {
@@ -321,7 +382,6 @@ function MapViewer (elementId) {
 
     // create interactions
     const draw = makeDrawInteraction(mapGCPSource);
-    draw.setActive(false);
     map.addInteraction(draw)
 
     const modify = makeModifyInteraction(gcpLayer, mapGCPSource, targetElement)
@@ -337,7 +397,16 @@ function MapViewer (elementId) {
     map.addControl(mousePositionControl);
 
     // add some click actions to the map
-    map.on("click", setActiveGCPOnClick)
+    map.on("click", function(e) {
+      let found = false;
+      e.map.forEachFeatureAtPixel(e.pixel, function(feature) {
+        if (feature.getProperties().listId) {
+          activeGCP = feature.getProperties().listId;
+          found = true;
+        }
+      });
+      if (!found && !draw.getActive()) {activeGCP = null}
+    });
 
     mapRotate = utils.makeRotateCenterLayer()
     map.addLayer(mapRotate.layer)
@@ -352,6 +421,16 @@ function MapViewer (elementId) {
     this.element = targetElement;
     this.drawInteraction = draw;
     this.modifyInteraction = modify;
+
+    this.resetExtent = function () {
+      map.getView().setRotation(0);
+      if (INCOMING_GCPS) {
+        map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
+      } else {
+        const extent3857 = transformExtent(REGION_EXTENT, "EPSG:4326", "EPSG:3857");
+        map.getView().fit(extent3857);
+      }
+    }
 }
 
 onMount(() => {
@@ -360,6 +439,7 @@ onMount(() => {
   setPreviewVisibility(previewMode)
   loadIncomingGCPs();
   disabledMap(disableInterface)
+  inProgress = false;
 });
 
 function disabledMap(disabled) {
@@ -402,23 +482,15 @@ function loadIncomingGCPs() {
       listId += 1;
     });
     previewMode = "transparent";
-    mapView.map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
-    syncGCPList();
-  } else {
-    const extent3857 = transformExtent(REGION_EXTENT, "EPSG:4326", "EPSG:3857");
-    mapView.map.getView().fit(extent3857);
   }
+  syncGCPList();
+  docView.resetExtent()
+  mapView.resetExtent()
   currentTransformation = (INCOMING_TRANSFORMATION ? INCOMING_TRANSFORMATION : "poly1")
-  activeGCP = gcpList.length + 1;
   loadingInitial = false;
   inProgress = false;
   unchanged = true;
-}
-
-function setActiveGCPOnClick(e) {
-  e.map.forEachFeatureAtPixel(e.pixel, function(feature) {
-    activeGCP = feature.getProperties().listId;
-  });
+  activeGCP = null;
 }
 
 function removeActiveGCP() {
@@ -442,7 +514,7 @@ function removeGCP(gcpListID) {
       }
     });
     resetListIds();
-    activeGCP = (gcpList.length == 0 ? 1 : activeGCP - 1);
+    activeGCP = null;
     inProgress = false;
   }
 }
@@ -505,22 +577,18 @@ function updateNote() {
   })
 }
 
-// Triggered by the inProgress boolean
-function updateInterface(gcpInProgress, syncPanelWidth) {
-
+$: {
   if (syncPanelWidth) {
-    panelFocus = ( gcpInProgress ? "right" : "left" )
-    setPanelWidths(panelFocus)
-  }
-  if (docView && mapView) {
-    docView.drawInteraction.setActive(!gcpInProgress);
-    mapView.drawInteraction.setActive(gcpInProgress);
-    docView.element.style.cursor = ( gcpInProgress ? 'default' : 'crosshair' );
-    mapView.element.style.cursor = ( gcpInProgress ? 'crosshair' : 'default' );
-    currentTxt = ( gcpInProgress ? completeTxt : beginTxt );
+    panelFocus = ( inProgress ? "right" : "left" )
   }
 }
-$: updateInterface(inProgress, syncPanelWidth)
+
+$: {
+  if (docView && mapView) {
+    docView.drawInteraction.setActive(!inProgress);
+    mapView.drawInteraction.setActive(inProgress);
+  }
+}
 
 // triggered by a change in the basemap id
 function setBasemap(basemapId) {
@@ -556,13 +624,15 @@ function displayActiveGCP(activeId) {
 
   // set note display content
   const el = document.getElementById(noteInputElId);
-  if (inProgress) {
-    el.value = "";
-  } else {
-    mapGCPSource.getFeatures().forEach( function (feat) {
-      let props = feat.getProperties();
-      if (props.listId == activeId) { el.value = props.note }
-    })
+  if (el) {
+    if (inProgress) {
+      el.value = "";
+    } else {
+      mapGCPSource.getFeatures().forEach( function (feat) {
+        let props = feat.getProperties();
+        if (props.listId == activeId) { el.value = props.note }
+      })
+    }
   }
 
   // highlight features for active GCP
@@ -577,10 +647,9 @@ function displayActiveGCP(activeId) {
 }
 $: displayActiveGCP(activeGCP)
 
-// Triggered by a (manual) change in which panel should have focus
-function setPanelWidths (focusOn) {
+$: {
   if (docView && mapView) {
-    switch(focusOn) {
+    switch(panelFocus) {
       case "equal":
         docView.element.style.width = "50%";
         mapView.element.style.width = "50%";
@@ -596,7 +665,6 @@ function setPanelWidths (focusOn) {
     }
   }
 }
-$: setPanelWidths(panelFocus);
 
 function toggleFullscreen () {
   if (document.fullscreenElement == null) {
@@ -643,6 +711,13 @@ function process(operation){
     disableReason = operation;
   };
 
+  if (operation == "extend-session") {
+    leaveOkay = false;
+    clearTimeout(autoRedirect)
+    document.getElementById("expirationModal").style.display = "none";
+    setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
+  }
+
   const data = JSON.stringify({
     "gcp_geojson": asGeoJSON(),
     "transformation": currentTransformation,
@@ -659,8 +734,8 @@ function process(operation){
     })
     .then(response => response.json())
     .then(result => {
-      if (previewMode == "n/a") { previewMode = "transparent"};
       if (operation == "preview") {
+        if (previewMode == "n/a") { previewMode = "transparent"};
         let sourceUrl = previewSource.getUrls()[0];
         previewSource.setUrl(sourceUrl.replace(/\/[^\/]*$/, '/'+Math.random()));
         previewSource.refresh()
@@ -740,6 +815,14 @@ function cleanup () {
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
+
+<div id="expirationModal" class="modal">
+  <div class="modal-content">
+    <p>This georeferencing session is expiring, and will be cancelled soon.</p>
+    <button on:click={() => {process("extend-session")}}>Give me more time!</button>
+  </div>
+</div>
+
 <div class="hidden-small"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
@@ -752,7 +835,8 @@ function cleanup () {
         <a href="/account/signup">sign up</a> to proceed.
       </em></p>
       {:else if disableReason == "input" || disableReason == "processing"}
-      <p>Someone is already georeferencing this document.</p>
+      <!-- svelte-ignore a11y-invalid-attribute -->
+      <p>Someone is already georeferencing this document (<a href="javascript:window.location.reload(true)">refresh</a>).</p>
       {:else if disableReason == "submit"}
       <p>Saving control points and georeferencing document... redirecting to document detail page.</p>
       <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
@@ -813,7 +897,7 @@ function cleanup () {
         <label title="Change basemap">
           Preview
           <select title="Set preview (w)" bind:value={previewMode} disabled={previewMode == "n/a"}>
-            {#if previewMode == "n/a"}<option value="n/a" disabled>preview n/a</option>{/if}
+            {#if previewMode == "n/a"}<option value="n/a" disabled>n/a</option>{/if}
             <option value="none">none</option>
             <option value="transparent">1/2</option>
             <option value="full">full</option>

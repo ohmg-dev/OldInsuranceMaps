@@ -1,6 +1,5 @@
 <script>
 import {onMount} from 'svelte';
-
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
@@ -29,6 +28,8 @@ import LineString from 'ol/geom/LineString';
 const styles = new Styles();
 
 export let LOCK;
+export let SESSION_ID;
+export let SESSION_LENGTH;
 export let DOCUMENT;
 export let IMG_SIZE;
 export let CSRFTOKEN;
@@ -49,6 +50,24 @@ let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
 let leaveOkay = true;
 if (LOCK.stage == "in-progress") {
   leaveOkay = false;
+}
+
+// show the extend session prompt 15 seconds before the session expires
+setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
+
+let autoRedirect;
+function promptRefresh() {
+  if (!leaveOkay) {
+    const modal = document.getElementById("expirationModal");
+    modal.style.display = "block";
+    leaveOkay = true;
+    autoRedirect = setTimeout(cancelAndRedirectToDetail, 15000);
+  }
+}
+
+function cancelAndRedirectToDetail() {
+  process("cancel");
+  window.location.href=DOCUMENT.urls.detail;
 }
 
 let currentTxt;
@@ -255,9 +274,17 @@ function process(operation) {
     disableInterface = true;
   };
 
+  if (operation == "extend-session") {
+    leaveOkay = false;
+    clearTimeout(autoRedirect)
+    document.getElementById("expirationModal").style.display = "none";
+    setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
+  }
+
   let data = JSON.stringify({
     "lines": cutLines,
     "operation": operation,
+    "sesh_id": SESSION_ID,
   });
 
   fetch(DOCUMENT.urls.split, {
@@ -302,8 +329,15 @@ function cleanup () {
 }
 
 </script>
-
 <svelte:window on:keydown={handleKeydown} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
+
+<div id="expirationModal" class="modal">
+  <div class="modal-content">
+    <p>This preparation session is expiring, and will be cancelled soon.</p>
+    <button on:click={() => {process("extend-session")}}>Give me more time!</button>
+  </div>
+</div>
+
 <div><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
@@ -316,7 +350,8 @@ function cleanup () {
         <a href="/account/signup">sign up</a> to proceed.
       </em></p>
       {:else if disableReason == "input" || disableReason == "processing"}
-      <p>Someone else is already preparing this document.</p>
+      <!-- svelte-ignore a11y-invalid-attribute -->
+      <p>Someone else is already preparing this document (<a href="javascript:window.location.reload(true)">refresh</a>).</p>
       {:else if disableReason == "finished"}
       <p>This document has already been prepared.</p>
       {:else if disableReason == "split"}
@@ -328,7 +363,6 @@ function cleanup () {
       {:else if disableReason == "cancel"}
       <p>Cancelling preparation.</p>
       <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
-
       {/if}
     </div>
   </div>
@@ -353,7 +387,7 @@ function cleanup () {
     <div class="tb-top-item">
       <button on:click={() => {process("split")}} disabled={divisions.length<=1}>Split</button>
       <button on:click={() => {process("no_split")}} disabled={divisions.length>0}>No Split Needed</button>
-      <button title="Cancel this preparation" on:click={() => process("cancel")}>Cancel</button>
+      <button title="Cancel this preparation" on:click={cancelAndRedirectToDetail}>Cancel</button>
       <button title="Reset interface" disabled={unchanged} on:click={resetInterface}><i id="fs-icon" class="fa fa-refresh" /></button>
     </div>
   </nav>

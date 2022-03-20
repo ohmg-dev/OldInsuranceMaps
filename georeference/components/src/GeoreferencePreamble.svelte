@@ -54,7 +54,7 @@ function setPanel(show) {
   <div transition:slide class="help-panel">
     <h4><strong>Background</strong></h4>
     <p>
-    Use this interface to create the <strong>ground control points</strong> that will be used to georeference this document. creating a ground control point requires two clicks&mdash;once in the left panel and once in the right. This records a linkage between a spot on the original map document and the real-world latitude/longitude coordinates for that location.
+    Use this interface to create the <strong>ground control points</strong> that will be used to georeference this document. Creating a ground control point requires two clicks&mdash;once in the left panel and once in the right. This records a linkage between a spot on the original map document and the real-world latitude/longitude coordinates for that location.
     </p>
     <figure style="margin-bottom:10px; text-align:center;">
         <img style="width:100%" src="/static/img/alex-3-georeference.jpg" />

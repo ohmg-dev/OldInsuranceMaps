@@ -9,9 +9,12 @@
 {% block hero%}
 <div class="container-outer background-bg" style="margin-top: -7px;">
 <div class="container background-fg" style="padding:20px 20px;">
-  {% display_svelte "Volumes.svelte" list_params %}
-  <hr>
+  <a href="#" data-toggle="collapse" data-target="#volume-search">Start a new volume...</a>
+  <div id="volume-search" class="volume-search collapse">
   {% display_svelte "VolumeSearch.svelte" search_params %}
+  </div>
+  <hr style="border-top: 1px dashed grey">
+  {% display_svelte "Volumes.svelte" list_params %}
 </div>
 </div>
 {% endblock hero %}

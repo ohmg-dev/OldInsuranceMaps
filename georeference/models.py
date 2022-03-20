@@ -1,8 +1,9 @@
 import os
 import uuid
 import json
-from osgeo import gdal, osr
 import logging
+from osgeo import gdal, osr
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -11,8 +12,6 @@ from django.contrib.gis.geos import Point, GEOSGeometry
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.files import File
-from django.db.models import signals
-from django.dispatch import receiver
 from django.utils import timezone
 
 from geonode.documents.models import Document, DocumentResourceLink
@@ -870,6 +869,24 @@ class SessionBase(models.Model):
     def undo(self):
         raise NotImplementedError("Must be implemented in proxy models.")
 
+    def extend(self, delta_kwargs=None):
+        """
+        Advances the date_create of this session by the default session length,
+        effectively protecting this session from auto-removal for an additional
+        length of time.
+
+        Optional delta_kwargs argument can take a dictionary of timedelta
+        keyword arguments, e.g. {"hours":1} or {"minutes":10} to overwrite
+        the settings.GEOREFERENCE_SESSION_LENGTH value (which is in seconds).
+        """
+
+        if delta_kwargs is None:
+            delta_kwargs = {"seconds": settings.GEOREFERENCE_SESSION_LENGTH}
+
+        delta = timedelta(**delta_kwargs)
+        self.date_created += delta
+        self.save(update_fields=['date_created'])
+
     def serialize(self):
 
         # handle the non- js-serializable attributes
@@ -951,6 +968,39 @@ class SessionBase(models.Model):
         self.date_modified = timezone.now()
         return super(SessionBase, self).save(*args, **kwargs)
 
+    def delete_expired_sessions(self, session_type=None, delta_kwargs=None):
+        """
+        This method will remove all session instances whose creation
+        datetime is older than the specified interval.
+
+        Optional delta_kwargs argument can take a dictionary of timedelta
+        keyword arguments, e.g. {"hours":1} or {"minutes":10} to overwrite
+        the settings.GEOREFERENCE_SESSION_LENGTH value (which is in seconds).
+
+        PrepSession, GeorefSession, and TrimSession instances must be used
+        here in order for the proper pre_delete signals to be emitted.
+        """
+
+        if delta_kwargs is None:
+            delta_kwargs = {"seconds": settings.GEOREFERENCE_SESSION_LENGTH}
+
+        cutoff = timezone.now() - timedelta(**delta_kwargs)
+        models = []
+        if session_type in [None, "p"]:
+            models.append(PrepSession)
+        if session_type in [None, "g"]:
+            models.append(GeorefSession)
+        if session_type in [None, "t"]:
+            models.append(TrimSession)
+
+        for model in models:
+            sessions = model.objects.filter(stage="input", date_created__lt=cutoff)
+            if sessions.exists():
+                ids = [str(i) for i in sessions.values_list('pk', flat=True)]
+                ids_str = ",".join(ids)
+                sessions.delete()
+                msg = f"Deleted expired {model.__name__} ({len(ids)}): {ids_str}"
+                logger.info(msg)
 
 class PrepSession(SessionBase):
     objects = PrepSessionManager()

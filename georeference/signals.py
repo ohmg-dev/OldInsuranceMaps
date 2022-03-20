@@ -29,8 +29,8 @@ def pre_delete_prepsession(sender, instance, **kwargs):
     Reset the document status to 'unprepared'.
     """
 
-    if instance.stage == "input":
-        logger.info(f"{instance.__str__()} | delete and set document {instance.document.pk} - 'unprepared'")
+    if instance.stage == "input" and instance.document is not None:
+        logger.info(f"{instance.__str__()} | delete session and set document {instance.document.pk} - 'unprepared'")
         tkm = TKeywordManager()
         tkm.set_status(instance.document, "unprepared")
 
@@ -46,13 +46,13 @@ def pre_delete_georefsession(sender, instance, **kwargs):
     Otherwise, reset to 'prepared'.
     """
 
-    if instance.stage == "input":
+    if instance.stage == "input" and instance.document is not None:
         tkm = TKeywordManager()
         if GCPGroup.objects.filter(document=instance.document).exists():
             new_status = "georeferenced"
         else:
             new_status = "prepared"
-        logger.info(f"{instance.__str__()} | delete and set document {instance.document.pk} - '{new_status}'")
+        logger.info(f"{instance.__str__()} | delete session and set document {instance.document.pk} - '{new_status}'")
         tkm.set_status(instance.document, new_status)
 
 @receiver(signals.pre_delete, sender=TrimSession)
@@ -67,14 +67,14 @@ def pre_delete_trimsession(sender, instance, **kwargs):
     Otherwise, reset to 'georeferenced'.
     """
 
-    if instance.stage == "input":
+    if instance.stage == "input" and instance.layer is not None:
         tkm = TKeywordManager()
         if LayerMask.objects.filter(layer=instance.layer).exists():
-            new_status = "georeferenced"
+            new_status = "trimmed"
         else:
-            new_status = "prepared"
-        logger.info(f"{instance.__str__()} | delete and set document {instance.document.pk} - '{new_status}'")
-        tkm.set_status(instance.document, new_status)
+            new_status = "georeferenced"
+        logger.info(f"{instance.__str__()} | delete session and set layer {instance.layer.pk} - '{new_status}'")
+        tkm.set_status(instance.layer, new_status)
 
 @receiver(signals.pre_delete, sender=LayerMask)
 def pre_delete_layer_mask(sender, instance, **kwargs):

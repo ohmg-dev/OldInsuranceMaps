@@ -77,10 +77,8 @@ class Volumes(View):
                 "prepared_ct": len(items['prepared']),
                 "georeferenced_ct": len(items['georeferenced']),
                 "volume_no": vol.volume_no,
-                "loaded_by": {
-                    "name": vol.loaded_by.username,
-                    "profile": reverse("profile_detail", args=(vol.loaded_by.username, )),
-                },
+                "loaded_by_name": vol.loaded_by.username,
+                "loaded_by_profile": reverse("profile_detail", args=(vol.loaded_by.username, )),
                 "title": vol.__str__(),
                 "urls": {
                     "summary": reverse("volume_summary", args=(vol.identifier,))
@@ -111,6 +109,21 @@ class VolumeDetail(View):
         volume = get_object_or_404(Volume, pk=volumeid)
         volume_json = volume.serialize()
 
+        other_vols = []
+        for v in Volume.objects.filter(city=volume.city):
+            url = reverse("volume_summary", args=(v.pk, ))
+            if v.pk == volume.pk:
+                url = None
+            item = {
+                "name": v.__str__(),
+                "year": str(v.year),
+                "url": url,
+            }
+            if v.volume_no is not None:
+                item['year'] += f" vol. {v.volume_no}"
+            other_vols.append(item)
+        other_vols.sort(key=lambda i: i['year'])
+
         gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
         gs = gs.rstrip("/") + "/"
         geoserver_ows = f"{gs}ows/"
@@ -118,6 +131,7 @@ class VolumeDetail(View):
         context_dict = {
             "svelte_params": {
                 "VOLUME": volume_json,
+                "OTHER_VOLUMES": other_vols,
                 "CSRFTOKEN": csrf.get_token(request),
                 'USER_TYPE': get_user_type(request.user),
                 'GEOSERVER_WMS': geoserver_ows,

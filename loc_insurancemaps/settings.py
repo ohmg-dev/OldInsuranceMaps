@@ -69,6 +69,14 @@ if 'georeference' in INSTALLED_APPS:
     MIDDLEWARE += ("georeference.middleware.GeoreferenceMiddleware", )
     TEMPLATES[0]['OPTIONS']['context_processors'].append("georeference.context_processors.georeference_info")
 
+    CELERY_BEAT_SCHEDULE['delete_expired_sessions'] = {
+        'task': 'georeference.tasks.delete_expired_sessions',
+        'schedule': 60.0,
+    }
+
+    # prep/georef/trim session duration before expiration (seconds)
+    GEOREFERENCE_SESSION_LENGTH = 600
+
 # add static files and templates that are in the local (loc_insurancemaps) app
 TEMPLATES[0]['DIRS'].insert(0, os.path.join(LOCAL_ROOT, "templates"))
 STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "static"))
@@ -220,6 +228,31 @@ LOGGING = {
             "handlers": ["info", "loc_insurancemaps-debug"], "level": "DEBUG", },
     },
 }
+
+# cleanup some celery logging as suggested here:
+# https://stackoverflow.com/a/20719461/3873885
+if DEBUG:
+    celery_log_level = 'DEBUG'
+else:
+    celery_log_level = 'INFO'
+
+LOGGING['loggers']['celery'] = {
+    'handlers': ['console'],
+    'level': celery_log_level,
+    'propagate': True,
+}
+for i in ['worker', 'concurrency', 'beat']:
+    LOGGING['loggers']['celery.' + i] = {
+        'handlers': [],
+        'level': 'WARNING',
+        'propagate': True,
+    }
+for i in ['job', 'consumer', 'mediator', 'control', 'bootsteps']:
+    LOGGING['loggers']['celery.worker.' + i] = {
+        'handlers': [],
+        'level': 'WARNING',
+        'propagate': True,
+    }
 
 CENTRALIZED_DASHBOARD_ENABLED = ast.literal_eval(os.getenv('CENTRALIZED_DASHBOARD_ENABLED', 'False'))
 if CENTRALIZED_DASHBOARD_ENABLED and USER_ANALYTICS_ENABLED and 'geonode_logstash' not in INSTALLED_APPS:

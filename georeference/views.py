@@ -30,8 +30,7 @@ from .utils import MapServerManager
 from .georeferencer import Georeferencer
 from .splitter import Splitter
 
-
-logger = logging.getLogger("geonode.georeference.views")
+logger = logging.getLogger(__name__)
 
 BadPostRequest = HttpResponseBadRequest("invalid post content")
 
@@ -54,7 +53,7 @@ class SplitView(View):
 
         doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
         lock = doc_proxy.preparation_lock
-
+        sesh_id = None
         if not lock.enabled:
             if request.user.is_authenticated:
                 sesh = PrepSession.objects.create(
@@ -62,6 +61,7 @@ class SplitView(View):
                     user=request.user,
                 )
                 sesh.start()
+                sesh_id = sesh.id
                 lock.stage = "in-progress"
             else:
                 lock.enabled = True
@@ -69,6 +69,8 @@ class SplitView(View):
 
         split_params = {
             "LOCK": lock.as_dict,
+            "SESSION_ID": sesh_id,
+            "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
             "CSRFTOKEN": csrf.get_token(request),
             "DOCUMENT": doc_proxy.serialize(),
             "IMG_SIZE": doc_proxy.image_size,
@@ -94,6 +96,7 @@ class SplitView(View):
         body = json.loads(request.body)
         cutlines = body.get("lines")
         operation = body.get("operation")
+        sesh_id = body.get("sesh_id", None)
 
         if operation == "preview":
 
@@ -109,6 +112,7 @@ class SplitView(View):
             sesh.data['split_needed'] = True
             sesh.data['cutlines'] = cutlines
             sesh.save(update_fields=["data", "user"])
+            logger.info(f"{sesh.__str__()} | begin run() as task")
             run_preparation_session.apply_async((sesh.pk, ), queue="update")
             return JsonResponse({"success":True})
         
@@ -127,12 +131,23 @@ class SplitView(View):
             try:
                 sesh = PrepSession.objects.get(document=doc_proxy.resource)
             except PrepSession.DoesNotExist:
+                logger.warn("can't find PrepSession to delete.")
                 return JsonResponse({"success":False, "message": "no session to cancel"})
             if sesh.stage != "input":
                 msg = "can't cancel session that is past the input stage"
                 logger.warn(f"{sesh.__str__()} | {msg}")
                 return JsonResponse({"success":True, "message": msg})
             sesh.delete()
+            return JsonResponse({"success":True})
+
+        elif operation == "extend-session":
+
+            try:
+                sesh = PrepSession.objects.get(pk=sesh_id)
+            except PrepSession.DoesNotExist:
+                logger.warn("can't find PrepSession to delete.")
+                return JsonResponse({"success":False, "message": "no session to cancel"})
+            sesh.extend()
             return JsonResponse({"success":True})
 
         elif operation == "undo":
@@ -191,6 +206,7 @@ class GeoreferenceView(View):
         georeference_params = {
             "LOCK": lock.as_dict,
             "SESSION_ID": sesh_id,
+            "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
             "CSRFTOKEN": csrf.get_token(request),
             "DOCUMENT": doc_proxy.serialize(),
             "IMG_SIZE": doc_proxy.image_size,
@@ -275,6 +291,7 @@ class GeoreferenceView(View):
             sesh.data['gcps'] = gcp_geojson
             sesh.data['transformation'] = transformation
             sesh.save(update_fields=["data"])
+            logger.info(f"{sesh.__str__()} | begin run() as task")
             run_georeference_session.apply_async((sesh.pk, ), queue="update")
 
             ms.remove_layer(doc_proxy.doc_file.path)
@@ -282,6 +299,11 @@ class GeoreferenceView(View):
                 "success": True,
                 "message": "all good",
             })
+
+        elif operation == "extend-session":
+
+            sesh.extend()
+            return JsonResponse({"success":True})
 
         elif operation == "cancel":
 
@@ -326,6 +348,7 @@ class TrimView(View):
         trim_params = {
             "LOCK": lock.as_dict,
             "SESSION_ID": sesh_id,
+            "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
             "LAYER": layer_proxy.serialize(),
             "CSRFTOKEN": csrf.get_token(request),
             "GEOSERVER_WMS": geoserver_ows,
@@ -401,6 +424,11 @@ class TrimView(View):
 
             sesh.delete()
             return JsonResponse({"success": True})
+
+        elif operation == "extend-session":
+
+            sesh.extend()
+            return JsonResponse({"success":True})
 
         elif operation == "remove-mask":
 
