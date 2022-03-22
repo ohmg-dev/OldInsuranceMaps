@@ -710,7 +710,9 @@ function handleKeyup(e) {
 				{#each VOLUME.items.layers as layer}
 				<div class="document-item">
 					<div><p>{layer.title}</p></div>
-					<img src={layer.urls.thumbnail} alt={document.title}>
+					<a href={layer.urls.view} target="_blank" title="inspect layer in standalone map" style="cursor:zoom-in">
+						<img src={layer.urls.thumbnail} alt={document.title}>
+					</a>
 					<div>
 						{#if layer.lock && layer.lock.enabled}
 						<ul style="text-align:center">
