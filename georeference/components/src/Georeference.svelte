@@ -351,7 +351,8 @@ function DocumentViewer (elementId) {
   this.modifyInteraction = modify;
 
   this.resetExtent = function () {
-    map.getView().fit(docExtent, {padding: [10, 10, 10, 10]})
+    map.getView().setRotation(0);
+    map.getView().fit(docExtent, {padding: [10, 10, 10, 10]});
   }
 }
 
@@ -422,6 +423,7 @@ function MapViewer (elementId) {
     this.modifyInteraction = modify;
 
     this.resetExtent = function () {
+      map.getView().setRotation(0);
       if (INCOMING_GCPS) {
         map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
       } else {
