@@ -12,6 +12,7 @@ import {FullScreen, defaults as defaultControls} from 'ol/control';
 import {createEmpty} from 'ol/extent';
 import {extend} from 'ol/extent';
 import {transformExtent} from 'ol/proj';
+import {createXYZ} from 'ol/tilegrid';
 
 import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
@@ -144,6 +145,7 @@ function initMap() {
 	map = new Map({ 
 		target: "map",
 		// controls:  defaultControls().extend([new FullScreen(), new ZoomToExtent()]),
+		maxTilesLoading: 200,
 	});
 	const osmLayer = new TileLayer({
 		source: new OSM(),
@@ -275,6 +277,10 @@ function setMapExtent() {
 	}
 }
 
+const tileGrid = createXYZ({
+	tileSize: 512,
+});
+
 function setLayersFromVolume(setExtent) {
 	// empty the light layers lists used for interactivity, need to be repopulated
 	orderableLayers = [];
@@ -300,6 +306,7 @@ function setLayersFromVolume(setExtent) {
 					'LAYERS': layerDef.geoserver_id,
 					'TILED': true,
 				},
+				tileGrid: tileGrid,
 			})
 		});
 		layerRegistry[layerDef.geoserver_id] = newLayer;
@@ -322,6 +329,7 @@ function setLayersFromVolume(setExtent) {
 					'LAYERS': layerDef.geoserver_id,
 					'TILED': true,
 				},
+				tileGrid: tileGrid,
 			}),
 		});
 		layerRegistry[layerDef.geoserver_id] = newLayer;
