@@ -7,11 +7,15 @@ This app is a customized deployment of [GeoNode](https://geonode.org), built fro
 
 ---
 
+Please don't hesitate to [open a ticket](https://github.com/mradamcox/loc-insurancemaps/issues/new/choose) if you have trouble with the site or find a bug.
+
+---
+
+## Site Overview
+
 You can browse volumes of fire insurance maps from the home page.
 
 ![Homepage](./loc_insurancemaps/static/img/homepage-031922.jpg)
-
----
 
 Each volume's summary page has an interactive Map Overview showing all of the sheets that have been georeferenced so far.
 
@@ -21,7 +25,7 @@ Each volume's summary page also lists the progress and georeferencing stage of e
 
 ![Volume Summary - Georeferencing Overview](./loc_insurancemaps/static/img/vsummary2-031922.jpg)
 
----
+## Georeferencing Tools
 
 The georeferencing process generally consists of three operations.
 
@@ -33,10 +37,6 @@ Ground control point creation (these are used to warp the document into a geotif
 
 ![Georeferencing interface](./docs/docs/img/alex-1900-sheet-2-georeference-4-gcps.png)
 
-Trimming the edges off of a layer (optional, useful for handling overlapping sheets):
+And a mask to trim the edges off of a layer (optional, but can be used for handling overlapping sheets):
 
 ![Trimming interface](./docs/docs/img/trim-interface.png)
-
----
-
-Please don't hesitate to [open a ticket](https://github.com/mradamcox/loc-insurancemaps/issues/new/choose) if you have trouble with the site or find a bug.
