@@ -15,10 +15,12 @@
 {% endblock %}
 
 {% block tabs %}
+<li>
+  <a href="{% url "volumes_list" %}" class="" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Volumes" %}</a>
+</li>
 <li id="nav_layers">
     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Content" %}<i class="fa fa-angle-down fa-lg"></i></a>
     <ul class="dropdown-menu">
-    <li><a href="{% url "volumes_list" %}">{% trans "Volumes" %}</a></li>
     <li><a href="{% url "document_browse" %}?limit={{ CLIENT_RESULTS_LIMIT }}">{% trans "Documents" %}</a></li>
     <li><a href="{% url "layer_browse" %}?limit={{ CLIENT_RESULTS_LIMIT }}">{% trans "Layers" %}</a></li>
     <li><a href="{% url "maps_browse" %}?limit={{ CLIENT_RESULTS_LIMIT }}">{% trans "Web Maps" %}</a></li>

@@ -247,6 +247,7 @@ class DocumentProxy(object):
         return {
             "layer_detail": layer_urls.get("detail", ""),
             "layer_trim": layer_urls.get("trim", ""),
+            "layer_view": layer_urls.get("view", ""),
         }
 
     def get_split_summary(self):
@@ -351,6 +352,7 @@ class LayerProxy(object):
             "thumbnail": layer.thumbnail_url,
             "detail": full_reverse("layer_detail", args=(layer.alternate, )),
             "trim": full_reverse("trim_view", args=(layer.alternate, )),
+            "view": full_reverse("new_map") + f"?layer={self.alternate}&view=True",
         }
 
         self.resource = layer
