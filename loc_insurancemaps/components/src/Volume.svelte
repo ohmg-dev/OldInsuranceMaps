@@ -145,7 +145,7 @@ function initMap() {
 	map = new Map({ 
 		target: "map",
 		// controls:  defaultControls().extend([new FullScreen(), new ZoomToExtent()]),
-		maxTilesLoading: 200,
+		maxTilesLoading: 50,
 	});
 	const osmLayer = new TileLayer({
 		source: new OSM(),
@@ -307,8 +307,10 @@ function setLayersFromVolume(setExtent) {
 					'TILED': true,
 				},
 				tileGrid: tileGrid,
-			})
+			}),
+			extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
 		});
+
 		layerRegistry[layerDef.geoserver_id] = newLayer;
 		mainGroup.getLayers().push(newLayer)
 	});
@@ -331,6 +333,7 @@ function setLayersFromVolume(setExtent) {
 				},
 				tileGrid: tileGrid,
 			}),
+                        extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
 		});
 		layerRegistry[layerDef.geoserver_id] = newLayer;
 		keyGroup.getLayers().push(newLayer)
@@ -494,7 +497,7 @@ function handleKeyup(e) {
 	<hr>
 	<h3>Map Overview</h3>
 	<div class="sheets-status-bar">
-		<p><em>The preview map shows progress toward a full mosaic of this volume's content.</em></p>
+		<p><em>The preview map shows progress toward a full mosaic of this volume's content. Please note: it is not optimized for performance and may be sluggish for large cities. The best way to view a single layer is find it in the <strong>Georeferenced</strong> section below and click the thumbnail.</em></p>
 	</div>
 	<h4 class="section-toggle" on:click={() => showMap = !showMap}>
 		<i class="fa {showMap == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
