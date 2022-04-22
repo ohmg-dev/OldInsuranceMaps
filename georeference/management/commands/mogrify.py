@@ -36,10 +36,10 @@ class Command(BaseCommand):
                 Layer,
                 gmodels.GCP,
                 gmodels.GCPGroup,
-                gmodels.GeoreferenceSession,
+                gmodels.GeorefSession,
                 gmodels.SplitDocumentLink,
                 gmodels.LayerMask,
-                gmodels.MaskSession,
+                gmodels.TrimSession,
             ]
 
             for model in model_list:
