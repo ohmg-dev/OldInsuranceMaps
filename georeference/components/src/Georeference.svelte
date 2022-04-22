@@ -25,6 +25,7 @@ import Projection from 'ol/proj/Projection';
 import {transformExtent} from 'ol/proj';
 
 import MousePosition from 'ol/control/MousePosition';
+import ScaleLine from 'ol/control/ScaleLine';
 import {createStringXY} from 'ol/coordinate';
 
 import Draw from 'ol/interaction/Draw';
@@ -395,6 +396,11 @@ function MapViewer (elementId) {
       undefinedHTML: 'n/a',
     });
     map.addControl(mousePositionControl);
+
+    let scaleLine = new ScaleLine({
+      units: 'us',
+    });
+    map.addControl(scaleLine)
 
     // add some click actions to the map
     map.on("click", function(e) {

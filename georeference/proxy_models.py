@@ -285,14 +285,15 @@ class DocumentProxy(object):
         be an aggregation of all regions on the highest level (i.e. two
         adjacent towns).
         """
-        use_polygon = Polygon.from_bbox((-180, -90, 180, 90))
-        for region in self.resource.regions.all():
+        # hard-code default Louisiana extent for now
+        use_polygon = Polygon.from_bbox((-94, 28, -88, 33))
+        for region in self.resource.regions.all().exclude(name="Global").exclude(name="Louisiana"):
             polygon = Polygon.from_bbox(region.bbox[:4])
             if polygon.area < use_polygon.area:
                 use_polygon = polygon
         region_extent = use_polygon.extent
         return region_extent
-    
+
     def get_extended_urls(self):
         urls = self.urls
         urls.update(self.get_layer_urls())
