@@ -12,9 +12,11 @@ from django.contrib.gis.geos import Point, GEOSGeometry
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.files import File
+from django.db.models import signals
 from django.utils import timezone
 
 from geonode.documents.models import Document, DocumentResourceLink
+from geonode.geoserver.signals import geoserver_post_save
 from geonode.layers.models import Layer, Style
 from geonode.layers.utils import file_upload
 from geonode.thumbs.thumbnails import create_thumbnail
@@ -1193,6 +1195,8 @@ class GeorefSession(SessionBase):
         tkm = TKeywordManager()
         tkm.set_status(self.document, "georeferencing")
 
+        signals.post_save.disconnect(geoserver_post_save, sender=Layer)
+
         self.date_run = timezone.now()
         self.update_stage("processing", save=False)
         self.update_status("initializing georeferencer", save=False)
@@ -1275,12 +1279,6 @@ class GeorefSession(SessionBase):
                 attribution=self.document.attribution,
             )
 
-        ## if there was an existing layer that's been overwritten, regenerate thumb.
-        else:
-            self.update_status("regenerating thumbnail")
-            thumb = create_thumbnail(layer, overwrite=True)
-            Layer.objects.filter(pk=layer.pk).update(thumbnail_url=thumb)
-
         self.layer = layer
         self.update_status("saving control points")
 
@@ -1290,6 +1288,15 @@ class GeorefSession(SessionBase):
             self.document,
             self.data['transformation'],
         )
+
+        ## now reconnect the geoserver post_save receiver and run final layer save.
+        signals.post_save.connect(geoserver_post_save, sender=Layer)
+        layer.save()
+
+        if existing_layer is not None:
+            self.update_status("regenerating thumbnail")
+            thumb = create_thumbnail(layer, overwrite=True)
+            Layer.objects.filter(pk=layer.pk).update(thumbnail_url=thumb)
 
         tkm.set_status(self.document, "georeferenced")
         tkm.set_status(layer, "georeferenced")
