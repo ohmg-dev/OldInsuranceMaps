@@ -13,7 +13,7 @@ from .models import (
 
 class GCPAdmin(admin.ModelAdmin):
     readonly_fields = ('last_modified',)
-    list_display = ('__str__',)
+    list_display = ('id', 'gcp_group')
 
 admin.site.register(SplitDocumentLink)
 admin.site.register(GeoreferencedDocumentLink)

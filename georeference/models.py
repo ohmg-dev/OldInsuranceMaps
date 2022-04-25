@@ -711,7 +711,7 @@ class PrepSession(SessionBase):
 
         # first check to make sure this determination can be reversed.
         if self.georeferenced_downstream is True:
-            logger.warn(f"Removing SplitEvaluation {self.pk} even though downstream georeferencing has occurred.")
+            logger.warn(f"Removing PrepSession {self.pk} even though downstream georeferencing has occurred.")
 
         # if a split was made, remove all descendant documents before deleting
         for child in self.get_children():
