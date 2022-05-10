@@ -241,23 +241,6 @@ class Importer(object):
 
         return volume
 
-    def import_sheets(self, volume_id):
-
-        vol = Volume.objects.get(identifier=volume_id)
-
-        sheets = []
-        for fileset in vol.lc_resources[0]['files']:
-            info = LOCParser().parse_fileset(fileset)
-            if self.dry_run:
-                continue
-            try:
-                sheet = Sheet.objects.get(volume=vol, sheet_no=info["sheet_number"])
-            except Sheet.DoesNotExist:
-                sheet = Sheet().create_from_fileset(fileset, vol, fileset_info=info)
-            sheets.append(sheet)
-        
-        return sheets
-
     def initialize_volume(self, volume):
         """Creates all of the necessary items to begin georeferencing a new volume.
         
