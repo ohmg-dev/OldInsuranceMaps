@@ -352,6 +352,15 @@ function setLayerOrder(newOrder, topZ) {
 $: setLayerOrder(orderableLayers, 500)
 $: setLayerOrder(orderableIndexLayers, 50)
 
+let intervalId;
+function manageAutoReload(run) {
+	if (run) {
+		intervalId = setInterval(postOperation, 4000, "refresh");
+	} else {
+		clearInterval(intervalId)
+	}
+}
+$: manageAutoReload(sheetsLoading)
 
 function postOperation(operation) {
 	let layerIds = [];
