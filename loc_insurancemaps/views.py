@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+from datetime import datetime
 
 from django.shortcuts import render, get_object_or_404
 from django.views import View
@@ -17,7 +18,7 @@ from .models import Volume
 from .utils import unsanitize_name, filter_volumes_for_use
 from .enumerations import STATE_CHOICES
 from .api import CollectionConnection
-from .tasks import import_sheets_as_task
+from .tasks import load_documents_as_task
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,11 @@ class Volumes(View):
 
         loaded_summary = []
         for vol in started_volumes:
+            loaded_by_name, loaded_by_profile = "", ""
+            if vol.loaded_by is not None:
+                loaded_by_name = vol.loaded_by.username,
+                loaded_by_profile = reverse("profile_detail", args=(vol.loaded_by.username, )),
+
             items = vol.sort_lookups()
             year_vol = vol.year
             if vol.volume_no is not None:
@@ -77,8 +83,8 @@ class Volumes(View):
                 "prepared_ct": len(items['prepared']),
                 "georeferenced_ct": len(items['georeferenced']),
                 "volume_no": vol.volume_no,
-                "loaded_by_name": vol.loaded_by.username,
-                "loaded_by_profile": reverse("profile_detail", args=(vol.loaded_by.username, )),
+                "loaded_by_name": loaded_by_name,
+                "loaded_by_profile": loaded_by_profile,
                 "title": vol.__str__(),
                 "urls": {
                     "summary": reverse("volume_summary", args=(vol.identifier,))
@@ -150,19 +156,16 @@ class VolumeDetail(View):
         operation = body.get("operation", None)
 
         if operation == "initialize":
-            import_sheets_as_task.apply_async(
-                (volumeid, request.user.pk),
+            volume = Volume.objects.get(pk=volumeid)
+            if volume.loaded_by is None:
+                volume.loaded_by = request.user
+                volume.load_date = datetime.now()
+                volume.save(update_fields=["loaded_by", "load_date"])
+            load_documents_as_task.apply_async(
+                (volumeid, ),
                 queue="update"
             )
-            volume = Volume.objects.get(pk=volumeid)
             volume_json = volume.serialize()
-
-            # set a few things manually here that may not be set on the Volume
-            # yet due to async operations
-            volume_json["loaded_by"] = {
-                "name": request.user.username,
-                "profile": reverse("profile_detail", args=(request.user.username, )),
-            }
             volume_json["status"] = "initializing..."
 
             return JsonResponse(volume_json)
