@@ -121,10 +121,11 @@ class Sheet(models.Model):
     attached to the Document, but avoids the need for actually inheriting
     that model (and all of the signals, etc. that come along with it)."""
 
-    document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, null=True, blank=True)
     volume = models.ForeignKey("Volume", on_delete=models.CASCADE)
     sheet_no = models.CharField(max_length=10, null=True, blank=True)
     lc_iiif_service = models.CharField(max_length=150, null=True, blank=True)
+    jp2_url = models.CharField(max_length=150, null=True, blank=True)
 
     def __str__(self):
         return f"{self.volume.__str__()} p{self.sheet_no}"
