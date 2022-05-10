@@ -45,7 +45,7 @@ let loadTip = false;
 let map;
 let layersPresent = VOLUME.ordered_layers.layers.length != 0 || VOLUME.ordered_layers.index_layers.length != 0;
 let showMap = layersPresent
-let showUnprepared = false;
+let showUnprepared = VOLUME.status == "initializing...";
 let showPrepared = false;
 let showGeoreferenced = false;
 
@@ -482,7 +482,7 @@ function handleKeyup(e) {
 	{/each}
 	</p></div>
 	{/if}
-	{#if VOLUME.sheet_ct.loaded == 0 && USER_TYPE != 'anonymous' && !sheetsLoading}
+	{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && USER_TYPE != 'anonymous' && !sheetsLoading}
 		<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
 	{/if}
 	{#if USER_TYPE == 'anonymous' }
@@ -595,14 +595,30 @@ function handleKeyup(e) {
 		</div>
 	</div>
 	<div class="sheets-status-bar">
-		{#if VOLUME.loaded_by.name != "" && !sheetsLoading}
+		<!-- {#if (VOLUME.loaded_by.name != "" && !sheetsLoading) || VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
 			<p><em>{VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.loaded != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}</em></p>
 		{:else if sheetsLoading}
 			<p style="float:left;"><em>Loading sheet {VOLUME.sheet_ct.loaded+1}/{VOLUME.sheet_ct.total}... refresh to update (you can safely leave this page).</em></p>
 			<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
 		{:else if VOLUME.sheet_ct.loaded == 0}
 			<p><em>No sheets loaded yet...</em></p>
+		{/if} -->
+		<p style="float:left;"><em>
+
+			{#if sheetsLoading}
+			Loading sheet {VOLUME.sheet_ct.loaded+1}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
+			{:else if VOLUME.sheet_ct.loaded == 0}
+			No sheets loaded yet...
+			{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
+			{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
+			{:else}
+			{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}
+			{/if}
+		</em></p>
+		{#if sheetsLoading}
+		<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
 		{/if}
+		
 	</div>
 	<div class="documents-box">
 		<h4 class="section-toggle" on:click={() => showUnprepared = !showUnprepared}>
