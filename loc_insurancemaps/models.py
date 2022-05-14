@@ -40,6 +40,7 @@ from .utils import LOCParser, download_image
 from .enumerations import (
     STATE_CHOICES,
     STATE_ABBREV,
+    STATE_POSTAL,
     MONTH_CHOICES,
 )
 from .renderers import convert_img_format, generate_full_thumbnail_content
@@ -291,6 +292,7 @@ class Volume(models.Model):
         blank=True,
         default=dict,
     )
+    slug = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         display_str = f"{self.city}, {STATE_ABBREV[self.state]} | {self.year}"
@@ -517,6 +519,21 @@ class Volume(models.Model):
             "urls": self.get_urls(),
             "ordered_layers": ordered_layers,
         }
+
+    def save(self, *args, **kwargs):
+
+        slug = ""
+        if self.city:
+            slug = "".join([i for i in self.city if not i in [".", ",", "'",]])
+            slug = slug.replace(" ","-").lower()
+        if self.state:
+            try:
+                slug += "-" + STATE_POSTAL[self.state]
+            except KeyError:
+                pass
+        self.slug = slug
+
+        return super(Volume, self).save(*args, **kwargs)
 
 ## This seems to be where the signals need to be connected. See
 ## https://github.com/mradamcox/loc-insurancemaps/issues/75
