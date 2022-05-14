@@ -72,6 +72,13 @@ class Volumes(View):
             year_vol = vol.year
             if vol.volume_no is not None:
                 year_vol = f"{vol.year} vol. {vol.volume_no}"
+
+            unprep_ct = len(items['unprepared'])
+            prep_ct = len(items['prepared'])
+            georef_ct = len(items['georeferenced'])
+            percent = 0
+            if georef_ct > 0:
+                percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
             vol_content = {
                 "identifier": vol.identifier,
                 "city": vol.city,
@@ -79,9 +86,10 @@ class Volumes(View):
                 "state": vol.state,
                 "year_vol": year_vol,
                 "sheet_ct": vol.sheet_ct,
-                "unprepared_ct": len(items['unprepared']),
-                "prepared_ct": len(items['prepared']),
-                "georeferenced_ct": len(items['georeferenced']),
+                "unprepared_ct": unprep_ct,
+                "prepared_ct": prep_ct,
+                "georeferenced_ct": georef_ct,
+                "percent": percent,
                 "volume_no": vol.volume_no,
                 "loaded_by_name": loaded_by_name,
                 "loaded_by_profile": loaded_by_profile,
