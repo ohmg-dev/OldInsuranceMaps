@@ -41,6 +41,7 @@ export let MAPBOX_API_KEY;
 
 $: sheetsLoading = VOLUME.status == "initializing...";
 let loadTip = false;
+let previewMapTip = false;
 
 let map;
 let layersPresent = VOLUME.ordered_layers.layers.length != 0 || VOLUME.ordered_layers.index_layers.length != 0;
@@ -491,27 +492,20 @@ function handleKeyup(e) {
 	{/each}
 	</p></div>
 	{/if}
-	{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && USER_TYPE != 'anonymous' && !sheetsLoading}
-		<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
-	{/if}
-	{#if USER_TYPE == 'anonymous' }
-	<div class="signin-reminder">
-	<p><em>
-		<!-- svelte-ignore a11y-invalid-attribute -->
-		<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
-		<a href="/account/signup">sign up</a> to work on this content
-	</em></p>
-	</div>
-	{/if}
 	<hr>
 	<h3>Map Overview</h3>
-	<div class="sheets-status-bar">
-		<p><em>The preview map shows progress toward a full mosaic of this volume's content. Please note: it is not optimized for performance and may be sluggish for large cities. The best way to view a single layer is find it in the <strong>Georeferenced</strong> section below and click the thumbnail.</em></p>
-	</div>
-	<h4 class="section-toggle" on:click={() => showMap = !showMap}>
-		<i class="fa {showMap == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
-		Preview Map ({VOLUME.items.layers.length} layers)
+	<h4 class="section-toggle">
+		<span on:click={() => showMap = !showMap}>
+			<i class="fa {showMap == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
+			Preview Map ({VOLUME.items.layers.length} layers)
+		</span>
+		<i class="fa fa-info-circle help-icon" on:click={() => previewMapTip = !previewMapTip}></i>
 	</h4>
+	{#if previewMapTip}
+	<div transition:slide>
+		<p>The preview map shows progress toward a full mosaic of this volume's content. <em>Please note: it is not optimized for performance and may be sluggish for large cities. The best way to view a single layer is find it in the <strong>Georeferenced</strong> section below and click the thumbnail.</em></p>
+	</div>
+	{/if}
 	<div class="map-container" style="display:{showMap == true ? 'flex' : 'none'}; justify-content: center; height:550px">
 		<div id="map-panel">
 			<div id="map" style="height: 100%;"></div>
@@ -629,6 +623,16 @@ function handleKeyup(e) {
 		{/if}
 		
 	</div>
+
+	{#if USER_TYPE == 'anonymous' }
+	<div class="signin-reminder">
+	<p><em>
+		<!-- svelte-ignore a11y-invalid-attribute -->
+		<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+		<a href="/account/signup">sign up</a> to work on this content
+	</em></p>
+	</div>
+	{/if}
 	<div class="documents-box">
 		<h4 class="section-toggle" on:click={() => showUnprepared = !showUnprepared}>
 			<i class="fa {showUnprepared == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
