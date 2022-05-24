@@ -26,6 +26,50 @@ def generate_full_thumbnail_content(document):
 
     return content
 
+def generate_layer_geotiff_thumbnail(layer):
+
+    from django.conf import settings
+    from geonode.layers.models import LayerFile
+    from geonode.thumbs.thumbnails import _generate_thumbnail_name
+
+    # find geotiff file path for layer
+    lf = LayerFile.objects.filter(upload_session=layer.upload_session)
+    if len(lf) > 1:
+        print(f"too many files for this layer: {layer.alternate}")
+        return None
+    if len(lf) == 0:
+        print(f"no file for this layer: {layer.alternate}")
+        return None
+
+    # generate blank thumbnail canvas, off-white background (geonode standard)
+    size = (settings.THUMBNAIL_SIZE["width"], settings.THUMBNAIL_SIZE["height"])
+    background = Image.new("RGB", size, (250, 250, 250))
+
+    # open full image and reduce to thumbnail
+    img = Image.open(lf[0].file.path)
+    img.thumbnail(size)
+
+    # paste onto background with horizontal/vertical centering
+    paste_x, paste_y = 0, 0
+    if img.size[0] != size[0]:
+        paste_x = int((size[0] - img.size[0]) / 2)
+    if img.size[1] != size[1]:
+        paste_y = int((size[1] - img.size[1]) / 2)
+    background.paste(img, (paste_x, paste_y), img)
+
+    # write to bytes
+    output = BytesIO()
+    background.save(output, format='PNG')
+    content = output.getvalue()
+    output.close()
+
+    name = _generate_thumbnail_name(layer)
+    layer.save_thumbnail(name, image=content)
+
+    del img
+    del background
+
+
 def convert_img_format(input_img, format="JPEG"):
 
     ext_map = {"PNG":".png", "JPEG":".jpg", "TIFF": ".tif"}
