@@ -492,6 +492,9 @@ function handleKeyup(e) {
 	{/each}
 	</p></div>
 	{/if}
+	{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && USER_TYPE != 'anonymous' && !sheetsLoading}
+		<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
+	{/if}
 	<hr>
 	<h3>Map Overview</h3>
 	<h4 class="section-toggle">
