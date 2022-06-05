@@ -19,7 +19,11 @@ def loc_info(request):
 
     if res_id is not None:
         vol = get_volume(resource_type, res_id)
-        info['volume_title'] = vol.__str__()
-        info['volume_url'] = full_reverse('volume_summary', args=(vol.pk,))
+        if vol is not None:
+            info['volume_title'] = vol.__str__()
+            info['volume_url'] = full_reverse('volume_summary', args=(vol.pk,))
+        else:
+            info['volume_title'] = ""
+            info['volume_url'] = ""
 
     return info

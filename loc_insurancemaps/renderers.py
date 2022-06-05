@@ -2,6 +2,8 @@ import os
 from io import BytesIO
 from PIL import Image, ImageOps
 
+Image.MAX_IMAGE_PIXELS = None
+
 def generate_full_thumbnail_content(document):
 
     # size = (200, 200)
