@@ -322,9 +322,9 @@ class LayerMask(models.Model):
         self.layer.save()
 
         # update thumbnail with new trim style
-        thumb = create_thumbnail(self.layer, overwrite=True)
-        self.layer.thumbnail_url = thumb
-        self.layer.save()
+#        thumb = create_thumbnail(self.layer, overwrite=True)
+#        self.layer.thumbnail_url = thumb
+#        self.layer.save()
 
 def get_default_session_data(session_type):
     """Return a dict of the keys/types for a sessions's data field.
@@ -1051,7 +1051,7 @@ class TrimSession(SessionBase):
 
         LayerMask.objects.filter(layer=self.layer).delete()
 
-        self.set_status("unapplied")
+        self.update_status("unapplied")
 
     def save(self, *args, **kwargs):
         self.type = 't'
