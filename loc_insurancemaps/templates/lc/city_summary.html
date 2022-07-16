@@ -1,0 +1,21 @@
+{% extends 'index.html' %}
+{% load markdownify %}
+{% load i18n %}
+{% load base_tags %}
+{% load django_svelte %}
+
+{% block title %}{{ svelte_params.PAGE_TITLE }}{% endblock title %}
+
+{% block hero%}
+
+<div class="container-outer background-bg" style="margin-top: -7px;">
+<div class="container background-fg" style="padding:20px 20px;">
+  <!-- {% display_svelte "Volume.svelte" svelte_params %}  -->
+  {{ svelte_params.VOLUMES }}
+</div>
+</div>
+{% endblock hero %}
+
+{% block bigsearch %}{% endblock bigsearch %}
+{% block showcase %}{% endblock showcase %}
+{% block datasets %}{% endblock datasets %}
