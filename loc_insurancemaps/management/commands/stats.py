@@ -20,8 +20,8 @@ def get_date(date):
 def get_date_str(date):
     return get_date(date).strftime("%Y-%m-%d")
 
-def get_week_bins():
-    start_week = datetime.strptime("2022-01-31", "%Y-%m-%d")
+def get_week_bins(start_date="2022-01-31"):
+    start_week = datetime.strptime(start_date, "%Y-%m-%d")
     end_week = start_week + timedelta(days=6)
 
     week_bins = {}
@@ -34,9 +34,9 @@ def get_week_bins():
         end_week = start_week + timedelta(days=6)
     return week_bins
 
-def get_date_dict():
+def get_date_dict(start_date="2022-01-31"):
     dates = {}
-    date = datetime.strptime("2022-01-31", "%Y-%m-%d")
+    date = datetime.strptime(start_date, "%Y-%m-%d")
     while date < datetime.strptime("2022-06-01", "%Y-%m-%d"):
         dates[date.strftime("%Y-%m-%d")] = {}
         date = date + timedelta(days=1)
@@ -78,15 +78,24 @@ class Command(BaseCommand):
                 "all"
             ]
         )
+        parser.add_argument(
+            "--exclude-admins",
+            action="store_true",
+        )
 
     def handle(self, *args, **options):
 
         data = []
 
         admins = get_user_model().objects.filter(username__in=["acfc", "admin"])
+        users = get_user_model().objects.all().exclude(username__in=["acfc", "admin", "AnonymousUser"])
 
-        volumes = Volume.objects.all().exclude(loaded_by__in=admins)
-        sessions = SessionBase.objects.all().exclude(user__in=admins)
+        if options['exclude_admins']:
+            volumes =  Volume.objects.all().exclude(loaded_by__in=admins)
+            sessions = SessionBase.objects.all().exclude(user__in=admins)
+        else:
+            volumes = Volume.objects.all()
+            sessions = SessionBase.objects.all()
 
         if options['operation'] in ["sessions-by-user", "all"]:
 
@@ -95,10 +104,12 @@ class Command(BaseCommand):
                 rows.append({
                     "email": user.email,
                     "username": user.username,
+                    "user_joined": get_date_str(user.date_joined),
                     "volumes": volumes.filter(loaded_by=user).count(),
                     "prep": sessions.filter(type="p").filter(user=user).count(),
                     "georef": sessions.filter(type="g").filter(user=user).count(),
                     "trim": sessions.filter(type="t").filter(user=user).count(),
+                    "total": sessions.filter(user=user).count()
                 })
             write_dict_csv("sessions-by-user.csv", rows)
 
@@ -118,7 +129,8 @@ class Command(BaseCommand):
                 date_list.append((get_date_str(v.load_date), "v"))
             for item in date_list:
                 d, t = item
-                dates[d][t] += 1
+                if d in dates:
+                    dates[d][t] += 1
         
             rows = []
             for k in sorted(dates.keys()):
@@ -167,12 +179,41 @@ class Command(BaseCommand):
 
         if options['operation'] in ["user-signups", "all"]:
 
+
             users = get_user_model().objects.all().exclude(username__in=["admin", "acfc", "AnonymousUser"])
-            user_bins = get_week_bins()
+
+            dates = get_date_dict("2022-02-03")
+            for v in dates.values():
+                v["new_users"] = 0
+
+            for u in users:
+                cleaned_join_date = datetime.strptime(u.date_joined.strftime("%Y-%m-%d"), "%Y-%m-%d")
+                join_date = get_date(cleaned_join_date)
+                # for those who joined technically before the start, change join date to first day of study
+                if join_date < datetime.strptime("2022-02-03", "%Y-%m-%d"):
+                    join_date = datetime.strptime("2022-02-03", "%Y-%m-%d")
+                join_date_str = get_date_str(join_date)
+                if join_date_str in dates:
+                    dates[join_date_str]['new_users'] += 1
+            
+            total = 0
+            rows = []
+            for k,v in dates.items():
+                total += v['new_users']
+                v['total'] = total
+                rows.append({
+                    "date": k,
+                    "new_users": v['new_users'],
+                    "total_users": v['total']
+                })
+
+            write_dict_csv("signups-by-date.csv", rows)
+
+            user_bins = get_week_bins(start_date="2022-02-03")
             for v in user_bins.values():
                 v['new_users'] = 0
             for u in users:
-                cleaned_join_date = datetime.strptime(u.date_joined.strftime("%Y-%m-%d"), "%Y-%m-%d")
+                cleaned_join_date = datetime.strptime(get_date_str(u.date_joined), "%Y-%m-%d")
                 join_date = get_date(cleaned_join_date)
                 # for those who joined technically before the start, change join date to first day of study
                 if join_date < user_bins[1]["start"]:
@@ -215,7 +256,7 @@ class Command(BaseCommand):
                     continue
 
                 row = {i: "" for i in headers}
-                row["create_date"] = s.date_created.strftime("%Y-%m-%d")
+                row["create_date"] = get_date_str(s.date_created)
                 row["seconds"] = 0
                 if s.date_run and s.date_created:
                     diff = s.date_run - s.date_created
