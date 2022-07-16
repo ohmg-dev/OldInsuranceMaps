@@ -19,7 +19,6 @@ class Command(BaseCommand):
                 "import",
                 "summarize",
                 "clean",
-                "initialize-volume",
                 "import-volumes"
             ],
             help="the identifier of the LoC resource to add",
@@ -93,19 +92,15 @@ class Command(BaseCommand):
                 verbose=options["verbose"],
             )
 
-            i.import_volumes(
-                state=options["state"],
-                city=options["city"],
-                year=options["year"],
-                import_sheets=options["import_sheets"],
-            )
-        
-        if options['operation'] == "initialize-volume":
-            i = Importer(
-                dry_run=options["dry_run"],
-                verbose=options["verbose"],
-            )
-            i.initialize_volume(options["identifier"])
+            if options['identifier'] is not None:
+                Importer().import_volume(options['identifier'])
+            else:
+                i.import_volumes(
+                    state=options["state"],
+                    city=options["city"],
+                    year=options["year"],
+                    import_sheets=options["import_sheets"],
+                )
 
         if options['operation'] == "import-volumes":
 
