@@ -13,6 +13,7 @@ from pygments.lexers.data import JsonLexer, JsonLdLexer
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
+from django.contrib.gis.geos import Polygon
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import models, transaction
@@ -445,6 +446,16 @@ class Volume(models.Model):
         if lp is not None:
             layer_json = lp.serialize()
             layer_json["page_str"] = lp.title
+
+            try:
+                tms_url = f"https://oldinsurancemaps.net/geoserver/gwc/service/tms/1.0.0/{lp.alternate}/{{z}}/{{x}}/{{-y}}.png"
+                centroid = Polygon().from_bbox(lp.extent).centroid
+                ohm_url = f"https://www.openhistoricalmap.org/edit#map=15/{centroid.coords[1]}/{centroid.coords[0]}&background=custom:{tms_url}"
+                layer_json["urls"]["ohm_edit"] = ohm_url
+            except Exception as e:
+                print("ERROR:")
+                print(e)
+                layer_json["urls"]["ohm_edit"] = "https://www.openhistoricalmap.org/edit"
 
             self.layer_lookup[lp.alternate] = layer_json
             self.save(update_fields=["layer_lookup"])
