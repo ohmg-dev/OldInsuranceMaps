@@ -1,14 +1,6 @@
-import os
-import csv
-
-from django.conf import settings
-from django.core import management
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
-from loc_insurancemaps.api import Importer, import_all_available_volumes
-from loc_insurancemaps.enumerations import STATE_NAMES
-from loc_insurancemaps.utils import LOCParser
 from loc_insurancemaps.models import Volume
 
 class Command(BaseCommand):

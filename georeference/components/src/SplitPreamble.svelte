@@ -130,7 +130,7 @@ function setPanel(show) {
   {/if}
   {#if showVideo}
   <div transition:slide class="help-panel">
-    <h4><em>coming soon!</em></h4>
+    <a href="https://youtu.be/GpAdj3hymkA?t=824" target="_blank"><h4>View <i class="fa fa-external-link"></i></h4></a>
   </div>
   {/if}
 </main>

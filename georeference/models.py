@@ -12,9 +12,11 @@ from django.contrib.gis.geos import Point, GEOSGeometry
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.files import File
+from django.db.models import signals
 from django.utils import timezone
 
 from geonode.documents.models import Document, DocumentResourceLink
+from geonode.geoserver.signals import geoserver_post_save
 from geonode.layers.models import Layer, Style
 from geonode.layers.utils import file_upload
 from geonode.thumbs.thumbnails import create_thumbnail
@@ -67,313 +69,6 @@ class GeoreferencedDocumentLink(DocumentResourceLink):
         except Layer.DoesNotExist:
             layer_name = "None"
         return f"{self.document.__str__()} --> {layer_name}"
-
-class SplitEvaluation(models.Model):
-    """DEPRECATED - will be fully removed in 0.1.0-beta 1"""
-
-    class Meta:
-        verbose_name = "Split Evaluation"
-        verbose_name_plural = "Split Evaluations"
-
-    document = models.ForeignKey(Document, on_delete=models.CASCADE)
-    split_needed = models.BooleanField(default=None, null=True, blank=True)
-    cutlines = JSONField(default=None, null=True, blank=True)
-    divisions = JSONField(default=None, null=True, blank=True)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE)
-    created = models.DateTimeField(
-        auto_now_add=True,
-        null=False,
-        blank=False)
-
-    def __str__(self):
-        return f"{self.document.__str__()} - {self.user} - {self.created}"
-
-    @property
-    def georeferenced_downstream(self):
-        """Returns True if the related document or its children (if it
-        has been split) have already been georeferenced."""
-
-        if self.split_needed is True:
-            docs_to_check = self.get_children()
-        else:
-            docs_to_check = [self.document]
-
-        tkm = TKeywordManager()
-        return any([tkm.is_georeferenced(d) for d in docs_to_check])
-
-    def get_children(self):
-        """Returns a list of all the child documents created by this
-        determination."""
-
-        ct = ContentType.objects.get(app_label="documents", model="document")
-        child_ids = SplitDocumentLink.objects.filter(
-            document=self.document,
-            content_type=ct,
-        ).values_list("object_id", flat=True)
-        return list(Document.objects.filter(pk__in=child_ids))
-
-    def preview_divisions(self):
-
-        if self.cutlines is None:
-            return []
-
-        s = Splitter(image_file=self.document.doc_file.path)
-        return s.generate_divisions(self.cutlines)
-
-    def run(self):
-        """
-        Runs the document split process based on prestored segmentation info
-        that has been generated for this document. New Documents are made for
-        each child image, SplitDocumentLinks are created to link this parent
-        Document with its children. The parent document is also marked as
-        metadata_only so that it no longer shows up in the search page lists.
-        """
-
-        tkm = TKeywordManager()
-        tkm.set_status(self.document, "splitting")
-
-        if self.split_needed is False:
-            tkm.set_status(self.document, "prepared")
-            self.document.metadata_only = False
-            self.document.save()
-        else:
-            s = Splitter(image_file=self.document.doc_file.path)
-            s.generate_divisions(self.cutlines)
-            new_images = s.split_image()
-
-            for n, file_path in enumerate(new_images, start=1):
-
-                fname = os.path.basename(file_path)
-                new_doc = Document.objects.get(pk=self.document.pk)
-                new_doc.pk = None
-                new_doc.id = None
-                new_doc.uuid = None
-                new_doc.thumbnail_url = None
-                new_doc.metadata_only = False
-                new_doc.title = f"{self.document.title} [{n}]"
-                with open(file_path, "rb") as openf:
-                    new_doc.doc_file.save(fname, File(openf))
-                new_doc.save()
-
-                os.remove(file_path)
-
-                ct = ContentType.objects.get(app_label="documents", model="document")
-                SplitDocumentLink.objects.create(
-                    document=self.document,
-                    content_type=ct,
-                    object_id=new_doc.pk,
-                )
-
-                for r in self.document.regions.all():
-                    new_doc.regions.add(r)
-                tkm.set_status(new_doc, "prepared")
-
-            if len(new_images) > 1:
-                self.document.metadata_only = True
-                self.document.save()
-
-            tkm.set_status(self.document, "split")
-
-        return
-
-    def cleanup(self):
-        """Method called with pre_delete signal that cleans up resulting
-        documents from previous split operations, if necessary. This is
-        meant to provide a "reset" capability for SplitDeterminations."""
-
-        # first check to make sure this determination can be reversed.
-        if self.georeferenced_downstream is True:
-            logger.warn(f"Removing SplitEvaluation {self.pk} even though downstream georeferencing has occurred.")
-
-        # if a split was made, remove all descendant documents before deleting
-        if self.split_needed is True:
-            for child in self.get_children():
-                child.delete()
-
-        SplitDocumentLink.objects.filter(document=self.document).delete()
-
-        TKeywordManager().set_status(self.document, "unprepared")
-        self.document.metadata_only = False
-        self.document.save()
-
-    def serialize(self):
-        return {
-            "allow_reset": not self.georeferenced_downstream,
-            "user": {
-                "name": self.user.username,
-                "profile": full_reverse("profile_detail", args=(self.user.username, )),
-            },
-            "date": (self.created.month, self.created.day, self.created.year),
-            "date_str": self.created.strftime("%Y-%m-%d"),
-            "datetime": self.created.strftime("%Y-%m-%d - %H:%M"),
-            "split_needed": self.split_needed,
-            "divisions_ct": len(self.get_children()),
-        }
-
-
-
-class GeoreferenceSession(models.Model):
-    """DEPRECATED - will be fully removed in 0.1.0-beta 1"""
-    class Meta:
-        verbose_name = "Georeference Session"
-        verbose_name_plural = "Georeference Sessions"
-
-    document = models.ForeignKey(Document, on_delete=models.CASCADE)
-    layer = models.ForeignKey(Layer, models.SET_NULL, null=True, blank=True)
-    gcps_used = JSONField(null=True, blank=True)
-    transformation_used = models.CharField(null=True, blank=True, max_length=20)
-    crs_epsg_used = models.IntegerField(null=True, blank=True)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE)
-    created = models.DateTimeField(
-        auto_now_add=True,
-        editable=False,
-        null=False,
-        blank=False)
-    status = models.CharField(
-        default="initializing",
-        max_length=100,
-    )
-    note = models.CharField(
-        blank=True,
-        null=True,
-        max_length=255,
-    )
-
-    def __str__(self):
-        return f"{self.document.title} - {self.created}"
-
-    def run(self):
-
-        tkm = TKeywordManager()
-        tkm.set_status(self.document, "georeferencing")
-        self.update_status("initializing georeferencer")
-        try:
-            g = Georeferencer(
-                transformation=self.transformation_used,
-                epsg_code=self.crs_epsg_used,
-            )
-            g.load_gcps_from_geojson(self.gcps_used)
-        except Exception as e:
-            self.update_status("failed")
-            self.note = f"{e.message}"
-            self.save()
-            # revert to previous tkeyword status
-            tkm.set_status(self.document, "prepared")
-            return None
-        self.update_status("georeferencing")
-        try:
-            out_path = g.make_tif(self.document.doc_file.path)
-        except Exception as e:
-            self.update_status("failed")
-            self.note = f"{e.message}"
-            self.save()
-            # revert to previous tkeyword status
-            tkm.set_status(self.document, "prepared")
-            return None
-
-        # self.transformation_used = g.transformation["id"]
-        self.update_status("creating layer")
-
-        ## need to remove commas from the titles, otherwise the layer will not
-        ## be valid in the catalog list when trying to add it to a Map. the 
-        ## message in the catalog will read "Missing OGC reference metadata".
-        title = self.document.title.replace(",", " -")
-
-        ## first look to see if there is a layer alreaded linked to this document.
-        ## this would indicate that it has already been georeferenced, and in this
-        ## case the existing layer should be overwritten.
-        existing_layer = None
-        try:
-            link = GeoreferencedDocumentLink.objects.get(document=self.document)
-            existing_layer = Layer.objects.get(pk=link.object_id)
-        except (GeoreferencedDocumentLink.DoesNotExist, Layer.DoesNotExist):
-            pass
-
-        ## create the layer, passing in the existing_layer if present
-        layer = file_upload(
-            out_path,
-            layer=existing_layer,
-            overwrite=True,
-            title=title,
-            user=self.user,
-        )
-
-        ## if there was no existing layer, create a new link between the
-        ## document and the new layer
-        if existing_layer is None:
-            ct = ContentType.objects.get(app_label="layers", model="layer")
-            GeoreferencedDocumentLink.objects.create(
-                document=self.document,
-                content_type=ct,
-                object_id=layer.pk,
-            )
-
-            # set attributes in the layer straight from the document
-            for keyword in self.document.keywords.all():
-                layer.keywords.add(keyword)
-            for region in self.document.regions.all():
-                layer.regions.add(region)
-            Layer.objects.filter(pk=layer.pk).update(
-                date=self.document.date,
-                abstract=self.document.abstract,
-                category=self.document.category,
-                license=self.document.license,
-                restriction_code_type=self.document.restriction_code_type,
-                attribution=self.document.attribution,
-            )
-
-        ## if there was an existing layer that's been overwritten, regenerate thumb.
-        else:
-            self.update_status("regenerating thumbnail")
-            thumb = create_thumbnail(layer, overwrite=True)
-            Layer.objects.filter(pk=layer.pk).update(thumbnail_url=thumb)
-
-        self.layer = layer
-        self.update_status("saving control points")
-
-        # save the successful gcps to the canonical GCPGroup for the document
-        GCPGroup().save_from_geojson(
-            self.gcps_used, 
-            self.document, 
-            self.transformation_used
-        )
-
-        tkm.set_status(self.document, "georeferenced")
-        tkm.set_status(layer, "georeferenced")
-
-        self.update_status("completed")
-        self.save()
-
-        return layer
-
-    def update_status(self, status):
-        logger.debug(f"GeoreferenceSession {self.id} | set status: {status}")
-        self.status = status
-        self.save(update_fields=['status'])
-
-    def serialize(self):
-        return {
-            "user": {
-                "name": self.user.username,
-                "profile": full_reverse("profile_detail", args=(self.user.username, )),
-            },
-            "date": (self.created.month, self.created.day, self.created.year),
-            "date_str": self.created.strftime("%Y-%m-%d"),
-            "datetime": self.created.strftime("%Y-%m-%d - %H:%M"),
-            "gcps_geojson": self.gcps_used,
-            "gcps_ct": len(self.gcps_used["features"]),
-            "transformation": self.transformation_used,
-            "epsg": self.crs_epsg_used,
-            "status": self.status,
-        }
 
 
 class GCP(models.Model):
@@ -627,108 +322,9 @@ class LayerMask(models.Model):
         self.layer.save()
 
         # update thumbnail with new trim style
-        thumb = create_thumbnail(self.layer, overwrite=True)
-        self.layer.thumbnail_url = thumb
-        self.layer.save()
-
-class MaskSession(models.Model):
-    """DEPRECATED - will be fully removed in 0.1.0-beta 1"""
-    class Meta:
-        verbose_name = "Mask Session"
-        verbose_name_plural = "Mask Sessions"
-
-    layer = models.ForeignKey(Layer, on_delete=models.CASCADE)
-    polygon = models.PolygonField(null=True, blank=True, srid=3857)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE)
-    created = models.DateTimeField(
-        auto_now_add=True,
-        editable=False,
-        null=False,
-        blank=False)
-    note = models.CharField(
-        blank=True,
-        null=True,
-        max_length=255,
-    )
-
-    def run(self):
-
-        ## first get the related Document so the statuses can be managed
-        ct = ContentType.objects.get(app_label="layers", model="layer")
-        document = GeoreferencedDocumentLink.objects.get(
-            content_type=ct,
-            object_id=self.layer.pk,
-        ).document
-
-        tkm = TKeywordManager()
-        tkm.set_status(self.layer, "trimming")
-        tkm.set_status(document, "trimming")
-
-        # create/update a LayerMask for this layer and apply it as style
-        if self.polygon is not None:
-
-            try:
-                mask = LayerMask.objects.get(layer=self.layer)
-                mask.polygon = self.polygon
-                mask.save()
-            except LayerMask.DoesNotExist:
-                mask = LayerMask.objects.create(
-                    layer=self.layer,
-                    polygon=self.polygon,
-                )
-            mask.apply_mask()
-
-            tkm.set_status(self.layer, "trimmed")
-            tkm.set_status(document, "trimmed")
-
-        # if there is no polygon, then clean up old mask styles and reset the
-        # default style to original (if needed)
-        else:
-
-            # delete the LayerMask object
-            LayerMask.objects.filter(layer=self.layer).delete()
-
-            # delete the existing trim style in Geoserver if necessary
-            cat = get_gs_catalog()
-            trim_style_name = f"{self.layer.name}_trim"
-            gs_trim_style = cat.get_style(trim_style_name, workspace="geonode")
-            if gs_trim_style is not None:
-                cat.delete(gs_trim_style, recurse=True)
-
-            # delete the existing trimmed style in GeoNode
-            Style.objects.filter(name=trim_style_name).delete()
-
-            # set the full style back to the default in GeoNode
-            gn_full_style = Style.objects.get(name=self.layer.name)
-            self.layer.default_style = gn_full_style
-            self.layer.save()
-
-            # update thumbnail
-            thumb = create_thumbnail(self.layer, overwrite=True)
-            self.layer.thumbnail_url = thumb
-            self.layer.save()
-
-            tkm.set_status(self.layer, "georeferenced")
-            tkm.set_status(document, "georeferenced")
-
-    def serialize(self):
-        vertex_ct = 0
-        if self.polygon is not None:
-            vertex_ct = len(self.polygon.coords[0]) - 1
-        return {
-            "user": {
-                "name": self.user.username,
-                "profile": full_reverse("profile_detail", args=(self.user.username, )),
-            },
-            "date": (self.created.month, self.created.day, self.created.year),
-            "date_str": self.created.strftime("%Y-%m-%d"),
-            "datetime": self.created.strftime("%Y-%m-%d - %H:%M"),
-            "vertex_ct": vertex_ct,
-        }
+#        thumb = create_thumbnail(self.layer, overwrite=True)
+#        self.layer.thumbnail_url = thumb
+#        self.layer.save()
 
 def get_default_session_data(session_type):
     """Return a dict of the keys/types for a sessions's data field.
@@ -1115,7 +711,7 @@ class PrepSession(SessionBase):
 
         # first check to make sure this determination can be reversed.
         if self.georeferenced_downstream is True:
-            logger.warn(f"Removing SplitEvaluation {self.pk} even though downstream georeferencing has occurred.")
+            logger.warn(f"Removing PrepSession {self.pk} even though downstream georeferencing has occurred.")
 
         # if a split was made, remove all descendant documents before deleting
         for child in self.get_children():
@@ -1192,6 +788,8 @@ class GeorefSession(SessionBase):
 
         tkm = TKeywordManager()
         tkm.set_status(self.document, "georeferencing")
+
+        signals.post_save.disconnect(geoserver_post_save, sender=Layer)
 
         self.date_run = timezone.now()
         self.update_stage("processing", save=False)
@@ -1275,12 +873,6 @@ class GeorefSession(SessionBase):
                 attribution=self.document.attribution,
             )
 
-        ## if there was an existing layer that's been overwritten, regenerate thumb.
-        else:
-            self.update_status("regenerating thumbnail")
-            thumb = create_thumbnail(layer, overwrite=True)
-            Layer.objects.filter(pk=layer.pk).update(thumbnail_url=thumb)
-
         self.layer = layer
         self.update_status("saving control points")
 
@@ -1290,6 +882,15 @@ class GeorefSession(SessionBase):
             self.document,
             self.data['transformation'],
         )
+
+        ## now reconnect the geoserver post_save receiver and run final layer save.
+        signals.post_save.connect(geoserver_post_save, sender=Layer)
+        layer.save()
+
+        if existing_layer is not None:
+            self.update_status("regenerating thumbnail")
+            thumb = create_thumbnail(layer, overwrite=True)
+            Layer.objects.filter(pk=layer.pk).update(thumbnail_url=thumb)
 
         tkm.set_status(self.document, "georeferenced")
         tkm.set_status(layer, "georeferenced")
@@ -1450,7 +1051,7 @@ class TrimSession(SessionBase):
 
         LayerMask.objects.filter(layer=self.layer).delete()
 
-        self.set_status("unapplied")
+        self.update_status("unapplied")
 
     def save(self, *args, **kwargs):
         self.type = 't'

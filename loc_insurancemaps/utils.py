@@ -1,6 +1,10 @@
 import os
 import json
 import pytz
+import time
+import shutil
+import logging
+import requests
 from datetime import datetime
 
 from django.conf import settings
@@ -11,6 +15,8 @@ from geonode.base.models import Region
 from .enumerations import (
     STATE_CHOICES,
 )
+
+logger = logging.getLogger(__name__)
 
 def filter_volumes_for_use(volumes):
     """
@@ -64,6 +70,24 @@ def unsanitize_name(state, name):
 
 def full_capitalize(in_str):
     return " ".join([i.capitalize() for i in in_str.split(" ")])
+
+def download_image(url, out_path, retries=3):
+
+    # basic download code: https://stackoverflow.com/a/18043472/3873885
+    while True:
+        logger.debug(f"request {url}")
+        response = requests.get(url, stream=True)
+        if response.status_code == 200:
+            with open(out_path, 'wb') as out_file:
+                shutil.copyfileobj(response.raw, out_file)
+            return out_path
+        else:
+            logger.warn(f"response code: {response.status_code} retries left: {retries}")
+            time.sleep(5)
+            retries -= 1
+            if retries == 0:
+                logger.warn(f"request failed, cancelling")
+                return None
 
 class LOCParser(object):
 

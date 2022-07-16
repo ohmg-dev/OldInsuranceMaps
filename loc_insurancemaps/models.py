@@ -11,7 +11,9 @@ from pygments.formatters.html import HtmlFormatter
 from pygments.lexers.data import JsonLexer, JsonLdLexer
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
+from django.contrib.gis.geos import Polygon
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import models, transaction
@@ -35,10 +37,11 @@ from georeference.models import (
 from georeference.proxy_models import DocumentProxy, LayerProxy
 from georeference.utils import TKeywordManager
 
-from .utils import LOCParser
+from .utils import LOCParser, download_image
 from .enumerations import (
     STATE_CHOICES,
     STATE_ABBREV,
+    STATE_POSTAL,
     MONTH_CHOICES,
 )
 from .renderers import convert_img_format, generate_full_thumbnail_content
@@ -121,103 +124,93 @@ class Sheet(models.Model):
     attached to the Document, but avoids the need for actually inheriting
     that model (and all of the signals, etc. that come along with it)."""
 
-    document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, null=True, blank=True)
     volume = models.ForeignKey("Volume", on_delete=models.CASCADE)
     sheet_no = models.CharField(max_length=10, null=True, blank=True)
     lc_iiif_service = models.CharField(max_length=150, null=True, blank=True)
+    jp2_url = models.CharField(max_length=150, null=True, blank=True)
 
     def __str__(self):
         return f"{self.volume.__str__()} p{self.sheet_no}"
 
-    def create_from_fileset(self, fileset, volume, user=None):
+    def load_document(self, user=None):
+
+        log_prefix = f"{self.volume} p{self.sheet_no} |"
+        logger.info(f"{log_prefix} start load")
+
+        if self.jp2_url is None:
+            logger.warn(f"{log_prefix} jp2_url - cancelling download")
+            return
 
         temp_img_dir = os.path.join(settings.CACHE_DIR, "img")
         if not os.path.isdir(temp_img_dir):
             os.mkdir(temp_img_dir)
 
-        parsed = LOCParser(fileset=fileset)
+        tmp_path = os.path.join(temp_img_dir, self.jp2_url.split("/")[-1])
 
-        with transaction.atomic():
+        tmp_path = download_image(self.jp2_url, tmp_path)
+        if tmp_path is None:
+            return
 
-            ## first, create the sheet and document and link them
-            try:
-                sheet = Sheet.objects.get(
-                    volume=volume,
-                    sheet_no=parsed.sheet_number
-                )
-            except Sheet.DoesNotExist:
-                sheet = Sheet(
-                    volume=volume,
-                    sheet_no=parsed.sheet_number
-                )
+        # convert the downloaded jp2 to jpeg (needed for OpenLayers static image)
+        jpg_path = convert_img_format(tmp_path, format="JPEG")
+        os.remove(tmp_path)
 
-            doc = Document()
-            doc.uuid = str(uuid.uuid4())
-            doc.metadata_only = True
-            doc.title = sheet.__str__()
+        doc = Document()
+        doc.uuid = str(uuid.uuid4())
+        doc.metadata_only = True
+        doc.title = self.__str__()
 
-            ## make date
-            if volume.month is None:
-                month = 1
-            else:
-                month = int(volume.month)
-            doc.date = datetime(volume.year, month, 1, 12, 0)
+        ## make date
+        if self.volume.month is None:
+            month = 1
+        else:
+            month = int(self.volume.month)
+        doc.date = datetime(self.volume.year, month, 1, 12, 0)
 
-            # set owner to user
-            if user is None:
-                user = Profile.objects.get(username="admin")
-            doc.owner = user
+        # set owner to user
+        if user is None:
+            user = Profile.objects.get(username="admin")
+        doc.owner = user
 
-            # set license
-            doc.license = License.objects.get(name="Public Domain")
+        # set license
+        doc.license = License.objects.get(name="Public Domain")
 
-            # a few things need to happen only after the initial save
-            doc.save()
+        # a few things need to happen only after the initial save
+        doc.save()
 
-            # set the detail_url with the same function that is used in search
-            # result indexing. this must be done after the doc has been saved once.
-            doc.detail_url = doc.get_absolute_url()
+        # set the detail_url with the same function that is used in search
+        # result indexing. this must be done after the doc has been saved once.
+        doc.detail_url = doc.get_absolute_url()
 
-            # m2m regions relation also needs to happen after initial save()
-            for r in volume.regions.all():
-                doc.regions.add(r)
+        # m2m regions relation also needs to happen after initial save()
+        for r in self.volume.regions.all():
+            doc.regions.add(r)
 
-            sheet.document = doc
-            sheet.save()
+        with open(jpg_path, "rb") as new_file:
+            doc.doc_file.save(os.path.basename(jpg_path), File(new_file))
 
-            ## second, download the file and set it in the Document.
-            jp2_url = parsed.jp2_url
-            if jp2_url is None:
-                logger.warn(f"Sheet {sheet.pk}: No jp2 to download (Document {doc.pk} will be empty)")
-            else:
-                tmp_path = os.path.join(temp_img_dir, jp2_url.split("/")[-1])
+        os.remove(jpg_path)
 
-                # basic download code: https://stackoverflow.com/a/18043472/3873885
-                response = requests.get(jp2_url, stream=True)
-                with open(tmp_path, 'wb') as out_file:
-                    shutil.copyfileobj(response.raw, out_file)
+        ## this final save will trigger the FullThumbnail creation, now that
+        ## the doc has a doc_file attaches.
+        doc.save()
 
-                # convert the downloaded jp2 to jpeg (needed for OpenLayers static image)
-                jpg_path = convert_img_format(tmp_path, format="JPEG")
-                with open(jpg_path, "rb") as new_file:
-                    doc.doc_file.save(os.path.basename(jpg_path), File(new_file))
+        # manually reset the default Geonode thumbnail as well, because
+        # its background creation will have failed because it is an async task
+        # called from within an async task (i.e. when it's first called,
+        # the document hasn't actually been saved to the db yet).
+        thumbnail_content = generate_thumbnail_content(doc.doc_file.path)
+        filename = f'document-{doc.uuid}-thumb.png'
+        doc.save_thumbnail(filename, thumbnail_content)
 
-                os.remove(tmp_path)
-                os.remove(jpg_path)
+        self.document = doc
+        self.save()
 
-            ## this final save will trigger the FullThumbnail creation, now that
-            ## the doc has a doc_file attaches.
-            doc.save()
-
-            # manually reset the default Geonode thumbnail as well, because
-            # its background creation will have failed because it is an async task
-            # called from within an async task (i.e. when it's first called,
-            # the document hasn't actually been saved to the db yet).
-            thumbnail_content = generate_thumbnail_content(doc.doc_file.path)
-            filename = f'document-{doc.uuid}-thumb.png'
-            doc.save_thumbnail(filename, thumbnail_content)
-
-        return sheet
+        # set the status once the Document is fully created,
+        # which triggers the its addition Volume.document_lookup
+        tkm = TKeywordManager()
+        tkm.set_status(doc, "unprepared")
 
     @property
     def real_documents(self):
@@ -229,11 +222,14 @@ class Sheet(models.Model):
         or more documents in use for this Sheet.
         """
 
-        doc_proxy = DocumentProxy(self.document.id)
-        if len(doc_proxy.child_docs) > 0:
-            return doc_proxy.child_docs
-        else:
-            return [doc_proxy]
+        real_docs = []
+        if self.document is not None:
+            doc_proxy = DocumentProxy(self.document.id)
+            if len(doc_proxy.child_docs) > 0:
+                real_docs = doc_proxy.child_docs
+            else:
+                real_docs.append(doc_proxy)
+        return real_docs
 
     def serialize(self):
         return {
@@ -297,6 +293,7 @@ class Volume(models.Model):
         blank=True,
         default=dict,
     )
+    slug = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         display_str = f"{self.city}, {STATE_ABBREV[self.state]} | {self.year}"
@@ -304,6 +301,10 @@ class Volume(models.Model):
             display_str += f" | Vol. {self.volume_no}"
 
         return display_str
+
+    @property
+    def sheets(self):
+        return Sheet.objects.filter(volume=self).order_by("sheet_no")
     
     def lc_item_formatted(self):
         return format_json_display(self.lc_item)
@@ -315,42 +316,39 @@ class Volume(models.Model):
 
     lc_resources_formatted.short_description = 'LC Resources'
 
-    def import_sheets(self, user):
+    def make_sheets(self):
 
+        files_to_import = self.lc_resources[0]['files']
+        for fileset in files_to_import:
+            parsed = LOCParser(fileset=fileset)
+            sheet, created = Sheet.objects.get_or_create(
+                volume=self,
+                sheet_no=parsed.sheet_number,
+            )
+            sheet.jp2_url = parsed.jp2_url
+            sheet.lc_iiif_service = parsed.iiif_service
+            sheet.save()
+
+    def load_sheet_documents(self):
+
+        self.make_sheets()
         self.update_status("initializing...")
-        self.loaded_by = user
-        self.load_date = datetime.now()
-        self.save(update_fields=["loaded_by", "load_date"])
-
-        try:
-            sheets = []
-            files_to_import = self.lc_resources[0]['files']
-            for n, fileset in enumerate(files_to_import):
-                logger.info(f"{self.__str__()} | importing sheet {n+1}/{len(files_to_import)}...")
-                sheet = Sheet().create_from_fileset(fileset, self, user)
-                sheets.append(sheet)
-
-                # set the status once the Sheet and Document are fully created,
-                # which triggers the document's addition Volume.document_lookup
-                tkm = TKeywordManager()
-                tkm.set_status(sheet.document, "unprepared")
-
-        except Exception as e:
-            logger.error(e)
-            self.update_status("not started")
-
+        for sheet in self.sheets:
+            if sheet.document is None:
+                sheet.load_document(self.loaded_by)
         self.update_status("started")
-        return sheets
+        self.populate_lookups()
+
+    def remove_sheets(self):
+
+        for s in self.sheets:
+            s.delete()
 
     def update_status(self, status):
         self.status = status
         self.save(update_fields=['status'])
         logger.info(f"{self.__str__()} | status: {self.status}")
 
-    @property
-    def sheets(self):
-        return Sheet.objects.filter(volume=self)
-    
     def get_all_documents(self):
         all_documents = []
         for sheet in self.sheets:
@@ -449,6 +447,16 @@ class Volume(models.Model):
             layer_json = lp.serialize()
             layer_json["page_str"] = lp.title
 
+            try:
+                tms_url = f"https://oldinsurancemaps.net/geoserver/gwc/service/tms/1.0.0/{lp.alternate}/{{z}}/{{x}}/{{-y}}.png"
+                centroid = Polygon().from_bbox(lp.extent).centroid
+                ohm_url = f"https://www.openhistoricalmap.org/edit#map=15/{centroid.coords[1]}/{centroid.coords[0]}&background=custom:{tms_url}"
+                layer_json["urls"]["ohm_edit"] = ohm_url
+            except Exception as e:
+                print("ERROR:")
+                print(e)
+                layer_json["urls"]["ohm_edit"] = "https://www.openhistoricalmap.org/edit"
+
             self.layer_lookup[lp.alternate] = layer_json
             self.save(update_fields=["layer_lookup"])
 
@@ -515,13 +523,28 @@ class Volume(models.Model):
             "status": self.status,
             "sheet_ct": {
                 "total": self.sheet_ct,
-                "loaded": len(self.sheets),
+                "loaded": len([i for i in self.sheets if i.document is not None]),
             },
             "items": items,
             "loaded_by": loaded_by,
             "urls": self.get_urls(),
             "ordered_layers": ordered_layers,
         }
+
+    def save(self, *args, **kwargs):
+
+        slug = ""
+        if self.city:
+            slug = "".join([i for i in self.city if not i in [".", ",", "'",]])
+            slug = slug.replace(" ","-").lower()
+        if self.state:
+            try:
+                slug += "-" + STATE_POSTAL[self.state]
+            except KeyError:
+                pass
+        self.slug = slug
+
+        return super(Volume, self).save(*args, **kwargs)
 
 ## This seems to be where the signals need to be connected. See
 ## https://github.com/mradamcox/loc-insurancemaps/issues/75
