@@ -176,6 +176,17 @@ class GCPGroup(models.Model):
             })
         return geo_json
 
+    def as_points_file(self):
+
+        content = "mapX,mapY,pixelX,pixelY,enable\n"
+        for gcp in self.gcps:
+            geom = gcp.geom.clone()
+            geom.transform(self.crs_epsg)
+            # pixel_y must be inverted b/c qgis puts origin at top left corner
+            content += f"{geom.x},{geom.y},{gcp.pixel_x},-{gcp.pixel_y},1\n"
+
+        return content
+
     def save_from_geojson(self, geojson, document, transformation=None):
 
         group, group_created = GCPGroup.objects.get_or_create(document=document)
