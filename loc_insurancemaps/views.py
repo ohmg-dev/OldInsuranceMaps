@@ -6,13 +6,16 @@ from datetime import datetime
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.urls import reverse
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404, HttpResponse
 from django.middleware import csrf
 from django.conf import settings
 
 from geonode.base.models import Region
-from geonode.layers.models import Layer
+from geonode.layers.models import Layer, LayerFile
 from geonode.groups.conf import settings as groups_settings
+
+from georeference.proxy_models import LayerProxy
+from georeference.utils import full_reverse
 
 from .models import Volume
 from .utils import unsanitize_name, filter_volumes_for_use
@@ -251,3 +254,65 @@ class SimpleAPI(View):
         
         else:
             return JsonResponse({})
+
+def get_layer_mrm_urls(layerid):
+
+    return {
+        "geotiff": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=geotiff",
+        "jpg": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=jpg",
+        "points": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=points",
+    }
+
+class MRMEndpointList(View):
+
+    def get(self, request):
+
+        output = {}
+        for l in Layer.objects.all().order_by("alternate"):
+            layerid = l.alternate.replace("geonode:", "")
+            output[layerid] = get_layer_mrm_urls(layerid)
+
+        return JsonResponse(output)
+
+class MRMEndpointLayer(View):
+
+    def get(self, request, layerid):
+
+        if not layerid.startswith("geonode:"):
+            layeralt = "geonode:" + layerid
+        else:
+            layeralt = layerid
+        lp = LayerProxy(layeralt, raise_404_on_error=True)
+        item = request.GET.get("resource", None)
+
+        if item is None:
+            return JsonResponse(get_layer_mrm_urls(layerid))
+
+        elif item == "geotiff":
+            lf = LayerFile.objects.filter(upload_session=lp.get_layer().upload_session)
+            if len(lf) == 1:
+                file_path = lf[0].file.path
+                if os.path.exists(file_path):
+                    with open(file_path, 'rb') as fh:
+                        response = HttpResponse(fh.read(), content_type="image/tiff")
+                        response['Content-Disposition'] = f'inline; filename={layerid}.tiff'
+                        return response
+            raise Http404
+
+        elif item == "points":
+            content = lp.get_document_proxy().gcp_group.as_points_file()
+            response = HttpResponse(content, content_type='text/plain')
+            response['Content-Disposition'] = f'attachment; filename={layerid}.points'
+            return response
+
+        elif item == "jpg":
+            file_path = lp.get_document().doc_file.path
+            if os.path.exists(file_path):
+                with open(file_path, 'rb') as fh:
+                    response = HttpResponse(fh.read(), content_type="image/jpg")
+                    response['Content-Disposition'] = f'inline; filename={layerid}.jpg'
+                    return response
+            raise Http404
+
+        else:
+            raise Http404
