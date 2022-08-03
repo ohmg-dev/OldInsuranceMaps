@@ -228,6 +228,13 @@ function makeRotateCenterLayer() {
 	return layer
 }
 
+function getTitilerXYZUrl(layername) {
+	const titilerUrl = "https://titiler.legiongis.com";
+	const cogUrl = "https%3A%2F%2Foldinsurancemaps.net%2Fuploaded%2Fcog%2F"+ layername + ".tif";
+	const xyzUrl = titilerUrl +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrl;
+	return xyzUrl
+}
+
 function showRotateCenter() {
 	if (map && centerPointLayer) {
 		const centerCoords = map.getView().getCenter();
@@ -300,14 +307,21 @@ function setLayersFromVolume(setExtent) {
 		})
 
 		// create the actual ol layers and add to group.
+		// const newLayer = new TileLayer({
+		// 	source: new TileWMS({
+		// 		url: GEOSERVER_WMS,
+		// 		params: {
+		// 			'LAYERS': layerDef.geoserver_id,
+		// 			'TILED': true,
+		// 		},
+		// 		tileGrid: tileGrid,
+		// 	}),
+		// 	extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+		// });
+
 		const newLayer = new TileLayer({
-			source: new TileWMS({
-				url: GEOSERVER_WMS,
-				params: {
-					'LAYERS': layerDef.geoserver_id,
-					'TILED': true,
-				},
-				tileGrid: tileGrid,
+			source: new XYZ({
+				url: getTitilerXYZUrl(layerDef.name),
 			}),
 			extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
 		});
@@ -325,16 +339,23 @@ function setLayersFromVolume(setExtent) {
 		})
 
 		// create the actual ol layers and add to group.
+		// const newLayer = new TileLayer({
+		// 	source: new TileWMS({
+		// 		url: GEOSERVER_WMS,
+		// 		params: {
+		// 			'LAYERS': layerDef.geoserver_id,
+		// 			'TILED': true,
+		// 		},
+		// 		tileGrid: tileGrid,
+		// 	}),
+        //                 extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+		// });
+
 		const newLayer = new TileLayer({
-			source: new TileWMS({
-				url: GEOSERVER_WMS,
-				params: {
-					'LAYERS': layerDef.geoserver_id,
-					'TILED': true,
-				},
-				tileGrid: tileGrid,
+			source: new XYZ({
+				url: getTitilerXYZUrl(layerDef.name),
 			}),
-                        extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+			extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
 		});
 		layerRegistry[layerDef.geoserver_id] = newLayer;
 		keyGroup.getLayers().push(newLayer)
