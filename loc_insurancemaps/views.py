@@ -3,10 +3,11 @@ import json
 import logging
 from datetime import datetime
 
+from django.contrib.gis.geos import GEOSGeometry
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.urls import reverse
-from django.http import JsonResponse, Http404, HttpResponse
+from django.http import JsonResponse, Http404, HttpResponse, HttpResponseRedirect
 from django.middleware import csrf
 from django.conf import settings
 
@@ -118,6 +119,62 @@ class Volumes(View):
             "lc/volumes.html",
             context=context_dict
         )
+
+class VolumeTrim(View):
+
+    def get(self, request, volumeid):
+
+        volume = get_object_or_404(Volume, pk=volumeid)
+        volume_json = volume.serialize()
+
+        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
+        gs = gs.rstrip("/") + "/"
+        geoserver_ows = f"{gs}ows/"
+
+        context_dict = {
+            "svelte_params": {
+                "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
+                "VOLUME": volume_json,
+                "CSRFTOKEN": csrf.get_token(request),
+                'USER_TYPE': get_user_type(request.user),
+                'GEOSERVER_WMS': geoserver_ows,
+                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+            }
+        }
+        return render(
+            request,
+            "lc/volume_trim.html",
+            context=context_dict
+        )
+
+    def post(self, request, volumeid):
+
+        volume = get_object_or_404(Volume, pk=volumeid)
+
+        body = json.loads(request.body)
+        multimask = body.get('multiMask')
+
+        # data validation
+        if multimask is not None and isinstance(multimask, dict):
+            for k, v in multimask.items():
+                try:
+                    geom_str = json.dumps(v['geometry'])
+                    GEOSGeometry(geom_str)
+                except Exception as e:
+                    logger.error(f"{volumeid} | improper GeoJSON in multimask: {k}")
+                    return JsonResponse({"status": "error"})
+
+            volume.multimask = multimask
+            volume.save()
+        
+        volume_json = volume.serialize()
+        response = {
+            "status": "ok",
+            "volume_json": volume_json
+        }
+
+        return JsonResponse(response)
+
 
 class VolumeDetail(View):
 

@@ -19,9 +19,13 @@ import XYZ from 'ol/source/XYZ';
 import TileWMS from 'ol/source/TileWMS';
 import VectorSource from 'ol/source/Vector';
 
+import Crop from 'ol-ext/filter/Crop';
+
 import Feature from 'ol/Feature';
 import Polygon from 'ol/geom/Polygon';
 import Point from 'ol/geom/Point';
+
+import GeoJSON from 'ol/format/GeoJSON';
 
 import Style from 'ol/style/Style';
 import Fill from 'ol/style/Fill';
@@ -328,6 +332,20 @@ function setLayersFromVolume(setExtent) {
 
 		layerRegistry[layerDef.geoserver_id] = newLayer;
 		mainGroup.getLayers().push(newLayer)
+
+		
+		Object.entries(VOLUME.multimask).forEach(kV => {
+			if (kV[0] == layerDef.name) {
+				const feature = new GeoJSON().readFeature(kV[1])
+      			feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
+				const crop = new Crop({ 
+					feature: feature, 
+					wrapX: true,
+					inner: false
+				});
+    			newLayer.addFilter(crop);
+			}
+		});
 	});
 
 	VOLUME.ordered_layers.index_layers.forEach( function(layerDef, n) {
@@ -590,18 +608,9 @@ function handleKeyup(e) {
 				</div>
 				{/if}
 			</div>
-			{#if USER_TYPE != 'anonymous'}
 			<nav>
-				<div>
-					{#if showLayerConfig}
-					<button on:click={saveLayerConfig}>Save</button>
-					<button on:click={cancelLayerConfig}>Cancel</button>
-					{:else}
-					<button on:click={() => showLayerConfig = true} disabled={!layersPresent}>Arrange Layers</button>
-					{/if}
-				</div>
+				<a href={VOLUME.urls.trim}>Manage Mosaic</a>
 			</nav>
-			{/if}
 		</div>
 	</div>
 	<hr>

@@ -9,6 +9,7 @@ from geonode.monitoring import register_url_event
 from .views import (
     SimpleAPI,
     VolumeDetail,
+    VolumeTrim,
     HomePage,
     Volumes,
     MRMEndpointList,
@@ -19,6 +20,7 @@ urlpatterns += [
     path('loc/volumes/', Volumes.as_view(), name='volumes_list'),
     path('loc/api/', SimpleAPI.as_view() , name='lc_api'),
     path('loc/<str:volumeid>/', VolumeDetail.as_view(), name="volume_summary"),
+    path('loc/trim/<str:volumeid>/', VolumeTrim.as_view(), name="volume_trim"),
     path('mrm/', MRMEndpointList.as_view(), name="mrm_layer_list"),
     path('mrm/<str:layerid>/', MRMEndpointLayer.as_view(), name="mrm_get_resource"),
 ]
