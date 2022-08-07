@@ -373,7 +373,8 @@ class Volume(models.Model):
             "doc_search": f"{settings.SITEURL}documents/?{r_facet}&{d_facet}",
             "loc_item": loc_item,
             "loc_resource": resource_url,
-            "summary": reverse("volume_summary", args=(self.identifier,))
+            "summary": reverse("volume_summary", args=(self.identifier,)),
+            "trim": reverse("volume_trim", args=(self.identifier,)),
         }
 
     def hydrate_ordered_layers(self):
@@ -446,7 +447,10 @@ class Volume(models.Model):
 
         if lp is not None:
             layer_json = lp.serialize()
-            layer_json["page_str"] = lp.title
+            try:
+                layer_json["page_str"] = lp.title.split("|")[-1].split("p")[1]
+            except IndexError:
+                layer_json["page_str"] = lp.title
 
             try:
                 tms_url = f"https://oldinsurancemaps.net/geoserver/gwc/service/tms/1.0.0/{lp.alternate}/{{z}}/{{x}}/{{-y}}.png"
