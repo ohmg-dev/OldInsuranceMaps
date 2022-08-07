@@ -333,19 +333,21 @@ function setLayersFromVolume(setExtent) {
 		layerRegistry[layerDef.geoserver_id] = newLayer;
 		mainGroup.getLayers().push(newLayer)
 
-		
-		Object.entries(VOLUME.multimask).forEach(kV => {
-			if (kV[0] == layerDef.name) {
-				const feature = new GeoJSON().readFeature(kV[1])
-      			feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
-				const crop = new Crop({ 
-					feature: feature, 
-					wrapX: true,
-					inner: false
-				});
-    			newLayer.addFilter(crop);
-			}
-		});
+
+		if (VOLUME.multimask) {		
+			Object.entries(VOLUME.multimask).forEach(kV => {
+				if (kV[0] == layerDef.name) {
+					const feature = new GeoJSON().readFeature(kV[1])
+      				feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
+					const crop = new Crop({ 
+						feature: feature, 
+						wrapX: true,
+						inner: false
+					});
+    				newLayer.addFilter(crop);
+				}
+			});
+		}
 	});
 
 	VOLUME.ordered_layers.index_layers.forEach( function(layerDef, n) {

@@ -80,15 +80,17 @@ function updateLayerArr(){
     tileSize: 512,
   });
 
-  function addIncomingMasks() {
-    Object.entries(VOLUME.multimask).forEach(kV => {
-      currentLayer = kV[0]
-      const feature = new GeoJSON().readFeature(kV[1])
-      feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
-      trimShapeSource.addFeature(feature)
-    })
-    currentLayer = null;
-  }
+function addIncomingMasks() {
+	if (VOLUME.multimask) {
+		Object.entries(VOLUME.multimask).forEach(kV => {
+			currentLayer = kV[0]
+			const feature = new GeoJSON().readFeature(kV[1])
+			feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
+			trimShapeSource.addFeature(feature)
+		});
+		currentLayer = null;
+	}
+}
 
   function createLayerLookup() {
     layerLookup = {};
