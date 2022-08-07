@@ -220,7 +220,7 @@ class DocumentProxy(object):
         try:
             link = GeoreferencedDocumentLink.objects.get(document=self.id)
             layer = Layer.objects.get(id=link.object_id)
-        except (GeoreferencedDocumentLink.DoesNotExist, Layer.DoesNotExist):
+        except (GeoreferencedDocumentLink.DoesNotExist, Layer.DoesNotExist, GeoreferencedDocumentLink.MultipleObjectsReturned):
             layer = None
         return layer
 
@@ -454,6 +454,7 @@ class LayerProxy(object):
             "status": self.status,
             "urls": self.get_extended_urls(),
             "lock": self.lock.as_dict,
+            "mask_coords": self.mask_coords,
         }
 
 def get_info_panel_content(resourceid):
