@@ -294,6 +294,7 @@ class Volume(models.Model):
         default=dict,
     )
     slug = models.CharField(max_length=100, null=True, blank=True)
+    multimask = JSONField(null=True, blank=True)
 
     def __str__(self):
         display_str = f"{self.city}, {STATE_ABBREV[self.state]} | {self.year}"
@@ -529,6 +530,7 @@ class Volume(models.Model):
             "loaded_by": loaded_by,
             "urls": self.get_urls(),
             "ordered_layers": ordered_layers,
+            "multimask": self.multimask,
         }
 
     def save(self, *args, **kwargs):
