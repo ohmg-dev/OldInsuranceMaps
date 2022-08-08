@@ -42,6 +42,7 @@ export let CSRFTOKEN;
 export let USER_TYPE;
 export let GEOSERVER_WMS;
 export let MAPBOX_API_KEY;
+export let USE_TITILER;
 
 $: sheetsLoading = VOLUME.status == "initializing...";
 let loadTip = false;
@@ -311,24 +312,27 @@ function setLayersFromVolume(setExtent) {
 		})
 
 		// create the actual ol layers and add to group.
-		// const newLayer = new TileLayer({
-		// 	source: new TileWMS({
-		// 		url: GEOSERVER_WMS,
-		// 		params: {
-		// 			'LAYERS': layerDef.geoserver_id,
-		// 			'TILED': true,
-		// 		},
-		// 		tileGrid: tileGrid,
-		// 	}),
-		// 	extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-		// });
-
-		const newLayer = new TileLayer({
-			source: new XYZ({
-				url: getTitilerXYZUrl(layerDef.name),
-			}),
-			extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-		});
+		let newLayer;
+		if (USE_TITILER) {
+			newLayer = new TileLayer({
+				source: new XYZ({
+					url: getTitilerXYZUrl(layerDef.name),
+				}),
+				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+			});
+		} else {
+			newLayer = new TileLayer({
+				source: new TileWMS({
+					url: GEOSERVER_WMS,
+					params: {
+						'LAYERS': layerDef.geoserver_id,
+						'TILED': true,
+					},
+					tileGrid: tileGrid,
+				}),
+							extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+			});
+		}
 
 		layerRegistry[layerDef.geoserver_id] = newLayer;
 		mainGroup.getLayers().push(newLayer)
@@ -359,24 +363,28 @@ function setLayersFromVolume(setExtent) {
 		})
 
 		// create the actual ol layers and add to group.
-		// const newLayer = new TileLayer({
-		// 	source: new TileWMS({
-		// 		url: GEOSERVER_WMS,
-		// 		params: {
-		// 			'LAYERS': layerDef.geoserver_id,
-		// 			'TILED': true,
-		// 		},
-		// 		tileGrid: tileGrid,
-		// 	}),
-        //                 extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-		// });
+		let newLayer;
+		if (USE_TITILER) {
+			newLayer = new TileLayer({
+				source: new XYZ({
+					url: getTitilerXYZUrl(layerDef.name),
+				}),
+				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+			});
+		} else {
+			newLayer = new TileLayer({
+				source: new TileWMS({
+					url: GEOSERVER_WMS,
+					params: {
+						'LAYERS': layerDef.geoserver_id,
+						'TILED': true,
+					},
+					tileGrid: tileGrid,
+				}),
+							extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+			});
+		}
 
-		const newLayer = new TileLayer({
-			source: new XYZ({
-				url: getTitilerXYZUrl(layerDef.name),
-			}),
-			extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-		});
 		layerRegistry[layerDef.geoserver_id] = newLayer;
 		keyGroup.getLayers().push(newLayer)
 	});

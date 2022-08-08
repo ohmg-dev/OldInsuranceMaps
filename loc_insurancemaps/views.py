@@ -133,6 +133,7 @@ class VolumeTrim(View):
 
         context_dict = {
             "svelte_params": {
+                "USE_TITILER": settings.USE_TITILER,
                 "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
                 "VOLUME": volume_json,
                 "CSRFTOKEN": csrf.get_token(request),
@@ -204,6 +205,7 @@ class VolumeDetail(View):
 
         context_dict = {
             "svelte_params": {
+                "USE_TITILER": settings.USE_TITILER,
                 "VOLUME": volume_json,
                 "OTHER_VOLUMES": other_vols,
                 "CSRFTOKEN": csrf.get_token(request),
