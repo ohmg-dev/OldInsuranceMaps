@@ -366,28 +366,26 @@ function layerRemoveMask(layer, confirm) {
     <div id="map-viewer" class="map-item rounded-bottom" style="h"></div>
     <div id="layer-panel" style="display:flex; flex-direction:column; justify-content:space-between; max-width: 200px; padding: 10px;" class="map-item rounded-bottom">
       <div>
-        <div>
-          <strong>Main Content</strong> <span style="cursor:pointer" on:click={() => setMapExtent()}>🔎</span>
-        </div>
-        {#each layerLookupArr as layer}
-        <div style="display:flex; justify-content: space-between;">
+        <strong>Main Content</strong> <span style="cursor:pointer" on:click={() => setMapExtent()}>🔎</span>
+      </div>
+      <div style="overflow-y:auto; height:500px;">
+      {#each layerLookupArr as layer}		
+        <div style="display:flex;">
+          {#if !layer.feature }
+          <button title="add mask" on:click={() => addMask(layer)} style="display: inline-block;">✂</button>
+          {:else}
+          <button title="remove mask" on:click={() => layerRemoveMask(layer)} style="display: inline-block;">🗑</button>
+          {/if}
+          &nbsp;
           {#if currentLayer == layer.layerDef.name}<div style="color:red">sheet {layer.layerDef.page_str}</div>
           {:else}
           <div class="layer-entry" on:click={() => zoomToLayer(layer)}>sheet {layer.layerDef.page_str}</div>
           {/if}
-          <div>
-            {#if !layer.feature }
-            <button title="add mask" on:click={() => addMask(layer)} style="display: inline-block;">✂</button>
-            {:else}
-            <button title="remove mask" on:click={() => layerRemoveMask(layer)} style="display: inline-block;">🗑</button>
-            {/if}
-          </div>
         </div>
-        {:else}
+      {:else}
         <div>No layers</div>
-        {/each}
+      {/each}
       </div>
-    
       <div style="display:flex; justify-content:space-between">
           <button title="Reset" on:click={resetInterface} disabled={unchanged}>🗘</button>
           <button title="Submit" on:click={submitMultiMask} disabled={unchanged}>✓</button>
