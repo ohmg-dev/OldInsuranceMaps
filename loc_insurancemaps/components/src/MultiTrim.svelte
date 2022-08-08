@@ -40,6 +40,7 @@ export let CSRFTOKEN;
 export let USER_TYPE;
 export let MAPBOX_API_KEY;
 export let GEOSERVER_WMS;
+export let USE_TITILER;
 
 let currentLayer = null;
 
@@ -76,6 +77,13 @@ function updateLayerArr(){
   })
 }
 
+function getTitilerXYZUrl(layername) {
+	const titilerUrl = "https://titiler.legiongis.com";
+	const cogUrl = "https%3A%2F%2Foldinsurancemaps.net%2Fuploaded%2Fcog%2F"+ layername + ".tif";
+	const xyzUrl = titilerUrl +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrl;
+	return xyzUrl
+}
+
   const tileGrid = createXYZ({
     tileSize: 512,
   });
@@ -97,18 +105,28 @@ function addIncomingMasks() {
     trimShapeSource.clear()
     VOLUME.ordered_layers.layers.forEach( function(layerDef) {
       // create the actual ol layers and add to group.
-      const newLayer = new TileLayer({
-        source: new TileWMS({
-          url: GEOSERVER_WMS,
-          params: {
-            'LAYERS': layerDef.geoserver_id,
-            'TILED': true,
-          },
-          tileGrid: tileGrid,
-          
-        }),
-        extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-      });
+      let newLayer;
+      if (USE_TITILER) {
+        newLayer = new TileLayer({
+          source: new XYZ({
+            url: getTitilerXYZUrl(layerDef.name),
+          }),
+          extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+        });
+      } else {
+        newLayer = new TileLayer({
+          source: new TileWMS({
+            url: GEOSERVER_WMS,
+            params: {
+              'LAYERS': layerDef.geoserver_id,
+              'TILED': true,
+            },
+            tileGrid: tileGrid,
+          }),
+          extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+        });
+      }
+
       layerLookup[layerDef.name] = {}
       const layer = {
         olLayer: newLayer,

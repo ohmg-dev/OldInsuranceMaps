@@ -54,6 +54,8 @@ INSTALLED_APPS += (
     PROJECT_NAME,
 )
 
+USE_TITILER = os.getenv("USE_TITILER", True)
+
 # conditionally add static files from the 'georeference' app, as well as
 # Mapserver information, used for the georeferencing preview layer
 if 'georeference' in INSTALLED_APPS:
