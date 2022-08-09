@@ -11,11 +11,14 @@ import TileWMS from 'ol/source/TileWMS';
 
 import {transformExtent} from 'ol/proj';
 
-import {createEmpty} from 'ol/extent';
-import {extend} from 'ol/extent';
+import {createEmpty, extend} from 'ol/extent';
+// import {} from 'ol/extent';
 import {createXYZ} from 'ol/tilegrid';
 
+import Feature from 'ol/Feature';
+
 import GeoJSON from 'ol/format/GeoJSON';
+import {fromExtent} from 'ol/geom/Polygon';
 
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
@@ -26,6 +29,9 @@ import MousePosition from 'ol/control/MousePosition';
 import {createStringXY} from 'ol/coordinate';
 
 import {Draw, Modify, Snap} from 'ol/interaction';
+
+import Style from 'ol/style/Style';
+import Stroke from 'ol/style/Stroke';
 
 import Styles from './js/ol-styles';
 const styles = new Styles();
@@ -103,7 +109,7 @@ function addIncomingMasks() {
   function createLayerLookup() {
     layerLookup = {};
     trimShapeSource.clear()
-    VOLUME.ordered_layers.layers.forEach( function(layerDef) {
+    VOLUME.ordered_layers.layers.forEach( function(layerDef, n) {
       // create the actual ol layers and add to group.
       let newLayer;
       if (USE_TITILER) {
@@ -123,9 +129,25 @@ function addIncomingMasks() {
             },
             tileGrid: tileGrid,
           }),
+          zIndex: n+100,
           extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
         });
       }
+      // zIndex for layers start from 100, should max out under 300.
+      // When a layer is shuffled to the top, it's zIndex is set to 500,
+      // and ally layers with a zIndex > 300 are shifted down 1.
+      // This should allow for plenty of shuffling without disruption to
+      // the lower-level layers.
+
+      // make extent
+      const extentGeom4326 = fromExtent(transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857"));
+      const extentGeom3857 = extentGeom4326.clone()
+      const extentFeature = new Feature({
+          geometry: extentGeom3857,
+          show: false,
+          name: layerDef.name,
+      });
+      extentLayer.getSource().addFeature(extentFeature)
 
       layerLookup[layerDef.name] = {}
       const layer = {
@@ -144,11 +166,33 @@ function addIncomingMasks() {
 
 const basemaps = utils.makeBasemaps(MAPBOX_API_KEY)
 const osmBasemap = basemaps[0]
+osmBasemap.layer.setZIndex(0)
+
+const redOutline = new Style({
+  stroke: new Stroke({ color: 'red', width: .75, lineDash: [2]}),
+});
+
+function extentLayerStyle (feature, resolution) {
+    const prop = feature.getProperties();
+    if (prop.show) {
+      return redOutline;
+    }
+
+    return
+}
+
+var extentLayer = new VectorLayer({
+    source: new VectorSource,
+    style: extentLayerStyle,
+    zIndex: 1000
+});
+
 
 const trimShapeSource = new VectorSource();
 const trimShapeLayer = new VectorLayer({
     source: trimShapeSource,
     style: styles.polyDraw,
+    zIndex: 1001,
   });
 trimShapeSource.on("addfeature", function(e) {
   layerApplyMask(e.feature);
@@ -203,6 +247,7 @@ function MapViewer (elementId) {
   });
 
   map.addLayer(trimShapeLayer)
+  map.addLayer(extentLayer)
 
   // create interactions
   const draw = new Draw({
@@ -313,10 +358,32 @@ function zoomToLayer(layer) {
   if (mapView) {
     const extent3857 = transformExtent(layer.layerDef.extent, "EPSG:4326", "EPSG:3857");
     mapView.map.getView().fit(extent3857)
+    layerToTop(layer);
   }
+  showExtent(layer)
 }
 
+function showExtent(layer) {
+  extentLayer.getSource().getFeatures().forEach(function (feature) {
+    const props = feature.getProperties();
+    if (props.name == layer.layerDef.name) {
+      feature.setProperties({'show': true})
+    } else {
+      feature.setProperties({'show': false})
+    }
+  })
+}
 
+function layerToTop(layer) {
+  layerLookupArr.forEach( function(otherLayer) {
+    const z = otherLayer.olLayer.getZIndex();
+    // push down layers that have previously been shoved to the top
+    if (z>300) {
+      otherLayer.olLayer.setZIndex(otherLayer.olLayer.getZIndex()-1)
+    }
+  })
+  layer.olLayer.setZIndex(500);
+}
 
 function addMask(layer){
   if (mapView) {
@@ -325,6 +392,7 @@ function addMask(layer){
     // and when the feature is complete it is used for the crop
     currentLayer = layer.layerDef.name;
   }
+  showExtent(layer)
 }
 
 function layerApplyMask(feature) {
@@ -395,9 +463,9 @@ function layerRemoveMask(layer, confirm) {
           <button title="remove mask" on:click={() => layerRemoveMask(layer)} style="display: inline-block;">🗑</button>
           {/if}
           &nbsp;
-          {#if currentLayer == layer.layerDef.name}<div style="color:red">sheet {layer.layerDef.page_str}</div>
+          {#if currentLayer == layer.layerDef.name}<div style="color:red" on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
           {:else}
-          <div class="layer-entry" on:click={() => zoomToLayer(layer)}>sheet {layer.layerDef.page_str}</div>
+          <div class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
           {/if}
         </div>
       {:else}
