@@ -83,6 +83,17 @@ class Volumes(View):
             percent = 0
             if georef_ct > 0:
                 percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
+
+            main_lyrs_ct = 0
+            if vol.ordered_layers:
+                main_lyrs_ct = len(vol.ordered_layers['layers'])
+            mm_ct = 0
+            mm_display = f"0/{main_lyrs_ct}"
+            if vol.multimask is not None:
+                mm_ct = len(vol.multimask)
+                if mm_ct > 0:
+                    mm_display = f"{mm_ct}/{main_lyrs_ct}"
+
             vol_content = {
                 "identifier": vol.identifier,
                 "city": vol.city,
@@ -98,6 +109,8 @@ class Volumes(View):
                 "loaded_by_name": loaded_by_name,
                 "loaded_by_profile": loaded_by_profile,
                 "title": vol.__str__(),
+                "mm_ct": mm_ct,
+                "mm_display": mm_display,
                 "urls": {
                     "summary": reverse("volume_summary", args=(vol.identifier,))
                 }
@@ -126,6 +139,8 @@ class VolumeTrim(View):
 
         volume = get_object_or_404(Volume, pk=volumeid)
         volume_json = volume.serialize()
+
+        volume_json['ordered_layers']['layers'].sort(key=lambda item: item.get("name"))
 
         gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
         gs = gs.rstrip("/") + "/"
