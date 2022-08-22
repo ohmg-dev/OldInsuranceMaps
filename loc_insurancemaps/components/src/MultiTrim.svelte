@@ -448,6 +448,7 @@ function layerRemoveMask(layer, confirm) {
 </div>
 
 <div class="svelte-component-main">
+  {#if USER_TYPE == "anonymous"}<p>Feel free to mess around; you can't save changes unless you are logged in.</p>{/if}
   <div class="map-container" style="height: calc(100%-35px);">
     <div id="map-viewer" class="map-item rounded-bottom" style="h"></div>
     <div id="layer-panel" style="display:flex; flex-direction:column; justify-content:space-between; max-width: 200px; padding: 10px;" class="map-item rounded-bottom">
