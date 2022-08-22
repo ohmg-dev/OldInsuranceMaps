@@ -34,8 +34,9 @@ function componentExportDetails(componentName) {
 		output: {
 			sourcemap: true,
 			format: 'iife',
-      name: `${componentName.toLowerCase()}`,
-      file: `public/build/${componentName}.js`,
+			name: `${componentName.toLowerCase()}`,
+			file: `public/build/${componentName}.js`,
+			inlineDynamicImports: true,
 		},
 		plugins: [
 			svelte({
@@ -84,6 +85,7 @@ let exportable = [];
   "Volumes",
   "Volume",
   "VolumeSearch",
+  "MultiTrim",
 ].forEach((d) => exportable.push(componentExportDetails(d)));
 
 export default exportable;

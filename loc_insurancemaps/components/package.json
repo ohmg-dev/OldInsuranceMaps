@@ -17,7 +17,8 @@
     "svelte": "^3.0.0"
   },
   "dependencies": {
-    "ol": "^6.4.3",
+    "ol": "^6.15.1",
+    "ol-ext": "^3.2.28",
     "sirv-cli": "^1.0.0",
     "svelte-dragdroplist": "^1.1.1",
     "svelte-tablesort": "^1.1.0"

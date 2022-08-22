@@ -3,10 +3,11 @@ import json
 import logging
 from datetime import datetime
 
+from django.contrib.gis.geos import GEOSGeometry
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.urls import reverse
-from django.http import JsonResponse, Http404, HttpResponse
+from django.http import JsonResponse, Http404, HttpResponse, HttpResponseRedirect
 from django.middleware import csrf
 from django.conf import settings
 
@@ -82,6 +83,17 @@ class Volumes(View):
             percent = 0
             if georef_ct > 0:
                 percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
+
+            main_lyrs_ct = 0
+            if vol.ordered_layers:
+                main_lyrs_ct = len(vol.ordered_layers['layers'])
+            mm_ct = 0
+            mm_display = f"0/{main_lyrs_ct}"
+            if vol.multimask is not None:
+                mm_ct = len(vol.multimask)
+                if mm_ct > 0:
+                    mm_display = f"{mm_ct}/{main_lyrs_ct}"
+
             vol_content = {
                 "identifier": vol.identifier,
                 "city": vol.city,
@@ -97,6 +109,8 @@ class Volumes(View):
                 "loaded_by_name": loaded_by_name,
                 "loaded_by_profile": loaded_by_profile,
                 "title": vol.__str__(),
+                "mm_ct": mm_ct,
+                "mm_display": mm_display,
                 "urls": {
                     "summary": reverse("volume_summary", args=(vol.identifier,))
                 }
@@ -118,6 +132,65 @@ class Volumes(View):
             "lc/volumes.html",
             context=context_dict
         )
+
+class VolumeTrim(View):
+
+    def get(self, request, volumeid):
+
+        volume = get_object_or_404(Volume, pk=volumeid)
+        volume_json = volume.serialize()
+
+        volume_json['ordered_layers']['layers'].sort(key=lambda item: item.get("name"))
+
+        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
+        gs = gs.rstrip("/") + "/"
+        geoserver_ows = f"{gs}ows/"
+
+        context_dict = {
+            "svelte_params": {
+                "USE_TITILER": settings.USE_TITILER,
+                "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
+                "VOLUME": volume_json,
+                "CSRFTOKEN": csrf.get_token(request),
+                'USER_TYPE': get_user_type(request.user),
+                'GEOSERVER_WMS': geoserver_ows,
+                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+            }
+        }
+        return render(
+            request,
+            "lc/volume_trim.html",
+            context=context_dict
+        )
+
+    def post(self, request, volumeid):
+
+        volume = get_object_or_404(Volume, pk=volumeid)
+
+        body = json.loads(request.body)
+        multimask = body.get('multiMask')
+
+        # data validation
+        if multimask is not None and isinstance(multimask, dict):
+            for k, v in multimask.items():
+                try:
+                    geom_str = json.dumps(v['geometry'])
+                    GEOSGeometry(geom_str)
+                except Exception as e:
+                    logger.error(f"{volumeid} | improper GeoJSON in multimask: {k}")
+                    return JsonResponse({"status": "error"})
+
+            volume.multimask = multimask
+            volume.save()
+        
+        volume_json = volume.serialize()
+        response = {
+            "status": "ok",
+            "volume_json": volume_json
+        }
+
+        return JsonResponse(response)
+
 
 class VolumeDetail(View):
 
@@ -147,6 +220,7 @@ class VolumeDetail(View):
 
         context_dict = {
             "svelte_params": {
+                "USE_TITILER": settings.USE_TITILER,
                 "VOLUME": volume_json,
                 "OTHER_VOLUMES": other_vols,
                 "CSRFTOKEN": csrf.get_token(request),
