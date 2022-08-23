@@ -53,7 +53,7 @@ class HomePage(View):
 
         return render(
             request,
-            "site_index.html",
+            "index.html",
             context=context_dict
         )
 
