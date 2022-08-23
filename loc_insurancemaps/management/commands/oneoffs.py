@@ -1,4 +1,5 @@
 import os
+import boto3
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -22,6 +23,7 @@ class Command(BaseCommand):
                 "fix-document-thumbnails",
                 "fix-layer-thumbnails",
                 "generate-500.html",
+                "initialize-s3-bucket",
             ],
             help="the identifier of the LoC resource to add",
         )
@@ -31,6 +33,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+
+        print(f"operation: {options['operation']}")
 
         if options['operation'] == "fix-full-thumbnails":
             docs = Document.objects.all()
@@ -92,3 +96,14 @@ class Command(BaseCommand):
             with open(outpath, 'w') as static_file:
                 static_file.write(content)
             print(f"file saved to: {outpath}")
+
+        if options['operation'] == "initialize-s3-bucket":
+            client = boto3.client("s3", **settings.S3_CONFIG)
+
+            response = client.list_buckets()
+            if settings.S3_BUCKET_NAME not in [i['Name'] for i in response['Buckets']]:
+                print(f"Creating bucket: {settings.S3_BUCKET_NAME}")
+                client.create_bucket(Bucket=settings.S3_BUCKET_NAME)
+                print("Bucket created.")
+            else:
+                print(f"Bucket already exists: {settings.S3_BUCKET_NAME}")

@@ -56,6 +56,13 @@ INSTALLED_APPS += (
 
 USE_TITILER = ast.literal_eval(os.getenv("USE_TITILER", True))
 
+S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+S3_CONFIG = {
+    "aws_access_key_id": os.getenv("S3_ACCESS_KEY_ID"),
+    "aws_secret_access_key": os.getenv("S3_SECRET_ACCESS_KEY"),
+    "endpoint_url": os.getenv("S3_ENDPOINT_URL"),
+}
+
 # conditionally add static files from the 'georeference' app, as well as
 # Mapserver information, used for the georeferencing preview layer
 if 'georeference' in INSTALLED_APPS:
