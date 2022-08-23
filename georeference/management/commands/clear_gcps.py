@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from georeference.models import GCP, GCPGroup
+from georeference.models.resources import GCP, GCPGroup
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'

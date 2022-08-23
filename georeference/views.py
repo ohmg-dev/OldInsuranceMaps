@@ -15,20 +15,20 @@ from georeference.tasks import (
     run_preparation_session,
     run_georeference_session,
 )
-from .models import (
-    LayerMask,
+from georeference.models.resources import LayerMask
+from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
     TrimSession,
 )
-from .proxy_models import (
+from georeference.proxy_models import (
     DocumentProxy,
     LayerProxy,
     get_info_panel_content,
 )
-from .utils import MapServerManager
-from .georeferencer import Georeferencer
-from .splitter import Splitter
+from georeference.utils import MapServerManager
+from georeference.georeferencer import Georeferencer
+from georeference.splitter import Splitter
 
 logger = logging.getLogger(__name__)
 

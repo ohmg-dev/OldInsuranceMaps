@@ -6,12 +6,14 @@ from django.dispatch import receiver
 from geonode.layers.models import Style
 from geonode.thumbs.thumbnails import create_thumbnail
 
-from georeference.models import (
+from georeference.models.resources import (
     GCPGroup,
+    LayerMask,
+)
+from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
     TrimSession,
-    LayerMask,
 )
 from georeference.utils import (
     get_gs_catalog,

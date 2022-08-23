@@ -12,16 +12,18 @@ from django.utils import timezone
 from geonode.documents.models import Document
 from geonode.layers.models import Layer
 
-from .models import (
+from georeference.models.resources import (
     GeoreferencedDocumentLink,
     SplitDocumentLink,
     LayerMask,
     GCPGroup,
+)
+from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
     TrimSession,
 )
-from .utils import (
+from georeference.utils import (
     full_reverse,
     TKeywordManager,
 )

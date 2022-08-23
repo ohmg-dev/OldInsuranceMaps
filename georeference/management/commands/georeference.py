@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from geonode.documents.models import Document
 
-from georeference.models import GCPGroup
+from georeference.models.resources import GCPGroup
 from georeference.georeferencer import Georeferencer
 
 class Command(BaseCommand):

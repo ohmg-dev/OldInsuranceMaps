@@ -1,11 +1,13 @@
 from django.contrib import admin
 
-from .models import (
+from georeference.models.resources import (
     SplitDocumentLink,
     GeoreferencedDocumentLink,
     GCP,
     GCPGroup,
     LayerMask,
+)
+from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
     TrimSession,

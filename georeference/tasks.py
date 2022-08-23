@@ -22,12 +22,11 @@ import logging
 
 from celery import shared_task
 
-from .celeryapp import app
-from .models import (
+from georeference.celeryapp import app
+from georeference.models.sessions import (
     SessionBase,
     PrepSession,
     GeorefSession,
-    TrimSession,
 )
 
 logger = logging.getLogger(__name__)

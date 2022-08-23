@@ -8,7 +8,12 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
-from georeference.models import GeorefSession, PrepSession, TrimSession, SessionBase
+from georeference.models.sessions import (
+    GeorefSession,
+    PrepSession,
+    TrimSession,
+    SessionBase
+)
 
 from loc_insurancemaps.models import get_volume, Volume
 

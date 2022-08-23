@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 
 from geonode.documents.models import Document
 
-from georeference.models import GCPGroup
+from georeference.models.models import GCPGroup
 from georeference.georeferencer import Georeferencer
 
 class Command(BaseCommand):

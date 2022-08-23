@@ -28,8 +28,8 @@ from geonode.layers.models import Layer
 from geonode.documents.renderers import generate_thumbnail_content
 from geonode.people.models import Profile
 
-from georeference.models import (
-    LayerMask,
+from georeference.models.resources import LayerMask
+from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
     TrimSession,

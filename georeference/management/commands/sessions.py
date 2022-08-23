@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from georeference.models import (
+from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
     TrimSession,
@@ -86,7 +86,7 @@ class Command(BaseCommand):
     def migrate_legacy_sessions(self, type="", clean=False):
         tkm = TKeywordManager()
         try:
-            from georeference.models import (
+            from georeference.models.sessions import (
                 SplitEvaluation,
                 GeoreferenceSession,
                 MaskSession,
