@@ -12,11 +12,13 @@ from .views import (
     VolumeTrim,
     HomePage,
     Volumes,
+    CitySummary,
     MRMEndpointList,
     MRMEndpointLayer,
 )
 
 urlpatterns += [
+    path('view/<str:city_slug>', CitySummary.as_view(), name='city_view'),
     path('loc/volumes/', Volumes.as_view(), name='volumes_list'),
     path('loc/api/', SimpleAPI.as_view() , name='lc_api'),
     path('loc/<str:volumeid>/', VolumeDetail.as_view(), name="volume_summary"),

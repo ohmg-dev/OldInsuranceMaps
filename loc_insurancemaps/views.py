@@ -20,7 +20,7 @@ from georeference.utils import full_reverse
 
 from .models import Volume
 from .utils import unsanitize_name, filter_volumes_for_use
-from .enumerations import STATE_CHOICES
+from .enumerations import STATE_CHOICES, STATE_ABBREV
 from .api import CollectionConnection
 from .tasks import load_documents_as_task
 
@@ -293,6 +293,38 @@ class VolumeDetail(View):
             volume.populate_lookups()
             volume_json = volume.serialize()
             return JsonResponse(volume_json)
+
+class CitySummary(View):
+
+    def get(self, request, city_slug):
+
+        volumes = Volume.objects.filter(slug=city_slug).order_by("year","volume_no")
+        if len(volumes) == 0:
+            raise Http404
+        for v in volumes:
+            print(v.serialize())
+
+        page_title = f"{volumes[0].city}, {STATE_ABBREV[volumes[0].state]}"
+        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
+        gs = gs.rstrip("/") + "/"
+        geoserver_ows = f"{gs}ows/"
+
+        context_dict = {
+            "svelte_params": {
+                "PAGE_TITLE": page_title,
+                "VOLUMES": [i.serialize() for i in volumes],
+                # "CSRFTOKEN": csrf.get_token(request),
+                # 'USER_TYPE': get_user_type(request.user),
+                # 'GEOSERVER_WMS': geoserver_ows,
+                # "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+            }
+        }
+        return render(
+            request,
+            "lc/city_summary.html",
+            context=context_dict
+        )
+
 
 class SimpleAPI(View):
 
