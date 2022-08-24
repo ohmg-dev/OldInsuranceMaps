@@ -1,6 +1,12 @@
 body {
   font-family: 'Josefin Sans', sans-serif;
   letter-spacing: -.3px;
+  padding-top: 45px;
+}
+@media (max-width: 991px) {
+	body {
+	  padding-top: 60px;
+	}
 }
 
 footer a:hover {
@@ -8,17 +14,108 @@ footer a:hover {
 }
 
 #wrap {
-	margin-top: 60px !important;
+	margin-top: 50px !important;
 }
 
-h1, h2, h3, h4, h5, h6 {
+/* h1, h2, h3, h4, h5, h6 {
 	font-weight: 400;
+} */
+
+.banner-wrap {
+	position: relative
+}
+.banner {
+	display: flex;
+	flex-direction: column;
+	margin-right: -15px;
+	margin-left: -15px;
+	color: inherit;
+	box-shadow: gray 0px 0px 5px;
+	position: relative;
+	/* height: calc(100vh - 30px); */
+}
+.banner-button-list div {
+	width: 25%;
+}
+.banner p {
+	font-size:1.25em;
+}
+.banner > * {
+	z-index: 100;
+	position: relative;
+}
+.banner-item {
+	margin-top: 45px;
+	padding: 20px;
+	background: rgba(247,241,255,.5)
+}
+.banner-button-list {
+	display:flex;
+	justify-content: space-evenly;
+	
+}
+@media (max-width: 991px) {
+	.banner-button-list {
+	  flex-direction: column;
+	  align-items: center;
+	}
+	.banner-button-list div {
+		width: 100%;
+	}
+}
+
+.banner::before {
+	content: "";
+	background-image: url(/static/img/no-1885-snippet1-reduce-50qual.jpg);
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: cover;
+	opacity: 0.4;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	position: absolute;
+	z-index: 1;
+  }
+
+.banner .btn-default {
+    border: 2px solid #3a3a3a;
+    color: #3a3a3a;
+}
+
+.navbar {
+	min-height: 30px;
+}
+
+.navbar-header i {
+	font-size: 1.25em;
+}
+
+.navbar-brand {
+	background: url("/static/img/noun_Map_simple-colored1.png");
+	background-position-x: 0%;
+	background-position-y: 0%;
+	background-repeat: repeat;
+	background-image: url("/static/img/noun_Map_simple-colored1.png");
+	background-size: auto;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: contain;
+	text-indent: -9999px;
+	height: 45px;
+	width: 50px;
 }
 
 /* unset max height so scroll overflow never shows up */
 .navbar-fixed-top .navbar-collapse,
 .navbar-fixed-bottom .navbar-collapse {
   max-height: none;
+}
+
+.navbar-inverse .navbar-nav > li > a {
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .about-container {
@@ -130,21 +227,6 @@ h1, h2, h3, h4, h5, h6 {
 .background-fg {
 	background:#EAE0C1 !important;
 	box-shadow:gray 0px 0px 5px;
-}
-
-.jumbotron {
-	box-shadow: gray 0px 0px 5px;
-	padding: 2em 0 2em !important;
-}
-
-.jumbotron, .jumbotron p {
-	font-family: 'Josefin Sans' !important;
-	text-shadow: unset !important;
-}
-
-.home .jumbotron .btn-default {
-    border: 2px solid #3a3a3a;
-    color: #3a3a3a;
 }
 
 .consent-dl dt {
