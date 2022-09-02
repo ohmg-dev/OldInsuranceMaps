@@ -1,0 +1,56 @@
+pk,name,category,direct_parents
+1,Alabama,state,100
+2,Alaska,state,100
+4,Arizona,state,100
+5,Arkansas,state,100
+6,California,state,100
+8,Colorado,state,100
+9,Connecticut,state,100
+10,Delaware,state,100
+11,District of Columbia,state,100
+12,Florida,state,100
+13,Georgia,state,100
+15,Hawaii,state,100
+16,Idaho,state,100
+17,Illinois,state,100
+18,Indiana,state,100
+19,Iowa,state,100
+20,Kansas,state,100
+21,Kentucky,state,100
+22,Louisiana,state,100
+23,Maine,state,100
+24,Maryland,state,100
+25,Massachusetts,state,100
+26,Michigan,state,100
+27,Minnesota,state,100
+28,Mississippi,state,100
+29,Missouri,state,100
+30,Montana,state,100
+31,Nebraska,state,100
+32,Nevada,state,100
+33,New Hampshire,state,100
+34,New Jersey,state,100
+35,New Mexico,state,100
+36,New York,state,100
+37,North Carolina,state,100
+38,North Dakota,state,100
+39,Ohio,state,100
+40,Oklahoma,state,100
+41,Oregon,state,100
+42,Pennsylvania,state,100
+44,Rhode Island,state,100
+45,South Carolina,state,100
+46,South Dakota,state,100
+47,Tennessee,state,100
+48,Texas,state,100
+49,Utah,state,100
+50,Vermont,state,100
+51,Virginia,state,100
+53,Washington,state,100
+54,West Virginia,state,100
+55,Wisconsin,state,100
+56,Wyoming,state,100
+70,Baja California,state,101
+71,Chihuahua,state,101
+72,Distrito Federal,state,101
+73,British Columbia,state,102

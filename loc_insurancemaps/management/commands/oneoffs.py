@@ -1,6 +1,9 @@
 import os
+import csv
 import boto3
+from pathlib import Path
 
+from django.db.models.functions import Lower
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.template.loader import render_to_string
@@ -9,8 +12,10 @@ from django.test.client import RequestFactory
 from geonode.documents.models import Document
 from geonode.layers.models import Layer
 
-from loc_insurancemaps.models import FullThumbnail, Volume
+from loc_insurancemaps.models import FullThumbnail, Volume, Place
 from loc_insurancemaps.renderers import generate_layer_geotiff_thumbnail
+
+from loc_insurancemaps.enumerations import STATE_CHOICES
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -24,6 +29,8 @@ class Command(BaseCommand):
                 "fix-layer-thumbnails",
                 "generate-500.html",
                 "initialize-s3-bucket",
+                "migrate-places",
+                "connect-volumes-to-places",
             ],
             help="the identifier of the LoC resource to add",
         )
@@ -107,3 +114,58 @@ class Command(BaseCommand):
                 print("Bucket created.")
             else:
                 print(f"Bucket already exists: {settings.S3_BUCKET_NAME}")
+
+        if options['operation'] == "migrate-places":
+
+            datadir = Path(settings.LOCAL_ROOT, "reference_data")
+            Place.objects.all().delete()
+            def load_place_csv(filepath):
+                with open(filepath, "r") as op:
+                    reader = csv.DictReader(op)
+                    for row in reader:
+                        parents = row.pop("direct_parents")
+                        print(row)
+                        p = Place.objects.create(**row)
+                        if parents:
+                            for parent in parents.split(","):
+                                p.direct_parents.add(parent)
+                        p.save(set_slug=True)
+
+            load_place_csv(Path(datadir, "place_countries.csv"))
+            load_place_csv(Path(datadir, "place_states.csv"))
+            load_place_csv(Path(datadir, "place_counties.csv"))
+            load_place_csv(Path(datadir, "place_other.csv"))
+
+        if options['operation'] == "connect-volumes-to-places":
+
+            typo_lookup = {
+                "Saint": "St.",
+                "Sanit": "St.",
+                "Balon": "Baton",
+                "La Salle": "LaSalle",
+                "Claibrone": "Claiborne",
+                "Point Coupee": "Pointe Coupee",
+            }
+
+            for volume in Volume.objects.all():
+                state_p, parish_p, locale_p = None, None, None
+                place_lower = Place.objects.annotate(lower_name=Lower('name'))
+                state_p = place_lower.get(category="state", lower_name__iexact=volume.state)
+                county_options = state_p.get_descendants()
+                for i in county_options:
+                    match_str = volume.county_equivalent.replace("County", "").replace("Parish", "").rstrip()
+                    for k, v in typo_lookup.items():
+                        if k in match_str:
+                            match_str = match_str.replace(k, v)
+                    if i.name == match_str:
+                        parish_p = i
+                        break
+                if not parish_p:
+                    print(volume.county_equivalent)
+                else:
+                    locale_options = parish_p.get_descendants()
+                    for i in locale_options:
+                        if i.name == volume.city:
+                            locale_p = i
+                    if not locale_p:
+                        print(volume.city, parish_p, state_p)
