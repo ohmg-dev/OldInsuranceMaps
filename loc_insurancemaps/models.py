@@ -17,7 +17,7 @@ from django.contrib.gis.geos import Polygon
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import models, transaction
-from django.db.models import signals
+from django.db.models import signals, Q
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.urls import reverse
@@ -93,6 +93,144 @@ def format_json_display(data):
     style = "<style>" + formatter.get_style_defs() + "</style><br/>"
 
     return mark_safe(style + response)
+
+def slugify(input_string):
+
+    output = input_string.lower()
+    remove_chars = [".", ",", "'", '"']
+    output = "".join([i for i in output if not i in remove_chars])
+    for i in ["_", "  ", " ", "--"]:
+        output = output.replace(i, "-")
+    return output.lower()
+
+class Place(models.Model):
+
+    PLACE_CATEGORIES = (
+        ("state", "State"),
+        ("county", "County"),
+        ("parish", "Parish"),
+        ("borough", "Borough"),
+        ("census area", "Census Area"),
+        {"independent city", "Independent City"},
+        ("city", "City"),
+        ("town", "Town"),
+        ("village", "Village"),
+        ("other", "Other"),
+    )
+
+    name = models.CharField(
+        max_length = 200,
+    )
+    category = models.CharField(
+        max_length=20,
+        choices=PLACE_CATEGORIES,
+    )
+    display_name = models.CharField(
+        max_length = 250,
+        editable=False,
+        null=True,
+        blank=True,
+    )
+    slug = models.CharField(
+        max_length = 250,
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    direct_parents = models.ManyToManyField("Place")
+
+    def __str__(self):
+        return self.display_name
+
+    @property
+    def state(self):
+        states = self.states
+        state = None
+        if len(states) == 1:
+            state = states[0]
+        elif len(states) > 1:
+            state = states[0]
+            logger.info(f"Place {self.pk} has {len(states)} states. Going with {state.slug}")
+        return state
+
+    @property
+    def states(self):
+        candidates = [self]
+        states = []
+        while candidates:
+            new_candidates = []
+            for p in candidates:
+                if p.category == "state":
+                    states.append(p)
+                else:
+                    for i in p.direct_parents.all():
+                        new_candidates.append(i)
+            candidates = new_candidates
+        return list(set(states))
+
+    def get_state_postal(self):
+        if self.state and self.state.name.lower() in STATE_POSTAL:
+            return STATE_POSTAL[self.state.name.lower()]
+        else:
+            return None
+
+    def get_state_abbrev(self):
+        if self.state and self.state.name.lower() in STATE_ABBREV:
+            return STATE_ABBREV[self.state.name.lower()]
+        else:
+            return None
+
+    def get_descendants(self):
+
+        return Place.objects.filter(direct_parents__id__exact=self.id).order_by("name")
+
+    def serialize(self):
+        return {
+            "pk": self.pk,
+            "display_name": self.display_name,
+            "category": self.get_category_display(),
+            "parents": [{
+                "display_name": i.display_name,
+                "slug": i.slug,
+            } for i in self.direct_parents.all()],
+            "descendants": [{
+                "display_name": i.display_name,
+                "slug": i.slug,
+            } for i in self.get_descendants()],
+            "states": [{
+                "display_name": i.display_name,
+                "slug": i.slug,
+            } for i in self.states],
+            "slug": self.slug,
+        }
+
+    def save(self, set_slug=True, *args, **kwargs):
+        if set_slug is True:
+            state_postal = self.get_state_postal()
+            state_abbrev = self.get_state_abbrev()
+            slug, display_name = "", ""
+            if self.category == "state":
+                slug = slugify(self.name)
+                display_name = self.name
+            else:
+                if self.category in ["county", "parish", "borough" "census area"]:
+                    slug = slugify(f"{self.name}-{self.category}")
+                    display_name = f"{self.name} {self.get_category_display()}"
+                else:
+                    slug = slugify(self.name)
+                    display_name = self.name
+                if state_postal is not None:
+                    slug += f"-{state_postal}"
+                if state_abbrev is not None:
+                    display_name += f", {state_abbrev}"
+            if not slug:
+                slug = slugify(self.name)
+            if not display_name:
+                display_name = self.name
+            self.slug = slug
+            self.display_name = display_name
+        super(Place, self).save(*args, **kwargs)
+
 
 class FullThumbnail(models.Model):
 
@@ -295,6 +433,17 @@ class Volume(models.Model):
     )
     slug = models.CharField(max_length=100, null=True, blank=True)
     multimask = JSONField(null=True, blank=True)
+    places = models.ManyToManyField(
+        Place,
+        related_name="places",
+    )
+    locale = models.ForeignKey(
+        Place,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name="locale",
+    )
 
     def __str__(self):
         display_str = f"{self.city}, {STATE_ABBREV[self.state]} | {self.year}"
