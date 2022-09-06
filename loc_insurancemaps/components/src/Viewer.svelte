@@ -23,6 +23,7 @@ import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import {circular} from 'ol/geom/Polygon';
 
+import XYZ from 'ol/source/XYZ';
 import VectorSource from 'ol/source/Vector';
 import TileWMS from 'ol/source/TileWMS';
 
@@ -150,6 +151,13 @@ function toggleBasemap() {
 		layerItem.layer.setVisible(!layerItem.layer.getVisible())
 		if (layerItem.layer.getVisible()) { currentBasemap = layerItem.id}
 	});
+}
+
+function getTitilerXYZUrl(layername) {
+	const titilerUrl = "https://titiler.legiongis.com";
+	const cogUrl = "https%3A%2F%2Foldinsurancemaps.net%2Fuploaded%2Fcog%2F"+ layername + ".tif";
+	const xyzUrl = titilerUrl +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrl;
+	return xyzUrl
 }
 
 // GENERATE THE MOSAIC LAYERS FOR EACH VOLUME
