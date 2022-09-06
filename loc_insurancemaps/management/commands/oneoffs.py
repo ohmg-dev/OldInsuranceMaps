@@ -169,3 +169,6 @@ class Command(BaseCommand):
                             locale_p = i
                     if not locale_p:
                         print(volume.city, parish_p, state_p)
+                    else:
+                        volume.locale = locale_p
+                        volume.save()
