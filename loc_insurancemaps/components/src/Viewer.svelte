@@ -34,6 +34,7 @@ import Utils from './js/ol-utils';
 const utils = new Utils();
 
 export let PLACE;
+export let SHOW_YEAR;
 export let MAPBOX_API_KEY;
 export let VOLUMES;
 export let USE_TITILER;
@@ -49,27 +50,8 @@ const tileGrid = createXYZ({
 	tileSize: 512,
 });
 
-const homeExtent = createEmpty();
-
-// function setMapExtent() {
-// 	if (map) {
-// 		if (layersPresent) {
-// 			const fullExtent = createEmpty();
-// 			VOLUME.ordered_layers.layers.forEach( function(layerDef) {
-// 				const extent3857 = transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857");
-// 				extend(fullExtent, extent3857)
-// 			});
-// 			VOLUME.ordered_layers.index_layers.forEach( function(layerDef) {
-// 				const extent3857 = transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857");
-// 				extend(fullExtent, extent3857)
-// 			});
-// 			map.getView().fit(fullExtent);
-// 		} else {
-// 			map.getView().setCenter([0,0]);
-// 			map.getView().setZoom(1)
-// 		}
-// 	}
-// }
+let homeExtent;
+const layerExtent = createEmpty();
 
 // set variable to hold id for Geolocation.watchPosition()
 let watchId;
@@ -90,22 +72,17 @@ VOLUMES.forEach( function (vol, n) {
 		mainGroup.setZIndex(400 + n)
 	}
 
+	const opacity = SHOW_YEAR == vol.year ? 100 : 0;
+
 	const volumeObj = {
 		id: vol.identifier,
 		summaryUrl: vol.urls.summary,
 		displayName: vol.volume_no ? `${vol.year} vol. ${vol.volume_no}` : vol.year,
 		mainLayer: mainGroup,
-		mainLayerO: 0,
+		mainLayerO: opacity,
 	};
 	volumeIds.push(vol.identifier);
 	volumeLookup[vol.identifier] = volumeObj;
-})
-// set the first volume in the list that has a layer to 100
-volumeIds.every( function (id) {
-	if (volumeLookup[id].mainLayer) {
-		volumeLookup[id].mainLayerO  = 100;
-		return false
-	};
 })
 
 function getClass(n) {
@@ -128,6 +105,12 @@ function toggleTransparencyIcon(inTrans) {
 	}
 	return outTrans
 }
+function toggleLayerTransparencyIcon(id) {
+	if (volumeLookup[id].mainLayer) {
+		volumeLookup[id].mainLayerO = toggleTransparencyIcon(volumeLookup[id].mainLayerO)
+	}
+}
+
 function setVisibility(group, vis) {
 	if (vis == 0) {
 		group.setVisible(false)
@@ -146,11 +129,6 @@ function changes(volumeLookup) {
 	})
 }
 $: changes(volumeLookup)
-
-console.log("------- PLACE --------")
-console.log(PLACE)
-console.log("-------VOLUMES --------")
-console.log(VOLUMES)
 
 // setup all the basemap stuff
 
@@ -185,7 +163,8 @@ function getMainLayerGroupFromVolume(volumeJson) {
 	volumeJson.ordered_layers.layers.forEach( function(layerDef) {
 
 		const extent3857 = transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857");
-		extend(homeExtent, extent3857)
+		extend(layerExtent, extent3857)
+		homeExtent = layerExtent;
 
 		// create the actual ol layers and add to group.
 		let newLayer;
@@ -297,12 +276,12 @@ function MapViewer (elementId) {
 		target: targetElement,
 		layers: [baseGroup],
 		view: new View({
-			zoom: 16,
-			center: [-90, 30]
+			zoom: 8,
+			center: fromLonLat([-92.036, 31.16])
 		})
 	});
 
-	map.getView().fit(homeExtent)
+	if (homeExtent) {map.getView().fit(homeExtent)}
 
 	volumeIds.forEach(function (vol) {
 		if (volumeLookup[vol].mainLayer) {
@@ -356,29 +335,29 @@ function toggleDetails(id) {
 			<div class="btn-spacer"></div>
 		</div>
 		<div class="control-panel-buttons">
+			
 			<button title="Zoom to full extent" on:click={resetExtent}><i class="fa fa-refresh"></i></button>
 			<button title="Change basemap" on:click={toggleBasemap}><i class="fa fa-exchange"></i></button>
 			<button title="{watchId ? 'Disable' : 'Show'} my location" on:click={toggleGPSLocation} style="color:{watchId ? 'blue' : 'black'}"><i class="fa fa-crosshairs"></i></button>
-			<a title="Go to new place" href="/loc/volumes"><i class="fa fa-plane"></i></a>
+			<!-- <a title="Go to new place" href="/browse"><i class="fa fa-plane"></i></a> -->
 		</div>
 		<div class="control-panel-content">
 			{#each volumeIds as id }
 			<div class="volume-item">
 				<div class="volume-header">
-					<button style="width:{volumeLookup[id].displayName.length > 4 ? '70px' : '30px'}" on:click={() => toggleDetails(id)}>{volumeLookup[id].displayName}</button>
+					<button style="width:{volumeLookup[id].displayName.length > 4 ? '90px' : '30px'}" on:click={() => toggleDetails(id)}>{volumeLookup[id].displayName}</button>
 					<input type=range disabled={volumeLookup[id].mainLayer ? "" : "disabled"} class="transparency-slider" bind:value={volumeLookup[id].mainLayerO} min=0 max=100>
-					<i class="transparency-toggle {getClass(volumeLookup[id].mainLayerO)}" on:click={() => {volumeLookup[id].mainLayerO = toggleTransparencyIcon(volumeLookup[id].mainLayerO)}}></i>
+					<i class="{volumeLookup[id].mainLayer != undefined ? 'transparency-toggle' : ''} {getClass(volumeLookup[id].mainLayerO)}" on:click={() => toggleLayerTransparencyIcon(id)}></i>
 				</div>
 				<div id="{id}" class="volume-detail">
-					<span>hello</span>
-					<a href="{volumeLookup[id].summaryUrl}" target="_blank">&rarr;</a>
-					<a href="{volumeLookup[id].summaryUrl}" target="_blank">&rarr;</a>
-					<a href="{volumeLookup[id].summaryUrl}" target="_blank">&rarr;</a>
+					<a href="{volumeLookup[id].summaryUrl}">volume summary</a>
 				</div>
 			</div>
 			{/each}
 		</div>
 		<div class="control-panel-footer">
+			<a title="Back to browse" href="/browse">back to browse</a>
+			<span>|</span>
 			<a href="/">site home</a>
 		</div>
 	</div>
@@ -474,9 +453,6 @@ h1 {
 	align-items: center;
 	height: 30px;
 	width: 100%;
-}
-
-.volume-header {
 }
 
 .volume-header button {
