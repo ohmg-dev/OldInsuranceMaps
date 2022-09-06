@@ -20,7 +20,6 @@ from georeference.utils import full_reverse
 
 from loc_insurancemaps.models import Volume, Place
 from .utils import unsanitize_name, filter_volumes_for_use
-from .enumerations import STATE_CHOICES, STATE_ABBREV
 from .api import CollectionConnection
 from .tasks import load_documents_as_task
 
@@ -293,6 +292,31 @@ class VolumeDetail(View):
             volume.populate_lookups()
             volume_json = volume.serialize()
             return JsonResponse(volume_json)
+
+
+class PlaceView(View):
+
+    def get(self, request, place_slug):
+
+        p = Place.objects.filter(slug=place_slug)
+
+        if p.count() == 1:
+            data = p[0].serialize()
+        else:
+            data = {"place count": p.count()}
+
+        context_dict = {
+            "svelte_params": {
+                "PLACE": data,
+                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+            }
+        }
+        return render(
+            request,
+            "loc/city_summary.html",
+            context=context_dict
+        )
+
 
 class Viewer(View):
 
