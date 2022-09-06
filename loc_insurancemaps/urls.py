@@ -11,16 +11,17 @@ from .views import (
     VolumeDetail,
     VolumeTrim,
     HomePage,
-    Volumes,
     MRMEndpointList,
     MRMEndpointLayer,
     Viewer,
+    Browse,
 )
 
 urlpatterns += [
     # path('place/<str:place_slug>', PlaceView.as_view(), name='place_view'),
     path('viewer/', Viewer.as_view(), name='viewer'),
-    path('loc/volumes/', Volumes.as_view(), name='volumes_list'),
+    path('browse/', Browse.as_view(), name='browse'),
+    path('loc/volumes/', RedirectView.as_view(pattern_name='browse', permanent=True), name='volumes_list'),
     path('loc/api/', SimpleAPI.as_view() , name='lc_api'),
     path('loc/<str:volumeid>/', VolumeDetail.as_view(), name="volume_summary"),
     path('loc/trim/<str:volumeid>/', VolumeTrim.as_view(), name="volume_trim"),

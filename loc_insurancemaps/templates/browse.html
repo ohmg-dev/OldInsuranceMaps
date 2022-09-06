@@ -1,0 +1,16 @@
+{% extends 'index.html' %}
+{% load markdownify %}
+{% load i18n %}
+{% load base_tags %}
+{% load django_svelte %}
+
+{% block title %}Browse{% endblock title %}
+
+{% block hero %}
+  {% display_svelte "Browse.svelte" browse_params %}
+{% endblock hero %}
+
+{% block bigsearch %}{% endblock bigsearch %}
+{% block showcase %}{% endblock showcase %}
+{% block datasets %}{% endblock datasets %}
+{% block footer %}{% endblock footer %}

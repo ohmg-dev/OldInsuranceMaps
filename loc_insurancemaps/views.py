@@ -56,7 +56,7 @@ class HomePage(View):
             context=context_dict
         )
 
-class Volumes(View):
+class Browse(View):
 
     def get(self, request):
 
@@ -93,11 +93,19 @@ class Volumes(View):
                 if mm_ct > 0:
                     mm_display = f"{mm_ct}/{main_lyrs_ct}"
 
+            if vol.locale:
+                place_name = vol.locale.name
+                if len(vol.locale.direct_parents.all()) > 0:
+                    place_name = f"{place_name}, {vol.locale.direct_parents.all()[0].__str__()}"
+            else:
+                place_name = f"{vol.city}, {vol.county_equivalent}, {vol.state}"
+
             vol_content = {
                 "identifier": vol.identifier,
                 "city": vol.city,
                 "county_equivalent": vol.county_equivalent,
                 "state": vol.state,
+                "place_name": place_name,
                 "year_vol": year_vol,
                 "sheet_ct": vol.sheet_ct,
                 "unprepared_ct": unprep_ct,
@@ -116,19 +124,45 @@ class Volumes(View):
             }
             loaded_summary.append(vol_content)
 
+        place_pks = Volume.objects.all().filter(status="started").values_list("locale", flat=True)
+        place_objects = Place.objects.filter(pk__in=place_pks).order_by("name")
+
+        places = []
+        for p in place_objects:
+            volume_links = []
+            vols = Volume.objects.filter(locale=p).order_by("year", "volume_no")
+            first_year = None
+            for v in vols:
+                if len(v.ordered_layers['layers']) > 0:
+                    if first_year is None:
+                        first_year = str(v.year)
+                    display_val = str(v.year)
+                    if v.volume_no is not None:
+                        display_val += f" vol. {v.volume_no}"
+                    volume_links.append({
+                        "display_val": display_val,
+                        "viewer_url": full_reverse("viewer") + f"?place={p.slug}&year={v.year}",
+                    })
+            if len(volume_links) > 0:
+                name = p.name
+                if len(p.direct_parents.all()) > 0:
+                    name = f"{name}, {p.direct_parents.all()[0].__str__()}"
+                places.append({
+                    "name": name,
+                    "url": full_reverse("viewer") + f"?place={p.slug}",
+                    "volumes": volume_links,
+                    "sort_years": ", ".join(sorted([i['display_val'] for i in volume_links])),
+                })
+
         context_dict = {
-            "list_params": {
+            "browse_params": {
                 "STARTED_VOLUMES": loaded_summary,
+                "PLACES": places,
             },
-            "search_params": {
-                "CITY_QUERY_URL": reverse('lc_api'),
-                'USER_TYPE': get_user_type(request.user),
-                'CITY_LIST': city_list,
-            }
         }
         return render(
             request,
-            "lc/volumes.html",
+            "browse.html",
             context=context_dict
         )
 
