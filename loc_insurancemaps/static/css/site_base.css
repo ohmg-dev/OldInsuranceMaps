@@ -40,7 +40,9 @@ h1, h2, h3, h4, h5, h6 {
 	/* height: calc(100vh - 30px); */
 }
 .banner-button-list div {
-	width: 25%;
+	align-content: center;
+	display: flex;
+	flex-direction: column;
 }
 .banner p {
 	font-size:1.25em;

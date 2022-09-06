@@ -24,14 +24,15 @@
 <div class="banner" style="display:flex; flex-direction: column;">
   <div class="banner-item">
       <h1>Louisiana Sanborn Map Mosaics</h1>
-      <p>A place to interactively explore historical fire insurance maps from the Library of Congress 
+      <p>Explore historical fire insurance maps of Louisiana from the Library of Congress 
         <a href="https://loc.gov/collections/sanborn-maps">Sanborn Map Collection</a>.</p>
   </div>
   <div class="banner-item banner-button-list">
     <div>
-      <a class="btn btn-default btn-lg" href="/loc/volumes" role="button">View Mosaics</a>
-      <p><em>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut </em></p>
+      <p><a class="btn btn-default btn-lg" href="/browse" role="button">Browse the maps</a></p>
+      <p><em>Browse the georeferenced maps by finding a city or town or interest.</em></p>
     </div>
+    <!--
     <div>
       <a class="btn btn-default btn-lg" href="/loc/volumes" role="button">Start Working on Maps</a>
       <p><em>Anyone can sign up to georeference and mosaic Sanborn atlases that have already been added to the project.</em></p>
@@ -44,11 +45,14 @@
       <a class="btn btn-default btn-lg" href="/loc/volumes" role="button">Show Me a Random Map</a>
       <p><em>Why not?</em></p>
     </div>
+    -->
   </div>
   <div class="banner-item">
-    <p>This website started as a crowdsourcing pilot project in early 2022, and was focused on maps of Louisiana. About
-      70 people signed up, and over half of them participated in some way. Over four months, 1,500 individual sheets
-      from 270 different Sanborn atlases were georeferenced.
+    <p>This content on this website is the result of a crowdsourcing pilot project that took place early 2022. About
+      70 people signed up, and over half of them helped to process the maps in some way. Over four months, 1,500 individual sheets
+      from 270 different Sanborn atlases were georeferenced. You can read more about the project in the <a href="/about">about</a>
+      page, or read a <em>lot</em> more about it in my master's thesis: <a href="https://digitalcommons.lsu.edu/gradschool_theses/5641/">
+      "Creating a Public Space for Georeferncing Sanborn Maps"</a>.
     </p>
   </div>
 </div>
@@ -60,16 +64,6 @@
   {% block mainbody %}
 
   {% block bigsearch %}
-  <section id="volume-search" class="background-bg">
-    <div class="container text-center">
-    <div class="row">
-      <div class="col-12-xs">
-        <h3>Find your city and choose a year... or browse <a href="/loc/volumes/" alt="Started volumes">started volumes</a>.</h3>
-        {% display_svelte "VolumeSearch.svelte" search_params %} 
-      </div>
-    </div>
-  </div>
-  </section>
   {% endblock bigsearch %}
 {% comment %}
       {% block showcase %}
