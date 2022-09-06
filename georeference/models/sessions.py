@@ -597,10 +597,10 @@ class GeorefSession(SessionBase):
         signals.post_save.connect(geoserver_post_save, sender=Layer)
         layer.save()
 
-        if existing_layer is not None:
-            self.update_status("regenerating thumbnail")
-            thumb = create_thumbnail(layer, overwrite=True)
-            Layer.objects.filter(pk=layer.pk).update(thumbnail_url=thumb)
+        # if existing_layer is not None:
+        #     self.update_status("regenerating thumbnail")
+        #     thumb = create_thumbnail(layer, overwrite=True)
+        #     Layer.objects.filter(pk=layer.pk).update(thumbnail_url=thumb)
 
         tkm.set_status(self.document, "georeferenced")
         tkm.set_status(layer, "georeferenced")
