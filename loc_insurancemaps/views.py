@@ -18,7 +18,7 @@ from geonode.groups.conf import settings as groups_settings
 from georeference.proxy_models import LayerProxy
 from georeference.utils import full_reverse
 
-from .models import Volume
+from loc_insurancemaps.models import Volume, Place
 from .utils import unsanitize_name, filter_volumes_for_use
 from .enumerations import STATE_CHOICES, STATE_ABBREV
 from .api import CollectionConnection
@@ -294,34 +294,39 @@ class VolumeDetail(View):
             volume_json = volume.serialize()
             return JsonResponse(volume_json)
 
-class CitySummary(View):
+class Viewer(View):
 
-    def get(self, request, city_slug):
+    def get(self, request):
 
-        volumes = Volume.objects.filter(slug=city_slug).order_by("year","volume_no")
-        if len(volumes) == 0:
-            raise Http404
-        for v in volumes:
-            print(v.serialize())
+        place_slug = request.GET.get("place")
+        place_data = {}
+        volumes = []
+        if place_slug is not None:
+            p = Place.objects.filter(slug=place_slug)
+            if p.count() == 1:
+                place = p[0]
+                data = place.serialize()
+                for v in Volume.objects.filter(locale=place).order_by("year","volume_no"):
+                    volumes.append(v.serialize())
+            else:
+                data = {"place count": p.count()}
 
-        page_title = f"{volumes[0].city}, {STATE_ABBREV[volumes[0].state]}"
         gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
         gs = gs.rstrip("/") + "/"
         geoserver_ows = f"{gs}ows/"
 
         context_dict = {
             "svelte_params": {
-                "PAGE_TITLE": page_title,
-                "VOLUMES": [i.serialize() for i in volumes],
-                # "CSRFTOKEN": csrf.get_token(request),
-                # 'USER_TYPE': get_user_type(request.user),
-                # 'GEOSERVER_WMS': geoserver_ows,
-                # "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+                "PLACE": data,
+                "VOLUMES": volumes,
+                "USE_TITILER": settings.USE_TITILER,
+                "GEOSERVER_WMS": geoserver_ows,
+                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
             }
         }
         return render(
             request,
-            "lc/city_summary.html",
+            "viewer.html",
             context=context_dict
         )
 

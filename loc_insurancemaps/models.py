@@ -674,6 +674,8 @@ class Volume(models.Model):
         return {
             "identifier": self.identifier,
             "title": self.__str__(),
+            "year": self.year,
+            "volume_no": self.volume_no,
             "status": self.status,
             "sheet_ct": {
                 "total": self.sheet_ct,

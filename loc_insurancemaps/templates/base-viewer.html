@@ -1,0 +1,37 @@
+{% load static from staticfiles %}
+{% load base_tags %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta Http-Equiv="Cache-Control" Content="no-cache">
+    <meta Http-Equiv="Pragma" Content="no-cache">
+    <meta Http-Equiv="Expires" Content="0">
+    <meta Http-Equiv="Pragma-directive: no-cache">
+    <meta Http-Equiv="Cache-directive: no-cache">
+
+    <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
+    <link rel="preload" as="style" href="{% static "geonode/css/font-awesome.min.css" %}" />
+
+    <link href="{% static "geonode/css/base.css" %}" rel="stylesheet"/>
+    <link rel='stylesheet' id='cookie-law-info-css'  href="{% static "geonode/css/cookie-law-info/cookie-law-info-public.css" %}" type='text/css' media='all' />
+    <link rel='stylesheet' id='cookie-law-info-gdpr-css'  href="{% static "geonode/css/cookie-law-info/cookie-law-info-gdpr.css" %}" type='text/css' media='all' />
+    <style type="text/css">[ng\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}</style>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
+
+    <link href="{% static 'css/site_base.css' %}" rel="stylesheet"/>
+    <link href="{% static 'css/icons.css' %}" rel="stylesheet"/>
+
+  </head>
+  <body style="padding-top:unset">
+    {% block middle %}
+    {% endblock middle %}
+  </body>
+</html>
