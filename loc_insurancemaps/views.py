@@ -86,10 +86,11 @@ class Browse(View):
             main_lyrs_ct = 0
             if vol.ordered_layers:
                 main_lyrs_ct = len(vol.ordered_layers['layers'])
-            mm_ct = 0
+            mm_ct, mm_todo = 0, 0
             mm_display = f"0/{main_lyrs_ct}"
             if vol.multimask is not None:
                 mm_ct = len(vol.multimask)
+                mm_todo = main_lyrs_ct - mm_ct
                 if mm_ct > 0:
                     mm_display = f"{mm_ct}/{main_lyrs_ct}"
 
@@ -116,7 +117,7 @@ class Browse(View):
                 "loaded_by_name": loaded_by_name,
                 "loaded_by_profile": loaded_by_profile,
                 "title": vol.__str__(),
-                "mm_ct": mm_ct,
+                "mm_ct": mm_todo,
                 "mm_display": mm_display,
                 "urls": {
                     "summary": reverse("volume_summary", args=(vol.identifier,))
