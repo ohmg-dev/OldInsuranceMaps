@@ -22,13 +22,20 @@ function makeSatelliteLayer (apiKey) {
     source: new XYZ({
       url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/{z}/{x}/{y}?access_token='+apiKey,
       tileSize: 512,
+      attributions: [
+        `© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>`
+      ]
     })
   });
 }
 
 function makeOSMLayer () {
   return new TileLayer({
-    source: new OSM(),
+    source: new OSM({
+      attributions: [
+        `© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.`
+      ]
+    }),
   })
 }
 

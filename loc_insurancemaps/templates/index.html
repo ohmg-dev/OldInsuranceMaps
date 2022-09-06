@@ -11,10 +11,10 @@
 
 
 {% block middle %}
-<div class="container-outer background-bg">
-  <div class="container background-fg">
+<div class="container-outer">
   {{ block.super }}
-
+  {% block middlefull %}
+  <div class="container background-fg">
   {% block hero %}
   {% if block.super %}
   {{ block.super }}
@@ -23,7 +23,7 @@
 <div class="banner-wrap">
 <div class="banner" style="display:flex; flex-direction: column;">
   <div class="banner-item">
-      <h1>Sanborn Map Mosaics</h1>
+      <h1>Louisiana Sanborn Map Mosaics</h1>
       <p>A place to interactively explore historical fire insurance maps from the Library of Congress 
         <a href="https://loc.gov/collections/sanborn-maps">Sanborn Map Collection</a>.</p>
   </div>
@@ -185,6 +185,7 @@
 
   {% endblock mainbody %}
 </div>
+{% endblock middlefull %}
 </div>
 {% endblock middle %}
 

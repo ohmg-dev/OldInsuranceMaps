@@ -2,6 +2,7 @@ body {
   font-family: 'Josefin Sans', sans-serif;
   letter-spacing: -.3px;
   padding-top: 45px;
+  background-color: #F7F1E1;
 }
 @media (max-width: 991px) {
 	body {
@@ -17,9 +18,13 @@ footer a:hover {
 	margin-top: 50px !important;
 }
 
-/* h1, h2, h3, h4, h5, h6 {
+h1 {
+	font-size: 2.25em;
+}
+
+h1, h2, h3, h4, h5, h6 {
 	font-weight: 400;
-} */
+}
 
 .banner-wrap {
 	position: relative
