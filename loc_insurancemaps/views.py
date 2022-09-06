@@ -356,18 +356,32 @@ class Viewer(View):
 
     def get(self, request):
 
-        place_slug = request.GET.get("place")
+        place_slug = request.GET.get("place", "louisiana")
+        year_to_show = request.GET.get("year")
+        year_found = False
+
         place_data = {}
         volumes = []
         if place_slug is not None:
             p = Place.objects.filter(slug=place_slug)
             if p.count() == 1:
                 place = p[0]
-                data = place.serialize()
+                place_data = place.serialize()
                 for v in Volume.objects.filter(locale=place).order_by("year","volume_no"):
                     volumes.append(v.serialize())
+
+                    if not year_found:
+                        if year_to_show is not None:
+                            if str(v.year) == str(year_to_show):
+                                year_to_show = v.year
+                                year_found = True
+                        else:
+                            if len(v.ordered_layers['layers']) > 0:
+                                year_to_show = v.year
+                                year_found = True
+
             else:
-                data = {"place count": p.count()}
+                place_data = {"place count": p.count()}
 
         gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
         gs = gs.rstrip("/") + "/"
@@ -375,8 +389,9 @@ class Viewer(View):
 
         context_dict = {
             "svelte_params": {
-                "PLACE": data,
+                "PLACE": place_data,
                 "VOLUMES": volumes,
+                "SHOW_YEAR": year_to_show,
                 "USE_TITILER": settings.USE_TITILER,
                 "GEOSERVER_WMS": geoserver_ows,
                 "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
