@@ -7,12 +7,12 @@ let places = PLACES;
 
 function updateFilteredList(filterText) {
 	if (filterText && filterText.length > 0) {
-		volumes = [];
+		places = [];
 		PLACES.forEach( function(place) {
-			const volumeName = place.title.toUpperCase();
+			const placeName = place.name.toUpperCase();
 			const filterBy = filterText.toUpperCase();
-			if (volumeName.indexOf(filterBy) > -1) {
-				volumes.push(place);
+			if (placeName.indexOf(filterBy) > -1) {
+				places.push(place);
 			}
 		});
 	} else {
