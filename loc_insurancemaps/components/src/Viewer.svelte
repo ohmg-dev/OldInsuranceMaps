@@ -219,7 +219,8 @@ function getMainLayerGroupFromVolume(volumeJson) {
 // GEOLOCATION MANAGEMENT
 const gpsSource = new VectorSource();
 const gpsLayer = new VectorLayer({
-		source: gpsSource,
+	source: gpsSource,
+	zIndex: 500,
 });
 
 function toggleGPSLocation() {
