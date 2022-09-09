@@ -42,7 +42,7 @@ export let USE_TITILER;
 export let GEOSERVER_WMS;
 
 let showPanel = true;
-$: showHideBtnText = showPanel ? "<<" : ">>";
+$: showHideBtnIcon = showPanel ? "angle-double-right" : "angle-double-left";
 
 let volumeIds = [];
 let volumeLookup = {};
@@ -336,33 +336,38 @@ function toggleDetails(id) {
 		<a href="http://mapbox.com/about/maps" class='mapbox-logo' target="_blank">Mapbox</a>
 		{/if}
 	</div>
-	<button id="show-hide-panel-btn" on:click={() => showPanel = !showPanel}>{showHideBtnText}</button>
+	<button id="show-hide-panel-btn" on:click={() => showPanel = !showPanel}><i class="fa fa-{showHideBtnIcon}" /></button>
 	{#if showPanel}
 	<div id="control-panel" style="display:{showPanel == true ? 'flex' : 'none'}">
-		<div class="control-panel-header">
-			<h1>{PLACE.display_name}</h1>
-			<div class="btn-spacer"></div>
-		</div>
 		<div class="control-panel-buttons">
-			
-			<button title="Zoom to full extent" on:click={resetExtent}><i class="fa fa-refresh"></i></button>
-			<button title="Change basemap" on:click={toggleBasemap}><i class="fa fa-exchange"></i></button>
-			<button title="{watchId ? 'Disable' : 'Show'} my location" on:click={toggleGPSLocation} style="color:{watchId ? 'blue' : 'black'}"><i class="fa fa-crosshairs"></i></button>
+			<button title="Change basemap" on:click={toggleBasemap}><i class="fa fa-exchange" /></button>
+			<button title="{watchId ? 'Disable' : 'Show'} my location" on:click={toggleGPSLocation} style="color:{watchId ? 'blue' : 'black'}"><i class="fa fa-crosshairs" /></button>
+			<button title="Zoom to home extent" on:click={resetExtent}><i class="fa fa-home" /></button>
 			<!-- <a title="Go to new place" href="/browse"><i class="fa fa-plane"></i></a> -->
 		</div>
+		<div class="control-panel-title">
+			<h1>{PLACE.display_name}</h1>
+		</div>
+		
 		<div class="control-panel-content">
+			{#if volumeIds.length > 0}
 			{#each volumeIds as id }
 			<div class="volume-item">
 				<div class="volume-header">
 					<button style="width:{volumeLookup[id].displayName.length > 4 ? '90px' : '30px'}" on:click={() => toggleDetails(id)}>{volumeLookup[id].displayName}</button>
 					<input type=range disabled={volumeLookup[id].mainLayer ? "" : "disabled"} class="transparency-slider" bind:value={volumeLookup[id].mainLayerO} min=0 max=100>
-					<i class="{volumeLookup[id].mainLayer != undefined ? 'transparency-toggle' : ''} {getClass(volumeLookup[id].mainLayerO)}" on:click={() => toggleLayerTransparencyIcon(id)}></i>
+					<i class="{volumeLookup[id].mainLayer != undefined ? 'transparency-toggle' : ''} {getClass(volumeLookup[id].mainLayerO)}" on:click={() => toggleLayerTransparencyIcon(id)} />
 				</div>
 				<div id="{id}" class="volume-detail">
 					<a href="{volumeLookup[id].summaryUrl}">volume summary</a>
 				</div>
 			</div>
 			{/each}
+			{:else}
+			<div class="volume-item">
+				<p>No volumes for this place. <a title="Back to browse" href="/browse">back to browse</a></p>
+			</div>
+			{/if}
 		</div>
 		<div class="control-panel-footer">
 			<a title="Back to browse" href="/browse">back to browse</a>
@@ -407,8 +412,6 @@ h1 {
 	position: absolute;
 	top: 10px;
 	right: 10px;
-	height: 31px;
-	width: 31px;
 	z-index: 15000;
 }
 
@@ -416,18 +419,19 @@ h1 {
 	width: 41px;
 }
 
-.control-panel-header {
-	display: flex;
-	align-items: baseline;
-	justify-content: space-between;
-	padding-left: 10px;
-	padding-right: 10px;
+.control-panel-title {
+	padding: 10px;
+	border-bottom: 1px dashed grey;
+}
+.control-panel-title h1 {
+	margin: 0;
 }
 .control-panel-buttons {
 	display: flex;
-	justify-content: space-around;
-	border-bottom: 1px dashed grey;
-	padding-bottom: 5px;
+	padding: 10px;
+}
+.control-panel-buttons button {
+	margin-right: 5px;
 }
 .control-panel-content {
 	display: flex;
