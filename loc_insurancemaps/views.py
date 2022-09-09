@@ -94,7 +94,9 @@ class Browse(View):
                 if mm_ct > 0:
                     mm_display = f"{mm_ct}/{main_lyrs_ct}"
 
+            viewer_url = ""
             if vol.locale:
+                full_reverse("viewer", args=(vol.locale.slug,)) + f"?year={vol.year}",
                 place_name = vol.locale.name
                 if len(vol.locale.direct_parents.all()) > 0:
                     place_name = f"{place_name}, {vol.locale.direct_parents.all()[0].__str__()}"
@@ -120,7 +122,8 @@ class Browse(View):
                 "mm_ct": mm_todo,
                 "mm_display": mm_display,
                 "urls": {
-                    "summary": reverse("volume_summary", args=(vol.identifier,))
+                    "summary": full_reverse("volume_summary", args=(vol.identifier,)),
+                    "viewer": viewer_url,
                 }
             }
             loaded_summary.append(vol_content)
@@ -142,7 +145,7 @@ class Browse(View):
                         display_val += f" vol. {v.volume_no}"
                     volume_links.append({
                         "display_val": display_val,
-                        "viewer_url": full_reverse("viewer") + f"?place={p.slug}&year={v.year}",
+                        "viewer_url": full_reverse("viewer", args=(p.slug,)) + f"?year={v.year}",
                     })
             if len(volume_links) > 0:
                 name = p.name
@@ -150,7 +153,7 @@ class Browse(View):
                     name = f"{name}, {p.direct_parents.all()[0].__str__()}"
                 places.append({
                     "name": name,
-                    "url": full_reverse("viewer") + f"?place={p.slug}",
+                    "url": full_reverse("viewer", args=(p.slug,)),
                     "volumes": volume_links,
                     "sort_years": ", ".join(sorted([i['display_val'] for i in volume_links])),
                 })
@@ -355,34 +358,33 @@ class PlaceView(View):
 
 class Viewer(View):
 
-    def get(self, request):
+    def get(self, request, place_slug):
 
-        place_slug = request.GET.get("place", "louisiana")
         year_to_show = request.GET.get("year")
         year_found = False
 
         place_data = {}
         volumes = []
-        if place_slug is not None:
-            p = Place.objects.filter(slug=place_slug)
-            if p.count() == 1:
-                place = p[0]
-                place_data = place.serialize()
-                for v in Volume.objects.filter(locale=place).order_by("year","volume_no"):
-                    volumes.append(v.serialize())
 
-                    if not year_found:
-                        if year_to_show is not None:
-                            if str(v.year) == str(year_to_show):
-                                year_to_show = v.year
-                                year_found = True
-                        else:
-                            if len(v.ordered_layers['layers']) > 0:
-                                year_to_show = v.year
-                                year_found = True
+        p = Place.objects.filter(slug=place_slug)
+        if p.count() == 1:
+            place = p[0]
+        else:
+            place = Place.objects.get(slug="louisiana")
 
-            else:
-                place_data = {"place count": p.count()}
+        place_data = place.serialize()
+        for v in Volume.objects.filter(locale=place).order_by("year","volume_no"):
+            volumes.append(v.serialize())
+
+            if not year_found:
+                if year_to_show is not None:
+                    if str(v.year) == str(year_to_show):
+                        year_to_show = v.year
+                        year_found = True
+                else:
+                    if len(v.ordered_layers['layers']) > 0:
+                        year_to_show = v.year
+                        year_found = True
 
         gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
         gs = gs.rstrip("/") + "/"

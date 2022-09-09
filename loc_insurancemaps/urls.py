@@ -19,7 +19,8 @@ from .views import (
 
 urlpatterns += [
     # path('place/<str:place_slug>', PlaceView.as_view(), name='place_view'),
-    path('viewer/', Viewer.as_view(), name='viewer'),
+    path('viewer/', RedirectView.as_view(pattern_name='browse'), name='viewer_base'),
+    path('viewer/<str:place_slug>/', Viewer.as_view(), name='viewer'),
     path('browse/', Browse.as_view(), name='browse'),
     path('loc/volumes/', RedirectView.as_view(pattern_name='browse', permanent=True), name='volumes_list'),
     path('loc/api/', SimpleAPI.as_view() , name='lc_api'),
