@@ -518,12 +518,17 @@ class Volume(models.Model):
                 resource_url += "?st=gallery"
         except IndexError:
             resource_url = loc_item
+
+        viewer_url = ""
+        if self.locale:
+            viewer_url = reverse("viewer", args=(self.locale.slug,)) + f"?year={self.year}"
         return {
             "doc_search": f"{settings.SITEURL}documents/?{r_facet}&{d_facet}",
             "loc_item": loc_item,
             "loc_resource": resource_url,
             "summary": reverse("volume_summary", args=(self.identifier,)),
             "trim": reverse("volume_trim", args=(self.identifier,)),
+            "viewer": viewer_url,
         }
 
     def hydrate_ordered_layers(self):

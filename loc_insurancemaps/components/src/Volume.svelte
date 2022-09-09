@@ -520,27 +520,25 @@ function handleKeyup(e) {
 	</div>
 </div>
 <main>
-	<h1>{ VOLUME.title }</h1>
-	<p>
-		<a href={ VOLUME.urls.loc_resource } target="_blank">
-			Preview in Library of Congress <i class="fa fa-external-link"></i>
-		</a>
-		<i class="fa fa-info-circle help-icon" on:click={() => loadTip = !loadTip}></i>
-	</p>
-	{#if loadTip}
-	<div transition:slide>
-		<p>&uarr; Before loading, this is the best way to see if the volume covers your part of town.</p>
+	<div class="title-section">
+		<div>
+			<h1 style="margin: 10px 0px;">{ VOLUME.title }</h1>
+			{#if OTHER_VOLUMES.length > 1}
+			<p>Jump to &rarr;
+			{#each OTHER_VOLUMES as ov, n}
+				{#if n != 0}&nbsp;&bullet;&nbsp;{/if}
+				{#if ov.url}<a href={ov.url} title={ov.name}>{ov.year}</a>{:else}{ov.year}{/if}
+			{/each}
+			</p>
+			{/if}
+		</div>
+		<div class="link-box">
+			<a href="{VOLUME.urls.viewer}">Show in Viewer</a>
+			<a href={ VOLUME.urls.loc_resource } target="_blank">
+				Show in Library of Congress <i class="fa fa-external-link"></i>
+			</a>
+		</div>
 	</div>
-	{/if}
-	{#if OTHER_VOLUMES.length > 1}
-	<div><p>
-	Jump to &rarr;
-	{#each OTHER_VOLUMES as ov, n}
-	{#if n != 0}&nbsp;&bullet;&nbsp;{/if}
-	{#if ov.url}<a href={ov.url} title={ov.name}>{ov.year}</a>{:else}{ov.year}{/if}
-	{/each}
-	</p></div>
-	{/if}
 	{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && USER_TYPE != 'anonymous' && !sheetsLoading}
 		<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
 	{/if}
@@ -555,7 +553,7 @@ function handleKeyup(e) {
 	</h4>
 	{#if previewMapTip}
 	<div transition:slide>
-		<p>The preview map shows progress toward a full mosaic of this volume's content. <em>Please note: it is not optimized for performance and may be sluggish for large cities. The best way to view a single layer is find it in the <strong>Georeferenced</strong> section below and click the thumbnail.</em></p>
+		<p>The preview map shows progress toward a full mosaic of this volume's content. For a more immersive experience, view this volume in the <a href="{VOLUME.urls.viewer}">main viewer</a> where you can also compare it against other years.</p>
 	</div>
 	{/if}
 	<div class="map-container" style="display:{showMap == true ? 'flex' : 'none'}; justify-content: center; height:550px">
@@ -565,7 +563,7 @@ function handleKeyup(e) {
 		<div id="layer-panel" style="display: {showLayerList == true ? 'flex' : 'none'}">
 			<div class="layer-section-header" style="border-top-width: 1px;">
 				<button class="control-btn" title="Reset extent" on:click={setMapExtent}>
-					<i class="fa fa-refresh" />
+					<i class="fa fa-home" />
 				</button>
 				<button id="show-key-img" on:click={() => {showImgModal(keyImgUrl, keyImgCaption)}} class="control-btn">
 					<i class="fa fa-key" />
@@ -982,7 +980,7 @@ hr.hr-dashed {
 		max-width: none;
 	}
 
-	.documents-column {
+	.documents-column, .title-section {
 		flex-direction: column;
 	}
 
@@ -1040,6 +1038,26 @@ hr.hr-dashed {
 }
 .empty-circle {
 	border-color: #1b4060;
+}
+
+.title-section {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 20px;
+}
+
+.title-section div {
+	display: flex;
+	flex-direction: column;
+}
+
+.title-section div.link-box {
+	background: #e6e6e6;
+	padding: 10px;
+	margin: 10px;
+	box-shadow: gray 0px 0px 5px;
+	border-radius: 4px;
 }
 
 /* input[type="range"] {
