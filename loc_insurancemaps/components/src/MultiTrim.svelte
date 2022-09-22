@@ -47,6 +47,7 @@ export let USER_TYPE;
 export let MAPBOX_API_KEY;
 export let GEOSERVER_WMS;
 export let USE_TITILER;
+export let TITILER_HOST;
 
 let currentLayer = null;
 
@@ -83,16 +84,9 @@ function updateLayerArr(){
   })
 }
 
-function getTitilerXYZUrl(layername) {
-	const titilerUrl = "https://titiler.legiongis.com";
-	const cogUrl = "https%3A%2F%2Foldinsurancemaps.net%2Fuploaded%2Fcog%2F"+ layername + ".tif";
-	const xyzUrl = titilerUrl +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrl;
-	return xyzUrl
-}
-
-  const tileGrid = createXYZ({
-    tileSize: 512,
-  });
+const tileGrid = createXYZ({
+	tileSize: 512,
+});
 
 function addIncomingMasks() {
 	if (VOLUME.multimask) {
@@ -115,7 +109,7 @@ function addIncomingMasks() {
       if (USE_TITILER) {
         newLayer = new TileLayer({
           source: new XYZ({
-            url: getTitilerXYZUrl(layerDef.name),
+            url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.name),
           }),
           extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
         });

@@ -39,6 +39,7 @@ export let SHOW_YEAR;
 export let MAPBOX_API_KEY;
 export let VOLUMES;
 export let USE_TITILER;
+export let TITILER_HOST;
 export let GEOSERVER_WMS;
 
 let showPanel = true;
@@ -153,13 +154,6 @@ function toggleBasemap() {
 	});
 }
 
-function getTitilerXYZUrl(layername) {
-	const titilerUrl = "https://titiler.legiongis.com";
-	const cogUrl = "https%3A%2F%2Foldinsurancemaps.net%2Fuploaded%2Fcog%2F"+ layername + ".tif";
-	const xyzUrl = titilerUrl +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrl;
-	return xyzUrl
-}
-
 // GENERATE THE MOSAIC LAYERS FOR EACH VOLUME
 
 function getMainLayerGroupFromVolume(volumeJson) {
@@ -179,7 +173,7 @@ function getMainLayerGroupFromVolume(volumeJson) {
 		if (USE_TITILER) {
 			newLayer = new TileLayer({
 				source: new XYZ({
-					url: getTitilerXYZUrl(layerDef.name),
+					url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.name),
 				}),
 				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
 			});
@@ -193,7 +187,7 @@ function getMainLayerGroupFromVolume(volumeJson) {
 					},
 					tileGrid: tileGrid,
 				}),
-							extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
 			});
 		}
 		lyrGroup.getLayers().push(newLayer)

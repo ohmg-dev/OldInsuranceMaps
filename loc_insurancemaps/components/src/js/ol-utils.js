@@ -114,6 +114,12 @@ class Utils {
     ]
   }
 
+  makeTitilerXYZUrl = function (host, layername) {
+    const cogUrl = "https%3A%2F%2Foldinsurancemaps.net%2Fuploaded%2Fcog%2F"+ layername + ".tif";
+    const xyzUrl = host +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrl;
+    return xyzUrl
+  }
+
 }
 
 export default Utils

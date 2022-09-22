@@ -36,6 +36,9 @@ import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import LayerGroup from 'ol/layer/Group';
 
+import Utils from './js/ol-utils';
+const utils = new Utils();
+
 export let VOLUME;
 export let OTHER_VOLUMES;
 export let CSRFTOKEN;
@@ -43,6 +46,7 @@ export let USER_TYPE;
 export let GEOSERVER_WMS;
 export let MAPBOX_API_KEY;
 export let USE_TITILER;
+export let TITILER_HOST;
 
 $: sheetsLoading = VOLUME.status == "initializing...";
 let loadTip = false;
@@ -233,13 +237,6 @@ function makeRotateCenterLayer() {
 	return layer
 }
 
-function getTitilerXYZUrl(layername) {
-	const titilerUrl = "https://titiler.legiongis.com";
-	const cogUrl = "https%3A%2F%2Foldinsurancemaps.net%2Fuploaded%2Fcog%2F"+ layername + ".tif";
-	const xyzUrl = titilerUrl +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrl;
-	return xyzUrl
-}
-
 function showRotateCenter() {
 	if (map && centerPointLayer) {
 		const centerCoords = map.getView().getCenter();
@@ -316,7 +313,7 @@ function setLayersFromVolume(setExtent) {
 		if (USE_TITILER) {
 			newLayer = new TileLayer({
 				source: new XYZ({
-					url: getTitilerXYZUrl(layerDef.name),
+					url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.name),
 				}),
 				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
 			});
@@ -330,7 +327,7 @@ function setLayersFromVolume(setExtent) {
 					},
 					tileGrid: tileGrid,
 				}),
-							extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
 			});
 		}
 
@@ -342,13 +339,13 @@ function setLayersFromVolume(setExtent) {
 			Object.entries(VOLUME.multimask).forEach(kV => {
 				if (kV[0] == layerDef.name) {
 					const feature = new GeoJSON().readFeature(kV[1])
-      				feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
+				feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
 					const crop = new Crop({ 
 						feature: feature, 
 						wrapX: true,
 						inner: false
 					});
-    				newLayer.addFilter(crop);
+				newLayer.addFilter(crop);
 				}
 			});
 		}
@@ -367,7 +364,7 @@ function setLayersFromVolume(setExtent) {
 		if (USE_TITILER) {
 			newLayer = new TileLayer({
 				source: new XYZ({
-					url: getTitilerXYZUrl(layerDef.name),
+					url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.name),
 				}),
 				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
 			});
