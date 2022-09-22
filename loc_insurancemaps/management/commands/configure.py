@@ -313,6 +313,7 @@ sudo supervisorctl reload
             ("ASYNC_SIGNALS", False),
             ("THEME_ACCOUNT_CONTACT_EMAIL", "admin@example.com"),
             ("USE_TITILER", True),
+            ("TITILER_HOST", ""),
         ]
 
         if self.resolve_var("EMAIL_ENABLE", False) is True:

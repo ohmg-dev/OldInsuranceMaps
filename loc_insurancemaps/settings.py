@@ -136,6 +136,7 @@ INSTALLED_APPS += (
 )
 
 USE_TITILER = ast.literal_eval(os.getenv("USE_TITILER", True))
+TITILER_HOST = os.getenv("TITILER_HOST", "")
 
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 S3_CONFIG = {
