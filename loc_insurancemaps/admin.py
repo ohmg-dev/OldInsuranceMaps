@@ -9,6 +9,9 @@ admin.site.register(FullThumbnail)
 class VolumeAdmin(admin.ModelAdmin):
     exclude = ('lc_item', 'lc_resources')
     readonly_fields = ('lc_item_formatted', 'lc_resources_formatted')
+    search_fields = ('city', 'volume_no', 'year')
+    list_display = ('identifier', 'city', 'county_equivalent', 'volume_no', 'year', 'status')
+    list_filter = ('identifier', 'city', 'county_equivalent', 'volume_no', 'year', 'status')
 
 admin.site.register(Volume, VolumeAdmin)
 
