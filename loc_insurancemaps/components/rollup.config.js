@@ -32,8 +32,7 @@ function componentExportDetails(componentName) {
 	return {
     input: `src/main-${componentName.toLowerCase()}.js`,
 		output: {
-			sourcemap: !production,
-			compact: production,
+			sourcemap: true,
 			format: 'iife',
 			name: `${componentName.toLowerCase()}`,
 			file: `public/build/${componentName}.js`,
