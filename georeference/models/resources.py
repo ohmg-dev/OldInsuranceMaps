@@ -343,7 +343,7 @@ class ResourceBase(object):
     GEOREF_STATUS_CHOICES = (
         ("unprepared", "Unprepared"),
         ("needs review", "Needs Review"),
-        ("Splitting - in progress"),
+        ("splitting", "Splitting - in progress"),
         ("split", "Split"),
         ("prepared", "Prepared"),
         ("georeferencing", "Georeferencing - in progress"),
@@ -641,8 +641,6 @@ class ResourceBase(object):
         if self.group:
             return str(self.group).encode("utf-8", "replace")
         return None
-
-
 
     def keyword_list(self):
         return [kw.name for kw in self.keywords.all()]
