@@ -45,6 +45,7 @@ from .enumerations import (
     MONTH_CHOICES,
 )
 from .renderers import convert_img_format, generate_full_thumbnail_content
+from loc_insurancemaps.storage import OverwriteStorage
 
 logger = logging.getLogger(__name__)
 
@@ -394,8 +395,7 @@ class Volume(models.Model):
     county_equivalent = models.CharField(max_length=100, null=True, blank=True)
     state = models.CharField(max_length=50, choices=STATE_CHOICES)
     year = models.IntegerField(choices=YEAR_CHOICES)
-    month = models.CharField(max_length=10, choices=MONTH_CHOICES,
-        null=True, blank=True)
+    month = models.IntegerField(choices=MONTH_CHOICES, null=True, blank=True)
     volume_no = models.CharField(max_length=5, null=True, blank=True)
     lc_item = JSONField(default=None, null=True, blank=True)
     lc_resources = JSONField(default=None, null=True, blank=True)
@@ -443,6 +443,13 @@ class Volume(models.Model):
         null=True,
         on_delete=models.PROTECT,
         related_name="locale",
+    )
+    mosaic_geotiff = models.FileField(
+        upload_to='mosaics',
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
     )
 
     def __str__(self):
