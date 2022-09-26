@@ -279,6 +279,7 @@ function MapViewer (elementId) {
 	const map = new Map({
 		target: targetElement,
 		layers: [baseGroup],
+		maxTilesLoading: 50,
 		view: new View({
 			zoom: 8,
 			center: fromLonLat([-92.036, 31.16])
