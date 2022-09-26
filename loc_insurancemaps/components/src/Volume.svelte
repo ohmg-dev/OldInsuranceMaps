@@ -313,7 +313,7 @@ function setLayersFromVolume(setExtent) {
 		if (USE_TITILER) {
 			newLayer = new TileLayer({
 				source: new XYZ({
-					url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.name),
+					url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
 				}),
 				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
 			});
@@ -364,7 +364,7 @@ function setLayersFromVolume(setExtent) {
 		if (USE_TITILER) {
 			newLayer = new TileLayer({
 				source: new XYZ({
-					url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.name),
+					url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
 				}),
 				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
 			});

@@ -1,4 +1,5 @@
 
+import os
 import logging
 from PIL import Image
 from itertools import chain
@@ -10,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from geonode.documents.models import Document
-from geonode.layers.models import Layer
+from geonode.layers.models import Layer, LayerFile
 
 from georeference.models.resources import (
     GeoreferencedDocumentLink,
@@ -401,6 +402,15 @@ class LayerProxy(object):
     def get_layer(self):
         return Layer.objects.get(id=self.id)
 
+    def get_layer_file(self):
+        layer = self.get_layer()
+        if layer is not None:
+            lf = LayerFile.objects.filter(upload_session=layer.upload_session)
+            if len(lf) == 1:
+                return lf[0].file
+        else:
+            return None
+
     def get_document(self):
 
         try:
@@ -432,6 +442,11 @@ class LayerProxy(object):
 
         urls = self.urls
         urls.update(self.get_document_urls())
+        f = self.get_layer_file()
+        urls['cog'] = ""
+        if f is not None:
+            site_base = settings.SITEURL.rstrip("/")
+            urls['cog'] = site_base + f.url
         return urls
 
     def get_sessions(self):
