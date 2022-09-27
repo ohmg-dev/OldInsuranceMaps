@@ -23,7 +23,7 @@ theme:
 
 markdown_extensions:
   - admonition
-  - pymdownx.tabbed
+  # - pymdownx.tabbed
   - markdown_captions
   - footnotes
 
