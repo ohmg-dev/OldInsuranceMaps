@@ -10,7 +10,6 @@ dev_addr: '127.0.0.1:8001'
 
 nav:
   - Overview: overview.md
-  # - Sanborn Maps: sanborn-maps.md
   - Georeferencing Process: georeferencing-process.md
   - Tutorial: tutorial.md
   - Extra Info: extra.md
