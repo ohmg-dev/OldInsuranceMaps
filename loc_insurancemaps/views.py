@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.http import JsonResponse, Http404, HttpResponse, HttpResponseRedirect
 from django.middleware import csrf
 from django.conf import settings
+from django.views.decorators.clickjacking import xframe_options_exempt
 
 from geonode.base.models import Region
 from geonode.layers.models import Layer, LayerFile
@@ -360,6 +361,7 @@ class PlaceView(View):
 
 class Viewer(View):
 
+    @xframe_options_exempt
     def get(self, request, place_slug):
 
         year_to_show = request.GET.get("year")
