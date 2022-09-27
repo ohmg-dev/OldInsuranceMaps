@@ -3,8 +3,8 @@
 One of the best ways to engage with historical maps is to visually compare them against other maps, like current satellite imagery. Doing so requires the old maps to be _georeferenced_, a process that embeds latitude and longitude coordinates in the image and allows it to be overlaid directly on other spatial layers.
 
 <figure>
-    <iframe height="400px;" style="max-width:700px; width:100%;" src="https://oldinsurancemaps.net/maps/203/embed"></iframe>
-    <figcaption>Alexandria, Louisiana in 1900, web map created through this project. Can you find the prize fighting ring? <a href="https://oldinsurancemaps.net/maps/203/view" target="_blank">View in LaHMG</a>
+    <iframe height="400px;" style="max-width:700px; width:100%;" src="https://oldinsurancemaps.net/viewer/alexandria-la"></iframe>
+    <figcaption>Alexandria, Louisiana in 1900, web map created through this project. Can you find the prize fighting ring? <a href="https://oldinsurancemaps.net/viewer/alexandria-la" target="_blank">View in LaHMG</a>
 </figure>
 
 The purpose of this project is to facilitate that georeferencing process, in a curated way based on the Library of Congress [Sanborn Maps Collection](https://www.loc.gov/collections/sanborn-maps/about-this-collection/). This collection holds historical fire insurance maps covering over 10,000 U.S. communities. This project is focused on Louisiana.
