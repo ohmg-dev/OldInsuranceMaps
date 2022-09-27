@@ -3,3 +3,4 @@ mkdocs-custommill
 pymdown-extensions
 markdown-captions
 jinja2<3.1.0
+Markdown<3.2
