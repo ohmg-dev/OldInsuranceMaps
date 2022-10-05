@@ -45,16 +45,6 @@ def analyze_url(request):
 
     return (resource_type, res_id)
 
-def make_db_cursor():
-
-    ## make connection to postgis database
-    db = settings.DATABASES['default']
-    db_conn = "dbname = {} port = {} user = {} host = {} password = {}".format(
-        db['NAME'],db['PORT'],db['USER'],db['HOST'],db['PASSWORD'])
-    conn = psycopg2.connect(db_conn)
-
-    return conn.cursor()
-
 ## ~~ Status TKeyword Management ~~
 
 class TKeywordManager(object):

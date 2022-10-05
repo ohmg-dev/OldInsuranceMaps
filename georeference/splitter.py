@@ -5,10 +5,9 @@ import logging
 
 from PIL import Image, ImageDraw, ImageFilter
 
+from django.db import connection
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry, Polygon, LineString
-
-from .utils import make_db_cursor
 
 logger = logging.getLogger(__name__)
 
@@ -103,58 +102,58 @@ class Splitter(object):
             "final": True
         }]
 
-        cursor = make_db_cursor()
+        with connection.cursor() as cursor:
 
-        while True:
-            ## evaluate one clipped shape at a time.
-            for candidate in [i for i in candidates if not i["evaluated"]]:
-                candidate["evaluated"] = True
+            while True:
+                ## evaluate one clipped shape at a time.
+                for candidate in [i for i in candidates if not i["evaluated"]]:
+                    candidate["evaluated"] = True
 
-                ## iterate all of the clip lines to try against this one shape.
-                ## exclude those that have already been used to cut a shape.
-                for cut in [i for i in cut_shapes if not i["used"]]:
+                    ## iterate all of the clip lines to try against this one shape.
+                    ## exclude those that have already been used to cut a shape.
+                    for cut in [i for i in cut_shapes if not i["used"]]:
 
-                    ## quick skip this cutline if it doesn't even touch the
-                    ## polygon that is being evaluated.
-                    if not candidate["geom"].intersects(cut["geom"]):
-                        continue
+                        ## quick skip this cutline if it doesn't even touch the
+                        ## polygon that is being evaluated.
+                        if not candidate["geom"].intersects(cut["geom"]):
+                            continue
 
-                    sql = f'''
-    SELECT ST_AsText((ST_Dump(ST_Split(border, cut))).geom) AS wkt
-    FROM (SELECT
-    ST_SnapToGrid(ST_GeomFromText(' {candidate["geom"].wkt} '), 1) AS border,
-    ST_SnapToGrid(ST_GeomFromText(' {cut["geom"].wkt} '), 1) AS cut) AS foo;
-                    '''
-                    cursor.execute(sql)
-                    rows = cursor.fetchall()
+                        sql = f'''
+        SELECT ST_AsText((ST_Dump(ST_Split(border, cut))).geom) AS wkt
+        FROM (SELECT
+        ST_SnapToGrid(ST_GeomFromText(' {candidate["geom"].wkt} '), 1) AS border,
+        ST_SnapToGrid(ST_GeomFromText(' {cut["geom"].wkt} '), 1) AS cut) AS foo;
+                        '''
+                        cursor.execute(sql)
+                        rows = cursor.fetchall()
 
-                    ## if only one row is returned it means that the line was
-                    ## insufficient to cut the polygon. This check is likely
-                    ## redundant at this point in the process though.
-                    if len(rows) > 1:
+                        ## if only one row is returned it means that the line was
+                        ## insufficient to cut the polygon. This check is likely
+                        ## redundant at this point in the process though.
+                        if len(rows) > 1:
 
-                        ## if a proper cut has been made, this cutline should be
-                        ## ignored on future iterations.
-                        cut['used'] = True
+                            ## if a proper cut has been made, this cutline should be
+                            ## ignored on future iterations.
+                            cut['used'] = True
 
-                        ## if this candidate has been split, it will not be one
-                        ## of the final polygons.
-                        candidate["final"] = False
+                            ## if this candidate has been split, it will not be one
+                            ## of the final polygons.
+                            candidate["final"] = False
 
-                        ## turn each of the resulting polygons from the cut into
-                        ## new candidates for future iterations.
-                        for row in rows:
-                            geom = GEOSGeometry(row[0])
-                            candidates.append({
-                                "geom": geom,
-                                "evaluated": False,
-                                "final": True
-                            })
-                        break
+                            ## turn each of the resulting polygons from the cut into
+                            ## new candidates for future iterations.
+                            for row in rows:
+                                geom = GEOSGeometry(row[0])
+                                candidates.append({
+                                    "geom": geom,
+                                    "evaluated": False,
+                                    "final": True
+                                })
+                            break
 
-            ## break the while loop once all of the candidates have been evaluated
-            if all([i["evaluated"] for i in candidates]):
-                break
+                ## break the while loop once all of the candidates have been evaluated
+                if all([i["evaluated"] for i in candidates]):
+                    break
 
         out_shapes = [i["geom"].coords[0] for i in candidates if i["final"] is True]
 
