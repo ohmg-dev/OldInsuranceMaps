@@ -829,6 +829,13 @@ function cleanup () {
   </div>
 </div>
 
+<div id="anonymousModal" class="modal" style="display:block;">
+  <div class="modal-content" style="max-width:325px;">
+    <p>Feel free to experiment with the interface; backend georeferencing is disabled at this time.</p>
+    <button on:click={() => {document.getElementById('anonymousModal').style.display = 'none'}}>OK</button>
+  </div>
+</div>
+
 <div class="hidden-small"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
@@ -864,8 +871,8 @@ function cleanup () {
       <label><input type=checkbox bind:checked={syncPanelWidth}> autosize</label>
     </div>
     <div>
-        <button on:click={() => { process("submit") }} disabled={gcpList.length < 3 || unchanged} title="Save control points">Save Control Points</button>
-        <button title="Cancel georeferencing" on:click={() => { process("cancel") }}>Cancel</button>
+        <button title="Save control points" disabled={gcpList.length < 3 || unchanged || SESSION_ID == 99999999} on:click={() => { process("submit") }}>Save Control Points</button>
+        <button title="Cancel georeferencing" disabled={SESSION_ID == 99999999} on:click={() => { process("cancel") }}>Cancel</button>
         <button title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
     </div>
   </nav>

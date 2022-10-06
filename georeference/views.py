@@ -25,6 +25,7 @@ from georeference.proxy_models import (
     DocumentProxy,
     LayerProxy,
     get_info_panel_content,
+    SessionLock,
 )
 from georeference.utils import MapServerManager
 from georeference.georeferencer import Georeferencer
@@ -66,6 +67,10 @@ class SplitView(View):
             else:
                 lock.enabled = True
                 lock.type = "unauthenticated"
+
+        # override lock with new empty one - Oct 6th
+        lock = SessionLock()
+        sesh_id = 99999999
 
         split_params = {
             "LOCK": lock.as_dict,
@@ -177,19 +182,24 @@ class GeoreferenceView(View):
             raise Http404
         lock = doc_proxy.georeference_lock
 
-        sesh_id = None
-        if not lock.enabled:
-            if request.user.is_authenticated:
-                sesh = GeorefSession.objects.create(
-                    document=doc_proxy.resource,
-                    user=request.user,
-                )
-                sesh.start()
-                sesh_id = sesh.pk
-                lock.stage = "in-progress"
-            else:
-                lock.enabled = True
-                lock.type = "unauthenticated"
+        # override lock with new empty one - Oct 6th
+        lock = SessionLock()
+        sesh_id = 99999999
+
+        ## disable session creation for now - Oct 6th
+        # sesh_id = None
+        # if not lock.enabled:
+        #     if request.user.is_authenticated:
+        #         sesh = GeorefSession.objects.create(
+        #             document=doc_proxy.resource,
+        #             user=request.user,
+        #         )
+        #         sesh.start()
+        #         sesh_id = sesh.pk
+        #         lock.stage = "in-progress"
+        #     else:
+        #         lock.enabled = True
+        #         lock.type = "unauthenticated"
 
         ms = MapServerManager()
 
@@ -247,20 +257,6 @@ class GeoreferenceView(View):
         operation = body.get("operation", "preview")
         sesh_id = body.get("sesh_id", None)
 
-        if sesh_id is None:
-            return JsonResponse({
-                "success":False,
-                "message": "no session id: view must be called on existing session"
-            })
-
-        try:
-            sesh = GeorefSession.objects.get(pk=sesh_id)
-        except GeorefSession.DoesNotExist:
-            return JsonResponse({
-                "success":False,
-                "message": f"session {sesh_id} not found: view must be called existing on session"
-            })
-
         response = {
             "status": "",
             "message": ""
@@ -269,6 +265,7 @@ class GeoreferenceView(View):
         # if preview mode, modify/create the vrt for this map.
         # the vrt layer should already be served to the interface via mapserver,
         # and it will be automatically reloaded there.
+        # allow this to happen without looking for or using a session
         if operation == "preview":
 
             # prepare Georeferencer object
@@ -285,7 +282,21 @@ class GeoreferenceView(View):
                 response["message"] = str(e)
             return JsonResponse(response)
 
-        elif operation == "submit":
+        if sesh_id is None:
+            return JsonResponse({
+                "success":False,
+                "message": "no session id: view must be called on existing session"
+            })
+
+        try:
+            sesh = GeorefSession.objects.get(pk=sesh_id)
+        except GeorefSession.DoesNotExist:
+            return JsonResponse({
+                "success":False,
+                "message": f"session {sesh_id} not found: view must be called existing on session"
+            })
+
+        if operation == "submit":
 
             sesh.data['epsg'] = 3857
             sesh.data['gcps'] = gcp_geojson

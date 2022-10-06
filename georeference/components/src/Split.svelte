@@ -338,6 +338,13 @@ function cleanup () {
   </div>
 </div>
 
+<div id="anonymousModal" class="modal" style="display:block;">
+  <div class="modal-content" style="max-width:325px;">
+    <p>Feel free to experiment with the interface; backend image splitting is disabled at this time.</p>
+    <button on:click={() => {document.getElementById('anonymousModal').style.display = 'none'}}>OK</button>
+  </div>
+</div>
+
 <div><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
@@ -385,9 +392,9 @@ function cleanup () {
     </div>
     
     <div class="tb-top-item">
-      <button on:click={() => {process("split")}} disabled={divisions.length<=1}>Split</button>
-      <button on:click={() => {process("no_split")}} disabled={divisions.length>0}>No Split Needed</button>
-      <button title="Cancel this preparation" on:click={cancelAndRedirectToDetail}>Cancel</button>
+      <button title="Run split operation" disabled={divisions.length<=1 || SESSION_ID == 99999999} on:click={() => {process("split")}}>Split</button>
+      <button title="No split needed" disabled={divisions.length>0 || SESSION_ID == 99999999} on:click={() => {process("no_split")}}>No Split Needed</button>
+      <button title="Cancel this preparation" disabled={SESSION_ID == 99999999} on:click={cancelAndRedirectToDetail}>Cancel</button>
       <button title="Reset interface" disabled={unchanged} on:click={resetInterface}><i id="fs-icon" class="fa fa-refresh" /></button>
     </div>
   </nav>
