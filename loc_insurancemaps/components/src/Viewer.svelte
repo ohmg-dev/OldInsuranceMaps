@@ -145,8 +145,8 @@ const baseGroup = new LayerGroup({
 	]
 });
 
-let currentBasemap = basemaps[0].id;
-basemaps[1].layer.setVisible(false)
+let currentBasemap = basemaps[1].id;
+basemaps[0].layer.setVisible(false)
 function toggleBasemap() {
 	basemaps.forEach( function (layerItem) {
 		layerItem.layer.setVisible(!layerItem.layer.getVisible())
@@ -416,7 +416,7 @@ h1 {
 }
 
 .control-panel-title {
-	padding: 10px;
+	padding: 5px 10px;
 	border-bottom: 1px dashed grey;
 }
 .control-panel-title h1 {
@@ -436,8 +436,10 @@ h1 {
 	overflow-y: auto;
 }
 .control-panel-footer {
+        text-align: center;
+        height: 30px;
+        width: 100%;
 	padding-top: 5px;
-	margin-top: 5px;
 	background-color: #123b4f;
 	color: white;
 }
@@ -449,7 +451,6 @@ h1 {
 	display: flex;
 	flex-direction: column;
 	border-bottom: 1px dashed grey;
-	padding: 5px;
 }
 .volume-item:last-child {
 	border-bottom: none;
@@ -480,12 +481,6 @@ h1 {
 .volume-detail {
 	margin-top: 5px;
 	display: none;
-}
-
-.control-panel-footer {
-	text-align: center;
-	height: 30px;
-	width: 100%;
 }
 
 .transparency-slider {
