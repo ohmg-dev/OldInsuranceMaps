@@ -35,7 +35,8 @@ from georeference.models.sessions import (
     TrimSession,
 )
 from georeference.proxy_models import DocumentProxy, LayerProxy
-from georeference.utils import TKeywordManager
+from georeference.storage import OverwriteStorage
+from georeference.utils import TKeywordManager, slugify
 
 from .utils import LOCParser, download_image
 from .enumerations import (
@@ -45,7 +46,6 @@ from .enumerations import (
     MONTH_CHOICES,
 )
 from .renderers import convert_img_format, generate_full_thumbnail_content
-from loc_insurancemaps.storage import OverwriteStorage
 
 logger = logging.getLogger(__name__)
 
@@ -95,14 +95,6 @@ def format_json_display(data):
 
     return mark_safe(style + response)
 
-def slugify(input_string):
-
-    output = input_string.lower()
-    remove_chars = [".", ",", "'", '"']
-    output = "".join([i for i in output if not i in remove_chars])
-    for i in ["_", "  ", " ", "--"]:
-        output = output.replace(i, "-")
-    return output.lower()
 
 class Place(models.Model):
 
