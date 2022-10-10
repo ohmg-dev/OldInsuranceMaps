@@ -219,6 +219,8 @@ CORS_ORIGIN_ALLOW_ALL = False
 # set to custom blank background handler here.
 THUMBNAIL_BACKGROUND = { "class": "loc_insurancemaps.background.NoThumbnailBackground" }
 
+DEFAULT_THUMBNAIL_SIZE = (240, 200)
+
 # Location of url mappings
 ROOT_URLCONF = os.getenv('ROOT_URLCONF', '{}.urls'.format(PROJECT_NAME))
 
