@@ -38,14 +38,14 @@ from georeference.proxy_models import DocumentProxy, LayerProxy
 from georeference.storage import OverwriteStorage
 from georeference.utils import TKeywordManager, slugify
 
-from .utils import LOCParser, download_image
+from .utils import LOCParser, download_image, convert_img_format
 from .enumerations import (
     STATE_CHOICES,
     STATE_ABBREV,
     STATE_POSTAL,
     MONTH_CHOICES,
 )
-from .renderers import convert_img_format, generate_full_thumbnail_content
+from .renderers import generate_full_thumbnail_content
 
 logger = logging.getLogger(__name__)
 

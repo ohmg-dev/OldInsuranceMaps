@@ -6,6 +6,7 @@ import shutil
 import logging
 import requests
 from datetime import datetime
+from PIL import Image
 
 from django.conf import settings
 from django.urls import reverse
@@ -17,6 +18,18 @@ from .enumerations import (
 )
 
 logger = logging.getLogger(__name__)
+
+def convert_img_format(input_img, format="JPEG"):
+
+    ext_map = {"PNG":".png", "JPEG":".jpg", "TIFF": ".tif"}
+    ext = os.path.splitext(input_img)[1]
+
+    outpath = input_img.replace(ext, ext_map[format])
+
+    img = Image.open(input_img)
+    img.save(outpath, format=format)
+
+    return outpath
 
 def filter_volumes_for_use(volumes):
     """

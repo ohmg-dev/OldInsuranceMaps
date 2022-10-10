@@ -70,16 +70,3 @@ def generate_layer_geotiff_thumbnail(layer):
 
     del img
     del background
-
-
-def convert_img_format(input_img, format="JPEG"):
-
-    ext_map = {"PNG":".png", "JPEG":".jpg", "TIFF": ".tif"}
-    ext = os.path.splitext(input_img)[1]
-
-    outpath = input_img.replace(ext, ext_map[format])
-
-    img = Image.open(input_img)
-    img.save(outpath, format=format)
-
-    return outpath
