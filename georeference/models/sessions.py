@@ -27,6 +27,7 @@ from georeference.models.resources import (
     GeoreferencedDocumentLink,
     SplitDocumentLink,
 )
+from georeference.models.resources import Document, Layer
 from georeference.georeferencer import Georeferencer
 from georeference.splitter import Splitter
 from georeference.utils import (
@@ -139,6 +140,20 @@ class SessionBase(models.Model):
         models.SET_NULL,
         null=True,
         blank=True,
+    )
+    doc = models.ForeignKey(
+        Document,
+        models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="doc",
+    )
+    lyr = models.ForeignKey(
+        Layer,
+        models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="lyr",
     )
     data = JSONField(
         default=dict,

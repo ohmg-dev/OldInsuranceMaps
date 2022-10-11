@@ -1,13 +1,20 @@
+import os
 import uuid
 import json
 import logging
-from osgeo import gdal
+from osgeo import gdal, osr
+from PIL import Image
+from itertools import chain
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import Polygon
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -26,7 +33,12 @@ from geonode.notifications_helper import (
 
 from georeference.utils import (
     get_gs_catalog,
+    full_reverse,
+    slugify,
 )
+from georeference.renderers import generate_document_thumbnail_content, generate_layer_thumbnail_content
+from georeference.storage import OverwriteStorage
+
 
 logger = logging.getLogger(__name__)
 
@@ -336,10 +348,38 @@ class LayerMask(models.Model):
 #        self.layer.thumbnail_url = thumb
 #        self.layer.save()
 
+class DocumentManager(models.Manager):
 
-# set ResourceBase, Document, and Layer to inherit object for now,
-# i.e. don't register as models yet. Still much work to do.
-class ResourceBase(object):
+    _type = 'document'
+
+    def get_queryset(self):
+        return super(DocumentManager, self).get_queryset().filter(type=self._type)
+
+    def create(self, **kwargs):
+        kwargs.update({
+            'type': self._type,
+        })
+        return super(DocumentManager, self).create(**kwargs)
+
+
+class LayerManager(models.Manager):
+
+    _type = 'layer'
+
+    def get_queryset(self):
+        return super(LayerManager, self).get_queryset().filter(type=self._type)
+
+    def create(self, **kwargs):
+        kwargs.update({
+            'type': self._type,
+        })
+        return super(LayerManager, self).create(**kwargs)
+
+def set_upload_location(instance, filename):
+    """ this function has to return the location to upload the file """
+    return os.path.join(f"{instance.type}s", filename)
+
+class ItemBase(models.Model):
 
     GEOREF_STATUS_CHOICES = (
         ("unprepared", "Unprepared"),
@@ -349,514 +389,388 @@ class ResourceBase(object):
         ("prepared", "Prepared"),
         ("georeferencing", "Georeferencing - in progress"),
         ("georeferenced", "Georeferenced"),
-        ("trimming", "Trimming - in progress"),
-        ("trimmed", "Trimmed"),
     )
 
-    abstract_help_text = _(
-        'brief narrative summary of the content of the resource(s)')
-    date_help_text = _('reference date for the cited resource')
-    date_type_help_text = _('identification of when a given event occurred')
-    edition_help_text = _('version of the cited resource')
-    attribution_help_text = _(
-        'authority or function assigned, as to a ruler, legislative assembly, delegate, or the like.')
-    doi_help_text = _(
-        'a DOI will be added by Admin before publication.')
-    purpose_help_text = _(
-        'summary of the intentions with which the resource(s) was developed')
-    maintenance_frequency_help_text = _(
-        'frequency with which modifications and deletions are made to the data after '
-        'it is first produced')
-    keywords_help_text = _(
-        'commonly used word(s) or formalised word(s) or phrase(s) used to describe the subject '
-        '(space or comma-separated)')
-    tkeywords_help_text = _(
-        'formalised word(s) or phrase(s) from a fixed thesaurus used to describe the subject '
-        '(space or comma-separated)')
-    regions_help_text = _('keyword identifies a location')
-    restriction_code_type_help_text = _(
-        'limitation(s) placed upon the access or use of the data.')
-    constraints_other_help_text = _(
-        'other restrictions and legal prerequisites for accessing and using the resource or'
-        ' metadata')
-    license_help_text = _('license of the dataset')
-    language_help_text = _('language used within the dataset')
-    category_help_text = _(
-        'high-level geographic data thematic classification to assist in the grouping and search of '
-        'available geographic data sets.')
-    spatial_representation_type_help_text = _(
-        'method used to represent geographic information in the dataset.')
-    temporal_extent_start_help_text = _(
-        'time period covered by the content of the dataset (start)')
-    temporal_extent_end_help_text = _(
-        'time period covered by the content of the dataset (end)')
-    data_quality_statement_help_text = _(
-        'general explanation of the data producer\'s knowledge about the lineage of a'
-        ' dataset')
-    # internal fields
-    uuid = models.CharField(max_length=36)
-    title = models.CharField(_('title'), max_length=255, help_text=_(
-        'name by which the cited resource is known'))
-    abstract = models.TextField(
-        _('abstract'),
-        max_length=2000,
-        blank=True,
-        help_text=abstract_help_text)
-    purpose = models.TextField(
-        _('purpose'),
-        max_length=500,
-        null=True,
-        blank=True,
-        help_text=purpose_help_text)
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        related_name='owned_resource',
-        verbose_name=_("Owner"),
-        on_delete=models.PROTECT)
-    contacts = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        through='ContactRole')
-    alternate = models.CharField(max_length=128, null=True, blank=True)
+    title = models.CharField(_('title'), max_length=255)
+    slug = models.CharField(
+        max_length=128, null=True, blank=True
+    )
+    type = models.CharField(
+        max_length=10,
+        choices=(("document", "Document"), ("layer", "Layer")),
+    )
     date = models.DateTimeField(
-        _('date'),
-        default=timezone.now,
-        help_text=date_help_text)
-    edition = models.CharField(
-        _('edition'),
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text=edition_help_text)
+        default=timezone.now
+    )
     attribution = models.CharField(
-        _('Attribution'),
         max_length=2048,
         blank=True,
         null=True,
-        help_text=attribution_help_text)
-    doi = models.CharField(
-        _('DOI'),
-        max_length=255,
+    )
+    status = models.CharField(
         blank=True,
         null=True,
-        help_text=doi_help_text)
-    georef_status = models.CharField(
-        verbose_name=_('georeferencing status'),
-        blank=True,
-        null=True,
+        max_length=50,
         default=GEOREF_STATUS_CHOICES[0][0],
-        choices=GEOREF_STATUS_CHOICES)
-    regions = models.ManyToManyField(
-        Region,
-        verbose_name=_('keywords region'),
-        null=True,
+        choices=GEOREF_STATUS_CHOICES
+    )
+
+    x0 = models.DecimalField(
+        max_digits=30,
+        decimal_places=15,
         blank=True,
-        help_text=regions_help_text)
+        null=True
+    )
+    y0 = models.DecimalField(
+        max_digits=30,
+        decimal_places=15,
+        blank=True,
+        null=True
+    )
+    x1 = models.DecimalField(
+        max_digits=30,
+        decimal_places=15,
+        blank=True,
+        null=True
+    )
+    y1 = models.DecimalField(
+        max_digits=30,
+        decimal_places=15,
+        blank=True,
+        null=True
+    )
 
-    data_quality_statement = models.TextField(
-        _('data quality statement'),
-        max_length=2000,
+    epsg = models.IntegerField(
         blank=True,
         null=True,
-        help_text=data_quality_statement_help_text)
-    # group = models.ForeignKey(
-    #     Group,
-    #     null=True,
-    #     blank=True,
-    #     on_delete=models.SET_NULL)
+    )
 
-    bbox_polygon = models.PolygonField(null=True, blank=True)
-
-    srid = models.CharField(
-        max_length=30,
-        blank=False,
-        null=False,
-        default='EPSG:4326')
-
-    popular_count = models.IntegerField(default=0)
+    favorite_count = models.IntegerField(default=0)
     share_count = models.IntegerField(default=0)
-    featured = models.BooleanField(_("Featured"), default=False, help_text=_(
-        'Should this resource be advertised in home page?'))
-    is_published = models.BooleanField(
-        _("Is Published"),
-        default=True,
-        help_text=_('Should this resource be published and searchable?'))
-    is_approved = models.BooleanField(
-        _("Approved"),
-        default=True,
-        help_text=_('Is this resource validated from a publisher or editor?'))
 
-    # fields necessary for the apis
-    thumbnail_url = models.TextField(_("Thumbnail url"), null=True, blank=True)
-    detail_url = models.CharField(max_length=255, null=True, blank=True)
-    rating = models.IntegerField(default=0, null=True, blank=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+    )
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True, null=True, blank=True)
 
-    # fields controlling security state
-    dirty_state = models.BooleanField(
-        _("Dirty State"),
-        default=False,
-        help_text=_('Security Rules Are Not Synched with GeoServer!'))
-
-    metadata_only = models.BooleanField(
-        _("Metadata"),
-        default=False,
-        help_text=_('If true, will be excluded from search'))
-
-    class Meta:
-        # custom permissions,
-        # add, change and delete are standard in django-guardian
-        permissions = (
-            # ('view_resourcebase', 'Can view resource'),
-            ('change_resourcebase_permissions', 'Can change resource permissions'),
-            ('download_resourcebase', 'Can download resource'),
-            ('publish_resourcebase', 'Can publish resource'),
-            ('change_resourcebase_metadata', 'Can change resource metadata'),
-        )
+    file = models.FileField(
+        upload_to=set_upload_location,
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
+    )
+    thumbnail = models.FileField(
+        upload_to='thumbnails',
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
+    )
 
     def __str__(self):
         return str(self.title)
 
     @property
-    def raw_abstract(self):
-        return self._remove_html_tags(self.abstract)
+    def _base_urls(self):
+        return {
+            "thumbnail": self.thumbnail.url,
+            # "detail": document.detail_url + "#georeference",
+            "image": self.file.url,
+            "split": full_reverse("split_view", args=(self.pk, )),
+            "georeference": full_reverse("georeference_view", args=(self.pk, )),
+            # "progress_page": document.detail_url + "#georeference",
+        }
 
     @property
-    def raw_purpose(self):
-        return self._remove_html_tags(self.purpose)
+    def bbox(self):
+        """BBOX is in the format: [x0, x1, y0, y1, srid]."""
+        if self.extent:
+            xmin, ymin, xmax, ymax = self.extent
+            return [xmin, xmax, ymin, ymax, "EPSG:4326"]
+        else:
+            return [-180, 180, -90, 90, "EPSG:4326"]
 
     @property
-    def raw_constraints_other(self):
-        return self._remove_html_tags(self.constraints_other)
+    def extent(self):
+        """ returns an extent tuple """
+        extent = None
+        if self.x0 is not None:
+            extent = (
+                float(self.x0),
+                float(self.y0),
+                float(self.x1),
+                float(self.y1)
+            )
+        return extent
 
-    @property
-    def raw_supplemental_information(self):
-        return self._remove_html_tags(self.supplemental_information)
-
-    @property
-    def raw_data_quality_statement(self):
-        return self._remove_html_tags(self.data_quality_statement)
-
-    def save(self, notify=False, *args, **kwargs):
-        """
-        Send a notification when a resource is created or updated
-        """
-
-        if hasattr(self, 'class_name') and (self.pk is None or notify):
-            if self.pk is None and self.title:
-                # Resource Created
-
-                notice_type_label = f'{self.class_name.lower()}_created'
-                recipients = get_notification_recipients(notice_type_label, resource=self)
-                send_notification(recipients, notice_type_label, {'resource': self})
-            elif self.pk:
-                # Resource Updated
-                _notification_sent = False
-
-                # Approval Notifications Here
-                if not _notification_sent and settings.ADMIN_MODERATE_UPLOADS and \
-                   not self.__is_approved and self.is_approved:
-                    # Set "approved" workflow permissions
-                    self.set_workflow_perms(approved=True)
-
-                    # Send "approved" notification
-                    notice_type_label = f'{self.class_name.lower()}_approved'
-                    recipients = get_notification_recipients(notice_type_label, resource=self)
-                    send_notification(recipients, notice_type_label, {'resource': self})
-                    _notification_sent = True
-
-                # Publishing Notifications Here
-                if not _notification_sent and settings.RESOURCE_PUBLISHING and \
-                   not self.__is_published and self.is_published:
-                    # Set "published" workflow permissions
-                    self.set_workflow_perms(published=True)
-
-                    # Send "published" notification
-                    notice_type_label = f'{self.class_name.lower()}_published'
-                    recipients = get_notification_recipients(notice_type_label, resource=self)
-                    send_notification(recipients, notice_type_label, {'resource': self})
-                    _notification_sent = True
-
-                # Updated Notifications Here
-                if not _notification_sent:
-                    notice_type_label = f'{self.class_name.lower()}_updated'
-                    recipients = get_notification_recipients(notice_type_label, resource=self)
-                    send_notification(recipients, notice_type_label, {'resource': self})
-
-        super(ResourceBase, self).save(*args, **kwargs)
-        self.__is_approved = self.is_approved
-        self.__is_published = self.is_published
-
-    def delete(self, notify=True, *args, **kwargs):
-        """
-        Send a notification when a layer, map or document is deleted
-        """
-        if hasattr(self, 'class_name') and notify:
-            notice_type_label = f'{self.class_name.lower()}_deleted'
-            recipients = get_notification_recipients(notice_type_label, resource=self)
-            send_notification(recipients, notice_type_label, {'resource': self})
-
-        super(ResourceBase, self).delete(*args, **kwargs)
-
-    def get_upload_session(self):
-        raise NotImplementedError()
-
-    @property
-    def site_url(self):
-        return settings.SITEURL
-
-    @property
-    def creator(self):
-        return self.owner.get_full_name() or self.owner.username
-
-    @property
-    def perms(self):
-        return []
-
-    @property
-    def organizationname(self):
-        return self.owner.organization
-
-    @property
-    def restriction_code(self):
-        return self.restriction_code_type.gn_description
-
-    @property
-    def publisher(self):
-        return self.poc.get_full_name() or self.poc.username
-
-    @property
-    def contributor(self):
-        return self.metadata_author.get_full_name() or self.metadata_author.username
-
-    @property
-    def topiccategory(self):
-        return self.category.identifier
-
-    @property
-    def csw_crs(self):
-        return 'EPSG:4326'
-
-    @property
-    def group_name(self):
-        if self.group:
-            return str(self.group).encode("utf-8", "replace")
-        return None
-
-    def keyword_list(self):
-        return [kw.name for kw in self.keywords.all()]
-
-    def keyword_slug_list(self):
-        return [kw.slug for kw in self.keywords.all()]
-
-    def region_name_list(self):
-        return [region.name for region in self.regions.all()]
-
-    def set_dirty_state(self):
-        self.dirty_state = True
-        ResourceBase.objects.filter(id=self.id).update(dirty_state=True)
-
-    def clear_dirty_state(self):
-        self.dirty_state = False
-        ResourceBase.objects.filter(id=self.id).update(dirty_state=False)
-
-    @property
-    def processed(self):
-        return not self.dirty_state
-
-    @property
-    def keyword_csv(self):
-        try:
-            keywords_qs = self.get_real_instance().keywords.all()
-            if keywords_qs:
-                return ','.join(kw.name for kw in keywords_qs)
+    def set_thumbnail(self):
+        if self.file is not None:
+            path = self.file.path
+            name = os.path.splitext(os.path.basename(path))[0]
+            if self.type == "document":
+                content = generate_document_thumbnail_content(path)
+                tname = f"{name}-doc-thumb.png"
+            elif self.type == "layer":
+                content = generate_layer_thumbnail_content(path)
+                tname = f"{name}-lyr-thumb.png"
             else:
-                return ''
-        except Exception:
-            return ''
+                return None
+            self.thumbnail.save(tname, ContentFile(content))
 
+    def set_extent(self):
+        """ https://gis.stackexchange.com/a/201320/28414 """
+        if self.file is not None:
+            src = gdal.Open(self.file.path)
+            ulx, xres, xskew, uly, yskew, yres  = src.GetGeoTransform()
+            lrx = ulx + (src.RasterXSize * xres)
+            lry = uly + (src.RasterYSize * yres)
 
-class Document(object):
-    pass
+            src = None
+            del src
 
-class Layer(object):
+            webMerc = osr.SpatialReference()
+            webMerc.ImportFromEPSG(3857)
+            wgs84 = osr.SpatialReference()
+            wgs84.ImportFromEPSG(4326)
+            transform = osr.CoordinateTransformation(webMerc, wgs84)
 
-    # @property
-    # def bbox(self):
-    #     """BBOX is in the format: [x0, x1, y0, y1, srid]."""
-    #     if self.bbox_polygon:
-    #         match = re.match(r'^(EPSG:)?(?P<srid>\d{4,6})$', self.srid)
-    #         srid = int(match.group('srid')) if match else 4326
-    #         bbox = BBOXHelper(self.bbox_polygon.extent)
-    #         return [bbox.xmin, bbox.xmax, bbox.ymin, bbox.ymax, f"EPSG:{srid}"]
-    #     bbox = BBOXHelper.from_xy([-180, 180, -90, 90])
-    #     return [bbox.xmin, bbox.xmax, bbox.ymin, bbox.ymax, "EPSG:4326"]
+            ul = transform.TransformPoint(ulx, uly)
+            lr = transform.TransformPoint(lrx, lry)
 
+            self.x0 = ul[1]
+            self.y0 = lr[0]
+            self.x1 = lr[1]
+            self.y1 = ul[0]
 
-    # @property
-    # def bbox_string(self):
-    #     """BBOX is in the format: [x0, y0, x1, y1]. Provides backwards compatibility
-    #     after transition to polygons."""
-    #     if self.bbox_polygon:
-    #         bbox = BBOXHelper.from_xy(self.bbox[:4])
+    def save(self, *args, **kwargs):
 
-    #         return f"{bbox.xmin:.7f},{bbox.ymin:.7f},{bbox.xmax:.7f},{bbox.ymax:.7f}"
-    #     bbox = BBOXHelper.from_xy([-180, 180, -90, 90])
-    #     return [bbox.xmin, bbox.xmax, bbox.ymin, bbox.ymax, "EPSG:4326"]
+        set_slug = kwargs.get("set_slug", False)
+        if set_slug or not self.slug:
+            self.slug = slugify(self.title, join_char="_")
 
-    # @property
-    # def bbox_helper(self):
-    #     if self.bbox_polygon:
-    #         return BBOXHelper(self.bbox_polygon.extent)
-    #     bbox = BBOXHelper.from_xy([-180, 180, -90, 90])
-    #     return [bbox.xmin, bbox.xmax, bbox.ymin, bbox.ymax, "EPSG:4326"]
+        set_thumbnail = kwargs.get("set_thumbnail", False)
+        if set_thumbnail or (self.file and not self.thumbnail):
+            self.set_thumbnail()
 
-    # @cached_property
-    # def bbox_x0(self):
-    #     if self.bbox_polygon:
-    #         return self.bbox[0]
-    #     return None
+        set_extent = kwargs.get("set_extent", False)
+        if set_extent or (self.type == "layer" and self.file and not self.x0):
+            self.set_extent()
 
-    # @cached_property
-    # def bbox_x1(self):
-    #     if self.bbox_polygon:
-    #         return self.bbox[1]
-    #     return None
+        return super(ItemBase, self).save(*args, **kwargs)
 
-    # @cached_property
-    # def bbox_y0(self):
-    #     if self.bbox_polygon:
-    #         return self.bbox[2]
-    #     return None
+class Document(ItemBase):
 
-    # @cached_property
-    # def bbox_y1(self):
-    #     if self.bbox_polygon:
-    #         return self.bbox[3]
-    #     return None
+    objects = DocumentManager()
 
-    # @property
-    # def geographic_bounding_box(self):
-    #     """
-    #     Returns an EWKT representation of the bounding box in EPSG:4326
-    #     """
-    #     if self.ll_bbox_polygon:
-    #         bbox = polygon_from_bbox(self.ll_bbox_polygon.extent, 4326)
-    #         return str(bbox)
-    #     else:
-    #         bbox = BBOXHelper.from_xy([-180, 180, -90, 90])
-    #         return bbox_to_wkt(
-    #             bbox.xmin,
-    #             bbox.xmax,
-    #             bbox.ymin,
-    #             bbox.ymax,
-    #             srid='EPSG:4326')
+    class Meta:
+        proxy = True
+        verbose_name = "Document"
+        verbose_name_plural = "Documents"
 
-    # def set_bbox_polygon(self, bbox, srid):
-    #     """
-    #     Set `bbox_polygon` from bbox values.
+    @cached_property
+    def image_size(self):
+        return Image.open(self.file).size
 
-    #     :param bbox: list or tuple formatted as
-    #         [xmin, ymin, xmax, ymax]
-    #     :param srid: srid as string (e.g. 'EPSG:4326' or '4326')
-    #     """
-    #     bbox_polygon = Polygon.from_bbox(bbox)
-    #     self.bbox_polygon = bbox_polygon.clone()
-    #     self.srid = srid
-    #     if srid == 4326 or srid == "EPSG:4326":
-    #         self.ll_bbox_polygon = bbox_polygon
-    #     else:
-    #         match = re.match(r'^(EPSG:)?(?P<srid>\d{4,6})$', str(srid))
-    #         bbox_polygon.srid = int(match.group('srid')) if match else 4326
-    #         try:
-    #             self.ll_bbox_polygon = bbox_polygon.transform(4326, clone=True)
-    #         except Exception as e:
-    #             logger.error(e)
-    #             self.ll_bbox_polygon = bbox_polygon
+    @property
+    def urls(self):
+        urls = self._base_urls
+        urls.update({
+            "detail": f"/documents/{self.pk}",
+            "progress_page": f"/documents/{self.pk}#georeference",
+        })
+        return urls
 
-    # def set_bounds_from_center_and_zoom(self, center_x, center_y, zoom):
-    #     """
-    #     Calculate zoom level and center coordinates in mercator.
-    #     """
-    #     self.center_x = center_x
-    #     self.center_y = center_y
-    #     self.zoom = zoom
+    @property
+    def preparation_session(self):
+        from georeference.models.sessions import PrepSession
+        try:
+            return PrepSession.objects.get(doc=self)
+        except PrepSession.DoesNotExist:
+            if self.parent is not None:
+                return self.parent.preparation_session
+            else:
+                return None
+        except PrepSession.MultipleObjectsReturned:
+            logger.warn(f"Multiple PrepSessions found for Document {self.id}")
+            return list(PrepSession.objects.filter(doc=self))[0]
 
-    #     deg_len_equator = 40075160.0 / 360.0
+    @property
+    def cutlines(self):
+        cutlines = []
+        if not self.parent and self.preparation_session:
+            cutlines = self.preparation_session.data['cutlines']
+        return cutlines
 
-    #     # covert center in lat lon
-    #     def get_lon_lat():
-    #         wgs84 = Proj(init='epsg:4326')
-    #         mercator = Proj(init='epsg:3857')
-    #         lon, lat = transform(mercator, wgs84, center_x, center_y)
-    #         return lon, lat
+    @property
+    def parent(self):
+        try:
+            link = DocumentLink.objects.get(target_id=self.pk, link_type="split")
+            parent = link.source
+        except DocumentLink.DoesNotExist:
+            parent = None
+        return parent
 
-    #     # calculate the degree length at this latitude
-    #     def deg_len():
-    #         lon, lat = get_lon_lat()
-    #         return math.cos(lat) * deg_len_equator
+    @property
+    def children(self):
+        links = DocumentLink.objects.filter(source=self, link_type="split")
+        return [i.target for i in links]
 
-    #     lon, lat = get_lon_lat()
+    def get_extended_urls(self):
+        urls = self.urls
+        urls.update(self.get_layer_urls())
+        return urls
 
-    #     # taken from http://wiki.openstreetmap.org/wiki/Zoom_levels
-    #     # it might be not precise but enough for the purpose
-    #     distance_per_pixel = 40075160 * math.cos(lat) / 2 ** (zoom + 8)
+    def get_sessions(self, serialize=False):
 
-    #     # calculate the distance from the center of the map in degrees
-    #     # we use the calculated degree length on the x axis and the
-    #     # normal degree length on the y axis assumin that it does not change
+        ps = self.preparation_session
+        if ps is not None:
+            from georeference.models.sessions import GeorefSession
+            gs = GeorefSession.objects.filter(doc=self).order_by("date_run")
+            sessions = list(chain([ps], gs))
+            if serialize is True:
+                return [i.serialize() for i in sessions]
+            else:
+                return sessions
+        else:
+            return []
 
-    #     # Assuming a map of 1000 px of width and 700 px of height
-    #     distance_x_degrees = distance_per_pixel * 500.0 / deg_len()
-    #     distance_y_degrees = distance_per_pixel * 350.0 / deg_len_equator
+    def get_layer(self):
+        try:
+            link = DocumentLink.objects.get(link_type="georeference", source=self)
+            layer = link.target
+        except DocumentLink.DoesNotExist:
+            layer = None
+        return layer
 
-    #     bbox_x0 = lon - distance_x_degrees
-    #     bbox_x1 = lon + distance_x_degrees
-    #     bbox_y0 = lat - distance_y_degrees
-    #     bbox_y1 = lat + distance_y_degrees
-    #     self.srid = 'EPSG:4326'
-    #     self.set_bbox_polygon((bbox_x0, bbox_y0, bbox_x1, bbox_y1), self.srid)
+    def serialize(self, serialize_children=True, serialize_parent=True, serialize_layer=True):
 
-    # def set_bounds_from_bbox(self, bbox, srid):
-    #     """
-    #     Calculate zoom level and center coordinates in mercator.
+        parent = None
+        if self.parent is not None:
+            if serialize_parent:
+                parent = self.parent.serialize(serialize_children=False, serialize_layer=serialize_layer)
+            else:
+                parent = self.parent.pk
 
-    #     :param bbox: BBOX is either a `geos.Pologyon` or in the
-    #         format: [x0, x1, y0, y1], which is:
-    #         [min lon, max lon, min lat, max lat] or
-    #         [xmin, xmax, ymin, ymax]
-    #     :type bbox: list
-    #     """
-    #     if isinstance(bbox, Polygon):
-    #         self.set_bbox_polygon(bbox.extent, srid)
-    #         self.set_center_zoom()
-    #         return
-    #     elif isinstance(bbox, list):
-    #         self.set_bbox_polygon([bbox[0], bbox[2], bbox[1], bbox[3]], srid)
-    #         self.set_center_zoom()
-    #         return
+        children = None
+        if len(self.children) > 0:
+            children = []
+            for c in self.children:
+                if serialize_children:
+                    children.append(c.serialize(serialize_parent=False, serialize_layer=serialize_layer))
+                else:
+                    children.append(c.pk)
 
-    #     if not bbox or len(bbox) < 4:
-    #         raise ValidationError(
-    #             f'Bounding Box cannot be empty {self.name} for a given resource')
-    #     if not srid:
-    #         raise ValidationError(
-    #             f'Projection cannot be empty {self.name} for a given resource')
+        layer = self.get_layer()
+        if layer is not None:
+            if serialize_layer is True:
+                layer = layer.serialize(serialize_document=False)
+            else:
+                layer = layer.pk
 
-    #     self.srid = srid
-    #     self.set_bbox_polygon(
-    #         (bbox[0], bbox[2], bbox[1], bbox[3]), srid)
-    #     self.set_center_zoom()
+        return {
+            "id": self.pk,
+            "title": self.title,
+            "slug": self.slug,
+            "status": self.status,
+            "urls": self.urls,
+            "image_size": self.image_size,
+            "cutlines": self.cutlines,
+            "parent": parent,
+            "children": children,
+            "layer": layer,
+            # "lock": self.lock.as_dict,
+        }
 
+class Layer(ItemBase):
 
-    # def get_tiles_url(self):
-    #     """Return URL for Z/Y/X mapping clients or None if it does not exist.
-    #     """
-    #     try:
-    #         tiles_link = self.link_set.get(name='Tiles')
-    #     except Link.DoesNotExist:
-    #         return None
-    #     else:
-    #         return tiles_link.url
+    objects = LayerManager()
 
-    pass
+    class Meta:
+        proxy = True
+        verbose_name = "Layer"
+        verbose_name_plural = "Layers"
+
+    @property
+    def urls(self):
+        urls = self._base_urls
+        del urls['split']
+        urls.update({
+            "detail": f"/layers/{self.pk}",
+            "progress_page": f"/layers/{self.pk}#georeference",
+            # redundant, I know, but a patch for now
+            "cog": settings.MEDIA_HOST.rstrip("/") + urls['image'],
+        })
+        return urls
+
+    # not currently in used, but retained as a placeholder for the future
+    def get_ohm_url(self):
+        try:
+            tms_url = f"https://oldinsurancemaps.net/geoserver/gwc/service/tms/1.0.0/{lp.alternate}/{{z}}/{{x}}/{{-y}}.png"
+            centroid = Polygon().from_bbox(self.extent).centroid
+            ohm_url = f"https://www.openhistoricalmap.org/edit#map=15/{centroid.coords[1]}/{centroid.coords[0]}&background=custom:{tms_url}"
+            return ohm_url
+        except Exception as e:
+            print("ERROR:")
+            print(e)
+            return "https://www.openhistoricalmap.org/edit"
+
+    def get_document(self):
+        try:
+            link = DocumentLink.objects.get(link_type="georeference", target_id=self.pk)
+            document = link.source
+        except DocumentLink.DoesNotExist:
+            document = None
+        return document
+
+    def serialize(self, serialize_document=True):
+
+        document = self.get_document()
+        if document is not None:
+            if serialize_document is True:
+                document = document.serialize(serialize_layer=False)
+            else:
+                document = document.pk
+
+        return {
+            "id": self.pk,
+            "title": self.title,
+            "slug": self.slug,
+            "status": self.status,
+            "urls": self.urls,
+            "document": document,
+            "extent": self.extent,
+            # "lock": self.lock.as_dict,
+        }
+
+LINK_TYPE_CHOICES = (
+    ("split","split"),
+    ("georeference","georeference"),
+)
+
+class DocumentLink(models.Model):
+    """Holds a linkage between a Document and another item. This model
+    is essentially identical to DocumentResourceLink in GeoNode 3.2."""
+
+    source = models.ForeignKey(
+        Document,
+        related_name='links',
+        on_delete=models.CASCADE
+    )
+    target_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE
+    )
+    target_id = models.PositiveIntegerField()
+    target = GenericForeignKey('target_type', 'target_id')
+    link_type = models.CharField(
+        choices = LINK_TYPE_CHOICES,
+        max_length=25,
+    )
+
+    def __str__(self):
+        return f"{self.source} --> {self.target}"
