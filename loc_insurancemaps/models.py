@@ -13,7 +13,7 @@ from pygments.lexers.data import JsonLexer, JsonLdLexer
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import models, transaction
@@ -452,6 +452,24 @@ class Volume(models.Model):
         return display_str
 
     @property
+    def extent(self):
+        """for now, calculate extent from all of the layer extents.
+        perhaps would be better to get this from the Place once that
+        those attributes have been added to those instances."""
+
+        layer_extent_polygons = []
+        for l in self.layer_lookup.values():
+            poly = Polygon.from_bbox(l['extent'])
+            layer_extent_polygons.append(poly)
+        if len(layer_extent_polygons) > 0:
+            multi = MultiPolygon(layer_extent_polygons)
+            extent = multi.extent
+        else:
+            # hard-code Louisiana for now
+            extent = Polygon.from_bbox((-94, 28, -88, 33)).extent
+        return extent
+
+    @property
     def sheets(self):
         return Sheet.objects.filter(volume=self).order_by("sheet_no")
     
@@ -690,6 +708,7 @@ class Volume(models.Model):
             "urls": self.get_urls(),
             "ordered_layers": ordered_layers,
             "multimask": self.multimask,
+            "extent": self.extent,
         }
 
     def save(self, *args, **kwargs):

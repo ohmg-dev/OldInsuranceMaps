@@ -167,21 +167,8 @@ $: {
 
 function setMapExtent() {
 	if (map) {
-		if (layersPresent) {
-			const fullExtent = createEmpty();
-			VOLUME.ordered_layers.layers.forEach( function(layerDef) {
-				const extent3857 = transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857");
-				extend(fullExtent, extent3857)
-			});
-			VOLUME.ordered_layers.index_layers.forEach( function(layerDef) {
-				const extent3857 = transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857");
-				extend(fullExtent, extent3857)
-			});
-			map.getView().fit(fullExtent);
-		} else {
-			map.getView().setCenter([0,0]);
-			map.getView().setZoom(1)
-		}
+		const extent3857 = transformExtent(VOLUME.extent, "EPSG:4326", "EPSG:3857");
+		map.getView().fit(extent3857);
 	}
 }
 
