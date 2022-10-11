@@ -24,7 +24,7 @@ def slugify(input_string, join_char="-"):
     output = input_string.lower()
     remove_chars = [".", ",", "'", '"', "|", "[", "]", "(", ")"]
     output = "".join([i for i in output if not i in remove_chars])
-    for i in ["_", "  ", " ", "--", "-"]:
+    for i in ["_", "  ", " - ", " ", "--", "-"]:
         output = output.replace(i, join_char)
     return output.lower()
 
