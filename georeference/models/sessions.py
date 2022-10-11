@@ -15,9 +15,9 @@ from django.core.files import File
 from django.db.models import signals
 from django.utils import timezone
 
-from geonode.documents.models import Document
+from geonode.documents.models import Document as GNDocument
 from geonode.geoserver.signals import geoserver_post_save
-from geonode.layers.models import Layer
+from geonode.layers.models import Layer as GNLayer
 from geonode.layers.utils import file_upload
 from geonode.thumbs.thumbnails import create_thumbnail
 
@@ -129,13 +129,13 @@ class SessionBase(models.Model):
         default="getting user input",
     )
     document = models.ForeignKey(
-        Document,
+        GNDocument,
         models.SET_NULL,
         null=True,
         blank=True,
     )
     layer = models.ForeignKey(
-        Layer,
+        GNLayer,
         models.SET_NULL,
         null=True,
         blank=True,
@@ -254,7 +254,7 @@ class SessionBase(models.Model):
                 object_id=self.layer.pk,
             ).document
             return document
-        except Document.DoesNotExist:
+        except GNDocument.DoesNotExist:
             return None
 
     def validate_data(self):
@@ -342,7 +342,7 @@ class PrepSession(SessionBase):
             document=self.document,
             content_type=ct,
         ).values_list("object_id", flat=True)
-        return list(Document.objects.filter(pk__in=child_ids))
+        return list(GNDocument.objects.filter(pk__in=child_ids))
 
     def start(self):
         tkm = TKeywordManager()
@@ -380,7 +380,7 @@ class PrepSession(SessionBase):
             for n, file_path in enumerate(new_images, start=1):
                 self.update_status(f"creating new document [{n}]")
                 fname = os.path.basename(file_path)
-                new_doc = Document.objects.get(pk=self.document.pk)
+                new_doc = GNDocument.objects.get(pk=self.document.pk)
                 new_doc.pk = None
                 new_doc.id = None
                 new_doc.uuid = None
@@ -499,7 +499,7 @@ class GeorefSession(SessionBase):
         tkm = TKeywordManager()
         tkm.set_status(self.document, "georeferencing")
 
-        signals.post_save.disconnect(geoserver_post_save, sender=Layer)
+        signals.post_save.disconnect(geoserver_post_save, sender=GNLayer)
 
         self.date_run = timezone.now()
         self.update_stage("processing", save=False)
@@ -546,8 +546,8 @@ class GeorefSession(SessionBase):
         existing_layer = None
         try:
             link = GeoreferencedDocumentLink.objects.get(document=self.document)
-            existing_layer = Layer.objects.get(pk=link.object_id)
-        except (GeoreferencedDocumentLink.DoesNotExist, Layer.DoesNotExist):
+            existing_layer = GNLayer.objects.get(pk=link.object_id)
+        except (GeoreferencedDocumentLink.DoesNotExist, GNLayer.DoesNotExist):
             pass
 
         ## create the layer, passing in the existing_layer if present
@@ -574,7 +574,7 @@ class GeorefSession(SessionBase):
                 layer.keywords.add(keyword)
             for region in self.document.regions.all():
                 layer.regions.add(region)
-            Layer.objects.filter(pk=layer.pk).update(
+            GNLayer.objects.filter(pk=layer.pk).update(
                 date=self.document.date,
                 abstract=self.document.abstract,
                 category=self.document.category,
@@ -594,13 +594,13 @@ class GeorefSession(SessionBase):
         )
 
         ## now reconnect the geoserver post_save receiver and run final layer save.
-        signals.post_save.connect(geoserver_post_save, sender=Layer)
+        signals.post_save.connect(geoserver_post_save, sender=GNLayer)
         layer.save()
 
         # if existing_layer is not None:
         #     self.update_status("regenerating thumbnail")
         #     thumb = create_thumbnail(layer, overwrite=True)
-        #     Layer.objects.filter(pk=layer.pk).update(thumbnail_url=thumb)
+        #     GNLayer.objects.filter(pk=layer.pk).update(thumbnail_url=thumb)
 
         tkm.set_status(self.document, "georeferenced")
         tkm.set_status(layer, "georeferenced")
@@ -641,8 +641,8 @@ class GeorefSession(SessionBase):
             layer = None
             try:
                 link = GeoreferencedDocumentLink.objects.get(document=self.id)
-                layer = Layer.objects.get(id=link.object_id)
-            except (GeoreferencedDocumentLink.DoesNotExist, Layer.DoesNotExist):
+                layer = GNLayer.objects.get(id=link.object_id)
+            except (GeoreferencedDocumentLink.DoesNotExist, GNLayer.DoesNotExist):
                 pass
 
             if layer is None:

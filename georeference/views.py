@@ -9,7 +9,7 @@ from django.http import JsonResponse, HttpResponseBadRequest, Http404
 from django.middleware import csrf
 from django.contrib.gis.geos import Polygon
 
-from geonode.layers.models import Layer
+from geonode.layers.models import Layer as GNLayer
 
 from georeference.tasks import (
     run_preparation_session,
@@ -210,7 +210,7 @@ class GeoreferenceView(View):
         reference_layers_param = request.GET.get('reference', '')
         reference_layers = []
         for alt in reference_layers_param.split(","):
-            if Layer.objects.filter(alternate=alt).exists():
+            if GNLayer.objects.filter(alternate=alt).exists():
                 reference_layers.append(alt)
 
         georeference_params = {

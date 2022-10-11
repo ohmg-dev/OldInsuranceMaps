@@ -23,8 +23,8 @@ from django.utils.safestring import mark_safe
 from django.urls import reverse
 
 from geonode.base.models import Region, License
-from geonode.documents.models import Document
-from geonode.layers.models import Layer
+from geonode.documents.models import Document as GNDocument
+from geonode.layers.models import Layer as GNLayer
 from geonode.documents.renderers import generate_thumbnail_content
 from geonode.people.models import Profile
 
@@ -227,7 +227,7 @@ class Place(models.Model):
 
 class FullThumbnail(models.Model):
 
-    document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    document = models.ForeignKey(GNDocument, on_delete=models.CASCADE)
     image = models.ImageField(upload_to="full_thumbs")
 
     def generate_thumbnail(self):
@@ -255,7 +255,7 @@ class Sheet(models.Model):
     attached to the Document, but avoids the need for actually inheriting
     that model (and all of the signals, etc. that come along with it)."""
 
-    document = models.ForeignKey(Document, on_delete=models.CASCADE, null=True, blank=True)
+    document = models.ForeignKey(GNDocument, on_delete=models.CASCADE, null=True, blank=True)
     volume = models.ForeignKey("Volume", on_delete=models.CASCADE)
     sheet_no = models.CharField(max_length=10, null=True, blank=True)
     lc_iiif_service = models.CharField(max_length=150, null=True, blank=True)
@@ -287,7 +287,7 @@ class Sheet(models.Model):
         jpg_path = convert_img_format(tmp_path, format="JPEG")
         os.remove(tmp_path)
 
-        doc = Document()
+        doc = GNDocument()
         doc.uuid = str(uuid.uuid4())
         doc.metadata_only = True
         doc.title = self.__str__()
@@ -711,7 +711,7 @@ class Volume(models.Model):
 ## https://github.com/mradamcox/loc-insurancemaps/issues/75
 
 # connect the creation of a FullThumbnail to Document post_save signal
-@receiver(signals.post_save, sender=Document)
+@receiver(signals.post_save, sender=GNDocument)
 def create_full_thumbnail(sender, instance, **kwargs):
     if bool(instance.doc_file) is False:
         return
@@ -720,8 +720,8 @@ def create_full_thumbnail(sender, instance, **kwargs):
         thumb.save()
 
 # triggered whenever a tkeyword is changed on a Document or Layer,
-@receiver(signals.m2m_changed, sender=Document.tkeywords.through)
-@receiver(signals.m2m_changed, sender=Layer.tkeywords.through)
+@receiver(signals.m2m_changed, sender=GNDocument.tkeywords.through)
+@receiver(signals.m2m_changed, sender=GNLayer.tkeywords.through)
 def resource_status_changed(sender, instance, action, **kwargs):
     """
     Trigger the document_lookup and layer_lookup updates on a volume
@@ -759,7 +759,7 @@ def handle_session_deletion(sender, instance, **kwargs):
             volume.update_layer_lookup(instance.layer.alternate)
 
 # refresh the lookup for a layer after it is saved.
-@receiver(signals.post_save, sender=Layer)
+@receiver(signals.post_save, sender=GNLayer)
 def refresh_layer_lookup(sender, instance, **kwargs):
     volume = get_volume("layer", instance.pk)
     if volume is not None:
@@ -767,7 +767,7 @@ def refresh_layer_lookup(sender, instance, **kwargs):
 
 # pre_delete, remove the reference to the layer in Volume lookups
 # refresh the lookup for a layer after it is saved.
-@receiver(signals.pre_delete, sender=Layer)
+@receiver(signals.pre_delete, sender=GNLayer)
 def remove_layer_from_lookup(sender, instance, **kwargs):
     volume = get_volume("layer", instance.pk)
     if volume is not None:

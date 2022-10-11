@@ -5,7 +5,9 @@ from georeference.models.resources import (
     GeoreferencedDocumentLink,
     GCP,
     GCPGroup,
-    LayerMask,
+    Layer,
+    Document,
+    DocumentLink,
 )
 from georeference.models.sessions import (
     PrepSession,
@@ -21,7 +23,6 @@ admin.site.register(SplitDocumentLink)
 admin.site.register(GeoreferencedDocumentLink)
 admin.site.register(GCP, GCPAdmin)
 admin.site.register(GCPGroup)
-admin.site.register(LayerMask)
 
 class SessionAdmin(admin.ModelAdmin):
     readonly_fields = ('date_created', 'date_modified', 'date_run')
@@ -42,3 +43,18 @@ class TrimSessionAdmin(SessionAdmin):
 admin.site.register(PrepSession, PrepSessionAdmin)
 admin.site.register(GeorefSession, GeorefSessionAdmin)
 admin.site.register(TrimSession, TrimSessionAdmin)
+
+class DocumentAdmin(admin.ModelAdmin):
+    exclude = ('type', 'layer_file', 'bbox_polygon')
+
+class LayerAdmin(admin.ModelAdmin):
+    exclude = ('type', 'document_file')
+
+admin.site.register(Document, DocumentAdmin)
+admin.site.register(Layer, LayerAdmin)
+
+class DocumentLinkAdmin(admin.ModelAdmin):
+    list_display = ['pk', 'source', 'target', 'link_type']
+    list_filter = ('link_type', )
+
+admin.site.register(DocumentLink, DocumentLinkAdmin)

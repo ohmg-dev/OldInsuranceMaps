@@ -12,8 +12,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.utils.functional import cached_property
 
-from geonode.documents.models import Document, DocumentResourceLink
-from geonode.layers.models import Layer
+from geonode.documents.models import DocumentResourceLink
+from geonode.documents.models import Document as GNDocument
+from geonode.layers.models import Layer as GNLayer
 from geonode.geoserver.helpers import save_style
 
 from geonode.base.bbox_utils import BBOXHelper, polygon_from_bbox
@@ -43,7 +44,7 @@ class SplitDocumentLink(DocumentResourceLink):
         verbose_name_plural = "Split Document Links"
 
     def __str__(self):
-        child = Document.objects.get(pk=self.object_id)
+        child = GNDocument.objects.get(pk=self.object_id)
         return f"{self.document.__str__()} --> {child.__str__()}"
 
 
@@ -63,8 +64,8 @@ class GeoreferencedDocumentLink(DocumentResourceLink):
 
     def __str__(self):
         try:
-            layer_name = Layer.objects.get(pk=self.object_id).alternate
-        except Layer.DoesNotExist:
+            layer_name = GNLayer.objects.get(pk=self.object_id).alternate
+        except GNLayer.DoesNotExist:
             layer_name = "None"
         return f"{self.document.__str__()} --> {layer_name}"
 
@@ -121,7 +122,7 @@ class GCPGroup(models.Model):
         verbose_name = "GCP Group"
         verbose_name_plural = "GCP Groups"
 
-    document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    document = models.ForeignKey(GNDocument, on_delete=models.CASCADE)
     crs_epsg = models.IntegerField(null=True, blank=True)
     transformation = models.CharField(
         null=True,
@@ -250,7 +251,7 @@ class GCPGroup(models.Model):
 
 class LayerMask(models.Model):
 
-    layer = models.ForeignKey(Layer, on_delete=models.CASCADE)
+    layer = models.ForeignKey(GNLayer, on_delete=models.CASCADE)
     polygon = models.PolygonField(srid=3857)
 
     def as_sld(self, indent=False):
