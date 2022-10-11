@@ -349,25 +349,7 @@ document.addEventListener("fullscreenchange", function(){
 		fullscreenBtnTitle = "Exit fullscreen";
 	}
 }, false);
-
-let keyPressed = {};
-function handleKeydown(e) {
-	if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = true}
-	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = true}
-	if (keyPressed.shift && keyPressed.alt) {
-		showRotateCenter()
-	}
-};
-function handleKeyup(e) {
-	if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = false}
-	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = false}
-	if (!keyPressed.shift && !keyPressed.alt) {
-		removeRotateCenter()
-	}
-};
-
 </script>
-<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup}/>
 
 <div id="vModal" class="modal">
 	<button id="closeModal" class="close close-vmodal" on:click={closeModal}>&times;</button>
