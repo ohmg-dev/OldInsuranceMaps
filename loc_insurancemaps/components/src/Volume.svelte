@@ -1,13 +1,8 @@
 <script>
-import {onMount} from 'svelte';
 import { slide } from 'svelte/transition';
-
-import DragDrop from 'svelte-dragdroplist';
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
-import ZoomToExtent from 'ol/control/ZoomToExtent';
-import {FullScreen, defaults as defaultControls} from 'ol/control';
 
 import {createEmpty} from 'ol/extent';
 import {extend} from 'ol/extent';
@@ -17,23 +12,12 @@ import {createXYZ} from 'ol/tilegrid';
 import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import TileWMS from 'ol/source/TileWMS';
-import VectorSource from 'ol/source/Vector';
 
 import Crop from 'ol-ext/filter/Crop';
 
-import Feature from 'ol/Feature';
-import Polygon from 'ol/geom/Polygon';
-import Point from 'ol/geom/Point';
-
 import GeoJSON from 'ol/format/GeoJSON';
 
-import Style from 'ol/style/Style';
-import Fill from 'ol/style/Fill';
-import Stroke from 'ol/style/Stroke';
-import RegularShape from 'ol/style/RegularShape';
-
 import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
 import LayerGroup from 'ol/layer/Group';
 
 import Utils from './js/ol-utils';
@@ -49,7 +33,6 @@ export let USE_TITILER;
 export let TITILER_HOST;
 
 $: sheetsLoading = VOLUME.status == "initializing...";
-let loadTip = false;
 let previewMapTip = false;
 
 let map;
@@ -75,13 +58,6 @@ const mainGroup = new LayerGroup({
 	// zIndex: 200
 });
 
-let layerRegistry = {}
-
-let showLayerConfig = false;
-let showLayerList = true;
-
-let orderableLayers = [];
-let orderableIndexLayers = [];
 let mapIndexLayerIds = []; 
 
 const keyImgUrl = "/static/img/key-nola-1940.png"
@@ -149,8 +125,6 @@ function setVisibility(group, vis) {
 $: setVisibility(keyGroup, kGV)
 $: setVisibility(mainGroup, mGV)
 
-let mapFullMaskLayer;
-let centerPointLayer;
 function initMap() {
 	map = new Map({ 
 		target: "map",
@@ -180,81 +154,7 @@ function initMap() {
 	map.addLayer(baseGroup);
 	map.addLayer(keyGroup);
 	map.addLayer(mainGroup);
-
-	mapFullMaskLayer = makeMaskLayer(map);
-	map.addLayer(mapFullMaskLayer);
-
-	centerPointLayer = makeRotateCenterLayer();
-	map.addLayer(centerPointLayer);
-
 };
-
-
-function makeMaskLayer(map) {
-	let projExtent = map.getView().getProjection().getExtent()
-	const polygon = new Polygon([[
-		[projExtent[0], projExtent[1]],
-		[projExtent[2], projExtent[1]],
-		[projExtent[2], projExtent[3]],
-		[projExtent[0], projExtent[3]],
-		[projExtent[0], projExtent[1]],
-	]])	
-	const layer = new VectorLayer({
-		source: new VectorSource({
-			features: [ new Feature({ geometry: polygon }) ]
-		}),
-		style: new Style({
-			fill: new Fill({ color: 'rgba(255, 255, 255, 0.2)' }),
-		}),
-		zIndex: 500,
-	});
-	layer.setVisible(false);
-	return layer
-}
-
-let centerPointFeature;
-function makeRotateCenterLayer() {
-	centerPointFeature = new Feature()
-	const pointStyle = new Style({
-		image: new RegularShape({
-			radius1: 10,
-			radius2: 1,
-			points: 4,
-			rotateWithView: true,
-			fill: new Fill({color: "#FF0000" }),
-			stroke: new Stroke({
-				color: "#FF0000", width: 2
-			})
-		})
-	})
-	const layer = new VectorLayer({
-		source: new VectorSource({
-			features: [ centerPointFeature ]
-		}),
-		style: pointStyle,
-		zIndex: 501,
-	});
-	return layer
-}
-
-function showRotateCenter() {
-	if (map && centerPointLayer) {
-		const centerCoords = map.getView().getCenter();
-		const point = new Point(centerCoords)
-		centerPointFeature.setGeometry(point)
-		centerPointLayer.setVisible(true)
-	}
-}
-function removeRotateCenter() {
-	if (centerPointLayer) {
-		centerPointLayer.setVisible(false)
-	}
-}
-
-function disabledMap(disabled) {
-	map.getInteractions().forEach(x => x.setActive(!disabled));
-	mapFullMaskLayer.setVisible(disabled);
-}
 
 $: {
 	if (showMap && map == undefined) {
@@ -262,8 +162,6 @@ $: {
 			initMap();
 			setLayersFromVolume(true);
 		}, 100);
-	} else {
-		cancelLayerConfig();
 	}
 }
 
@@ -293,8 +191,6 @@ const tileGrid = createXYZ({
 
 function setLayersFromVolume(setExtent) {
 	// empty the light layers lists used for interactivity, need to be repopulated
-	orderableLayers = [];
-	orderableIndexLayers = [];
 	mapIndexLayerIds = [];
 
 	mainGroup.getLayers().clear();
@@ -303,10 +199,6 @@ function setLayersFromVolume(setExtent) {
 	VOLUME.ordered_layers.layers.forEach( function(layerDef, n) {
 		// push to the lightweight list used for the draggable layer list
 		const pName = layerDef.title.slice(layerDef.title.lastIndexOf('|')+6, layerDef.title.length)
-		orderableLayers.push({
-			id: layerDef.alternate,
-			html: "<span style='color:black;'>"+pName + "</span>"
-		})
 
 		// create the actual ol layers and add to group.
 		let newLayer;
@@ -331,7 +223,6 @@ function setLayersFromVolume(setExtent) {
 			});
 		}
 
-		layerRegistry[layerDef.geoserver_id] = newLayer;
 		mainGroup.getLayers().push(newLayer)
 
 
@@ -354,10 +245,6 @@ function setLayersFromVolume(setExtent) {
 	VOLUME.ordered_layers.index_layers.forEach( function(layerDef, n) {
 		const pName = layerDef.title.slice(layerDef.title.lastIndexOf('|')+6, layerDef.title.length)
 		mapIndexLayerIds.push(layerDef.alternate)
-		orderableIndexLayers.push({
-			id: layerDef.alternate,
-			html: "<span style='color:black;'>"+pName + "</span>"
-		})
 
 		// create the actual ol layers and add to group.
 		let newLayer;
@@ -382,22 +269,11 @@ function setLayersFromVolume(setExtent) {
 			});
 		}
 
-		layerRegistry[layerDef.geoserver_id] = newLayer;
 		keyGroup.getLayers().push(newLayer)
 	});
 
 	if (setExtent) { setMapExtent() };
 }
-
-function setLayerOrder(newOrder, topZ) {
-	if (!map) {return}
-	newOrder.forEach( function(layerLt, n) {
-		const newZ = topZ-n
-		layerRegistry[layerLt.id].setZIndex(newZ);
-	})
-}
-$: setLayerOrder(orderableLayers, 500)
-$: setLayerOrder(orderableIndexLayers, 50)
 
 let intervalId;
 function manageAutoReload(run) {
@@ -410,20 +286,14 @@ function manageAutoReload(run) {
 $: manageAutoReload(sheetsLoading)
 
 function postOperation(operation) {
-	let layerIds = [];
 	let indexLayerIds = [];
 	if (operation == "set-index-layers") {
 		indexLayerIds = mapIndexLayerIds
-	} else if (operation == "set-layer-order") {
-		orderableLayers.forEach( function(l) { layerIds.push(l.id)});
-		orderableIndexLayers.forEach( function(l) { indexLayerIds.push(l.id)});
 	} else if (operation == "refresh-lookups") {
 		refreshingLookups = true;
-		disabledMap(true);
 	}
 	const data = JSON.stringify({
 		"operation": operation,
-		"layerIds": layerIds,
 		"indexLayerIds": indexLayerIds,
 	});
 	fetch(VOLUME.urls.summary, {
@@ -442,22 +312,12 @@ function postOperation(operation) {
 		if (operation == "refresh-lookups") {
 			resetExtent = true;
 			refreshingLookups = false;
-			disabledMap(false);
 		}
 		setLayersFromVolume(resetExtent);
 		if (showMap == false && (VOLUME.ordered_layers.layers.length != 0 || VOLUME.ordered_layers.layers.length != 0)) {
 			window.location.href = VOLUME.urls.summary;
 		}
 	});
-}
-
-function saveLayerConfig() {
-	showLayerConfig = false;
-	postOperation("set-layer-order");
-}
-function cancelLayerConfig() {
-	showLayerConfig = false;
-	setLayersFromVolume();
 }
 
 let settingKeyMapLayer = false;
@@ -557,7 +417,7 @@ function handleKeyup(e) {
 		<div id="map-panel">
 			<div id="map" style="height: 100%;"></div>
 		</div>
-		<div id="layer-panel" style="display: {showLayerList == true ? 'flex' : 'none'}">
+		<div id="layer-panel" style="display: flex;">
 			<div class="layer-section-header" style="border-top-width: 1px;">
 				<button class="control-btn" title="Reset extent" on:click={setMapExtent}>
 					<i class="fa fa-home" />
@@ -590,12 +450,6 @@ function handleKeyup(e) {
 					<input type=range bind:value={kGV} min=0 max=100>
 					{/if}
 				</div>
-				{#if showLayerConfig && orderableIndexLayers.length > 0}
-				<div class="layer-section-content">
-					<DragDrop bind:data={orderableIndexLayers}/>
-				</div>
-				{/if}
-
 				<div class="layer-section-header">
 					<span>Layers</span>
 					<i class="transparency-toggle {getClass(mGV)}" on:click={() => {mGV = toggleTransparency(mGV)}}></i>
@@ -607,14 +461,9 @@ function handleKeyup(e) {
 					<input type=range bind:value={mGV} min=0 max=100>
 					{/if}
 				</div>
-				{#if showLayerConfig && orderableLayers.length > 0}
-				<div class="layer-section-content">
-					<DragDrop bind:data={orderableLayers}/>
-				</div>
-				{/if}
 			</div>
 			<nav>
-				<a href={VOLUME.urls.trim}>Manage Mosaic</a>
+				<a href={VOLUME.urls.trim}>Trim Layers</a>
 			</nav>
 		</div>
 	</div>

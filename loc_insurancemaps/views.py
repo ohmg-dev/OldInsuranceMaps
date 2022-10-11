@@ -313,16 +313,6 @@ class VolumeDetail(View):
             volume_json = volume.serialize()
             return JsonResponse(volume_json)
 
-        elif operation == "set-layer-order":
-
-            volume = Volume.objects.get(pk=volumeid)
-            volume.ordered_layers["layers"] = body.get("layerIds", [])
-            volume.ordered_layers["index_layers"] = body.get("indexLayerIds", [])
-            volume.save(update_fields=["ordered_layers"])
-
-            volume_json = volume.serialize()
-            return JsonResponse(volume_json)
-
         elif operation == "refresh":
             volume = Volume.objects.get(pk=volumeid)
             volume_json = volume.serialize()
