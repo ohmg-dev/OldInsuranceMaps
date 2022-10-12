@@ -6,9 +6,8 @@ from osgeo import gdal, osr, ogr
 from django.conf import settings
 from django.core.files import File
 
-from geonode.layers.models import Layer
+from georeference.models.resources import Layer
 
-from georeference.proxy_models import LayerProxy
 from loc_insurancemaps.api import CollectionConnection
 from loc_insurancemaps.models import Volume
 from loc_insurancemaps.utils import LOCParser, filter_volumes_for_use, unsanitize_name
@@ -107,11 +106,10 @@ def generate_mosaic_geotiff(identifier):
             dstNodata = "255 255 255",
         )
 
-        lp = LayerProxy(f"geonode:{layer_name}")
-        layer_file = lp.get_layer_file()
-        if layer_file is None:
+        layer = Layer.objects.get(slug=layer_name)
+        if not layer.file:
             raise Exception(f"no layer file for this layer {layer_name}")
-        in_path = layer_file.path
+        in_path = layer.file.path
         trim_name = os.path.basename(in_path).replace(".tif", "_trim.vrt")
         out_path = os.path.join(settings.TEMP_DIR, trim_name)
         gdal.Warp(out_path, in_path, options=wo)

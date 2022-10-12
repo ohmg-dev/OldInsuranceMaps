@@ -12,25 +12,20 @@ from django.middleware import csrf
 from django.conf import settings
 from django.views.decorators.clickjacking import xframe_options_exempt
 
-from geonode.base.models import Region
-from geonode.layers.models import Layer, LayerFile
-from geonode.groups.conf import settings as groups_settings
-
-from georeference.proxy_models import LayerProxy
 from georeference.utils import full_reverse
+from georeference.models.resources import Layer
 
 from loc_insurancemaps.models import Volume, Place
-from .utils import unsanitize_name, filter_volumes_for_use
-from .api import CollectionConnection
-from .tasks import load_documents_as_task
+from loc_insurancemaps.utils import unsanitize_name, filter_volumes_for_use
+from loc_insurancemaps.api import CollectionConnection
+from loc_insurancemaps.tasks import load_documents_as_task, load_docs_as_task
 
 logger = logging.getLogger(__name__)
-
 
 def get_user_type(user):
     if user.is_superuser:
         user_type = "superuser"
-    elif user.groups.filter(name=groups_settings.REGISTERED_MEMBERS_GROUP_NAME).exists():
+    elif user.is_authenticated:
         user_type = "participant"
     else:
         user_type = "anonymous"
@@ -286,7 +281,7 @@ class VolumeDetail(View):
                 volume.loaded_by = request.user
                 volume.load_date = datetime.now()
                 volume.save(update_fields=["loaded_by", "load_date"])
-            load_documents_as_task.apply_async(
+            load_docs_as_task.apply_async(
                 (volumeid, ),
                 queue="update"
             )
@@ -376,7 +371,7 @@ class Viewer(View):
                         year_to_show = v.year
                         year_found = True
                 else:
-                    if len(v.ordered_layers['layers']) > 0:
+                    if len(v.sorted_layers['main']) > 0:
                         year_to_show = v.year
                         year_found = True
 
@@ -414,13 +409,6 @@ class SimpleAPI(View):
         ## returns a list of all cities with volumes in this state
         if qtype == "cities":
             city_list = lc.get_city_list_by_state(state)
-            missing = []
-            for i in city_list:
-                try:
-                    reg = Region.objects.get(name__iexact=i[0])
-                except Region.DoesNotExist:
-                    missing.append(i)
-
             return JsonResponse(city_list, safe=False)
 
         ## return a list of all volumes in a city
@@ -450,9 +438,8 @@ class MRMEndpointList(View):
     def get(self, request):
 
         output = {}
-        for l in Layer.objects.all().order_by("alternate"):
-            layerid = l.alternate.replace("geonode:", "")
-            output[layerid] = get_layer_mrm_urls(layerid)
+        for l in Layer.objects.all().order_by("slug"):
+            output[l.slug] = get_layer_mrm_urls(l.slug)
 
         return JsonResponse(output)
 
@@ -460,37 +447,33 @@ class MRMEndpointLayer(View):
 
     def get(self, request, layerid):
 
-        if not layerid.startswith("geonode:"):
-            layeralt = "geonode:" + layerid
-        else:
-            layeralt = layerid
-        lp = LayerProxy(layeralt, raise_404_on_error=True)
+        if layerid.startswith("geonode:"):
+            layerid = layerid.replace("geonode:", "")
+
+        layer = get_object_or_404(Layer, slug=layerid)
         item = request.GET.get("resource", None)
 
         if item is None:
             return JsonResponse(get_layer_mrm_urls(layerid))
 
         elif item == "geotiff":
-            lf = LayerFile.objects.filter(upload_session=lp.get_layer().upload_session)
-            if len(lf) == 1:
-                file_path = lf[0].file.path
-                if os.path.exists(file_path):
-                    with open(file_path, 'rb') as fh:
-                        response = HttpResponse(fh.read(), content_type="image/tiff")
-                        response['Content-Disposition'] = f'inline; filename={layerid}.tiff'
-                        return response
+            if layer.file:
+                with open(layer.file.path, 'rb') as fh:
+                    response = HttpResponse(fh.read(), content_type="image/tiff")
+                    response['Content-Disposition'] = f'inline; filename={layerid}.tiff'
+                    return response
             raise Http404
 
         elif item == "points":
-            content = lp.get_document_proxy().gcp_group.as_points_file()
+            content = layer.get_document().gcp_group.as_points_file()
             response = HttpResponse(content, content_type='text/plain')
             response['Content-Disposition'] = f'attachment; filename={layerid}.points'
             return response
 
         elif item == "jpg":
-            file_path = lp.get_document().doc_file.path
-            if os.path.exists(file_path):
-                with open(file_path, 'rb') as fh:
+            doc_path = layer.get_document().file.path
+            if os.path.exists(doc_path):
+                with open(doc_path, 'rb') as fh:
                     response = HttpResponse(fh.read(), content_type="image/jpg")
                     response['Content-Disposition'] = f'inline; filename={layerid}.jpg'
                     return response

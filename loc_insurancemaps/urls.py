@@ -4,7 +4,6 @@ from django.conf.urls import url, include
 from django.views.generic import TemplateView, RedirectView
 
 from geonode.urls import urlpatterns
-from geonode.monitoring import register_url_event
 
 from .views import (
     SimpleAPI,
@@ -33,11 +32,10 @@ urlpatterns += [
 if 'georeference' in settings.INSTALLED_APPS:
     urlpatterns += [url(r'^', include('georeference.urls'))]
 
-homepage = register_url_event()(HomePage.as_view())
 
 ## these url patterns overwrite existing geonode patterns
 urlpatterns = [
-    url(r'^/?$', homepage, name='home'),
+    url(r'^/?$', HomePage.as_view(), name='home'),
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
     path('getting-started/', TemplateView.as_view(template_name='getting-started.html'),
         name='getting_started'),
