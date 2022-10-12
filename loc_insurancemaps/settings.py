@@ -135,6 +135,29 @@ INSTALLED_APPS += (
     PROJECT_NAME,
 )
 
+MIDDLEWARE = (
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.sites.middleware.CurrentSiteMiddleware',
+    'dj_pagination.middleware.PaginationMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'oauth2_provider.middleware.OAuth2TokenMiddleware',
+    'geonode.base.middleware.MaintenanceMiddleware',
+    'geonode.base.middleware.ReadOnlyMiddleware',
+    'geonode.security.middleware.SessionControlMiddleware',
+)
+
+if DEBUG:
+    INSTALLED_APPS += ('debug_toolbar',)
+    MIDDLEWARE = ('debug_toolbar.middleware.DebugToolbarMiddleware', ) + MIDDLEWARE
+    INTERNAL_IPS = ['127.0.0.1']
+
 USE_TITILER = ast.literal_eval(os.getenv("USE_TITILER", True))
 TITILER_HOST = os.getenv("TITILER_HOST", "")
 

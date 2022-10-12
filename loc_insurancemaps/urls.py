@@ -45,4 +45,7 @@ urlpatterns = [
     # path('about/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
     path('developer/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
  ] + urlpatterns
+
+if settings.DEBUG:
+    urlpatterns += [path('__debug__/', include('debug_toolbar.urls'))]
  
