@@ -15,6 +15,7 @@ class Command(BaseCommand):
             "operation",
             choices=[
                 "import",
+                "refresh-lookups-old",
                 "refresh-lookups",
                 "make-sheets",
                 "generate-mosaic",
@@ -40,6 +41,14 @@ class Command(BaseCommand):
 
         i = options['identifier']
         if options['operation'] == "refresh-lookups":
+            if i is not None:
+                vols = Volume.objects.filter(pk=i)
+            else:
+                vols = Volume.objects.all()
+            for v in vols:
+                v.refresh_lookups()
+            print(f"refreshed lookups on {len(vols)} volumes")
+        if options['operation'] == "refresh-lookups-old":
             if i is not None:
                 vols = Volume.objects.filter(pk=i)
             else:
