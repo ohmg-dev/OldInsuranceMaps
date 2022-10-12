@@ -259,8 +259,8 @@ class Sheet(models.Model):
     attached to the Document, but avoids the need for actually inheriting
     that model (and all of the signals, etc. that come along with it)."""
 
-    document = models.ForeignKey(GNDocument, on_delete=models.CASCADE, null=True, blank=True)
-    doc = models.ForeignKey(Document, on_delete=models.CASCADE, null=True, blank=True)
+    document = models.ForeignKey(GNDocument, on_delete=models.SET_NULL, null=True, blank=True)
+    doc = models.ForeignKey(Document, on_delete=models.SET_NULL, null=True, blank=True)
     volume = models.ForeignKey("Volume", on_delete=models.CASCADE)
     sheet_no = models.CharField(max_length=10, null=True, blank=True)
     lc_iiif_service = models.CharField(max_length=150, null=True, blank=True)
