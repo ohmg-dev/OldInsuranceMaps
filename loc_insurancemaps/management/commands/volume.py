@@ -66,6 +66,14 @@ class Command(BaseCommand):
                 vol.loaded_by = get_user_model().objects.get(username="admin")
                 vol.load_date = datetime.now()
                 vol.save(update_fields=["loaded_by", "load_date"])
+                vol.load_sheet_docs(force_reload=True)
+        if options['operation'] == "make-sheets-old":
+            vol = Volume.objects.get(pk=i)
+            vol.make_sheets()
+            if options['load_documents']:
+                vol.loaded_by = get_user_model().objects.get(username="admin")
+                vol.load_date = datetime.now()
+                vol.save(update_fields=["loaded_by", "load_date"])
                 vol.load_sheet_documents()
         if options['operation'] == "generate-mosaic":
             if i is not None:

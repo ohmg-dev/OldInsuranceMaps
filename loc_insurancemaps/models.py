@@ -42,7 +42,7 @@ from georeference.proxy_models import DocumentProxy, LayerProxy
 from georeference.storage import OverwriteStorage
 from georeference.utils import TKeywordManager, slugify
 
-from .utils import LOCParser, download_image, convert_img_format
+from .utils import LOCParser, download_image, convert_img_format, get_jpg_from_jp2_url
 from .enumerations import (
     STATE_CHOICES,
     STATE_ABBREV,
@@ -54,7 +54,8 @@ from .renderers import generate_full_thumbnail_content
 logger = logging.getLogger(__name__)
 
 def get_volume(resource_type, res_id):
-    """Attempt to get the volume from which a Document or Layer
+    """ TO BE DEPRECATED
+    Attempt to get the volume from which a Document or Layer
     is derived. Return None if not applicable/no volume exists."""
 
     volume = None
@@ -77,6 +78,24 @@ def get_volume(resource_type, res_id):
             pass
         except Exception as e:
             logger.error(e)
+    return volume
+
+def find_volume(item):
+    """Attempt to get the volume from which a Document or Layer
+    is derived. Return None if not applicable/no volume exists."""
+
+    volume, document = None, None
+    if isinstance(item, Document):
+        document = item
+    elif isinstance(item, Layer):
+        document = item.get_document()
+
+    if document is not None:
+        try:
+            volume = Sheet.objects.get(doc=document).volume
+        except Sheet.DoesNotExist:
+            volume = None
+
     return volume
 
 def format_json_display(data):
@@ -348,9 +367,50 @@ class Sheet(models.Model):
         tkm = TKeywordManager()
         tkm.set_status(doc, "unprepared")
 
+    def load_doc(self, user=None):
+
+        log_prefix = f"{self.volume} p{self.sheet_no} |"
+        logger.info(f"{log_prefix} start load")
+
+        if self.jp2_url is None:
+            logger.warn(f"{log_prefix} jp2_url - cancelling download")
+            return
+
+        try:
+            document = Document.objects.get(title=self.__str__())
+        except Document.MultipleObjectsReturned:
+            logger.error(f"{self.__str__()} - multiple Documents exist. Delete one and rerun operation.")
+            return
+        except Document.DoesNotExist:
+            document = Document.objects.create(title=self.__str__())
+            document.save()
+
+        self.doc = document
+        self.save()
+
+        if not self.doc.file:
+            jpg_path = get_jpg_from_jp2_url(self.jp2_url)
+            with open(jpg_path, "rb") as new_file:
+                self.doc.file.save(f"{self.doc.slug}.jpg", File(new_file))
+            os.remove(jpg_path)
+
+        month = 1 if self.volume.month is None else int(self.volume.month)
+        date = datetime(self.volume.year, month, 1, 12, 0)
+        self.doc.date = date
+
+        # set owner to user
+        if user is None:
+            user = Profile.objects.get(username="admin")
+        self.doc.owner = user
+
+        self.doc.status = "unprepared"
+        self.doc.save()
+
+        # self.volume.update_doc_lookup(doc)
+
     @property
     def real_documents(self):
-        """
+        """ TO BE DEPRECATED
         This method is a necessary patch for the fact that once a
         Document has been split by the georeferencing tools it will no
         longer be properly associated with this Sheet. So a little extra
@@ -532,6 +592,18 @@ class Volume(models.Model):
         self.update_status("started")
         self.populate_lookups()
 
+    def load_sheet_docs(self, force_reload=False):
+
+        self.make_sheets()
+        self.update_status("initializing...")
+        for sheet in self.sheets:
+            print(sheet)
+            if sheet.doc is None or sheet.doc.file is None or force_reload:
+                print("loading document")
+                sheet.load_doc(self.loaded_by)
+        self.update_status("started")
+        self.refresh_lookups()
+
     def remove_sheets(self):
 
         for s in self.sheets:
@@ -700,17 +772,24 @@ class Volume(models.Model):
             self.save(update_fields=["document_lookup", "layer_lookup"])
 
         for document in self.get_all_docs():
-            self.update_doc_lookup(document.id, update_layer=True)
+            self.update_doc_lookup(document, update_layer=True)
 
-    def update_doc_lookup(self, doc_id, update_layer=False):
-        """Serialize the input document id (pk), and save it into
-        this volume's lookup table.
+    def update_doc_lookup(self, document, update_layer=False):
+        """Serialize the input document, and save it into
+        this volume's lookup table. If an int is passed, it will be used
+        as a primary key lookup.
 
         If update_layer=True, also trigger the update of the layer
         lookup for the georeference layer from this document
         (if applicable)."""
-        
-        data = Document.objects.get(pk=doc_id).serialize(serialize_layer=False)
+
+        if isinstance(document, Document):
+            data = document.serialize(serialize_layer=False)
+        elif str(document).isdigit():
+            data = Document.objects.get(pk=document).serialize(serialize_layer=False)
+        else:
+            logger.warn(f"cannot update_doc_lookup with this input: {document} ({type(document)}")
+            return
 
         # hacky method for pulling out the sheet number from the title
         try:
@@ -718,17 +797,24 @@ class Volume(models.Model):
         except IndexError:
             data["page_str"] = data['title']
 
-        self.document_lookup[doc_id] = data
+        self.document_lookup[data['id']] = data
         self.save(update_fields=["document_lookup"])
 
         if update_layer is True and data['layer']:
             self.update_lyr_lookup(data['layer'])
 
-    def update_lyr_lookup(self, lyr_slug):
+    def update_lyr_lookup(self, layer):
         """Serialize the input layer id (pk), and save it into
         this volume's lookup table."""
 
-        data = Layer.objects.get(slug=lyr_slug).serialize(serialize_document=False)
+        if isinstance(layer, Layer):
+            data = layer.serialize(serialize_layer=False)
+        else:
+            try:
+                data = Layer.objects.get(slug=layer).serialize(serialize_document=False)
+            except Exception as e:
+                logger.warn(f"{e} | cannot update_lyr_lookup with this input: {layer} ({type(layer)}")
+                return
 
         # hacky method for pulling out the sheet number from the title
         try:
@@ -813,7 +899,7 @@ class Volume(models.Model):
             "status": self.status,
             "sheet_ct": {
                 "total": self.sheet_ct,
-                "loaded": len([i for i in self.sheets if i.document is not None]),
+                "loaded": len([i for i in self.sheets if i.doc is not None]),
             },
             "items": items,
             "loaded_by": loaded_by,
@@ -917,3 +1003,13 @@ def refresh_volume_on_layermask_delete(sender, instance, **kwargs):
     volume = get_volume("layer", instance.layer.pk)
     if volume is not None:
         volume.update_layer_lookup(instance.layer.alternate)
+
+@receiver(signals.post_save, sender=Document)
+@receiver(signals.post_save, sender=Layer)
+def refresh_doc_lookup(sender, instance, **kwargs):
+    volume = find_volume(instance)
+    if volume is not None:
+        if sender == Document:
+            volume.update_doc_lookup(instance)
+        if sender == Layer:
+            volume.update_lyr_lookup(instance)
