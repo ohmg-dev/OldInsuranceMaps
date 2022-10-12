@@ -17,6 +17,7 @@ from georeference.models.resources import (
     SplitDocumentLink,
     GeoreferencedDocumentLink,
     ItemBase,
+    GCPGroup,
 )
 from georeference.models.sessions import SessionBase
 from georeference.proxy_models import LayerProxy, DocumentProxy
@@ -85,8 +86,13 @@ class Command(BaseCommand):
                 objs.delete()
             exit()
 
-        gn_docs = GNDocument.objects.filter(title__contains="Nora Springs")
-        gn_layers = GNLayer.objects.filter(title__contains="Nora Springs")
+        gn_docs = GNDocument.objects.filter(title__contains="Amite")
+        gn_layers = GNLayer.objects.filter(title__contains="Amite")
+        volumes = Volume.objects.filter(city="Amite")
+        # gn_docs = GNDocument.objects.all()
+        # gn_layers = GNLayer.objects.all()
+        # volumes = Volume.objects.all()
+
 
         if options['reset']:
             DocumentLink.objects.all().delete()
@@ -96,6 +102,7 @@ class Command(BaseCommand):
             if options['reset']:
                 Document.objects.all().delete()
             for d in gn_docs:
+                print(d)
 
                 try:
                     newdoc = Document.objects.get(pk=d.pk)
@@ -125,11 +132,17 @@ class Command(BaseCommand):
                     p.doc = newdoc
                     p.save()
 
+                for g in GCPGroup.objects.filter(document=d):
+                    g.doc = newdoc
+                    g.save()
+
         if options['layers']:
 
             if options['reset']:
                 Layer.objects.all().delete()
             for l in gn_layers:
+
+                print(l)
 
                 try:
                     lyr = Layer.objects.get(pk=l.pk)
@@ -174,11 +187,13 @@ class Command(BaseCommand):
                         )
 
         if options['volumes']:
-            vols = Volume.objects.filter(pk="sanborn02775_005")
-            for v in vols:
+            for v in volumes:
+                print(v)
                 old_main = [i for i in v.ordered_layers["layers"] if i.startswith("geonode:")]
                 old_index = [i for i in v.ordered_layers["index_layers"] if i.startswith("geonode:")]
 
                 v.sorted_layers["main"] = list(set([i.replace("geonode:", "") for i in old_main]))
                 v.sorted_layers["key_map"] = list(set([i.replace("geonode:", "") for i in old_index]))
                 v.save()
+
+                v.refresh_lookups()
