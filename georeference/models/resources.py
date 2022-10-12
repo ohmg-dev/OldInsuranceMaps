@@ -479,11 +479,7 @@ class ItemBase(models.Model):
     def _base_urls(self):
         return {
             "thumbnail": self.thumbnail.url,
-            # "detail": document.detail_url + "#georeference",
             "image": self.file.url,
-            "split": full_reverse("split_view", args=(self.pk, )),
-            "georeference": full_reverse("georeference_view", args=(self.pk, )),
-            # "progress_page": document.detail_url + "#georeference",
         }
 
     @property
@@ -582,6 +578,8 @@ class Document(ItemBase):
         urls.update({
             "detail": f"/documents/{self.pk}",
             "progress_page": f"/documents/{self.pk}#georeference",
+            "split": full_reverse("split_view", args=(self.pk, )),
+            "georeference": full_reverse("georeference_view", args=(self.pk, )),
         })
         return urls
 
@@ -670,7 +668,7 @@ class Document(ItemBase):
             if serialize_layer is True:
                 layer = layer.serialize(serialize_document=False)
             else:
-                layer = layer.pk
+                layer = layer.slug
 
         return {
             "id": self.pk,
@@ -698,12 +696,13 @@ class Layer(ItemBase):
     @property
     def urls(self):
         urls = self._base_urls
-        del urls['split']
+        georef_url = self.get_document().urls['georeference']
         urls.update({
             "detail": f"/layers/{self.pk}",
             "progress_page": f"/layers/{self.pk}#georeference",
             # redundant, I know, but a patch for now
             "cog": settings.MEDIA_HOST.rstrip("/") + urls['image'],
+            "georeference": georef_url,
         })
         return urls
 
