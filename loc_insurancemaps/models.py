@@ -20,6 +20,7 @@ from django.db import models, transaction
 from django.db.models import signals, Q
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
+from django.utils.functional import cached_property
 from django.urls import reverse
 
 from geonode.base.models import Region, License
@@ -555,7 +556,7 @@ class Volume(models.Model):
             extent = Polygon.from_bbox((-94, 28, -88, 33)).extent
         return extent
 
-    @property
+    @cached_property
     def sheets(self):
         return Sheet.objects.filter(volume=self).order_by("sheet_no")
     

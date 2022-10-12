@@ -615,7 +615,7 @@ class Document(ItemBase):
             cutlines = self.preparation_session.data['cutlines']
         return cutlines
 
-    @property
+    @cached_property
     def parent(self):
         try:
             link = DocumentLink.objects.get(target_id=self.pk, link_type="split")
@@ -624,12 +624,12 @@ class Document(ItemBase):
             parent = None
         return parent
 
-    @property
+    @cached_property
     def children(self):
         links = DocumentLink.objects.filter(source=self, link_type="split")
         return [i.target for i in links]
 
-    @property
+    @cached_property
     def gcp_group(self):
         try:
             return GCPGroup.objects.get(doc=self.id)
