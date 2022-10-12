@@ -36,7 +36,7 @@ $: sheetsLoading = VOLUME.status == "initializing...";
 let previewMapTip = false;
 
 let map;
-let layersPresent = VOLUME.ordered_layers.layers.length != 0 || VOLUME.ordered_layers.index_layers.length != 0;
+let layersPresent = VOLUME.items.layers.length > 0;
 let showMap = layersPresent
 let showUnprepared = VOLUME.status == "initializing...";
 let showPrepared = false;
@@ -77,8 +77,8 @@ function closeModal() {
 
 function referenceLayersParam() {
 	let referenceLayers = [];
-	VOLUME.ordered_layers.index_layers.forEach( function(layer) {
-		referenceLayers.push(layer.alternate)
+	VOLUME.sorted_layers.key_map.forEach( function(layer) {
+		referenceLayers.push(layer.slug)
 	})
 	return "reference="+referenceLayers.join(",")
 }
@@ -183,7 +183,7 @@ function setLayersFromVolume(setExtent) {
 	mainGroup.getLayers().clear();
 	keyGroup.getLayers().clear();
 
-	VOLUME.ordered_layers.layers.forEach( function(layerDef, n) {
+	VOLUME.sorted_layers.main.forEach( function(layerDef, n) {
 		// push to the lightweight list used for the draggable layer list
 		const pName = layerDef.title.slice(layerDef.title.lastIndexOf('|')+6, layerDef.title.length)
 
@@ -229,9 +229,9 @@ function setLayersFromVolume(setExtent) {
 		}
 	});
 
-	VOLUME.ordered_layers.index_layers.forEach( function(layerDef, n) {
+	VOLUME.sorted_layers.key_map.forEach( function(layerDef, n) {
 		const pName = layerDef.title.slice(layerDef.title.lastIndexOf('|')+6, layerDef.title.length)
-		mapIndexLayerIds.push(layerDef.alternate)
+		mapIndexLayerIds.push(layerDef.slug)
 
 		// create the actual ol layers and add to group.
 		let newLayer;
@@ -252,7 +252,7 @@ function setLayersFromVolume(setExtent) {
 					},
 					tileGrid: tileGrid,
 				}),
-							extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
 			});
 		}
 
@@ -301,7 +301,7 @@ function postOperation(operation) {
 			refreshingLookups = false;
 		}
 		setLayersFromVolume(resetExtent);
-		if (showMap == false && (VOLUME.ordered_layers.layers.length != 0 || VOLUME.ordered_layers.layers.length != 0)) {
+		if (showMap == false && VOLUME.items.layers.length > 0) {
 			window.location.href = VOLUME.urls.summary;
 		}
 	});
@@ -413,7 +413,7 @@ document.addEventListener("fullscreenchange", function(){
 					<i class="transparency-toggle {getClass(kGV)}" on:click={() => {kGV = toggleTransparency(kGV)}}></i>
 				</div>
 				<div class="layer-section-subheader">
-					{#if VOLUME.ordered_layers.index_layers.length == 0}
+					{#if VOLUME.sorted_layers.key_map.length == 0}
 					<em>no key map set</em>
 					{:else}
 					<input type=range bind:value={kGV} min=0 max=100>
@@ -424,7 +424,7 @@ document.addEventListener("fullscreenchange", function(){
 					<i class="transparency-toggle {getClass(mGV)}" on:click={() => {mGV = toggleTransparency(mGV)}}></i>
 				</div>
 				<div class="layer-section-subheader">
-					{#if VOLUME.ordered_layers.layers.length == 0}
+					{#if VOLUME.sorted_layers.main.length == 0}
 					<em>no layers</em>
 					{:else}
 					<input type=range bind:value={mGV} min=0 max=100>
@@ -627,7 +627,7 @@ document.addEventListener("fullscreenchange", function(){
 						{/if}
 						{#if settingKeyMapLayer}
 						<label>
-							<input type=checkbox bind:group={mapIndexLayerIds} value={layer.alternate}> Use layer in Key Map
+							<input type=checkbox bind:group={mapIndexLayerIds} value={layer.slug}> Use layer in Key Map
 						</label>
 						{/if}
 					</div>
