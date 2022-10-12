@@ -367,6 +367,21 @@ class Sheet(models.Model):
                 real_docs.append(doc_proxy)
         return real_docs
 
+    @property
+    def real_docs(self):
+        """
+        This method is a necessary patch for the fact that once a
+        Document has been split by the georeferencing tools, its
+        children will not be associated with this Sheet.
+        """
+        documents = []
+        if self.doc is not None:
+            if self.doc.children:
+                documents = self.doc.children
+            else:
+                documents.append(self.doc)
+        return documents
+
     def serialize(self):
         return {
             "sheet_no": self.sheet_no,
@@ -533,6 +548,12 @@ class Volume(models.Model):
             all_documents += sheet.real_documents
         return all_documents
 
+    def get_all_docs(self):
+        all_documents = []
+        for sheet in self.sheets:
+            all_documents += sheet.real_docs
+        return all_documents
+
     def get_urls(self):
 
         # put these search result urls into Volume.serialize()
@@ -586,7 +607,8 @@ class Volume(models.Model):
         return hydrated
 
     def populate_lookups(self):
-        """Clean and remake document_lookup and layer_lookup fields
+        """ TO BE DEPRECATED
+        Clean and remake document_lookup and layer_lookup fields
         for this Volume by examining the original loaded Sheets and
         re-evaluating every descendant Document and Layer.
         """
@@ -600,7 +622,8 @@ class Volume(models.Model):
             self.update_document_lookup(document.id, update_layer=True)
 
     def update_document_lookup(self, doc_id, update_layer=False):
-        """Take the input document id (pk), get the serialized DocumentProxy
+        """ TO BE DEPRECATED
+        Take the input document id (pk), get the serialized DocumentProxy
         content and save it back to the lookup table."""
 
         doc_proxy = DocumentProxy(doc_id)
@@ -626,7 +649,8 @@ class Volume(models.Model):
             self.update_layer_lookup(doc_proxy=doc_proxy)
 
     def update_layer_lookup(self, layer_alternate=None, doc_proxy=None):
-        """Pass either a layer alternate or an instance of DocumentProxy. The
+        """ TO BE DEPRECATED
+        Pass either a layer alternate or an instance of DocumentProxy. The
         latter is specifically to allow this method to be called from within
         update_document_lookup() in the most efficient manner.
 
@@ -663,6 +687,66 @@ class Volume(models.Model):
             if not lp.alternate in existing:
                 self.ordered_layers["layers"].append(lp.alternate)
                 self.save(update_fields=["ordered_layers"])
+
+    def refresh_lookups(self):
+        """Clean and remake document_lookup and layer_lookup fields
+        for this Volume by examining the original loaded Sheets and
+        re-evaluating every descendant Document and Layer.
+        """
+
+        if len(self.document_lookup) > 0 or len(self.layer_lookup) > 0:
+            self.document_lookup = {}
+            self.layer_lookup = {}
+            self.save(update_fields=["document_lookup", "layer_lookup"])
+
+        for document in self.get_all_docs():
+            self.update_doc_lookup(document.id, update_layer=True)
+
+    def update_doc_lookup(self, doc_id, update_layer=False):
+        """Serialize the input document id (pk), and save it into
+        this volume's lookup table.
+
+        If update_layer=True, also trigger the update of the layer
+        lookup for the georeference layer from this document
+        (if applicable)."""
+        
+        data = Document.objects.get(pk=doc_id).serialize(serialize_layer=False)
+
+        # hacky method for pulling out the sheet number from the title
+        try:
+            data["page_str"] = data['title'].split("|")[-1].split("p")[1]
+        except IndexError:
+            data["page_str"] = data['title']
+
+        self.document_lookup[doc_id] = data
+        self.save(update_fields=["document_lookup"])
+
+        if update_layer is True and data['layer']:
+            self.update_lyr_lookup(data['layer'])
+
+    def update_lyr_lookup(self, lyr_slug):
+        """Serialize the input layer id (pk), and save it into
+        this volume's lookup table."""
+
+        data = Layer.objects.get(slug=lyr_slug).serialize(serialize_document=False)
+
+        # hacky method for pulling out the sheet number from the title
+        try:
+            data["page_str"] = data['title'].split("|")[-1].split("p")[1]
+        except IndexError:
+            data["page_str"] = data['title']
+
+        self.layer_lookup[data['slug']] = data
+        self.save(update_fields=["layer_lookup"])
+
+        # add layer id to ordered_layers list if its not yet there
+        sorted_layers = []
+        for v in self.sorted_layers.values():
+            sorted_layers += v
+
+        if not data['slug'] in sorted_layers:
+            self.sorted_layers["main"].append(data['slug'])
+            self.save(update_fields=["sorted_layers"])
 
     def sort_lookups(self):
 
