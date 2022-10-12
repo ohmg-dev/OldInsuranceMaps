@@ -775,6 +775,12 @@ class Volume(models.Model):
                     sorted_items['processing']['geo_trim'] += 1
 
         sorted_items['layers'] = list(self.layer_lookup.values())
+
+        sorted_items['unprepared'].sort(key=lambda item: item.get("slug"))
+        sorted_items['prepared'].sort(key=lambda item: item.get("slug"))
+        sorted_items['georeferenced'].sort(key=lambda item: item.get("slug"))
+        sorted_items['layers'].sort(key=lambda item: item.get("slug"))
+
         return sorted_items
 
     def serialize(self):
