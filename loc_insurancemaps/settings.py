@@ -138,6 +138,8 @@ INSTALLED_APPS += (
 USE_TITILER = ast.literal_eval(os.getenv("USE_TITILER", True))
 TITILER_HOST = os.getenv("TITILER_HOST", "")
 
+MEDIA_HOST = os.getenv("MEDIA_HOST", SITEURL)
+
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 S3_CONFIG = {
     "aws_access_key_id": os.getenv("S3_ACCESS_KEY_ID"),
