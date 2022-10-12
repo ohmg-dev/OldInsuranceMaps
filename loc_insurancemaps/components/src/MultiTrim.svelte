@@ -74,7 +74,7 @@ function cancelAndRedirectToDetail() {
 let unchanged = true;
 let mapView;
 
-  let layerLookup = {}
+let layerLookup = {}
 let layerLookupArr = [];
 
 function updateLayerArr(){
@@ -103,7 +103,7 @@ function addIncomingMasks() {
   function createLayerLookup() {
     layerLookup = {};
     trimShapeSource.clear()
-    VOLUME.ordered_layers.layers.forEach( function(layerDef, n) {
+    VOLUME.sorted_layers.main.forEach( function(layerDef, n) {
       // create the actual ol layers and add to group.
       let newLayer;
       if (USE_TITILER) {
@@ -139,18 +139,18 @@ function addIncomingMasks() {
       const extentFeature = new Feature({
           geometry: extentGeom3857,
           show: false,
-          name: layerDef.name,
+          name: layerDef.slug,
       });
       extentLayer.getSource().addFeature(extentFeature)
 
-      layerLookup[layerDef.name] = {}
+      layerLookup[layerDef.slug] = {}
       const layer = {
         olLayer: newLayer,
         layerDef: layerDef,
         crop: null,
         feature: null
       }
-      layerLookup[layerDef.name] = layer
+      layerLookup[layerDef.slug] = layer
     });
     // now iterate the incoming mask features and apply all existing
     addIncomingMasks();
@@ -319,7 +319,7 @@ function submitMultiMask() {
         rightHanded: true,
         decimals: 7,
       })
-      multiMask[layer.layerDef.name] = JSON.parse(featureGeoJSONStr);
+      multiMask[layer.layerDef.slug] = JSON.parse(featureGeoJSONStr);
     }
   })
   fetch(VOLUME.urls.trim, {
@@ -360,7 +360,7 @@ function zoomToLayer(layer) {
 function showExtent(layer) {
   extentLayer.getSource().getFeatures().forEach(function (feature) {
     const props = feature.getProperties();
-    if (props.name == layer.layerDef.name) {
+    if (props.name == layer.layerDef.slug) {
       feature.setProperties({'show': true})
     } else {
       feature.setProperties({'show': false})
@@ -384,7 +384,7 @@ function addMask(layer){
     zoomToLayer(layer);
     // setting the currentLayer activates the draw interaction
     // and when the feature is complete it is used for the crop
-    currentLayer = layer.layerDef.name;
+    currentLayer = layer.layerDef.slug;
   }
   showExtent(layer)
 }
@@ -458,7 +458,7 @@ function layerRemoveMask(layer, confirm) {
           <button title="remove mask" on:click={() => layerRemoveMask(layer)} style="display: inline-block;">🗑</button>
           {/if}
           &nbsp;
-          {#if currentLayer == layer.layerDef.name}<div style="color:red" on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
+          {#if currentLayer == layer.layerDef.slug}<div style="color:red" on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
           {:else}
           <div class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
           {/if}

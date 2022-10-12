@@ -57,7 +57,7 @@ $: updateFilteredList(filterInput)
 </script>
 
 <main>
-	{#if USER_TYPE == 'anonymodus' }
+	{#if USER_TYPE == 'anonymous' }
 	<div class="signin-reminder">
 	<p><em>
 		<!-- svelte-ignore a11y-invalid-attribute -->

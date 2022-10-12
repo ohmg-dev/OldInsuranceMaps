@@ -69,7 +69,7 @@ VOLUMES.forEach( function (vol, n) {
 	// 400 = main content
 
 	let mainGroup;
-	if (vol.ordered_layers.layers.length > 0) {
+	if (vol.sorted_layers.main.length > 0) {
 		mainGroup = getMainLayerGroupFromVolume(vol);
 		mainGroup.setZIndex(400 + n)
 	}
@@ -162,7 +162,7 @@ function getMainLayerGroupFromVolume(volumeJson) {
 
 	const lyrGroup = new LayerGroup();
 
-	volumeJson.ordered_layers.layers.forEach( function(layerDef) {
+	volumeJson.sorted_layers.main.forEach( function(layerDef) {
 
 		const extent3857 = transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857");
 		extend(layerExtent, extent3857)

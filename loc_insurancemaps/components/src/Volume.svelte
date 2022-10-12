@@ -76,11 +76,19 @@ function closeModal() {
 }
 
 function referenceLayersParam() {
-	let referenceLayers = [];
-	VOLUME.sorted_layers.key_map.forEach( function(layer) {
-		referenceLayers.push(layer.slug)
-	})
-	return "reference="+referenceLayers.join(",")
+	if (VOLUME.sorted_layers.key_map.length > 0 ) {
+		let referenceLayers = [];
+		VOLUME.sorted_layers.key_map.forEach( function(layer) {
+			referenceLayers.push(layer.slug);
+		})
+		return "reference="+referenceLayers.join(",")+"&"
+	} else {
+		return ""
+	}
+}
+
+function extentParam() {
+	return "extent="+VOLUME.extent.join(",")+"&"
 }
 
 function getClass(n) {
@@ -562,7 +570,7 @@ document.addEventListener("fullscreenchange", function(){
 						</ul>
 						{:else}
 						<ul>
-							<li><a href="{document.urls.georeference}?{referenceLayersParam()}" title="georeference this document">georeference &rarr;</a></li>
+							<li><a href="{document.urls.georeference}?{referenceLayersParam()}{extentParam()}" title="georeference this document">georeference &rarr;</a></li>
 							<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
 						</ul>
 						{/if}
