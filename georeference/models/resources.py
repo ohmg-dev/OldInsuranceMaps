@@ -134,7 +134,18 @@ class GCPGroup(models.Model):
         verbose_name = "GCP Group"
         verbose_name_plural = "GCP Groups"
 
-    document = models.ForeignKey(GNDocument, on_delete=models.CASCADE)
+    document = models.ForeignKey(
+        GNDocument,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+    doc = models.ForeignKey(
+        "Document",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
     crs_epsg = models.IntegerField(null=True, blank=True)
     transformation = models.CharField(
         null=True,
@@ -478,8 +489,8 @@ class ItemBase(models.Model):
     @property
     def _base_urls(self):
         return {
-            "thumbnail": self.thumbnail.url,
-            "image": self.file.url,
+            "thumbnail": self.thumbnail.url if self.thumbnail else "",
+            "image": self.file.url if self.file else "",
         }
 
     @property
@@ -570,7 +581,7 @@ class Document(ItemBase):
 
     @cached_property
     def image_size(self):
-        return Image.open(self.file).size
+        return Image.open(self.file).size if self.file else None
 
     @property
     def urls(self):
@@ -618,6 +629,29 @@ class Document(ItemBase):
         links = DocumentLink.objects.filter(source=self, link_type="split")
         return [i.target for i in links]
 
+    @property
+    def gcp_group(self):
+        try:
+            return GCPGroup.objects.get(doc=self.id)
+        except GCPGroup.DoesNotExist:
+            return None
+
+    @property
+    def gcps_geojson(self):
+        gcp_group = self.gcp_group
+        if gcp_group is not None:
+            return gcp_group.as_geojson
+        else:
+            return None
+
+    @property
+    def transformation(self):
+        gcp_group = self.gcp_group
+        if gcp_group is not None:
+            return gcp_group.transformation
+        else:
+            return None
+
     def get_extended_urls(self):
         urls = self.urls
         urls.update(self.get_layer_urls())
@@ -656,16 +690,14 @@ class Document(ItemBase):
 
         children = None
         if len(self.children) > 0:
-            children = []
-            for c in self.children:
-                if serialize_children:
-                    children.append(c.serialize(serialize_parent=False, serialize_layer=serialize_layer))
-                else:
-                    children.append(c.pk)
+            if serialize_children:
+                children = [i.serialize(serialize_parent=False, serialize_layer=serialize_layer) for i in self.children]
+            else:
+                children = [i.pk for i in self.children]
 
         layer = self.get_layer()
         if layer is not None:
-            if serialize_layer is True:
+            if serialize_layer:
                 layer = layer.serialize(serialize_document=False)
             else:
                 layer = layer.slug
@@ -681,6 +713,8 @@ class Document(ItemBase):
             "parent": parent,
             "children": children,
             "layer": layer,
+            "gcps_geojson": self.gcps_geojson,
+            "transformation": self.transformation
             # "lock": self.lock.as_dict,
         }
 

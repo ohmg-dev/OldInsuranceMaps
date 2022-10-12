@@ -31,9 +31,9 @@ export let LOCK;
 export let SESSION_ID;
 export let SESSION_LENGTH;
 export let DOCUMENT;
-export let IMG_SIZE;
+// export let IMG_SIZE;
 export let CSRFTOKEN;
-export let INCOMING_CUTLINES;
+// export let INCOMING_CUTLINES;
 
 let docView;
 let showPreview = true;
@@ -81,8 +81,8 @@ $: {
   }
 }
 
-const imgWidth = IMG_SIZE[0];
-const imgHeight = IMG_SIZE[1];
+const imgWidth = DOCUMENT.image_size[0];
+const imgHeight = DOCUMENT.image_size[1];
 const imgBorderPoly = [[[0,0], [imgWidth, 0], [imgWidth, imgHeight], [0, imgHeight], [0,0]]];
 
 const borderFeature = new Feature({
@@ -109,7 +109,7 @@ function resetInterface() {
   docView.previewLayerSource.clear();
   cutLines = [];
   divisions = [];
-  INCOMING_CUTLINES.forEach(function(line) {
+  DOCUMENT.cutlines.forEach(function(line) {
     docView.cutLayerSource.addFeature(
       new Feature({ geometry: new LineString(line) })
     );

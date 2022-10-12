@@ -1,9 +1,10 @@
 import os
 import json
 import logging
+from tracemalloc import get_object_traceback
 
 from django.conf import settings
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.http import JsonResponse, HttpResponseBadRequest, Http404
 from django.middleware import csrf
@@ -15,7 +16,11 @@ from georeference.tasks import (
     run_preparation_session,
     run_georeference_session,
 )
-from georeference.models.resources import LayerMask
+from georeference.models.resources import (
+    LayerMask,
+    Document,
+    Layer,
+)
 from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
@@ -52,34 +57,35 @@ class SplitView(View):
         Returns the splitting interface for this document.
         """
 
-        doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
-        lock = doc_proxy.preparation_lock
-        sesh_id = None
-        if not lock.enabled:
-            if request.user.is_authenticated:
-                sesh = PrepSession.objects.create(
-                    document=doc_proxy.resource,
-                    user=request.user,
-                )
-                sesh.start()
-                sesh_id = sesh.id
-                lock.stage = "in-progress"
-            else:
-                lock.enabled = True
-                lock.type = "unauthenticated"
+        # doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
+        # lock = doc_proxy.preparation_lock
+        # sesh_id = None
+        # if not lock.enabled:
+        #     if request.user.is_authenticated:
+        #         sesh = PrepSession.objects.create(
+        #             document=doc_proxy.resource,
+        #             user=request.user,
+        #         )
+        #         sesh.start()
+        #         sesh_id = sesh.id
+        #         lock.stage = "in-progress"
+        #     else:
+        #         lock.enabled = True
+        #         lock.type = "unauthenticated"
 
         # override lock with new empty one - Oct 6th
         lock = SessionLock()
         sesh_id = 99999999
+
+        document = get_object_or_404(Document, pk=docid)
+        doc_data = document.serialize()
 
         split_params = {
             "LOCK": lock.as_dict,
             "SESSION_ID": sesh_id,
             "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
             "CSRFTOKEN": csrf.get_token(request),
-            "DOCUMENT": doc_proxy.serialize(),
-            "IMG_SIZE": doc_proxy.image_size,
-            "INCOMING_CUTLINES": doc_proxy.cutlines,
+            "DOCUMENT": doc_data,
         }
         
         return render(
@@ -96,7 +102,9 @@ class SplitView(View):
         if not request.body:
             return BadPostRequest
 
-        doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
+        # doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
+
+        document = get_object_or_404(Document, pk=docid)
 
         body = json.loads(request.body)
         cutlines = body.get("lines")
@@ -105,13 +113,15 @@ class SplitView(View):
 
         if operation == "preview":
 
-            s = Splitter(image_file=doc_proxy.resource.doc_file.path)
+            s = Splitter(image_file=document.file.path)
+            # s = Splitter(image_file=doc_proxy.resource.doc_file.path)
             divisions = s.generate_divisions(cutlines)
             return JsonResponse({"success": True, "divisions": divisions})
 
         elif operation == "split":
 
-            sesh, created = PrepSession.objects.get_or_create(document=doc_proxy.resource)
+            sesh, created = PrepSession.objects.get_or_create(doc=document)
+            # sesh, created = PrepSession.objects.get_or_create(document=doc_proxy.resource)
             if sesh.user is None:
                 sesh.user = request.user
             sesh.data['split_needed'] = True
@@ -123,7 +133,8 @@ class SplitView(View):
         
         elif operation == "no_split":
 
-            sesh, created = PrepSession.objects.get_or_create(document=doc_proxy.resource)
+            sesh, created = PrepSession.objects.get_or_create(doc=document)
+            # sesh, created = PrepSession.objects.get_or_create(document=doc_proxy.resource)
             if sesh.user is None:
                 sesh.user = request.user
             sesh.data['split_needed'] = False
@@ -134,7 +145,8 @@ class SplitView(View):
         elif operation == "cancel":
 
             try:
-                sesh = PrepSession.objects.get(document=doc_proxy.resource)
+                sesh = PrepSession.objects.get(doc=document)
+                # sesh = PrepSession.objects.get(document=doc_proxy.resource)
             except PrepSession.DoesNotExist:
                 logger.warn("can't find PrepSession to delete.")
                 return JsonResponse({"success":False, "message": "no session to cancel"})
@@ -158,7 +170,8 @@ class SplitView(View):
         elif operation == "undo":
 
             try:
-                sesh = PrepSession.objects.get(document=doc_proxy.resource)
+                sesh = PrepSession.objects.get(doc=document)
+                # sesh = PrepSession.objects.get(document=doc_proxy.resource)
             except PrepSession.DoesNotExist:
                 return JsonResponse({"success":False, "message": "no session to undo"})
             sesh.undo()
@@ -175,12 +188,17 @@ class GeoreferenceView(View):
         Returns the georeferencing interface for this document.
         """
 
-        doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
-        if doc_proxy.resource.metadata_only is True:
+        # doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
+        # if doc_proxy.resource.metadata_only is True:
+        #     raise Http404
+        # if doc_proxy.status in ["unprepared", "splitting"]:
+        #     raise Http404
+        # lock = doc_proxy.georeference_lock
+
+        document = get_object_or_404(Document, pk=docid)
+        if document.status in ["unprepared", "splitting", "split"]:
             raise Http404
-        if doc_proxy.status in ["unprepared", "splitting"]:
-            raise Http404
-        lock = doc_proxy.georeference_lock
+        data = document.serialize()
 
         # override lock with new empty one - Oct 6th
         lock = SessionLock()
@@ -213,19 +231,34 @@ class GeoreferenceView(View):
             if GNLayer.objects.filter(alternate=alt).exists():
                 reference_layers.append(alt)
 
+        extent_str = request.GET.get('extent', None)
+        if extent_str is None:
+            # hard-code Louisiana for now
+            extent = (-94, 28, -88, 33)
+        else:
+            extent = tuple(extent_str.split(","))
+
+        print(json.dumps(data, indent=1))
+
         georeference_params = {
             "LOCK": lock.as_dict,
             "SESSION_ID": sesh_id,
             "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
             "CSRFTOKEN": csrf.get_token(request),
-            "DOCUMENT": doc_proxy.serialize(),
-            "IMG_SIZE": doc_proxy.image_size,
-            "INCOMING_GCPS": doc_proxy.gcps_geojson,
-            "INCOMING_TRANSFORMATION": doc_proxy.transformation,
-            "REGION_EXTENT": doc_proxy.get_best_region_extent(),
+            "DOCUMENT": data,
+            "IMG_SIZE": data['image_size'],
+            "INCOMING_GCPS": data['gcps_geojson'],
+            "INCOMING_TRANSFORMATION": data['transformation'],
+            "REGION_EXTENT": extent,
+            # "DOCUMENT": doc_proxy.serialize(),
+            # "IMG_SIZE": doc_proxy.image_size,
+            # "INCOMING_GCPS": doc_proxy.gcps_geojson,
+            # "INCOMING_TRANSFORMATION": doc_proxy.transformation,
+            # "REGION_EXTENT": doc_proxy.get_best_region_extent(),
             "USERNAME": request.user.username,
             "MAPSERVER_ENDPOINT": ms.endpoint,
-            "MAPSERVER_LAYERNAME": ms.add_layer(doc_proxy.doc_file.path),
+            "MAPSERVER_LAYERNAME": ms.add_layer(document.file.path),
+            # "MAPSERVER_LAYERNAME": ms.add_layer(doc_proxy.doc_file.path),
             "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
             "GEOSERVER_WMS": geoserver_ows,
             "REFERENCE_LAYERS": reference_layers,
@@ -248,7 +281,8 @@ class GeoreferenceView(View):
         if not request.body:
             return BadPostRequest
 
-        doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
+        document = get_object_or_404(Document, pk=docid)
+        # doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
         ms = MapServerManager()
 
         body = json.loads(request.body)
@@ -273,7 +307,7 @@ class GeoreferenceView(View):
             g.load_gcps_from_geojson(gcp_geojson)
             g.set_transformation(transformation)
             try:
-                out_path = g.make_vrt(doc_proxy.doc_file.path)
+                out_path = g.make_vrt(document.file.path)
                 response["status"] = "success"
                 response["message"] = "all good"
             except Exception as e:
@@ -305,7 +339,7 @@ class GeoreferenceView(View):
             logger.info(f"{sesh.__str__()} | begin run() as task")
             run_georeference_session.apply_async((sesh.pk, ), queue="update")
 
-            ms.remove_layer(doc_proxy.doc_file.path)
+            ms.remove_layer(document.file.path)
             return JsonResponse({
                 "success": True,
                 "message": "all good",
@@ -323,7 +357,7 @@ class GeoreferenceView(View):
                 logger.warn(f"{sesh.__str__()} | {msg}")
                 return JsonResponse({"success":True, "message": msg})
 
-            ms.remove_layer(doc_proxy.doc_file.path)
+            ms.remove_layer(document.file.path)
             sesh.delete()
             return JsonResponse({"success":True})
 
