@@ -28,7 +28,11 @@ from geonode.layers.models import Layer as GNLayer
 from geonode.documents.renderers import generate_thumbnail_content
 from geonode.people.models import Profile
 
-from georeference.models.resources import LayerMask
+from georeference.models.resources import (
+    LayerMask,
+    Document,
+    Layer,
+)
 from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
@@ -256,6 +260,7 @@ class Sheet(models.Model):
     that model (and all of the signals, etc. that come along with it)."""
 
     document = models.ForeignKey(GNDocument, on_delete=models.CASCADE, null=True, blank=True)
+    doc = models.ForeignKey(Document, on_delete=models.CASCADE, null=True, blank=True)
     volume = models.ForeignKey("Volume", on_delete=models.CASCADE)
     sheet_no = models.CharField(max_length=10, null=True, blank=True)
     lc_iiif_service = models.CharField(max_length=150, null=True, blank=True)
@@ -372,6 +377,9 @@ class Sheet(models.Model):
 def default_ordered_layers_dict():
     return {"layers": [], "index_layers": []}
 
+def default_sorted_layers_dict():
+    return {"main": [], "key_map": [], "congested_district": [], "graphic_map_of_volumes": []}
+
 class Volume(models.Model):
 
     YEAR_CHOICES = [(r,r) for r in range(1867, 1970)]
@@ -422,6 +430,9 @@ class Volume(models.Model):
         null=True,
         blank=True,
         default=dict,
+    )
+    sorted_layers = JSONField(
+        default=default_sorted_layers_dict,
     )
     slug = models.CharField(max_length=100, null=True, blank=True)
     multimask = JSONField(null=True, blank=True)
@@ -561,6 +572,17 @@ class Volume(models.Model):
                 hydrated["index_layers"].append(self.layer_lookup[layer_id])
             except KeyError as e:
                 logger.warn(f"{self.__str__()} | layer missing from layer lookup: {layer_id}")
+        return hydrated
+
+    def hydrate_sorted_layers(self):
+
+        hydrated = default_sorted_layers_dict()
+        for cat, layers in self.sorted_layers.items():
+            for layer_id in layers:
+                try:
+                    hydrated[cat].append(self.layer_lookup[layer_id])
+                except KeyError:
+                    logger.warn(f"{self.__str__()} | layer missing from layer lookup: {layer_id}")
         return hydrated
 
     def populate_lookups(self):
@@ -707,6 +729,7 @@ class Volume(models.Model):
             "loaded_by": loaded_by,
             "urls": self.get_urls(),
             "ordered_layers": ordered_layers,
+            "sorted_layers": self.hydrate_sorted_layers(),
             "multimask": self.multimask,
             "extent": self.extent,
         }
