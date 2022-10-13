@@ -12,10 +12,10 @@ let currentTab = "places";
 <main>
 	<div class="tab-row">
 		<div class="{currentTab == 'places' ? 'active' : ''}" on:click={() => {currentTab = "places"}}>
-			<h2>Browse places ({PLACES.length})</h2>
+			<h2>Browse by place ({PLACES.length})</h2>
 		</div>
 		<div class="{currentTab == 'volumes' ? 'active' : ''}" on:click={() => {currentTab = "volumes"}}>
-			<h2>Browse volumes ({STARTED_VOLUMES.length})</h2>
+			<h2>Browse by volume ({STARTED_VOLUMES.length})</h2>
 		</div>
 	</div>
 	<div>

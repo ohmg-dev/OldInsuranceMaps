@@ -29,11 +29,11 @@ $: updateFilteredList(filterInput)
 	<TableSort items={places}>
 		<tr slot="thead">
 			<th data-sort="name" style="max-width:300px;" title="Name of mapped location">Place</th>
-			<th data-sort="sort_years" style="max-width:300px;" title="Mosaics available">Mosaics available</th>
+			<th data-sort="sort_years" style="max-width:300px;" title="Volumes available">Volumes available</th>
 		</tr>
 		<tr slot="tbody" let:item={p} style="height:38px;">
-			<td><a title="View all {p.name} mosaics" href="{p.url}">{p.name}</a></td>
-			<td>{#each p.volumes as v}<a href="{v.viewer_url}">{v.display_val}</a> {/each}</td>
+			<td><a title="View all {p.name} mosaics in viewer" href="{p.url}">{p.name}</a></td>
+			<td>{#each p.volumes as v, i}<a href="{v.urls.summary}">{v.year_vol}</a>{#if i < p.volumes.length-1}, {/if}{/each}</td>
 		</tr>
 	</TableSort>
 </div>
