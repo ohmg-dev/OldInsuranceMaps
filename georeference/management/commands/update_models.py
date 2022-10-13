@@ -1,6 +1,5 @@
 
 import os
-from osgeo import gdal
 import json
 
 from django.core.files import File
@@ -25,7 +24,9 @@ from georeference.proxy_models import LayerProxy, DocumentProxy
 from loc_insurancemaps.models import Volume, Sheet
 
 class Command(BaseCommand):
-    help = 'command to search the Library of Congress API.'
+    help = 'A one-time migration command to copy the contents from GeoNode Document '\
+        'and Layer instances into the new analogous models in the georeference app. '\
+        'Also, all Volume lookups are updated to use the new serialized instances.' 
 
     def add_arguments(self, parser):
 
@@ -45,6 +46,11 @@ class Command(BaseCommand):
             help="",
         )
         parser.add_argument(
+            "--reset-links",
+            action="store_true",
+            help="",
+        )
+        parser.add_argument(
             "--links",
             action="store_true",
             help="",
@@ -59,51 +65,83 @@ class Command(BaseCommand):
             action="store_true",
             help="",
         )
+        parser.add_argument(
+            "--all",
+            action="store_true",
+            help="",
+        )
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="",
+            default=False,
+        )
+        parser.add_argument(
+            "-c",
+            "--city",
+        )
+
+    def _translate_status(self, status):
+        if status in ["trimming", "trimmed"]:
+            status = "georeferenced"
+        return status
 
     def handle(self, *args, **options):
 
-        def translate_status(status):
-            if status in ["trimming", "trimmed"]:
-                status = "georeferenced"
-            return status
+        self.verbosity = options['verbosity']
+        self.dry_run = options['dry_run']
 
         if options["reset_all"]:
-
-            for s in SessionBase.objects.all():
-                s.doc = None
-                s.lyr = None
-                s.save()
-            model_list = [
-                ItemBase,
-                Document,
-                Layer,
-                DocumentLink,
-            ]
-
-            for model in model_list:
-                objs = model.objects.all()
-                print(f"removing {objs.count()} {model.__name__} objects")
-                objs.delete()
+            self.reset_all()
             exit()
 
-        gn_docs = GNDocument.objects.filter(title__contains="Amite")
-        gn_layers = GNLayer.objects.filter(title__contains="Amite")
-        volumes = Volume.objects.filter(city="Amite")
-        # gn_docs = GNDocument.objects.all()
-        # gn_layers = GNLayer.objects.all()
-        # volumes = Volume.objects.all()
+        if options['docs'] or options['all']:
+            self.transfer_documents(city=options['city'])
 
+        if options['layers'] or options['all']:
+            self.transfer_layers(city=options['city'])
 
-        if options['reset']:
-            DocumentLink.objects.all().delete()
+        if options['links'] or options['all']:
+            self.create_new_links()
 
-        # iterate Documents and create new instances for them.
-        if options['docs']:
-            if options['reset']:
-                Document.objects.all().delete()
-            for d in gn_docs:
+        if options['volumes'] or options['all']:
+            self.update_volumes(city=options['city'])
+
+    def reset_all(self):
+
+        for s in SessionBase.objects.all():
+            s.doc = None
+            s.lyr = None
+            s.save()
+        model_list = [
+            ItemBase,
+            Document,
+            Layer,
+            DocumentLink,
+        ]
+
+        for model in model_list:
+            objs = model.objects.all()
+            print(f"removing {objs.count()} {model.__name__} objects")
+            if self.dry_run is False:
+                objs.delete()
+            else:
+                print("(dry run)")
+
+    def transfer_documents(self, city=None):
+
+        if city is not None:
+            gn_docs = GNDocument.objects.filter(title__contains=city)
+        else:
+            gn_docs = GNDocument.objects.all()
+        
+        print(f"{gn_docs.count()} documents to transfer")
+
+        for d in gn_docs:
+            if self.verbosity >= 2:
                 print(d)
 
+            if self.dry_run is False:
                 try:
                     newdoc = Document.objects.get(pk=d.pk)
                 except Document.DoesNotExist:
@@ -111,7 +149,7 @@ class Command(BaseCommand):
                 
                 dp = DocumentProxy(d)
                 newdoc.title = dp.title
-                newdoc.status = translate_status(dp.status)
+                newdoc.status = self._translate_status(dp.status)
                 newdoc.date = d.date
                 newdoc.owner = d.owner
                 # save to set the slug
@@ -136,13 +174,19 @@ class Command(BaseCommand):
                     g.doc = newdoc
                     g.save()
 
-        if options['layers']:
+    def transfer_layers(self, city=None):
 
-            if options['reset']:
-                Layer.objects.all().delete()
-            for l in gn_layers:
+        if city is not None:
+            gn_layers = GNLayer.objects.filter(title__contains=city)
+        else:
+            gn_layers = GNLayer.objects.all()
 
+        print(f"{gn_layers.count()} layers to transfer")
+
+        for l in gn_layers:
+            if self.verbosity >= 2:
                 print(l)
+            if not self.dry_run:
 
                 try:
                     lyr = Layer.objects.get(pk=l.pk)
@@ -151,23 +195,35 @@ class Command(BaseCommand):
 
                 lp = LayerProxy(l)
                 lyr.title = lp.title
-                lyr.status = translate_status(lp.status)
+                lyr.status = self._translate_status(lp.status)
                 lyr.date = l.date
                 lyr.owner = l.owner
                 lyr.save()
                 lyr_file = lp.get_layer_file()
-                if lyr_file:
+                if lyr_file and not lyr.file:
                     fname = os.path.basename(lyr_file.path)
                     lyr.file.save(fname, lyr_file)
 
                 for p in SessionBase.objects.filter(layer=l):
                     p.lyr = lyr
+                    p.save()
 
-        if options['links']:
-            doc_ct = ContentType.objects.get(app_label="georeference", model="document")
-            for sl in SplitDocumentLink.objects.all():
-                if Document.objects.filter(pk=sl.document.pk).exists():
-                    if Document.objects.filter(pk=sl.object_id).exists():
+    def create_new_links(self):
+
+        if not self.dry_run:
+            links = DocumentLink.objects.all()
+            print(f"clearing {links.count()} existing links")
+            links.delete()
+
+        doc_ct = ContentType.objects.get(app_label="georeference", model="document")
+        sls = SplitDocumentLink.objects.all()
+        print(f"{sls.count()} SplitDocumentLinks to replicate")
+        for sl in SplitDocumentLink.objects.all():
+            if Document.objects.filter(pk=sl.document.pk).exists():
+                if Document.objects.filter(pk=sl.object_id).exists():
+                    if self.verbosity >= 2:
+                        print(sl)
+                    if not self.dry_run:
                         DocumentLink.objects.create(
                             source=Document.objects.get(pk=sl.document.pk),
                             target_type=doc_ct,
@@ -175,10 +231,15 @@ class Command(BaseCommand):
                             link_type="split",
                         )
 
-            lyr_ct = ContentType.objects.get(app_label="georeference", model="layer")
-            for sl in GeoreferencedDocumentLink.objects.all():
-                if Document.objects.filter(pk=sl.document.pk).exists():
-                    if Layer.objects.filter(pk=sl.object_id).exists():
+        lyr_ct = ContentType.objects.get(app_label="georeference", model="layer")
+        gls = GeoreferencedDocumentLink.objects.all()
+        print(f"{gls.count()} GeoreferencedDocumentLinks to replicate")
+        for sl in gls:
+            if Document.objects.filter(pk=sl.document.pk).exists():
+                if Layer.objects.filter(pk=sl.object_id).exists():
+                    if self.verbosity >= 2:
+                        print(sl)
+                    if not self.dry_run:
                         DocumentLink.objects.create(
                             source=Document.objects.get(pk=sl.document.pk),
                             target_type=lyr_ct,
@@ -186,9 +247,19 @@ class Command(BaseCommand):
                             link_type="georeference",
                         )
 
-        if options['volumes']:
-            for v in volumes:
+    def update_volumes(self, city=None):
+
+        if city is not None:
+            volumes = Volume.objects.filter(city=city)
+        else:
+            volumes = Volume.objects.all()
+
+        print(f"{volumes.count()} volumes to update")
+
+        for v in volumes:
+            if self.verbosity >= 2:
                 print(v)
+            if not self.dry_run:
                 old_main = [i for i in v.ordered_layers["layers"] if i.startswith("geonode:")]
                 old_index = [i for i in v.ordered_layers["index_layers"] if i.startswith("geonode:")]
 
