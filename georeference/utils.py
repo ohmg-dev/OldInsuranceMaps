@@ -1,6 +1,5 @@
 import os
 import logging
-import psycopg2
 
 from django.conf import settings
 from django.urls import reverse

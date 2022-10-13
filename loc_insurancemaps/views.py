@@ -7,7 +7,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.urls import reverse
-from django.http import JsonResponse, Http404, HttpResponse, HttpResponseRedirect
+from django.http import JsonResponse, Http404, HttpResponse
 from django.middleware import csrf
 from django.conf import settings
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -18,7 +18,7 @@ from georeference.models.resources import Layer
 from loc_insurancemaps.models import Volume, Place
 from loc_insurancemaps.utils import unsanitize_name, filter_volumes_for_use
 from loc_insurancemaps.api import CollectionConnection
-from loc_insurancemaps.tasks import load_documents_as_task, load_docs_as_task
+from loc_insurancemaps.tasks import load_docs_as_task
 
 logger = logging.getLogger(__name__)
 

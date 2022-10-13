@@ -13,7 +13,6 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Polygon
-from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
@@ -23,13 +22,6 @@ from geonode.documents.models import DocumentResourceLink
 from geonode.documents.models import Document as GNDocument
 from geonode.layers.models import Layer as GNLayer
 from geonode.geoserver.helpers import save_style
-
-from geonode.base.bbox_utils import BBOXHelper, polygon_from_bbox
-from geonode.base.models import Region
-from geonode.notifications_helper import (
-    get_notification_recipients,
-    send_notification,
-)
 
 from georeference.utils import (
     get_gs_catalog,

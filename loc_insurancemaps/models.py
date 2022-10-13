@@ -1,23 +1,20 @@
 import os
 import json
 import uuid
-import shutil
 import logging
-import requests
 from datetime import datetime
 
 from pygments import highlight
 from pygments.formatters.html import HtmlFormatter
-from pygments.lexers.data import JsonLexer, JsonLdLexer
+from pygments.lexers.data import JsonLexer
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.core.files import File
 from django.core.files.base import ContentFile
-from django.db import models, transaction
-from django.db.models import signals, Q
+from django.db import models
+from django.db.models import signals
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.utils.functional import cached_property

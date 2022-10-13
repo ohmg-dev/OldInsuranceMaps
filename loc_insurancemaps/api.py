@@ -1,20 +1,13 @@
 import os
 import json
 import time
-import uuid
 import logging
 import requests
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 
-from geonode.maps.models import Map
-from geonode.layers.models import Layer
-
-from georeference.utils import create_layer_from_vrt
-
-from .models import Volume, Sheet
-from .utils import LOCParser, filter_volumes_for_use, unsanitize_name
+from loc_insurancemaps.models import Volume
+from loc_insurancemaps.utils import LOCParser, filter_volumes_for_use, unsanitize_name
 
 logger = logging.getLogger(__name__)
 
@@ -240,109 +233,3 @@ class Importer(object):
         volume.regions.set(parsed.regions)
 
         return volume
-
-    def initialize_volume(self, volume):
-        """Creates all of the necessary items to begin georeferencing a new volume.
-        
-        1) create two new Layer objects for the volume
-            1) content layer is a VRT to which georeferenced sheets will be added.
-            2) index layer is a VRT to which georeference index sheets will be added.
-        2) create a new Map object from the new layers
-            -- or, add the layers to an existing Map if one has already been made.
-        3) import sheets for Volume, thereby creating Sheet <--> Document pairs.
-        """
-
-        ## create new Map
-        
-        admin_user = get_user_model().objects.get(username='admin')
-        # layer_name = Layer.objects.all().first().alternate
-
-        # map_id = m.id
-        # print(map_id)
-        vrt_path = "/home/adam/Octavian/LSU/thesis/repo/loc_insurancemaps/loc_insurancemaps/uploaded/documents/document/bHguVF4LTf-Ll_smPAmM8Q_modified.vrt"
-        gs_info = create_layer_from_vrt(vrt_path)
-
-        BBOX = [-180, 180, -90, 90]
-        gn_layer = Layer.objects.create(
-            name=gs_info['name'],
-            workspace=gs_info['workspace_name'],
-            store=gs_info['store'],
-            storeType='dataStore',
-            alternate='%s:%s' % (gs_info['workspace_name'], gs_info['name']),
-            title="new layer title",
-            owner=admin_user,
-            uuid=str(uuid.uuid4()),
-            bbox_x0=BBOX[0],
-            bbox_x1=BBOX[1],
-            bbox_y0=BBOX[2],
-            bbox_y1=BBOX[3],
-            data_quality_statement="this is the data quality statement",
-        )
-
-        print(gn_layer)
-        m = Map()
-        m.thumbnail_url = "https://tile.loc.gov/storage-services/service/gmd/gmd426m/g4264m/g4264cm/g097511883/09751_1883-0001.gif"
-        m.create_from_layer_list(admin_user, [gn_layer], "title", "abstract")
-        map_id = m.id
-        print(map_id)
-        
-def create_map_from_layer_list(user, layers, title, abstract):
-
-    m = Map()
-    m.owner = user
-    m.title = title
-    m.abstract = abstract
-    m.projection = getattr(settings, 'DEFAULT_MAP_CRS', 'EPSG:3857')
-    m.zoom = 0
-    m.center_x = 0
-    m.center_y = 0
-
-    if m.uuid is None or m.uuid == '':
-        m.uuid = str(uuid.uuid1())
-
-    DEFAULT_MAP_CONFIG, DEFAULT_BASE_LAYERS = default_map_config(None)
-
-    _layers = []
-    for layer in layers:
-        if not isinstance(layer, Layer):
-            try:
-                layer = Layer.objects.get(alternate=layer)
-            except ObjectDoesNotExist:
-                raise Exception(
-                    f'Could not find layer with name {layer}')
-
-        if not user.has_perm(
-                'base.view_resourcebase',
-                obj=layer.resourcebase_ptr):
-            # invisible layer, skip inclusion or raise Exception?
-            logger.error(
-                'User %s tried to create a map with layer %s without having premissions' %
-                (user, layer))
-        else:
-            _layers.append(layer)
-
-    # Set bounding box based on all layers extents.
-    # bbox format: [xmin, xmax, ymin, ymax]
-    bbox = m.get_bbox_from_layers(_layers)
-    m.set_bounds_from_bbox(bbox, m.projection)
-
-    # Save the map in order to create an id in the database
-    # used below for the maplayers.
-    m.save()
-
-    if _layers and len(_layers) > 0:
-        index = 0
-        for layer in _layers:
-            MapLayer.objects.create(
-                map=m,
-                name=layer.alternate,
-                ows_url=layer.get_ows_url(),
-                stack_order=index,
-                visibility=True
-            )
-            index += 1
-
-    # Save again to persist the zoom and bbox changes and
-    # to generate the thumbnail.
-    m.set_missing_info()
-    m.save(notify=True)

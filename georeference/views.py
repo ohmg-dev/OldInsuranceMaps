@@ -1,7 +1,6 @@
 import os
 import json
 import logging
-from tracemalloc import get_object_traceback
 
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
@@ -19,7 +18,6 @@ from georeference.tasks import (
 from georeference.models.resources import (
     LayerMask,
     Document,
-    Layer,
 )
 from georeference.models.sessions import (
     PrepSession,
@@ -27,7 +25,6 @@ from georeference.models.sessions import (
     TrimSession,
 )
 from georeference.proxy_models import (
-    DocumentProxy,
     LayerProxy,
     get_info_panel_content,
     SessionLock,

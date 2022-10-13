@@ -1,5 +1,3 @@
-
-import os
 import logging
 from PIL import Image
 from itertools import chain

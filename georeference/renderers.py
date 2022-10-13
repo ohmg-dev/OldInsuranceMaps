@@ -1,4 +1,3 @@
-import os
 from io import BytesIO
 from PIL import Image, ImageOps
 
@@ -9,7 +8,6 @@ Image.MAX_IMAGE_PIXELS = None
 def generate_document_thumbnail_content(image_file_path):
 
     full_image = Image.open(image_file_path)
-    # img = ImageOps.fit(img, size, Image.ANTIALIAS)
     width, height = full_image.size
     # only resize if one of the dimensions is larger than 200
     if width > 200 or height > 200:

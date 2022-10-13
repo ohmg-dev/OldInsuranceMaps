@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from osgeo import gdal, osr, ogr
+from osgeo import gdal
 
 from django.conf import settings
 from django.core.files import File
