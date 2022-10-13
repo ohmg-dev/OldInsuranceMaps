@@ -89,11 +89,12 @@ def find_volume(item):
         document = item.get_document()
 
     if document is not None:
+        if document.parent:
+            document = document.parent
         try:
             volume = Sheet.objects.get(doc=document).volume
         except Sheet.DoesNotExist:
             volume = None
-
     return volume
 
 def format_json_display(data):
@@ -806,7 +807,7 @@ class Volume(models.Model):
         this volume's lookup table."""
 
         if isinstance(layer, Layer):
-            data = layer.serialize(serialize_layer=False)
+            data = layer.serialize(serialize_document=False)
         else:
             try:
                 data = Layer.objects.get(slug=layer).serialize(serialize_document=False)

@@ -153,7 +153,7 @@ MIDDLEWARE = (
     'geonode.security.middleware.SessionControlMiddleware',
 )
 
-ENABLE_DEBUG_TOOLBAR = True
+ENABLE_DEBUG_TOOLBAR = False
 if DEBUG and ENABLE_DEBUG_TOOLBAR:
     INSTALLED_APPS += ('debug_toolbar',)
     MIDDLEWARE = ('debug_toolbar.middleware.DebugToolbarMiddleware', ) + MIDDLEWARE

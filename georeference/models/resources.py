@@ -724,8 +724,10 @@ class Layer(ItemBase):
         urls = self._base_urls
         georef_url = self.get_document().urls['georeference']
         urls.update({
-            "detail": f"/layers/{self.pk}",
-            "progress_page": f"/layers/{self.pk}#georeference",
+            # note the geonode: prefix is still necessary until non-geonode
+            # layer and document detail pages are created.
+            "detail": f"/layers/geonode:{self.slug}" if self.slug else "",
+            "progress_page": f"/layers/geonode:{self.pk}#georeference" if self.slug else "",
             # redundant, I know, but a patch for now
             "cog": settings.MEDIA_HOST.rstrip("/") + urls['image'],
             "georeference": georef_url,

@@ -193,9 +193,9 @@ function getMainLayerGroupFromVolume(volumeJson) {
 		}
 		lyrGroup.getLayers().push(newLayer)
 
-		if (volumeJson.multimask) {		
+		if (volumeJson.multimask) {
 			Object.entries(volumeJson.multimask).forEach(kV => {
-				if (kV[0] == layerDef.name) {
+				if (kV[0] == layerDef.slug) {
 					const feature = new GeoJSON().readFeature(kV[1])
 					feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
 					const crop = new Crop({ 

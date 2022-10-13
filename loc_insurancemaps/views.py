@@ -159,7 +159,7 @@ class VolumeTrim(View):
         volume = get_object_or_404(Volume, pk=volumeid)
         volume_json = volume.serialize()
 
-        volume_json['sorted_layers']['main'].sort(key=lambda item: item.get("name"))
+        volume_json['sorted_layers']['main'].sort(key=lambda item: item.get("slug"))
 
         gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
         gs = gs.rstrip("/") + "/"
