@@ -61,6 +61,7 @@ class Browse(View):
         city_list = lc.get_city_list_by_state("louisiana")
 
         loaded_summary = []
+        places_dict = {}
         for vol in started_volumes:
             loaded_by_name, loaded_by_profile = "", ""
             if vol.loaded_by is not None:
@@ -80,8 +81,8 @@ class Browse(View):
                 percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
 
             main_lyrs_ct = 0
-            if vol.ordered_layers:
-                main_lyrs_ct = len(vol.ordered_layers['layers'])
+            if vol.sorted_layers:
+                main_lyrs_ct = len(vol.sorted_layers['main'])
             mm_ct, mm_todo = 0, 0
             mm_display = f"0/{main_lyrs_ct}"
             if vol.multimask is not None:
@@ -123,36 +124,21 @@ class Browse(View):
                 }
             }
             loaded_summary.append(vol_content)
-
-        place_pks = Volume.objects.all().filter(status="started").values_list("locale", flat=True)
-        place_objects = Place.objects.filter(pk__in=place_pks).order_by("name")
+            if vol.locale:
+                places_dict[vol.locale] = places_dict.get(vol.locale, []) + [vol_content]
 
         places = []
-        for p in place_objects:
-            volume_links = []
-            vols = Volume.objects.filter(locale=p).order_by("year", "volume_no")
-            first_year = None
-            for v in vols:
-                if len(v.ordered_layers['layers']) > 0:
-                    if first_year is None:
-                        first_year = str(v.year)
-                    display_val = str(v.year)
-                    if v.volume_no is not None:
-                        display_val += f" vol. {v.volume_no}"
-                    volume_links.append({
-                        "display_val": display_val,
-                        "viewer_url": full_reverse("viewer", args=(p.slug,)) + f"?year={v.year}",
-                    })
-            if len(volume_links) > 0:
-                name = p.name
-                if len(p.direct_parents.all()) > 0:
-                    name = f"{name}, {p.direct_parents.all()[0].__str__()}"
-                places.append({
-                    "name": name,
-                    "url": full_reverse("viewer", args=(p.slug,)),
-                    "volumes": volume_links,
-                    "sort_years": ", ".join(sorted([i['display_val'] for i in volume_links])),
-                })
+        for place, volumes in places_dict.items():
+            name = place.name
+            if len(place.direct_parents.all()) > 0:
+                name = f"{name}, {place.direct_parents.all()[0].__str__()}"
+            p_content = {
+                "name": name,
+                "url": full_reverse("viewer", args=(place.slug,)),
+                "volumes": volumes,
+                "sort_years": ", ".join(sorted([str(i['year_vol']) for i in volumes])),
+            }
+            places.append(p_content)
 
         context_dict = {
             "browse_params": {
@@ -173,7 +159,7 @@ class VolumeTrim(View):
         volume = get_object_or_404(Volume, pk=volumeid)
         volume_json = volume.serialize()
 
-        volume_json['ordered_layers']['layers'].sort(key=lambda item: item.get("name"))
+        volume_json['sorted_layers']['main'].sort(key=lambda item: item.get("name"))
 
         gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
         gs = gs.rstrip("/") + "/"
