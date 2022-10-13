@@ -45,9 +45,11 @@ admin.site.register(GeorefSession, GeorefSessionAdmin)
 admin.site.register(TrimSession, TrimSessionAdmin)
 
 class DocumentAdmin(admin.ModelAdmin):
+    search_fields = ('title', )
     exclude = ('type', 'layer_file', 'bbox_polygon')
 
 class LayerAdmin(admin.ModelAdmin):
+    search_fields = ('title', )
     exclude = ('type', 'document_file')
 
 admin.site.register(Document, DocumentAdmin)

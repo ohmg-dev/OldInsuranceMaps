@@ -41,12 +41,9 @@ export let LOCK;
 export let SESSION_ID;
 export let SESSION_LENGTH;
 export let DOCUMENT;
-export let IMG_SIZE;
 export let CSRFTOKEN;
 export let USERNAME;
 export let REGION_EXTENT;
-export let INCOMING_GCPS;
-export let INCOMING_TRANSFORMATION;
 export let MAPSERVER_ENDPOINT;
 export let MAPSERVER_LAYERNAME;
 export let MAPBOX_API_KEY;
@@ -247,8 +244,8 @@ function DocumentViewer (elementId) {
 
   const targetElement = document.getElementById(elementId);
 
-  const imgWidth = IMG_SIZE[0];
-  const imgHeight = IMG_SIZE[1];
+  const imgWidth = DOCUMENT.image_size[0];
+  const imgHeight = DOCUMENT.image_size[1];
 
   // items needed by layers and map
   // set the extent and projection with 0, 0 at the **top left** of the image
@@ -430,7 +427,7 @@ function MapViewer (elementId) {
 
     this.resetExtent = function () {
       map.getView().setRotation(0);
-      if (INCOMING_GCPS) {
+      if (DOCUMENT.gcps_geojson) {
         map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
       } else {
         const extent3857 = transformExtent(REGION_EXTENT, "EPSG:4326", "EPSG:3857");
@@ -464,9 +461,9 @@ function loadIncomingGCPs() {
   loadingInitial = true;
   docGCPSource.clear();
   mapGCPSource.clear();
-  if (INCOMING_GCPS) {
+  if (DOCUMENT.gcps_geojson) {
     let listId = 1;
-    let inGCPs = new GeoJSON().readFeatures(INCOMING_GCPS, {
+    let inGCPs = new GeoJSON().readFeatures(DOCUMENT.gcps_geojson, {
       dataProjection: "EPSG:4326",
       featureProjection: "EPSG:3857",
     });
@@ -492,7 +489,7 @@ function loadIncomingGCPs() {
   syncGCPList();
   docView.resetExtent()
   mapView.resetExtent()
-  currentTransformation = (INCOMING_TRANSFORMATION ? INCOMING_TRANSFORMATION : "poly1")
+  currentTransformation = (DOCUMENT.transformation ? DOCUMENT.transformation : "poly1")
   loadingInitial = false;
   inProgress = false;
   unchanged = true;

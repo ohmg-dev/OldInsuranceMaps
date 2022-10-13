@@ -195,7 +195,7 @@ class GeoreferenceView(View):
         document = get_object_or_404(Document, pk=docid)
         if document.status in ["unprepared", "splitting", "split"]:
             raise Http404
-        data = document.serialize()
+        data = document.serialize(serialize_parent=False)
 
         # override lock with new empty one - Oct 6th
         lock = SessionLock()
@@ -247,15 +247,9 @@ class GeoreferenceView(View):
             "INCOMING_GCPS": data['gcps_geojson'],
             "INCOMING_TRANSFORMATION": data['transformation'],
             "REGION_EXTENT": extent,
-            # "DOCUMENT": doc_proxy.serialize(),
-            # "IMG_SIZE": doc_proxy.image_size,
-            # "INCOMING_GCPS": doc_proxy.gcps_geojson,
-            # "INCOMING_TRANSFORMATION": doc_proxy.transformation,
-            # "REGION_EXTENT": doc_proxy.get_best_region_extent(),
             "USERNAME": request.user.username,
             "MAPSERVER_ENDPOINT": ms.endpoint,
             "MAPSERVER_LAYERNAME": ms.add_layer(document.file.path),
-            # "MAPSERVER_LAYERNAME": ms.add_layer(doc_proxy.doc_file.path),
             "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
             "GEOSERVER_WMS": geoserver_ows,
             "REFERENCE_LAYERS": reference_layers,
