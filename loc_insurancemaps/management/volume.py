@@ -135,6 +135,18 @@ def generate_mosaic_geotiff(identifier):
         srcNodata = "255 255 255",
     )
     print("building vrt")
+
+    use_vrt = False
+    if use_vrt:
+        mosaic_vrt = os.path.join("/opt/app/uploaded/mosaics", f"{identifier}.vrt")
+        gdal.BuildVRT(mosaic_vrt, trim_list, options=vo)
+        print("saving VRT to volume instance")
+        with open(mosaic_vrt, 'rb') as f:
+            vol.mosaic_geotiff = File(f, name=os.path.basename(mosaic_vrt))
+            vol.save()
+        return
+
+    mosaic_vrt = os.path.join(settings.TEMP_DIR, f"{identifier}.vrt")
     gdal.BuildVRT(mosaic_vrt, trim_list, options=vo)
 
     print("building final geotiff")
@@ -142,7 +154,9 @@ def generate_mosaic_geotiff(identifier):
         format="GTiff",
         creationOptions = [
             "TILED=YES",
-            "COMPRESS=DEFLATE",
+            "COMPRESS=LZW",
+            "PREDICTOR=2",
+            "NUM_THREADS=ALL_CPUS",
             ## the following is apparently in the COG spec but doesn't work??
             # "COPY_SOURCE_OVERVIEWS=YES",
         ],
@@ -150,6 +164,13 @@ def generate_mosaic_geotiff(identifier):
 
     mosaic_tif = mosaic_vrt.replace(".vrt", ".tif")
     gdal.Translate(mosaic_tif, mosaic_vrt, options=to)
+
+    print("creating overviews")
+    img = gdal.Open(mosaic_tif, 1)
+    gdal.SetConfigOption("COMPRESS_OVERVIEW", "LZW")
+    gdal.SetConfigOption("PREDICTOR", "2")
+    gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
+    img.BuildOverviews("AVERAGE", [2, 4, 8, 16])
 
     with open(mosaic_tif, 'rb') as f:
         vol.mosaic_geotiff = File(f, name=os.path.basename(mosaic_tif))
