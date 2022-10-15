@@ -1,0 +1,1 @@
+cogeo-mosaic==4.1
