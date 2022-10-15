@@ -78,7 +78,7 @@ VOLUMES.forEach( function (vol, n) {
 			}),
 			extent: transformExtent(vol.extent, "EPSG:4326", "EPSG:3857")
 		});
-		mainGroup.setZIndex(400 + n);
+		homeExtent = transformExtent(vol.extent, "EPSG:4326", "EPSG:3857");;
 	} 
         // otherwise make a group layer out of all the main layers in the volume.
         else if (vol.sorted_layers.main.length > 0) {
