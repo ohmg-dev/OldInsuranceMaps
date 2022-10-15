@@ -642,6 +642,10 @@ class Volume(models.Model):
         viewer_url = ""
         if self.locale:
             viewer_url = reverse("viewer", args=(self.locale.slug,)) + f"?year={self.year}"
+
+        mosaic_url = ""
+        if self.mosaic_geotiff:
+            mosaic_url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_geotiff.url
         return {
             "doc_search": f"{settings.SITEURL}documents/?{r_facet}&{d_facet}",
             "loc_item": loc_item,
@@ -649,6 +653,7 @@ class Volume(models.Model):
             "summary": reverse("volume_summary", args=(self.identifier,)),
             "trim": reverse("volume_trim", args=(self.identifier,)),
             "viewer": viewer_url,
+            "mosaic": mosaic_url,
         }
 
     def hydrate_ordered_layers(self):

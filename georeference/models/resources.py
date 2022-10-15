@@ -573,7 +573,13 @@ class Document(ItemBase):
 
     @cached_property
     def image_size(self):
-        return Image.open(self.file).size if self.file else None
+        if self.file:
+            img = Image.open(self.file)
+            size = img.size
+            img.close()
+        else:
+            size = None
+        return size
 
     @property
     def urls(self):

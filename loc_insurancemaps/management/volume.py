@@ -3,6 +3,9 @@ import json
 import logging
 from osgeo import gdal
 
+from cogeo_mosaic.mosaic import MosaicJSON
+from cogeo_mosaic.backends import MosaicBackend
+
 from django.conf import settings
 from django.core.files import File
 
@@ -150,4 +153,75 @@ def generate_mosaic_geotiff(identifier):
 
     with open(mosaic_tif, 'rb') as f:
         vol.mosaic_geotiff = File(f, name=os.path.basename(mosaic_tif))
+        vol.save()
+
+def generate_mosaic_json(identifier):
+
+    vol = Volume.objects.get(pk=identifier)
+    multimask_geojson = multimask_to_geojson(identifier)
+    multimask_file_name = f"multimask-{identifier}"
+    multimask_file = os.path.join(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
+    with open(multimask_file, "w") as out:
+        json.dump(multimask_geojson, out, indent=1)
+
+    trim_list = []
+    for feature in multimask_geojson['features']:
+
+        layer_name = feature['properties']['layer']
+        wo = gdal.WarpOptions(
+            format="VRT",
+            dstSRS = "EPSG:3857",
+            cutlineDSName = multimask_file,
+            cutlineLayer = multimask_file_name,
+            cutlineWhere = f"layer='{layer_name}'",
+            cropToCutline = True,
+            # creationOptions = ['COMPRESS=LZW', 'BIGTIFF=YES'],
+            # resampleAlg = 'cubic',
+            # dstAlpha = False,
+            dstNodata = "255 255 255",
+        )
+
+        layer = Layer.objects.get(slug=layer_name)
+        if not layer.file:
+            raise Exception(f"no layer file for this layer {layer_name}")
+        in_path = layer.file.path
+        trim_vrt_path = in_path.replace(".tif", "_trim.vrt")
+        gdal.Warp(trim_vrt_path, in_path, options=wo)
+
+        to = gdal.TranslateOptions(
+            format="GTiff",
+            bandList = [1,2,3],
+            creationOptions = [
+                "TILED=YES",
+                "COMPRESS=LZW",
+                "PREDICTOR=2",
+                "NUM_THREADS=ALL_CPUS",
+                ## the following is apparently in the COG spec but doesn't work??
+                # "COPY_SOURCE_OVERVIEWS=YES",
+            ],
+        )
+
+        out_path = trim_vrt_path.replace(".vrt", ".tif")
+        print(f"writing trimmed tif {os.path.basename(out_path)}")
+        gdal.Translate(out_path, trim_vrt_path, options=to)
+
+        print(f" -- building overviews")
+        img = gdal.Open(out_path, 1)
+        gdal.SetConfigOption("COMPRESS_OVERVIEW", "LZW")
+        gdal.SetConfigOption("PREDICTOR", "2")
+        gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
+        img.BuildOverviews("AVERAGE", [2, 4, 8, 16])
+
+        trim_list.append(out_path)
+
+    print(trim_list)
+    trim_urls = [settings.SITEURL.rstrip("/")+i.replace("/opt/app", "") for i in trim_list]
+    print("writing mosaic")
+    mosaic_data = MosaicJSON.from_urls(trim_urls)
+    mosaic_json_path = os.path.join(settings.TEMP_DIR, f"{identifier}-mosaic.json")
+    with MosaicBackend(mosaic_json_path, mosaic_def=mosaic_data) as mosaic:
+        mosaic.write(overwrite=True)
+
+    with open(mosaic_json_path, 'rb') as f:
+        vol.mosaic_geotiff = File(f, name=os.path.basename(mosaic_json_path))
         vol.save()

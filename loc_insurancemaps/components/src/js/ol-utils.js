@@ -116,8 +116,11 @@ class Utils {
 
   makeTitilerXYZUrl = function (host, cogUrl) {
     const cogUrlEncode = encodeURIComponent(cogUrl)
-    const xyzUrl = host +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrlEncode;
-    return xyzUrl
+    if (String(cogUrl).endsWith(".json")) {
+        return host +"/mosaicjson/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrlEncode;
+    } else {
+        return host +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrlEncode;
+    }
   }
 
 }

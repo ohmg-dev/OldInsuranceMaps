@@ -69,9 +69,21 @@ VOLUMES.forEach( function (vol, n) {
 	// 400 = main content
 
 	let mainGroup;
-	if (vol.sorted_layers.main.length > 0) {
+
+	// if there is a mosaic JSON url for the volume, use that to make the layer
+	if (vol.urls.mosaic) {
+		mainGroup = new TileLayer({
+			source: new XYZ({
+				url: utils.makeTitilerXYZUrl(TITILER_HOST, vol.urls.mosaic),
+			}),
+			extent: transformExtent(vol.extent, "EPSG:4326", "EPSG:3857")
+		});
+		mainGroup.setZIndex(400 + n);
+	} 
+        // otherwise make a group layer out of all the main layers in the volume.
+        else if (vol.sorted_layers.main.length > 0) {
 		mainGroup = getMainLayerGroupFromVolume(vol);
-		mainGroup.setZIndex(400 + n)
+		mainGroup.setZIndex(400+n)
 	}
 
 	const opacity = SHOW_YEAR == vol.year ? 100 : 0;
@@ -280,8 +292,10 @@ function MapViewer (elementId) {
 		target: targetElement,
 		layers: [baseGroup],
 		maxTilesLoading: 50,
+                pixelRatio: 2,
 		view: new View({
 			zoom: 8,
+			minZoom: 14,
 			center: fromLonLat([-92.036, 31.16])
 		})
 	});

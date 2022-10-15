@@ -15,6 +15,8 @@ def generate_document_thumbnail_content(image_file_path):
         ratio = 200/biggest_dim
         new_width, new_height = int(ratio*width), int(ratio*height)
         new_size = (new_width, new_height)
+        if 0 in new_size:
+            return b''
         image = ImageOps.fit(full_image, new_size, Image.ANTIALIAS)
     else:
         image = full_image

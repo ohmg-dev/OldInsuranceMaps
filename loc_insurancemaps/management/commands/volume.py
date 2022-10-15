@@ -4,7 +4,11 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 
 from loc_insurancemaps.tasks import generate_mosaic_geotiff_as_task
-from loc_insurancemaps.management.volume import import_volume, generate_mosaic_geotiff
+from loc_insurancemaps.management.volume import (
+    import_volume,
+    generate_mosaic_geotiff,
+    generate_mosaic_json,
+)
 from loc_insurancemaps.models import Volume
 
 class Command(BaseCommand):
@@ -19,6 +23,7 @@ class Command(BaseCommand):
                 "refresh-lookups",
                 "make-sheets",
                 "generate-mosaic",
+                "generate-mosaic-json",
             ],
             help="the operation to perform",
         ),
@@ -84,3 +89,7 @@ class Command(BaseCommand):
                     )
                 else:
                     generate_mosaic_geotiff(i)
+
+        if options['operation'] == "generate-mosaic-json":
+            if i is not None:
+                generate_mosaic_json(i)
