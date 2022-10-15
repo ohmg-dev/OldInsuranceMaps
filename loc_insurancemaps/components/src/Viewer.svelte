@@ -364,7 +364,8 @@ function toggleDetails(id) {
 			{#each volumeIds as id }
 			<div class="volume-item">
 				<div class="volume-header">
-					<button style="width:{volumeLookup[id].displayName.length > 4 ? '90px' : '30px'}" on:click={() => toggleDetails(id)}>{volumeLookup[id].displayName}</button>
+					<button style="width:{volumeLookup[id].displayName.length > 4 ? '100px' : '30px'}" on:click={() => toggleDetails(id)}>{volumeLookup[id].displayName}</button>
+                                        <!-- <button on:click={() => toggleDetails(id)}>{volumeLookup[id].displayName}</button>  -->
 					<input type=range disabled={volumeLookup[id].mainLayer ? "" : "disabled"} class="transparency-slider" bind:value={volumeLookup[id].mainLayerO} min=0 max=100>
 					<i class="{volumeLookup[id].mainLayer != undefined ? 'transparency-toggle' : ''} {getClass(volumeLookup[id].mainLayerO)}" on:click={() => toggleLayerTransparencyIcon(id)} />
 				</div>
@@ -407,7 +408,8 @@ h1 {
 }
 #control-panel {
 	flex-direction: column;
-	min-width: 300px;
+	min-width: 250px;
+        max-width: 100%;
 	position: absolute;
 	right: 0;
 	z-index: 10000;
@@ -465,6 +467,7 @@ h1 {
 	display: flex;
 	flex-direction: column;
 	border-bottom: 1px dashed grey;
+        padding: 0px 10px;
 }
 .volume-item:last-child {
 	border-bottom: none;
