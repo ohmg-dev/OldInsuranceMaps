@@ -16,6 +16,7 @@ import RegularShape from 'ol/style/RegularShape';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import LayerGroup from 'ol/layer/Group';
+import MapboxVector from 'ol/layer/MapboxVector';
 
 function makeSatelliteLayer (apiKey) {
   return new TileLayer({
@@ -27,6 +28,27 @@ function makeSatelliteLayer (apiKey) {
       ]
     })
   });
+}
+
+function makeMapboxStreetsLayer (apiKey) {
+//  return new TileLayer({
+//    source: new XYZ({
+//      url: 'https://api.mapbox.com/styles/v1/legiongis/ckihiobcu0m3319sz4i5djtaj/tiles/{z}/{x}/{y}?access_token='+apiKey,
+//      tileSize: 512,
+//      attributions: [
+//        `© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>`
+//      ]
+//    })
+//  });
+  return new MapboxVector({
+//    styleUrl: 'mapbox://styles/legiongis/ckihiobcu0m3319sz4i5djtaj',
+    styleUrl: 'mapbox://styles/mapbox/streets-v11',
+    accessToken: apiKey,
+    zIndex: 0,
+    // declutter false keeps the labels with the rest of the style instead of
+    // placing them above all other layers. However, it causes a lot of clutter.
+    declutter: false,
+  })
 }
 
 function makeOSMLayer () {
@@ -107,6 +129,7 @@ class Utils {
 
   makeBasemaps = function (mapboxKey) {
     const osmLayer = makeOSMLayer();
+    //const osmLayer = makeMapboxStreetsLayer(mapboxKey);
     const satelliteLayer = makeSatelliteLayer(mapboxKey)
     return [
       { id: "osm", layer: osmLayer, label: "Streets" },
