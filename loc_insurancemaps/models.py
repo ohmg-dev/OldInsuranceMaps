@@ -2,6 +2,7 @@ import os
 import json
 import uuid
 import logging
+from itertools import chain
 from datetime import datetime
 
 from pygments import highlight
@@ -557,6 +558,22 @@ class Volume(models.Model):
     @cached_property
     def sheets(self):
         return Sheet.objects.filter(volume=self).order_by("sheet_no")
+
+    @cached_property
+    def prep_sessions(self):
+        sessions = []
+        for sheet in self.sheets:
+            if sheet.doc:
+                sessions = list(chain(sessions, PrepSession.objects.filter(doc=sheet.doc)))
+        return sessions
+
+    @cached_property
+    def georef_sessions(self):
+        sessions = []
+        for sheet in self.sheets:
+            if sheet.doc:
+                sessions = list(chain(sessions, GeorefSession.objects.filter(doc=sheet.doc)))
+        return sessions
     
     def lc_item_formatted(self):
         return format_json_display(self.lc_item)
