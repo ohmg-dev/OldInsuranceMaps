@@ -219,6 +219,34 @@ class VolumeDetail(View):
         volume = get_object_or_404(Volume, pk=volumeid)
         volume_json = volume.serialize()
 
+
+        prep_sessions = volume.prep_sessions
+        prep_users = [i.user.username for i in prep_sessions]
+        prep_user_info = [{
+            "ct": prep_users.count(i),
+            "name": i,
+            "profile": reverse('profile_detail', args=(i, ))
+        } for i in set(prep_users)]
+        georef_sessions = volume.georef_sessions
+        georef_users = [i.user.username for i in georef_sessions]
+        georef_user_info = [{
+            "ct": georef_users.count(i),
+            "name": i,
+            "profile": reverse('profile_detail', args=(i, ))
+        } for i in set(georef_users)]
+
+        georef_user_info.sort(key=lambda item: item.get("ct"))
+        prep_user_info.sort(key=lambda item: item.get("ct"))
+
+        session_info = {
+            'prep_ct': len(prep_sessions),
+            'prep_contributors': prep_user_info,
+            'georef_ct': len(georef_sessions),
+            'georef_contributors': georef_user_info,
+        }
+
+        volume_json['sessions'] = session_info
+
         other_vols = []
         for v in Volume.objects.filter(city=volume.city):
             url = reverse("volume_summary", args=(v.pk, ))

@@ -461,7 +461,7 @@ document.addEventListener("fullscreenchange", function(){
 			{/if}
 		</div>
 	</div>
-	<div class="sheets-status-bar">
+	<div class="sheets-status-bar" style="display:flex; flex-direction: column">
 		<!-- {#if (VOLUME.loaded_by.name != "" && !sheetsLoading) || VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
 			<p><em>{VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.loaded != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}</em></p>
 		{:else if sheetsLoading}
@@ -470,21 +470,31 @@ document.addEventListener("fullscreenchange", function(){
 		{:else if VOLUME.sheet_ct.loaded == 0}
 			<p><em>No sheets loaded yet...</em></p>
 		{/if} -->
-		<p style="float:left;"><em>
+		<div>
+			<p style="float:left;"><em>
 
+				{#if sheetsLoading}
+				Loading sheet {VOLUME.sheet_ct.loaded+1}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
+				{:else if VOLUME.sheet_ct.loaded == 0}
+				No sheets loaded yet...
+				{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
+				{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
+				{:else}
+				{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}
+				{/if}
+			</em></p>
 			{#if sheetsLoading}
-			Loading sheet {VOLUME.sheet_ct.loaded+1}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
-			{:else if VOLUME.sheet_ct.loaded == 0}
-			No sheets loaded yet...
-			{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
-			{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
-			{:else}
-			{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}
+			<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
 			{/if}
-		</em></p>
-		{#if sheetsLoading}
-		<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
-		{/if}
+		</div>
+		<div>
+		<p style="float:left;"><em>
+			{VOLUME.sessions.prep_ct} sheet{#if VOLUME.sessions.prep_ct != 1}s{/if} prepared{#if VOLUME.sessions.prep_ct > 0}&nbsp;by {#each VOLUME.sessions.prep_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.prep_contributors.length-1}, {/if}{/each}{/if}
+		</em></p></div>
+		<div><p><em>
+			{VOLUME.sessions.georef_ct} document{#if VOLUME.sessions.georef_ct != 1}s{/if} georeferenced{#if VOLUME.sessions.georef_ct > 0}&nbsp;by 
+			{#each VOLUME.sessions.georef_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.georef_contributors.length-1}, {/if}{/each}{/if}
+		</em></p></div>
 		
 	</div>
 
