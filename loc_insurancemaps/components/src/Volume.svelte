@@ -492,7 +492,7 @@ document.addEventListener("fullscreenchange", function(){
 			{VOLUME.sessions.prep_ct} sheet{#if VOLUME.sessions.prep_ct != 1}s{/if} prepared{#if VOLUME.sessions.prep_ct > 0}&nbsp;by {#each VOLUME.sessions.prep_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.prep_contributors.length-1}, {/if}{/each}{/if}
 		</em></p></div>
 		<div><p><em>
-			{VOLUME.sessions.georef_ct} document{#if VOLUME.sessions.georef_ct != 1}s{/if} georeferenced{#if VOLUME.sessions.georef_ct > 0}&nbsp;by 
+			{VOLUME.sessions.georef_ct} georeferencing session{#if VOLUME.sessions.georef_ct != 1}s{/if}{#if VOLUME.sessions.georef_ct > 0}&nbsp;by 
 			{#each VOLUME.sessions.georef_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.georef_contributors.length-1}, {/if}{/each}{/if}
 		</em></p></div>
 		
@@ -635,7 +635,7 @@ document.addEventListener("fullscreenchange", function(){
 						</ul>
 						{:else}
 						<ul>
-							<li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li>
+							<!-- <li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li> -->
 							<li><a href="{layer.urls.georeference}?{referenceLayersParam()}" title="edit georeferencing">edit georeferencing &rarr;</a></li>
 							<li><a href={layer.urls.detail} title={layer.title}>layer detail &rarr;</a></li>
 							<!-- link for OHM editor with this layer as basemap -->
