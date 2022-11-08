@@ -890,7 +890,36 @@ class Volume(models.Model):
 
         return sorted_items
 
-    def serialize(self):
+    def get_session_info(self):
+        """ generates a json summary of the sessions for this volume,
+        to be used in the volume summary page"""
+
+        prep_sessions = self.prep_sessions
+        prep_users = [i.user.username for i in prep_sessions]
+        prep_user_info = [{
+            "ct": prep_users.count(i),
+            "name": i,
+            "profile": reverse('profile_detail', args=(i, ))
+        } for i in set(prep_users)]
+        georef_sessions = self.georef_sessions
+        georef_users = [i.user.username for i in georef_sessions]
+        georef_user_info = [{
+            "ct": georef_users.count(i),
+            "name": i,
+            "profile": reverse('profile_detail', args=(i, ))
+        } for i in set(georef_users)]
+
+        georef_user_info.sort(key=lambda item: item.get("ct"))
+        prep_user_info.sort(key=lambda item: item.get("ct"))
+
+        return {
+            'prep_ct': len(prep_sessions),
+            'prep_contributors': prep_user_info,
+            'georef_ct': len(georef_sessions),
+            'georef_contributors': georef_user_info,
+        }
+
+    def serialize(self, include_session_info=False):
         """Serialize this Volume into a comprehensive JSON summary."""
 
         # a quick, in-place check to see if any layer thumbnails are missing,
@@ -912,7 +941,7 @@ class Volume(models.Model):
         # hydrate ordered_layers
         ordered_layers = self.hydrate_ordered_layers()
 
-        return {
+        data = {
             "identifier": self.identifier,
             "title": self.__str__(),
             "year": self.year,
@@ -930,6 +959,12 @@ class Volume(models.Model):
             "multimask": self.multimask,
             "extent": self.extent,
         }
+
+        if include_session_info:
+            data['sessions'] = self.get_session_info()
+
+        return data
+
 
     def save(self, *args, **kwargs):
 

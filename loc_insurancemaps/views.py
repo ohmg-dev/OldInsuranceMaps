@@ -217,35 +217,7 @@ class VolumeDetail(View):
     def get(self, request, volumeid):
 
         volume = get_object_or_404(Volume, pk=volumeid)
-        volume_json = volume.serialize()
-
-
-        prep_sessions = volume.prep_sessions
-        prep_users = [i.user.username for i in prep_sessions]
-        prep_user_info = [{
-            "ct": prep_users.count(i),
-            "name": i,
-            "profile": reverse('profile_detail', args=(i, ))
-        } for i in set(prep_users)]
-        georef_sessions = volume.georef_sessions
-        georef_users = [i.user.username for i in georef_sessions]
-        georef_user_info = [{
-            "ct": georef_users.count(i),
-            "name": i,
-            "profile": reverse('profile_detail', args=(i, ))
-        } for i in set(georef_users)]
-
-        georef_user_info.sort(key=lambda item: item.get("ct"))
-        prep_user_info.sort(key=lambda item: item.get("ct"))
-
-        session_info = {
-            'prep_ct': len(prep_sessions),
-            'prep_contributors': prep_user_info,
-            'georef_ct': len(georef_sessions),
-            'georef_contributors': georef_user_info,
-        }
-
-        volume_json['sessions'] = session_info
+        volume_json = volume.serialize(include_session_info=True)
 
         other_vols = []
         for v in Volume.objects.filter(city=volume.city):
@@ -299,7 +271,7 @@ class VolumeDetail(View):
                 (volumeid, ),
                 queue="update"
             )
-            volume_json = volume.serialize()
+            volume_json = volume.serialize(include_session_info=True)
             volume_json["status"] = "initializing..."
 
             return JsonResponse(volume_json)
@@ -319,18 +291,18 @@ class VolumeDetail(View):
                     volume.sorted_layers["main"].append(l)
 
             volume.save(update_fields=["sorted_layers"])
-            volume_json = volume.serialize()
+            volume_json = volume.serialize(include_session_info=True)
             return JsonResponse(volume_json)
 
         elif operation == "refresh":
             volume = Volume.objects.get(pk=volumeid)
-            volume_json = volume.serialize()
+            volume_json = volume.serialize(include_session_info=True)
             return JsonResponse(volume_json)
 
         elif operation == "refresh-lookups":
             volume = Volume.objects.get(pk=volumeid)
             volume.refresh_lookups()
-            volume_json = volume.serialize()
+            volume_json = volume.serialize(include_session_info=True)
             return JsonResponse(volume_json)
 
 
