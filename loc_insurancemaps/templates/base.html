@@ -105,16 +105,6 @@
         }
         {% endif %}
 
-        {% if custom_theme.logo %}
-        .navbar-brand {
-          background-image: url({{ custom_theme.logo.url }});
-          background-repeat: no-repeat;
-          background-position: center;
-          background-size: contain;
-        }
-        {% endif %}
-
-
         {% if custom_theme.jumbotron_welcome_hide %}
         .home .jumbotron .container {
           visibility: hidden;
@@ -212,19 +202,22 @@
     <!-- Navbar -->
     {% block header %}
   <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container">
-        <div class="navbar-header">
+    <div class="container" style="display:flex;">
+        <div class="navbar-header-new">
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
           <i class="fa fa-navicon fa-lg"></i>
         </button>
-        <a class="navbar-brand" href="{% url "home" %}">GeoNode</a>
+        <!-- <a class="navbar-brand" href="{% url "home" %}">GeoNode</a> -->
+        <a href="{% url 'home' %}" title="LaHMG">
+          <img src="{{ STATIC_URL }}img/noun_Map_heavy-colored-lite.png" alt="LaHMG" class="navbar-brand-new">
+        </a>
       </div>
-      <div id="navbar" class="navbar-collapse collapse">
+      <div id="navbar" class="navbar-collapse collapse" style="display:flex; justify-content:space-between; width:100%;">
         <ul class="nav navbar-nav toolbar">
 
           {% block tabs %}
           <li>
-            <a href="{% url "browse" %}" class="" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Browse" %}</a>
+            <a href="{% url "browse" %}" class="" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Browse Maps" %}</a>
           </li>
           <li>
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "About" %}<i class="fa fa-angle-down fa-lg"></i></a>
@@ -232,7 +225,6 @@
               <li><a href="{% url "getting_started" %}">{% trans "Getting Started" %}</a></li>
               <li><a href="{% url "about" %}">{% trans "Project Background" %}</a></li>
               <li><a href="https://docs.oldinsurancemaps.net/en/latest/#tutorial/">Tutorial</a></li>
-              <li><a href="https://github.com/mradamcox/loc-insurancemaps" target="_blank">{% trans "Source Code" %} <i class="fa fa-external-link"></i></a></li>
               <li><a href="https://docs.oldinsurancemaps.net" class="" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Documentation" %}</a></li>
               <li role="separator" class="divider"></li>
               <li><a href="/social/recent-activity">{% trans "Recent Activity" %}</a></li>
@@ -261,9 +253,6 @@
                {% render_nav_menu 'TOPBAR_MENU' %}
             {% endblock my_extra_right_tab %}
 
-            {% if not user.is_authenticated and ACCOUNT_OPEN_SIGNUP and not READ_ONLY_MODE %}
-              <li><a href="{% url "account_signup" %}">{% trans "Register" %}</a></li>
-            {% endif %}
             {% if user.is_authenticated %}
             <li>
               <a href="#" class="dropdown-toggle avatar" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
@@ -344,7 +333,7 @@
 <footer>
   <div class="container">
     <div class="row">
-      <div class="col-md-3">
+      <div class="col-md-4">
         <ul class="list-unstyled">
           <li>{% trans "Content" %}</li>
           <li><a href="{% url "volumes_list" %}">{% trans "Volumes" %}</a></li>
@@ -367,7 +356,7 @@
           {% endif %}
         </ul>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <ul class="list-unstyled">
           <li>{% trans "About" %}</li>
           <li><a href="{% url "getting_started" %}">{% trans "Getting Started" %}</a></li>
@@ -389,59 +378,21 @@
         </ul>
       </div>
 
-      <div class="col-md-6 text-right">
-        {% block contactus %}
-        {% if custom_theme.contactus %}
+      <div class="col-md-4 text-right">
         <ul class="list-unstyled">
-            <li style="text-align: left;"><h2 style="margin-top: 0px;">{% trans "Contact Us" %} </h2> </li>
-            {% if custom_theme.contact_name %}<li style="text-align: left;">{{ custom_theme.contact_name }}</li>{% endif %}
-            {% if custom_theme.contact_position %}<li style="text-align: left;">{{ custom_theme.contact_position }}</li>{% endif %}
-            {% if custom_theme.contact_administrative_area %}<li style="text-align: left;">{{ custom_theme.contact_administrative_area }}</li>{% endif %}
-            {% if custom_theme.contact_city %}<li style="text-align: left;">{{ custom_theme.contact_city }}</li>{% endif %}
-            {% if custom_theme.contact_street %}<li style="text-align: left;">{{ custom_theme.contact_street }}</li>{% endif %}
-            {% if custom_theme.contact_postal_code %}<li style="text-align: left;">{{ custom_theme.contact_postal_code }}</li>{% endif %}
-            {% if custom_theme.contact_country %}<li style="text-align: left;">{{ custom_theme.contact_country }}</li>{% endif %}
-            {% if custom_theme.contact_delivery_point %}<li style="text-align: left;">{{ custom_theme.contact_delivery_point }}</li>{% endif %}
-            {% if custom_theme.contact_voice %}<li style="text-align: left;">{% trans "Tel" %}: {{ custom_theme.contact_voice }}</li>{% endif %}
-            {% if custom_theme.contact_facsimile %}<li style="text-align: left;">{% trans "Fax" %}: {{ custom_theme.contact_facsimile }}</li>{% endif %}
-            {% if custom_theme.contact_email %}<li style="text-align: left;">{% trans "E-mail" %}: {{ custom_theme.contact_email }}</li>{% endif %}
+            <li style="text-align: left;"><h3 style="margin-top: 0px;">{% trans "Get in touch!" %} </h3> </li>
+            <li style="text-align: left;"><a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a></li>
         </ul>
-        {% endif %}
-        {% endblock contactus %}
-        <ul class="list-unstyled">
-          <li>{% trans "Powered by" %} <a href="https://geonode.org">{% trans "GeoNode" %}</a>{% if user.is_staff %} <em>{% trans "version" %} {{ VERSION }}</em>{% endif %}</li>
-          <li><a href="https://geonode.org/dev_features/">{% trans "Developers" %}</a> | <a href="https://geonode.org/user_features/">{% trans "About" %}</a><li>
-        </ul>
-        <label class="hidden">{% trans "Language" %}</label>
-        {% if csrf_token != "NOTPROVIDED" %}
-        {% get_current_language as LANGUAGE %}
-        <form class="form-inline" action="/i18n/setlang/" method="post">
-        {% csrf_token %}
-          <select class="col-md-6 pull-right" name="language" onchange="javascript:form.submit()">
-            {% for lang in LANGUAGES %}
-            <option value="{{ lang.0 }}" {% ifequal LANGUAGE_CODE lang.0 %} selected="selected"{% endifequal %}>
-              {{ lang.1 }}
-            </option>
-            {% endfor %}
-          </select>
-        </form>
-        {% endif %}
+      </div>
+    </div>
+    <div class="row" style="color:white; text-align:center;">
+      <div class="col-xs-12">
+        <p>Copyright © 2022 | <a href="https://github.com/mradamcox/loc-insurancemaps" target="_blank">{% trans "Source" %} <i class="fa fa-external-link"></i></a> |
+           {% trans "Powered by" %} <a href="https://geonode.org" target="_blank">{% trans "GeoNode" %} <i class="fa fa-external-link"></i></a></p>
       </div>
     </div>
   </div>
 </footer>
-  <section class="footer-copyright">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-12 copyright ">
-          <div class="module">
-            <small>copyright 2022</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
 {% endblock footer %}
 
 
@@ -477,6 +428,11 @@
               <p>
                 <a href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
               </p>
+              <hr>
+              <p>
+                If you don't have an account, you can <a href="{% url "account_signup" %}">make one here</a>. You need one to process maps, not 
+              </p>
+
             </div>
             <div class="modal-footer">
               <button type="submit" class="btn btn-primary btn-block">{% trans "Sign in" %}</button>

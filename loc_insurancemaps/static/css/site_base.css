@@ -1,7 +1,7 @@
 body {
   font-family: 'Josefin Sans', sans-serif;
   letter-spacing: -.3px;
-  padding-top: 45px;
+  padding-top: 60px;
   background-color: #F7F1E1;
 }
 @media (max-width: 991px) {
@@ -93,26 +93,27 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .navbar {
-	min-height: 30px;
+	min-height: 60px;
+	/* background-color: #EAE0C1 !important; */
+	/* color: #3a3a3a; */
+	box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
+	position: fixed;
+	top: 0;
+	right: 0;
+	left: 0;
+	z-index: 1030;
+	display: flex;
+	align-items: center;
 }
 
-.navbar-header i {
-	font-size: 1.25em;
+.navbar-header-new {
+	display: flex;
+	align-items: center;
+	color:white;
 }
 
-.navbar-brand {
-	background: url("/static/img/noun_Map_simple-colored1.png");
-	background-position-x: 0%;
-	background-position-y: 0%;
-	background-repeat: repeat;
-	background-image: url("/static/img/noun_Map_simple-colored1.png");
-	background-size: auto;
-	background-repeat: no-repeat;
-	background-position: center;
-	background-size: contain;
-	text-indent: -9999px;
-	height: 45px;
-	width: 50px;
+.navbar-brand-new {
+	height: 32px;
 }
 
 /* unset max height so scroll overflow never shows up */
