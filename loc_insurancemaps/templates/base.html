@@ -216,9 +216,9 @@
         <ul class="nav navbar-nav toolbar">
 
           {% block tabs %}
-          <li>
-            <a href="{% url "browse" %}" class="" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Browse Maps" %}</a>
-          </li>
+          <li><a href="{% url "browse" %}" class="" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Browse Maps" %}</a></li>
+          <li><a href="https://about.oldinsurancemaps.net" class="" role="button" aria-haspopup="true" aria-expanded="false">{% trans "About" %}</a></li>
+          {% comment %}
           <li>
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "About" %}<i class="fa fa-angle-down fa-lg"></i></a>
               <ul class="dropdown-menu">
@@ -244,6 +244,7 @@
               {% endif %}
               </ul>
           </li>
+          {% endcomment %}
           {% endblock %}
 
         </ul>

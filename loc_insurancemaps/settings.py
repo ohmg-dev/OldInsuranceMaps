@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'modeltranslation',
     'dal',
     'dal_select2',
-    'grappelli',
+    # 'grappelli',
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'django.contrib.sessions',
@@ -171,6 +171,9 @@ S3_CONFIG = {
     "endpoint_url": os.getenv("S3_ENDPOINT_URL"),
 }
 
+# empty celery beat schedule of default GeoNode jobs
+CELERY_BEAT_SCHEDULE = {}
+
 # conditionally add static files from the 'georeference' app, as well as
 # Mapserver information, used for the georeferencing preview layer
 if 'georeference' in INSTALLED_APPS:
@@ -183,7 +186,10 @@ if 'georeference' in INSTALLED_APPS:
     MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
     MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
 
-    MIDDLEWARE += ("georeference.middleware.GeoreferenceMiddleware", )
+    MIDDLEWARE += (
+        "georeference.middleware.GeoreferenceMiddleware",
+        # "georeference.middleware.ProfilerMiddleware",
+    )
     TEMPLATES[0]['OPTIONS']['context_processors'].append("georeference.context_processors.georeference_info")
 
     CELERY_BEAT_SCHEDULE['delete_expired_sessions'] = {
