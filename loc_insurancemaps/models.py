@@ -570,9 +570,8 @@ class Volume(models.Model):
     @cached_property
     def georef_sessions(self):
         sessions = []
-        for sheet in self.sheets:
-            if sheet.doc:
-                sessions = list(chain(sessions, GeorefSession.objects.filter(doc=sheet.doc)))
+        for doc in self.get_all_docs():
+            sessions += list(chain(sessions, GeorefSession.objects.filter(doc=doc)))
         return sessions
     
     def lc_item_formatted(self):
@@ -909,8 +908,8 @@ class Volume(models.Model):
             "profile": reverse('profile_detail', args=(i, ))
         } for i in set(georef_users)]
 
-        georef_user_info.sort(key=lambda item: item.get("ct"))
-        prep_user_info.sort(key=lambda item: item.get("ct"))
+        georef_user_info.sort(key=lambda item: item.get("ct"), reverse=True)
+        prep_user_info.sort(key=lambda item: item.get("ct"), reverse=True)
 
         return {
             'prep_ct': len(prep_sessions),
