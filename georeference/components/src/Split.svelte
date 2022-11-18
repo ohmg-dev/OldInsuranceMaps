@@ -31,9 +31,8 @@ export let LOCK;
 export let SESSION_ID;
 export let SESSION_LENGTH;
 export let DOCUMENT;
-// export let IMG_SIZE;
 export let CSRFTOKEN;
-// export let INCOMING_CUTLINES;
+export let VOLUME;
 
 let docView;
 let showPreview = true;
@@ -300,11 +299,11 @@ function process(operation) {
       if (operation == "preview") {
         divisions = result['divisions'];
       } else if (operation == "split") {
-        window.location.href = DOCUMENT.urls.detail;
+        window.location.href = VOLUME.urls.summary;
       } else if (operation == "no_split") {
         window.location.href = DOCUMENT.urls.georeference;
       } else if (operation == "cancel") {
-        window.location.href = DOCUMENT.urls.detail;
+        window.location.href = VOLUME.urls.summary;
       }
     });
 }

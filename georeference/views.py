@@ -33,6 +33,8 @@ from georeference.utils import MapServerManager
 from georeference.georeferencer import Georeferencer
 from georeference.splitter import Splitter
 
+from loc_insurancemaps.models import find_volume
+
 logger = logging.getLogger(__name__)
 
 BadPostRequest = HttpResponseBadRequest("invalid post content")
@@ -77,12 +79,16 @@ class SplitView(View):
         document = get_object_or_404(Document, pk=docid)
         doc_data = document.serialize()
 
+        volume = find_volume(document)
+        volume_json = volume.serialize()
+
         split_params = {
             "LOCK": lock.as_dict,
             "SESSION_ID": sesh_id,
             "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
             "CSRFTOKEN": csrf.get_token(request),
             "DOCUMENT": doc_data,
+            "VOLUME": volume_json,
         }
         
         return render(
@@ -197,6 +203,9 @@ class GeoreferenceView(View):
             raise Http404
         data = document.serialize(serialize_parent=False)
 
+        volume = find_volume(document)
+        volume_json = volume.serialize()
+
         # override lock with new empty one - Oct 6th
         lock = SessionLock()
         sesh_id = 99999999
@@ -250,6 +259,7 @@ class GeoreferenceView(View):
             "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
             "GEOSERVER_WMS": geoserver_ows,
             "REFERENCE_LAYERS": reference_layers,
+            "VOLUME": volume_json,
         }
 
         return render(
