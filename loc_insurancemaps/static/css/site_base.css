@@ -92,6 +92,45 @@ h1, h2, h3, h4, h5, h6 {
     color: #3a3a3a;
 }
 
+nav.lahmg-nav {
+	display: flex;
+	height: 60px;
+	background:#123B4F;
+	box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+	padding: 0px 20px;
+	color:white;
+	font-weight: 500;
+	overflow-x: scroll;
+}
+
+nav.lahmg-nav a {
+	color:white;
+}
+
+nav.lahmg-nav a:hover {
+	color: #eee;
+	text-decoration: none;
+}
+
+nav.lahmg-nav div {
+	display: flex;
+	align-items: center;
+}
+
+nav.lahmg-nav div div {
+	padding: 4px 24px 4px 0px;
+	white-space: nowrap;
+}
+
+
 .navbar {
 	min-height: 60px;
 	/* background-color: #EAE0C1 !important; */

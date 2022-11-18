@@ -39,20 +39,18 @@ function setPanel(show) {
 </script>
 
 <main>
-  <h4>Check: Does this image need to be split before it can be georeferenced?</h4>
-  <h4>
-      <a href="#" on:click={() => setPanel("background")}>Background &darr;</a>
+  <div class="info-bar">
+    <span>Check: Does this image need to be split before it can be georeferenced?</span>
+    <div>
+      <a href="#" on:click={() => setPanel("background")}>More info &darr;</a>
       <a href="#" on:click={() => setPanel("guide")}>Guide &darr;</a>
       <a href="#" on:click={() => setPanel("tips")}>Tips &darr;</a>
-      <a href="#" on:click={() => setPanel("video")}>Video &darr;</a>
-      {#if showGuide || showVideo || showTips || showBackground}
-        &nbsp;
-        <a href="#" on:click={() => setPanel("none")}><i class="fa fa-close"></i></a>
-      {/if}
-  </h4>
+      <a href="#" on:click={() => setPanel("video")}>Just show me! &darr;</a>
+    </div>
+  </div>
   {#if showBackground}
   <div transition:slide class="help-panel">
-    <h4><strong>Background</strong></h4>
+    <h4><strong>Background</strong> <a href="#" on:click={() => setPanel("none")}><i class="fa fa-close"></i></a></h4>
     <p>Sometimes an old map document will cover discontiguous areas, especially when the mapmakers were trying to 
       fit a lot of content into a single page. In these cases, each separate area in the original document must be split into
       its own new document, so that each area can be georeferenced on its own. Typically, you'll find
@@ -75,8 +73,8 @@ function setPanel(show) {
     <hr>
     <p><em>
         Note: This evaluation is a very important initial step that should only be done once,
-        so if you want to skip this step and jump right into georeferencing, start with <a href="/documents/?limit=20&offset=0&tkeywords__id__in=1004">
-        documents that are ready for georeferencing</a>.
+        so if you want to skip this step and jump right into georeferencing, start with documents
+        that are already prepared.
         </em>
     </p>
   </div>
@@ -140,6 +138,8 @@ function setPanel(show) {
 main {
   display: flex;
   flex-direction: column;
+  border-radius: 5px;
+  margin-bottom: 10px;
 }
 
 figcaption {
@@ -147,12 +147,17 @@ figcaption {
   font-size: .85em;
 }
 
+.info-bar {
+  display:flex;
+  justify-content: space-between;
+  font-size: 1.2em;
+}
+
 .help-panel {
   font-size: 1.25em;
-  background: lightgray;
   border-radius: 7px;
-  padding: 20px;
-  margin-top: 20px;
+  background: lightgrey;
+  padding: 0px 15px 15px 15px;
   margin-bottom: 20px;
 }
 

@@ -201,6 +201,7 @@
     <div class='lmask'></div>
     <!-- Navbar -->
     {% block header %}
+    {% comment %}
   <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
     <div class="container" style="display:flex;">
         <div class="navbar-header-new">
@@ -218,7 +219,7 @@
           {% block tabs %}
           <li><a href="{% url "browse" %}" class="" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Browse Maps" %}</a></li>
           <li><a href="https://about.oldinsurancemaps.net" class="" role="button" aria-haspopup="true" aria-expanded="false">{% trans "About" %}</a></li>
-          {% comment %}
+
           <li>
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "About" %}<i class="fa fa-angle-down fa-lg"></i></a>
               <ul class="dropdown-menu">
@@ -244,7 +245,6 @@
               {% endif %}
               </ul>
           </li>
-          {% endcomment %}
           {% endblock %}
 
         </ul>
@@ -298,12 +298,49 @@
           </div> <!--/.nav-collapse -->
         </div>
       </nav>
+
+      {% endcomment %}
       {% endblock header %}
+
       <!-- End of Navbar -->
+    <nav class="lahmg-nav">
+
+      <div>
+        <div>
+          <a href="{% url 'home' %}" title="LaHMG">
+            <img src="{{ STATIC_URL }}img/noun_Map_heavy-colored-lite.png" alt="LaHMG" class="navbar-brand-new">
+            &nbsp;&nbsp;
+            <strong>Home</strong>
+          </a>
+        </div>
+        <div>
+          <a href="{% url 'browse' %}" title="Browse Maps">{% trans "Browse Maps" %}</a>
+        </div>
+        <div>
+          <a href="https://about.oldinsurancemaps.net" title="Browse">{% trans "About" %}</a>
+        </div>
+      </div>
+      <div>
+        {% if user.is_authenticated %}
+        <div>
+          <a href="{{ user.get_absolute_url }}">{{user.username}}</a>
+        </div>
+        <div>
+          <a href="/account/logout">{% trans "Sign out" %}</a>
+        </div>
+        {% else %}
+        <div>
+          <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >{% trans "Sign in" %}</a>
+        </div>
+        {% endif %}
+      </div>
+
+    </nav>
+
 
     <div class="alert alert-danger alert-dismissible" role="alert" id="ieflag" style="display:none">
       <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-      <h1>{% trans "You are using an outdated browser that is not supported by GeoNode." %}</h1>
+      <h1>{% trans "You are using an outdated browser that is not supported." %}</h1>
       <p>{% trans "Please use a <strong>modern browser</strong> like Mozilla Firefox, Google Chrome or Safari." %}</p>
     </div>
 
@@ -401,7 +438,7 @@
     {% if not user.is_authenticated %}
     <div class="modal fade" id="SigninModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-sm">
-        <div class="modal-content">
+        <div style="background:white; border-radius:5px;">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{% trans "Close" %}</span></button>
             <h4 class="modal-title" id="myModalLabel">{% trans "Sign in" %}</h4>
@@ -423,15 +460,16 @@
                 <label for="id_password" class="sr-only">{% trans "Password" %}:</label>
                 <input id="id_password" class="form-control" name="password" placeholder="{% trans "Password" %}" type="password" autocomplete="off" />
               </div>
-              <label class="checkbox">
-                <input type="checkbox" /> {% trans "Remember Me" %}
+              <label class="checkbox" style="padding-left:20px;">
+                <input type="checkbox" style="margin-left-20px;" /> {% trans "Remember Me" %}
               </label>
               <p>
                 <a href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
               </p>
               <hr>
               <p>
-                If you don't have an account, you can <a href="{% url "account_signup" %}">make one here</a>. You need one to process maps, not 
+                <a href="{% url "account_signup" %}">Sign up!</a><br>
+                You don't need an account to view maps, but you do need one to georeference them. 
               </p>
 
             </div>
