@@ -27,6 +27,7 @@ from georeference.models.sessions import (
     SessionBase,
     PrepSession,
     GeorefSession,
+    delete_expired_sessions,
 )
 
 logger = logging.getLogger(__name__)
@@ -47,4 +48,4 @@ def run_georeference_session(sessionid):
     name='georeference.tasks.delete_expired_sessions',
 )
 def delete_expired(self):
-    SessionBase().delete_expired_sessions()
+    delete_expired_sessions()

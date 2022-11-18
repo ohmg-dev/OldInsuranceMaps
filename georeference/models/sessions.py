@@ -35,6 +35,21 @@ from georeference.utils import (
 
 logger = logging.getLogger(__name__)
 
+def delete_expired_sessions():
+    """ Look at all currently locked resources, and if a resource's session is
+    due to expire, delete that session which will in turn unlock the resource.
+    """
+    locked_items = ItemBase.objects.filter(lock_enabled=True)
+    now = timezone.now().timestamp()
+    for resource in locked_items:
+        if now > resource.lock_details['expiration']:
+            try:
+                session = SessionBase.objects.get(pk=resource.lock_details['session_id'])
+                logger.warn(f"delete session {session.pk} to unlock resource {resource.pk}")
+                session.delete()
+            except SessionBase.DoesNotExist:
+                logger.warn(f"error during session cleanup. can't find SessionBase object for resource {resource.pk}")
+
 def get_default_session_data(session_type):
     """Return a dict of the keys/types for a sessions's data field.
     Also used for type-checking during validation."""
@@ -323,8 +338,10 @@ class SessionBase(models.Model):
         self.date_modified = timezone.now()
         return super(SessionBase, self).save(*args, **kwargs)
 
+
     def delete_expired_sessions(self, session_type=None, delta_kwargs=None):
         """
+        DEPRECATED: THIS WAS THE OLD METHOD, NO LONGER IN USE
         This method will remove all session instances whose creation
         datetime is older than the specified interval.
 
