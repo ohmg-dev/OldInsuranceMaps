@@ -206,7 +206,10 @@ STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "static"))
 STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "components", "public", "build"))
 # add context processor and middleware
 TEMPLATES[0]['OPTIONS']['context_processors'].append("loc_insurancemaps.context_processors.loc_info")
-MIDDLEWARE += ("loc_insurancemaps.middleware.LOCMiddleware", )
+
+# disable this middleware for now, because the documents and layers search pages are not
+# fully supported any more.
+# MIDDLEWARE += ("loc_insurancemaps.middleware.LOCMiddleware", )
 
 # exclude many default profile fields to reduce to identifiable personal information
 PROFILE_EDIT_EXCLUDE_FIELD = [
