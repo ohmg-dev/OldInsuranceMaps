@@ -45,12 +45,15 @@ admin.site.register(GeorefSession, GeorefSessionAdmin)
 admin.site.register(TrimSession, TrimSessionAdmin)
 
 class DocumentAdmin(admin.ModelAdmin):
-    search_fields = ('title', )
+    search_fields = ('title', 'status')
+    list_display = ('title', 'status', 'lock_enabled')
     exclude = ('type', 'layer_file', 'bbox_polygon')
+    list_filter = ('lock_enabled', 'status')
 
 class LayerAdmin(admin.ModelAdmin):
-    search_fields = ('title', )
+    search_fields = ('title', 'status')
     exclude = ('type', 'document_file')
+    list_filter = ('lock_enabled', )
 
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(Layer, LayerAdmin)

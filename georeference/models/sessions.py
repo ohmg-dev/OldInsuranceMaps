@@ -165,6 +165,10 @@ class SessionBase(models.Model):
         null=True,
         on_delete=models.CASCADE,
     )
+    user_input_duration = models.IntegerField(
+        blank=True,
+        null=True,
+    )
     date_created = models.DateTimeField(
         default=timezone.now,
     )
@@ -182,13 +186,45 @@ class SessionBase(models.Model):
     )
 
     def start(self):
-        raise NotImplementedError("Must be implemented in proxy models.")
+        if self.type == "p":
+            self.doc.set_status("splitting")
+        elif self.type == "g":
+            self.doc.set_status("georeferencing")
+            if self.lyr:
+                self.lyr.set_status("georeferencing")
+
+        self.lock_resources()
 
     def run(self):
         raise NotImplementedError("Must be implemented in proxy models.")
 
     def undo(self):
         raise NotImplementedError("Must be implemented in proxy models.")
+
+    def lock_resources(self):
+        """Calls the add_lock method on this session's resources, passing this
+        session in to supply the details for the lock."""
+        if self.doc:
+            self.doc.add_lock(self)
+        if self.lyr:
+            self.lyr.add_lock(self)
+
+    def unlock_resources(self):
+        """Calls the remove_lock method on this session's resources."""
+        print("document:", self.doc)
+        print("layer:", self.lyr)
+        if self.doc:
+            self.doc.remove_lock()
+        if self.lyr:
+            self.lyr.remove_lock()
+
+    def extend_locks(self):
+        """Extends the expiration time for all of the locks on this session's.
+        Quiet fail if the resources are not currently locked."""
+        if self.doc:
+            self.doc.extend_lock()
+        if self.lyr:
+            self.lyr.extend_lock()
 
     def extend(self, delta_kwargs=None):
         """
@@ -505,10 +541,6 @@ class GeorefSession(SessionBase):
     def __str__(self):
         return f"Georeference Session ({self.pk})"
 
-    def start(self):
-        tkm = TKeywordManager()
-        tkm.set_status(self.document, "georeferencing")
-
     def run(self):
 
         tkm = TKeywordManager()
@@ -727,10 +759,6 @@ class TrimSession(SessionBase):
 
     def __str__(self):
         return f"Trim Session ({self.pk})"
-
-    def start(self):
-        tkm = TKeywordManager()
-        tkm.set_status(self.layer, "trimming")
 
     def run(self):
 

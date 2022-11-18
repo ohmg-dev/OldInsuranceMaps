@@ -474,6 +474,13 @@ class ItemBase(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
+    lock_enabled = models.BooleanField(
+        default=False,
+    )
+    lock_details = JSONField(
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
         return str(self.title)
@@ -506,6 +513,35 @@ class ItemBase(models.Model):
                 float(self.y1)
             )
         return extent
+
+    def add_lock(self, session):
+        expiration = timezone.now() + timedelta(seconds=settings.GEOREFERENCE_SESSION_LENGTH)
+        lock_details = {
+            'session_type': session.type,
+            'session_id': session.pk,
+            'user': {
+                "name": session.user.username,
+                "profile": full_reverse("profile_detail", args=(session.user.username, )),
+            },
+            'expiration': expiration.timestamp()
+        }
+        self.lock_details = lock_details
+        self.lock_enabled = True
+        self.save(update_fields=["lock_details", "lock_enabled"])
+
+    def remove_lock(self):
+        self.lock_details = None
+        self.lock_enabled = False
+        self.save(update_fields=["lock_details", "lock_enabled"])
+
+    def extend_lock(self):
+        if self.lock_enabled:
+            expiration = datetime.fromtimestamp(self.lock_details['expiration'])
+            new_dt = expiration + timedelta(seconds=settings.GEOREFERENCE_SESSION_LENGTH)
+            self.lock_details['expiration'] = new_dt.timestamp()
+            self.save(update_fields=["lock_details", "lock_enabled"])
+        else:
+            logger.warn(f"{self.type} resource ({self.pk}): no existing lock to extend.")
 
     def set_thumbnail(self):
         if self.file is not None:
@@ -546,17 +582,18 @@ class ItemBase(models.Model):
             self.x1 = lr[1]
             self.y1 = ul[0]
 
-    def save(self, *args, **kwargs):
+    def set_status(self, status):
+        self.status = status
+        self.save(update_fields=["status"])
 
-        set_slug = kwargs.get("set_slug", False)
+    def save(self, set_slug=False, set_thumbnail=False, set_extent=False, *args, **kwargs):
+
         if set_slug or not self.slug:
             self.slug = slugify(self.title, join_char="_")
 
-        set_thumbnail = kwargs.get("set_thumbnail", False)
         if set_thumbnail or (self.file and not self.thumbnail):
             self.set_thumbnail()
 
-        set_extent = kwargs.get("set_extent", False)
         if set_extent or (self.type == "layer" and self.file and not self.x0):
             self.set_extent()
 
@@ -712,8 +749,9 @@ class Document(ItemBase):
             "children": children,
             "layer": layer,
             "gcps_geojson": self.gcps_geojson,
-            "transformation": self.transformation
-            # "lock": self.lock.as_dict,
+            "transformation": self.transformation,
+            "lock_enabled": self.lock_enabled,
+            "lock_details": self.lock_details,
         }
 
 class Layer(ItemBase):

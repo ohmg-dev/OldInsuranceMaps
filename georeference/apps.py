@@ -6,3 +6,4 @@ class GeoreferenceConfig(AppConfig):
 
     def ready(self):
         import georeference.signals
+        import georeference.receivers
