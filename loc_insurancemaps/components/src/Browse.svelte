@@ -42,7 +42,7 @@ main {
 	color: white;
 	width: 50%;
 	cursor: pointer;
-	background-color: #1b4060;
+	background-color: #123B4F;
 	margin: 10px;
 	border-radius: 10px;
 	font-size: 1em;

@@ -358,7 +358,7 @@ document.addEventListener("fullscreenchange", function(){
 		<div>
 			<h1 style="margin: 10px 0px;">{ VOLUME.title }</h1>
 			{#if OTHER_VOLUMES.length > 1}
-			<p>Jump to &rarr;
+			<p>
 			{#each OTHER_VOLUMES as ov, n}
 				{#if n != 0}&nbsp;&bullet;&nbsp;{/if}
 				{#if ov.url}<a href={ov.url} title={ov.name}>{ov.year}</a>{:else}{ov.year}{/if}
@@ -367,7 +367,7 @@ document.addEventListener("fullscreenchange", function(){
 			{/if}
 		</div>
 		<div class="link-box">
-			<a href="{VOLUME.urls.viewer}">Show in Viewer</a>
+			<a href="{VOLUME.urls.viewer}" target="_blank">Show in Viewer <i class="fa fa-external-link"></i></a>
 			<a href={ VOLUME.urls.loc_resource } target="_blank">
 				Show in Library of Congress <i class="fa fa-external-link"></i>
 			</a>
@@ -512,7 +512,7 @@ document.addEventListener("fullscreenchange", function(){
 			<i class="fa {showUnprepared == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
 			Unprepared ({VOLUME.items.unprepared.length})
 			{#if VOLUME.items.processing.unprep != 0}
-				&mdash; {VOLUME.items.processing.unprep} processing...
+				&mdash; {VOLUME.items.processing.unprep} in progress...
 			{/if}
 		</h4>
 		{#if showUnprepared}
@@ -534,10 +534,10 @@ document.addEventListener("fullscreenchange", function(){
 					<div><p>sheet {document.page_str}</p></div>
 					<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
 					<div>
-						{#if document.lock && document.lock.enabled}
+						{#if document.lock_enabled}
 						<ul style="text-align:center">
-							<li><em>session in progress...</em></li>
-							<li>{document.lock.username}</li>
+							<li><em>preparation in progress.</em></li>
+							<li><em>user: {document.lock_details.user.name}</em></li>
 						</ul>
 						{:else}
 						<ul>
