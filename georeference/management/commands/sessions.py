@@ -2,6 +2,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from georeference.models.sessions import (
+    delete_expired_sessions,
+    SessionBase,
     PrepSession,
     GeorefSession,
     TrimSession,
@@ -18,12 +20,14 @@ class Command(BaseCommand):
                 "legacy-migration",
                 "run",
                 "undo",
+                "redo",
                 "list",
+                "delete-expired",
             ],
             help="specify the operation to carry out",
         )
         parser.add_argument(
-            "type",
+            "--type",
             choices=[
                 "preparation",
                 "georeference",
@@ -46,42 +50,60 @@ class Command(BaseCommand):
             help="document id used to find sessions during list operation",
         )
 
+    def _model_from_type(self, session_type):
+        if session_type == "p":
+            return PrepSession
+        elif session_type == "g":
+            return GeorefSession
+        elif session_type == "t":
+            return TrimSession
+
     def handle(self, *args, **options):
 
-        if options["type"] == "preparation":
-            model = PrepSession
-        elif options["type"] == "georeference":
-            model = GeorefSession
-        elif options["type"] == "trim":
-            model = TrimSession
+        operation = options['operation']
+        if operation in ['run', 'undo', 'redo']:
 
-        if options['operation'] == "list":
+            bs = SessionBase.objects.get(pk=options['pk'])
+            model = self._model_from_type(bs.type)
+            session = model.objects.get(pk=options['pk'])
 
-            if options["type"] == "all":
+            if operation == "run":
+                session.run()
+            elif operation == "redo":
+                if bs.type == "p":
+                    session.undo(keep_session=True)
+                    session.run()
+                else:
+                    # this is the same as run for georeference sessions
+                    # because all previous outputs are reliably overwritten
+                    session.run()
+            elif operation == "undo":
+                session.undo()
+
+
+        elif operation == "list":
+
+            if options["type"]:
+                model = self._model_from_type(options['type'])
+                for s in model.objects.filter(document_id=options['docid']):
+                    print(s)
+            else:
                 for ps in PrepSession.objects.filter(document_id=options['docid']):
                     print(ps)
                 for gs in GeorefSession.objects.filter(document_id=options['docid']):
                     print(gs)
                 for ts in TrimSession.objects.filter(document_id=options['docid']):
                     print(ts)
-            else:
-                for s in model.objects.filter(document_id=options['docid']):
-                    print(s)
 
-        elif options['operation'] == "legacy-migration":
+
+        elif operation == 'delete-expired':
+
+            delete_expired_sessions()
+
+        elif operation == "legacy-migration":
 
             self.migrate_legacy_sessions(options['type'], options['clean'])
 
-        else:
-            if options["type"] == "all":
-                print("invalid type for this operation: all")
-                exit()
-
-            session = model.objects.get(pk=options['pk'])
-            if options["operation"] == "run":
-                session.run()
-            if options["operation"] == "undo":
-                session.undo()
 
     def migrate_legacy_sessions(self, type="", clean=False):
         tkm = TKeywordManager()
