@@ -56,35 +56,22 @@ class SplitView(View):
         Returns the splitting interface for this document.
         """
 
-        # doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
-        # lock = doc_proxy.preparation_lock
-        # sesh_id = None
-        # if not lock.enabled:
-        #     if request.user.is_authenticated:
-        #         sesh = PrepSession.objects.create(
-        #             document=doc_proxy.resource,
-        #             user=request.user,
-        #         )
-        #         sesh.start()
-        #         sesh_id = sesh.id
-        #         lock.stage = "in-progress"
-        #     else:
-        #         lock.enabled = True
-        #         lock.type = "unauthenticated"
-
-        # override lock with new empty one - Oct 6th
-        lock = SessionLock()
-        sesh_id = 99999999
-
         document = get_object_or_404(Document, pk=docid)
+        # if the document is not currently locked and there is a logged in user,
+        # create a new session
+        if not document.lock_enabled and request.user.is_authenticated and document.status == "unprepared":
+            session = PrepSession.objects.create(
+                doc=document,
+                user=request.user
+            )
+            session.start()
         doc_data = document.serialize()
 
         volume = find_volume(document)
         volume_json = volume.serialize()
 
         split_params = {
-            "LOCK": lock.as_dict,
-            "SESSION_ID": sesh_id,
+            "USER": "" if not request.user.is_authenticated else request.user.username,
             "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
             "CSRFTOKEN": csrf.get_token(request),
             "DOCUMENT": doc_data,
@@ -105,8 +92,6 @@ class SplitView(View):
         if not request.body:
             return BadPostRequest
 
-        # doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
-
         document = get_object_or_404(Document, pk=docid)
 
         body = json.loads(request.body)
@@ -123,32 +108,49 @@ class SplitView(View):
 
         elif operation == "split":
 
-            sesh, created = PrepSession.objects.get_or_create(doc=document)
-            # sesh, created = PrepSession.objects.get_or_create(document=doc_proxy.resource)
-            if sesh.user is None:
-                sesh.user = request.user
+            try:
+                sesh = PrepSession.objects.get(pk=sesh_id)
+            except PrepSession.DoesNotExist:
+                logger.warn("can't find PrepSession to delete.")
+                return JsonResponse({"success":False, "message": "no session found"})
             sesh.data['split_needed'] = True
             sesh.data['cutlines'] = cutlines
-            sesh.save(update_fields=["data", "user"])
+            sesh.save(update_fields=["data"])
             logger.info(f"{sesh.__str__()} | begin run() as task")
             run_preparation_session.apply_async((sesh.pk, ), queue="update")
             return JsonResponse({"success":True})
-        
+
         elif operation == "no_split":
 
-            sesh, created = PrepSession.objects.get_or_create(doc=document)
-            # sesh, created = PrepSession.objects.get_or_create(document=doc_proxy.resource)
-            if sesh.user is None:
-                sesh.user = request.user
+            # if the request is made from the Split interface, then a sesh_ic
+            # should have been passed along (use it to find the sesh)
+            if sesh_id is not None:
+                try:
+                    sesh = PrepSession.objects.get(pk=sesh_id)
+                    # sesh = PrepSession.objects.get(document=doc_proxy.resource)
+                except PrepSession.DoesNotExist:
+                    logger.warn("can't find PrepSession to delete.")
+                    return JsonResponse({"success":False, "message": "no session to cancel"})
+            # otherwise this request was made straight from the volume summary or
+            # doc detail, so a new session must be created now
+            # AS YET NOT FULLY TESTED
+            else:
+                sesh = PrepSession.objects.create(
+                    doc=document,
+                    user=request.user,
+                    user_input_duration=0,
+                )
+                sesh.start()
+
             sesh.data['split_needed'] = False
-            sesh.save(update_fields=["data", "user"])
+            sesh.save(update_fields=["data"])
             sesh.run()
             return JsonResponse({"success":True})
 
         elif operation == "cancel":
 
             try:
-                sesh = PrepSession.objects.get(doc=document)
+                sesh = PrepSession.objects.get(pk=sesh_id)
                 # sesh = PrepSession.objects.get(document=doc_proxy.resource)
             except PrepSession.DoesNotExist:
                 logger.warn("can't find PrepSession to delete.")
@@ -162,12 +164,7 @@ class SplitView(View):
 
         elif operation == "extend-session":
 
-            try:
-                sesh = PrepSession.objects.get(pk=sesh_id)
-            except PrepSession.DoesNotExist:
-                logger.warn("can't find PrepSession to delete.")
-                return JsonResponse({"success":False, "message": "no session to cancel"})
-            sesh.extend()
+            document.extend_lock()
             return JsonResponse({"success":True})
 
         elif operation == "undo":

@@ -1,14 +1,10 @@
 import os
-import uuid
-import json
 import logging
-from osgeo import gdal, osr
 from datetime import timedelta
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.gis.geos import Point, GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.files import File
@@ -19,15 +15,17 @@ from geonode.documents.models import Document as GNDocument
 from geonode.geoserver.signals import geoserver_post_save
 from geonode.layers.models import Layer as GNLayer
 from geonode.layers.utils import file_upload
-from geonode.thumbs.thumbnails import create_thumbnail
 
 from georeference.models.resources import (
     GCPGroup,
     LayerMask,
     GeoreferencedDocumentLink,
     SplitDocumentLink,
+    ItemBase,
+    Document,
+    Layer,
+    DocumentLink
 )
-from georeference.models.resources import Document, Layer
 from georeference.georeferencer import Georeferencer
 from georeference.splitter import Splitter
 from georeference.utils import (
@@ -385,7 +383,8 @@ class PrepSession(SessionBase):
         return any([tkm.is_georeferenced(d) for d in docs_to_check])
 
     def get_children(self):
-        """Returns a list of all the child documents that have been created
+        """ DEPRECATED SOON: use get_child_docs instead
+        Returns a list of all the child documents that have been created
         by a split operation from this session."""
 
         ct = ContentType.objects.get(app_label="documents", model="document")
@@ -395,12 +394,13 @@ class PrepSession(SessionBase):
         ).values_list("object_id", flat=True)
         return list(GNDocument.objects.filter(pk__in=child_ids))
 
-    def start(self):
-        tkm = TKeywordManager()
-        tkm.set_status(self.document, "splitting")
+    def get_child_docs(self):
+        child_ids = DocumentLink.objects.filter(source=self.doc).values_list("target_id", flat=True)
+        return list(Document.objects.filter(pk__in=child_ids))
 
-    def run(self):
+    def run_legacy(self):
         """
+        DEPRECATED: Retained temporarily for reference 11/5/22
         Runs the document split process based on prestored segmentation info
         that has been generated for this document. New Documents are made for
         each child image, SplitDocumentLinks are created to link this parent
@@ -466,7 +466,76 @@ class PrepSession(SessionBase):
         self.save()
         return
 
-    def undo(self):
+    def run(self):
+        """
+        Runs the document split process based on prestored segmentation info
+        that has been generated for this document. New Documents are made for
+        each child image, DocumentLinks are created to link this parent
+        Document with its children.
+        """
+
+        # if self.stage == "processing" or self.stage == "finished":
+        #     logger.warn(f"{self.__str__()} | abort run: session is already processing or finished.")
+        #     return
+
+        self.date_run = timezone.now()
+        # first time the session is run, calculate the user input time (seconds)
+        if self.user_input_duration is None:
+            timediff = timezone.now() - self.date_created
+            self.user_input_duration = timediff.seconds
+
+        self.update_stage("processing")
+        self.doc.set_status("splitting")
+
+        if self.data['split_needed'] is False:
+            self.doc.set_status("prepared")
+        else:
+            self.update_status("splitting document image")
+            s = Splitter(image_file=self.doc.file.path)
+            self.data['divisions'] = s.generate_divisions(self.data['cutlines'])
+            new_images = s.split_image()
+
+            for n, file_path in enumerate(new_images, start=1):
+                self.update_status(f"creating new document [{n}]")
+                fname = os.path.basename(file_path)
+                new_doc = Document.objects.get(pk=self.doc.pk)
+                new_doc.pk = None
+                
+                
+                new_doc.title = f"{self.doc.title} [{n}]"
+                with open(file_path, "rb") as openf:
+                    new_doc.file.save(fname, File(openf))
+                new_doc.save(set_thumbnail=True, set_slug=True)
+
+                os.remove(file_path)
+
+                ct = ContentType.objects.get(app_label="georeference", model="document")
+                DocumentLink.objects.create(
+                    source=self.doc,
+                    target_type=ct,
+                    target_id=new_doc.pk,
+                    link_type='split',
+                )
+
+                # must delete the parent cached_property so it will be properly
+                # recreated now that the DocumentLink exists
+                try:
+                    del new_doc.parent
+                except AttributeError:
+                    pass
+                new_doc.remove_lock()
+                new_doc.set_status("prepared")
+                new_doc.save()
+
+            self.doc.set_status("split")
+            self.doc.remove_lock()
+
+        self.update_status("success", save=False)
+        self.update_stage("finished", save=False)
+        self.save()
+        return
+
+    def undo_legacy(self):
         """Reverses the effects of this preparation session: remove child documents and
         links to them, then delete this session."""
 
@@ -485,18 +554,39 @@ class PrepSession(SessionBase):
         self.document.save()
         self.delete()
 
+    def undo(self, keep_session=False):
+        """Reverses the effects of this preparation session: remove child documents and
+        links to them, then delete this session."""
+
+        # first check to make sure this determination can be reversed.
+        # MUST BE RE-EVALUATED
+        # if self.georeferenced_downstream is True:
+        #     logger.warn(f"Removing PrepSession {self.pk} even though downstream georeferencing has occurred.")
+
+        # if a split was made, remove all descendant documents before deleting
+        for doc in self.get_child_docs():
+            doc.delete()
+
+        DocumentLink.objects.filter(source=self.doc).delete()
+
+        self.doc.set_status("unprepared")
+        self.doc.save()
+
+        if not keep_session:
+            self.delete()
+
     def generate_final_status_note(self):
 
         if self.data['split_needed'] is False:
             n = "no split needed"
         else:
-            pks = [str(i.pk) for i in self.get_children()]
+            pks = [str(i.pk) for i in self.get_child_docs()]
             n = f"split into {len(pks)} new docs ({', '.join(pks)})"
         return n
 
     def save(self, *args, **kwargs):
         self.type = 'p'
-        if not self.document:
+        if not self.doc:
             logger.warn(f"{self.__str__()} has no Document.")
         if not self.pk:
             self.data = get_default_session_data(self.type)
@@ -739,7 +829,7 @@ class GeorefSession(SessionBase):
 
     def save(self, *args, **kwargs):
         self.type = 'g'
-        if not self.document:
+        if not self.doc:
             logger.warn(f"{self.__str__()} has no Document.")
         if not self.pk:
             self.data = get_default_session_data(self.type)
