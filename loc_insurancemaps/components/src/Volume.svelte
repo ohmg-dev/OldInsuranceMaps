@@ -542,7 +542,7 @@ document.addEventListener("fullscreenchange", function(){
 						{:else}
 						<ul>
 							<li><a href={document.urls.split} title="prepare this document">prepare &rarr;</a></li>
-							<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
+							<li><a href={document.urls.resource} title={document.title}>document detail &rarr;</a></li>
 						</ul>
 						{/if}
 					</div>
@@ -581,7 +581,7 @@ document.addEventListener("fullscreenchange", function(){
 						{:else}
 						<ul>
 							<li><a href="{document.urls.georeference}?{referenceLayersParam()}{extentParam()}" title="georeference this document">georeference &rarr;</a></li>
-							<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
+							<li><a href={document.urls.resource} title={document.title}>document detail &rarr;</a></li>
 						</ul>
 						{/if}
 					</div>
@@ -637,7 +637,7 @@ document.addEventListener("fullscreenchange", function(){
 						<ul>
 							<!-- <li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li> -->
 							<li><a href="{layer.urls.georeference}?{referenceLayersParam()}" title="edit georeferencing">edit georeferencing &rarr;</a></li>
-							<li><a href={layer.urls.detail} title={layer.title}>layer detail &rarr;</a></li>
+							<li><a href={layer.urls.resource} title={layer.title}>layer detail &rarr;</a></li>
 							<!-- link for OHM editor with this layer as basemap -->
 							<!-- layers returning 400 7/14/2022, disabling for now -->
 							<!-- <li><a href={layer.urls.ohm_edit} title="open in OHM editor" target="_blank">OHM &rarr;</a></li> -->

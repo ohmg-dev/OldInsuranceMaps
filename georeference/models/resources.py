@@ -624,6 +624,9 @@ class Document(ItemBase):
     def urls(self):
         urls = self._base_urls
         urls.update({
+            "resource": full_reverse("resource_detail", args=(self.pk, )),
+            # remove detail and progress_page urls once InfoPanel has been fully 
+            # deprecated and volume summary has been updated.
             "detail": f"/documents/{self.pk}",
             "progress_page": f"/documents/{self.pk}#georeference",
             "split": full_reverse("split_view", args=(self.pk, )),
@@ -644,6 +647,11 @@ class Document(ItemBase):
         except PrepSession.MultipleObjectsReturned:
             logger.warn(f"Multiple PrepSessions found for Document {self.id}")
             return list(PrepSession.objects.filter(doc=self))[0]
+
+    @property
+    def georeference_sessions(self):
+        from georeference.models.sessions import GeorefSession
+        return GeorefSession.objects.filter(document=self.id).order_by("date_run")
 
     @property
     def cutlines(self):
@@ -694,15 +702,43 @@ class Document(ItemBase):
         urls.update(self.get_layer_urls())
         return urls
 
+    def get_split_summary(self):
+
+        if self.preparation_session is None:
+            return None
+
+        info = self.preparation_session.serialize()
+
+        parent_json = None
+        if self.parent:
+            parent_json = self.parent.serialize(serialize_children=False)
+        child_json = [i.serialize(serialize_parent=False) for i in self.children]
+
+        info.update({
+            "parent_doc": parent_json,
+            "child_docs": child_json,
+        })
+
+        return info
+
+    def get_georeference_summary(self):
+
+        sessions = [i.serialize() for i in self.georeference_sessions]
+        return {
+            "sessions": sessions,
+            "gcp_geojson": self.gcps_geojson,
+            "transformation": self.transformation,
+        }
+
     def get_sessions(self, serialize=False):
 
         ps = self.preparation_session
         if ps is not None:
-            from georeference.models.sessions import GeorefSession
-            gs = GeorefSession.objects.filter(doc=self).order_by("date_run")
-            sessions = list(chain([ps], gs))
+            sessions = list(chain([ps], self.georeference_sessions))
             if serialize is True:
-                return [i.serialize() for i in sessions]
+                sessions_json = [super(type(i), i).serialize() for i in sessions]
+                sessions_json.sort(key=lambda i: (i['date_run'] is None, i['date_run']))
+                return sessions_json
             else:
                 return sessions
         else:
@@ -742,6 +778,7 @@ class Document(ItemBase):
         return {
             "id": self.pk,
             "title": self.title,
+            "type": self.type,
             "slug": self.slug,
             "status": self.status,
             "urls": self.urls,
@@ -770,6 +807,9 @@ class Layer(ItemBase):
         urls = self._base_urls
         georef_url = self.get_document().urls['georeference']
         urls.update({
+            "resource": full_reverse("resource_detail", args=(self.pk, )),
+            # remove detail and progress_page urls once InfoPanel has been fully 
+            # deprecated and volume summary has been updated.
             # note the geonode: prefix is still necessary until non-geonode
             # layer and document detail pages are created.
             "detail": f"/layers/geonode:{self.slug}" if self.slug else "",
@@ -779,6 +819,15 @@ class Layer(ItemBase):
             "georeference": georef_url,
         })
         return urls
+
+    def get_sessions(self, serialize=False):
+        return self.get_document().get_sessions(serialize=serialize)
+
+    def get_split_summary(self):
+        return self.get_document().get_split_summary()
+
+    def get_georeference_summary(self):
+        return self.get_document().get_georeference_summary()
 
     # not currently in used, but retained as a placeholder for the future
     def get_ohm_url(self):
@@ -812,6 +861,7 @@ class Layer(ItemBase):
         return {
             "id": self.pk,
             "title": self.title,
+            "type": self.type,
             "slug": self.slug,
             "status": self.status,
             "urls": self.urls,

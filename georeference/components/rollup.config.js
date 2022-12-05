@@ -88,6 +88,7 @@ let exportable = [];
   "Trim",
   "TrimPreamble",
   "InfoPanel",
+  "Resource",
 ].forEach((d) => exportable.push(componentExportDetails(d)));
 
 export default exportable;
