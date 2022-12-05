@@ -1,22 +1,3 @@
-<!-- -----------------------------------------------------------------
--
-- Copyright (C) 2019 OSGeo
--
-- This program is free software: you can redistribute it and/or modify
-- it under the terms of the GNU General Public License as published by
-- the Free Software Foundation, either version 3 of the License, or
-- (at your option) any later version.
--
-- This program is distributed in the hope that it will be useful,
-- but WITHOUT ANY WARRANTY; without even the implied warranty of
-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-- GNU General Public License for more details.
--
-- You should have received a copy of the GNU General Public License
-- along with this program. If not, see <http://www.gnu.org/licenses/>.
--
----------------------------------------------------------------------- -->
-
 
 
 
@@ -34,20 +15,19 @@
     <meta Http-Equiv="Cache-directive: no-cache">
 
     <title>LaHMG</title>
+    <meta property="og:description" content="A crowdsourcing site for creating and viewing georeferenced mosaics of historical Sanborn fire insurance maps" />
 
-    <link rel="shortcut icon" href="/static/geonode/img/favicon.ico" />
+    <link rel="shortcut icon" href="/static/favicon.ico" />
     <link href="/static/lib/css/ol.css" rel="stylesheet" />
     <script src="/static/lib/js/ol.js"></script>
     <link rel="preload" as="style" href="/static/geonode/css/font-awesome.min.css" />
-    <link rel="preload" as="font" href="/static/geonode/fonts/lato_regular.ttf" crossorigin="" />
-    <link rel="preload" as="font" href="/static/geonode/fonts/lato_bold.ttf" crossorigin="" />
-    <link rel="preload" as="font" href="/static/geonode/fonts/lato_light.ttf" crossorigin="" />
+
+    <! -- analytics with plausible.io -->
+    <script defer data-domain="oldinsurancemaps.net" src="/js/script.js"></script>
 
     
 
-      
       <link href="/static/lib/css/assets.min.css" rel="stylesheet"/>
-      
       <link href="/static/geonode/css/base.css" rel="stylesheet"/>
       <link rel='stylesheet' id='cookie-law-info-css'  href="/static/geonode/css/cookie-law-info/cookie-law-info-public.css" type='text/css' media='all' />
       <link rel='stylesheet' id='cookie-law-info-gdpr-css'  href="/static/geonode/css/cookie-law-info/cookie-law-info-gdpr.css" type='text/css' media='all' />
@@ -89,15 +69,7 @@
           background-color: #2c689c;
         }
         
-
         
-        .navbar-inverse .navbar-nav > .open > a,
-        .navbar-inverse .navbar-nav > .open > a:hover,
-        .navbar-inverse .navbar-nav > .open > a:focus {
-          background-color: #2c689c;
-        }
-        
-
         
         .navbar-nav .dropdown-menu {
           background-color: #2c689c;
@@ -110,12 +82,6 @@
           color: #ffffff;
         }
         
-
-        
-        .navbar-nav .dropdown-menu li a:hover {
-          background-color: #123B4F;
-          color: #ffffff;
-        }
         
 
         
@@ -124,61 +90,6 @@
         }
         
 
-        
-        .navbar-brand {
-          background-image: url(/uploaded/img/2021/12/noun_Map_2592596-white-trans.png);
-          background-repeat: no-repeat;
-          background-position: center;
-          background-size: contain;
-        }
-        
-
-        
-        .home .jumbotron {
-          background-color: #EAE0C1
-        }
-        
-
-        
-        .home .jumbotron h1,
-        .home .jumbotron h2,
-        .home .jumbotron h3 {
-          color: #3a3a3a
-        }
-        
-
-        
-        .home .jumbotron p {
-          color: #3a3a3a;
-          font-weight: normal;
-          font-size: xx-large;
-          font-family: 'Open Sans','Helvetica Neue',Arial,sans-serif;
-        }
-        
-
-        
-
-        
-        .home .jumbotron .container {
-          position: relative;
-          z-index: 1;
-        }
-        .home .jumbotron:after {
-          content: "";
-          background-image: url(/uploaded/img/2021/12/no-1885-snippet1-reduce-50qual.jpg);
-          background-repeat: no-repeat;
-          background-position: center;
-          background-size: cover;
-          
-          opacity: 0.5;
-          
-          top: 0;
-          left: 0;
-          bottom: 0;
-          right: 0;
-          position: absolute;
-          z-index: 0;
-        }
         
 
         
@@ -212,15 +123,13 @@
         }
         
       </style>
+
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
       
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
-
-<link href="/static/css/site_base.css" rel="stylesheet"/>
-<link href="/static/css/icons.css" rel="stylesheet"/>
-<link rel="shortcut icon" href="/static/favicon.ico" />
-
+      <link href="/static/css/site_base.css" rel="stylesheet"/>
+      <link href="/static/css/icons.css" rel="stylesheet"/>
     
     <!--[if IE]>
       <script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -232,10 +141,10 @@
         }
       </style>
     <![endif]-->
-    <link rel="search" type="application/opensearchdescription+xml" href="http://localhost:8000/catalogue/opensearch" title="GeoNode Search"/>
+    <link rel="search" type="application/opensearchdescription+xml" href="https://oldinsurancemaps.net/catalogue/opensearch" title="GeoNode Search"/>
 
     <script>
-        var siteUrl = 'http://localhost:8000/'.replace(/\/?$/, '/');
+        var siteUrl = 'https://oldinsurancemaps.net/'.replace(/\/?$/, '/');
         var staticUrl = '/static/';
     </script>
 
@@ -266,149 +175,44 @@
     <div class='lmask'></div>
     <!-- Navbar -->
     
-  <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="nav-container">
-        <div class="navbar-header">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-          <i class="fa fa-navicon fa-lg"></i>
-        </button>
-        <a class="navbar-brand" href="/">GeoNode</a>
-      </div>
-      <div id="navbar" class="navbar-collapse collapse">
-        <ul class="nav navbar-nav toolbar">
-
-          
-<li id="nav_layers">
-    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Content<i class="fa fa-angle-down fa-lg"></i></a>
-    <ul class="dropdown-menu">
-    <li><a href="/loc/volumes/">Volumes</a></li>
-    <li><a href="/documents/?limit=20">Documents</a></li>
-    <li><a href="/layers/?limit=20">Layers</a></li>
-    <li><a href="/maps/?limit=20">Web Maps</a></li>
     
-    
-    
-    </ul>
-</li>
-
-<li>
-    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">About<i class="fa fa-angle-down fa-lg"></i></a>
-    <ul class="dropdown-menu">
-    <li><a href="/getting-started/">Getting Started</a></li>
-    <li><a href="/about/">Project Background</a></li>
-    <li><a href="https://github.com/mradamcox/loc-insurancemaps" target="_blank">Source Code <i class="fa fa-external-link"></i></a></li>
-    <li role="separator" class="divider"></li>
-    <li><a href="/people/">People</a></li>
-    <li><a href="/groups/">Groups</a></li>
-    <li><a href="/groups/categories/">Group Categories</a></li>
-    
-    
-    
-    </ul>
-</li>
-<li>
-  <a href="https://docs.oldinsurancemaps.net" class="" role="button" aria-haspopup="true" aria-expanded="false">Documentation</a>
-</li>
-
-
-        </ul>
-        <ul class="nav navbar-nav navbar-right">
-
-            
-               <!-- -----------------------------------------------------------------
--
-- Copyright (C) 2019 OSGeo
--
-- This program is free software: you can redistribute it and/or modify
-- it under the terms of the GNU General Public License as published by
-- the Free Software Foundation, either version 3 of the License, or
-- (at your option) any later version.
--
-- This program is distributed in the hope that it will be useful,
-- but WITHOUT ANY WARRANTY; without even the implied warranty of
-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-- GNU General Public License for more details.
--
-- You should have received a copy of the GNU General Public License
-- along with this program. If not, see <http://www.gnu.org/licenses/>.
--
----------------------------------------------------------------------- -->
-
-
-
-<script type="text/javascript">
-    window.addEventListener('load', function(){
-        var reposition = function() {
-            if (document.querySelector) {
-                // we should target the wrapper of navbar
-                // to ensure all parts are computed in the height
-                const fixedNavarNode = document.querySelector('nav.navbar-fixed-top');
-                const wrapNode = document.querySelector('#wrap');
-                const msContainerNode = document.querySelector('#ms-container');
-                const fixedNavarNodeHeight = fixedNavarNode && fixedNavarNode.clientHeight;
-                if (fixedNavarNodeHeight) {
-                    if (wrapNode) {
-                        wrapNode.style.marginTop = fixedNavarNodeHeight + 'px';
-                        document.body.style.paddingTop = 0;
-                    }
-                    if (msContainerNode) {
-                        msContainerNode.style.top = fixedNavarNodeHeight + 'px';
-                        document.body.style.paddingTop = 0;
-                    }
-                }
-            }
-        };
-        if (ResizeObserver) {
-            const fixedNavarNode = document.querySelector('nav.navbar-fixed-top');
-            const resizeObserver = new ResizeObserver(reposition);
-            resizeObserver.observe(fixedNavarNode);
-        } else {
-            // attach the function to the window resize event
-            window.addEventListener('resize', reposition);
-        }
-
-        reposition();
-    });
-</script>
-
-
-            
-
-            <li>
-              <div class="search">
-                <form id="search" action="/search/" >
-                  <span class="fa fa-search"></span>
-                  <div id="search-container" class="autocomplete-input">
-                    
-                    <input autocomplete="off" type="text" name="title__icontains" id="search_input" placeholder="Search" >
-                    <input type="hidden" name="abstract__icontains" id="search_abstract_input" placeholder="Search" >
-                    <input type="hidden" name="purpose__icontains" id="search_purpose_input" placeholder="Search" >
-                    <input type="hidden" name="f_method" id="filtering_type" value="or" >
-                    
-                  </div>
-                </form>
-              </div>
-            </li>
-            
-              <li><a href="/account/signup/">Register</a></li>
-            
-            
-          <li><a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in </a></li>
-              
-            </ul>
-          </div> <!--/.nav-collapse -->
-        </div>
-      </nav>
       
+
       <!-- End of Navbar -->
+    <nav class="lahmg-nav">
+
+      <div>
+        <div>
+          <a href="/" title="LaHMG">
+            <img src="/static/img/noun_Map_heavy-colored-lite.png" alt="LaHMG" class="navbar-brand-new">
+            &nbsp;&nbsp;
+            <strong>Home</strong>
+          </a>
+        </div>
+        <div>
+          <a href="/browse/" title="Browse Maps">Browse Maps</a>
+        </div>
+        <div>
+          <a href="https://about.oldinsurancemaps.net" title="Browse">About</a>
+        </div>
+      </div>
+      <div>
+        
+        <div>
+          <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in</a>
+        </div>
+        
+      </div>
+
+    </nav>
+
 
     <div class="alert alert-danger alert-dismissible" role="alert" id="ieflag" style="display:none">
       <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-      <h1>You are using an outdated browser that is not supported by GeoNode.</h1>
+      <h1>You are using an outdated browser that is not supported.</h1>
       <p>Please use a <strong>modern browser</strong> like Mozilla Firefox, Google Chrome or Safari.</p>
     </div>
 
-  <div id="wrap">
     
     <div class="container">
       
@@ -421,6 +225,21 @@
       
 
 
+
+<div id="site_wide_announcements">
+    
+    
+    <div class="alert alert-block announcement alert-warning">
+        
+        <a type="button" class="close" data-dismiss="alert" data-dismiss-url="/announcements/announcement/9/hide/" href="#">×</a>
+        
+        <h4><a href="/announcements/announcement/9/">Site Changes</a></h4>
+        <p><small><em>June 27, 2022, 8:57 p.m.</em></small></p>
+        <div>Thank you for your interest! This site will be undergoing development through the summer and fall, but you'll be able to continue exploring Sanborn maps here. Follow <a href="https://twitter.com/mradamcox" target="_blank">@mradamcox</a> for future updates.</div>
+    </div>
+    
+    
+</div>
 
 
       
@@ -448,16 +267,13 @@
     
     
 
-  </div>
-
   
   
-
   
 <footer>
   <div class="container">
     <div class="row">
-      <div class="col-md-3">
+      <div class="col-md-4">
         <ul class="list-unstyled">
           <li>Content</li>
           <li><a href="/loc/volumes/">Volumes</a></li>
@@ -468,7 +284,7 @@
           
         </ul>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <ul class="list-unstyled">
           <li>About</li>
           <li><a href="/getting-started/">Getting Started</a></li>
@@ -483,163 +299,17 @@
         </ul>
       </div>
 
-      <div class="col-md-6 text-right">
-        
-        
+      <div class="col-md-4 text-right">
         <ul class="list-unstyled">
-            <li style="text-align: left;"><h2 style="margin-top: 0px;">Contact Us </h2> </li>
-            <li style="text-align: left;">Adam Cox</li>
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            <li style="text-align: left;">E-mail: acox42 [at] lsu.edu</li>
+            <li style="text-align: left;"><h3 style="margin-top: 0px;">Get in touch! </h3> </li>
+            <li style="text-align: left;"><a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a></li>
         </ul>
-        
-        
-        <ul class="list-unstyled">
-          <li>Powered by <a href="https://geonode.org">GeoNode</a></li>
-          <li><a href="https://geonode.org/dev_features/">Developers</a> | <a href="https://geonode.org/user_features/">About</a><li>
-        </ul>
-        <label class="hidden">Language</label>
-        
-        
-        <form class="form-inline" action="/i18n/setlang/" method="post">
-        <input type="hidden" name="csrfmiddlewaretoken" value="OLBUGjkkP6elKyngw8kCNrRxA2ojbMOx1I2ShCasf1zulIiD1MjElIbxRRkF1bhU">
-          <select class="col-md-6 pull-right" name="language" onchange="javascript:form.submit()">
-            
-            <option value="af" >
-              Afrikaans
-            </option>
-            
-            <option value="sq" >
-              Albanian
-            </option>
-            
-            <option value="am" >
-              Amharic
-            </option>
-            
-            <option value="ar" >
-              Arabic
-            </option>
-            
-            <option value="id" >
-              Bahasa Indonesia
-            </option>
-            
-            <option value="bn" >
-              Bengali
-            </option>
-            
-            <option value="de" >
-              Deutsch
-            </option>
-            
-            <option value="en"  selected="selected">
-              English
-            </option>
-            
-            <option value="es" >
-              Español
-            </option>
-            
-            <option value="fr" >
-              Français
-            </option>
-            
-            <option value="it" >
-              Italiano
-            </option>
-            
-            <option value="km" >
-              Khmer
-            </option>
-            
-            <option value="nl" >
-              Nederlands
-            </option>
-            
-            <option value="ne" >
-              Nepali
-            </option>
-            
-            <option value="fa" >
-              Persian
-            </option>
-            
-            <option value="pl" >
-              Polish
-            </option>
-            
-            <option value="pt" >
-              Portuguese
-            </option>
-            
-            <option value="pt-br" >
-              Portuguese (Brazil)
-            </option>
-            
-            <option value="ru" >
-              Russian
-            </option>
-            
-            <option value="si" >
-              Sinhala
-            </option>
-            
-            <option value="sw" >
-              Swahili
-            </option>
-            
-            <option value="sv" >
-              Swedish
-            </option>
-            
-            <option value="tl" >
-              Tagalog
-            </option>
-            
-            <option value="ta" >
-              Tamil
-            </option>
-            
-            <option value="uk" >
-              Ukranian
-            </option>
-            
-            <option value="vi" >
-              Vietnamese
-            </option>
-            
-            <option value="el" >
-              Ελληνικά
-            </option>
-            
-            <option value="th" >
-              ไทย
-            </option>
-            
-            <option value="zh-cn" >
-              中文
-            </option>
-            
-            <option value="ja" >
-              日本語
-            </option>
-            
-            <option value="ko" >
-              한국어
-            </option>
-            
-          </select>
-        </form>
-        
+      </div>
+    </div>
+    <div class="row" style="color:white; text-align:center;">
+      <div class="col-xs-12">
+        <p>Copyright © 2022 | <a href="https://github.com/mradamcox/loc-insurancemaps" target="_blank">Source <i class="fa fa-external-link"></i></a> |
+           Powered by <a href="https://geonode.org" target="_blank">GeoNode <i class="fa fa-external-link"></i></a></p>
       </div>
     </div>
   </div>
@@ -647,21 +317,18 @@
 
 
 
-
-
-
     <!-- Modal must stay outside the navbar -->
     
     <div class="modal fade" id="SigninModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-sm">
-        <div class="modal-content">
+        <div style="background:white; border-radius:5px;">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
             <h4 class="modal-title" id="myModalLabel">Sign in</h4>
           </div>
           <form class="form-signin" role="form" action="/account/login/?next=/" method="post">
             <div class="modal-body">
-              <input type="hidden" name="csrfmiddlewaretoken" value="OLBUGjkkP6elKyngw8kCNrRxA2ojbMOx1I2ShCasf1zulIiD1MjElIbxRRkF1bhU">
+              <input type="hidden" name="csrfmiddlewaretoken" value="KhiDgqN4JyJDINT68vfjtb4HjkuJxdnSPyXeNzQQjZ8OtK3zLb5P5sqluVqrQgIr">
               
               
               <div class="form-group">
@@ -672,12 +339,18 @@
                 <label for="id_password" class="sr-only">Password:</label>
                 <input id="id_password" class="form-control" name="password" placeholder="Password" type="password" autocomplete="off" />
               </div>
-              <label class="checkbox">
-                <input type="checkbox" /> Remember Me
+              <label class="checkbox" style="padding-left:20px;">
+                <input type="checkbox" style="margin-left-20px;" /> Remember Me
               </label>
               <p>
                 <a href="/account/password/reset/">Forgot Password?</a>
               </p>
+              <hr>
+              <p>
+                <a href="/account/signup/">Sign up!</a><br>
+                You don't need an account to view maps, but you do need one to georeference them. 
+              </p>
+
             </div>
             <div class="modal-footer">
               <button type="submit" class="btn btn-primary btn-block">Sign in</button>
@@ -696,7 +369,7 @@
     <script src="/static/geonode/js/base/base.js"></script>
     <script type="text/javascript" src="/jsi18n/"></script>
     
-    <script type="text/javascript">
+    <!-- <script type="text/javascript">
 
       // Autocomplete instance for the search found in the header.
       $(document).ready(function() {
@@ -726,7 +399,7 @@
       $(".datepicker").datepicker({
           format: "yyyy-mm-dd"
       });
-    </script>
+    </script> -->
 
     <div class="modal fade" style="width: 100%; height: 100%;" id="_resource_uploading" data-backdrop="static" data-keyboard="false" aria-hidden="true">
         <div class="modal-dialog">
