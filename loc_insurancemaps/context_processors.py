@@ -1,3 +1,4 @@
+from django.conf import settings
 from georeference.utils import analyze_url, full_reverse
 from georeference.models.resources import Document, Layer
 from loc_insurancemaps.models import find_volume
@@ -7,6 +8,7 @@ def loc_info(request):
     info = {
         'volume_title': "",
         'volume_url': "",
+        'newsletter_enabled': settings.ENABLE_NEWSLETTER,
     }
     vol = None
 

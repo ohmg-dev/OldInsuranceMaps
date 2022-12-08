@@ -29,6 +29,9 @@ urlpatterns += [
     path('mrm/<str:layerid>/', MRMEndpointLayer.as_view(), name="mrm_get_resource"),
 ]
 
+if settings.ENABLE_NEWSLETTER:
+    urlpatterns += [path('newsletter/', include('newsletter.urls'))]
+
 if 'georeference' in settings.INSTALLED_APPS:
     urlpatterns += [url(r'^', include('georeference.urls'))]
 

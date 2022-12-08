@@ -135,6 +135,17 @@ INSTALLED_APPS += (
     PROJECT_NAME,
 )
 
+ENABLE_NEWSLETTER = os.getenv("ENABLE_NEWSLETTER", False)
+if ENABLE_NEWSLETTER:
+    INSTALLED_APPS += (
+        'sorl.thumbnail',
+        'newsletter',
+    )
+    NEWSLETTER_THUMBNAIL = 'sorl-thumbnail'
+    NEWSLETTER_CONFIRM_EMAIL_SUBSCRIBE = True
+    NEWSLETTER_CONFIRM_EMAIL_UNSUBSCRIBE = False
+    NEWSLETTER_CONFIRM_EMAIL_UPDATE = False
+
 MIDDLEWARE = (
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
