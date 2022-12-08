@@ -13,7 +13,6 @@ from georeference.models.resources import (
 from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
-    TrimSession,
 )
 from georeference.utils import (
     get_gs_catalog,
@@ -56,54 +55,3 @@ def pre_delete_georefsession(sender, instance, **kwargs):
             new_status = "prepared"
         logger.info(f"{instance.__str__()} | delete session and set document {instance.document.pk} - '{new_status}'")
         tkm.set_status(instance.document, new_status)
-
-@receiver(signals.pre_delete, sender=TrimSession)
-def pre_delete_trimsession(sender, instance, **kwargs):
-    """
-    Emulate a cancellation of sessions that have not yet been run, i.e. are in
-    the input stage.
-    
-    If a LayerMask exists, assume the layer has been trimmed through 
-    a past session, and reset status to 'trimmed'.
-    
-    Otherwise, reset to 'georeferenced'.
-    """
-
-    if instance.stage == "input" and instance.layer is not None:
-        tkm = TKeywordManager()
-        if LayerMask.objects.filter(layer=instance.layer).exists():
-            new_status = "trimmed"
-        else:
-            new_status = "georeferenced"
-        logger.info(f"{instance.__str__()} | delete session and set layer {instance.layer.pk} - '{new_status}'")
-        tkm.set_status(instance.layer, new_status)
-
-@receiver(signals.pre_delete, sender=LayerMask)
-def pre_delete_layer_mask(sender, instance, **kwargs):
-
-    # delete the existing trim style in Geoserver if necessary
-    cat = get_gs_catalog()
-    trim_style_name = f"{instance.layer.name}_trim"
-    gs_trim_style = cat.get_style(trim_style_name, workspace="geonode")
-    if gs_trim_style is not None:
-        cat.delete(gs_trim_style, recurse=True)
-
-    # delete the existing trimmed style in GeoNode
-    Style.objects.filter(name=trim_style_name).delete()
-
-    # set the full style back to the default in GeoNode
-    gn_full_style = Style.objects.get(name=instance.layer.name)
-    instance.layer.default_style = gn_full_style
-    instance.layer.save()
-
-    # update thumbnail
-    thumb = create_thumbnail(instance.layer, overwrite=True)
-    instance.layer.thumbnail_url = thumb
-    instance.layer.save()
-
-    # set all existing TrimSessions for the layer as "unapplied"
-    for ts in TrimSession.objects.filter(layer=instance.layer):
-        ts.update_status("unapplied")
-    # set layer status to 'georeferenced'
-    tkm = TKeywordManager()
-    tkm.set_status(instance.layer, "georeferenced")

@@ -16,7 +16,6 @@ from georeference.tasks import (
     run_georeference_session,
 )
 from georeference.models.resources import (
-    LayerMask,
     Layer,
     Document,
     ItemBase,
@@ -24,7 +23,6 @@ from georeference.models.resources import (
 from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
-    TrimSession,
 )
 from georeference.proxy_models import (
     LayerProxy,
@@ -397,123 +395,3 @@ class ResourceView(View):
                 }
             }
         )
-
-class TrimView(View):
-
-    def get(self, request, layeralternate):
-
-        layer_proxy = LayerProxy(layeralternate, raise_404_on_error=True)
-        lock = layer_proxy.trim_lock
-
-        sesh_id = None
-        if not lock.enabled:
-            if request.user.is_authenticated:
-                sesh = TrimSession.objects.create(
-                    layer=layer_proxy.resource,
-                    user=request.user,
-                )
-                sesh.start()
-                sesh_id = sesh.pk
-                lock.stage = "in-progress"
-            else:
-                lock.enabled = True
-                lock.type = "unauthenticated"
-
-        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
-        gs = gs.rstrip("/") + "/"
-        geoserver_ows = f"{gs}ows/"
-
-        trim_params = {
-            "LOCK": lock.as_dict,
-            "SESSION_ID": sesh_id,
-            "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
-            "LAYER": layer_proxy.serialize(),
-            "CSRFTOKEN": csrf.get_token(request),
-            "GEOSERVER_WMS": geoserver_ows,
-            "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-            "INCOMING_MASK_COORDINATES": layer_proxy.mask_coords,
-        }
-
-        return render(
-            request,
-            "georeference/trim.html",
-            context={
-                "trim_params": trim_params,
-            }
-        )
-
-    def post(self, request, layeralternate):
-
-        if not request.body:
-            return BadPostRequest
-            
-        layer_proxy = LayerProxy(layeralternate, raise_404_on_error=True)
-
-        body = json.loads(request.body)
-        polygon_coords = body.get("mask_coords", [])
-        operation = body.get("operation")
-        sesh_id = body.get("sesh_id", None)
-
-        if sesh_id is None:
-            logger.warn(f"no session id in trim view post")
-            return JsonResponse({
-                "success":False,
-                "message": "no session id: view must be called on existing session"
-            })
-        try:
-            sesh = TrimSession.objects.get(pk=sesh_id)
-        except TrimSession.DoesNotExist:
-            logger.warn(f"invalid session id {sesh_id} in trim view post")
-            return JsonResponse({
-                "success":False,
-                "message": f"session {sesh_id} not found: view must be called existing on session"
-            })
-
-        if operation in ["preview", "submit"]:
-            if len(polygon_coords) < 3:
-                return JsonResponse({"success": False, "message": "not enough coords"})
-            try:
-                mask = Polygon(polygon_coords)
-            except ValueError as e:
-                logger.warn(f"error in trim preview: {e}")
-                return JsonResponse({"success": False, "message": str(e)})
-
-        if operation == "preview":
-            preview_sld = LayerMask(
-                layer=layer_proxy.resource,
-                polygon=mask,
-            ).as_sld()
-            return JsonResponse({"success": True, "sld_content": preview_sld})
-
-        elif operation == "submit":
-
-            sesh.data['mask_ewkt'] = mask.ewkt
-            sesh.save()
-            sesh.run()
-            return JsonResponse({"success": True})
-
-        elif operation == "cancel":
-
-            if sesh.stage != "input":
-                msg = "can't cancel session that is past the input stage"
-                logger.warn(f"{sesh.__str__()} | {msg}")
-                return JsonResponse({"success":True, "message": msg})
-
-            sesh.delete()
-            return JsonResponse({"success": True})
-
-        elif operation == "extend-session":
-
-            sesh.extend()
-            return JsonResponse({"success":True})
-
-        elif operation == "remove-mask":
-
-            # first cancel the current session
-            sesh.delete()
-            # now remove the LayerMask.
-            LayerMask.objects.filter(layer=layer_proxy.resource).delete()
-            return JsonResponse({"success": True})
-
-        else:
-            return BadPostRequest

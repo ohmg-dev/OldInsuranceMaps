@@ -45,7 +45,7 @@ let undoBtnEnabled;
 let processing;
 
 $: {
-  processing = RESOURCE.status == "splitting" || RESOURCE.status == "georeferencing" || RESOURCE.status == "trimming"
+  processing = RESOURCE.status == "splitting" || RESOURCE.status == "georeferencing"
   splitNeeded = SPLIT_SUMMARY ? SPLIT_SUMMARY.split_needed : "unknown";
   undoBtnEnabled = SPLIT_SUMMARY ? SPLIT_SUMMARY.allow_reset : false;
   switch(RESOURCE.status) {

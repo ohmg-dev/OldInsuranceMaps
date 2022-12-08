@@ -35,7 +35,6 @@ from georeference.models.resources import (
 from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
-    TrimSession,
 )
 from georeference.proxy_models import DocumentProxy, LayerProxy
 from georeference.storage import OverwriteStorage
@@ -1020,7 +1019,6 @@ def resource_status_changed(sender, instance, action, **kwargs):
 # refresh the lookup if a session is created or deleted.
 @receiver([signals.post_delete, signals.post_save], sender=PrepSession)
 @receiver([signals.post_delete, signals.post_save], sender=GeorefSession)
-@receiver([signals.post_delete, signals.post_save], sender=TrimSession)
 def handle_session_deletion(sender, instance, **kwargs):
     if instance.document is not None:
         volume = get_volume("document", instance.document.pk)
