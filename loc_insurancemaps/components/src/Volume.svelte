@@ -23,6 +23,8 @@ import LayerGroup from 'ol/layer/Group';
 import Utils from './js/ol-utils';
 const utils = new Utils();
 
+import TitleBar from "../../../georeference/components/src/TitleBar.svelte"
+
 export let VOLUME;
 export let OTHER_VOLUMES;
 export let CSRFTOKEN;
@@ -344,6 +346,20 @@ document.addEventListener("fullscreenchange", function(){
 		fullscreenBtnTitle = "Exit fullscreen";
 	}
 }, false);
+
+const sideLinks = [
+	{
+		display: "Open in main viewer",
+		url: VOLUME.urls.viewer,
+		external: true,
+	},
+	{
+		display: "Open in Library of Congress",
+		url: VOLUME.urls.loc_resource,
+		external: true,
+	}
+]
+
 </script>
 
 <div id="vModal" class="modal">
@@ -354,29 +370,10 @@ document.addEventListener("fullscreenchange", function(){
 	</div>
 </div>
 <main>
-	<div class="title-section">
-		<div>
-			<h1 style="margin: 10px 0px;">{ VOLUME.title }</h1>
-			{#if OTHER_VOLUMES.length > 1}
-			<p>
-			{#each OTHER_VOLUMES as ov, n}
-				{#if n != 0}&nbsp;&bullet;&nbsp;{/if}
-				{#if ov.url}<a href={ov.url} title={ov.name}>{ov.year}</a>{:else}{ov.year}{/if}
-			{/each}
-			</p>
-			{/if}
-		</div>
-		<div class="link-box">
-			<a href="{VOLUME.urls.viewer}" target="_blank">Show in Viewer <i class="fa fa-external-link"></i></a>
-			<a href={ VOLUME.urls.loc_resource } target="_blank">
-				Show in Library of Congress <i class="fa fa-external-link"></i>
-			</a>
-		</div>
-	</div>
+	<TitleBar TITLE={VOLUME.title} BOTTOM_LINKS={OTHER_VOLUMES} SIDE_LINKS={sideLinks}/>
 	{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && USER_TYPE != 'anonymous' && !sheetsLoading}
 		<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
 	{/if}
-	<hr>
 	<h3>Map Overview</h3>
 	<h4 class="section-toggle">
 		<span on:click={() => showMap = !showMap}>
@@ -531,7 +528,7 @@ document.addEventListener("fullscreenchange", function(){
 			<div class="documents-column">
 				{#each VOLUME.items.unprepared as document}
 				<div class="document-item">
-					<div><p>sheet {document.page_str}</p></div>
+					<div><p><a href={document.urls.resource} title={document.title}>Sheet {document.page_str}</a></p></div>
 					<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
 					<div>
 						{#if document.lock_enabled}
@@ -541,8 +538,7 @@ document.addEventListener("fullscreenchange", function(){
 						</ul>
 						{:else}
 						<ul>
-							<li><a href={document.urls.split} title="prepare this document">prepare &rarr;</a></li>
-							<li><a href={document.urls.resource} title={document.title}>document detail &rarr;</a></li>
+							<li><a href={document.urls.split} title="Prepare this document">prepare &rarr;</a></li>
 						</ul>
 						{/if}
 					</div>
@@ -570,7 +566,7 @@ document.addEventListener("fullscreenchange", function(){
 			<div class="documents-column">
 				{#each VOLUME.items.prepared as document}
 				<div class="document-item">
-					<div><p>{document.title}</p></div>
+					<div><p><a href={document.urls.resource} title={document.title}>{document.title}</a></p></div>
 					<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
 					<div>
 						{#if document.lock && document.lock.enabled}
@@ -581,7 +577,6 @@ document.addEventListener("fullscreenchange", function(){
 						{:else}
 						<ul>
 							<li><a href="{document.urls.georeference}?{referenceLayersParam()}{extentParam()}" title="georeference this document">georeference &rarr;</a></li>
-							<li><a href={document.urls.resource} title={document.title}>document detail &rarr;</a></li>
 						</ul>
 						{/if}
 					</div>
@@ -623,7 +618,7 @@ document.addEventListener("fullscreenchange", function(){
 			<div class="documents-column">
 				{#each VOLUME.items.layers as layer}
 				<div class="document-item">
-					<div><p>{layer.title}</p></div>
+					<div><p><a href={layer.urls.resource} title={layer.title}>{layer.title}</a></p></div>
 					<a href={layer.urls.view} target="_blank" title="inspect layer in standalone map" style="cursor:zoom-in">
 						<img src={layer.urls.thumbnail} alt={document.title}>
 					</a>
@@ -635,9 +630,7 @@ document.addEventListener("fullscreenchange", function(){
 						</ul>
 						{:else}
 						<ul>
-							<!-- <li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li> -->
 							<li><a href="{layer.urls.georeference}?{referenceLayersParam()}" title="edit georeferencing">edit georeferencing &rarr;</a></li>
-							<li><a href={layer.urls.resource} title={layer.title}>layer detail &rarr;</a></li>
 							<!-- link for OHM editor with this layer as basemap -->
 							<!-- layers returning 400 7/14/2022, disabling for now -->
 							<!-- <li><a href={layer.urls.ohm_edit} title="open in OHM editor" target="_blank">OHM &rarr;</a></li> -->

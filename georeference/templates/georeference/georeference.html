@@ -8,10 +8,6 @@
 
 {% block middle %}
 <div class="container" style="width: 100%">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 15px;">
-        <h1 style="font-size: 2em;">{{ georeference_params.DOCUMENT.title }}</h1>
-        <a href="{{ georeference_params.VOLUME.urls.summary }}">Back to {{georeference_params.VOLUME.title}} &rarr;</a>
-    </div>
     {% display_svelte "Georeference.svelte" georeference_params %}
 </div>
 {% endblock %}

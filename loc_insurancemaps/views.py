@@ -225,14 +225,14 @@ class VolumeDetail(View):
             if v.pk == volume.pk:
                 url = None
             item = {
-                "name": v.__str__(),
-                "year": str(v.year),
+                "alt": v.__str__(),
+                "display": str(v.year),
                 "url": url,
             }
             if v.volume_no is not None:
-                item['year'] += f" vol. {v.volume_no}"
+                item['display'] += f" vol. {v.volume_no}"
             other_vols.append(item)
-        other_vols.sort(key=lambda i: i['year'])
+        other_vols.sort(key=lambda i: i['display'])
 
         gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
         gs = gs.rstrip("/") + "/"

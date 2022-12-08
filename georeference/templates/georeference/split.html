@@ -7,11 +7,7 @@
 {% block title %}{{ split_params.DOCUMENT.title }} — Split{% endblock %}
 
 {% block body_outer %}
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 15px;">
-        <h1 style="font-size: 2em;">{{ split_params.DOCUMENT.title }}</h1>
-        <a href="{{ split_params.VOLUME.urls.summary }}">Back to {{split_params.VOLUME.title}} &rarr;</a>
-    </div>
-    {% display_svelte "Split.svelte" split_params %}
+{% display_svelte "Split.svelte" split_params %}
 {% endblock %}
 
 {% block footer %}

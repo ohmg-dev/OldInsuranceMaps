@@ -26,6 +26,7 @@ import LineString from 'ol/geom/LineString';
 
 import Styles from './js/ol-styles';
 
+import TitleBar from './TitleBar.svelte';
 import SplitPreamble from './SplitPreamble.svelte';
 
 const styles = new Styles();
@@ -340,7 +341,17 @@ function cleanup () {
   }
 }
 
-console.log(DOCUMENT)
+const sideLinks = [
+    {
+      display: "Back to " + VOLUME.title,
+      url: VOLUME.urls.summary,
+    },
+    {
+      display: "Got to document",
+      alt: DOCUMENT.title,
+      url: DOCUMENT.urls.resource,
+    },
+]
 
 </script>
 <svelte:window on:keydown={handleKeydown} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
@@ -369,6 +380,7 @@ console.log(DOCUMENT)
     <button on:click={() => {document.getElementById('finishedModal').style.display = 'none'}}>OK</button>
   </div>
 </div>
+<TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={sideLinks}/>
 <SplitPreamble />
 <div><em>{currentTxt}</em></div>
 <div class="svelte-component-main">

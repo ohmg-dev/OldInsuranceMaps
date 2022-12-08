@@ -14,6 +14,7 @@ import {ImageStatic, XYZ} from 'ol/source';
 import {Tile as TileLayer, Image as ImageLayer} from 'ol/layer';
 
 import Utils from './js/ol-utils';
+import TitleBar from './TitleBar.svelte';
 const utils = new Utils();
 
 export let CSRFTOKEN;
@@ -184,24 +185,35 @@ function setSplit(operation) {
     });
 }
 
+const sideLinks = [
+  {
+    display: "Go to volume",
+    alt: VOLUME.title,
+    url: VOLUME.urls.summary,
+  }
+]
+if (RESOURCE.type == "layer") {
+  sideLinks.push({
+    display: "Go to document",
+    alt: RESOURCE.document.title,
+    url: RESOURCE.document.urls.resource,
+  });
+} else if (RESOURCE.type == "document" && RESOURCE.status == "georeferenced") {
+  sideLinks.push({
+    display: "Go to layer",
+    alt: RESOURCE.layer.title,
+    url: RESOURCE.layer.urls.resource,
+  });
+}
+
 </script>
 <main>
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <h1 style="font-size:2em;">{RESOURCE.title}</h1>
-    <div style="text-align:right;">
-      <a href="{ VOLUME.urls.summary }">Back to {VOLUME.title} &rarr;</a><br>
-      {#if RESOURCE.type == "layer"}
-      <a href={RESOURCE.document.urls.resource}>jump to document &rarr;</a>
-      {:else if RESOURCE.type == "document" && RESOURCE.status == "georeferenced"}
-      <a href={RESOURCE.layer.urls.resource}>jump to layer &rarr;</a>
-      {/if}
-    </div>
-  </div>
+  <TitleBar TITLE={RESOURCE.title} BOTTOM_LINKS={[]} SIDE_LINKS={sideLinks}/>
   <div class="content" style="display:flex;">
     <div id="preview-map">
       {#if RESOURCE.type == "document"}
-        <a href={RESOURCE.urls.image} title="{RESOURCE.title}">
-          <img style="width: 100%" src={RESOURCE.urls.image} />
+        <a href={RESOURCE.urls.image} title={RESOURCE.title}>
+          <img style="width: 100%" src={RESOURCE.urls.image} alt={RESOURCE.title} />
         </a>
       {/if}
     </div>

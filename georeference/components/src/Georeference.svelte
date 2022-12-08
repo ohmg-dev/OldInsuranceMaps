@@ -37,12 +37,14 @@ const styles = new Styles();
 import Utils from './js/ol-utils';
 const utils = new Utils();
 
+import TitleBar from './TitleBar.svelte';
 import GeoreferencePreamble from './GeoreferencePreamble.svelte';
 
 export let LOCK;
 export let SESSION_ID;
 export let SESSION_LENGTH;
 export let DOCUMENT;
+export let VOLUME;
 export let CSRFTOKEN;
 export let USERNAME;
 export let REGION_EXTENT;
@@ -817,9 +819,28 @@ function cleanup () {
   }
 }
 
+const sideLinks = [
+    {
+      display: "Back to " + VOLUME.title,
+      url: VOLUME.urls.summary,
+    },
+    {
+      display: "Go to document",
+      alt: DOCUMENT.title,
+      url: DOCUMENT.urls.resource,
+    },
+]
+if (DOCUMENT.layer) {
+  sideLinks.push({
+    display: "Go to layer",
+    alt: DOCUMENT.layer.title,
+    url: DOCUMENT.layer.urls.resource,
+  })
+}
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
+<TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={sideLinks}/>
 <GeoreferencePreamble />
 <div id="expirationModal" class="modal">
   <div class="modal-content">
