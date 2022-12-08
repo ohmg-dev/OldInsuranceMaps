@@ -392,12 +392,11 @@ class PrepSession(SessionBase):
         has been split) have already been georeferenced."""
 
         if self.data["split_needed"] is True:
-            docs_to_check = self.get_children()
+            docs_to_check = self.get_child_docs()
         else:
-            docs_to_check = [self.document]
+            docs_to_check = [self.doc]
 
-        tkm = TKeywordManager()
-        return any([tkm.is_georeferenced(d) for d in docs_to_check])
+        return any([d.status == "georeferenced" for d in docs_to_check])
 
     def get_children(self):
         """ DEPRECATED SOON: use get_child_docs instead
