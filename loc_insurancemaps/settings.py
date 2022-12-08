@@ -182,6 +182,12 @@ S3_CONFIG = {
     "endpoint_url": os.getenv("S3_ENDPOINT_URL"),
 }
 
+# this is a hack to handle the fact that certain GDAL and Django versions
+# are not compatible, and the order of lat/long gets messed up. ONLY to
+# be used in development!!!!
+# this chould be removed once Django is upgraded
+SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", False))
+
 # empty celery beat schedule of default GeoNode jobs
 CELERY_BEAT_SCHEDULE = {}
 

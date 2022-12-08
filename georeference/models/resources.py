@@ -175,8 +175,10 @@ class GCPGroup(models.Model):
 
         for gcp in self.gcps:
             coords = json.loads(gcp.geom.geojson)["coordinates"]
-            lat = coords[0]
-            lng = coords[1]
+            newcoords = [coords[1], coords[0]]
+            # see note on this variable in settings.py
+            if settings.SWAP_COORDINATE_ORDER is True:
+                newcoords = coords
             geo_json['features'].append({
                 "type": "Feature",
                 "properties": {
@@ -187,7 +189,7 @@ class GCPGroup(models.Model):
                 },
                 "geometry": {
                     "type": "Point",
-                    "coordinates": [lng, lat]
+                    "coordinates": newcoords,
                 }
             })
         return geo_json
