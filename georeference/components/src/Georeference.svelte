@@ -37,6 +37,8 @@ const styles = new Styles();
 import Utils from './js/ol-utils';
 const utils = new Utils();
 
+import GeoreferencePreamble from './GeoreferencePreamble.svelte';
+
 export let LOCK;
 export let SESSION_ID;
 export let SESSION_LENGTH;
@@ -818,7 +820,7 @@ function cleanup () {
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
-
+<GeoreferencePreamble />
 <div id="expirationModal" class="modal">
   <div class="modal-content">
     <p>This georeferencing session is expiring, and will be cancelled soon.</p>

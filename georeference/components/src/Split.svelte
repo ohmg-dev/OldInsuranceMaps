@@ -22,9 +22,12 @@ import Draw from 'ol/interaction/Draw';
 import Select from 'ol/interaction/Select';
 import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
+import LineString from 'ol/geom/LineString';
 
 import Styles from './js/ol-styles';
-import LineString from 'ol/geom/LineString';
+
+import SplitPreamble from './SplitPreamble.svelte';
+
 const styles = new Styles();
 
 export let USER;
@@ -366,7 +369,7 @@ console.log(DOCUMENT)
     <button on:click={() => {document.getElementById('finishedModal').style.display = 'none'}}>OK</button>
   </div>
 </div>
-
+<SplitPreamble />
 <div><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}

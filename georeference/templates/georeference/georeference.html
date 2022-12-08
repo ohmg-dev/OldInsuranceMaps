@@ -12,7 +12,6 @@
         <h1 style="font-size: 2em;">{{ georeference_params.DOCUMENT.title }}</h1>
         <a href="{{ georeference_params.VOLUME.urls.summary }}">Back to {{georeference_params.VOLUME.title}} &rarr;</a>
     </div>
-    {% display_svelte "GeoreferencePreamble.svelte" preamble_params %}
     {% display_svelte "Georeference.svelte" georeference_params %}
 </div>
 {% endblock %}

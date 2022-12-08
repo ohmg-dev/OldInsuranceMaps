@@ -11,6 +11,5 @@
         <a href="{{ trim_params.LAYER.urls.detail }}">back to layer detail &rarr;</a>
     </div>
     <h1 style="font-size: 2.1em">{{ trim_params.LAYER.title }}</h1>
-    {% display_svelte "TrimPreamble.svelte" preamble_params %}
     {% display_svelte "Trim.svelte" trim_params %}
 {% endblock %}

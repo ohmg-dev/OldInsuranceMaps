@@ -84,7 +84,6 @@ class SplitView(View):
             request,
             "georeference/split.html",
             context={
-                "preamble_params": {}, # overwrite the default with empty
                 "split_params": split_params
             },
         )
@@ -265,7 +264,6 @@ class GeoreferenceView(View):
             request,
             "georeference/georeference.html",
             context={
-                'preamble_params': {}, # overwrite the default with empty
                 'georeference_params': georeference_params,
             }
         )
@@ -440,7 +438,6 @@ class TrimView(View):
             request,
             "georeference/trim.html",
             context={
-                "preamble_params": {}, # overwrite the default with empty
                 "trim_params": trim_params,
             }
         )
