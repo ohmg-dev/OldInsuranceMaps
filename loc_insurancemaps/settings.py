@@ -205,7 +205,6 @@ if 'georeference' in INSTALLED_APPS:
 
     MIDDLEWARE += (
         "georeference.middleware.GeoreferenceMiddleware",
-        # "georeference.middleware.ProfilerMiddleware",
     )
     TEMPLATES[0]['OPTIONS']['context_processors'].append("georeference.context_processors.georeference_info")
 
@@ -223,10 +222,6 @@ STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "static"))
 STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "components", "public", "build"))
 # add context processor and middleware
 TEMPLATES[0]['OPTIONS']['context_processors'].append("loc_insurancemaps.context_processors.loc_info")
-
-# disable this middleware for now, because the documents and layers search pages are not
-# fully supported any more.
-# MIDDLEWARE += ("loc_insurancemaps.middleware.LOCMiddleware", )
 
 # exclude many default profile fields to reduce to identifiable personal information
 PROFILE_EDIT_EXCLUDE_FIELD = [
