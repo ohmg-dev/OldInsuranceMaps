@@ -7,7 +7,7 @@
 <div class="title-bar">
     <div>
         <h1>{ TITLE }</h1>
-        {#if BOTTOM_LINKS}
+        {#if BOTTOM_LINKS && BOTTOM_LINKS.length > 0}
         <p>
         {#each BOTTOM_LINKS as link, n}
             {#if n != 0}&nbsp;&bullet;&nbsp;{/if}
@@ -28,7 +28,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin: 10px 0px;
+        margin: 10px 0px 15px 0px;
         padding-bottom: 10px;
         border-bottom: 1px solid rgb(149, 149, 149);
     }
@@ -39,6 +39,7 @@
     }
 
     .title-bar div h1 {
+        margin: 10px 0px;
         font-size: 2em;
     }
 

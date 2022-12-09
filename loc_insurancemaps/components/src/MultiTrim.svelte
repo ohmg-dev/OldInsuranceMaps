@@ -38,6 +38,8 @@ const styles = new Styles();
 import Utils from './js/ol-utils';
 const utils = new Utils();
 
+import TitleBar from "../../../georeference/components/src/TitleBar.svelte"
+
 // export let LOCK;
 // export let SESSION_ID;
 export let VOLUME;
@@ -430,6 +432,11 @@ function layerRemoveMask(layer, confirm) {
 
 }
 
+const sideLinks = [{
+  display: VOLUME.title,
+  url: VOLUME.urls.summary,
+}]
+
 </script>
 
 <svelte:window on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}}/>
@@ -440,7 +447,7 @@ function layerRemoveMask(layer, confirm) {
     <button on:click={() => {process("extend-session")}}>Give me more time!</button>
   </div>
 </div>
-
+<TitleBar TITLE={VOLUME.title + " - Trim"} BOTTOM_LINKS={[]} SIDE_LINKS={sideLinks} />
 <div class="svelte-component-main">
   {#if USER_TYPE == "anonymous"}<p>Feel free to mess around; you can't save changes unless you are logged in.</p>{/if}
   <div class="map-container" style="height: calc(100%-35px);">
@@ -470,7 +477,6 @@ function layerRemoveMask(layer, confirm) {
       <div style="display:flex; justify-content:space-between">
           <button title="Reset" on:click={resetInterface} disabled={unchanged}>🗘</button>
           <button title="Submit" on:click={submitMultiMask} disabled={unchanged}>✓</button>
-          <button title="Back to Volume Summary" on:click={() => window.location.href = VOLUME.urls.summary}>↩</button>
       </div>
     </div>
   </div>
