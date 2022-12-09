@@ -586,9 +586,10 @@ class ItemBase(models.Model):
             self.x1 = lr[1]
             self.y1 = ul[0]
 
-    def set_status(self, status):
+    def set_status(self, status, save=True):
         self.status = status
-        self.save(update_fields=["status"])
+        if save is True:
+            self.save(update_fields=["status"])
 
     def save(self, set_slug=False, set_thumbnail=False, set_extent=False, *args, **kwargs):
 
