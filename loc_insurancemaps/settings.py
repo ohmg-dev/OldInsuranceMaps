@@ -164,7 +164,11 @@ MIDDLEWARE = (
     'geonode.security.middleware.SessionControlMiddleware',
 )
 
-ENABLE_DEBUG_TOOLBAR = False
+ENABLE_CPROFILER = ast.literal_eval(os.getenv("ENABLE_CPROFILER", False))
+if ENABLE_CPROFILER:
+    MIDDLEWARE += ('django_cprofile_middleware.middleware.ProfilerMiddleware', )
+
+ENABLE_DEBUG_TOOLBAR = ast.literal_eval(os.getenv("ENABLE_DEBUG_TOOLBAR", False))
 if DEBUG and ENABLE_DEBUG_TOOLBAR:
     INSTALLED_APPS += ('debug_toolbar',)
     MIDDLEWARE = ('debug_toolbar.middleware.DebugToolbarMiddleware', ) + MIDDLEWARE
@@ -185,7 +189,7 @@ S3_CONFIG = {
 # this is a hack to handle the fact that certain GDAL and Django versions
 # are not compatible, and the order of lat/long gets messed up. ONLY to
 # be used in development!!!!
-# this chould be removed once Django is upgraded
+# this will be removed once Django is upgraded
 SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", False))
 
 # empty celery beat schedule of default GeoNode jobs
@@ -203,9 +207,6 @@ if 'georeference' in INSTALLED_APPS:
     MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
     MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
 
-    MIDDLEWARE += (
-        "georeference.middleware.GeoreferenceMiddleware",
-    )
     TEMPLATES[0]['OPTIONS']['context_processors'].append("georeference.context_processors.georeference_info")
 
     CELERY_BEAT_SCHEDULE['delete_expired_sessions'] = {
@@ -286,7 +287,7 @@ LOGGING = {
     'formatters': {
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(name)s %(funcName)s %(process)d '
-                      '%(thread)d %(message)s'
+                      '%(message)s'
         },
         'moderate': {
             'format': '%(levelname)s %(asctime)s %(module)s %(message)s'
