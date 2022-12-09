@@ -187,75 +187,43 @@ class GeoreferenceView(View):
         Returns the georeferencing interface for this document.
         """
 
-        # doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
-        # if doc_proxy.resource.metadata_only is True:
-        #     raise Http404
-        # if doc_proxy.status in ["unprepared", "splitting"]:
-        #     raise Http404
-        # lock = doc_proxy.georeference_lock
+        doc = get_object_or_404(Document, pk=docid)
+        # if the document is not currently locked and there is a logged in user,
+        # create a new session
+        if not doc.lock_enabled and request.user.is_authenticated and \
+            doc.status in ["prepared", "georeferenced"]:
+            session = GeorefSession.objects.create(
+                doc=doc,
+                user=request.user
+            )
+            session.start()
+        doc_data = doc.serialize()
 
-        document = get_object_or_404(Document, pk=docid)
-        if document.status in ["unprepared", "splitting", "split"]:
-            raise Http404
-        data = document.serialize(serialize_parent=False)
-
-        volume = find_volume(document)
+        volume = find_volume(doc)
         volume_json = volume.serialize()
-
-        # override lock with new empty one - Oct 6th
-        lock = SessionLock()
-        sesh_id = 99999999
-
-        ## disable session creation for now - Oct 6th
-        # sesh_id = None
-        # if not lock.enabled:
-        #     if request.user.is_authenticated:
-        #         sesh = GeorefSession.objects.create(
-        #             document=doc_proxy.resource,
-        #             user=request.user,
-        #         )
-        #         sesh.start()
-        #         sesh_id = sesh.pk
-        #         lock.stage = "in-progress"
-        #     else:
-        #         lock.enabled = True
-        #         lock.type = "unauthenticated"
 
         ms = MapServerManager()
 
-        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
-        gs = gs.rstrip("/") + "/"
-        geoserver_ows = f"{gs}ows/"
-
-        reference_layers_param = request.GET.get('reference', '')
-        reference_layers = []
-        for alt in reference_layers_param.split(","):
-            if GNLayer.objects.filter(alternate=alt).exists():
-                reference_layers.append(alt)
-
-        extent_str = request.GET.get('extent', None)
-        if extent_str is None:
-            # hard-code Louisiana for now
-            extent = (-94, 28, -88, 33)
-        else:
-            extent = tuple(extent_str.split(","))
-
-        print(json.dumps(data, indent=1))
+        # reference_layers_param = request.GET.get('reference', '')
+        # reference_layers = []
+        # for alt in reference_layers_param.split(","):
+        #     if GNLayer.objects.filter(alternate=alt).exists():
+        #         reference_layers.append(alt)
 
         georeference_params = {
-            "LOCK": lock.as_dict,
-            "SESSION_ID": sesh_id,
+            "USER": "" if not request.user.is_authenticated else request.user.username,
             "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
             "CSRFTOKEN": csrf.get_token(request),
-            "DOCUMENT": data,
-            "REGION_EXTENT": extent,
-            "USERNAME": request.user.username,
-            "MAPSERVER_ENDPOINT": ms.endpoint,
-            "MAPSERVER_LAYERNAME": ms.add_layer(document.file.path),
-            "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-            "GEOSERVER_WMS": geoserver_ows,
-            "REFERENCE_LAYERS": reference_layers,
+            "DOCUMENT": doc_data,
             "VOLUME": volume_json,
+            # "REGION_EXTENT": extent,
+            "MAPSERVER_ENDPOINT": ms.endpoint,
+            "MAPSERVER_LAYERNAME": ms.add_layer(doc.file.path),
+            "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+            ## these variables will be reevaluated when reference layers re-implemented
+            # "GEOSERVER_WMS": geoserver_ows,
+            # "REFERENCE_LAYERS": reference_layers,
+            # "TITILER_HOST": settings.TITILER_HOST,
         }
 
         return render(
@@ -275,7 +243,6 @@ class GeoreferenceView(View):
             return BadPostRequest
 
         document = get_object_or_404(Document, pk=docid)
-        # doc_proxy = DocumentProxy(docid, raise_404_on_error=True)
         ms = MapServerManager()
 
         body = json.loads(request.body)

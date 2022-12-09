@@ -40,19 +40,19 @@ const utils = new Utils();
 import TitleBar from './TitleBar.svelte';
 import GeoreferencePreamble from './GeoreferencePreamble.svelte';
 
-export let LOCK;
-export let SESSION_ID;
+export let USER;
 export let SESSION_LENGTH;
 export let DOCUMENT;
 export let VOLUME;
 export let CSRFTOKEN;
-export let USERNAME;
-export let REGION_EXTENT;
 export let MAPSERVER_ENDPOINT;
 export let MAPSERVER_LAYERNAME;
 export let MAPBOX_API_KEY;
-export let GEOSERVER_WMS;
-export let REFERENCE_LAYERS;
+
+// reference layers are disabled for now, but all pieces are still retained
+// export let GEOSERVER_WMS;
+// export let TITILER_HOST;
+// export let REFERENCE_LAYERS;
 
 let previewMode = "n/a";
 
@@ -87,12 +87,24 @@ $: {
   }
 }
 
-let disableInterface = LOCK.enabled;
-let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
+const session_id = DOCUMENT.lock_enabled ? DOCUMENT.lock_details.session_id : null;
+
+let disableInterface = DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name != USER);
+let disableReason;
 let leaveOkay = true;
-if (LOCK.stage == "in-progress") {
+let enableButtons = false;
+if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == USER)) {
   leaveOkay = false;
+  enableButtons = true;
 }
+$: enableSave = gcpList.length >= 3 && enableButtons;
+
+// let disableInterface = LOCK.enabled;
+// let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
+// let leaveOkay = true;
+// if (LOCK.stage == "in-progress") {
+//   leaveOkay = false;
+// }
 
 // show the extend session prompt 15 seconds before the session expires
 setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
@@ -107,9 +119,10 @@ function promptRefresh() {
   }
 }
 
+const nextPage = DOCUMENT.layer ? DOCUMENT.layer.urls.resource : DOCUMENT.urls.resource;
 function cancelAndRedirectToDetail() {
   process("cancel");
-  window.location.href=DOCUMENT.urls.detail;
+  window.location.href=nextPage;
 }
 
 const beginTxt = "Click a recognizable location on the map document (left panel)"
@@ -158,7 +171,7 @@ mapGCPSource.on(['addfeature'], function (e) {
     e.feature.setProperties({
       'id': uuid(),
       'listId': nextGCP,
-      'username': USERNAME,
+      'username': USER,
       'note': '',
     });
   }
@@ -188,24 +201,24 @@ previewSource.on("tileloadend", function (e) { endloads++ })
 
 const previewLayer = new TileLayer({ source: previewSource });
 
-const refGroup = new LayerGroup();
-REFERENCE_LAYERS.forEach( function (layer) {
-  const newLayer = new TileLayer({
-    source: new TileWMS({
-      url: GEOSERVER_WMS,
-      params: {
-        'LAYERS': layer,
-        'TILED': true,
-      },
-    })
-  });
-  refGroup.getLayers().push(newLayer)
-});
+// const refGroup = new LayerGroup();
+// REFERENCE_LAYERS.forEach( function (layer) {
+//   const newLayer = new TileLayer({
+//     source: new TileWMS({
+//       url: GEOSERVER_WMS,
+//       params: {
+//         'LAYERS': layer,
+//         'TILED': true,
+//       },
+//     })
+//   });
+//   refGroup.getLayers().push(newLayer)
+// });
 
-let referenceVisible = REFERENCE_LAYERS.length > 0;
-$: {
-  refGroup.setVisible(referenceVisible)
-}
+// let referenceVisible = REFERENCE_LAYERS.length > 0;
+// $: {
+//   refGroup.setVisible(referenceVisible)
+// }
 
 // this Modify interaction is created individually for each map panel
 function makeModifyInteraction(hitDetection, source, targetElement) {
@@ -372,7 +385,7 @@ function MapViewer (elementId) {
       target: targetElement,
       layers: [
         basemaps[0].layer,
-        refGroup,
+        // refGroup,
         previewLayer,
         gcpLayer,
       ],
@@ -433,8 +446,8 @@ function MapViewer (elementId) {
       map.getView().setRotation(0);
       if (DOCUMENT.gcps_geojson) {
         map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
-      } else {
-        const extent3857 = transformExtent(REGION_EXTENT, "EPSG:4326", "EPSG:3857");
+      } else if (VOLUME.extent) {
+        const extent3857 = transformExtent(VOLUME.extent, "EPSG:4326", "EPSG:3857");
         map.getView().fit(extent3857);
       }
     }
@@ -490,10 +503,10 @@ function loadIncomingGCPs() {
     });
     previewMode = "transparent";
   }
+  currentTransformation = (DOCUMENT.transformation ? DOCUMENT.transformation : "poly1")
   syncGCPList();
   docView.resetExtent()
   mapView.resetExtent()
-  currentTransformation = (DOCUMENT.transformation ? DOCUMENT.transformation : "poly1")
   loadingInitial = false;
   inProgress = false;
   unchanged = true;
@@ -729,7 +742,7 @@ function process(operation){
     "gcp_geojson": asGeoJSON(),
     "transformation": currentTransformation,
     "operation": operation,
-    "sesh_id": SESSION_ID,
+    "sesh_id": session_id,
   });
   fetch(DOCUMENT.urls.georeference, {
       method: 'POST',
@@ -746,10 +759,8 @@ function process(operation){
         let sourceUrl = previewSource.getUrls()[0];
         previewSource.setUrl(sourceUrl.replace(/\/[^\/]*$/, '/'+Math.random()));
         previewSource.refresh()
-      } else if (operation == "submit") {
-        window.location.href = DOCUMENT.urls.detail;
-      } else if (operation == "cancel") {
-        window.location.href = DOCUMENT.urls.detail;
+      } else if (operation == "submit" || operation == "cancel") {
+          window.location.href = nextPage;
       }
     });
 }
@@ -807,15 +818,21 @@ function confirmLeave () {
   return "...";
 }
 
+// function cleanup () {
+//   // if this is an in-progress session
+//   if (LOCK.stage == "in-progress") {
+//     // and if a preparation submission hasn't been made and a
+//     // cancel post isn't already taking place
+//     if (disableReason != 'submit' && disableReason != 'cancel') {
+//         // then cancel the session (delete it)
+//         process("cancel")
+//     }
+//   }
+// }
 function cleanup () {
-  // if this is an in-progress session
-  if (LOCK.stage == "in-progress") {
-    // and if a preparation submission hasn't been made and a
-    // cancel post isn't already taking place
-    if (disableReason != 'submit' && disableReason != 'cancel') {
-        // then cancel the session (delete it)
-        process("cancel")
-    }
+  // if this is an in-progress session for the current user
+  if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == USER) && !leaveOkay) {
+    process("cancel")
   }
 }
 
@@ -891,8 +908,8 @@ if (DOCUMENT.layer) {
       <label><input type=checkbox bind:checked={syncPanelWidth}> autosize</label>
     </div>
     <div>
-        <button title="Save control points" disabled={gcpList.length < 3 || unchanged || SESSION_ID == 99999999} on:click={() => { process("submit") }}>Save Control Points</button>
-        <button title="Cancel georeferencing" disabled={SESSION_ID == 99999999} on:click={() => { process("cancel") }}>Cancel</button>
+        <button title="Save control points" disabled={!enableSave} on:click={() => { process("submit") }}>Save Control Points</button>
+        <button title="Cancel georeferencing" disabled={!enableButtons} on:click={() => { process("cancel") }}>Cancel</button>
         <button title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
     </div>
   </nav>
@@ -936,10 +953,10 @@ if (DOCUMENT.layer) {
             <option value="full">full</option>
           </select>
         </label>
-        <label title="Show reference layers">
+        <!-- <label title="Show reference layers">
           Reference
           <input type="checkbox" title="Show reference layers" bind:checked={referenceVisible} disabled={REFERENCE_LAYERS == 0}>
-        </label>
+        </label> -->
         <label title="Change basemap">
           Basemap
           <select  style="width:151px;" bind:value={currentBasemap}>
