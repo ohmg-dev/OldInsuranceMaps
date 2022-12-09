@@ -1,4 +1,6 @@
 import os
+import string
+import random
 import logging
 
 from django.conf import settings
@@ -52,6 +54,16 @@ def analyze_url(request):
             res_id = maybe_id
 
     return (resource_type, res_id)
+
+def random_alnum(size=6):
+    """
+    Generate random 6 character alphanumeric string
+    credit: https://codereview.stackexchange.com/a/232184
+    """
+    # List of characters [a-zA-Z0-9]
+    chars = string.ascii_letters + string.digits
+    code = ''.join(random.choice(chars) for _ in range(size))
+    return code
 
 ## ~~ Status TKeyword Management ~~
 

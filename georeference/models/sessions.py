@@ -31,6 +31,7 @@ from georeference.splitter import Splitter
 from georeference.utils import (
     full_reverse,
     TKeywordManager,
+    random_alnum,
 )
 
 logger = logging.getLogger(__name__)
@@ -647,7 +648,7 @@ class GeorefSession(SessionBase):
     def __str__(self):
         return f"Georeference Session ({self.pk})"
 
-    def run(self):
+    def run_legacy(self):
 
         tkm = TKeywordManager()
         tkm.set_status(self.document, "georeferencing")
@@ -757,6 +758,118 @@ class GeorefSession(SessionBase):
 
         tkm.set_status(self.document, "georeferenced")
         tkm.set_status(layer, "georeferenced")
+
+        self.update_stage("finished", save=False)
+        self.update_status("success", save=False)
+        self.save()
+
+        return layer
+
+    def run(self):
+
+        doc_previous_status = self.doc.status
+        self.doc.set_status("georeferencing")
+
+        ## get existing layer resource if it exists, e.g.
+        ## if the document has already been georeferenced.
+        layer = self.doc.get_layer()
+        if layer:
+            layer.set_status("georeferencing")
+
+        self.date_run = timezone.now()
+        # first time the session is run, calculate the user input time (seconds)
+        if self.user_input_duration is None:
+            timediff = timezone.now() - self.date_created
+            self.user_input_duration = timediff.seconds
+
+        self.update_stage("processing", save=False)
+        self.update_status("initializing georeferencer", save=False)
+        self.save()
+
+        try:
+            g = Georeferencer(
+                transformation=self.data['transformation'],
+                epsg_code=self.data['epsg'],
+            )
+            g.load_gcps_from_geojson(self.data['gcps'])
+        except Exception as e:
+            self.update_stage("finished", save=False)
+            self.update_status("failed", save=False)
+            self.note = f"{e}"
+            self.save()
+            # revert to (presumed) previous status
+            self.doc.set_status(doc_previous_status)
+            if layer:
+                layer.set_status("georeferenced")
+            return None
+        self.update_status("warping")
+        try:
+            out_path = g.make_tif(self.doc.file.path)
+        except Exception as e:
+            self.update_stage("finished", save=False)
+            self.update_status("failed", save=False)
+            self.note = f"{e}"
+            self.save()
+            # revert to (presumed) previous status
+            self.doc.set_status(doc_previous_status)
+            if layer:
+                layer.set_status("georeferenced")
+            return None
+
+        # self.transformation_used = g.transformation["id"]
+        self.update_status("creating layer")
+
+        ## if there was no existing layer, create a new object by copying
+        ## the document and saving it without a pk
+        if layer is None:
+            logger.debug("no existing layer, creating new layer now")
+
+            layer = Layer.objects.create(
+                title = self.doc.title.replace(",", " -"),
+                owner = self.doc.owner,
+            )
+            layer.save()
+
+            # create new DocumentLink here
+            ct = ContentType.objects.get(app_label="georeference", model="layer")
+            DocumentLink.objects.create(
+                source=self.doc,
+                target_type=ct,
+                target_id=layer.pk,
+                link_type='georeference',
+            )
+            existing_file_path = None
+        else:
+            logger.debug(f"updating existing layer, {layer.slug} ({layer.pk})")
+            existing_file_path = layer.file.path
+
+        ## regardless of whether there was an old layer or not, overwrite
+        ## the file with the newly georeferenced tif.
+        session_ct = GeorefSession.objects.filter(doc=self.doc).exclude(pk=self.pk).count()
+        file_name = f"{layer.slug}__{random_alnum(6)}_{str(session_ct).zfill(2)}.tif"
+        # file_name = f"{layer.slug}.tif"
+        with open(out_path, "rb") as openf:
+            layer.file.save(file_name, File(openf))
+        logger.debug(f"new geotiff saved to layer, {layer.slug} ({layer.pk})")
+        os.remove(out_path)
+        if existing_file_path:
+            os.remove(existing_file_path)
+
+        layer.set_status("georeferenced", save=False)
+        layer.save(set_thumbnail=True, set_extent=True)
+        self.lyr = layer
+
+        self.update_status("saving control points")
+
+        # save the successful gcps to the canonical GCPGroup for the document
+        GCPGroup().save_from_geojson(
+            self.data['gcps'],
+            self.doc,
+            self.data['transformation'],
+        )
+
+        self.doc.set_status("georeferenced")
+        self.doc.remove_lock()
 
         self.update_stage("finished", save=False)
         self.update_status("success", save=False)
