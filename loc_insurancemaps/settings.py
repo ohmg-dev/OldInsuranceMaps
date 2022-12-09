@@ -207,8 +207,6 @@ if 'georeference' in INSTALLED_APPS:
     MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
     MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
 
-    TEMPLATES[0]['OPTIONS']['context_processors'].append("georeference.context_processors.georeference_info")
-
     CELERY_BEAT_SCHEDULE['delete_expired_sessions'] = {
         'task': 'georeference.tasks.delete_expired_sessions',
         'schedule': 60.0,
@@ -262,10 +260,6 @@ IIIF_SERVER_LOCATION = "http://localhost:8182"
 
 # To allow other sites to read IIIF resources set CORS_ORIGIN_ALLOW_ALL to True
 CORS_ORIGIN_ALLOW_ALL = False
-
-# the default thumbnail background is wikimedia and it causes a lot of errors
-# set to custom blank background handler here.
-THUMBNAIL_BACKGROUND = { "class": "loc_insurancemaps.background.NoThumbnailBackground" }
 
 DEFAULT_THUMBNAIL_SIZE = (240, 200)
 

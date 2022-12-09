@@ -19,7 +19,10 @@ from georeference.models.resources import (
     GCPGroup,
 )
 from georeference.models.sessions import SessionBase
-from georeference.proxy_models import LayerProxy, DocumentProxy
+try:
+    from georeference.proxy_models import LayerProxy, DocumentProxy
+except ImportError:
+    print("DocumentProxy and LayerProxy cannot be imported, proceeding without!")
 
 from loc_insurancemaps.models import Volume, Sheet
 

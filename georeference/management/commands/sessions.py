@@ -8,7 +8,6 @@ from georeference.models.sessions import (
     GeorefSession,
     TrimSession,
 )
-from georeference.utils import TKeywordManager
 from georeference.splitter import Splitter
 
 class Command(BaseCommand):
@@ -106,6 +105,11 @@ class Command(BaseCommand):
 
 
     def migrate_legacy_sessions(self, type="", clean=False):
+        try:
+            from georeference.utils import TKeywordManager
+        except ImportError:
+            print("can't import TKManager, cancelling operation.")
+            exit()
         tkm = TKeywordManager()
         try:
             from georeference.models.sessions import (

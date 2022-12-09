@@ -42,9 +42,9 @@ urlpatterns = [
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
     path('getting-started/', TemplateView.as_view(template_name='getting-started.html'),
         name='getting_started'),
-    path('help/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
+    path('help/', RedirectView.as_view(url="https://about.oldinsurancemaps.net")),
     # path('about/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
-    path('developer/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
+    path('developer/', RedirectView.as_view(url="https://about.oldinsurancemaps.net")),
  ] + urlpatterns
 
 if settings.DEBUG:

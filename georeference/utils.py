@@ -6,9 +6,7 @@ import logging
 from django.conf import settings
 from django.urls import reverse
 
-from geonode.base.models import ThesaurusKeyword
-
-from .georeferencer import get_path_variant
+from georeference.georeferencer import get_path_variant
 
 logger = logging.getLogger(__name__)
 
@@ -64,116 +62,6 @@ def random_alnum(size=6):
     chars = string.ascii_letters + string.digits
     code = ''.join(random.choice(chars) for _ in range(size))
     return code
-
-## ~~ Status TKeyword Management ~~
-
-class TKeywordManager(object):
-
-    def __init__(self):
-
-        try:
-            self.lookup = {
-                "unprepared": ThesaurusKeyword.objects.get(about="unprepared"),
-                "splitting": ThesaurusKeyword.objects.get(about="splitting"),
-                "split": ThesaurusKeyword.objects.get(about="split"),
-                "prepared": ThesaurusKeyword.objects.get(about="prepared"),
-                "georeferencing": ThesaurusKeyword.objects.get(about="georeferencing"),
-                "georeferenced": ThesaurusKeyword.objects.get(about="georeferenced"),
-                "trimming": ThesaurusKeyword.objects.get(about="trimming"),
-                "trimmed": ThesaurusKeyword.objects.get(about="trimmed"),
-            }
-        except ThesaurusKeyword.DoesNotExist:
-            raise NotImplementedError
-
-    def get_status(self, resource):
-        status = None
-        for tk in self.lookup.values():
-            if tk in resource.tkeywords.all():
-                status = tk.about
-        return status
-
-    def unset_status(self, resource):
-        for tk in self.lookup.values():
-            if tk in resource.tkeywords.all():
-                resource.tkeywords.remove(tk)
-
-    def set_status(self, resource, status):
-        if self.get_status(resource) != status:
-            self.unset_status(resource)
-            resource.tkeywords.add(self.lookup[status])
-
-    def is_georeferenced(self, resource):
-
-        status_list = [
-            "georeferencing",
-            "georeferenced",
-            "trimming",
-            "trimmed",
-        ]
-        return self.get_status(resource) in status_list
-
-
-## ~~ Geoserver VRT utilities ~~
-from geonode.geoserver.helpers import OGC_Servers_Handler
-from geoserver.catalog import Catalog
-
-def get_gs_catalog():
-    """create the GeoServer catalog object"""
-
-    ogc_server_settings = OGC_Servers_Handler(settings.OGC_SERVER)['default']
-
-    _user, _password = ogc_server_settings.credentials
-
-    url = ogc_server_settings.rest
-    gs_catalog = Catalog(url, _user, _password,
-                        retries=ogc_server_settings.MAX_RETRIES,
-                        backoff_factor=ogc_server_settings.BACKOFF_FACTOR)
-
-    return gs_catalog
-
-def get_gs_layer_from_document(document, workspace="geonode"):
-
-    cat = get_gs_catalog()
-    doc_path = document.doc_file.path
-    gs_layer_name = os.path.splitext(os.path.basename(doc_path))[0]
-    gs_layer = cat.get_layer(gs_layer_name)
-
-    return gs_layer
-
-def create_layer_from_vrt(vrt_path, workspace="geonode"):
-
-    cat = get_gs_catalog()
-    cat._cache.clear()
-    name = os.path.splitext(os.path.basename(vrt_path))[0]
-    store_names = [i.name for i in cat.get_stores()]
-    print(name)
-    print(store_names)
-    if name not in store_names:
-        print("creating new store/layer")
-        store = cat.create_coveragestore(name,
-            path=vrt_path,
-            workspace=workspace,
-            type="VRT",
-            overwrite=True,
-            # create_layer=False
-        )
-        print("complete")
-    else:
-        store = cat.get_stores(names=name, workspaces=[workspace])[0]
-    print(store)
-    print(store.href)
-
-
-    gs_layer = cat.get_layer(name)
-    print(gs_layer)
-
-    return {
-        "name": name,
-        "layer": gs_layer,
-        "workspace_name": workspace,
-        "store": store,
-    }
-
 
 class MapServerManager(object):
     """Small suite of tools used to manipulate the MapServer mapfile."""

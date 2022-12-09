@@ -1,15 +1,11 @@
-import os
 import json
 import logging
 
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.views import View
-from django.http import JsonResponse, HttpResponseBadRequest, Http404
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.middleware import csrf
-from django.contrib.gis.geos import Polygon
-
-from geonode.layers.models import Layer as GNLayer
 
 from georeference.tasks import (
     run_preparation_session,
@@ -24,11 +20,6 @@ from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
 )
-from georeference.proxy_models import (
-    LayerProxy,
-    get_info_panel_content,
-    SessionLock,
-)
 from georeference.utils import MapServerManager
 from georeference.georeferencer import Georeferencer
 from georeference.splitter import Splitter
@@ -38,16 +29,6 @@ from loc_insurancemaps.models import find_volume
 logger = logging.getLogger(__name__)
 
 BadPostRequest = HttpResponseBadRequest("invalid post content")
-
-class SummaryJSON(View):
-
-    def get(self, request, resourceid):
-
-        if resourceid:
-            response = get_info_panel_content(resourceid)
-            return JsonResponse(response)
-        else:
-            return JsonResponse({})
 
 class SplitView(View):
 

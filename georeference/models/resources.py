@@ -26,7 +26,6 @@ from geonode.layers.models import Layer as GNLayer
 from geonode.geoserver.helpers import save_style
 
 from georeference.utils import (
-    get_gs_catalog,
     full_reverse,
     slugify,
 )

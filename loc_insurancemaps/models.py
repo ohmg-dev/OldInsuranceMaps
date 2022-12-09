@@ -21,14 +21,11 @@ from django.utils.safestring import mark_safe
 from django.utils.functional import cached_property
 from django.urls import reverse
 
-from geonode.base.models import Region, License
+from geonode.base.models import Region
 from geonode.documents.models import Document as GNDocument
-from geonode.layers.models import Layer as GNLayer
-from geonode.documents.renderers import generate_thumbnail_content
 from geonode.people.models import Profile
 
 from georeference.models.resources import (
-    LayerMask,
     Document,
     Layer,
 )
@@ -36,47 +33,19 @@ from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
 )
-from georeference.proxy_models import DocumentProxy, LayerProxy
 from georeference.storage import OverwriteStorage
-from georeference.utils import TKeywordManager, slugify
+from georeference.utils import slugify
 
-from .utils import LOCParser, download_image, convert_img_format, get_jpg_from_jp2_url
-from .enumerations import (
+from loc_insurancemaps.utils import LOCParser, get_jpg_from_jp2_url
+from loc_insurancemaps.enumerations import (
     STATE_CHOICES,
     STATE_ABBREV,
     STATE_POSTAL,
     MONTH_CHOICES,
 )
-from .renderers import generate_full_thumbnail_content
+from loc_insurancemaps.renderers import generate_full_thumbnail_content
 
 logger = logging.getLogger(__name__)
-
-def get_volume(resource_type, res_id):
-    """ TO BE DEPRECATED
-    Attempt to get the volume from which a Document or Layer
-    is derived. Return None if not applicable/no volume exists."""
-
-    volume = None
-    if resource_type == "document":
-        dp = DocumentProxy(res_id)
-    elif resource_type == "layer":
-        p = LayerProxy(res_id)
-        dp = p.get_document_proxy()
-    # in some cases this function gets called just before the link between
-    # the Layer and the Document has been made. Return None in this case.
-    if dp is not None:
-        if dp.parent_doc is not None:
-            doc = dp.parent_doc.get_document()
-        else:
-            doc = dp.get_document()
-
-        try:
-            volume = Sheet.objects.get(document=doc).volume
-        except Sheet.DoesNotExist:
-            pass
-        except Exception as e:
-            logger.error(e)
-    return volume
 
 def find_volume(item):
     """Attempt to get the volume from which a Document or Layer
@@ -287,85 +256,6 @@ class Sheet(models.Model):
     def __str__(self):
         return f"{self.volume.__str__()} p{self.sheet_no}"
 
-    def load_document(self, user=None):
-
-        log_prefix = f"{self.volume} p{self.sheet_no} |"
-        logger.info(f"{log_prefix} start load")
-
-        if self.jp2_url is None:
-            logger.warn(f"{log_prefix} jp2_url - cancelling download")
-            return
-
-        temp_img_dir = os.path.join(settings.CACHE_DIR, "img")
-        if not os.path.isdir(temp_img_dir):
-            os.mkdir(temp_img_dir)
-
-        tmp_path = os.path.join(temp_img_dir, self.jp2_url.split("/")[-1])
-
-        tmp_path = download_image(self.jp2_url, tmp_path)
-        if tmp_path is None:
-            return
-
-        # convert the downloaded jp2 to jpeg (needed for OpenLayers static image)
-        jpg_path = convert_img_format(tmp_path, format="JPEG")
-        os.remove(tmp_path)
-
-        doc = GNDocument()
-        doc.uuid = str(uuid.uuid4())
-        doc.metadata_only = True
-        doc.title = self.__str__()
-
-        ## make date
-        if self.volume.month is None:
-            month = 1
-        else:
-            month = int(self.volume.month)
-        doc.date = datetime(self.volume.year, month, 1, 12, 0)
-
-        # set owner to user
-        if user is None:
-            user = Profile.objects.get(username="admin")
-        doc.owner = user
-
-        # set license
-        doc.license = License.objects.get(name="Public Domain")
-
-        # a few things need to happen only after the initial save
-        doc.save()
-
-        # set the detail_url with the same function that is used in search
-        # result indexing. this must be done after the doc has been saved once.
-        doc.detail_url = doc.get_absolute_url()
-
-        # m2m regions relation also needs to happen after initial save()
-        for r in self.volume.regions.all():
-            doc.regions.add(r)
-
-        with open(jpg_path, "rb") as new_file:
-            doc.doc_file.save(os.path.basename(jpg_path), File(new_file))
-
-        os.remove(jpg_path)
-
-        ## this final save will trigger the FullThumbnail creation, now that
-        ## the doc has a doc_file attaches.
-        doc.save()
-
-        # manually reset the default Geonode thumbnail as well, because
-        # its background creation will have failed because it is an async task
-        # called from within an async task (i.e. when it's first called,
-        # the document hasn't actually been saved to the db yet).
-        thumbnail_content = generate_thumbnail_content(doc.doc_file.path)
-        filename = f'document-{doc.uuid}-thumb.png'
-        doc.save_thumbnail(filename, thumbnail_content)
-
-        self.document = doc
-        self.save()
-
-        # set the status once the Document is fully created,
-        # which triggers the its addition Volume.document_lookup
-        tkm = TKeywordManager()
-        tkm.set_status(doc, "unprepared")
-
     def load_doc(self, user=None):
 
         log_prefix = f"{self.volume} p{self.sheet_no} |"
@@ -406,25 +296,6 @@ class Sheet(models.Model):
         self.doc.save()
 
         # self.volume.update_doc_lookup(doc)
-
-    @property
-    def real_documents(self):
-        """ TO BE DEPRECATED
-        This method is a necessary patch for the fact that once a
-        Document has been split by the georeferencing tools it will no
-        longer be properly associated with this Sheet. So a little extra
-        parsing must be done to make this a reliable way to get the one
-        or more documents in use for this Sheet.
-        """
-
-        real_docs = []
-        if self.document is not None:
-            doc_proxy = DocumentProxy(self.document.id)
-            if len(doc_proxy.child_docs) > 0:
-                real_docs = doc_proxy.child_docs
-            else:
-                real_docs.append(doc_proxy)
-        return real_docs
 
     @property
     def real_docs(self):
@@ -490,6 +361,7 @@ class Volume(models.Model):
         null=True,
         on_delete=models.CASCADE)
     load_date = models.DateTimeField(null=True, blank=True)
+    # DEPRECATE: marking this field for removal
     ordered_layers = JSONField(
         null=True,
         blank=True,
@@ -628,12 +500,6 @@ class Volume(models.Model):
         self.save(update_fields=['status'])
         logger.info(f"{self.__str__()} | status: {self.status}")
 
-    def get_all_documents(self):
-        all_documents = []
-        for sheet in self.sheets:
-            all_documents += sheet.real_documents
-        return all_documents
-
     def get_all_docs(self):
         all_documents = []
         for sheet in self.sheets:
@@ -671,21 +537,6 @@ class Volume(models.Model):
             "mosaic": mosaic_url,
         }
 
-    def hydrate_ordered_layers(self):
-
-        hydrated = { "layers": [], "index_layers": [] }
-        for layer_id in self.ordered_layers["layers"]:
-            try:
-                hydrated["layers"].append(self.layer_lookup[layer_id])
-            except KeyError as e:
-                logger.warn(f"{self.__str__()} | layer missing from layer lookup: {layer_id}")
-        for layer_id in self.ordered_layers["index_layers"]:
-            try:
-                hydrated["index_layers"].append(self.layer_lookup[layer_id])
-            except KeyError as e:
-                logger.warn(f"{self.__str__()} | layer missing from layer lookup: {layer_id}")
-        return hydrated
-
     def hydrate_sorted_layers(self):
 
         hydrated = default_sorted_layers_dict()
@@ -696,88 +547,6 @@ class Volume(models.Model):
                 except KeyError:
                     logger.warn(f"{self.__str__()} | layer missing from layer lookup: {layer_id}")
         return hydrated
-
-    def populate_lookups(self):
-        """ TO BE DEPRECATED
-        Clean and remake document_lookup and layer_lookup fields
-        for this Volume by examining the original loaded Sheets and
-        re-evaluating every descendant Document and Layer.
-        """
-
-        if len(self.document_lookup) > 0 or len(self.layer_lookup) > 0:
-            self.document_lookup = {}
-            self.layer_lookup = {}
-            self.save(update_fields=["document_lookup", "layer_lookup"])
-
-        for document in self.get_all_documents():
-            self.update_document_lookup(document.id, update_layer=True)
-
-    def update_document_lookup(self, doc_id, update_layer=False):
-        """ TO BE DEPRECATED
-        Take the input document id (pk), get the serialized DocumentProxy
-        content and save it back to the lookup table."""
-
-        doc_proxy = DocumentProxy(doc_id)
-        doc_json = doc_proxy.serialize()
-
-        # hacky method for pulling out the sheet number from the doc title
-        try:
-            page_str = doc_proxy.title.split("|")[-1].split("p")[1]
-        except IndexError:
-            page_str = doc_proxy.title
-        doc_json["page_str"] = page_str
-
-        # replace default thumbnail with FullThumbnail if present
-        full_thumbs = FullThumbnail.objects.filter(document_id=doc_id)
-        if len(full_thumbs) > 0:
-            thumb = list(full_thumbs)[0]
-            doc_json['urls']['thumbnail'] = thumb.image.url
-
-        self.document_lookup[doc_id] = doc_json
-        self.save(update_fields=["document_lookup"])
-
-        if update_layer is True:
-            self.update_layer_lookup(doc_proxy=doc_proxy)
-
-    def update_layer_lookup(self, layer_alternate=None, doc_proxy=None):
-        """ TO BE DEPRECATED
-        Pass either a layer alternate or an instance of DocumentProxy. The
-        latter is specifically to allow this method to be called from within
-        update_document_lookup() in the most efficient manner.
-
-        If both are passed in, only layer_alternate will used."""
-
-        lp = None
-        if layer_alternate is not None:
-            lp = LayerProxy(layer_alternate)
-        elif doc_proxy is not None:
-            lp = doc_proxy.get_layer_proxy()
-
-        if lp is not None:
-            layer_json = lp.serialize()
-            try:
-                layer_json["page_str"] = lp.title.split("|")[-1].split("p")[1]
-            except IndexError:
-                layer_json["page_str"] = lp.title
-
-            try:
-                tms_url = f"https://oldinsurancemaps.net/geoserver/gwc/service/tms/1.0.0/{lp.alternate}/{{z}}/{{x}}/{{-y}}.png"
-                centroid = Polygon().from_bbox(lp.extent).centroid
-                ohm_url = f"https://www.openhistoricalmap.org/edit#map=15/{centroid.coords[1]}/{centroid.coords[0]}&background=custom:{tms_url}"
-                layer_json["urls"]["ohm_edit"] = ohm_url
-            except Exception as e:
-                print("ERROR:")
-                print(e)
-                layer_json["urls"]["ohm_edit"] = "https://www.openhistoricalmap.org/edit"
-
-            self.layer_lookup[lp.alternate] = layer_json
-            self.save(update_fields=["layer_lookup"])
-
-            # add layer id to ordered_layers list if its not yet there
-            existing = self.ordered_layers["layers"] + self.ordered_layers["index_layers"]
-            if not lp.alternate in existing:
-                self.ordered_layers["layers"].append(lp.alternate)
-                self.save(update_fields=["ordered_layers"])
 
     def refresh_lookups(self):
         """Clean and remake document_lookup and layer_lookup fields
@@ -936,9 +705,6 @@ class Volume(models.Model):
             loaded_by["profile"] = reverse("profile_detail", args=(self.loaded_by.username, ))
             loaded_by["date"] = self.load_date.strftime("%Y-%m-%d")
 
-        # hydrate ordered_layers
-        ordered_layers = self.hydrate_ordered_layers()
-
         data = {
             "identifier": self.identifier,
             "title": self.__str__(),
@@ -952,7 +718,6 @@ class Volume(models.Model):
             "items": items,
             "loaded_by": loaded_by,
             "urls": self.get_urls(),
-            "ordered_layers": ordered_layers,
             "sorted_layers": self.hydrate_sorted_layers(),
             "multimask": self.multimask,
             "extent": self.extent,
@@ -982,84 +747,9 @@ class Volume(models.Model):
 ## This seems to be where the signals need to be connected. See
 ## https://github.com/mradamcox/loc-insurancemaps/issues/75
 
-# connect the creation of a FullThumbnail to Document post_save signal
-@receiver(signals.post_save, sender=GNDocument)
-def create_full_thumbnail(sender, instance, **kwargs):
-    if bool(instance.doc_file) is False:
-        return
-    if not FullThumbnail.objects.filter(document=instance).exists():
-        thumb = FullThumbnail(document=instance)
-        thumb.save()
-
-# triggered whenever a tkeyword is changed on a Document or Layer,
-@receiver(signals.m2m_changed, sender=GNDocument.tkeywords.through)
-@receiver(signals.m2m_changed, sender=GNLayer.tkeywords.through)
-def resource_status_changed(sender, instance, action, **kwargs):
-    """
-    Trigger the document_lookup and layer_lookup updates on a volume
-    whenever a Document or Layer has its georeferencing status changed.
-
-    This is effectively connected to the creation/deletion of sessions
-    because those actions change the tkeywords.
-    """
-    volume = None
-    if action == "post_add":
-        new_status = TKeywordManager().get_status(instance)
-        if new_status is not None:
-            model_name = instance._meta.model.__name__
-            if model_name == "Document":
-                volume = get_volume("document", instance.pk)
-                if volume is not None:
-                    volume.update_document_lookup(instance.pk)
-            if model_name == "Layer":
-                volume = get_volume("layer", instance.pk)
-                if volume is not None:
-                    volume.update_layer_lookup(instance.alternate)
-
-# refresh the lookup if a session is created or deleted.
-@receiver([signals.post_delete, signals.post_save], sender=PrepSession)
-@receiver([signals.post_delete, signals.post_save], sender=GeorefSession)
-def handle_session_deletion(sender, instance, **kwargs):
-    if instance.document is not None:
-        volume = get_volume("document", instance.document.pk)
-        if volume is not None:
-            volume.update_document_lookup(instance.document.pk)
-    if instance.layer is not None:
-        volume = get_volume("layer", instance.layer.pk)
-        if volume is not None:
-            volume.update_layer_lookup(instance.layer.alternate)
-
-# refresh the lookup for a layer after it is saved.
-@receiver(signals.post_save, sender=GNLayer)
-def refresh_layer_lookup(sender, instance, **kwargs):
-    volume = get_volume("layer", instance.pk)
-    if volume is not None:
-        volume.update_layer_lookup(instance.alternate)
-
-# pre_delete, remove the reference to the layer in Volume lookups
-# refresh the lookup for a layer after it is saved.
-@receiver(signals.pre_delete, sender=GNLayer)
-def remove_layer_from_lookup(sender, instance, **kwargs):
-    volume = get_volume("layer", instance.pk)
-    if volume is not None:
-        if instance.alternate in volume.layer_lookup:
-            del volume.layer_lookup[instance.alternate]
-        if instance.alternate in volume.ordered_layers['layers']:
-            volume.ordered_layers['layers'].remove(instance.alternate)
-        if instance.alternate in volume.ordered_layers['index_layers']:
-            volume.ordered_layers['index_layers'].remove(instance.alternate)
-        volume.save(update_fields=["layer_lookup", "ordered_layers"])
-
-# refresh the layer lookup after a LayerMask is deleted.
-@receiver(signals.post_delete, sender=LayerMask)
-def refresh_volume_on_layermask_delete(sender, instance, **kwargs):
-    volume = get_volume("layer", instance.layer.pk)
-    if volume is not None:
-        volume.update_layer_lookup(instance.layer.alternate)
-
-@receiver(signals.post_save, sender=Document)
-@receiver(signals.post_save, sender=Layer)
-def refresh_doc_lookup(sender, instance, **kwargs):
+@receiver([signals.post_delete, signals.post_save], sender=Document)
+@receiver([signals.post_delete, signals.post_save], sender=Layer)
+def refresh_volume_lookup(sender, instance, **kwargs):
     volume = find_volume(instance)
     if volume is not None:
         if sender == Document:
