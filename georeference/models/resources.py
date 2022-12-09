@@ -149,7 +149,10 @@ class GCPGroup(models.Model):
     )
 
     def __str__(self):
-        return self.document.title
+        if self.doc:
+            return self.doc.title
+        else:
+            return str(self.pk)
 
     @property
     def gcps(self):
@@ -207,7 +210,7 @@ class GCPGroup(models.Model):
 
     def save_from_geojson(self, geojson, document, transformation=None):
 
-        group, group_created = GCPGroup.objects.get_or_create(document=document)
+        group, group_created = GCPGroup.objects.get_or_create(doc=document)
 
         group.crs_epsg = 3857 # don't see this changing any time soon...
         group.transformation = transformation
