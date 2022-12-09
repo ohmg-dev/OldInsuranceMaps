@@ -89,10 +89,6 @@ function referenceLayersParam() {
 	}
 }
 
-function extentParam() {
-	return "extent="+VOLUME.extent.join(",")+"&"
-}
-
 function getClass(n) {
 	if (n == 100) {
 		return "full-circle"
@@ -280,7 +276,8 @@ function manageAutoReload(run) {
 		clearInterval(intervalId)
 	}
 }
-$: manageAutoReload(sheetsLoading)
+$: autoReload = sheetsLoading || VOLUME.items.processing.unprep != 0 || VOLUME.items.processing.prep != 0 || VOLUME.items.processing.geo_trim != 0;
+$: manageAutoReload(autoReload)
 
 function postOperation(operation) {
 	let indexLayerIds = [];
@@ -576,7 +573,7 @@ const sideLinks = [
 						</ul>
 						{:else}
 						<ul>
-							<li><a href="{document.urls.georeference}?{referenceLayersParam()}{extentParam()}" title="georeference this document">georeference &rarr;</a></li>
+							<li><a href="{document.urls.georeference}?{referenceLayersParam()}" title="georeference this document">georeference &rarr;</a></li>
 						</ul>
 						{/if}
 					</div>

@@ -198,7 +198,7 @@ if (RESOURCE.type == "layer") {
     alt: RESOURCE.document.title,
     url: RESOURCE.document.urls.resource,
   });
-} else if (RESOURCE.type == "document" && RESOURCE.status == "georeferenced") {
+} else if (RESOURCE.type == "document" && RESOURCE.layer) {
   sideLinks.push({
     display: "Go to layer",
     alt: RESOURCE.layer.title,
