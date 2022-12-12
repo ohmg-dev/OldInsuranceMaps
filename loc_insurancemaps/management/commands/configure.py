@@ -314,6 +314,9 @@ sudo supervisorctl reload
             ("THEME_ACCOUNT_CONTACT_EMAIL", "admin@example.com"),
             ("USE_TITILER", True),
             ("TITILER_HOST", ""),
+            ("SWAP_COORDINATE_ORDER", False),
+            ("ENABLE_CPROFILER", False),
+            ("ENABLE_DEBUG_TOOLBAR", False),
         ]
 
         if self.resolve_var("EMAIL_ENABLE", False) is True:
