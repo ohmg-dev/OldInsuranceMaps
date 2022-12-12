@@ -582,9 +582,9 @@ class Volume(models.Model):
         (if applicable)."""
 
         if isinstance(document, Document):
-            data = document.serialize(serialize_layer=False)
+            data = document.serialize(serialize_layer=False, include_sessions=True)
         elif str(document).isdigit():
-            data = Document.objects.get(pk=document).serialize(serialize_layer=False)
+            data = Document.objects.get(pk=document).serialize(serialize_layer=False, include_sessions=True)
         else:
             logger.warn(f"cannot update_doc_lookup with this input: {document} ({type(document)}")
             return
@@ -606,10 +606,10 @@ class Volume(models.Model):
         this volume's lookup table."""
 
         if isinstance(layer, Layer):
-            data = layer.serialize(serialize_document=False)
+            data = layer.serialize(serialize_document=False, include_sessions=True)
         else:
             try:
-                data = Layer.objects.get(slug=layer).serialize(serialize_document=False)
+                data = Layer.objects.get(slug=layer).serialize(serialize_document=False, include_sessions=True)
             except Exception as e:
                 logger.warn(f"{e} | cannot update_lyr_lookup with this input: {layer} ({type(layer)}")
                 return
@@ -667,33 +667,32 @@ class Volume(models.Model):
 
         return sorted_items
 
-    def get_session_info(self):
-        """ generates a json summary of the sessions for this volume,
-        to be used in the volume summary page"""
+    def get_user_activity_summary(self):
 
-        prep_sessions = self.prep_sessions
-        prep_users = [i.user.username for i in prep_sessions]
-        prep_user_info = [{
-            "ct": prep_users.count(i),
-            "name": i,
-            "profile": reverse('profile_detail', args=(i, ))
-        } for i in set(prep_users)]
-        georef_sessions = self.georef_sessions
-        georef_users = [i.user.username for i in georef_sessions]
-        georef_user_info = [{
-            "ct": georef_users.count(i),
-            "name": i,
-            "profile": reverse('profile_detail', args=(i, ))
-        } for i in set(georef_users)]
+        def _get_session_user_summary(session_dict):
+            users = [i['user']['name'] for i in session_dict.values()]
+            print(users)
+            user_info = [{
+                "ct": users.count(i),
+                "name": i,
+                "profile": reverse('profile_detail', args=(i, ))
+            } for i in set(users)]
+            user_info.sort(key=lambda item: item.get("ct"), reverse=True)
+            return user_info
 
-        georef_user_info.sort(key=lambda item: item.get("ct"), reverse=True)
-        prep_user_info.sort(key=lambda item: item.get("ct"), reverse=True)
+        prep_sessions, georef_sessions = {}, {}
+        for item in list(self.document_lookup.values()) + list(self.layer_lookup.values()):
+            for sesh in item['session_data']:
+                if sesh['type'] == "Preparation":
+                    prep_sessions[sesh['id']] = sesh
+                elif sesh['type'] == "Georeference":
+                    georef_sessions[sesh['id']] = sesh
 
         return {
             'prep_ct': len(prep_sessions),
-            'prep_contributors': prep_user_info,
+            'prep_contributors': _get_session_user_summary(prep_sessions),
             'georef_ct': len(georef_sessions),
-            'georef_contributors': georef_user_info,
+            'georef_contributors': _get_session_user_summary(georef_sessions),
         }
 
     def serialize(self, include_session_info=False):
@@ -734,7 +733,7 @@ class Volume(models.Model):
         }
 
         if include_session_info:
-            data['sessions'] = self.get_session_info()
+            data['sessions'] = self.get_user_activity_summary()
 
         return data
 

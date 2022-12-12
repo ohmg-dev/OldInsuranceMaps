@@ -757,7 +757,7 @@ class Document(ItemBase):
             layer = None
         return layer
 
-    def serialize(self, serialize_children=True, serialize_parent=True, serialize_layer=True):
+    def serialize(self, serialize_children=True, serialize_parent=True, serialize_layer=True, include_sessions=False):
 
         parent = None
         if self.parent is not None:
@@ -780,6 +780,11 @@ class Document(ItemBase):
             else:
                 layer = layer.slug
 
+        if include_sessions is True:
+            session_data = self.get_sessions(serialize=True)
+        else:
+            session_data = None
+
         return {
             "id": self.pk,
             "title": self.title,
@@ -796,6 +801,7 @@ class Document(ItemBase):
             "transformation": self.transformation,
             "lock_enabled": self.lock_enabled,
             "lock_details": self.lock_details,
+            "session_data": session_data,
         }
 
 class Layer(ItemBase):
@@ -854,7 +860,7 @@ class Layer(ItemBase):
             document = None
         return document
 
-    def serialize(self, serialize_document=True):
+    def serialize(self, serialize_document=True, include_sessions=False):
 
         document = self.get_document()
         if document is not None:
@@ -862,6 +868,11 @@ class Layer(ItemBase):
                 document = document.serialize(serialize_layer=False)
             else:
                 document = document.pk
+
+        if include_sessions is True:
+            session_data = self.get_sessions(serialize=True)
+        else:
+            session_data = None
 
         return {
             "id": self.pk,
@@ -872,7 +883,7 @@ class Layer(ItemBase):
             "urls": self.urls,
             "document": document,
             "extent": self.extent,
-            # "lock": self.lock.as_dict,
+            "session_data": session_data,
         }
 
 LINK_TYPE_CHOICES = (
