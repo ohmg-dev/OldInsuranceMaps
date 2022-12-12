@@ -656,7 +656,7 @@ class Document(ItemBase):
     @property
     def georeference_sessions(self):
         from georeference.models.sessions import GeorefSession
-        return GeorefSession.objects.filter(document=self.id).order_by("date_run")
+        return GeorefSession.objects.filter(doc=self.id).order_by("date_run")
 
     @property
     def cutlines(self):
