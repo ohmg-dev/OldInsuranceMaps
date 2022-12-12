@@ -26,7 +26,7 @@ admin.site.register(GCPGroup)
 
 class SessionAdmin(admin.ModelAdmin):
     readonly_fields = ('date_created', 'date_modified', 'date_run')
-    list_display = ['__str__', 'document', 'layer', 'user', 'stage', 'status', 'note', 'date_created', 'date_modified', 'date_run']
+    list_display = ['__str__', 'doc', 'lyr', 'user', 'stage', 'status', 'note', 'date_created', 'date_modified', 'date_run']
     list_filter = ('stage', )
 
 class PrepSessionAdmin(SessionAdmin):

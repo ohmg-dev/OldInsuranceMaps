@@ -447,13 +447,23 @@ class Volume(models.Model):
     
     def lc_item_formatted(self):
         return format_json_display(self.lc_item)
-
     lc_item_formatted.short_description = 'LC Item'
 
     def lc_resources_formatted(self):
         return format_json_display(self.lc_resources)
-
     lc_resources_formatted.short_description = 'LC Resources'
+
+    def document_lookup_formatted(self):
+        return format_json_display(self.document_lookup)
+    document_lookup_formatted.short_description = 'Document Lookup'
+
+    def layer_lookup_formatted(self):
+        return format_json_display(self.layer_lookup)
+    layer_lookup_formatted.short_description = 'Layer Lookup'
+
+    def sorted_layers_formatted(self):
+        return format_json_display(self.sorted_layers)
+    sorted_layers_formatted.short_description = 'Sorted Layers'
 
     def make_sheets(self):
 
