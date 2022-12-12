@@ -866,12 +866,16 @@ if (DOCUMENT.layer) {
   </div>
 </div>
 
+{#if !USER}
 <div id="anonymousModal" class="modal" style="display:block;">
   <div class="modal-content" style="max-width:325px;">
-    <p>Feel free to experiment with the interface; backend georeferencing is disabled at this time.</p>
+    <p>Feel free to experiment with the interface. To submit your work, you must
+      <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+      <a href="/account/signup">sign up</a>.</p>
     <button on:click={() => {document.getElementById('anonymousModal').style.display = 'none'}}>OK</button>
   </div>
 </div>
+{/if}
 
 <div class="hidden-small"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
