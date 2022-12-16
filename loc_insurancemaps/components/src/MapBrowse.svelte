@@ -95,7 +95,7 @@ function MapViewer (elementId) {
 				const props = feature.getProperties();
 				const volList = []
 				props.volumes.forEach( function(vol) {
-					volList.push(`<a title="${vol.title}" href="Summary of ${vol.url}">${vol.year}</a>`)
+					volList.push(`<a title="Summary of ${vol.title}" href="${vol.url}">${vol.year}</a>`)
 				})
 				const volListStr = volList.join(" • ")
 				const popupContent = `
