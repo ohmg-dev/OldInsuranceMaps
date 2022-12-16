@@ -1,16 +1,21 @@
 <script>
 import Volumes from './Volumes.svelte';
 import Places from './Places.svelte';
+import MapBrowse from './MapBrowse.svelte';
 
+export let PLACES_GEOJSON;
 export let STARTED_VOLUMES;
 export let PLACES;
 
-let currentTab = "places";
+let currentTab = "map";
 
 </script>
 
 <main>
 	<div class="tab-row">
+		<div class="{currentTab == 'map' ? 'active' : ''}" on:click={() => {currentTab = "map"}}>
+			<h2>Browse by map</h2>
+		</div>
 		<div class="{currentTab == 'places' ? 'active' : ''}" on:click={() => {currentTab = "places"}}>
 			<h2>Browse by place ({PLACES.length})</h2>
 		</div>
@@ -19,10 +24,12 @@ let currentTab = "places";
 		</div>
 	</div>
 	<div>
-	{#if currentTab == "places"}
-	<Places PLACES={PLACES}/>
+	{#if currentTab == "map"}
+	<MapBrowse PLACES_GEOJSON={PLACES_GEOJSON}/>
 	{:else if currentTab == "volumes"}
 	<Volumes STARTED_VOLUMES={STARTED_VOLUMES}/>
+	{:else if currentTab == "places"}
+	<Places PLACES={PLACES}/>
 	{/if}
 	</div>
 </main>

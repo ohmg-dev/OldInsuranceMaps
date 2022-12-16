@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.urls import reverse
@@ -60,6 +60,8 @@ class Browse(View):
         lc = CollectionConnection(delay=0)
         city_list = lc.get_city_list_by_state("louisiana")
 
+        city_extent_dict = {}
+
         loaded_summary = []
         places_dict = {}
         for vol in started_volumes:
@@ -99,7 +101,7 @@ class Browse(View):
                     place_name = f"{place_name}, {vol.locale.direct_parents.all()[0].__str__()}"
             else:
                 place_name = f"{vol.city}, {vol.county_equivalent}, {vol.state}"
-
+            summary_url = full_reverse("volume_summary", args=(vol.identifier,))
             vol_content = {
                 "identifier": vol.identifier,
                 "city": vol.city,
@@ -119,13 +121,61 @@ class Browse(View):
                 "mm_ct": mm_todo,
                 "mm_display": mm_display,
                 "urls": {
-                    "summary": full_reverse("volume_summary", args=(vol.identifier,)),
+                    "summary": summary_url,
                     "viewer": viewer_url,
                 }
             }
             loaded_summary.append(vol_content)
             if vol.locale:
                 places_dict[vol.locale] = places_dict.get(vol.locale, []) + [vol_content]
+
+            # this is a hacky way of getting geojson centers from the volumes for each place
+            # instead of taking locations directly from the place themselves (extents have not
+            # yet been added but it is in the works)
+            if len(vol.layer_lookup.values()) > 0:
+                try:
+                    temp_id = vol.city+vol.state
+                except Exception as e:
+                    print(e)
+                    continue
+                volume_content = {
+                    'title': vol.__str__(),
+                    'year': year_vol,
+                    'url': summary_url,
+                    'extent': vol.extent,
+                }
+                centroid = Polygon.from_bbox(vol.extent).centroid
+                if temp_id in city_extent_dict:
+                    city_extent_dict[temp_id]['volumes'].append(volume_content)
+                else:
+                    city_extent_dict[temp_id] = {
+                        'volumes': [volume_content],
+                        'place': None,
+                        'centroid': centroid.coords,
+                    }
+                    if vol.locale:
+                        city_extent_dict[temp_id]['place'] = {
+                            "name": vol.locale.name,
+                            "url": full_reverse("viewer", args=(vol.locale.slug,)),
+                        }
+
+        map_geojson = {
+            "type": "FeatureCollection",
+            "features": [],
+        }
+        for v in city_extent_dict.values():
+            feature = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": v['centroid'],
+                },
+                "properties": {
+                    "volumes": v['volumes'],
+                    "place": v['place'],
+                }
+            }
+            map_geojson['features'].append(feature)
 
         places = []
         for place, volumes in places_dict.items():
@@ -142,6 +192,7 @@ class Browse(View):
 
         context_dict = {
             "browse_params": {
+                "PLACES_GEOJSON": map_geojson,
                 "STARTED_VOLUMES": loaded_summary,
                 "PLACES": places,
             },
