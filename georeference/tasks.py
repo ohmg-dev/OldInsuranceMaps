@@ -1,8 +1,6 @@
 import logging
-
 from celery import shared_task
 
-from georeference.celeryapp import app
 from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
@@ -21,10 +19,6 @@ def run_georeference_session(sessionid):
     session = GeorefSession.objects.get(pk=sessionid)
     session.run()
 
-@app.task(
-    bind=True,
-    queue='cleanup',
-    name='georeference.tasks.delete_expired_sessions',
-)
-def delete_expired(self):
+@shared_task
+def delete_expired():
     delete_expired_sessions()

@@ -22,6 +22,8 @@
 import ast
 import os
 
+from kombu import Queue, Exchange
+
 # Load all default geonode settings
 from geonode.settings import *
 
@@ -117,7 +119,7 @@ INSTALLED_APPS = [
     'geonode.services',
     'geonode.geoserver',
     'geonode.upload',
-    'geonode.tasks',
+    # 'geonode.tasks',
     'geonode.messaging',
     'geonode.monitoring',
     'geonode.documents.exif',
@@ -192,6 +194,26 @@ S3_CONFIG = {
 # this will be removed once Django is upgraded
 SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", False))
 
+# CONFIGURE CELERY
+
+# basic independent setup for Celery Exchange/Queue
+PARAMOUNT_EXCHANGE = Exchange('paramount', type='topic')
+CELERY_TASK_QUEUES += (
+    Queue('split', PARAMOUNT_EXCHANGE, routing_key='split', priority=0),
+    Queue('georeference', PARAMOUNT_EXCHANGE, routing_key='georeference', priority=0),
+    Queue('volume', PARAMOUNT_EXCHANGE, routing_key='volume', priority=0),
+    Queue('mosaic', PARAMOUNT_EXCHANGE, routing_key='mosaic', priority=0),
+    Queue('housekeeping', PARAMOUNT_EXCHANGE, routing_key='housekeeping', priority=0),
+)
+
+CELERY_TASK_ROUTES = {
+ 'georeference.tasks.run_preparation_session': {'queue': 'split'},
+ 'georeference.tasks.run_georeference_session': {'queue': 'georeference'},
+ 'georeference.tasks.delete_expired': {'queue': 'housekeeping'},
+ 'loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
+ 'loc_insurancemaps.tasks.generate_mosaic_geotiff_as_task': {'queue': 'mosaic'},
+}
+
 # empty celery beat schedule of default GeoNode jobs
 CELERY_BEAT_SCHEDULE = {}
 
@@ -208,7 +230,7 @@ if 'georeference' in INSTALLED_APPS:
     MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
 
     CELERY_BEAT_SCHEDULE['delete_expired_sessions'] = {
-        'task': 'georeference.tasks.delete_expired_sessions',
+        'task': 'georeference.tasks.delete_expired',
         'schedule': 60.0,
     }
 
