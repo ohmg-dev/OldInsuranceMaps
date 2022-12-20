@@ -493,9 +493,7 @@ class Volume(models.Model):
         self.make_sheets()
         self.update_status("initializing...")
         for sheet in self.sheets:
-            print(sheet)
             if sheet.doc is None or sheet.doc.file is None or force_reload:
-                print("loading document")
                 sheet.load_doc(self.loaded_by)
         self.update_status("started")
         self.refresh_lookups()
@@ -671,7 +669,6 @@ class Volume(models.Model):
 
         def _get_session_user_summary(session_dict):
             users = [i['user']['name'] for i in session_dict.values()]
-            print(users)
             user_info = [{
                 "ct": users.count(i),
                 "name": i,
@@ -775,7 +772,7 @@ class Volume(models.Model):
                     }
                     if vol.locale:
                         city_extent_dict[temp_id]['place'] = {
-                            "name": vol.locale.name,
+                            "name": vol.locale.display_name,
                             "url": full_reverse("viewer", args=(vol.locale.slug,)),
                         }
 

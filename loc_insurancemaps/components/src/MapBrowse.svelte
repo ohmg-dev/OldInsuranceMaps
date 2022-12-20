@@ -20,6 +20,9 @@ import Styles from './js/ol-styles';
 const styles = new Styles();
 
 export let PLACES_GEOJSON;
+export let MAP_HEIGHT;
+
+if (!MAP_HEIGHT) {MAP_HEIGHT = '600'};
 
 const osmLayer = new TileLayer({ source: new OSM() });
 
@@ -95,14 +98,17 @@ function MapViewer (elementId) {
 				const props = feature.getProperties();
 				const volList = []
 				props.volumes.forEach( function(vol) {
-					volList.push(`<a title="Summary of ${vol.title}" href="${vol.url}">${vol.year}</a>`)
+					volList.push(`<a title="Summary of this item: ${vol.title}" href="${vol.url}">${vol.year}</a>`)
 				})
 				const volListStr = volList.join(" • ")
 				const popupContent = `
-					<h4><a title="Show in viewer" href="${props.place.url}">${props.place.name}</a></h4>
-					<p>
-					${volListStr}
-					</p>
+					<h4>${props.place.name} • <a title="Show all years in viewer" href="${props.place.url}">view &rarr;</a></h4>
+					<div style="font-size:18px;">
+						<div style="border-bottom:1px dashed #000; height:12px; margin-bottom:10px;">
+							<span style="background:#fff; padding-right:5px;">Volume Detail</span>
+						</div>
+						${volListStr}
+					</div>
 				`
 				content.innerHTML = popupContent;
 				overlay.setPosition(feature.getGeometry().getCoordinates());
@@ -130,7 +136,7 @@ onMount(() => {
 
 
 </script>
-<div id="map"></div>
+<div id="map" style="height:{MAP_HEIGHT}px"></div>
 <div id="popup" class="ol-popup" style="">
 	<a href="#" title="Close popup" id="popup-closer" class="ol-popup-closer"></a>
 	<div id="popup-content"></div>
