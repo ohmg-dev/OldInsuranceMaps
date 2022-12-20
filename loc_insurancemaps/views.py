@@ -342,9 +342,6 @@ class Viewer(View):
     @xframe_options_exempt
     def get(self, request, place_slug):
 
-        year_to_show = request.GET.get("year")
-        year_found = False
-
         place_data = {}
         volumes = []
 
@@ -355,18 +352,8 @@ class Viewer(View):
             place = Place.objects.get(slug="louisiana")
 
         place_data = place.serialize()
-        for v in Volume.objects.filter(locale=place).order_by("year","volume_no"):
+        for v in Volume.objects.filter(locale=place).order_by("year","volume_no").reverse():
             volumes.append(v.serialize())
-
-            if not year_found:
-                if year_to_show is not None:
-                    if str(v.year) == str(year_to_show):
-                        year_to_show = v.year
-                        year_found = True
-                else:
-                    if len(v.sorted_layers['main']) > 0:
-                        year_to_show = v.year
-                        year_found = True
 
         gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
         gs = gs.rstrip("/") + "/"
@@ -376,7 +363,6 @@ class Viewer(View):
             "svelte_params": {
                 "PLACE": place_data,
                 "VOLUMES": volumes,
-                "SHOW_YEAR": year_to_show,
                 "USE_TITILER": settings.USE_TITILER,
                 "TITILER_HOST": settings.TITILER_HOST,
                 "GEOSERVER_WMS": geoserver_ows,

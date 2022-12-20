@@ -530,7 +530,7 @@ class Volume(models.Model):
 
         viewer_url = ""
         if self.locale:
-            viewer_url = reverse("viewer", args=(self.locale.slug,)) + f"?year={self.year}"
+            viewer_url = reverse("viewer", args=(self.locale.slug,)) + f"?{self.identifier}=100"
 
         mosaic_url = ""
         if self.mosaic_geotiff:

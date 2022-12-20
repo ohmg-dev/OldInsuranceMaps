@@ -11,6 +11,7 @@ import {fromLonLat} from 'ol/proj';
 import {createXYZ} from 'ol/tilegrid';
 
 import 'ol/ol.css';
+import './css/ol-overrides.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
 
@@ -35,15 +36,12 @@ import Utils from './js/ol-utils';
 const utils = new Utils();
 
 export let PLACE;
-export let SHOW_YEAR;
 export let MAPBOX_API_KEY;
 export let VOLUMES;
-export let USE_TITILER;
 export let TITILER_HOST;
-export let GEOSERVER_WMS;
 
 let showPanel = true;
-$: showHideBtnIcon = showPanel ? "angle-double-right" : "angle-double-left";
+$: showHideBtnIcon = showPanel ? "✖" : "•••";
 
 let volumeIds = [];
 let volumeLookup = {};
@@ -52,6 +50,8 @@ const tileGrid = createXYZ({
 	tileSize: 512,
 });
 
+let showAboutPanel = false;
+
 let homeExtent;
 const layerExtent = createEmpty();
 
@@ -59,6 +59,25 @@ const layerExtent = createEmpty();
 let watchId;
 let justEnabled = false;
 
+// set some url variables that need to persist.
+let originalUrl = window.location.href;
+function paramsFromUrl (url) {
+	let urlWithoutHash = url.split('#')[0];
+	let paramString = urlWithoutHash.split('?')[1];
+	return new URLSearchParams(paramString);
+}
+function hashFromUrl (url) {
+	return url.split('#')[1];
+}
+function baseFromUrl(url) {
+	let urlWithoutHash = url.split('#')[0];
+	return urlWithoutHash.split('?')[0];
+}
+let currentHash = hashFromUrl(originalUrl);
+let urlParams = paramsFromUrl(originalUrl);
+let baseUrl = baseFromUrl(originalUrl);
+
+let needToShowOneLayer = true;
 VOLUMES.forEach( function (vol, n) {
 
 	// zIndex guide (not all categories are implemented):
@@ -86,7 +105,12 @@ VOLUMES.forEach( function (vol, n) {
 		mainGroup.setZIndex(400+n)
 	}
 
-	const opacity = SHOW_YEAR == vol.year ? 100 : 0;
+	let opacity = 0;
+	if (urlParams.has(vol.identifier)) {
+		needToShowOneLayer = false;
+		opacity = urlParams.get(vol.identifier)
+	}
+	urlParams.set(vol.identifier, opacity)
 
 	const volumeObj = {
 		id: vol.identifier,
@@ -97,7 +121,33 @@ VOLUMES.forEach( function (vol, n) {
 	};
 	volumeIds.push(vol.identifier);
 	volumeLookup[vol.identifier] = volumeObj;
+
+	
 })
+
+// if the params didn't have opacity settings for any layer, then set the latest
+// layer to 100. In the case of New Orleans, set all layers to 100 (this is
+// because all the current layers are really on edition, unlike every other
+// city where each layer is a different year)
+if (needToShowOneLayer) {
+	volumeIds.forEach( function (id) {
+		if (volumeLookup[id].mainLayer != undefined && needToShowOneLayer == true) {
+			urlParams.set(id, 100);
+			volumeLookup[id].mainLayerO = 100;
+			needToShowOneLayer = false;
+		} else if (originalUrl.indexOf("new-orleans-la") > 0) {
+			urlParams.set(id, 100);
+			volumeLookup[id].mainLayerO = 100;
+		}
+	});
+}
+
+// this takes care of situations in which only the bare viewer url is originally called,
+// so the opacity params must be pushed to the url string
+window.history.replaceState(null, "", baseUrl+"?"+urlParams.toString() + "#" + currentHash);
+// now reset the originalUrl after all params have been pushed into it.
+originalUrl = window.location.href;
+
 
 function getClass(n) {
 	if (n == 100) {
@@ -123,6 +173,7 @@ function toggleLayerTransparencyIcon(id) {
 	if (volumeLookup[id].mainLayer) {
 		volumeLookup[id].mainLayerO = toggleTransparencyIcon(volumeLookup[id].mainLayerO)
 	}
+	syncUrlParams()
 }
 
 function setVisibility(group, vis) {
@@ -143,6 +194,23 @@ function changes(volumeLookup) {
 	})
 }
 $: changes(volumeLookup)
+
+function syncUrlParams () {
+	currentHash = window.location.href.split("#")[1]
+	volumeIds.forEach( function (id) {
+		urlParams.set(id,  volumeLookup[id].mainLayerO);
+		window.history.replaceState(null, "", baseUrl+"?"+urlParams.toString() + "#" + currentHash)
+			// window.history.replaceState(null, "", window.location.href)
+	});
+}
+function setOpacitiesFromParams() {
+	urlParams = paramsFromUrl(window.location.href);
+	volumeIds.forEach( function (id) {
+		if (urlParams.has(id)) {
+			volumeLookup[id].mainLayerO = urlParams.get(id)
+		}
+	});
+}
 
 // setup all the basemap stuff
 
@@ -181,28 +249,12 @@ function getMainLayerGroupFromVolume(volumeJson) {
 		homeExtent = layerExtent;
 
 		// create the actual ol layers and add to group.
-		let newLayer;
-		// console.log(layerDef)
-		if (USE_TITILER) {
-			newLayer = new TileLayer({
-				source: new XYZ({
-					url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
-				}),
-				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-			});
-		} else {
-			newLayer = new TileLayer({
-				source: new TileWMS({
-					url: GEOSERVER_WMS,
-					params: {
-						'LAYERS': layerDef.geoserver_id,
-						'TILED': true,
-					},
-					tileGrid: tileGrid,
-				}),
-				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-			});
-		}
+		const newLayer = new TileLayer({
+			source: new XYZ({
+				url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
+			}),
+			extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+		});
 		lyrGroup.getLayers().push(newLayer)
 
 		if (volumeJson.multimask) {
@@ -279,7 +331,9 @@ function locateUser() {
 }
 
 function resetExtent() {
-	mapView.map.getView().fit(homeExtent)
+	mapView.map.getView().fit(homeExtent);
+	window.history.replaceState(null, "", originalUrl);
+	setOpacitiesFromParams();
 }
 
 let mapView;
@@ -331,14 +385,20 @@ function toggleDetails(id) {
 
 
 </script>
-<div id="expirationModal" class="modal">
-	<div class="modal-content">
-		<p>This georeferencing session is expiring, and will be cancelled soon.</p>
-		<button>Give me more time!</button>
+{#if showAboutPanel}
+<div class="about-modal-bg">
+	<div class="about-modal-content">
+		<h1>About</h1>
+		<p>These historical fire insurance maps were originally created by the <a href="">Sanborn Map Company</a>, and the maps used here come from the Library of Congress <a title="LOC Sanborn Maps Collection" href="https://loc.gov/collections/sanborn-maps/about-this-collection">digital collection</a>.</p>
+		<p>In early 2022, participants in a crowdsourcing pilot project georeferenced all of the Louisiana maps you see here, eventually creating these seamless mosaic overlays. Over four months, 1,500 individual sheets from 270 different Sanborn atlases were processed, covering of over 130 different locations. You can find other cities in the <a href="/browse">main search page</a>.</p>
+		<p>If you or your organization are interested in getting Sanborn maps of your home on this site so they can be georeferenced, please fill out <a href="https://forms.gle/3gbZPYKWcPFb1NN5A">this form</a>, or just <a href="mailto:hello@oldinsuracemaps.net">get in touch</a>.</p>
+		<p>To learn more more about the entire project, head to <a href="https://about.oldinsurancemaps.net">about.oldinsurancemaps.net</a>.</p>
+		<button on:click={() => {showAboutPanel=false}}>close</button>
 	</div>
 </div>
+{/if}
 <main>
-	<div id="locate-button" class="ol-control ol-unselectable locate">
+	<div id="locate-button" class="ol-control ol-unselectable">
 		<button title="Show my location" on:click={locateUser}><i class="fa fa-crosshairs"></i></button>
 	</div>
 	<div id="map">
@@ -346,44 +406,50 @@ function toggleDetails(id) {
 		<a href="http://mapbox.com/about/maps" class='mapbox-logo' target="_blank">Mapbox</a>
 		{/if}
 	</div>
-	<button id="show-hide-panel-btn" on:click={() => showPanel = !showPanel}><i class="fa fa-{showHideBtnIcon}" /></button>
+	<div id="panel-btn">
+		<button on:click={() => {showPanel=!showPanel}} style="{showPanel ? 'border-color:#333; color:#333;' : ''};">
+			<span>{showHideBtnIcon}</span>
+		</button>
+	</div>
 	{#if showPanel}
-	<div id="control-panel" style="display:{showPanel == true ? 'flex' : 'none'}">
+	<div id="layer-panel" style="display:{showPanel == true ? 'flex' : 'none'}">
 		<div class="control-panel-buttons">
 			<button title="Change basemap" on:click={toggleBasemap}><i class="fa fa-exchange" /></button>
 			<button title="{watchId ? 'Disable' : 'Show'} my location" on:click={toggleGPSLocation} style="color:{watchId ? 'blue' : 'black'}"><i class="fa fa-crosshairs" /></button>
-			<button title="Zoom to home extent" on:click={resetExtent}><i class="fa fa-home" /></button>
-			<!-- <a title="Go to new place" href="/browse"><i class="fa fa-plane"></i></a> -->
+			<button title="Reset to original extent and settings" on:click={resetExtent}><i class="fa fa-refresh" /></button>
 		</div>
 		<div class="control-panel-title">
 			<h1>{PLACE.display_name}</h1>
 		</div>
-		
 		<div class="control-panel-content">
 			{#if volumeIds.length > 0}
 			{#each volumeIds as id }
 			<div class="volume-item">
 				<div class="volume-header">
-					<button style="width:{volumeLookup[id].displayName.length > 4 ? '100px' : '30px'}" on:click={() => toggleDetails(id)}>{volumeLookup[id].displayName}</button>
-                                        <!-- <button on:click={() => toggleDetails(id)}>{volumeLookup[id].displayName}</button>  -->
-					<input type=range disabled={volumeLookup[id].mainLayer ? "" : "disabled"} class="transparency-slider" bind:value={volumeLookup[id].mainLayerO} min=0 max=100>
-					<i class="{volumeLookup[id].mainLayer != undefined ? 'transparency-toggle' : ''} {getClass(volumeLookup[id].mainLayerO)}" on:click={() => toggleLayerTransparencyIcon(id)} />
+					<button class="toggle-button" disabled={!volumeLookup[id].mainLayer} on:click={() => toggleLayerTransparencyIcon(id)}>
+						<i class="{volumeLookup[id].mainLayer != undefined ? 'transparency-toggle' : ''} {getClass(volumeLookup[id].mainLayerO)}" style="{volumeLookup[id].mainLayer != undefined ? '' : 'background:grey;border-color:grey;'}"  />
+						<span>{volumeLookup[id].displayName}</span>
+					</button>
+					<button style="" on:click={() => toggleDetails(id)}>•••</button>
+					<input type=range disabled={volumeLookup[id].mainLayer ? "" : "disabled"} class="transparency-slider" bind:value={volumeLookup[id].mainLayerO} on:mouseup={syncUrlParams} min=0 max=100>
 				</div>
 				<div id="{id}" class="volume-detail">
-					<a href="{volumeLookup[id].summaryUrl}">volume summary</a>
+					<a href="{volumeLookup[id].summaryUrl}">Go to full summary &rarr;</a>
 				</div>
 			</div>
 			{/each}
 			{:else}
 			<div class="volume-item">
-				<p>No volumes for this place. <a title="Back to browse" href="/browse">back to browse</a></p>
+				<p>No volumes for this place. <a title="Back to browse" href="/browse">Back to browse &rarr;</a></p>
 			</div>
 			{/if}
 		</div>
 		<div class="control-panel-footer">
-			<a title="Back to browse" href="/browse">back to browse</a>
+			<a title="Find another city" href="/browse">&larr; back to browse</a>
 			<span>|</span>
-			<a href="/">site home</a>
+			<a title="Go to home page" href="/">home</a>
+			<span>|</span>
+			<button title="About this viewer" on:click={() => {showAboutPanel = !showAboutPanel}}>about</button>
 		</div>
 	</div>
 	{/if}
@@ -396,8 +462,31 @@ h1 {
 	font-size: 1.5em;
 }
 
-.locate {
-  top: 4em;
+.about-modal-bg {
+	position: absolute;
+	background: rgba(255, 255, 255, .6);
+	z-index: 999999;
+	height: 100vh;
+	width: 100%;
+}
+.about-modal-content {
+	position: absolute;
+	background: white;
+	border-radius: 4px;
+	top: 3em;
+	right: 0;
+	left: 0;
+	margin: auto;
+	width: 400px;
+	max-width: 80%;
+	padding: 10px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+#locate-button {
+  top: 6em;
   left: .5em;
 }
 
@@ -406,25 +495,55 @@ h1 {
 	width: 100%;
 	position: absolute;
 }
-#control-panel {
-	flex-direction: column;
-	min-width: 250px;
-        max-width: 100%;
-	position: absolute;
-	right: 0;
-	z-index: 10000;
-	background-color: #F7F1E1;
-	border-left: 2px solid #123B4F;
-	border-bottom: 2px solid #123B4F;
-	border-bottom-left-radius: 4px;
 
+#panel-btn {
+	position: absolute;
+	top: .5em;
+	right: .5em;
+	width: 50px;
+	height: 1.5em;
+	text-align: center;
+	z-index: 1000;
+	
 }
 
-#show-hide-panel-btn {
+#panel-btn button {
+	display: inline-flex;
+  	align-items: center;
+	justify-content: center;
+	color: #666666;
+	background: lightgrey;
+	border-radius: 4px;
+	border: 1px solid #333333;
+	cursor: pointer;
+	width: 50px;
+	font-size: 1.2em;
+}
+
+#panel-btn button:hover {
+	color: #333333;
+}
+
+#layer-panel {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	color: #333333;
 	position: absolute;
-	top: 10px;
-	right: 10px;
-	z-index: 15000;
+	top: .5em;
+	right: .5em;
+	max-width: 100%;
+	min-width: 250px;
+	background: #F7F1E1;
+	border-radius: 4px;
+	border: 1px solid #333333;
+	z-index: 999;
+}
+
+.toggle-button {
+	display: inline-flex;
+	align-items: center;
+	align-content: center;
 }
 
 .btn-spacer {
@@ -432,45 +551,51 @@ h1 {
 }
 
 .control-panel-title {
-	padding: 5px 10px;
-	border-bottom: 1px dashed grey;
+	padding: 10px;
 }
 .control-panel-title h1 {
 	margin: 0;
 }
 .control-panel-buttons {
 	display: flex;
-	padding: 10px;
+	justify-content: start;
+	padding-right: 50px;
+	width: 100%;
 }
-.control-panel-buttons button {
-	margin-right: 5px;
-}
+
 .control-panel-content {
 	display: flex;
 	flex-direction: column;
 	max-height: 500px;
 	overflow-y: auto;
+	width: 100%;
 }
 .control-panel-footer {
-        text-align: center;
-        height: 30px;
-        width: 100%;
-	padding-top: 5px;
+	text-align: center;
+	height: 30px;
+	width: 100%;
+	padding: 5px;
 	background-color: #123b4f;
 	color: white;
 }
 .control-panel-footer a {
 	color: white;
 }
+.control-panel-footer button {
+	color: white;
+	border: none;
+	background: none;
+	padding: 0;
+}
+.control-panel-footer button:hover {
+	text-decoration: underline;
+}
 
 .volume-item {
 	display: flex;
 	flex-direction: column;
-	border-bottom: 1px dashed grey;
-        padding: 0px 10px;
-}
-.volume-item:last-child {
-	border-bottom: none;
+	border-top: 1px dashed grey;
+	padding: 3px 10px;
 }
 
 .volume-header, .volume-detail {
@@ -493,6 +618,13 @@ h1 {
 .volume-header button:hover {
 	text-decoration: underline;
 	color: #1b4060;
+}
+.volume-header button:disabled {
+	text-decoration: none;
+	color: grey;
+}
+.volume-header button i {
+	margin-right: 4px;
 }
 
 .volume-detail {
@@ -575,6 +707,25 @@ h1 {
   background-repeat: no-repeat;
   background-position: 0 0;
   background-size: 65px 20px;
+}
+
+@media only screen and (max-width: 480px) {
+	#layer-panel {
+		top: unset;
+		right: 0;
+		left: 0;
+		bottom: 3em;
+		margin-right: auto;
+		margin-left: auto;
+	}
+	#panel-btn {
+		top: unset;
+		right: 0;
+		left: 0;
+		bottom: 1em;
+		margin-right: auto;
+		margin-left: auto;
+	}
 }
 
 </style>

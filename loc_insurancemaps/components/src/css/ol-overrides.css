@@ -18,7 +18,9 @@
 }
 
 .ol-rotate {
-    top: 36px !important;
+    top: 9em;
+    left: .5em;
+    right: unset;
 }
 
 .ol-rotate-reset {
