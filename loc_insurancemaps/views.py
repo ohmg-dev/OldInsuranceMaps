@@ -43,7 +43,11 @@ class HomePage(View):
                 "CITY_QUERY_URL": reverse('lc_api'),
                 'USER_TYPE': get_user_type(request.user),
                 'CITY_LIST': city_list,
-            }
+            },
+            "svelte_params": {
+                "CSRFTOKEN": csrf.get_token(request),
+                "PLACES_GEOJSON": Volume().get_map_geojson(),
+            },
         }
 
         return render(

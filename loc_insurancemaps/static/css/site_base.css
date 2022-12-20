@@ -72,21 +72,6 @@ h1, h2, h3, h4, h5, h6 {
 	}
 }
 
-.banner::before {
-	content: "";
-	background-image: url(/static/img/no-1885-snippet1-reduce-50qual.jpg);
-	background-repeat: no-repeat;
-	background-position: center;
-	background-size: cover;
-	opacity: 0.4;
-	top: 0;
-	left: 0;
-	bottom: 0;
-	right: 0;
-	position: absolute;
-	z-index: 1;
-  }
-
 .banner .btn-default {
     border: 2px solid #3a3a3a;
     color: #3a3a3a;

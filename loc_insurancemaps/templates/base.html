@@ -2,6 +2,8 @@
 {% load static from staticfiles %}
 {% load account socialaccount %}
 {% load base_tags %}
+{% load django_svelte %}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -18,8 +20,6 @@
     <meta property="og:description" content="A crowdsourcing site for creating and viewing georeferenced mosaics of historical Sanborn fire insurance maps" />
 
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
-    <link href="{% static "lib/css/ol.css" %}" rel="stylesheet" />
-    <script src="{% static "lib/js/ol.js" %}"></script>
     <link rel="preload" as="style" href="{% static "geonode/css/font-awesome.min.css" %}" />
 
     <! -- analytics with plausible.io -->
@@ -29,119 +29,6 @@
 
       <link href="{% static "lib/css/assets.min.css" %}" rel="stylesheet"/>
       <link href="{% static "geonode/css/base.css" %}" rel="stylesheet"/>
-      <link rel='stylesheet' id='cookie-law-info-css'  href="{% static "geonode/css/cookie-law-info/cookie-law-info-public.css" %}" type='text/css' media='all' />
-      <link rel='stylesheet' id='cookie-law-info-gdpr-css'  href="{% static "geonode/css/cookie-law-info/cookie-law-info-gdpr.css" %}" type='text/css' media='all' />
-      <style type="text/css">[ng\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}</style>
-      <style type="text/css">
-        /* Additional styles by custom themes */
-        {% if custom_theme.body_color %}
-        body {
-          background: {{ custom_theme.body_color }};
-          {% if custom_theme.body_text_color %}
-          color: {{ custom_theme.body_text_color }};
-          {% endif %}
-        }
-
-        .home #partners {
-          background: {{ custom_theme.body_color }};
-          padding: 2em 0;
-          text-align: center;
-        }
-        {% endif %}
-
-        {% if custom_theme.navbar_color %}
-        .home .navbar-inverse , .navbar-inverse {
-          background-color: {{ custom_theme.navbar_color }};
-        }
-        {% endif %}
-
-        {% if custom_theme.navbar_text_color %}
-        .navbar-inverse .navbar-nav > li > a {
-          color: {{ custom_theme.navbar_text_color }};
-          font-weight: 600;
-          padding-top: 25px;
-          padding-bottom: 25px;
-        }
-        {% endif %}
-
-        {% if custom_theme.navbar_text_hover %}
-        .navbar-inverse .navbar-nav > li > a:hover {
-          background-color: {{ custom_theme.navbar_text_hover }};
-        }
-        {% endif %}
-        {% comment %}
-        {% if custom_theme.navbar_text_hover_focus %}
-        .navbar-inverse .navbar-nav > .open > a,
-        .navbar-inverse .navbar-nav > .open > a:hover,
-        .navbar-inverse .navbar-nav > .open > a:focus {
-          background-color: {{ custom_theme.navbar_text_hover_focus }};
-        }
-        {% endif %}
-        {% endcomment %}
-        {% if custom_theme.navbar_dropdown_menu %}
-        .navbar-nav .dropdown-menu {
-          background-color: {{ custom_theme.navbar_dropdown_menu }};
-          border-top: 1px solid {{ custom_theme.navbar_dropdown_menu }};
-        }
-        {% endif %}
-
-        {% if custom_theme.navbar_dropdown_menu_text %}
-        .navbar-nav .dropdown-menu a {
-          color: {{ custom_theme.navbar_dropdown_menu_text }};
-        }
-        {% endif %}
-        {% comment %}
-        {% if custom_theme.navbar_dropdown_menu_hover %}
-        .navbar-nav .dropdown-menu li a:hover {
-          background-color: {{ custom_theme.navbar_dropdown_menu_hover }};
-          color: {{ custom_theme.navbar_dropdown_menu_text }};
-        }
-        {% endif %}
-        {% endcomment %}
-
-        {% if custom_theme.navbar_dropdown_menu_divider %}
-        .navbar-nav .dropdown-menu .divider {
-          background-color: {{ custom_theme.navbar_dropdown_menu_divider }};
-        }
-        {% endif %}
-
-        {% if custom_theme.jumbotron_welcome_hide %}
-        .home .jumbotron .container {
-          visibility: hidden;
-        }
-        {% endif %}
-
-        {% if custom_theme.search_bg_color or custom_theme.search_title_color %}
-        .home .big-search {
-          background: {{ custom_theme.search_bg_color }};
-          color: {{ custom_theme.search_title_color }};
-          padding-bottom: 3em;
-          padding-top: 1em;
-        }
-        .home .big-search .btn-default {
-          background: transparent;
-          border: none;
-          color: {{ custom_theme.search_link_color }};
-        }
-        {% endif %}
-
-        {% if custom_theme.copyright_color %}
-        .footer-copyright {
-          background-color: {{ custom_theme.copyright_color }};
-        }
-        {% endif %}
-
-        {% if custom_theme.footer_bg_color or custom_theme.footer_text_color or custom_theme.footer_href_color %}
-        footer {
-          background-color: {{ custom_theme.footer_bg_color }};
-          color: {{ custom_theme.footer_text_color }};
-          padding: 1.5em;
-        }
-        footer a {
-          color: {{ custom_theme.footer_href_color }};
-        }
-        {% endif %}
-      </style>
 
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -167,23 +54,6 @@
         var staticUrl = '{% static '' %}';
     </script>
 
-    <!-- Autocomplete script for input boxes -->
-    <script src="{% static "geonode/js/search/autocomplete.js" %}"></script>
-
-    <script type="text/javascript">
-      function thumbnailFeedbacks(data, status) {
-        try {
-          $("#_thumbnail_feedbacks").find('.modal-title').text(status);
-          $("#_thumbnail_feedbacks").find('.modal-body').text(data);
-          $("#_thumbnail_feedbacks").modal("show");
-        } catch (err) {
-          console.log(err);
-        } finally {
-          return true;
-        }
-      }
-    </script>
-
     <!-- RTL styles -->
     {% get_current_language_bidi as LANGUAGE_BIDI %}
     {% if LANGUAGE_BIDI %}
@@ -200,142 +70,9 @@
     <!-- Loading Mask -->
     <div class='lmask'></div>
     <!-- Navbar -->
-    {% block header %}
-    {% comment %}
-  <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container" style="display:flex;">
-        <div class="navbar-header-new">
-        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-          <i class="fa fa-navicon fa-lg"></i>
-        </button>
-        <!-- <a class="navbar-brand" href="{% url "home" %}">GeoNode</a> -->
-        <a href="{% url 'home' %}" title="LaHMG">
-          <img src="{{ STATIC_URL }}img/noun_Map_heavy-colored-lite.png" alt="LaHMG" class="navbar-brand-new">
-        </a>
-      </div>
-      <div id="navbar" class="navbar-collapse collapse" style="display:flex; justify-content:space-between; width:100%;">
-        <ul class="nav navbar-nav toolbar">
+    {% block header %}{% endblock header %}
 
-          {% block tabs %}
-          <li><a href="{% url "browse" %}" class="" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Browse Maps" %}</a></li>
-          <li><a href="https://about.oldinsurancemaps.net" class="" role="button" aria-haspopup="true" aria-expanded="false">{% trans "About" %}</a></li>
-
-          <li>
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "About" %}<i class="fa fa-angle-down fa-lg"></i></a>
-              <ul class="dropdown-menu">
-              <li><a href="{% url "getting_started" %}">{% trans "Getting Started" %}</a></li>
-              <li><a href="{% url "about" %}">{% trans "Project Background" %}</a></li>
-              <li><a href="https://docs.oldinsurancemaps.net/en/latest/#tutorial/">Tutorial</a></li>
-              <li><a href="https://docs.oldinsurancemaps.net" class="" role="button" aria-haspopup="true" aria-expanded="false">{% trans "Documentation" %}</a></li>
-              <li role="separator" class="divider"></li>
-              <li><a href="/social/recent-activity">{% trans "Recent Activity" %}</a></li>
-              <li><a href="{% url "profile_browse" %}">{% trans "People" %}</a></li>
-              <li><a href="{% url "group_list" %}">{% trans "Groups" %}</a></li>
-              <li><a href="{% url "group_category_list" %}">{% trans "Group Categories" %}</a></li>
-              {% if perms.announcements.can_manage %}
-                  <li><a href="{% url "announcements_list" %}">{% trans "Announcements" %}</a></li>
-              {% endif %}
-              {% if user.is_authenticated and not READ_ONLY_MODE %}
-                  <li role="separator" class="divider"></li>
-                  <li><a href="{% url "geonode.invitations:geonode-send-invite" %}">{% trans "Invite Users" %}</a></li>
-              {% endif %}
-              {% if user.is_superuser and not READ_ONLY_MODE %}
-                  <li><a href="{% if SITEURL|default:""|slice:"-1:" == "/" %}{{SITEURL}}{% else %}{{SITEURL}}/{% endif %}admin/people/profile/add/">{% trans "Add User" %}</a></li>
-                  <li><a href="{% url "group_create" %}">{% trans "Create Group" %}</a></li>
-              {% endif %}
-              </ul>
-          </li>
-          {% endblock %}
-
-        </ul>
-        <ul class="nav navbar-nav navbar-right">
-
-            {% block my_extra_right_tab %}
-               {% render_nav_menu 'TOPBAR_MENU' %}
-            {% endblock my_extra_right_tab %}
-
-            {% if user.is_authenticated %}
-            <li>
-              <a href="#" class="dropdown-toggle avatar" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                {% autoescape off %}{% avatar user 40 %}{% endautoescape %}
-                {% with full_name=user.first_name|add:' '|add:user.last_name %}
-                  {% if full_name.strip %}
-                    {{ full_name | truncatechars:20 }}
-                  {% else %}
-                    {{ user.username | truncatechars:20 }}
-                  {% endif %}
-                {% endwith %}
-                <i class="fa fa-angle-down fa-lg"></i>
-              </a>
-              <ul class="dropdown-menu">
-                <li><a href="{{ user.get_absolute_url }}">{% trans "Profile" %}</a></li>
-                <li><a href="{% url "recent-activity" %}">{% trans "Recent Activity" %}</a></li>
-                {% if FAVORITE_ENABLED and user.is_authenticated %}
-                <li><a href="{% url "favorite_list" %}">{% trans "Favorites" %}</a></li>
-                {% endif %}
-                <li><a href="{% url "messages_inbox" %}">{% trans "Inbox" %}</a></li>
-                {% if user.is_superuser or user.is_staff %}
-                    <li role="separator" class="divider"></li>
-                    <li><a href="{% url "admin:index" %}">{% trans "Admin" %}</a></li>
-                    {% if 'geonode.geoserver' in INSTALLED_APPS %}
-                    <li><a href="{{ OGC_SERVER.default.WEB_UI_LOCATION }}">GeoServer</a></li>
-                    {% endif %}
-                    {% if USE_MONITORING %}
-                    <li role="separator" class="divider"></li>
-                    <li><a href="{% url "monitoring:index" %}">{% trans "Monitoring & Analytics" %}</a></li>
-                    {% endif %}
-                {% endif %}
-                <li role="separator" class="divider"></li>
-                <li><a href="{% url "help" %}">{% trans "Help" %}</a></li>
-                <li role="separator" class="divider"></li>
-                <li><a href="{% if SITEURL|default:""|slice:"-1:" == "/" %}{{SITEURL}}{% else %}{{SITEURL}}/{% endif %}account/logout/">{% trans "Log out" %}</a></li>
-                </ul>
-              </li>
-          {% else %}
-          <li><a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >{% trans "Sign in" %} </a></li>
-              {% endif %}
-            </ul>
-          </div> <!--/.nav-collapse -->
-        </div>
-      </nav>
-
-      {% endcomment %}
-      {% endblock header %}
-
-      <!-- End of Navbar -->
-    <nav class="lahmg-nav">
-
-      <div>
-        <div>
-          <a href="{% url 'home' %}" title="LaHMG">
-            <img src="{{ STATIC_URL }}img/noun_Map_heavy-colored-lite.png" alt="LaHMG" class="navbar-brand-new">
-            &nbsp;&nbsp;
-            <strong>Home</strong>
-          </a>
-        </div>
-        <div>
-          <a href="{% url 'browse' %}" title="Browse Maps">{% trans "Browse Maps" %}</a>
-        </div>
-        <div>
-          <a href="https://about.oldinsurancemaps.net" title="Browse">{% trans "About" %}</a>
-        </div>
-      </div>
-      <div>
-        {% if user.is_authenticated %}
-        <div>
-          <a href="{{ user.get_absolute_url }}">{{user.username}}</a>
-        </div>
-        <div>
-          <a href="/account/logout">{% trans "Sign out" %}</a>
-        </div>
-        {% else %}
-        <div>
-          <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >{% trans "Sign in" %}</a>
-        </div>
-        {% endif %}
-      </div>
-
-    </nav>
+    {% display_svelte "Navbar.svelte" navbar_params %}
 
 
     <div class="alert alert-danger alert-dismissible" role="alert" id="ieflag" style="display:none">
@@ -367,71 +104,11 @@
 
   {% block monitoring %}
   {% endblock %}
-  {% block footer %}
-<footer>
-  <div class="container">
-    <div class="row">
-      <div class="col-md-4">
-        <ul class="list-unstyled">
-          <li>{% trans "Content" %}</li>
-          <li><a href="{% url "volumes_list" %}">{% trans "Volumes" %}</a></li>
-          <li><a href="{% url "document_browse" %}?limit={{ CLIENT_RESULTS_LIMIT }}">{% trans "Documents" %}</a></li>
-          <li><a href="{% url "layer_browse" %}?limit={{ CLIENT_RESULTS_LIMIT }}">{% trans "Layers" %}</a></li>
-          <li><a href="{% url "maps_browse" %}?limit={{ CLIENT_RESULTS_LIMIT }}">{% trans "Web Maps" %}</a></li>
-          {% if user.is_staff and not READ_ONLY_MODE %}
-              <li role="separator" class="divider"></li>
-              <li><a href="{% url "layer_upload" %}">{% trans "Upload Layer" %}</a></li>
-              {% if USE_GEOSERVER and CREATE_LAYER %}
-                  <li><a href="{% url "layer_create" %}">{% trans "Create Layer" %}</a></li>
-              {% endif %}
-              <li><a href="{% url "document_upload" %}">{% trans "Upload Document" %}</a></li>
-              <li> <a href="{% url "new_map" %}">{% trans "Create Web Map" %}</a></li>
-          {% endif %}
-          {% if user.is_staff or user.is_superuser %}
-            {% if not READ_ONLY_MODE %}
-              <li><a href="{% url "register_service" %}">{% trans "Add Remote Service" %}</a></li>
-            {% endif %}
-          {% endif %}
-        </ul>
-      </div>
-      <div class="col-md-4">
-        <ul class="list-unstyled">
-          <li>{% trans "About" %}</li>
-          <li><a href="{% url "getting_started" %}">{% trans "Getting Started" %}</a></li>
-          <li><a href="{% url "about" %}">{% trans "Project Background" %}</a></li>
-          <li><a href="https://docs.oldinsurancemaps.net">{% trans "Documentation" %}</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="{% url "profile_browse" %}">{% trans "People" %}</a></li>
-          <li><a href="{% url "group_list" %}">{% trans "Groups" %}</a></li>
-          {% if perms.announcements.can_manage %}
-          <li><a href="{% url "announcements_list" %}">{% trans "Announcements" %}</a></li>
-          {% endif %}
-          {% if user.is_authenticated and not READ_ONLY_MODE %}
-          <li><a href="{% url "geonode.invitations:geonode-send-invite" %}">{% trans "Invite Users" %}</a></li>
-          {% endif %}
-          {% if user.is_superuser and not READ_ONLY_MODE %}
-          <li><a href="{% if SITEURL|default:""|slice:"-1:" == "/" %}{{SITEURL}}{% else %}{{SITEURL}}/{% endif %}admin/people/profile/add/">{% trans "Add User" %}</a></li>
-          <li><a href="{% url "group_create" %}">{% trans "Create Group" %}</a></li>
-          {% endif %}
-        </ul>
-      </div>
 
-      <div class="col-md-4 text-right">
-        <ul class="list-unstyled">
-            <li style="text-align: left;"><h3 style="margin-top: 0px;">{% trans "Get in touch!" %} </h3> </li>
-            <li style="text-align: left;"><a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="row" style="color:white; text-align:center;">
-      <div class="col-xs-12">
-        <p>Copyright © 2022 | <a href="https://github.com/mradamcox/loc-insurancemaps" target="_blank">{% trans "Source" %} <i class="fa fa-external-link"></i></a> |
-           {% trans "Powered by" %} <a href="https://geonode.org" target="_blank">{% trans "GeoNode" %} <i class="fa fa-external-link"></i></a></p>
-      </div>
-    </div>
-  </div>
-</footer>
-{% endblock footer %}
+
+  {% block footer %}
+  {% display_svelte "Footer.svelte" navbar_params %}
+  {% endblock footer %}
 
 
     <!-- Modal must stay outside the navbar -->
@@ -503,41 +180,11 @@
     {% else %}
     <script src="{% static "lib/js/assets.min.js" %}"></script>
     {% endif %}
-    <script src="{% static "geonode/js/utils/utils.js" %}"></script>
-    <script src="{% static "geonode/js/base/base.js" %}"></script>
+    <!-- <script src="{% static "geonode/js/utils/utils.js" %}"></script>
+    <script src="{% static "geonode/js/base/base.js" %}"></script> -->
     <script type="text/javascript" src="{% url "javascript-catalog" %}"></script>
     {% block extra_script %}{% endblock extra_script %}
-    <!-- <script type="text/javascript">
 
-      // Autocomplete instance for the search found in the header.
-      $(document).ready(function() {
-        window.autocomplete2 = new Autocomplete({
-          form_btn: null,
-          form_submit: '#search',
-          form_selector: '#search',
-          input_selector: '#search_input',
-          container_selector: '#search-container',
-          url: '{% url "autocomplete_base" %}'
-        })
-        window.autocomplete2.setup()
-      })
-
-      $('#search').on('submit', (e) => {
-          $('#search_abstract_input')[0].value =$('#search_input')[0].value;
-          $('#search_purpose_input')[0].value = $('#search_input')[0].value;
-      });
-
-      $(window).on('load', function() {
-          setTimeout(() => {
-              document.body.scrollTop = 0;
-              document.documentElement.scrollTop = 0;
-          });
-        });
-
-      $(".datepicker").datepicker({
-          format: "yyyy-mm-dd"
-      });
-    </script> -->
 
     <div class="modal fade" style="width: 100%; height: 100%;" id="_resource_uploading" data-backdrop="static" data-keyboard="false" aria-hidden="true">
         <div class="modal-dialog">
