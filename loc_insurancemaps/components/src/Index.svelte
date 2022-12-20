@@ -32,25 +32,13 @@ export let PLACES_GEOJSON;
 	<div class="map-link-panel">
 		<h3><a href="/browse">Open Browsable Map</a></h3>
 	</div>
-	<div class="">
-		<p>The content on this website is the result of a crowdsourcing pilot project that took place in early 2022. About
-			70 people signed up, and over half of them helped to process the maps in some way--splitting, georeferencing, or trimming them. 
-		</p>
-		<p>
-		You can read a bit more in the <a href="https://about.oldinsurancemaps.net">about</a>
-		page, or a <em>lot</em> more in my thesis, <a href="https://digitalcommons.lsu.edu/gradschool_theses/5641/">
-		"Creating a Public Space for Georeferencing Sanborn Maps"</a>. Thanks!
-		</p>
-	</div>
 	<!-- <div>
 		<form enctype="multipart/form-data" method="post" action="/newsletter/news-oldinsurancemapsnet/subscribe/">
 			<label for="id_email_field">E-mail:</label> <input type="email" name="email_field" required="" id="id_email_field">
 			<button id="id_submit" name="submit" value="Subscribe" type="submit">Subscribe</button>
 		</form>
 	</div> -->
-
 </main>
-
 <style>
 
 main {
@@ -59,9 +47,11 @@ main {
 }
 
 main > div {
-	margin-top: 45px;
+	margin-top: 35px;
 	background-color: rgba(255, 255, 255, .5);
 	padding: 15px;
+	border-top: 1px solid grey;
+	border-bottom: 1px solid grey;
 }
 
 .hero-banner {
@@ -91,8 +81,6 @@ main > div {
 }
 .map-container {
 	padding: 0px;
-	border-top: 1px solid grey;
-	border-bottom: 1px solid grey;
 }
 
 .map-link-panel {

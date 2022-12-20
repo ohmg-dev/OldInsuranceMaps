@@ -104,8 +104,10 @@ function MapViewer (elementId) {
 				const popupContent = `
 					<h4>${props.place.name} • <a title="Show all years in viewer" href="${props.place.url}">view &rarr;</a></h4>
 					<div style="font-size:18px;">
-						<div style="border-bottom:1px dashed #000; height:12px; margin-bottom:10px;">
-							<span style="background:#fff; padding-right:5px;">Volume Detail</span>
+						<div style="margin-bottom:15px;">
+							<div style="border-bottom:1px dashed #000; height:12px; margin-bottom:10px;">
+								<span style="background:#fff; padding-right:5px;">Detailed summaries</span>
+							</div>
 						</div>
 						${volListStr}
 					</div>
