@@ -242,12 +242,14 @@ if (RESOURCE.type == "layer") {
               class="{splitNeeded == false ? 'btn-chosen': ''}">
               <i class="fa fa-check-square-o" />
             </button>
+            <!--
             <button 
               title={undoBtnTitle}
               disabled={!undoBtnEnabled}
               on:click={() => {setSplit("undo")}}>
               <i class="fa fa-undo" />
             </button>
+            -->
           </div>
           <div class="section-body">
             {#if SPLIT_SUMMARY}

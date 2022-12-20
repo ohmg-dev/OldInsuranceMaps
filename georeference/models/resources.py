@@ -606,6 +606,12 @@ class ItemBase(models.Model):
 
         return super(ItemBase, self).save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        # this works because the target_id will always be pointing to an ItemBase id,
+        # even though the target_type field will be a Layer or Document ContentType
+        DocumentLink.objects.filter(target_id=self.pk).delete()
+        return super(ItemBase, self).delete(*args, **kwargs)
+
 class Document(ItemBase):
 
     objects = DocumentManager()

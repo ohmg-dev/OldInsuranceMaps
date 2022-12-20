@@ -399,18 +399,6 @@ class PrepSession(SessionBase):
 
         return any([d.status == "georeferenced" for d in docs_to_check])
 
-    def get_children(self):
-        """ DEPRECATED SOON: use get_child_docs instead
-        Returns a list of all the child documents that have been created
-        by a split operation from this session."""
-
-        ct = ContentType.objects.get(app_label="documents", model="document")
-        child_ids = SplitDocumentLink.objects.filter(
-            document=self.document,
-            content_type=ct,
-        ).values_list("object_id", flat=True)
-        return list(GNDocument.objects.filter(pk__in=child_ids))
-
     def get_child_docs(self):
         child_ids = DocumentLink.objects.filter(source=self.doc).values_list("target_id", flat=True)
         return list(Document.objects.filter(pk__in=child_ids))
@@ -485,35 +473,13 @@ class PrepSession(SessionBase):
         self.save()
         return
 
-    def undo_legacy(self):
-        """
-        DEPRECATE: Remove this once a new undo method has been implemented.
-        Reverses the effects of this preparation session: remove child documents and
-        links to them, then delete this session."""
-
-        # first check to make sure this determination can be reversed.
-        if self.georeferenced_downstream is True:
-            logger.warn(f"Removing PrepSession {self.pk} even though downstream georeferencing has occurred.")
-
-        # if a split was made, remove all descendant documents before deleting
-        for child in self.get_children():
-            child.delete()
-
-        SplitDocumentLink.objects.filter(document=self.document).delete()
-
-        TKeywordManager().set_status(self.document, "unprepared")
-        self.document.metadata_only = False
-        self.document.save()
-        self.delete()
-
     def undo(self, keep_session=False):
         """Reverses the effects of this preparation session: remove child documents and
         links to them, then delete this session."""
 
         # first check to make sure this determination can be reversed.
-        # MUST BE RE-EVALUATED
-        # if self.georeferenced_downstream is True:
-        #     logger.warn(f"Removing PrepSession {self.pk} even though downstream georeferencing has occurred.")
+        if self.georeferenced_downstream is True:
+            logger.warn(f"Removing PrepSession {self.pk} even though downstream georeferencing has occurred.")
 
         # if a split was made, remove all descendant documents before deleting
         for doc in self.get_child_docs():
