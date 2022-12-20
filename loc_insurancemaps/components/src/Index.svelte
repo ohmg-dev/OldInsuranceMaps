@@ -10,21 +10,20 @@ export let PLACES_GEOJSON;
 			<h1>Louisiana Sanborn Maps</h1>
 			<p>Explore historical fire insurance maps of Louisiana as georeferenced web maps overlays. All maps on this site are in the public domain, pulled from the Library of Congress 
 			<a href="https://loc.gov/collections/sanborn-maps">Sanborn Map Collection</a>.</p>
+			<p>These maps were georeferenced by about <a href="/people">70 participants</a> in early 2022&mdash;over four months, 1,500 individual sheets
+				from 270 different Sanborn atlases were processed, resulting in these seamless mosaics.
 		</div>
 		<div class="link-panel">
-			<div>
-				<p><a href="/browse">Browse all</a></p>
-				<p><a href="https://about.oldinsurancemaps.net">Learn more</a></p>
-			</div>
-			<div class="featured-panel">
-				<p>Popular Locations</p>
-				<ul>
-					<li><a href="/viewer/new-orleans-la">New Orleans (1885-1893)</a> ~ <a href="/loc/sanborn03376_004">detail</a></li>
-					<li><a href="/viewer/baton-rouge-la">Baton Rouge (1885, 1891, 1898, 1903, 1908)</a> (<a href="/loc/sanborn03275_001/">detail</a>)</li>
-					<li><a href="/viewer/alexandria-la">Alexandria (1885, 1892, 1896, 1900, 1904, 1909)</a> (<a href="/loc/sanborn03267_001/">detail</a>)</li>
-					<li><a href="/viewer/plaquemine-la">Plaquemine (1885, 1891, 1896, 1900, 1906)</a> (<a href="/loc/sanborn03386_001/">detail</a>)</li>
-				</ul>
-			</div>
+			<p>Jump to some popular places</p>
+			<ul>
+				<li><a href="/viewer/new-orleans-la">New Orleans (1885-1893) &rarr;</a></li>
+				<li><a href="/viewer/baton-rouge-la">Baton Rouge (1885, 1891, 1898, 1903, 1908) &rarr;</a></li>
+				<li><a href="/viewer/alexandria-la">Alexandria (1885, 1892, 1896, 1900, 1904, 1909) &rarr;</a></li>
+				<li><a href="/viewer/plaquemine-la">Plaquemine (1885, 1891, 1896, 1900, 1906) &rarr;</a></li>
+			</ul>
+			<p>or search through <a href="/browse">all volumes</a>.</p>
+			<p>Currently, this site includes maps for about 140 different towns and cities across Louisiana. Want to get your hometown added? Check out our <a href="https://about.oldinsurancemaps.net/faq">FAQ page</a>.</p>
+			<p>You can find out how this whole thing works in the <a href="https://about.oldinsurancemaps.net/blog">blog</a>.</p>
 		</div>
 	</div>
 	<div class="map-container">
@@ -35,8 +34,7 @@ export let PLACES_GEOJSON;
 	</div>
 	<div class="">
 		<p>The content on this website is the result of a crowdsourcing pilot project that took place in early 2022. About
-			70 people signed up, and over half of them helped to process the maps in some way--splitting, georeferencing, or trimming them. Over four months, 1,500 individual sheets
-			from 270 different Sanborn atlases were processed, resulting in <a href="/browse">seamless mosaics</a> of 130 towns and cities across Louisiana.
+			70 people signed up, and over half of them helped to process the maps in some way--splitting, georeferencing, or trimming them. 
 		</p>
 		<p>
 		You can read a bit more in the <a href="https://about.oldinsurancemaps.net">about</a>
@@ -84,6 +82,13 @@ main > div {
 	width: 45%;
 }
 
+.link-panel ul {
+	padding: 0;
+	list-style: none;
+}
+.link-panel ul li {
+	padding-left: 5px;
+}
 .map-container {
 	padding: 0px;
 	border-top: 1px solid grey;

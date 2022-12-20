@@ -7,7 +7,7 @@ export let USER;
 			<h4>Content</h4>
 			<ul>
 				<li><a href="/browse">Browse all content</a></li>
-				<li>User list</li>
+				<li><a href="/people">Participants</a></li>
 			</ul>
 		</div>
 		<div>
@@ -15,7 +15,6 @@ export let USER;
 			<ul>
 				<li><a href="https://about.oldinsurancemaps.net/faq">FAQs</a></li>
 				<li><a href="https://about.oldinsurancemaps.net/docs/category/sanborn-maps-1">About Sanborn Maps</a></li>
-				<li>User list</li>
 			</ul>
 		</div>
 		<div>
