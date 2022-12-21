@@ -29,9 +29,7 @@ export let VOLUME;
 export let OTHER_VOLUMES;
 export let CSRFTOKEN;
 export let USER_TYPE;
-export let GEOSERVER_WMS;
 export let MAPBOX_API_KEY;
-export let USE_TITILER;
 export let TITILER_HOST;
 
 $: sheetsLoading = VOLUME.status == "initializing...";
@@ -194,30 +192,14 @@ function setLayersFromVolume(setExtent) {
 		const pName = layerDef.title.slice(layerDef.title.lastIndexOf('|')+6, layerDef.title.length)
 
 		// create the actual ol layers and add to group.
-		let newLayer;
-		if (USE_TITILER) {
-			newLayer = new TileLayer({
-				source: new XYZ({
-					url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
-				}),
-				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-			});
-		} else {
-			newLayer = new TileLayer({
-				source: new TileWMS({
-					url: GEOSERVER_WMS,
-					params: {
-						'LAYERS': layerDef.geoserver_id,
-						'TILED': true,
-					},
-					tileGrid: tileGrid,
-				}),
-				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-			});
-		}
+		let newLayer = new TileLayer({
+			source: new XYZ({
+				url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
+			}),
+			extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+		});
 
 		mainGroup.getLayers().push(newLayer)
-
 
 		if (VOLUME.multimask) {		
 			Object.entries(VOLUME.multimask).forEach(kV => {
@@ -240,27 +222,12 @@ function setLayersFromVolume(setExtent) {
 		mapIndexLayerIds.push(layerDef.slug)
 
 		// create the actual ol layers and add to group.
-		let newLayer;
-		if (USE_TITILER) {
-			newLayer = new TileLayer({
-				source: new XYZ({
-					url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
-				}),
-				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-			});
-		} else {
-			newLayer = new TileLayer({
-				source: new TileWMS({
-					url: GEOSERVER_WMS,
-					params: {
-						'LAYERS': layerDef.geoserver_id,
-						'TILED': true,
-					},
-					tileGrid: tileGrid,
-				}),
-				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-			});
-		}
+		let newLayer = new TileLayer({
+			source: new XYZ({
+				url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
+			}),
+			extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+		});
 
 		keyGroup.getLayers().push(newLayer)
 	});

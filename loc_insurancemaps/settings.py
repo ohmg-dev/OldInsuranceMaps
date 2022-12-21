@@ -69,7 +69,7 @@ INSTALLED_APPS = [
     'dj_pagination',
     'taggit',
     'treebeard',
-    'leaflet',
+    # 'leaflet',
     'bootstrap3_datetime',
     'django_filters',
     'mptt',
@@ -100,34 +100,34 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'geonode',
     'markdownify',
-    'geonode.api',
+    'geonode.api', # needed in geonode.base
     'geonode.base',
-    'geonode.br',
+    # 'geonode.br',
     'geonode.layers',
-    'geonode.maps',
-    'geonode.geoapps',
+    # 'geonode.maps',
+    # 'geonode.geoapps',
     'geonode.documents',
     'geonode.security',
     'geonode.catalogue',
     'geonode.catalogue.metadataxsl',
     'geonode.people',
-    'geonode.client',
-    'geonode.themes',
+    # 'geonode.client',
+    # 'geonode.themes',
     'geonode.proxy',
-    'geonode.social',
+    # 'geonode.social',
     'geonode.groups',
-    'geonode.services',
-    'geonode.geoserver',
-    'geonode.upload',
+    'geonode.services', # error when removing this app still
+    'geonode.geoserver', # needed by geonode.api
+    # 'geonode.upload',
     # 'geonode.tasks',
     'geonode.messaging',
-    'geonode.monitoring',
+    # 'geonode.monitoring',
     'geonode.documents.exif',
-    'geonode.favorite',
-    'mapstore2_adapter',
-    'mapstore2_adapter.geoapps',
-    'mapstore2_adapter.geoapps.geostories',
-    'geonode_mapstore_client',
+    # 'geonode.favorite',
+    # 'mapstore2_adapter',
+    # 'mapstore2_adapter.geoapps',
+    # 'mapstore2_adapter.geoapps.geostories',
+    # 'geonode_mapstore_client',
     'pinax.notifications',
 ]
 
@@ -161,9 +161,9 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'oauth2_provider.middleware.OAuth2TokenMiddleware',
-    'geonode.base.middleware.MaintenanceMiddleware',
-    'geonode.base.middleware.ReadOnlyMiddleware',
-    'geonode.security.middleware.SessionControlMiddleware',
+    # 'geonode.base.middleware.MaintenanceMiddleware',
+    # 'geonode.base.middleware.ReadOnlyMiddleware',
+    # 'geonode.security.middleware.SessionControlMiddleware',
 )
 
 ENABLE_CPROFILER = ast.literal_eval(os.getenv("ENABLE_CPROFILER", False))
@@ -176,7 +176,6 @@ if DEBUG and ENABLE_DEBUG_TOOLBAR:
     MIDDLEWARE = ('debug_toolbar.middleware.DebugToolbarMiddleware', ) + MIDDLEWARE
     INTERNAL_IPS = ['127.0.0.1']
 
-USE_TITILER = ast.literal_eval(os.getenv("USE_TITILER", True))
 TITILER_HOST = os.getenv("TITILER_HOST", "")
 
 MEDIA_HOST = os.getenv("MEDIA_HOST", SITEURL)

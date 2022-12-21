@@ -7,13 +7,10 @@ import View from 'ol/View';
 
 import VectorSource from 'ol/source/Vector';
 import XYZ from 'ol/source/XYZ';
-import TileWMS from 'ol/source/TileWMS';
 
 import {transformExtent} from 'ol/proj';
 
 import {createEmpty, extend} from 'ol/extent';
-// import {} from 'ol/extent';
-import {createXYZ} from 'ol/tilegrid';
 
 import Feature from 'ol/Feature';
 
@@ -40,15 +37,11 @@ const utils = new Utils();
 
 import TitleBar from "../../../georeference/components/src/TitleBar.svelte"
 
-// export let LOCK;
-// export let SESSION_ID;
 export let VOLUME;
 export let SESSION_LENGTH;
 export let CSRFTOKEN;
 export let USER_TYPE;
 export let MAPBOX_API_KEY;
-export let GEOSERVER_WMS;
-export let USE_TITILER;
 export let TITILER_HOST;
 
 let currentLayer = null;
@@ -86,10 +79,6 @@ function updateLayerArr(){
   })
 }
 
-const tileGrid = createXYZ({
-	tileSize: 512,
-});
-
 function addIncomingMasks() {
 	if (VOLUME.multimask) {
 		Object.entries(VOLUME.multimask).forEach(kV => {
@@ -107,28 +96,12 @@ function addIncomingMasks() {
     trimShapeSource.clear()
     VOLUME.sorted_layers.main.forEach( function(layerDef, n) {
       // create the actual ol layers and add to group.
-      let newLayer;
-      if (USE_TITILER) {
-        newLayer = new TileLayer({
-          source: new XYZ({
-            url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
-          }),
-          extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-        });
-      } else {
-        newLayer = new TileLayer({
-          source: new TileWMS({
-            url: GEOSERVER_WMS,
-            params: {
-              'LAYERS': layerDef.geoserver_id,
-              'TILED': true,
-            },
-            tileGrid: tileGrid,
-          }),
-          zIndex: n+100,
-          extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-        });
-      }
+      let newLayer = new TileLayer({
+        source: new XYZ({
+          url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
+        }),
+        extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+      });
       // zIndex for layers start from 100, should max out under 300.
       // When a layer is shuffled to the top, it's zIndex is set to 500,
       // and ally layers with a zIndex > 300 are shifted down 1.
@@ -448,8 +421,8 @@ const sideLinks = [{
   </div>
 </div>
 <TitleBar TITLE={VOLUME.title + " - Trim"} BOTTOM_LINKS={[]} SIDE_LINKS={sideLinks} />
+{#if USER_TYPE == "anonymous"}<div><p>Feel free to mess around; you can't save changes unless you are logged in.</p></div>{/if}
 <div class="svelte-component-main">
-  {#if USER_TYPE == "anonymous"}<p>Feel free to mess around; you can't save changes unless you are logged in.</p>{/if}
   <div class="map-container" style="height: calc(100%-35px);">
     <div id="map-viewer" class="map-item rounded-bottom" style="h"></div>
     <div id="layer-panel" style="display:flex; flex-direction:column; justify-content:space-between; max-width: 200px; padding: 10px;" class="map-item rounded-bottom">

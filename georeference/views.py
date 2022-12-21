@@ -202,7 +202,6 @@ class GeoreferenceView(View):
             "MAPSERVER_LAYERNAME": ms.add_layer(doc.file.path),
             "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
             ## these variables will be reevaluated when reference layers re-implemented
-            # "GEOSERVER_WMS": geoserver_ows,
             # "REFERENCE_LAYERS": reference_layers,
             # "TITILER_HOST": settings.TITILER_HOST,
         }

@@ -50,7 +50,6 @@ export let MAPSERVER_LAYERNAME;
 export let MAPBOX_API_KEY;
 
 // reference layers are disabled for now, but all pieces are still retained
-// export let GEOSERVER_WMS;
 // export let TITILER_HOST;
 // export let REFERENCE_LAYERS;
 

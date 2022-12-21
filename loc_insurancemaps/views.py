@@ -174,13 +174,11 @@ class VolumeTrim(View):
 
         context_dict = {
             "svelte_params": {
-                "USE_TITILER": settings.USE_TITILER,
                 "TITILER_HOST": settings.TITILER_HOST,
                 "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
                 "VOLUME": volume_json,
                 "CSRFTOKEN": csrf.get_token(request),
                 'USER_TYPE': get_user_type(request.user),
-                'GEOSERVER_WMS': geoserver_ows,
                 "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
             }
         }
@@ -247,13 +245,11 @@ class VolumeDetail(View):
 
         context_dict = {
             "svelte_params": {
-                "USE_TITILER": settings.USE_TITILER,
                 "TITILER_HOST": settings.TITILER_HOST,
                 "VOLUME": volume_json,
                 "OTHER_VOLUMES": other_vols,
                 "CSRFTOKEN": csrf.get_token(request),
                 'USER_TYPE': get_user_type(request.user),
-                'GEOSERVER_WMS': geoserver_ows,
                 "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
             }
         }
@@ -363,9 +359,7 @@ class Viewer(View):
             "svelte_params": {
                 "PLACE": place_data,
                 "VOLUMES": volumes,
-                "USE_TITILER": settings.USE_TITILER,
                 "TITILER_HOST": settings.TITILER_HOST,
-                "GEOSERVER_WMS": geoserver_ows,
                 "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
             }
         }
