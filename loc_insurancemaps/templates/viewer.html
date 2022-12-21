@@ -1,0 +1,9 @@
+{% extends 'base-viewer.html' %}
+{% load i18n %}
+{% load django_svelte %}
+
+{% block title %}{{ svelte_params.PLACE.display_name }}{% endblock title %}
+
+{% block middle %}
+  {% display_svelte "Viewer.svelte" svelte_params %} 
+{% endblock middle %}

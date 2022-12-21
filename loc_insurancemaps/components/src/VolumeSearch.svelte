@@ -57,7 +57,7 @@ $: updateFilteredList(filterInput)
 </script>
 
 <main>
-	{#if USER_TYPE == 'anonymodus' }
+	{#if USER_TYPE == 'anonymous' }
 	<div class="signin-reminder">
 	<p><em>
 		<!-- svelte-ignore a11y-invalid-attribute -->
@@ -67,9 +67,9 @@ $: updateFilteredList(filterInput)
 	</div>
 	{/if}
 	<div class="find-volumes-section">
-		<div class="pane" style="height:299px">
+		<div class="pane">
 			<input type="text" id="filterInput" placeholder="Filter by name..." bind:value={filterInput}>
-			<div id="city-list" style="height:250px; overflow-y:auto;">
+			<div id="city-list" style="overflow-y:auto;">
 				{#each cityOptions as city}
 				<label for={city[0]}>
 					<input type="radio" id={city[0]} bind:group={currentCity} value={city[0]}>
@@ -78,7 +78,7 @@ $: updateFilteredList(filterInput)
 				{/each}
 			</div>
 		</div>
-		<div class="pane" style="height:299px; overflow-y:auto;">
+		<div class="pane" style="overflow-y:auto;">
 			{#if volumes.length > 0 }
 			<h3 style="margin-top: 10px;">{currentCity}, {currentCountyEq}:</h3>
 				<ul class="volume-list">
@@ -107,6 +107,10 @@ $: updateFilteredList(filterInput)
   padding: 12px;
   text-align: center;
   border: 1px solid #ddd; /* Add a grey border */
+}
+
+#city-list {
+	max-height: 250px;  
 }
 
 #city-list label {

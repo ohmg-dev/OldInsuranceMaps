@@ -3,44 +3,60 @@ import {TableSort} from 'svelte-tablesort'
 
 export let STARTED_VOLUMES;
 
+let volumes = STARTED_VOLUMES;
+
+function updateFilteredList(filterText) {
+	if (filterText && filterText.length > 0) {
+		volumes = [];
+		STARTED_VOLUMES.forEach( function(vol) {
+			const volumeName = vol.title.toUpperCase();
+			const filterBy = filterText.toUpperCase();
+			if (volumeName.indexOf(filterBy) > -1) {
+				volumes.push(vol);
+			}
+		});
+	} else {
+		volumes = STARTED_VOLUMES;
+	}
+}
+let filterInput;
+$: updateFilteredList(filterInput)
+
 </script>
 
-<main>
-	<h1>Volumes in progress</h1>
-	<p>The following volumes have been loaded, and are in the process of being georeferenced. As more people use the system, this list will grow.</p>
-	<div style="overflow-x:auto;">
-		{#if STARTED_VOLUMES.length == 0}
-		<p><em>No volumes have been started yet.</em></p>
-		{:else}
-		<TableSort items={STARTED_VOLUMES}>
-			<tr slot="thead">
-				<th data-sort="title" style="max-width:300px;" title="Name of city/town">Community</th>
-				<th data-sort="year_vol" title="Year of publication">Year</th>
-				<th data-sort="sheet_ct" style="width:55px; text-align:center;" title="Number of sheets in publication">Sheets</th>
-				<th data-sort="loaded_by_name" style="text-align:center;" title="Volume originally loaded by this user">Loaded by</th>
-				<th data-sort="unprepared_ct" style="width:25px; text-align:center; border-left: 1px solid gray;" title="Number of unprepared sheets">U</th>
-				<th data-sort="prepared_ct" style="width:25px; text-align:center;" title="Number of prepared documents">P</th>
-				<th data-sort="georeferenced_ct" style="width:25px; text-align:center;" title="Number of georeferenced documents">G</th>
-				<th data-sort="percent" style="width:25px; text-align:center; border-left:1px solid gray;" title="Percent complete - G/(U+P+G)">%</th>
-				<th data-sort="mm_ct" style="width:25px; text-align:center; border-left:1px solid gray;" title="Number of georeferenced layers in multi-mask">MM</th>
-			</tr>
-			<tr slot="tbody" let:item={v}>
-				<td>
-					<a href={v.urls.summary} alt="Go to {v.title}" title="Go to {v.title}">{v.city}, {v.county_equivalent}</a>
-				</td>
-				<td>{v.year_vol}</td>
-				<td style="text-align:center;">{v.sheet_ct}</td>
-				<td style="text-align:center;"><a href={v.loaded_by_profile}>{v.loaded_by_name}</a></td>
-				<td style="text-align:center; border-left:1px solid gray;">{v.unprepared_ct}</td>
-				<td style="text-align:center;">{v.prepared_ct}</td>
-				<td style="text-align:center;">{v.georeferenced_ct}</td>
-				<td style="text-align:center; border-left:1px solid gray;"><div class="box" style="--p:{v.percent};"></div></td>
-				<td style="text-align:center; border-left:1px solid gray;">{v.mm_display}</td>
-			</tr>
-		</TableSort>
-		{/if}
-	</div>
-</main>
+<input type="text" id="filterInput" placeholder="Filter by place name..." bind:value={filterInput}>
+<div style="overflow-x:auto;">
+	{#if volumes.length == 0}
+	<p><em>No volumes have been started yet.</em></p>
+	{:else}
+	<TableSort items={volumes}>
+		<tr slot="thead">
+			<th data-sort="place_name" style="max-width:300px;" title="Name of mapped location">Place</th>
+			<th data-sort="year_vol" title="Year of publication">Year</th>
+			<th data-sort="sheet_ct" style="width:55px; text-align:center;" title="Number of sheets in publication">Sheets</th>
+			<th data-sort="loaded_by_name" style="text-align:center;" title="Volume originally loaded by this user">Loaded by</th>
+			<th data-sort="unprepared_ct" style="width:25px; text-align:center; border-left: 1px solid gray;" title="Number of unprepared sheets">U</th>
+			<th data-sort="prepared_ct" style="width:25px; text-align:center;" title="Number of prepared documents">P</th>
+			<th data-sort="georeferenced_ct" style="width:25px; text-align:center;" title="Number of georeferenced documents">G</th>
+			<th data-sort="percent" style="width:25px; text-align:center; border-left:1px solid gray;" title="Percent complete - G/(U+P+G)">%</th>
+			<th data-sort="mm_ct" style="width:25px; text-align:center; border-left:1px solid gray;" title="Number of georeferenced layers in multi-mask">MM</th>
+		</tr>
+		<tr slot="tbody" let:item={v} style="height:38px;">
+			<td>
+				<a href={v.urls.summary} alt="Go to {v.place_name}" title="Go to {v.place_name}">{v.place_name}</a>
+			</td>
+			<td>{v.year_vol}</td>
+			<td style="text-align:center;">{v.sheet_ct}</td>
+			<td style="text-align:center;"><a href={v.loaded_by_profile}>{v.loaded_by_name}</a></td>
+			<td style="text-align:center; border-left:1px solid gray;">{v.unprepared_ct}</td>
+			<td style="text-align:center;">{v.prepared_ct}</td>
+			<td style="text-align:center;">{v.georeferenced_ct}</td>
+			<td style="text-align:center; border-left:1px solid gray;"><div class="box" style="--p:{v.percent};"></div></td>
+			<td style="text-align:center; border-left:1px solid gray;">{v.mm_display}</td>
+		</tr>
+	</TableSort>
+	{/if}
+</div>
 
 <style>
 

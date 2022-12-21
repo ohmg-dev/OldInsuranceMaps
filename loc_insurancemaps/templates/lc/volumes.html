@@ -6,17 +6,17 @@
 
 {% block title %}Search Volumes{% endblock title %}
 
-{% block hero%}
-<div class="container-outer background-bg" style="margin-top: -7px;">
-<div class="container background-fg" style="padding:20px 20px;">
+{% block hero %}
+<!-- <div class="container-outer background-bg" style="margin-top: -7px;">
+<div class="container background-fg" style="padding:20px 20px;"> -->
   <a href="#" data-toggle="collapse" data-target="#volume-search">Start a new volume...</a>
   <div id="volume-search" class="volume-search collapse">
   {% display_svelte "VolumeSearch.svelte" search_params %}
   </div>
   <hr style="border-top: 1px dashed grey">
   {% display_svelte "Volumes.svelte" list_params %}
-</div>
-</div>
+<!-- </div>
+</div> -->
 {% endblock hero %}
 
 {% block bigsearch %}{% endblock bigsearch %}

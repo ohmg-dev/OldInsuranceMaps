@@ -39,17 +39,15 @@ function setPanel(show) {
 </script>
 
 <main>
-  <h4>Create 3 or more ground control points to georeference this document.</h4>
-  <h4>
-      <a href="#" on:click={() => setPanel("background")}>Background &darr;</a>
+  <div class="info-bar">
+    <span>Create 3 or more ground control points to georeference this document.</span>
+    <div>
+      <a href="#" on:click={() => setPanel("background")}>More info &darr;</a>
       <a href="#" on:click={() => setPanel("guide")}>Guide &darr;</a>
       <a href="#" on:click={() => setPanel("tips")}>Tips &darr;</a>
-      <a href="#" on:click={() => setPanel("video")}>Video &darr;</a>
-      {#if showGuide || showVideo || showTips || showBackground}
-        &nbsp;
-        <a href="#" on:click={() => setPanel("none")}><i class="fa fa-close"></i></a>
-      {/if}
-  </h4>
+      <a href="#" on:click={() => setPanel("video")}>Just show me! &darr;</a>
+    </div>
+  </div>
   {#if showBackground}
   <div transition:slide class="help-panel">
     <h4><strong>Background</strong></h4>
@@ -142,6 +140,8 @@ function setPanel(show) {
 main {
   display: flex;
   flex-direction: column;
+  border-radius: 5px;
+  margin-bottom: 10px;
 }
 
 figcaption {
@@ -149,12 +149,17 @@ figcaption {
   font-size: .85em;
 }
 
+.info-bar {
+  display:flex;
+  justify-content: space-between;
+  font-size: 1.2em;
+}
+
 .help-panel {
   font-size: 1.25em;
-  background: lightgray;
   border-radius: 7px;
-  padding: 20px;
-  margin-top: 20px;
+  background: lightgrey;
+  padding: 0px 15px 15px 15px;
   margin-bottom: 20px;
 }
 

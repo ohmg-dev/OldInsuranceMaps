@@ -6,11 +6,12 @@ import logging
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
-from django.db import transaction
 
-from georeference.models import GeorefSession, PrepSession, TrimSession, SessionBase
+from georeference.models.sessions import (
+    SessionBase
+)
 
-from loc_insurancemaps.models import get_volume, Volume
+from loc_insurancemaps.models import find_volume, Volume
 
 logger = logging.getLogger(__name__)
 
@@ -245,10 +246,10 @@ class Command(BaseCommand):
             trim_session_rows = []
 
             for s in sessions:
-                if s.type == "p" or s.type == "g" and s.document is not None:
-                    vol = get_volume("document", s.document.pk)
-                elif s.type == "t" and s.layer is not None:
-                    vol = get_volume("layer", s.layer.pk)
+                if s.type == "p" or s.type == "g" and s.doc is not None:
+                    vol = find_volume(s.doc)
+                elif s.type == "t" and s.lyr is not None:
+                    vol = find_volume(s.lyr)
                 else:
                     continue
                 if vol is None:
@@ -293,7 +294,7 @@ class Command(BaseCommand):
             rows = []
             for v in Volume.objects.all():
                 print(v)
-                dps = v.get_all_documents()
+                dps = v.get_all_docs()
                 documents = [i.resource for i in dps]
                 layers = [i.get_layer() for i in dps if not i.get_layer() is None]
                 s1 = SessionBase.objects.filter(document__in=documents)

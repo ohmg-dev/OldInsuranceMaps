@@ -22,18 +22,20 @@ import Draw from 'ol/interaction/Draw';
 import Select from 'ol/interaction/Select';
 import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
+import LineString from 'ol/geom/LineString';
 
 import Styles from './js/ol-styles';
-import LineString from 'ol/geom/LineString';
+
+import TitleBar from './TitleBar.svelte';
+import SplitPreamble from './SplitPreamble.svelte';
+
 const styles = new Styles();
 
-export let LOCK;
-export let SESSION_ID;
+export let USER;
 export let SESSION_LENGTH;
 export let DOCUMENT;
-export let IMG_SIZE;
 export let CSRFTOKEN;
-export let INCOMING_CUTLINES;
+export let VOLUME;
 
 let docView;
 let showPreview = true;
@@ -45,34 +47,48 @@ let currentInteraction = 'draw';
 
 let unchanged = true;
 
-let disableInterface = LOCK.enabled;
-let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
+const session_id = DOCUMENT.lock_enabled ? DOCUMENT.lock_details.session_id : null;
+
+let disableInterface = DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name != USER);
+let disableReason;
 let leaveOkay = true;
-if (LOCK.stage == "in-progress") {
+let enableButtons = false;
+console.log(DOCUMENT.lock_details)
+if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == USER)) {
   leaveOkay = false;
+  enableButtons = true;
 }
 
-// show the extend session prompt 15 seconds before the session expires
-setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
+// show the extend session prompt 10 seconds before the session expires
+setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
 
 let autoRedirect;
 function promptRefresh() {
+  console.log("prompting refresh")
+  console.log("leaveOkay:" + leaveOkay)
   if (!leaveOkay) {
     const modal = document.getElementById("expirationModal");
     modal.style.display = "block";
     leaveOkay = true;
-    autoRedirect = setTimeout(cancelAndRedirectToDetail, 15000);
+    autoRedirect = setTimeout(cancelAndRedirectToDetail, 10000);
   }
 }
 
 function cancelAndRedirectToDetail() {
   process("cancel");
-  window.location.href=DOCUMENT.urls.detail;
 }
 
 let currentTxt;
 $: {
-  if (divisions.length <= 1) {
+  if (DOCUMENT.status == "prepared" || DOCUMENT.status == "georeferenced") {
+    if (DOCUMENT.parent) {
+      currentTxt = "This document has already been prepared! (It was split from another document.)"
+    } else {
+      "This document has already been prepared! (It did not need to be split.)"
+    }
+  } else if (DOCUMENT.status == "split") {
+    currentTxt = "This document has already been prepared! (It was split into "+DOCUMENT.children.length+" documents.)"
+  } else if (divisions.length <= 1) {
     currentTxt = "If this image needs to be split, draw cut-lines across it as needed. Click once to start or continue a line, double-click to finish."
   } else {
     const linesTxt = cutLines.length + " " + (cutLines.length === 1 ? 'cut-line' : 'cut-lines');
@@ -81,8 +97,9 @@ $: {
   }
 }
 
-const imgWidth = IMG_SIZE[0];
-const imgHeight = IMG_SIZE[1];
+
+const imgWidth = DOCUMENT.image_size[0];
+const imgHeight = DOCUMENT.image_size[1];
 const imgBorderPoly = [[[0,0], [imgWidth, 0], [imgWidth, imgHeight], [0, imgHeight], [0,0]]];
 
 const borderFeature = new Feature({
@@ -109,7 +126,7 @@ function resetInterface() {
   docView.previewLayerSource.clear();
   cutLines = [];
   divisions = [];
-  INCOMING_CUTLINES.forEach(function(line) {
+  DOCUMENT.cutlines.forEach(function(line) {
     docView.cutLayerSource.addFeature(
       new Feature({ geometry: new LineString(line) })
     );
@@ -284,7 +301,7 @@ function process(operation) {
   let data = JSON.stringify({
     "lines": cutLines,
     "operation": operation,
-    "sesh_id": SESSION_ID,
+    "sesh_id": session_id,
   });
 
   fetch(DOCUMENT.urls.split, {
@@ -300,11 +317,11 @@ function process(operation) {
       if (operation == "preview") {
         divisions = result['divisions'];
       } else if (operation == "split") {
-        window.location.href = DOCUMENT.urls.detail;
+        window.location.href = VOLUME.urls.summary;
       } else if (operation == "no_split") {
         window.location.href = DOCUMENT.urls.georeference;
       } else if (operation == "cancel") {
-        window.location.href = DOCUMENT.urls.detail;
+        window.location.href = VOLUME.urls.summary;
       }
     });
 }
@@ -318,15 +335,23 @@ function confirmLeave () {
 }
 
 function cleanup () {
-  // if this is an in-progress session
-  if (LOCK.stage == "in-progress") {
-    // and if a preparation submission hasn't been made
-    if (disableReason != 'split' && disableReason != 'no_split') {
-        // then cancel the session (delete it)
-        process("cancel")
-    }
+  // if this is an in-progress session for the current user
+  if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == USER)) {
+    process("cancel")
   }
 }
+
+const sideLinks = [
+    {
+      display: "Back to " + VOLUME.title,
+      url: VOLUME.urls.summary,
+    },
+    {
+      display: "Got to document",
+      alt: DOCUMENT.title,
+      url: DOCUMENT.urls.resource,
+    },
+]
 
 </script>
 <svelte:window on:keydown={handleKeydown} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
@@ -338,22 +363,32 @@ function cleanup () {
   </div>
 </div>
 
+{#if !USER}
+<div id="anonymousModal" class="modal" style="display:block;">
+  <div class="modal-content" style="max-width:325px;">
+    <p>Feel free to experiment with the interface. To submit your work, you must 
+      <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+      <a href="/account/signup">sign up</a>.</p>
+    <button on:click={() => {document.getElementById('anonymousModal').style.display = 'none'}}>OK</button>
+  </div>
+</div>
+{/if}
+
+<div id="finishedModal" class="modal">
+  <div class="modal-content" style="max-width:325px;">
+    <p>This document has already been prepared!</p>
+    <button on:click={() => {document.getElementById('finishedModal').style.display = 'none'}}>OK</button>
+  </div>
+</div>
+<TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={sideLinks}/>
+<SplitPreamble />
 <div><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
     <div class="signin-reminder">
-      {#if disableReason == "unauthenticated"}
-      <p><em>
-        <!-- svelte-ignore a11y-invalid-attribute -->
-        <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in</a> or
-        <a href="/account/signup">sign up</a> to proceed.
-      </em></p>
-      {:else if disableReason == "input" || disableReason == "processing"}
-      <!-- svelte-ignore a11y-invalid-attribute -->
-      <p>Someone else is already preparing this document (<a href="javascript:window.location.reload(true)">refresh</a>).</p>
-      {:else if disableReason == "finished"}
-      <p>This document has already been prepared.</p>
+      {#if DOCUMENT.lock_enabled}
+      <p>Document currently locked for processing by {DOCUMENT.lock_details.user.name}</p>
       {:else if disableReason == "split"}
       <p>Processing document split... redirecting to document detail.</p>
       <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
@@ -385,9 +420,9 @@ function cleanup () {
     </div>
     
     <div class="tb-top-item">
-      <button on:click={() => {process("split")}} disabled={divisions.length<=1}>Split</button>
-      <button on:click={() => {process("no_split")}} disabled={divisions.length>0}>No Split Needed</button>
-      <button title="Cancel this preparation" on:click={cancelAndRedirectToDetail}>Cancel</button>
+      <button title="Run split operation" disabled={divisions.length<=1 || !enableButtons} on:click={() => {process("split")}}>Split</button>
+      <button title="No split needed" disabled={divisions.length>0 || !enableButtons} on:click={() => {process("no_split")}}>No Split Needed</button>
+      <button title="Cancel this preparation" disabled={session_id == null || !enableButtons} on:click={() => {process("cancel")}}>Cancel</button>
       <button title="Reset interface" disabled={unchanged} on:click={resetInterface}><i id="fs-icon" class="fa fa-refresh" /></button>
     </div>
   </nav>

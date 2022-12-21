@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load markdownify %}
+{% load i18n %}
+{% load static from staticfiles %}
+{% load base_tags %}
+{% load django_svelte %}
+
+{% block title %}{{ block.super }}{% endblock %}
+
+{% block body_class %}home{% endblock %}
+
+
+{% block middle %}
+<div class="container-outer">
+  {{ block.super }}
+  {% block middlefull %}
+  <div class="container background-fg">
+  {% block hero %}
+
+
+{% display_svelte "Index.svelte" svelte_params %}
+
+  {% endblock hero %}
+
+  {% block mainbody %}
+
+  {% block bigsearch %}
+  {% endblock bigsearch %}
+
+  {% endblock mainbody %}
+</div>
+{% endblock middlefull %}
+</div>
+{% endblock middle %}

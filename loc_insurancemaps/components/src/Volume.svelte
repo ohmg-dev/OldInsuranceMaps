@@ -1,13 +1,8 @@
 <script>
-import {onMount} from 'svelte';
 import { slide } from 'svelte/transition';
-
-import DragDrop from 'svelte-dragdroplist';
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
-import ZoomToExtent from 'ol/control/ZoomToExtent';
-import {FullScreen, defaults as defaultControls} from 'ol/control';
 
 import {createEmpty} from 'ol/extent';
 import {extend} from 'ol/extent';
@@ -17,39 +12,31 @@ import {createXYZ} from 'ol/tilegrid';
 import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import TileWMS from 'ol/source/TileWMS';
-import VectorSource from 'ol/source/Vector';
 
 import Crop from 'ol-ext/filter/Crop';
 
-import Feature from 'ol/Feature';
-import Polygon from 'ol/geom/Polygon';
-import Point from 'ol/geom/Point';
-
 import GeoJSON from 'ol/format/GeoJSON';
 
-import Style from 'ol/style/Style';
-import Fill from 'ol/style/Fill';
-import Stroke from 'ol/style/Stroke';
-import RegularShape from 'ol/style/RegularShape';
-
 import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
 import LayerGroup from 'ol/layer/Group';
+
+import Utils from './js/ol-utils';
+const utils = new Utils();
+
+import TitleBar from "../../../georeference/components/src/TitleBar.svelte"
 
 export let VOLUME;
 export let OTHER_VOLUMES;
 export let CSRFTOKEN;
 export let USER_TYPE;
-export let GEOSERVER_WMS;
 export let MAPBOX_API_KEY;
-export let USE_TITILER;
+export let TITILER_HOST;
 
 $: sheetsLoading = VOLUME.status == "initializing...";
-let loadTip = false;
 let previewMapTip = false;
 
 let map;
-let layersPresent = VOLUME.ordered_layers.layers.length != 0 || VOLUME.ordered_layers.index_layers.length != 0;
+let layersPresent = VOLUME.items.layers.length > 0;
 let showMap = layersPresent
 let showUnprepared = VOLUME.status == "initializing...";
 let showPrepared = false;
@@ -71,13 +58,6 @@ const mainGroup = new LayerGroup({
 	// zIndex: 200
 });
 
-let layerRegistry = {}
-
-let showLayerConfig = false;
-let showLayerList = true;
-
-let orderableLayers = [];
-let orderableIndexLayers = [];
 let mapIndexLayerIds = []; 
 
 const keyImgUrl = "/static/img/key-nola-1940.png"
@@ -96,11 +76,15 @@ function closeModal() {
 }
 
 function referenceLayersParam() {
-	let referenceLayers = [];
-	VOLUME.ordered_layers.index_layers.forEach( function(layer) {
-		referenceLayers.push(layer.alternate)
-	})
-	return "reference="+referenceLayers.join(",")
+	if (VOLUME.sorted_layers.key_map.length > 0 ) {
+		let referenceLayers = [];
+		VOLUME.sorted_layers.key_map.forEach( function(layer) {
+			referenceLayers.push(layer.slug);
+		})
+		return "reference="+referenceLayers.join(",")+"&"
+	} else {
+		return ""
+	}
 }
 
 function getClass(n) {
@@ -145,8 +129,6 @@ function setVisibility(group, vis) {
 $: setVisibility(keyGroup, kGV)
 $: setVisibility(mainGroup, mGV)
 
-let mapFullMaskLayer;
-let centerPointLayer;
 function initMap() {
 	map = new Map({ 
 		target: "map",
@@ -176,88 +158,7 @@ function initMap() {
 	map.addLayer(baseGroup);
 	map.addLayer(keyGroup);
 	map.addLayer(mainGroup);
-
-	mapFullMaskLayer = makeMaskLayer(map);
-	map.addLayer(mapFullMaskLayer);
-
-	centerPointLayer = makeRotateCenterLayer();
-	map.addLayer(centerPointLayer);
-
 };
-
-
-function makeMaskLayer(map) {
-	let projExtent = map.getView().getProjection().getExtent()
-	const polygon = new Polygon([[
-		[projExtent[0], projExtent[1]],
-		[projExtent[2], projExtent[1]],
-		[projExtent[2], projExtent[3]],
-		[projExtent[0], projExtent[3]],
-		[projExtent[0], projExtent[1]],
-	]])	
-	const layer = new VectorLayer({
-		source: new VectorSource({
-			features: [ new Feature({ geometry: polygon }) ]
-		}),
-		style: new Style({
-			fill: new Fill({ color: 'rgba(255, 255, 255, 0.2)' }),
-		}),
-		zIndex: 500,
-	});
-	layer.setVisible(false);
-	return layer
-}
-
-let centerPointFeature;
-function makeRotateCenterLayer() {
-	centerPointFeature = new Feature()
-	const pointStyle = new Style({
-		image: new RegularShape({
-			radius1: 10,
-			radius2: 1,
-			points: 4,
-			rotateWithView: true,
-			fill: new Fill({color: "#FF0000" }),
-			stroke: new Stroke({
-				color: "#FF0000", width: 2
-			})
-		})
-	})
-	const layer = new VectorLayer({
-		source: new VectorSource({
-			features: [ centerPointFeature ]
-		}),
-		style: pointStyle,
-		zIndex: 501,
-	});
-	return layer
-}
-
-function getTitilerXYZUrl(layername) {
-	const titilerUrl = "https://titiler.legiongis.com";
-	const cogUrl = "https%3A%2F%2Foldinsurancemaps.net%2Fuploaded%2Fcog%2F"+ layername + ".tif";
-	const xyzUrl = titilerUrl +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrl;
-	return xyzUrl
-}
-
-function showRotateCenter() {
-	if (map && centerPointLayer) {
-		const centerCoords = map.getView().getCenter();
-		const point = new Point(centerCoords)
-		centerPointFeature.setGeometry(point)
-		centerPointLayer.setVisible(true)
-	}
-}
-function removeRotateCenter() {
-	if (centerPointLayer) {
-		centerPointLayer.setVisible(false)
-	}
-}
-
-function disabledMap(disabled) {
-	map.getInteractions().forEach(x => x.setActive(!disabled));
-	mapFullMaskLayer.setVisible(disabled);
-}
 
 $: {
 	if (showMap && map == undefined) {
@@ -265,28 +166,13 @@ $: {
 			initMap();
 			setLayersFromVolume(true);
 		}, 100);
-	} else {
-		cancelLayerConfig();
 	}
 }
 
 function setMapExtent() {
 	if (map) {
-		if (layersPresent) {
-			const fullExtent = createEmpty();
-			VOLUME.ordered_layers.layers.forEach( function(layerDef) {
-				const extent3857 = transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857");
-				extend(fullExtent, extent3857)
-			});
-			VOLUME.ordered_layers.index_layers.forEach( function(layerDef) {
-				const extent3857 = transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857");
-				extend(fullExtent, extent3857)
-			});
-			map.getView().fit(fullExtent);
-		} else {
-			map.getView().setCenter([0,0]);
-			map.getView().setZoom(1)
-		}
+		const extent3857 = transformExtent(VOLUME.extent, "EPSG:4326", "EPSG:3857");
+		map.getView().fit(extent3857);
 	}
 }
 
@@ -296,111 +182,58 @@ const tileGrid = createXYZ({
 
 function setLayersFromVolume(setExtent) {
 	// empty the light layers lists used for interactivity, need to be repopulated
-	orderableLayers = [];
-	orderableIndexLayers = [];
 	mapIndexLayerIds = [];
 
 	mainGroup.getLayers().clear();
 	keyGroup.getLayers().clear();
 
-	VOLUME.ordered_layers.layers.forEach( function(layerDef, n) {
+	VOLUME.sorted_layers.main.forEach( function(layerDef, n) {
 		// push to the lightweight list used for the draggable layer list
 		const pName = layerDef.title.slice(layerDef.title.lastIndexOf('|')+6, layerDef.title.length)
-		orderableLayers.push({
-			id: layerDef.alternate,
-			html: "<span style='color:black;'>"+pName + "</span>"
-		})
 
 		// create the actual ol layers and add to group.
-		let newLayer;
-		if (USE_TITILER) {
-			newLayer = new TileLayer({
-				source: new XYZ({
-					url: getTitilerXYZUrl(layerDef.name),
-				}),
-				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-			});
-		} else {
-			newLayer = new TileLayer({
-				source: new TileWMS({
-					url: GEOSERVER_WMS,
-					params: {
-						'LAYERS': layerDef.geoserver_id,
-						'TILED': true,
-					},
-					tileGrid: tileGrid,
-				}),
-							extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-			});
-		}
+		let newLayer = new TileLayer({
+			source: new XYZ({
+				url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
+			}),
+			extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+		});
 
-		layerRegistry[layerDef.geoserver_id] = newLayer;
 		mainGroup.getLayers().push(newLayer)
-
 
 		if (VOLUME.multimask) {		
 			Object.entries(VOLUME.multimask).forEach(kV => {
-				if (kV[0] == layerDef.name) {
+				if (kV[0] == layerDef.slug) {
 					const feature = new GeoJSON().readFeature(kV[1])
-      				feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
+				feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
 					const crop = new Crop({ 
 						feature: feature, 
 						wrapX: true,
 						inner: false
 					});
-    				newLayer.addFilter(crop);
+				newLayer.addFilter(crop);
 				}
 			});
 		}
 	});
 
-	VOLUME.ordered_layers.index_layers.forEach( function(layerDef, n) {
+	VOLUME.sorted_layers.key_map.forEach( function(layerDef, n) {
 		const pName = layerDef.title.slice(layerDef.title.lastIndexOf('|')+6, layerDef.title.length)
-		mapIndexLayerIds.push(layerDef.alternate)
-		orderableIndexLayers.push({
-			id: layerDef.alternate,
-			html: "<span style='color:black;'>"+pName + "</span>"
-		})
+		mapIndexLayerIds.push(layerDef.slug)
 
 		// create the actual ol layers and add to group.
-		let newLayer;
-		if (USE_TITILER) {
-			newLayer = new TileLayer({
-				source: new XYZ({
-					url: getTitilerXYZUrl(layerDef.name),
-				}),
-				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-			});
-		} else {
-			newLayer = new TileLayer({
-				source: new TileWMS({
-					url: GEOSERVER_WMS,
-					params: {
-						'LAYERS': layerDef.geoserver_id,
-						'TILED': true,
-					},
-					tileGrid: tileGrid,
-				}),
-							extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-			});
-		}
+		let newLayer = new TileLayer({
+			source: new XYZ({
+				url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
+			}),
+			extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+		});
 
-		layerRegistry[layerDef.geoserver_id] = newLayer;
 		keyGroup.getLayers().push(newLayer)
 	});
 
 	if (setExtent) { setMapExtent() };
 }
-
-function setLayerOrder(newOrder, topZ) {
-	if (!map) {return}
-	newOrder.forEach( function(layerLt, n) {
-		const newZ = topZ-n
-		layerRegistry[layerLt.id].setZIndex(newZ);
-	})
-}
-$: setLayerOrder(orderableLayers, 500)
-$: setLayerOrder(orderableIndexLayers, 50)
 
 let intervalId;
 function manageAutoReload(run) {
@@ -410,23 +243,18 @@ function manageAutoReload(run) {
 		clearInterval(intervalId)
 	}
 }
-$: manageAutoReload(sheetsLoading)
+$: autoReload = sheetsLoading || VOLUME.items.processing.unprep != 0 || VOLUME.items.processing.prep != 0 || VOLUME.items.processing.geo_trim != 0;
+$: manageAutoReload(autoReload)
 
 function postOperation(operation) {
-	let layerIds = [];
 	let indexLayerIds = [];
 	if (operation == "set-index-layers") {
 		indexLayerIds = mapIndexLayerIds
-	} else if (operation == "set-layer-order") {
-		orderableLayers.forEach( function(l) { layerIds.push(l.id)});
-		orderableIndexLayers.forEach( function(l) { indexLayerIds.push(l.id)});
 	} else if (operation == "refresh-lookups") {
 		refreshingLookups = true;
-		disabledMap(true);
 	}
 	const data = JSON.stringify({
 		"operation": operation,
-		"layerIds": layerIds,
 		"indexLayerIds": indexLayerIds,
 	});
 	fetch(VOLUME.urls.summary, {
@@ -445,22 +273,12 @@ function postOperation(operation) {
 		if (operation == "refresh-lookups") {
 			resetExtent = true;
 			refreshingLookups = false;
-			disabledMap(false);
 		}
 		setLayersFromVolume(resetExtent);
-		if (showMap == false && (VOLUME.ordered_layers.layers.length != 0 || VOLUME.ordered_layers.layers.length != 0)) {
+		if (showMap == false && VOLUME.items.layers.length > 0) {
 			window.location.href = VOLUME.urls.summary;
 		}
 	});
-}
-
-function saveLayerConfig() {
-	showLayerConfig = false;
-	postOperation("set-layer-order");
-}
-function cancelLayerConfig() {
-	showLayerConfig = false;
-	setLayersFromVolume();
 }
 
 let settingKeyMapLayer = false;
@@ -493,24 +311,20 @@ document.addEventListener("fullscreenchange", function(){
 	}
 }, false);
 
-let keyPressed = {};
-function handleKeydown(e) {
-	if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = true}
-	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = true}
-	if (keyPressed.shift && keyPressed.alt) {
-		showRotateCenter()
+const sideLinks = [
+	{
+		display: "Open in main viewer",
+		url: VOLUME.urls.viewer,
+		external: true,
+	},
+	{
+		display: "Open in Library of Congress",
+		url: VOLUME.urls.loc_resource,
+		external: true,
 	}
-};
-function handleKeyup(e) {
-	if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = false}
-	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = false}
-	if (!keyPressed.shift && !keyPressed.alt) {
-		removeRotateCenter()
-	}
-};
+]
 
 </script>
-<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup}/>
 
 <div id="vModal" class="modal">
 	<button id="closeModal" class="close close-vmodal" on:click={closeModal}>&times;</button>
@@ -520,31 +334,10 @@ function handleKeyup(e) {
 	</div>
 </div>
 <main>
-	<h1>{ VOLUME.title }</h1>
-	<p>
-		<a href={ VOLUME.urls.loc_resource } target="_blank">
-			Preview in Library of Congress <i class="fa fa-external-link"></i>
-		</a>
-		<i class="fa fa-info-circle help-icon" on:click={() => loadTip = !loadTip}></i>
-	</p>
-	{#if loadTip}
-	<div transition:slide>
-		<p>&uarr; Before loading, this is the best way to see if the volume covers your part of town.</p>
-	</div>
-	{/if}
-	{#if OTHER_VOLUMES.length > 1}
-	<div><p>
-	Jump to &rarr;
-	{#each OTHER_VOLUMES as ov, n}
-	{#if n != 0}&nbsp;&bullet;&nbsp;{/if}
-	{#if ov.url}<a href={ov.url} title={ov.name}>{ov.year}</a>{:else}{ov.year}{/if}
-	{/each}
-	</p></div>
-	{/if}
+	<TitleBar TITLE={VOLUME.title} BOTTOM_LINKS={OTHER_VOLUMES} SIDE_LINKS={sideLinks}/>
 	{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && USER_TYPE != 'anonymous' && !sheetsLoading}
 		<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
 	{/if}
-	<hr>
 	<h3>Map Overview</h3>
 	<h4 class="section-toggle">
 		<span on:click={() => showMap = !showMap}>
@@ -555,17 +348,17 @@ function handleKeyup(e) {
 	</h4>
 	{#if previewMapTip}
 	<div transition:slide>
-		<p>The preview map shows progress toward a full mosaic of this volume's content. <em>Please note: it is not optimized for performance and may be sluggish for large cities. The best way to view a single layer is find it in the <strong>Georeferenced</strong> section below and click the thumbnail.</em></p>
+		<p>The preview map shows progress toward a full mosaic of this volume's content. For a more immersive experience, view this volume in the <a href="{VOLUME.urls.viewer}">main viewer</a> where you can also compare it against other years.</p>
 	</div>
 	{/if}
 	<div class="map-container" style="display:{showMap == true ? 'flex' : 'none'}; justify-content: center; height:550px">
 		<div id="map-panel">
 			<div id="map" style="height: 100%;"></div>
 		</div>
-		<div id="layer-panel" style="display: {showLayerList == true ? 'flex' : 'none'}">
+		<div id="layer-panel" style="display: flex;">
 			<div class="layer-section-header" style="border-top-width: 1px;">
 				<button class="control-btn" title="Reset extent" on:click={setMapExtent}>
-					<i class="fa fa-refresh" />
+					<i class="fa fa-home" />
 				</button>
 				<button id="show-key-img" on:click={() => {showImgModal(keyImgUrl, keyImgCaption)}} class="control-btn">
 					<i class="fa fa-key" />
@@ -589,37 +382,26 @@ function handleKeyup(e) {
 					<i class="transparency-toggle {getClass(kGV)}" on:click={() => {kGV = toggleTransparency(kGV)}}></i>
 				</div>
 				<div class="layer-section-subheader">
-					{#if VOLUME.ordered_layers.index_layers.length == 0}
+					{#if VOLUME.sorted_layers.key_map.length == 0}
 					<em>no key map set</em>
 					{:else}
 					<input type=range bind:value={kGV} min=0 max=100>
 					{/if}
 				</div>
-				{#if showLayerConfig && orderableIndexLayers.length > 0}
-				<div class="layer-section-content">
-					<DragDrop bind:data={orderableIndexLayers}/>
-				</div>
-				{/if}
-
 				<div class="layer-section-header">
 					<span>Layers</span>
 					<i class="transparency-toggle {getClass(mGV)}" on:click={() => {mGV = toggleTransparency(mGV)}}></i>
 				</div>
 				<div class="layer-section-subheader">
-					{#if VOLUME.ordered_layers.layers.length == 0}
+					{#if VOLUME.sorted_layers.main.length == 0}
 					<em>no layers</em>
 					{:else}
 					<input type=range bind:value={mGV} min=0 max=100>
 					{/if}
 				</div>
-				{#if showLayerConfig && orderableLayers.length > 0}
-				<div class="layer-section-content">
-					<DragDrop bind:data={orderableLayers}/>
-				</div>
-				{/if}
 			</div>
 			<nav>
-				<a href={VOLUME.urls.trim}>Manage Mosaic</a>
+				<a href={VOLUME.urls.trim}>Trim Layers</a>
 			</nav>
 		</div>
 	</div>
@@ -640,7 +422,7 @@ function handleKeyup(e) {
 			{/if}
 		</div>
 	</div>
-	<div class="sheets-status-bar">
+	<div class="sheets-status-bar" style="display:flex; flex-direction: column">
 		<!-- {#if (VOLUME.loaded_by.name != "" && !sheetsLoading) || VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
 			<p><em>{VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.loaded != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}</em></p>
 		{:else if sheetsLoading}
@@ -649,21 +431,31 @@ function handleKeyup(e) {
 		{:else if VOLUME.sheet_ct.loaded == 0}
 			<p><em>No sheets loaded yet...</em></p>
 		{/if} -->
-		<p style="float:left;"><em>
+		<div>
+			<p style="float:left;"><em>
 
+				{#if sheetsLoading}
+				Loading sheet {VOLUME.sheet_ct.loaded+1}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
+				{:else if VOLUME.sheet_ct.loaded == 0}
+				No sheets loaded yet...
+				{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
+				{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
+				{:else}
+				{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}
+				{/if}
+			</em></p>
 			{#if sheetsLoading}
-			Loading sheet {VOLUME.sheet_ct.loaded+1}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
-			{:else if VOLUME.sheet_ct.loaded == 0}
-			No sheets loaded yet...
-			{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
-			{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
-			{:else}
-			{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}
+			<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
 			{/if}
-		</em></p>
-		{#if sheetsLoading}
-		<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
-		{/if}
+		</div>
+		<div>
+		<p style="float:left;"><em>
+			{VOLUME.sessions.prep_ct} sheet{#if VOLUME.sessions.prep_ct != 1}s{/if} prepared{#if VOLUME.sessions.prep_ct > 0}&nbsp;by {#each VOLUME.sessions.prep_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.prep_contributors.length-1}, {/if}{/each}{/if}
+		</em></p></div>
+		<div><p><em>
+			{VOLUME.sessions.georef_ct} georeferencing session{#if VOLUME.sessions.georef_ct != 1}s{/if}{#if VOLUME.sessions.georef_ct > 0}&nbsp;by 
+			{#each VOLUME.sessions.georef_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.georef_contributors.length-1}, {/if}{/each}{/if}
+		</em></p></div>
 		
 	</div>
 
@@ -681,7 +473,7 @@ function handleKeyup(e) {
 			<i class="fa {showUnprepared == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
 			Unprepared ({VOLUME.items.unprepared.length})
 			{#if VOLUME.items.processing.unprep != 0}
-				&mdash; {VOLUME.items.processing.unprep} processing...
+				&mdash; {VOLUME.items.processing.unprep} in progress...
 			{/if}
 		</h4>
 		{#if showUnprepared}
@@ -700,18 +492,17 @@ function handleKeyup(e) {
 			<div class="documents-column">
 				{#each VOLUME.items.unprepared as document}
 				<div class="document-item">
-					<div><p>sheet {document.page_str}</p></div>
+					<div><p><a href={document.urls.resource} title={document.title}>Sheet {document.page_str}</a></p></div>
 					<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
 					<div>
-						{#if document.lock && document.lock.enabled}
+						{#if document.lock_enabled}
 						<ul style="text-align:center">
-							<li><em>session in progress...</em></li>
-							<li>{document.lock.username}</li>
+							<li><em>preparation in progress.</em></li>
+							<li><em>user: {document.lock_details.user.name}</em></li>
 						</ul>
 						{:else}
 						<ul>
-							<li><a href={document.urls.split} title="prepare this document">prepare &rarr;</a></li>
-							<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
+							<li><a href={document.urls.split} title="Prepare this document">prepare &rarr;</a></li>
 						</ul>
 						{/if}
 					</div>
@@ -739,7 +530,7 @@ function handleKeyup(e) {
 			<div class="documents-column">
 				{#each VOLUME.items.prepared as document}
 				<div class="document-item">
-					<div><p>{document.title}</p></div>
+					<div><p><a href={document.urls.resource} title={document.title}>{document.title}</a></p></div>
 					<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
 					<div>
 						{#if document.lock && document.lock.enabled}
@@ -750,7 +541,6 @@ function handleKeyup(e) {
 						{:else}
 						<ul>
 							<li><a href="{document.urls.georeference}?{referenceLayersParam()}" title="georeference this document">georeference &rarr;</a></li>
-							<li><a href={document.urls.detail} title={document.title}>document detail &rarr;</a></li>
 						</ul>
 						{/if}
 					</div>
@@ -792,7 +582,7 @@ function handleKeyup(e) {
 			<div class="documents-column">
 				{#each VOLUME.items.layers as layer}
 				<div class="document-item">
-					<div><p>{layer.title}</p></div>
+					<div><p><a href={layer.urls.resource} title={layer.title}>{layer.title}</a></p></div>
 					<a href={layer.urls.view} target="_blank" title="inspect layer in standalone map" style="cursor:zoom-in">
 						<img src={layer.urls.thumbnail} alt={document.title}>
 					</a>
@@ -804,9 +594,7 @@ function handleKeyup(e) {
 						</ul>
 						{:else}
 						<ul>
-							<li><a href={layer.urls.trim} title="trim this layer">trim &rarr;</a></li>
 							<li><a href="{layer.urls.georeference}?{referenceLayersParam()}" title="edit georeferencing">edit georeferencing &rarr;</a></li>
-							<li><a href={layer.urls.detail} title={layer.title}>layer detail &rarr;</a></li>
 							<!-- link for OHM editor with this layer as basemap -->
 							<!-- layers returning 400 7/14/2022, disabling for now -->
 							<!-- <li><a href={layer.urls.ohm_edit} title="open in OHM editor" target="_blank">OHM &rarr;</a></li> -->
@@ -814,7 +602,7 @@ function handleKeyup(e) {
 						{/if}
 						{#if settingKeyMapLayer}
 						<label>
-							<input type=checkbox bind:group={mapIndexLayerIds} value={layer.alternate}> Use layer in Key Map
+							<input type=checkbox bind:group={mapIndexLayerIds} value={layer.slug}> Use layer in Key Map
 						</label>
 						{/if}
 					</div>
@@ -982,7 +770,7 @@ hr.hr-dashed {
 		max-width: none;
 	}
 
-	.documents-column {
+	.documents-column, .title-section {
 		flex-direction: column;
 	}
 
@@ -1040,6 +828,26 @@ hr.hr-dashed {
 }
 .empty-circle {
 	border-color: #1b4060;
+}
+
+.title-section {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 20px;
+}
+
+.title-section div {
+	display: flex;
+	flex-direction: column;
+}
+
+.title-section div.link-box {
+	background: #e6e6e6;
+	padding: 10px;
+	margin: 10px;
+	box-shadow: gray 0px 0px 5px;
+	border-radius: 4px;
 }
 
 /* input[type="range"] {

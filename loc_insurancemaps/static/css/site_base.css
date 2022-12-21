@@ -1,6 +1,13 @@
 body {
   font-family: 'Josefin Sans', sans-serif;
   letter-spacing: -.3px;
+  padding-top: 60px;
+  background-color: #F7F1E1;
+}
+@media (max-width: 991px) {
+	body {
+	  padding-top: 60px;
+	}
 }
 
 footer a:hover {
@@ -8,17 +15,140 @@ footer a:hover {
 }
 
 #wrap {
-	margin-top: 60px !important;
+	margin-top: 50px !important;
+}
+
+h1 {
+	font-size: 2.25em;
 }
 
 h1, h2, h3, h4, h5, h6 {
 	font-weight: 400;
 }
 
+.banner-wrap {
+	position: relative
+}
+.banner {
+	display: flex;
+	flex-direction: column;
+	margin-right: -15px;
+	margin-left: -15px;
+	color: inherit;
+	box-shadow: gray 0px 0px 5px;
+	position: relative;
+	/* height: calc(100vh - 30px); */
+}
+.banner-button-list div {
+	align-content: center;
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+}
+.banner p {
+	font-size:1.25em;
+}
+.banner > * {
+	z-index: 100;
+	position: relative;
+}
+.banner-item {
+	margin-top: 45px;
+	padding: 20px;
+	background: rgba(247,241,255,.5)
+}
+.banner-button-list {
+	display:flex;
+	justify-content: space-evenly;
+	
+}
+@media (max-width: 991px) {
+	.banner-button-list {
+	  flex-direction: column;
+	  align-items: center;
+	}
+	.banner-button-list div {
+		width: 100%;
+	}
+}
+
+.banner .btn-default {
+    border: 2px solid #3a3a3a;
+    color: #3a3a3a;
+}
+
+nav.lahmg-nav {
+	display: flex;
+	height: 60px;
+	background:#123B4F;
+	box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1030;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+	padding: 0px 20px;
+	color:white;
+	font-weight: 500;
+	overflow-x: scroll;
+}
+
+nav.lahmg-nav a {
+	color:white;
+}
+
+nav.lahmg-nav a:hover {
+	color: #eee;
+	text-decoration: none;
+}
+
+nav.lahmg-nav div {
+	display: flex;
+	align-items: center;
+}
+
+nav.lahmg-nav div div {
+	padding: 4px 24px 4px 0px;
+	white-space: nowrap;
+}
+
+
+.navbar {
+	min-height: 60px;
+	/* background-color: #EAE0C1 !important; */
+	/* color: #3a3a3a; */
+	box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
+	position: fixed;
+	top: 0;
+	right: 0;
+	left: 0;
+	z-index: 1030;
+	display: flex;
+	align-items: center;
+}
+
+.navbar-header-new {
+	display: flex;
+	align-items: center;
+	color:white;
+}
+
+.navbar-brand-new {
+	height: 32px;
+}
+
 /* unset max height so scroll overflow never shows up */
 .navbar-fixed-top .navbar-collapse,
 .navbar-fixed-bottom .navbar-collapse {
   max-height: none;
+}
+
+.navbar-inverse .navbar-nav > li > a {
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .about-container {
@@ -130,21 +260,6 @@ h1, h2, h3, h4, h5, h6 {
 .background-fg {
 	background:#EAE0C1 !important;
 	box-shadow:gray 0px 0px 5px;
-}
-
-.jumbotron {
-	box-shadow: gray 0px 0px 5px;
-	padding: 2em 0 2em !important;
-}
-
-.jumbotron, .jumbotron p {
-	font-family: 'Josefin Sans' !important;
-	text-shadow: unset !important;
-}
-
-.home .jumbotron .btn-default {
-    border: 2px solid #3a3a3a;
-    color: #3a3a3a;
 }
 
 .consent-dl dt {

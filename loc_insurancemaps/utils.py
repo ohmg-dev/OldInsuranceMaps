@@ -6,6 +6,7 @@ import shutil
 import logging
 import requests
 from datetime import datetime
+from PIL import Image
 
 from django.conf import settings
 from django.urls import reverse
@@ -17,6 +18,37 @@ from .enumerations import (
 )
 
 logger = logging.getLogger(__name__)
+
+def convert_img_format(input_img, format="JPEG"):
+
+    ext_map = {"PNG":".png", "JPEG":".jpg", "TIFF": ".tif"}
+    ext = os.path.splitext(input_img)[1]
+
+    outpath = input_img.replace(ext, ext_map[format])
+
+    img = Image.open(input_img)
+    img.save(outpath, format=format)
+
+    return outpath
+
+def get_jpg_from_jp2_url(jp2_url):
+
+    temp_img_dir = os.path.join(settings.CACHE_DIR, "img")
+    if not os.path.isdir(temp_img_dir):
+        os.mkdir(temp_img_dir)
+
+    tmp_path = os.path.join(temp_img_dir, jp2_url.split("/")[-1])
+
+    tmp_path = download_image(jp2_url, tmp_path)
+    print(tmp_path)
+    if tmp_path is None:
+        return
+
+    # convert the downloaded jp2 to jpeg (needed for OpenLayers static image)
+    jpg_path = convert_img_format(tmp_path, format="JPEG")
+    os.remove(tmp_path)
+
+    return jpg_path
 
 def filter_volumes_for_use(volumes):
     """

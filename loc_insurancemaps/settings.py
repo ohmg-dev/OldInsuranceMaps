@@ -22,6 +22,8 @@
 import ast
 import os
 
+from kombu import Queue, Exchange
+
 # Load all default geonode settings
 from geonode.settings import *
 
@@ -48,13 +50,171 @@ LOG_DIR = os.path.join(LOCAL_ROOT, "logs")
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', "en")
 
+## overwrite geonode installed apps to begin paring them down
+INSTALLED_APPS = [
+    'modeltranslation',
+    'dal',
+    'dal_select2',
+    # 'grappelli',
+    'django.contrib.contenttypes',
+    'django.contrib.auth',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.admin',
+    'django.contrib.sitemaps',
+    'django.contrib.staticfiles',
+    'django.contrib.messages',
+    'django.contrib.humanize',
+    'django.contrib.gis',
+    'dj_pagination',
+    'taggit',
+    'treebeard',
+    # 'leaflet',
+    'bootstrap3_datetime',
+    'django_filters',
+    'mptt',
+    'storages',
+    'floppyforms',
+    'tinymce',
+    'widget_tweaks',
+    'django_extensions',
+    'rest_framework',
+    'rest_framework_gis',
+    'dynamic_rest',
+    'drf_spectacular',
+    'django_forms_bootstrap',
+    'avatar',
+    'dialogos',
+    'pinax.ratings',
+    'announcements',
+    'actstream',
+    'user_messages',
+    'tastypie',
+    'polymorphic',
+    'guardian',
+    'oauth2_provider',
+    'corsheaders',
+    'invitations',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'geonode',
+    'markdownify',
+    'geonode.api', # needed in geonode.base
+    'geonode.base',
+    # 'geonode.br',
+    'geonode.layers',
+    # 'geonode.maps',
+    # 'geonode.geoapps',
+    'geonode.documents',
+    'geonode.security',
+    'geonode.catalogue',
+    'geonode.catalogue.metadataxsl',
+    'geonode.people',
+    # 'geonode.client',
+    # 'geonode.themes',
+    'geonode.proxy',
+    # 'geonode.social',
+    'geonode.groups',
+    'geonode.services', # error when removing this app still
+    'geonode.geoserver', # needed by geonode.api
+    # 'geonode.upload',
+    # 'geonode.tasks',
+    'geonode.messaging',
+    # 'geonode.monitoring',
+    'geonode.documents.exif',
+    # 'geonode.favorite',
+    # 'mapstore2_adapter',
+    # 'mapstore2_adapter.geoapps',
+    # 'mapstore2_adapter.geoapps.geostories',
+    # 'geonode_mapstore_client',
+    'pinax.notifications',
+]
+
 INSTALLED_APPS += (
     'django_svelte',
     'georeference',
     PROJECT_NAME,
 )
 
-USE_TITILER = ast.literal_eval(os.getenv("USE_TITILER", True))
+ENABLE_NEWSLETTER = os.getenv("ENABLE_NEWSLETTER", False)
+if ENABLE_NEWSLETTER:
+    INSTALLED_APPS += (
+        'sorl.thumbnail',
+        'newsletter',
+    )
+    NEWSLETTER_THUMBNAIL = 'sorl-thumbnail'
+    NEWSLETTER_CONFIRM_EMAIL_SUBSCRIBE = True
+    NEWSLETTER_CONFIRM_EMAIL_UNSUBSCRIBE = False
+    NEWSLETTER_CONFIRM_EMAIL_UPDATE = False
+
+MIDDLEWARE = (
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.sites.middleware.CurrentSiteMiddleware',
+    'dj_pagination.middleware.PaginationMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'oauth2_provider.middleware.OAuth2TokenMiddleware',
+    # 'geonode.base.middleware.MaintenanceMiddleware',
+    # 'geonode.base.middleware.ReadOnlyMiddleware',
+    # 'geonode.security.middleware.SessionControlMiddleware',
+)
+
+ENABLE_CPROFILER = ast.literal_eval(os.getenv("ENABLE_CPROFILER", False))
+if ENABLE_CPROFILER:
+    MIDDLEWARE += ('django_cprofile_middleware.middleware.ProfilerMiddleware', )
+
+ENABLE_DEBUG_TOOLBAR = ast.literal_eval(os.getenv("ENABLE_DEBUG_TOOLBAR", False))
+if DEBUG and ENABLE_DEBUG_TOOLBAR:
+    INSTALLED_APPS += ('debug_toolbar',)
+    MIDDLEWARE = ('debug_toolbar.middleware.DebugToolbarMiddleware', ) + MIDDLEWARE
+    INTERNAL_IPS = ['127.0.0.1']
+
+TITILER_HOST = os.getenv("TITILER_HOST", "")
+
+MEDIA_HOST = os.getenv("MEDIA_HOST", SITEURL)
+
+S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+S3_CONFIG = {
+    "aws_access_key_id": os.getenv("S3_ACCESS_KEY_ID"),
+    "aws_secret_access_key": os.getenv("S3_SECRET_ACCESS_KEY"),
+    "endpoint_url": os.getenv("S3_ENDPOINT_URL"),
+}
+
+# this is a hack to handle the fact that certain GDAL and Django versions
+# are not compatible, and the order of lat/long gets messed up. ONLY to
+# be used in development!!!!
+# this will be removed once Django is upgraded
+SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", False))
+
+# CONFIGURE CELERY
+
+# basic independent setup for Celery Exchange/Queue
+PARAMOUNT_EXCHANGE = Exchange('paramount', type='topic')
+CELERY_TASK_QUEUES += (
+    Queue('split', PARAMOUNT_EXCHANGE, routing_key='split', priority=0),
+    Queue('georeference', PARAMOUNT_EXCHANGE, routing_key='georeference', priority=0),
+    Queue('volume', PARAMOUNT_EXCHANGE, routing_key='volume', priority=0),
+    Queue('mosaic', PARAMOUNT_EXCHANGE, routing_key='mosaic', priority=0),
+    Queue('housekeeping', PARAMOUNT_EXCHANGE, routing_key='housekeeping', priority=0),
+)
+
+CELERY_TASK_ROUTES = {
+ 'georeference.tasks.run_preparation_session': {'queue': 'split'},
+ 'georeference.tasks.run_georeference_session': {'queue': 'georeference'},
+ 'georeference.tasks.delete_expired': {'queue': 'housekeeping'},
+ 'loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
+ 'loc_insurancemaps.tasks.generate_mosaic_geotiff_as_task': {'queue': 'mosaic'},
+}
+
+# empty celery beat schedule of default GeoNode jobs
+CELERY_BEAT_SCHEDULE = {}
 
 # conditionally add static files from the 'georeference' app, as well as
 # Mapserver information, used for the georeferencing preview layer
@@ -68,11 +228,8 @@ if 'georeference' in INSTALLED_APPS:
     MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
     MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
 
-    MIDDLEWARE += ("georeference.middleware.GeoreferenceMiddleware", )
-    TEMPLATES[0]['OPTIONS']['context_processors'].append("georeference.context_processors.georeference_info")
-
     CELERY_BEAT_SCHEDULE['delete_expired_sessions'] = {
-        'task': 'georeference.tasks.delete_expired_sessions',
+        'task': 'georeference.tasks.delete_expired',
         'schedule': 60.0,
     }
 
@@ -85,7 +242,6 @@ STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "static"))
 STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "components", "public", "build"))
 # add context processor and middleware
 TEMPLATES[0]['OPTIONS']['context_processors'].append("loc_insurancemaps.context_processors.loc_info")
-MIDDLEWARE += ("loc_insurancemaps.middleware.LOCMiddleware", )
 
 # exclude many default profile fields to reduce to identifiable personal information
 PROFILE_EDIT_EXCLUDE_FIELD = [
@@ -126,9 +282,7 @@ IIIF_SERVER_LOCATION = "http://localhost:8182"
 # To allow other sites to read IIIF resources set CORS_ORIGIN_ALLOW_ALL to True
 CORS_ORIGIN_ALLOW_ALL = False
 
-# the default thumbnail background is wikimedia and it causes a lot of errors
-# set to custom blank background handler here.
-THUMBNAIL_BACKGROUND = { "class": "loc_insurancemaps.background.NoThumbnailBackground" }
+DEFAULT_THUMBNAIL_SIZE = (240, 200)
 
 # Location of url mappings
 ROOT_URLCONF = os.getenv('ROOT_URLCONF', '{}.urls'.format(PROJECT_NAME))
@@ -148,7 +302,7 @@ LOGGING = {
     'formatters': {
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(name)s %(funcName)s %(process)d '
-                      '%(thread)d %(message)s'
+                      '%(message)s'
         },
         'moderate': {
             'format': '%(levelname)s %(asctime)s %(module)s %(message)s'

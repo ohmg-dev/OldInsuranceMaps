@@ -1,4 +1,4 @@
-{% extends "geonode_base.html" %}
+{% extends "base.html" %}
 {% load i18n %}
 {% load staticfiles %}
 
@@ -7,11 +7,8 @@
 {% block title %}{{ split_params.DOCUMENT.title }} — Split{% endblock %}
 
 {% block body_outer %}
-    <div style="float:right; text-align:center; margin-top: 15px;">
-        <a href="{{ split_params.DOCUMENT.urls.detail }}">back to document detail &rarr;</a>
-    </div>
-    <h1 style="font-size: 2.1em;">{{ split_params.DOCUMENT.title }}</h1>
-    <hr>
-    {% display_svelte "SplitPreamble.svelte" preamble_params %}
-    {% display_svelte "Split.svelte" split_params %}
+{% display_svelte "Split.svelte" split_params %}
 {% endblock %}
+
+{% block footer %}
+{% endblock footer %}

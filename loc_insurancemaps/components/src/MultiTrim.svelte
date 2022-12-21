@@ -7,13 +7,10 @@ import View from 'ol/View';
 
 import VectorSource from 'ol/source/Vector';
 import XYZ from 'ol/source/XYZ';
-import TileWMS from 'ol/source/TileWMS';
 
 import {transformExtent} from 'ol/proj';
 
 import {createEmpty, extend} from 'ol/extent';
-// import {} from 'ol/extent';
-import {createXYZ} from 'ol/tilegrid';
 
 import Feature from 'ol/Feature';
 
@@ -38,15 +35,14 @@ const styles = new Styles();
 import Utils from './js/ol-utils';
 const utils = new Utils();
 
-// export let LOCK;
-// export let SESSION_ID;
+import TitleBar from "../../../georeference/components/src/TitleBar.svelte"
+
 export let VOLUME;
 export let SESSION_LENGTH;
 export let CSRFTOKEN;
 export let USER_TYPE;
 export let MAPBOX_API_KEY;
-export let GEOSERVER_WMS;
-export let USE_TITILER;
+export let TITILER_HOST;
 
 let currentLayer = null;
 
@@ -73,7 +69,7 @@ function cancelAndRedirectToDetail() {
 let unchanged = true;
 let mapView;
 
-  let layerLookup = {}
+let layerLookup = {}
 let layerLookupArr = [];
 
 function updateLayerArr(){
@@ -82,17 +78,6 @@ function updateLayerArr(){
     layerLookupArr.push(kV[1])
   })
 }
-
-function getTitilerXYZUrl(layername) {
-	const titilerUrl = "https://titiler.legiongis.com";
-	const cogUrl = "https%3A%2F%2Foldinsurancemaps.net%2Fuploaded%2Fcog%2F"+ layername + ".tif";
-	const xyzUrl = titilerUrl +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrl;
-	return xyzUrl
-}
-
-  const tileGrid = createXYZ({
-    tileSize: 512,
-  });
 
 function addIncomingMasks() {
 	if (VOLUME.multimask) {
@@ -109,30 +94,14 @@ function addIncomingMasks() {
   function createLayerLookup() {
     layerLookup = {};
     trimShapeSource.clear()
-    VOLUME.ordered_layers.layers.forEach( function(layerDef, n) {
+    VOLUME.sorted_layers.main.forEach( function(layerDef, n) {
       // create the actual ol layers and add to group.
-      let newLayer;
-      if (USE_TITILER) {
-        newLayer = new TileLayer({
-          source: new XYZ({
-            url: getTitilerXYZUrl(layerDef.name),
-          }),
-          extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-        });
-      } else {
-        newLayer = new TileLayer({
-          source: new TileWMS({
-            url: GEOSERVER_WMS,
-            params: {
-              'LAYERS': layerDef.geoserver_id,
-              'TILED': true,
-            },
-            tileGrid: tileGrid,
-          }),
-          zIndex: n+100,
-          extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-        });
-      }
+      let newLayer = new TileLayer({
+        source: new XYZ({
+          url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
+        }),
+        extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+      });
       // zIndex for layers start from 100, should max out under 300.
       // When a layer is shuffled to the top, it's zIndex is set to 500,
       // and ally layers with a zIndex > 300 are shifted down 1.
@@ -145,18 +114,18 @@ function addIncomingMasks() {
       const extentFeature = new Feature({
           geometry: extentGeom3857,
           show: false,
-          name: layerDef.name,
+          name: layerDef.slug,
       });
       extentLayer.getSource().addFeature(extentFeature)
 
-      layerLookup[layerDef.name] = {}
+      layerLookup[layerDef.slug] = {}
       const layer = {
         olLayer: newLayer,
         layerDef: layerDef,
         crop: null,
         feature: null
       }
-      layerLookup[layerDef.name] = layer
+      layerLookup[layerDef.slug] = layer
     });
     // now iterate the incoming mask features and apply all existing
     addIncomingMasks();
@@ -325,7 +294,7 @@ function submitMultiMask() {
         rightHanded: true,
         decimals: 7,
       })
-      multiMask[layer.layerDef.name] = JSON.parse(featureGeoJSONStr);
+      multiMask[layer.layerDef.slug] = JSON.parse(featureGeoJSONStr);
     }
   })
   fetch(VOLUME.urls.trim, {
@@ -366,7 +335,7 @@ function zoomToLayer(layer) {
 function showExtent(layer) {
   extentLayer.getSource().getFeatures().forEach(function (feature) {
     const props = feature.getProperties();
-    if (props.name == layer.layerDef.name) {
+    if (props.name == layer.layerDef.slug) {
       feature.setProperties({'show': true})
     } else {
       feature.setProperties({'show': false})
@@ -390,7 +359,7 @@ function addMask(layer){
     zoomToLayer(layer);
     // setting the currentLayer activates the draw interaction
     // and when the feature is complete it is used for the crop
-    currentLayer = layer.layerDef.name;
+    currentLayer = layer.layerDef.slug;
   }
   showExtent(layer)
 }
@@ -436,6 +405,11 @@ function layerRemoveMask(layer, confirm) {
 
 }
 
+const sideLinks = [{
+  display: VOLUME.title,
+  url: VOLUME.urls.summary,
+}]
+
 </script>
 
 <svelte:window on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}}/>
@@ -446,9 +420,9 @@ function layerRemoveMask(layer, confirm) {
     <button on:click={() => {process("extend-session")}}>Give me more time!</button>
   </div>
 </div>
-
+<TitleBar TITLE={VOLUME.title + " - Trim"} BOTTOM_LINKS={[]} SIDE_LINKS={sideLinks} />
+{#if USER_TYPE == "anonymous"}<div><p>Feel free to mess around; you can't save changes unless you are logged in.</p></div>{/if}
 <div class="svelte-component-main">
-  {#if USER_TYPE == "anonymous"}<p>Feel free to mess around; you can't save changes unless you are logged in.</p>{/if}
   <div class="map-container" style="height: calc(100%-35px);">
     <div id="map-viewer" class="map-item rounded-bottom" style="h"></div>
     <div id="layer-panel" style="display:flex; flex-direction:column; justify-content:space-between; max-width: 200px; padding: 10px;" class="map-item rounded-bottom">
@@ -464,7 +438,7 @@ function layerRemoveMask(layer, confirm) {
           <button title="remove mask" on:click={() => layerRemoveMask(layer)} style="display: inline-block;">🗑</button>
           {/if}
           &nbsp;
-          {#if currentLayer == layer.layerDef.name}<div style="color:red" on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
+          {#if currentLayer == layer.layerDef.slug}<div style="color:red" on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
           {:else}
           <div class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
           {/if}
@@ -476,7 +450,6 @@ function layerRemoveMask(layer, confirm) {
       <div style="display:flex; justify-content:space-between">
           <button title="Reset" on:click={resetInterface} disabled={unchanged}>🗘</button>
           <button title="Submit" on:click={submitMultiMask} disabled={unchanged}>✓</button>
-          <button title="Back to Volume Summary" on:click={() => window.location.href = VOLUME.urls.summary}>↩</button>
       </div>
     </div>
   </div>

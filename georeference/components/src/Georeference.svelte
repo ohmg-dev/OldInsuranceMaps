@@ -37,21 +37,21 @@ const styles = new Styles();
 import Utils from './js/ol-utils';
 const utils = new Utils();
 
-export let LOCK;
-export let SESSION_ID;
+import TitleBar from './TitleBar.svelte';
+import GeoreferencePreamble from './GeoreferencePreamble.svelte';
+
+export let USER;
 export let SESSION_LENGTH;
 export let DOCUMENT;
-export let IMG_SIZE;
+export let VOLUME;
 export let CSRFTOKEN;
-export let USERNAME;
-export let REGION_EXTENT;
-export let INCOMING_GCPS;
-export let INCOMING_TRANSFORMATION;
 export let MAPSERVER_ENDPOINT;
 export let MAPSERVER_LAYERNAME;
 export let MAPBOX_API_KEY;
-export let GEOSERVER_WMS;
-export let REFERENCE_LAYERS;
+
+// reference layers are disabled for now, but all pieces are still retained
+// export let TITILER_HOST;
+// export let REFERENCE_LAYERS;
 
 let previewMode = "n/a";
 
@@ -86,12 +86,24 @@ $: {
   }
 }
 
-let disableInterface = LOCK.enabled;
-let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
+const session_id = DOCUMENT.lock_enabled ? DOCUMENT.lock_details.session_id : null;
+
+let disableInterface = DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name != USER);
+let disableReason;
 let leaveOkay = true;
-if (LOCK.stage == "in-progress") {
+let enableButtons = false;
+if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == USER)) {
   leaveOkay = false;
+  enableButtons = true;
 }
+$: enableSave = gcpList.length >= 3 && enableButtons;
+
+// let disableInterface = LOCK.enabled;
+// let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
+// let leaveOkay = true;
+// if (LOCK.stage == "in-progress") {
+//   leaveOkay = false;
+// }
 
 // show the extend session prompt 15 seconds before the session expires
 setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
@@ -106,9 +118,10 @@ function promptRefresh() {
   }
 }
 
+const nextPage = DOCUMENT.layer ? DOCUMENT.layer.urls.resource : DOCUMENT.urls.resource;
 function cancelAndRedirectToDetail() {
   process("cancel");
-  window.location.href=DOCUMENT.urls.detail;
+  window.location.href=nextPage;
 }
 
 const beginTxt = "Click a recognizable location on the map document (left panel)"
@@ -157,7 +170,7 @@ mapGCPSource.on(['addfeature'], function (e) {
     e.feature.setProperties({
       'id': uuid(),
       'listId': nextGCP,
-      'username': USERNAME,
+      'username': USER,
       'note': '',
     });
   }
@@ -187,24 +200,24 @@ previewSource.on("tileloadend", function (e) { endloads++ })
 
 const previewLayer = new TileLayer({ source: previewSource });
 
-const refGroup = new LayerGroup();
-REFERENCE_LAYERS.forEach( function (layer) {
-  const newLayer = new TileLayer({
-    source: new TileWMS({
-      url: GEOSERVER_WMS,
-      params: {
-        'LAYERS': layer,
-        'TILED': true,
-      },
-    })
-  });
-  refGroup.getLayers().push(newLayer)
-});
+// const refGroup = new LayerGroup();
+// REFERENCE_LAYERS.forEach( function (layer) {
+//   const newLayer = new TileLayer({
+//     source: new TileWMS({
+//       url: GEOSERVER_WMS,
+//       params: {
+//         'LAYERS': layer,
+//         'TILED': true,
+//       },
+//     })
+//   });
+//   refGroup.getLayers().push(newLayer)
+// });
 
-let referenceVisible = REFERENCE_LAYERS.length > 0;
-$: {
-  refGroup.setVisible(referenceVisible)
-}
+// let referenceVisible = REFERENCE_LAYERS.length > 0;
+// $: {
+//   refGroup.setVisible(referenceVisible)
+// }
 
 // this Modify interaction is created individually for each map panel
 function makeModifyInteraction(hitDetection, source, targetElement) {
@@ -247,8 +260,8 @@ function DocumentViewer (elementId) {
 
   const targetElement = document.getElementById(elementId);
 
-  const imgWidth = IMG_SIZE[0];
-  const imgHeight = IMG_SIZE[1];
+  const imgWidth = DOCUMENT.image_size[0];
+  const imgHeight = DOCUMENT.image_size[1];
 
   // items needed by layers and map
   // set the extent and projection with 0, 0 at the **top left** of the image
@@ -371,7 +384,7 @@ function MapViewer (elementId) {
       target: targetElement,
       layers: [
         basemaps[0].layer,
-        refGroup,
+        // refGroup,
         previewLayer,
         gcpLayer,
       ],
@@ -430,10 +443,10 @@ function MapViewer (elementId) {
 
     this.resetExtent = function () {
       map.getView().setRotation(0);
-      if (INCOMING_GCPS) {
+      if (DOCUMENT.gcps_geojson) {
         map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
-      } else {
-        const extent3857 = transformExtent(REGION_EXTENT, "EPSG:4326", "EPSG:3857");
+      } else if (VOLUME.extent) {
+        const extent3857 = transformExtent(VOLUME.extent, "EPSG:4326", "EPSG:3857");
         map.getView().fit(extent3857);
       }
     }
@@ -464,9 +477,9 @@ function loadIncomingGCPs() {
   loadingInitial = true;
   docGCPSource.clear();
   mapGCPSource.clear();
-  if (INCOMING_GCPS) {
+  if (DOCUMENT.gcps_geojson) {
     let listId = 1;
-    let inGCPs = new GeoJSON().readFeatures(INCOMING_GCPS, {
+    let inGCPs = new GeoJSON().readFeatures(DOCUMENT.gcps_geojson, {
       dataProjection: "EPSG:4326",
       featureProjection: "EPSG:3857",
     });
@@ -489,10 +502,10 @@ function loadIncomingGCPs() {
     });
     previewMode = "transparent";
   }
+  currentTransformation = (DOCUMENT.transformation ? DOCUMENT.transformation : "poly1")
   syncGCPList();
   docView.resetExtent()
   mapView.resetExtent()
-  currentTransformation = (INCOMING_TRANSFORMATION ? INCOMING_TRANSFORMATION : "poly1")
   loadingInitial = false;
   inProgress = false;
   unchanged = true;
@@ -728,7 +741,7 @@ function process(operation){
     "gcp_geojson": asGeoJSON(),
     "transformation": currentTransformation,
     "operation": operation,
-    "sesh_id": SESSION_ID,
+    "sesh_id": session_id,
   });
   fetch(DOCUMENT.urls.georeference, {
       method: 'POST',
@@ -745,10 +758,8 @@ function process(operation){
         let sourceUrl = previewSource.getUrls()[0];
         previewSource.setUrl(sourceUrl.replace(/\/[^\/]*$/, '/'+Math.random()));
         previewSource.refresh()
-      } else if (operation == "submit") {
-        window.location.href = DOCUMENT.urls.detail;
-      } else if (operation == "cancel") {
-        window.location.href = DOCUMENT.urls.detail;
+      } else if (operation == "submit" || operation == "cancel") {
+          window.location.href = nextPage;
       }
     });
 }
@@ -806,28 +817,64 @@ function confirmLeave () {
   return "...";
 }
 
+// function cleanup () {
+//   // if this is an in-progress session
+//   if (LOCK.stage == "in-progress") {
+//     // and if a preparation submission hasn't been made and a
+//     // cancel post isn't already taking place
+//     if (disableReason != 'submit' && disableReason != 'cancel') {
+//         // then cancel the session (delete it)
+//         process("cancel")
+//     }
+//   }
+// }
 function cleanup () {
-  // if this is an in-progress session
-  if (LOCK.stage == "in-progress") {
-    // and if a preparation submission hasn't been made and a
-    // cancel post isn't already taking place
-    if (disableReason != 'submit' && disableReason != 'cancel') {
-        // then cancel the session (delete it)
-        process("cancel")
-    }
+  // if this is an in-progress session for the current user
+  if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == USER) && !leaveOkay) {
+    process("cancel")
   }
 }
 
+const sideLinks = [
+    {
+      display: "Back to " + VOLUME.title,
+      url: VOLUME.urls.summary,
+    },
+    {
+      display: "Go to document",
+      alt: DOCUMENT.title,
+      url: DOCUMENT.urls.resource,
+    },
+]
+if (DOCUMENT.layer) {
+  sideLinks.push({
+    display: "Go to layer",
+    alt: DOCUMENT.layer.title,
+    url: DOCUMENT.layer.urls.resource,
+  })
+}
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
-
+<TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={sideLinks}/>
+<GeoreferencePreamble />
 <div id="expirationModal" class="modal">
   <div class="modal-content">
     <p>This georeferencing session is expiring, and will be cancelled soon.</p>
     <button on:click={() => {process("extend-session")}}>Give me more time!</button>
   </div>
 </div>
+
+{#if !USER}
+<div id="anonymousModal" class="modal" style="display:block;">
+  <div class="modal-content" style="max-width:325px;">
+    <p>Feel free to experiment with the interface. To submit your work, you must
+      <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+      <a href="/account/signup">sign up</a>.</p>
+    <button on:click={() => {document.getElementById('anonymousModal').style.display = 'none'}}>OK</button>
+  </div>
+</div>
+{/if}
 
 <div class="hidden-small"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
@@ -864,8 +911,8 @@ function cleanup () {
       <label><input type=checkbox bind:checked={syncPanelWidth}> autosize</label>
     </div>
     <div>
-        <button on:click={() => { process("submit") }} disabled={gcpList.length < 3 || unchanged} title="Save control points">Save Control Points</button>
-        <button title="Cancel georeferencing" on:click={() => { process("cancel") }}>Cancel</button>
+        <button title="Save control points" disabled={!enableSave} on:click={() => { process("submit") }}>Save Control Points</button>
+        <button title="Cancel georeferencing" disabled={!enableButtons} on:click={() => { process("cancel") }}>Cancel</button>
         <button title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
     </div>
   </nav>
@@ -909,10 +956,10 @@ function cleanup () {
             <option value="full">full</option>
           </select>
         </label>
-        <label title="Show reference layers">
+        <!-- <label title="Show reference layers">
           Reference
           <input type="checkbox" title="Show reference layers" bind:checked={referenceVisible} disabled={REFERENCE_LAYERS == 0}>
-        </label>
+        </label> -->
         <label title="Change basemap">
           Basemap
           <select  style="width:151px;" bind:value={currentBasemap}>

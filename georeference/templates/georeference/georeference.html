@@ -1,4 +1,4 @@
-{% extends "geonode_base.html" %}
+{% extends "base.html" %}
 {% load i18n %}
 {% load staticfiles %}
 
@@ -8,14 +8,9 @@
 
 {% block middle %}
 <div class="container" style="width: 100%">
-    <div class="container">
-        <div style="float:right; text-align:center; margin-top: 15px;">
-            <a href="{{ georeference_params.DOCUMENT.urls.detail }}">back to document detail &rarr;</a>
-        </div>
-        <h1 style="font-size: 2.1em">{{ georeference_params.DOCUMENT.title }}</h1>
-        <hr>
-        {% display_svelte "GeoreferencePreamble.svelte" preamble_params %}
-    </div>
     {% display_svelte "Georeference.svelte" georeference_params %}
 </div>
 {% endblock %}
+
+{% block footer %}
+{% endblock footer %}

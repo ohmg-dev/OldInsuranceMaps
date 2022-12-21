@@ -1,29 +1,22 @@
-from georeference.utils import analyze_url, full_reverse
+from django.conf import settings
 
-from .models import Volume, get_volume
+from georeference.utils import full_reverse
 
 def loc_info(request):
 
-    volumes = Volume.objects.all()
-    id_list = list(volumes.order_by("city", "year").values_list("identifier", "city", "year", "volume_no"))
-
-    info = {
-        "volumes": {
-            "total_ct": volumes.count(),
-            "started_ct": volumes.exclude(loaded_by=None).count(),
-            "id_list": id_list,
+    if request.user.is_authenticated:
+        user = {
+            'is_authenticated': True,
+            'name': request.user.username,
+            'profile': full_reverse("profile_detail", args=(request.user.username, )),
+        }
+    else:
+        user = {
+            'is_authenticated': False
+        }
+    return {
+        'newsletter_enabled': settings.ENABLE_NEWSLETTER,
+        'navbar_params': {
+            'USER': user
         }
     }
-
-    resource_type, res_id = analyze_url(request)
-
-    if res_id is not None:
-        vol = get_volume(resource_type, res_id)
-        if vol is not None:
-            info['volume_title'] = vol.__str__()
-            info['volume_url'] = full_reverse('volume_summary', args=(vol.pk,))
-        else:
-            info['volume_title'] = ""
-            info['volume_url'] = ""
-
-    return info

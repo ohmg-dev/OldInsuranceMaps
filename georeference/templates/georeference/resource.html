@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% load django_svelte %}
+
+{% block title %}{{ resource_params.RESOURCE.title }}{% endblock %}
+
+{% block body_outer %}
+<div class="background-fg">
+    {% display_svelte "Resource.svelte" resource_params %}
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock footer %}

@@ -12,6 +12,14 @@ const interactionPointer = new Circle({
   radius: 5,
 })
 
+const browseMapCircle = new Style({
+  image: new Circle({
+    fill: new Fill({ color: "#2c689c", }),
+    stroke: new Stroke({ color: '#000000', width: 2, }),
+    radius: 6,
+  })
+}) 
+
 // this is the white outline cross that sits behind every gcp style
 const gcpOutline = new Style({
   image: new RegularShape({
@@ -67,6 +75,7 @@ class Styles {
 
   empty = new Style();
 
+  browseMapStyle = browseMapCircle;
   gcpDefault = [gcpOutline, gcpDefault];
   gcpHover = [gcpOutline, gcpHover];
   gcpHighlight = [gcpOutline, gcpHighlight];
