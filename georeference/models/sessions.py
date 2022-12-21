@@ -4,23 +4,13 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.files import File
-from django.db.models import signals
 from django.utils import timezone
-
-from geonode.documents.models import Document as GNDocument
-from geonode.geoserver.signals import geoserver_post_save
-from geonode.layers.models import Layer as GNLayer
-from geonode.layers.utils import file_upload
 
 from georeference.models.resources import (
     GCPGroup,
-    LayerMask,
-    GeoreferencedDocumentLink,
-    SplitDocumentLink,
     ItemBase,
     Document,
     Layer,
@@ -104,24 +94,9 @@ class GeorefSessionManager(models.Manager):
         })
         return super(GeorefSessionManager, self).create(**kwargs)
 
-class TrimSessionManager(models.Manager):
-
-    _type = 't'
-
-    def get_queryset(self):
-        return super(TrimSessionManager, self).get_queryset().filter(type=self._type)
-
-    def create(self, **kwargs):
-        kwargs.update({
-            'type': self._type,
-            'data': get_default_session_data(self._type),
-        })
-        return super(TrimSessionManager, self).create(**kwargs)
-
 SESSION_TYPES = (
     ('p', 'Preparation'),
     ('g', 'Georeference'),
-    ('t', 'Trim'),
 )
 SESSION_STAGES = (
     ('input', 'input'),
@@ -144,18 +119,6 @@ class SessionBase(models.Model):
     status = models.CharField(
         max_length=50,
         default="getting user input",
-    )
-    document = models.ForeignKey(
-        GNDocument,
-        models.SET_NULL,
-        null=True,
-        blank=True,
-    )
-    layer = models.ForeignKey(
-        GNLayer,
-        models.SET_NULL,
-        null=True,
-        blank=True,
     )
     doc = models.ForeignKey(
         Document,
@@ -263,10 +226,10 @@ class SessionBase(models.Model):
         # handle the non- js-serializable attributes
         doc_id, layer_alt, d_create, d_mod, d_run = None, None, None, None, None
         d_run_d, d_run_t = None, None
-        if self.document:
-            doc_id = self.document.pk
-        if self.layer:
-            layer_alt = self.layer.alternate
+        if self.doc:
+            doc_id = self.doc.pk
+        if self.lyr:
+            layer_alt = self.lyr.pk
         if self.date_created:
             d_create = self.date_created.strftime("%Y-%m-%d - %H:%M")
         if self.date_modified:
@@ -308,20 +271,6 @@ class SessionBase(models.Model):
         if save:
             self.save(update_fields=["status"])
 
-    def get_document_for_layer(self):
-
-        if self.layer is None:
-            return None
-        ct = ContentType.objects.get(app_label="layers", model="layer")
-        try:
-            document = GeoreferencedDocumentLink.objects.get(
-                content_type=ct,
-                object_id=self.layer.pk,
-            ).document
-            return document
-        except GNDocument.DoesNotExist:
-            return None
-
     def validate_data(self):
         """Compares the contents of the session's data field with the
         appropriate set of keys and types for this session type. Does not
@@ -339,41 +288,6 @@ class SessionBase(models.Model):
         self.date_modified = timezone.now()
         return super(SessionBase, self).save(*args, **kwargs)
 
-
-    def delete_expired_sessions(self, session_type=None, delta_kwargs=None):
-        """
-        DEPRECATED: THIS WAS THE OLD METHOD, NO LONGER IN USE
-        This method will remove all session instances whose creation
-        datetime is older than the specified interval.
-
-        Optional delta_kwargs argument can take a dictionary of timedelta
-        keyword arguments, e.g. {"hours":1} or {"minutes":10} to overwrite
-        the settings.GEOREFERENCE_SESSION_LENGTH value (which is in seconds).
-
-        PrepSession, GeorefSession, and TrimSession instances must be used
-        here in order for the proper pre_delete signals to be emitted.
-        """
-
-        if delta_kwargs is None:
-            delta_kwargs = {"seconds": settings.GEOREFERENCE_SESSION_LENGTH}
-
-        cutoff = timezone.now() - timedelta(**delta_kwargs)
-        models = []
-        if session_type in [None, "p"]:
-            models.append(PrepSession)
-        if session_type in [None, "g"]:
-            models.append(GeorefSession)
-        if session_type in [None, "t"]:
-            models.append(TrimSession)
-
-        for model in models:
-            sessions = model.objects.filter(stage="input", date_created__lt=cutoff)
-            if sessions.exists():
-                ids = [str(i) for i in sessions.values_list('pk', flat=True)]
-                ids_str = ",".join(ids)
-                sessions.delete()
-                msg = f"Deleted expired {model.__name__} ({len(ids)}): {ids_str}"
-                logger.info(msg)
 
 class PrepSession(SessionBase):
     objects = PrepSessionManager()
@@ -750,70 +664,3 @@ class GeorefSession(SessionBase):
         if self.stage == "finished" and self.status == "success":
             self.note = self.generate_final_status_note()
         return super(GeorefSession, self).save(*args, **kwargs)
-
-
-class TrimSession(SessionBase):
-    objects = TrimSessionManager()
-
-    class Meta:
-        proxy = True
-        verbose_name = "Trim Session"
-        # hack: prepend spaces for sort in Django admin
-        verbose_name_plural = " Trim Sessions"
-
-    def __str__(self):
-        return f"Trim Session ({self.pk})"
-
-    def run(self):
-
-        self.update_stage("processing", save=False)
-        self.date_run = timezone.now()
-        self.save()
-        tkm = TKeywordManager()
-        tkm.set_status(self.layer, "trimming")
-
-        document = self.get_document_for_layer()
-        if document is not None:
-            tkm.set_status(document, "trimming")
-
-        # create/update a LayerMask for this layer and apply it as style
-        if self.data['mask_ewkt']:
-            
-            mask = GEOSGeometry(self.data['mask_ewkt'])
-            lm, created = LayerMask.objects.get_or_create(
-                layer=self.layer,
-                defaults={"polygon": mask}
-            )
-            if not created:
-                lm.polygon = mask
-                lm.save()
-            lm.apply_mask()
-
-            tkm.set_status(self.layer, "trimmed")
-            if document is not None:
-                tkm.set_status(document, "trimmed")
-
-        self.update_stage("finished", save=False)
-        self.update_status("success", save=False)
-        self.save()
-
-    def undo(self):
-
-        tkm = TKeywordManager()
-        tkm.set_status(self.layer, "georeferenced")
-        document = self.get_document_for_layer()
-
-        if document is not None:
-            tkm.set_status(document, "georeferenced")
-
-        LayerMask.objects.filter(layer=self.layer).delete()
-
-        self.update_status("unapplied")
-
-    def save(self, *args, **kwargs):
-        self.type = 't'
-        if not self.layer:
-            logger.warn(f"{self.__str__()} has no Layer.")
-        if not self.pk:
-            self.data = get_default_session_data(self.type)
-        return super(TrimSession, self).save(*args, **kwargs)

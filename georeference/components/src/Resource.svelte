@@ -28,8 +28,6 @@ export let SESSION_HISTORY;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
 
-console.log(RESOURCE)
-
 let showPrep = false;
 let showGeoreference = false;
 

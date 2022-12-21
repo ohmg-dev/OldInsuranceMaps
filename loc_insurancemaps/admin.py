@@ -1,8 +1,6 @@
 from django.contrib import admin
 
-from loc_insurancemaps.models import Volume, Sheet, FullThumbnail, Place
-
-admin.site.register(FullThumbnail)
+from loc_insurancemaps.models import Volume, Sheet, Place
 
 class SheetAdmin(admin.ModelAdmin):
     # search_fields = ('volume', 'sheet_no', 'doc')

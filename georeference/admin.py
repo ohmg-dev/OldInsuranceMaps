@@ -1,8 +1,6 @@
 from django.contrib import admin
 
 from georeference.models.resources import (
-    SplitDocumentLink,
-    GeoreferencedDocumentLink,
     GCP,
     GCPGroup,
     Layer,
@@ -12,15 +10,12 @@ from georeference.models.resources import (
 from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
-    TrimSession,
 )
 
 class GCPAdmin(admin.ModelAdmin):
     readonly_fields = ('last_modified',)
     list_display = ('id', 'gcp_group')
 
-admin.site.register(SplitDocumentLink)
-admin.site.register(GeoreferencedDocumentLink)
 admin.site.register(GCP, GCPAdmin)
 admin.site.register(GCPGroup)
 
@@ -42,7 +37,6 @@ class TrimSessionAdmin(SessionAdmin):
 
 admin.site.register(PrepSession, PrepSessionAdmin)
 admin.site.register(GeorefSession, GeorefSessionAdmin)
-admin.site.register(TrimSession, TrimSessionAdmin)
 
 class DocumentAdmin(admin.ModelAdmin):
     search_fields = ('title', 'status')

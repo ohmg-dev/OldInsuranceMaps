@@ -10,10 +10,10 @@ from pygments.formatters.html import HtmlFormatter
 from pygments.lexers.data import JsonLexer
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.core.files import File
-from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models import signals
 from django.dispatch import receiver
@@ -22,8 +22,6 @@ from django.utils.functional import cached_property
 from django.urls import reverse
 
 from geonode.base.models import Region
-from geonode.documents.models import Document as GNDocument
-from geonode.people.models import Profile
 
 from georeference.models.resources import (
     Document,
@@ -43,8 +41,6 @@ from loc_insurancemaps.enumerations import (
     STATE_POSTAL,
     MONTH_CHOICES,
 )
-from loc_insurancemaps.renderers import generate_full_thumbnail_content
-
 logger = logging.getLogger(__name__)
 
 def find_volume(item):
@@ -216,37 +212,11 @@ class Place(models.Model):
         super(Place, self).save(*args, **kwargs)
 
 
-class FullThumbnail(models.Model):
-
-    document = models.ForeignKey(GNDocument, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="full_thumbs")
-
-    def generate_thumbnail(self):
-
-        if bool(self.document.doc_file) is False:
-            return
-
-        if self.image:
-            if os.path.isfile(self.image.path):
-                os.remove(self.image.path)
-
-        path = f"document-{self.document.uuid}-full-thumb.png"
-        content = generate_full_thumbnail_content(self.document)
-        self.image.save(path, ContentFile(content))
-
-    def save(self, *args, **kwargs):
-        if not self.image:
-            self.generate_thumbnail()
-        super(FullThumbnail, self).save(*args, **kwargs)
-
-
 class Sheet(models.Model):
     """Sheet serves mainly as a middle model between Volume and Document.
     It can store fields (like sheet number) that could conceivably be
     attached to the Document, but avoids the need for actually inheriting
     that model (and all of the signals, etc. that come along with it)."""
-
-    document = models.ForeignKey(GNDocument, on_delete=models.SET_NULL, null=True, blank=True)
     doc = models.ForeignKey(Document, on_delete=models.SET_NULL, null=True, blank=True)
     volume = models.ForeignKey("Volume", on_delete=models.CASCADE)
     sheet_no = models.CharField(max_length=10, null=True, blank=True)
@@ -289,7 +259,7 @@ class Sheet(models.Model):
 
         # set owner to user
         if user is None:
-            user = Profile.objects.get(username="admin")
+            user = get_user_model().objects.get(username="admin")
         self.doc.owner = user
 
         self.doc.status = "unprepared"
@@ -316,7 +286,7 @@ class Sheet(models.Model):
         return {
             "sheet_no": self.sheet_no,
             "sheet_name": self.__str__(),
-            "doc_id": self.document.pk,
+            "doc_id": self.doc.pk,
         }
 
 def default_ordered_layers_dict():

@@ -20,11 +20,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.utils.functional import cached_property
 
-from geonode.documents.models import DocumentResourceLink
-from geonode.documents.models import Document as GNDocument
-from geonode.layers.models import Layer as GNLayer
-from geonode.geoserver.helpers import save_style
-
 from georeference.utils import (
     full_reverse,
     slugify,
@@ -34,46 +29,6 @@ from georeference.storage import OverwriteStorage
 
 
 logger = logging.getLogger(__name__)
-
-class SplitDocumentLink(DocumentResourceLink):
-    """
-    Inherits from the DocumentResourceLink in GeoNode. This allows
-    new instances of this model to be used by GeoNode in a default
-    manner, while this app can use them in its own way.
-    
-    Used to create a link between split documents and their children.
-    """
-
-    class Meta:
-        verbose_name = "Split Document Link"
-        verbose_name_plural = "Split Document Links"
-
-    def __str__(self):
-        child = GNDocument.objects.get(pk=self.object_id)
-        return f"{self.document.__str__()} --> {child.__str__()}"
-
-
-class GeoreferencedDocumentLink(DocumentResourceLink):
-    """
-    Inherits from the DocumentResourceLink in GeoNode. This allows
-    new instances of this model to be used by GeoNode in a default
-    manner, while this app can use them in its own way.
-
-    Used to create a link between georeferenced documents and the
-    resulting layer.
-    """
-
-    class Meta:
-        verbose_name = "Georeferenced Document Link"
-        verbose_name_plural = "Georeferenced Document Links"
-
-    def __str__(self):
-        try:
-            layer_name = GNLayer.objects.get(pk=self.object_id).alternate
-        except GNLayer.DoesNotExist:
-            layer_name = "None"
-        return f"{self.document.__str__()} --> {layer_name}"
-
 
 class GCP(models.Model):
 
@@ -127,12 +82,6 @@ class GCPGroup(models.Model):
         verbose_name = "GCP Group"
         verbose_name_plural = "GCP Groups"
 
-    document = models.ForeignKey(
-        GNDocument,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-    )
     doc = models.ForeignKey(
         "Document",
         null=True,
@@ -269,93 +218,6 @@ class GCPGroup(models.Model):
 
         self.save_from_geojson(anno['body'], document, "poly1")
 
-
-class LayerMask(models.Model):
-
-    layer = models.ForeignKey(GNLayer, on_delete=models.CASCADE)
-    polygon = models.PolygonField(srid=3857)
-
-    def as_sld(self, indent=False):
-
-        sld = f'''<?xml version="1.0" encoding="UTF-8"?>
-<StyledLayerDescriptor version="1.0.0"
- xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd"
- xmlns="http://www.opengis.net/sld"
- xmlns:ogc="http://www.opengis.net/ogc"
- xmlns:xlink="http://www.w3.org/1999/xlink"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-<NamedLayer>
- <Name>{self.layer.workspace}:{self.layer.name}</Name>
- <UserStyle IsDefault="true">
-  <FeatureTypeStyle>
-   <Transformation>
-    <ogc:Function name="gs:CropCoverage">
-     <ogc:Function name="parameter">
-      <ogc:Literal>coverage</ogc:Literal>
-     </ogc:Function>
-     <ogc:Function name="parameter">
-      <ogc:Literal>cropShape</ogc:Literal>
-      <ogc:Literal>{self.polygon.wkt}</ogc:Literal>
-     </ogc:Function>
-    </ogc:Function>
-   </Transformation>
-   <Rule>
-    <RasterSymbolizer>
-      <Opacity>1</Opacity>
-    </RasterSymbolizer>
-   </Rule>
-  </FeatureTypeStyle>
- </UserStyle>
-</NamedLayer>
-</StyledLayerDescriptor>'''
-
-        if indent is False:
-            sld = " ".join([i.strip() for i in sld.splitlines()])
-            sld = sld.replace("> <","><")
-
-        return sld
-
-    def apply_mask(self):
-
-        cat = get_gs_catalog()
-
-        gs_full_style = cat.get_style(self.layer.name, workspace="geonode")
-        trim_style_name = f"{self.layer.name}_trim"
-
-        # create (overwrite if existing) trim style in GeoServer using mask sld
-        gs_trim_style = cat.create_style(
-            trim_style_name,
-            self.as_sld(),
-            overwrite=True,
-            workspace="geonode",
-        )
-
-        # get the GeoServer layer for this GeoNode layer
-        gs_layer = cat.get_layer(self.layer.name)
-
-        # add the full and trim styles to the GeoServer alternate style list
-        gs_alt_styles = gs_layer._get_alternate_styles()
-        gs_alt_styles += [gs_full_style, gs_trim_style]
-        gs_layer._set_alternate_styles(gs_alt_styles)
-
-        # set the trim style as the default in GeoServer
-        gs_layer._set_default_style(gs_trim_style)
-
-        # save these changes to the GeoServer layer
-        cat.save(gs_layer)
-
-        # create/update the GeoNode Style object for the trim style
-        trim_style_gn = save_style(gs_trim_style, self.layer)
-
-        # add new trim style to GeoNode list styles, set as default, save
-        self.layer.styles.add(trim_style_gn)
-        self.layer.default_style = trim_style_gn
-        self.layer.save()
-
-        # update thumbnail with new trim style
-#        thumb = create_thumbnail(self.layer, overwrite=True)
-#        self.layer.thumbnail_url = thumb
-#        self.layer.save()
 
 class DocumentManager(models.Manager):
 

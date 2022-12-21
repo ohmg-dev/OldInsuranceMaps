@@ -1,14 +1,11 @@
-from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
+from django.core.management.base import BaseCommand
 
 from georeference.models.sessions import (
     delete_expired_sessions,
     SessionBase,
     PrepSession,
     GeorefSession,
-    TrimSession,
 )
-from georeference.splitter import Splitter
 
 class Command(BaseCommand):
     help = 'Command line access point for the internal georeferencing utilities.'
@@ -16,7 +13,6 @@ class Command(BaseCommand):
         parser.add_argument(
             "operation",
             choices=[
-                "legacy-migration",
                 "run",
                 "undo",
                 "redo",
@@ -54,8 +50,6 @@ class Command(BaseCommand):
             return PrepSession
         elif session_type == "g":
             return GeorefSession
-        elif session_type == "t":
-            return TrimSession
 
     def handle(self, *args, **options):
 
@@ -91,110 +85,8 @@ class Command(BaseCommand):
                     print(ps)
                 for gs in GeorefSession.objects.filter(document_id=options['docid']):
                     print(gs)
-                for ts in TrimSession.objects.filter(document_id=options['docid']):
-                    print(ts)
 
 
         elif operation == 'delete-expired':
 
             delete_expired_sessions()
-
-        elif operation == "legacy-migration":
-
-            self.migrate_legacy_sessions(options['type'], options['clean'])
-
-
-    def migrate_legacy_sessions(self, type="", clean=False):
-        try:
-            from georeference.utils import TKeywordManager
-        except ImportError:
-            print("can't import TKManager, cancelling operation.")
-            exit()
-        tkm = TKeywordManager()
-        try:
-            from georeference.models.sessions import (
-                SplitEvaluation,
-                GeoreferenceSession,
-                MaskSession,
-            )
-        except ImportError:
-            exit()
-        if type in ["preparation", "all"]:
-            if clean is True:
-                PrepSession.objects.all().delete()
-            for se in SplitEvaluation.objects.all():
-                with transaction.atomic():
-                    try:
-                        ps = PrepSession.objects.create(
-                            document=se.document,
-                            user=se.user,
-                            date_created=se.created,
-                            date_run=se.created,
-                        )
-                        ps.data["split_needed"] = se.split_needed
-
-                        if se.cutlines is None or len(se.cutlines) == 0:
-                            ps.data["cutlines"] = []
-                            ps.data["divisions"] = []
-                        else:
-                            ps.data["cutlines"] = se.cutlines
-                            s = Splitter(image_file=ps.document.doc_file.path)
-                            ps.data['divisions'] = s.generate_divisions(se.cutlines)
-
-                        if tkm.get_status(ps.document) == "splitting":
-                            ps.stage = "input"
-                            ps.status = "getting user input"
-                        else:
-                            ps.stage = "finished"
-                            ps.status = "success"
-                        ps.save()
-                    except Exception as e:
-                        print(f"error migrating: SplitEvaluation {se.pk}")
-                        raise e
-        if type in ["georeference", "all"]:
-            if clean is True:
-                GeoreferenceSession.objects.all().delete()
-            for grs in GeoreferenceSession.objects.all():
-                with transaction.atomic():
-                    try:
-                        gs = GeorefSession.objects.create(
-                            document=grs.document,
-                            layer=grs.layer,
-                            user=grs.user,
-                            date_created=grs.created,
-                            date_run=grs.created,
-                        )
-                        gs.data["gcps"] = grs.gcps_used
-                        gs.data["epsg"] = grs.crs_epsg_used
-                        gs.data["transformation"] = grs.transformation_used
-                        gs.stage = "finished"
-                        gs.status = "success"
-                        gs.save()
-                    except Exception as e:
-                        print(f"error migrating: GeoreferenceSession {grs.pk}")
-                        raise e
-        if type in ["trim", "all"]:
-            if clean is True:
-                TrimSession.objects.all().delete()
-            for ms in MaskSession.objects.all():
-                with transaction.atomic():
-                    try:
-                        poly = ms.polygon
-                        ## this is a session where the mask was deleted. Don't migrate
-                        ## this session.
-                        if poly is None:
-                            print(f"skipping empty session: MaskSession {ms.pk}")
-                            continue
-                        ts = TrimSession.objects.create(
-                            layer=ms.layer,
-                            user=ms.user,
-                            date_created=ms.created,
-                            date_run=ms.created,
-                        )
-                        ts.data["mask_ewkt"] = ms.polygon.ewkt
-                        ts.stage = "finished"
-                        ts.status = "success"
-                        ts.save()
-                    except Exception as e:
-                        print(f"error migrating: MaskSession {ms.pk}")
-                        raise e
