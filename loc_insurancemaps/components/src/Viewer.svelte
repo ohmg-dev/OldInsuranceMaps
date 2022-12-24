@@ -116,6 +116,7 @@ VOLUMES.forEach( function (vol, n) {
 		id: vol.identifier,
 		summaryUrl: vol.urls.summary,
 		displayName: vol.volume_no ? `${vol.year} vol. ${vol.volume_no}` : vol.year,
+		progress: vol.progress,
 		mainLayer: mainGroup,
 		mainLayerO: opacity,
 	};
@@ -434,7 +435,12 @@ function toggleDetails(id) {
 					<input type=range disabled={volumeLookup[id].mainLayer ? "" : "disabled"} class="transparency-slider" bind:value={volumeLookup[id].mainLayerO} on:mouseup={syncUrlParams} min=0 max=100>
 				</div>
 				<div id="{id}" class="volume-detail">
-					<a href="{volumeLookup[id].summaryUrl}">Go to full summary &rarr;</a>
+					<span title="{volumeLookup[id].progress.georef_ct}/{volumeLookup[id].progress.unprep_ct+volumeLookup[id].progress.prep_ct+volumeLookup[id].progress.georef_ct} georeferenced">
+						{volumeLookup[id].progress.percent}% done
+					</span>
+					<a title="The full summary includes content from this year that has not yet been georeferenced." href="{volumeLookup[id].summaryUrl}">
+						Go to full summary &rarr;
+					</a>
 				</div>
 			</div>
 			{/each}

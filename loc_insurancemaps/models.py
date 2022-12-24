@@ -674,6 +674,13 @@ class Volume(models.Model):
         # now sort all of the lookups (by status) into a single set of items
         items = self.sort_lookups()
 
+        unprep_ct = len(items['unprepared'])
+        prep_ct = len(items['prepared'])
+        georef_ct = len(items['georeferenced'])
+        percent = 0
+        if georef_ct > 0:
+            percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
+
         # generate extra links and info for the user that loaded the volume
         loaded_by = {"name": "", "profile": "", "date": ""}
         if self.loaded_by is not None:
@@ -690,6 +697,12 @@ class Volume(models.Model):
             "sheet_ct": {
                 "total": self.sheet_ct,
                 "loaded": len([i for i in self.sheets if i.doc is not None]),
+            },
+            "progress": {
+                "unprep_ct": unprep_ct,
+                "prep_ct": prep_ct,
+                "georef_ct": georef_ct,
+                "percent": percent,
             },
             "items": items,
             "loaded_by": loaded_by,
