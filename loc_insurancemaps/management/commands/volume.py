@@ -41,8 +41,18 @@ class Command(BaseCommand):
             action="store_true",
             help="run the operation in the background with celery"
         )
+        parser.add_argument(
+            "--username",
+            help="username to use for load operation"
+        )
 
     def handle(self, *args, **options):
+
+        if options['username']:
+            username = options['username']
+        else:
+            username = "admin"
+        user = get_user_model().objects.get(username=username)
 
         i = options['identifier']
         if options['operation'] == "refresh-lookups":
@@ -68,7 +78,7 @@ class Command(BaseCommand):
             vol = Volume.objects.get(pk=i)
             vol.make_sheets()
             if options['load_documents']:
-                vol.loaded_by = get_user_model().objects.get(username="admin")
+                vol.loaded_by = user
                 vol.load_date = datetime.now()
                 vol.save(update_fields=["loaded_by", "load_date"])
                 vol.load_sheet_docs(force_reload=True)
