@@ -10,9 +10,6 @@ dev_addr: '127.0.0.1:8001'
 
 nav:
   - Overview: overview.md
-  - Georeferencing Process: georeferencing-process.md
-  - Tutorial: tutorial.md
-  - Extra Info: extra.md
 
 theme:
   name: 'custommill'
@@ -33,6 +30,9 @@ extra_css:
 extra:
   version: 0.1
   nav_links:
+  - icon: book
+    text: NEW DOCUMENTATION SITE &rarr;
+    url: https://about.oldinsurancemaps.net
   - icon: home
     text: Go to LaHMG &rarr;
     url: https://oldinsurancemaps.net
