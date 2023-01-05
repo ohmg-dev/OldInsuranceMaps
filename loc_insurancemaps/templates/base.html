@@ -160,6 +160,13 @@
     {% endif %}
     <!-- End of Modal -->
 
+    <!-- quick testing shows that only jquery and bootstrap are needed to 
+    retain the sign in modal functionality. This allows for the removal of
+    assets.js which was originally included below. -->
+    <script src="{% static "lib/js/jquery.js" %}"></script>
+    <script src="{% static "lib/js/bootstrap.js" %}"></script>
+
+    {% comment %}
     {% if DEBUG_STATIC %}
     <script src="{% static "lib/js/jquery.js" %}"></script>
     <script src="{% static "lib/js/jquery.dataTables.js" %}"></script>
@@ -180,9 +187,10 @@
     {% else %}
     <script src="{% static "lib/js/assets.min.js" %}"></script>
     {% endif %}
+    {% endcomment %}
     <!-- <script src="{% static "geonode/js/utils/utils.js" %}"></script>
     <script src="{% static "geonode/js/base/base.js" %}"></script> -->
-    <script type="text/javascript" src="{% url "javascript-catalog" %}"></script>
+    <!-- <script type="text/javascript" src="{% url "javascript-catalog" %}"></script> -->
     {% block extra_script %}{% endblock extra_script %}
 
 
