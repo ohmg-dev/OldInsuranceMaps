@@ -856,7 +856,7 @@ if (DOCUMENT.layer) {
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
-<TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={sideLinks}/>
+<TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
 <GeoreferencePreamble />
 <div id="expirationModal" class="modal">
   <div class="modal-content">

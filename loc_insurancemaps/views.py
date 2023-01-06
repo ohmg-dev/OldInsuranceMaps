@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import logging
 from datetime import datetime
@@ -31,22 +32,32 @@ def get_user_type(user):
         user_type = "anonymous"
     return user_type
 
+def mobile(request):
+    """Return True if the request comes from a mobile device."""
+
+    MOBILE_AGENT_RE=re.compile(r".*(iphone|mobile|androidtouch)",re.IGNORECASE)
+
+    if MOBILE_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
+        return True
+    else:
+        return False
 
 class HomePage(View):
 
     def get(self, request):
 
-        lc = CollectionConnection(delay=0)
-        city_list = lc.get_city_list_by_state("louisiana")
+        # lc = CollectionConnection(delay=0)
+        # city_list = lc.get_city_list_by_state("louisiana")
         context_dict = {
             "search_params": {
                 "CITY_QUERY_URL": reverse('lc_api'),
                 'USER_TYPE': get_user_type(request.user),
-                'CITY_LIST': city_list,
+                # 'CITY_LIST': city_list,
             },
             "svelte_params": {
                 "CSRFTOKEN": csrf.get_token(request),
                 "PLACES_GEOJSON": Volume().get_map_geojson(),
+                "IS_MOBILE": mobile(request)
             },
         }
 
