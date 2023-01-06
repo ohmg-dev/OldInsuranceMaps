@@ -4,11 +4,13 @@
     --document-svg: url(../icons/noun_Scroll_2592600.svg);
     --layer-svg: url(../icons/noun_Layer_2583171.svg);
     --webmap-svg: url(../icons/noun_FoldedMap_2592599.svg);
+    --pinmap-svg: url(../icons/noun_pinmap_1832932.svg);
     --user-svg: url(../icons/noun_User_1236015.svg);
     --volume-size: 65px;
     --document-size: 70px;
     --layer-size: 75px;
     --webmap-size: 70px;
+    --pinmap-size: 70px;
     --user-size: 50px;
 }
 
@@ -78,6 +80,23 @@
 .i-webmap-sm {
     width: calc(var(--webmap-size)*.55);
     height: calc(var(--webmap-size)*.55);
+}
+
+.i-pinmap {
+    display: inline-block;
+    background: black;
+    mask-size: cover;
+    -webkit-mask-size: cover;
+    mask-image: var(--pinmap-svg);
+    -webkit-mask-image: var(--pinmap-svg);
+}
+.i-pinmap-lg {
+    width: var(--pinmap-size);
+    height: var(--pinmap-size);
+}
+.i-pinmap-sm {
+    width: calc(var(--pinmap-size)*.55);
+    height: calc(var(--pinmap-size)*.55);
 }
 
 .i-user {
