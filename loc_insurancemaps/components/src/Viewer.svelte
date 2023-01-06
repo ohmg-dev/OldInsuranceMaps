@@ -390,8 +390,8 @@ function toggleDetails(id) {
 <div class="about-modal-bg">
 	<div class="about-modal-content">
 		<h1>About</h1>
-		<p>These historical fire insurance maps were originally created by the <a href="">Sanborn Map Company</a>, and the maps used here come from the Library of Congress <a title="LOC Sanborn Maps Collection" href="https://loc.gov/collections/sanborn-maps/about-this-collection">digital collection</a>.</p>
-		<p>In early 2022, participants in a crowdsourcing pilot project georeferenced all of the Louisiana maps you see here, eventually creating these seamless mosaic overlays. Over four months, 1,500 individual sheets from 270 different Sanborn atlases were processed, covering of over 130 different locations. You can find other cities in the <a href="/browse">main search page</a>.</p>
+		<p>These historical fire insurance maps were originally created by the Sanborn Map Company, and the maps used here come from the Library of Congress <a title="LOC Sanborn Maps Collection" href="https://loc.gov/collections/sanborn-maps/about-this-collection">digital collection</a>.</p>
+		<p>In early 2022, participants in a <a href="https://digitalcommons.lsu.edu/gradschool_theses/5641/" target="_blank">crowdsourcing project</a> georeferenced all of the Louisiana maps you see here, eventually creating these seamless mosaic overlays. Over four months, 1,500 individual sheets from 270 different Sanborn atlases were processed, covering of over 130 different locations. You can find other cities in the <a href="/browse">main search page</a>.</p>
 		<p>If you or your organization are interested in getting Sanborn maps of your home on this site so they can be georeferenced, please fill out <a href="https://forms.gle/3gbZPYKWcPFb1NN5A">this form</a>, or just <a href="mailto:hello@oldinsuracemaps.net">get in touch</a>.</p>
 		<p>To learn more more about the entire project, head to <a href="https://about.oldinsurancemaps.net">about.oldinsurancemaps.net</a>.</p>
 		<button on:click={() => {showAboutPanel=false}}>close</button>
