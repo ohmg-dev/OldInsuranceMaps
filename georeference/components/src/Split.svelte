@@ -380,7 +380,7 @@ const sideLinks = [
     <button on:click={() => {document.getElementById('finishedModal').style.display = 'none'}}>OK</button>
   </div>
 </div>
-<TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={sideLinks}/>
+<TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
 <SplitPreamble />
 <div><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
