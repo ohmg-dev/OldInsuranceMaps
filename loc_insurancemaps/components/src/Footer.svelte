@@ -6,35 +6,28 @@ export let USER;
 		<div>
 			<h4>Content</h4>
 			<ul>
-				<li><a href="/browse">Browse all content</a></li>
+				<li><a href="/browse">Browse Maps</a></li>
 				<li><a href="/people">Participants</a></li>
 			</ul>
 		</div>
 		<div>
 			<h4>Learn More</h4>
 			<ul>
-				<li><a href="https://about.oldinsurancemaps.net/faq">FAQs</a></li>
+				<li><a href="https://about.oldinsurancemaps.net/faq">FAQ</a></li>
+				<li><a href="https://about.oldinsurancemaps.net/docs">Documentation</a></li>
 				<li><a href="https://about.oldinsurancemaps.net/docs/category/sanborn-maps-1">About Sanborn Maps</a></li>
 			</ul>
 		</div>
 		<div>
-			<h4>Get involved!</h4>
+			<h4>Get in touch!</h4>
 			<ul>
-				{#if USER.is_authenticated }
-				<li>
-					<a href="/account/logout">Sign out</a>
-				</li>
-				{:else}
-				<li>
-					<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in</a>
-				</li>
-				{/if}
 				<li><a href="mailto:hello@oldinsurancemaps.net" >hello@oldinsurancemaps.net</a></li>
+				<li><a href="https://github.com/mradamcox/loc-insurancemaps">GitHub</a></li>
 			</ul>
 		</div>
 	</div>
-	<div style="text-align:center;">
-		<p>Copyright © 2022</p>
+	<div style="color:lightgrey; text-align:right;">
+		<p>Copyright © 2023</p>
 	</div>
 </nav>
 <style>
