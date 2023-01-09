@@ -38,6 +38,7 @@ export let USER;
 		color: white;
 		padding: 20px;
 		font-weight: 500;
+		min-height: 190px;
 	}
 	.main-row {
 		display: flex;

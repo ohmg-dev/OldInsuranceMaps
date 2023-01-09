@@ -51,7 +51,7 @@
 
     <script>
         var siteUrl = '{{ SITEURL }}'.replace(/\/?$/, '/');
-        var staticUrl = '{% static '' %}';
+        var staticUrl = '{% static "" %}';
     </script>
 
     <!-- RTL styles -->
@@ -82,20 +82,15 @@
     </div>
 
     {% block middle %}
-    <div class="container">
+    <div class="container background-fg" style="min-height: calc(100vh - 250px);">
       {% include "_status_message.html" %}
       {% include "_announcements.html" %}
       {% include "_messages.html" %}
       {% block body_outer %}
-      <div class="row">
-        <div class="col-md-8">
-        {% block body %}{% endblock %}
-        </div>
-        <div class="col-md-4">
-        {% block sidebar %}{% endblock %}
-        </div>
-      </div>
-      {% endblock %}
+        {% block body %}{% endblock body %}
+        {% block sidebar %}{% endblock sidebar %}
+      {% endblock body_outer %}
+      {% block main_content %}{% endblock %}
     </div>
     {% endblock middle %}
 
@@ -138,7 +133,7 @@
                 <input id="id_password" class="form-control" name="password" placeholder="{% trans "Password" %}" type="password" autocomplete="off" />
               </div>
               <label class="checkbox" style="padding-left:20px;">
-                <input type="checkbox" style="margin-left-20px;" /> {% trans "Remember Me" %}
+                <input type="checkbox" /> {% trans "Remember Me" %}
               </label>
               <p>
                 <a href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>

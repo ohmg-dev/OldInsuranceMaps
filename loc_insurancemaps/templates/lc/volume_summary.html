@@ -1,15 +1,9 @@
-{% extends 'index.html' %}
-{% load markdownify %}
+{% extends 'base.html' %}
 {% load i18n %}
-{% load base_tags %}
 {% load django_svelte %}
 
 {% block title %}{{ svelte_params.VOLUME.title }}{% endblock title %}
 
-{% block hero%}
+{% block main_content %}
   {% display_svelte "Volume.svelte" svelte_params %} 
-{% endblock hero %}
-
-{% block bigsearch %}{% endblock bigsearch %}
-{% block showcase %}{% endblock showcase %}
-{% block datasets %}{% endblock datasets %}
+{% endblock %}

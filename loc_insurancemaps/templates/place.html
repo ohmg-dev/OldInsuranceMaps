@@ -1,12 +1,10 @@
-{% extends 'index.html' %}
-{% load markdownify %}
+{% extends 'base.html' %}
 {% load i18n %}
-{% load base_tags %}
 {% load django_svelte %}
 
 {% block title %}{{ svelte_params.PLACE.display_name }}{% endblock title %}
 
-{% block middlefull %}
+{% block body %}
 <h1>{{ svelte_params.PLACE.display_name }}</h1>
 {% if svelte_params.PLACE.category != "State" %}
 {% for state in svelte_params.PLACE.states %}
@@ -22,8 +20,4 @@
     <p><a href="{% url 'place_view' desc.slug %}">{{ desc.display_name }}</a></p>
 {% endfor %}
 {{ place }}
-{% endblock middlefull %}
-
-{% block bigsearch %}{% endblock bigsearch %}
-{% block showcase %}{% endblock showcase %}
-{% block datasets %}{% endblock datasets %}
+{% endblock %}

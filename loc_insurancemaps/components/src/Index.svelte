@@ -10,7 +10,7 @@ let showBRMap = !IS_MOBILE;
 $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show example viewer (Baton Rouge)";
 </script>
 
-<main class="banner">
+<main>
 	<div class="hero-banner">
 		<div class="">
 			<h1>Louisiana Sanborn Maps</h1>
@@ -22,13 +22,13 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 		<div class="link-panel">
 			<p>Jump to some popular places</p>
 			<ul>
-				<li><a href="/viewer/new-orleans-la">New Orleans (1885-1893) &rarr;</a></li>
-				<li><a href="/viewer/baton-rouge-la">Baton Rouge (1885, 1891, 1898, 1903, 1908) &rarr;</a></li>
-				<li><a href="/viewer/alexandria-la">Alexandria (1885, 1892, 1896, 1900, 1904, 1909) &rarr;</a></li>
-				<li><a href="/viewer/plaquemine-la">Plaquemine (1885, 1891, 1896, 1900, 1906) &rarr;</a></li>
+				<li><a href="/viewer/new-orleans-la?utm_source=index-top">New Orleans (1885-1893) &rarr;</a></li>
+				<li><a href="/viewer/baton-rouge-la?utm_source=index-top">Baton Rouge (1885, 1891, 1898, 1903, 1908) &rarr;</a></li>
+				<li><a href="/viewer/alexandria-la?utm_source=index-top">Alexandria (1885, 1892, 1896, 1900, 1904, 1909) &rarr;</a></li>
+				<li><a href="/viewer/plaquemine-la?utm_source=index-top">Plaquemine (1885, 1891, 1896, 1900, 1906) &rarr;</a></li>
 			</ul>
 			<p>or search through <a href="/browse">all volumes</a>.</p>
-			<p>Currently, this site includes maps for about 140 different towns and cities across Louisiana. Want to get your hometown added? Check out our <a href="https://about.oldinsurancemaps.net/faq">FAQ page</a>.</p>
+			<p>Currently, this site includes maps for about 140 different towns and cities across Louisiana. Want to get your hometown added? Check out our <a href="https://about.oldinsurancemaps.net/faq?utm_source=index">FAQ page</a>.</p>
 			<p><em>Thank you so much to everyone who helped with this project, I've tried to make this site into a nice way to show your work!.</em></p>
 		</div>
 	</div>
@@ -44,43 +44,43 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 			<div>
 				<div><i class="i-volume i-volume-lg"></i></div>
 				<p>
-					Editions or volumes of Sanborn maps are available through the <a href="https://loc.gov/collections/sanborn-maps">Library of Congress</a> and are pulled into this site through their <a href="https://www.loc.gov/apis/json-and-yaml/requests/">JSON API</a>, generating a "Volume Summary" page here (see <a href="/loc/sanborn03275_001/">Baton Rouge, 1885</a>).
+					Editions or volumes of Sanborn maps are available through the <a href="https://loc.gov/collections/sanborn-maps">Library of Congress</a> and are pulled into this site through their <a href="https://www.loc.gov/apis/json-and-yaml/requests/">JSON API</a>, generating a "Volume Summary" page here (see <a href="/loc/sanborn03275_001/?utm_source=index">Baton Rouge, 1885</a>).
 				</p>
 			</div>
 			<div>
 				<div><i class="i-document i-document-lg"></i></div>
 				<p>
-					Crowdsourcing participants <a href="/split/244/">prepare each sheet</a> in the volume individually, sometimes splitting a sheet into multiple documents, each of which must be georeferenced individually (see <a href="/resource/244">Baton Rouge, 1885, page 1</a>).
+					Crowdsourcing participants <a href="/split/244/">prepare each sheet</a> in the volume individually, sometimes splitting a sheet into multiple documents, each of which must be georeferenced individually (see <a href="/resource/244?utm_source=index">Baton Rouge, 1885, page 1</a>).
 				</p>
 			</div>
 			<div>
 				<div><i class="i-layer i-layer-lg"></i></div>
 				<p>
-					Participants georeference each document by <a href="/georeference/387">creating ground control points</a>, linking features on the old map with latitude/longitude coordinates and embedding this geographic information, creating a geospatial layer (see <a href="/resource/389">Baton Rouge, 1885, page 1, part 3</a>).
+					Participants georeference each document by <a href="/georeference/387?utm_source=index">creating ground control points</a>, linking features on the old map with latitude/longitude coordinates and embedding this geographic information, creating a geospatial layer (see <a href="/resource/389?utm_source=index">Baton Rouge, 1885, page 1, part 3</a>).
 				</p>
 			</div>
 			<div>
 				<div><i class="i-webmap i-webmap-lg"></i></div>
 				<p>
-					As they are georeferenced, layers slowly build a collage of all the content from a given volume, and their overlapping margins <a href="/loc/trim/sanborn03275_001">must be trimmed</a> to create a seamless mosaic.
+					As they are georeferenced, layers slowly build a collage of all the content from a given volume, and their overlapping margins <a href="/loc/trim/sanborn03275_001?utm_source=index">must be trimmed</a> to create a seamless mosaic.
 				</p>
 			</div>
 			<div>
 				<div><i class="i-pinmap i-pinmap-lg"></i></div>
 				<p>
-					Finally, all volume mosaics for a given place are automatically aggregated into a standard web viewer (see <a href="/viewer/baton-rouge-la">Baton Rouge, 1885-1908</a>).
+					Finally, all volume mosaics for a given place are automatically aggregated into a standard web viewer (see <a href="/viewer/baton-rouge-la?utm_source=index">Baton Rouge, 1885-1908</a>).
 				</p>
 			</div>
-			<h4>Want to learn more? Head to the <a href="https://about.oldinsurancemaps.net/docs">full documentation</a> for more information.</h4>
+			<h4>Want to learn more? Head to the <a href="https://about.oldinsurancemaps.net/docs?utm_source=index">full documentation</a> for more information.</h4>
 			<span><em>Icons by <a href="https://thenounproject.com/browse/creator/alex2900/icon-collections/?p=1">Alex Muravev</a> on the Noun Project.</em></span>
 		</div>
 	</div>
-	<div class="map-container" style="margin-bottom: 30px;">
+	<div class="map-container" style="height:{IS_MOBILE ? '600px' : '400px'};">
 		{#if IS_MOBILE}<button class="link-btn" on:click="{() => {showBRMap = !showBRMap}}">{ showBRMapBtnLabel }</button>{/if}
 		{#if showBRMap}
-		<iframe height="{IS_MOBILE ? '600px' : '400px'}" title="Viewer for Sanborn maps of Baton Rouge, Louisiana" style="width:100%; border:none;" src="https://oldinsurancemaps.net/viewer/baton-rouge-la/?year=1898&utm_source=front-page#/center/-91.18179,30.44938/zoom/16"></iframe>
+		<iframe height="100%" title="Viewer for Sanborn maps of Baton Rouge, Louisiana" style="width:100%; border:none;" src="https://oldinsurancemaps.net/viewer/baton-rouge-la/?year=1898&utm_source=index#/center/-91.18179,30.44938/zoom/16"></iframe>
 		{/if}
-		{#if IS_MOBILE}<a href="https://oldinsurancemaps.net/viewer/baton-rouge-la/">Fullscreen view &rarr;</a>{/if}
+		{#if IS_MOBILE}<a href="https://oldinsurancemaps.net/viewer/baton-rouge-la/?utm_source=index">Fullscreen view &rarr;</a>{/if}
 	</div>
 	<!-- <div>
 		<form enctype="multipart/form-data" method="post" action="/newsletter/news-oldinsurancemapsnet/subscribe/">
@@ -94,6 +94,8 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 main {
 	display: flex;
 	flex-direction: column;
+	margin-right: -15px;
+	margin-left: -15px;
 }
 
 main > div {
@@ -102,6 +104,10 @@ main > div {
 	padding: 15px;
 	border-top: 1px solid grey;
 	border-bottom: 1px solid grey;
+}
+
+main p {
+	font-size:1.25em;
 }
 
 .hero-banner {
@@ -135,11 +141,6 @@ main > div {
 
 .map-container > span {
 	text-align:center;
-}
-
-.map-link-panel {
-	display: none;
-	text-align: center;
 }
 
 #step-list > div {
@@ -189,16 +190,6 @@ button.link-btn {
 	.hero-banner > div.link-panel {
 		margin-top: 15px;
 	}
-
-	/* .map-container {
-		display: none;
-	} */
-
-
-
-	/* .map-link-panel {
-		display: flex;
-	} */
 }
 
 </style>
