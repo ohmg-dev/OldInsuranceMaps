@@ -21,6 +21,9 @@ from loc_insurancemaps.utils import unsanitize_name, filter_volumes_for_use
 from loc_insurancemaps.api import CollectionConnection
 from loc_insurancemaps.tasks import load_docs_as_task
 
+if settings.ENABLE_NEWSLETTER:
+    from newsletter.models import Newsletter, Subscription
+
 logger = logging.getLogger(__name__)
 
 def get_user_type(user):
@@ -46,6 +49,17 @@ class HomePage(View):
 
     def get(self, request):
 
+        newsletter_slug = None
+        user_subscribed = None
+        if settings.ENABLE_NEWSLETTER:
+            if Newsletter.objects.all().exists():
+                newsletter = Newsletter.objects.all()[0]
+                newsletter_slug = newsletter.slug
+
+            user_subscription = Subscription.objects.filter(newsletter=newsletter, user=request.user)
+            if user_subscription.exists() and user_subscription[0].subscribed is True:
+                user_subscribed = True
+
         # lc = CollectionConnection(delay=0)
         # city_list = lc.get_city_list_by_state("louisiana")
         context_dict = {
@@ -55,9 +69,11 @@ class HomePage(View):
                 # 'CITY_LIST': city_list,
             },
             "svelte_params": {
-                "CSRFTOKEN": csrf.get_token(request),
                 "PLACES_GEOJSON": Volume().get_map_geojson(),
-                "IS_MOBILE": mobile(request)
+                "IS_MOBILE": mobile(request),
+                "CSRFTOKEN": csrf.get_token(request),
+                "NEWSLETTER_SLUG": newsletter_slug,
+                "USER_SUBSCRIBED": user_subscribed,
             },
         }
 

@@ -1,8 +1,10 @@
 <script>
 import MapBrowse from './MapBrowse.svelte';
-export let CSRFTOKEN;
 export let PLACES_GEOJSON;
 export let IS_MOBILE;
+export let CSRFTOKEN;
+export let NEWSLETTER_SLUG;
+export let USER_SUBSCRIBED;
 
 let showBrowseMap = !IS_MOBILE;
 $: showBrowseMapBtnLabel = showBrowseMap ? "Hide map finder" : "Show map finder";
@@ -82,12 +84,20 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 		{/if}
 		{#if IS_MOBILE}<a href="https://oldinsurancemaps.net/viewer/baton-rouge-la/?utm_source=index">Fullscreen view &rarr;</a>{/if}
 	</div>
-	<!-- <div>
-		<form enctype="multipart/form-data" method="post" action="/newsletter/news-oldinsurancemapsnet/subscribe/">
+	{#if NEWSLETTER_SLUG}
+	<div>
+		<h3>Subscribe to the newsletter for project updates</h3>
+		{#if USER_SUBSCRIBED}
+		<p><em>You are already subscribed. <a href="/newsletter/{NEWSLETTER_SLUG}?utm_source=index">manage subscription</a></em></p>
+		{:else}
+		<form enctype="multipart/form-data"  method="post" action="/newsletter/{NEWSLETTER_SLUG}/subscribe/">
+			<input type="hidden" name="csrfmiddlewaretoken" value={CSRFTOKEN}>
 			<label for="id_email_field">E-mail:</label> <input type="email" name="email_field" required="" id="id_email_field">
 			<button id="id_submit" name="submit" value="Subscribe" type="submit">Subscribe</button>
 		</form>
-	</div> -->
+		{/if}
+	</div>
+	{/if}
 </main>
 <style>
 
@@ -172,7 +182,6 @@ button.link-btn {
 	cursor: pointer;
 	font-size: 1.25em;
 }
-
 
 @media only screen and (max-width: 480px) {
 	main {
