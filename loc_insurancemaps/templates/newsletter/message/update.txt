@@ -1,0 +1,9 @@
+{% load i18n %}{% blocktrans with name=subscription.name|default:_("Sir/Madam") title=newsletter.title domain=site.domain url=subscription.update_activate_url %}Dear {{ name }},
+
+you, or someone in your name requested updating your personal information for {{ title }}.
+
+To make changes to your information in our database, please follow this activation link:
+http://{{ domain }}{{ url }}
+
+Kind regards,{% endblocktrans %}
+{{ newsletter.sender }}
