@@ -8,21 +8,23 @@ export let USER;
 			<ul>
 				<li><a href="/browse">Browse Maps</a></li>
 				<li><a href="/people">Participants</a></li>
+				<li><a href="https://github.com/mradamcox/loc-insurancemaps">GitHub <i class="fa fa-external-link"></i></a></li>
 			</ul>
 		</div>
 		<div>
 			<h4>Learn More</h4>
 			<ul>
-				<li><a href="https://about.oldinsurancemaps.net/faq">FAQ</a></li>
-				<li><a href="https://about.oldinsurancemaps.net/docs">Documentation</a></li>
-				<li><a href="https://about.oldinsurancemaps.net/docs/category/sanborn-maps-1">About Sanborn Maps</a></li>
+				<li><a href="https://about.oldinsurancemaps.net/faq">FAQ <i class="fa fa-external-link"></i></a></li>
+				<li><a href="https://about.oldinsurancemaps.net/docs">Documentation <i class="fa fa-external-link"></i></a></li>
+				<li><a href="https://about.oldinsurancemaps.net/docs/category/sanborn-maps-1">About Sanborn Maps <i class="fa fa-external-link"></i></a></li>
 			</ul>
 		</div>
 		<div>
-			<h4>Get in touch!</h4>
+			<h4>News & Updates</h4>
 			<ul>
-				<li><a href="mailto:hello@oldinsurancemaps.net" >hello@oldinsurancemaps.net</a></li>
-				<li><a href="https://github.com/mradamcox/loc-insurancemaps">GitHub</a></li>
+				<li><a href="/newsletter/lahmg-news/archive" >Newsletter Archive</a></li>
+				<li><a href="https://about.oldinsurancemaps.net/blog" >Blog <i class="fa fa-external-link"></i></a></li>
+				<li><a href="https://about.oldinsurancemaps.net/contact" >Contact <i class="fa fa-external-link"></i></a></li>
 			</ul>
 		</div>
 	</div>
