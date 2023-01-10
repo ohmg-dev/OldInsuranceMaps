@@ -56,13 +56,14 @@ class HomePage(View):
         newsletter_slug = None
         user_subscribed = None
         if settings.ENABLE_NEWSLETTER:
+            newsletter = None
             if Newsletter.objects.all().exists():
                 newsletter = Newsletter.objects.all()[0]
                 newsletter_slug = newsletter.slug
-
-            user_subscription = Subscription.objects.filter(newsletter=newsletter, user=request.user)
-            if user_subscription.exists() and user_subscription[0].subscribed is True:
-                user_subscribed = True
+            if newsletter is not None and request.user.is_authenticated:
+                user_subscription = Subscription.objects.filter(newsletter=newsletter, user=request.user)
+                if user_subscription.exists() and user_subscription[0].subscribed is True:
+                    user_subscribed = True
 
         # lc = CollectionConnection(delay=0)
         # city_list = lc.get_city_list_by_state("louisiana")
