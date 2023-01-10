@@ -19,7 +19,10 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 			<p>Explore historical fire insurance maps of Louisiana as georeferenced web maps overlays. All maps on this site are in the public domain, pulled from the Library of Congress 
 			<a href="https://loc.gov/collections/sanborn-maps">Sanborn Map Collection</a>.</p>
 			<p>These maps were georeferenced by about <a href="/people">70 participants</a> in early 2022&mdash;over four months, 1,500 individual sheets
-				from 270 different Sanborn atlases were processed, resulting in these seamless mosaics.
+				from 270 different Sanborn atlases were processed, resulting in these seamless mosaics.</p>
+			{#if NEWSLETTER_SLUG}
+			<p><a href="#subscribe">Subscribe to project updates</a></p>
+			{/if}
 		</div>
 		<div class="link-panel">
 			<p>Jump to some popular places</p>
@@ -85,7 +88,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 		{#if IS_MOBILE}<a href="https://oldinsurancemaps.net/viewer/baton-rouge-la/?utm_source=index">Fullscreen view &rarr;</a>{/if}
 	</div>
 	{#if NEWSLETTER_SLUG}
-	<div>
+	<div id="subscribe">
 		<h3>Subscribe to the newsletter for project updates</h3>
 		{#if USER_SUBSCRIBED}
 		<p><em>You are already subscribed. <a href="/newsletter/{NEWSLETTER_SLUG}?utm_source=index">manage subscription</a></em></p>
