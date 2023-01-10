@@ -295,3 +295,15 @@ nav.lahmg-nav div div {
 		transform: translate(24px, 0);
 	}
 }
+
+#newsletter-container {
+	padding-top: 15px;
+}
+#newsletter-container table {
+	width: 100%;
+}
+#newsletter-container th {
+	font-size: 1.1em;
+	background-color: #eaeaea;
+	padding: 5px;
+}
