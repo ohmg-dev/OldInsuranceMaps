@@ -317,6 +317,7 @@ sudo supervisorctl reload
             ("SWAP_COORDINATE_ORDER", False),
             ("ENABLE_CPROFILER", False),
             ("ENABLE_DEBUG_TOOLBAR", False),
+            ("ENABLE_NEWSLETTER", False),
         ]
 
         if self.resolve_var("EMAIL_ENABLE", False) is True:

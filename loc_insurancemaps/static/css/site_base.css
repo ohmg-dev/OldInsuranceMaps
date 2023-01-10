@@ -29,39 +29,6 @@ h1, h2, h3, h4, h5, h6 {
 .banner-wrap {
 	position: relative
 }
-.banner {
-	display: flex;
-	flex-direction: column;
-	margin-right: -15px;
-	margin-left: -15px;
-	color: inherit;
-	box-shadow: gray 0px 0px 5px;
-	position: relative;
-	/* height: calc(100vh - 30px); */
-}
-.banner-button-list div {
-	align-content: center;
-	align-items: center;
-	display: flex;
-	flex-direction: column;
-}
-.banner p {
-	font-size:1.25em;
-}
-.banner > * {
-	z-index: 100;
-	position: relative;
-}
-.banner-item {
-	margin-top: 45px;
-	padding: 20px;
-	background: rgba(247,241,255,.5)
-}
-.banner-button-list {
-	display:flex;
-	justify-content: space-evenly;
-	
-}
 @media (max-width: 991px) {
 	.banner-button-list {
 	  flex-direction: column;
@@ -327,4 +294,16 @@ nav.lahmg-nav div div {
 	100% {
 		transform: translate(24px, 0);
 	}
+}
+
+#newsletter-container {
+	padding-top: 15px;
+}
+#newsletter-container table {
+	width: 100%;
+}
+#newsletter-container th {
+	font-size: 1.1em;
+	background-color: #eaeaea;
+	padding: 5px;
 }

@@ -4,22 +4,29 @@ import json
 import logging
 from datetime import datetime
 
-from django.contrib.gis.geos import GEOSGeometry, Polygon
-from django.shortcuts import render, get_object_or_404
-from django.views import View
-from django.urls import reverse
-from django.http import JsonResponse, Http404, HttpResponse
-from django.middleware import csrf
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.http import JsonResponse, Http404, HttpResponse
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
+from django.views import View
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.middleware import csrf
+
+from geonode.base.api.serializers import UserSerializer
 
 from georeference.utils import full_reverse
-from georeference.models.resources import Layer
+from georeference.models.sessions import SessionBase
+from georeference.models.resources import GCP, Layer
 
 from loc_insurancemaps.models import Volume, Place
 from loc_insurancemaps.utils import unsanitize_name, filter_volumes_for_use
 from loc_insurancemaps.api import CollectionConnection
 from loc_insurancemaps.tasks import load_docs_as_task
+
+if settings.ENABLE_NEWSLETTER:
+    from newsletter.models import Newsletter, Subscription
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +53,18 @@ class HomePage(View):
 
     def get(self, request):
 
+        newsletter_slug = None
+        user_subscribed = None
+        if settings.ENABLE_NEWSLETTER:
+            newsletter = None
+            if Newsletter.objects.all().exists():
+                newsletter = Newsletter.objects.all()[0]
+                newsletter_slug = newsletter.slug
+            if newsletter is not None and request.user.is_authenticated:
+                user_subscription = Subscription.objects.filter(newsletter=newsletter, user=request.user)
+                if user_subscription.exists() and user_subscription[0].subscribed is True:
+                    user_subscribed = True
+
         # lc = CollectionConnection(delay=0)
         # city_list = lc.get_city_list_by_state("louisiana")
         context_dict = {
@@ -55,9 +74,11 @@ class HomePage(View):
                 # 'CITY_LIST': city_list,
             },
             "svelte_params": {
-                "CSRFTOKEN": csrf.get_token(request),
                 "PLACES_GEOJSON": Volume().get_map_geojson(),
-                "IS_MOBILE": mobile(request)
+                "IS_MOBILE": mobile(request),
+                "CSRFTOKEN": csrf.get_token(request),
+                "NEWSLETTER_SLUG": newsletter_slug,
+                "USER_SUBSCRIBED": user_subscribed,
             },
         }
 
@@ -378,6 +399,58 @@ class Viewer(View):
             request,
             "viewer.html",
             context=context_dict
+        )
+
+
+class Participants(View):
+
+    def get(self, request):
+
+        profiles = get_user_model().objects.all().exclude(username="AnonymousUser").order_by("username")
+
+        participants = []
+
+        # user the serializer from GeoNode in order to get the avatar url
+        s = UserSerializer()
+        for p in profiles:
+            p_data = s.to_representation(p)
+            psesh_ct = SessionBase.objects.filter(user=p, type="p").count()
+            gsesh_ct = SessionBase.objects.filter(user=p, type="g").count()
+            total = psesh_ct + gsesh_ct
+            volumes = Volume.objects.filter(loaded_by=p).order_by("city")
+            load_ct = volumes.count()
+            load_volumes = [
+                {
+                    "city": v.city,
+                    "year": v.year,
+                    "url": f"/loc/{v.identifier}",
+                    "volume_no": v.volume_no,
+                    "title": f"{v.city} {v.year}{' vol. ' + v.volume_no if v.volume_no else ''}"
+                } for v in volumes
+            ]
+
+            participants.append({
+                "avatar": p_data['avatar'],
+                "username": p.username,
+                "profile_url": reverse('profile_detail', args=(p.username, )),
+                "load_ct": load_ct,
+                "psesh_ct": psesh_ct,
+                "gsesh_ct": gsesh_ct,
+                "total_ct": total,
+                "volumes": load_volumes,
+                "gcp_ct": GCP.objects.filter(created_by=p).count()
+            })
+
+        context_dict = {
+            "svelte_params": {
+                "PARTICIPANTS": participants,
+            }
+        }
+
+        return render(
+            request,
+            "participants.html",
+            context=context_dict,
         )
 
 

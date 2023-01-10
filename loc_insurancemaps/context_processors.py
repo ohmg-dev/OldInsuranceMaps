@@ -1,22 +1,23 @@
-from django.conf import settings
-
 from georeference.utils import full_reverse
 
 def loc_info(request):
 
-    if request.user.is_authenticated:
-        user = {
+    try:
+        user = request.user
+    except AttributeError:
+        user = None
+    if user and user.is_authenticated:
+        user_info = {
             'is_authenticated': True,
-            'name': request.user.username,
-            'profile': full_reverse("profile_detail", args=(request.user.username, )),
+            'name': user.username,
+            'profile': full_reverse("profile_detail", args=(user.username, )),
         }
     else:
-        user = {
+        user_info = {
             'is_authenticated': False
         }
     return {
-        'newsletter_enabled': settings.ENABLE_NEWSLETTER,
         'navbar_params': {
-            'USER': user
+            'USER': user_info
         }
     }

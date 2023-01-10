@@ -1,0 +1,12 @@
+{% load i18n %}
+{% blocktrans with title=newsletter.title domain=site.domain url=subscription.subscribe_activate_url %}Hello!
+
+You have requested to update your personal information for {{ title }}.
+
+To confirm this update, please follow this activation link:
+http://{{ domain }}{{ url }}
+
+Thanks!
+{% endblocktrans %}
+
+https://{{ domain }}

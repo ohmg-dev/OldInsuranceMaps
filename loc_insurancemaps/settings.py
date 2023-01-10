@@ -118,12 +118,12 @@ INSTALLED_APPS = [
     'geonode.groups',
     'geonode.services', # error when removing this app still
     'geonode.geoserver', # needed by geonode.api
-    # 'geonode.upload',
+    'geonode.upload', # needed to delete users (attached to profile??)
     # 'geonode.tasks',
     'geonode.messaging',
-    # 'geonode.monitoring',
+    'geonode.monitoring', # needed to delete users (attached to profile??)
     'geonode.documents.exif',
-    # 'geonode.favorite',
+    'geonode.favorite', # needed to delete users (attached to profile??)
     # 'mapstore2_adapter',
     # 'mapstore2_adapter.geoapps',
     # 'mapstore2_adapter.geoapps.geostories',

@@ -1,0 +1,22 @@
+{% load i18n %}<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{% blocktrans with title=newsletter.title %}Subscription to {{ title }}{% endblocktrans %}
+</title>
+</head>
+<body>
+{% blocktrans with title=newsletter.title domain=site.domain url=subscription.subscribe_activate_url %}Hello!
+
+You requested a subscription to {{ title }}.
+
+To confirm your subscription, please follow this activation link:
+http://{{ domain }}{{ url }}
+
+Thanks!
+{% endblocktrans %}
+
+http://{{ domain }}
+</body>
+</html>

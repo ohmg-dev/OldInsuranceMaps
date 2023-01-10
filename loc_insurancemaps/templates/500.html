@@ -1,7 +1,3 @@
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -18,8 +14,6 @@
     <meta property="og:description" content="A crowdsourcing site for creating and viewing georeferenced mosaics of historical Sanborn fire insurance maps" />
 
     <link rel="shortcut icon" href="/static/favicon.ico" />
-    <link href="/static/lib/css/ol.css" rel="stylesheet" />
-    <script src="/static/lib/js/ol.js"></script>
     <link rel="preload" as="style" href="/static/geonode/css/font-awesome.min.css" />
 
     <! -- analytics with plausible.io -->
@@ -29,100 +23,6 @@
 
       <link href="/static/lib/css/assets.min.css" rel="stylesheet"/>
       <link href="/static/geonode/css/base.css" rel="stylesheet"/>
-      <link rel='stylesheet' id='cookie-law-info-css'  href="/static/geonode/css/cookie-law-info/cookie-law-info-public.css" type='text/css' media='all' />
-      <link rel='stylesheet' id='cookie-law-info-gdpr-css'  href="/static/geonode/css/cookie-law-info/cookie-law-info-gdpr.css" type='text/css' media='all' />
-      <style type="text/css">[ng\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}</style>
-      <style type="text/css">
-        /* Additional styles by custom themes */
-        
-        body {
-          background: #ffffff;
-          
-          color: #3a3a3a;
-          
-        }
-
-        .home #partners {
-          background: #ffffff;
-          padding: 2em 0;
-          text-align: center;
-        }
-        
-
-        
-        .home .navbar-inverse , .navbar-inverse {
-          background-color: #123B4F;
-        }
-        
-
-        
-        .navbar-inverse .navbar-nav > li > a {
-          color: #ffffff;
-          font-weight: 600;
-          padding-top: 25px;
-          padding-bottom: 25px;
-        }
-        
-
-        
-        .navbar-inverse .navbar-nav > li > a:hover {
-          background-color: #2c689c;
-        }
-        
-        
-        
-        .navbar-nav .dropdown-menu {
-          background-color: #2c689c;
-          border-top: 1px solid #2c689c;
-        }
-        
-
-        
-        .navbar-nav .dropdown-menu a {
-          color: #ffffff;
-        }
-        
-        
-
-        
-        .navbar-nav .dropdown-menu .divider {
-          background-color: #ffffff;
-        }
-        
-
-        
-
-        
-        .home .big-search {
-          background: #ffffff;
-          color: #007363;
-          padding-bottom: 3em;
-          padding-top: 1em;
-        }
-        .home .big-search .btn-default {
-          background: transparent;
-          border: none;
-          color: #007363;
-        }
-        
-
-        
-        .footer-copyright {
-          background-color: #123B4F;
-        }
-        
-
-        
-        footer {
-          background-color: #123B4F;
-          color: #ffffff;
-          padding: 1.5em;
-        }
-        footer a {
-          color: #EAE0C1;
-        }
-        
-      </style>
 
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -141,28 +41,11 @@
         }
       </style>
     <![endif]-->
-    <link rel="search" type="application/opensearchdescription+xml" href="https://oldinsurancemaps.net/catalogue/opensearch" title="GeoNode Search"/>
+    <link rel="search" type="application/opensearchdescription+xml" href="http://localhost:8000/catalogue/opensearch" title="GeoNode Search"/>
 
     <script>
-        var siteUrl = 'https://oldinsurancemaps.net/'.replace(/\/?$/, '/');
+        var siteUrl = 'http://localhost:8000/'.replace(/\/?$/, '/');
         var staticUrl = '/static/';
-    </script>
-
-    <!-- Autocomplete script for input boxes -->
-    <script src="/static/geonode/js/search/autocomplete.js"></script>
-
-    <script type="text/javascript">
-      function thumbnailFeedbacks(data, status) {
-        try {
-          $("#_thumbnail_feedbacks").find('.modal-title').text(status);
-          $("#_thumbnail_feedbacks").find('.modal-body').text(data);
-          $("#_thumbnail_feedbacks").modal("show");
-        } catch (err) {
-          console.log(err);
-        } finally {
-          return true;
-        }
-      }
     </script>
 
     <!-- RTL styles -->
@@ -175,36 +58,20 @@
     <div class='lmask'></div>
     <!-- Navbar -->
     
+
     
-      
 
-      <!-- End of Navbar -->
-    <nav class="lahmg-nav">
 
-      <div>
-        <div>
-          <a href="/" title="LaHMG">
-            <img src="/static/img/noun_Map_heavy-colored-lite.png" alt="LaHMG" class="navbar-brand-new">
-            &nbsp;&nbsp;
-            <strong>Home</strong>
-          </a>
-        </div>
-        <div>
-          <a href="/browse/" title="Browse Maps">Browse Maps</a>
-        </div>
-        <div>
-          <a href="https://about.oldinsurancemaps.net" title="Browse">About</a>
-        </div>
-      </div>
-      <div>
-        
-        <div>
-          <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in</a>
-        </div>
-        
-      </div>
 
-    </nav>
+    
+    <link href="/static/Navbar.css" rel="stylesheet">
+
+
+<div id="navbar-target"></div>
+
+<script id="navbar-props" type="application/json">{"USER": {"is_authenticated": false}}</script>
+<script type="text/javascript" src="/static/Navbar.js"></script>
+
 
 
     <div class="alert alert-danger alert-dismissible" role="alert" id="ieflag" style="display:none">
@@ -214,7 +81,7 @@
     </div>
 
     
-    <div class="container">
+    <div class="container background-fg" style="min-height: calc(100vh - 250px);">
       
 <div class="alert alert-warn" id="status-message" hidden="hidden">
     <a class="close" onclick="$('.alert').hide()">×</a>
@@ -226,27 +93,10 @@
 
 
 
-<div id="site_wide_announcements">
-    
-    
-    <div class="alert alert-block announcement alert-warning">
-        
-        <a type="button" class="close" data-dismiss="alert" data-dismiss-url="/announcements/announcement/9/hide/" href="#">×</a>
-        
-        <h4><a href="/announcements/announcement/9/">Site Changes</a></h4>
-        <p><small><em>June 27, 2022, 8:57 p.m.</em></small></p>
-        <div>Thank you for your interest! This site will be undergoing development through the summer and fall, but you'll be able to continue exploring Sanborn maps here. Follow <a href="https://twitter.com/mradamcox" target="_blank">@mradamcox</a> for future updates.</div>
-    </div>
-    
-    
-</div>
-
 
       
 
       
-      <div class="row">
-        <div class="col-md-8">
         
   <div id="description"><h3>Server Error</h3></div>
   
@@ -255,11 +105,8 @@
       
   
 
-        </div>
-        <div class="col-md-4">
         
-        </div>
-      </div>
+      
       
     </div>
     
@@ -269,52 +116,23 @@
 
   
   
+
+
   
-<footer>
-  <div class="container">
-    <div class="row">
-      <div class="col-md-4">
-        <ul class="list-unstyled">
-          <li>Content</li>
-          <li><a href="/loc/volumes/">Volumes</a></li>
-          <li><a href="/documents/?limit=20">Documents</a></li>
-          <li><a href="/layers/?limit=20">Layers</a></li>
-          <li><a href="/maps/?limit=20">Web Maps</a></li>
-          
-          
-        </ul>
-      </div>
-      <div class="col-md-4">
-        <ul class="list-unstyled">
-          <li>About</li>
-          <li><a href="/getting-started/">Getting Started</a></li>
-          <li><a href="/about/">Project Background</a></li>
-          <li><a href="https://docs.oldinsurancemaps.net">Documentation</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="/people/">People</a></li>
-          <li><a href="/groups/">Groups</a></li>
-          
-          
-          
-        </ul>
-      </div>
+  
 
-      <div class="col-md-4 text-right">
-        <ul class="list-unstyled">
-            <li style="text-align: left;"><h3 style="margin-top: 0px;">Get in touch! </h3> </li>
-            <li style="text-align: left;"><a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="row" style="color:white; text-align:center;">
-      <div class="col-xs-12">
-        <p>Copyright © 2022 | <a href="https://github.com/mradamcox/loc-insurancemaps" target="_blank">Source <i class="fa fa-external-link"></i></a> |
-           Powered by <a href="https://geonode.org" target="_blank">GeoNode <i class="fa fa-external-link"></i></a></p>
-      </div>
-    </div>
-  </div>
-</footer>
 
+
+    
+    <link href="/static/Footer.css" rel="stylesheet">
+
+
+<div id="footer-target"></div>
+
+<script id="footer-props" type="application/json">{"USER": {"is_authenticated": false}}</script>
+<script type="text/javascript" src="/static/Footer.js"></script>
+
+  
 
 
     <!-- Modal must stay outside the navbar -->
@@ -328,7 +146,7 @@
           </div>
           <form class="form-signin" role="form" action="/account/login/?next=/" method="post">
             <div class="modal-body">
-              <input type="hidden" name="csrfmiddlewaretoken" value="KhiDgqN4JyJDINT68vfjtb4HjkuJxdnSPyXeNzQQjZ8OtK3zLb5P5sqluVqrQgIr">
+              <input type="hidden" name="csrfmiddlewaretoken" value="tPkIzBlf5BSERi7iastue7l7tvvYPRqYD0iEMupZBmYuCHRGa786WT6A1wGzaEuh">
               
               
               <div class="form-group">
@@ -340,7 +158,7 @@
                 <input id="id_password" class="form-control" name="password" placeholder="Password" type="password" autocomplete="off" />
               </div>
               <label class="checkbox" style="padding-left:20px;">
-                <input type="checkbox" style="margin-left-20px;" /> Remember Me
+                <input type="checkbox" /> Remember Me
               </label>
               <p>
                 <a href="/account/password/reset/">Forgot Password?</a>
@@ -362,44 +180,18 @@
     
     <!-- End of Modal -->
 
+    <!-- quick testing shows that only jquery and bootstrap are needed to 
+    retain the sign in modal functionality. This allows for the removal of
+    assets.js which was originally included below. -->
+    <script src="/static/lib/js/jquery.js"></script>
+    <script src="/static/lib/js/bootstrap.js"></script>
+
     
-    <script src="/static/lib/js/assets.min.js"></script>
+    <!-- <script src="/static/geonode/js/utils/utils.js"></script>
+    <script src="/static/geonode/js/base/base.js"></script> -->
+    <!-- <script type="text/javascript" src="/jsi18n/"></script> -->
     
-    <script src="/static/geonode/js/utils/utils.js"></script>
-    <script src="/static/geonode/js/base/base.js"></script>
-    <script type="text/javascript" src="/jsi18n/"></script>
-    
-    <!-- <script type="text/javascript">
 
-      // Autocomplete instance for the search found in the header.
-      $(document).ready(function() {
-        window.autocomplete2 = new Autocomplete({
-          form_btn: null,
-          form_submit: '#search',
-          form_selector: '#search',
-          input_selector: '#search_input',
-          container_selector: '#search-container',
-          url: '/base/autocomplete_response/'
-        })
-        window.autocomplete2.setup()
-      })
-
-      $('#search').on('submit', (e) => {
-          $('#search_abstract_input')[0].value =$('#search_input')[0].value;
-          $('#search_purpose_input')[0].value = $('#search_input')[0].value;
-      });
-
-      $(window).on('load', function() {
-          setTimeout(() => {
-              document.body.scrollTop = 0;
-              document.documentElement.scrollTop = 0;
-          });
-        });
-
-      $(".datepicker").datepicker({
-          format: "yyyy-mm-dd"
-      });
-    </script> -->
 
     <div class="modal fade" style="width: 100%; height: 100%;" id="_resource_uploading" data-backdrop="static" data-keyboard="false" aria-hidden="true">
         <div class="modal-dialog">
