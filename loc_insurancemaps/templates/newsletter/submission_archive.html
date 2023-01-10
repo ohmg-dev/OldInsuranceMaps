@@ -11,7 +11,7 @@
     </tr>
     {% for submission in latest %}
     <tr>
-        <td><a href="{{ submission.get_absolute_url }}">{{ submission.message.title }}</a> &mdash; {{submission.message.date_create }}</td>
+        <td><a href="{{ submission.get_absolute_url }}">{{ submission.message.title }}</a> &mdash; {{submission.publish_date}}<td>
     </tr>
     {% endfor %}
     <tr>
