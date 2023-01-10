@@ -14,11 +14,12 @@ from .views import (
     MRMEndpointLayer,
     Viewer,
     Browse,
+    Participants,
 )
 
 urlpatterns += [
     # path('place/<str:place_slug>', PlaceView.as_view(), name='place_view'),
-    path('viewer/', RedirectView.as_view(pattern_name='browse'), name='viewer_base'),
+    path('viewer/', RedirectView.as_view(pattern_name='browse', permanent=False), name='viewer_base'),
     path('viewer/<str:place_slug>/', Viewer.as_view(), name='viewer'),
     path('browse/', Browse.as_view(), name='browse'),
     path('loc/volumes/', RedirectView.as_view(pattern_name='browse', permanent=True), name='volumes_list'),
@@ -27,6 +28,7 @@ urlpatterns += [
     path('loc/trim/<str:volumeid>/', VolumeTrim.as_view(), name="volume_trim"),
     path('mrm/', MRMEndpointList.as_view(), name="mrm_layer_list"),
     path('mrm/<str:layerid>/', MRMEndpointLayer.as_view(), name="mrm_get_resource"),
+    path('participants/', Participants.as_view(), name="participants"),
 ]
 
 if settings.ENABLE_NEWSLETTER:
@@ -45,6 +47,7 @@ urlpatterns = [
     path('help/', RedirectView.as_view(url="https://about.oldinsurancemaps.net")),
     # path('about/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
     path('developer/', RedirectView.as_view(url="https://about.oldinsurancemaps.net")),
+    path('people/', RedirectView.as_view(url="/participants")),
  ] + urlpatterns
 
 if settings.DEBUG:
