@@ -1,9 +1,12 @@
-{% load i18n %}{% blocktrans with name=subscription.name|default:_("Sir/Madam") title=newsletter.title domain=site.domain url=subscription.unsubscribe_activate_url %}Dear {{ name }},
+{% load i18n %}
+{% blocktrans with title=newsletter.title domain=site.domain url=subscription.subscribe_activate_url %}Hello!
 
-you, or someone in your name requested unsubscription from {{ title }}.
+You have requested to unsubscribe from {{ title }}.
 
-If you would like to confirm your unsubscription, please follow this activation link:
+To confirm your unsubscription, please follow this activation link:
 http://{{ domain }}{{ url }}
 
-Kind regards,{% endblocktrans %}
-{{ newsletter.sender }}
+Thanks!
+{% endblocktrans %}
+
+https://{{ domain }}
