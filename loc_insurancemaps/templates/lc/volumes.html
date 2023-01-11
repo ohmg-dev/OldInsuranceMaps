@@ -1,24 +1,10 @@
-{% extends 'index.html' %}
-{% load markdownify %}
+{% extends 'base.html' %}
 {% load i18n %}
-{% load base_tags %}
 {% load django_svelte %}
 
 {% block title %}Search Volumes{% endblock title %}
 
-{% block hero %}
-<!-- <div class="container-outer background-bg" style="margin-top: -7px;">
-<div class="container background-fg" style="padding:20px 20px;"> -->
-  <a href="#" data-toggle="collapse" data-target="#volume-search">Start a new volume...</a>
-  <div id="volume-search" class="volume-search collapse">
+{% block main_content %}
   {% display_svelte "VolumeSearch.svelte" search_params %}
-  </div>
-  <hr style="border-top: 1px dashed grey">
   {% display_svelte "Volumes.svelte" list_params %}
-<!-- </div>
-</div> -->
-{% endblock hero %}
-
-{% block bigsearch %}{% endblock bigsearch %}
-{% block showcase %}{% endblock showcase %}
-{% block datasets %}{% endblock datasets %}
+{% endblock %}
