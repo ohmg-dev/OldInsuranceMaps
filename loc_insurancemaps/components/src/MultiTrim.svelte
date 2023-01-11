@@ -405,11 +405,15 @@ function layerRemoveMask(layer, confirm) {
 
 }
 
-const sideLinks = [{
-  display: VOLUME.title,
-  url: VOLUME.urls.summary,
-}]
-
+const iconLinks = [
+  {
+    visible: true,
+    enabled: true,
+    iconClass: 'volume',
+    alt: 'Volume: ' + VOLUME.title,
+    url: VOLUME.urls.summary,
+  }
+]
 </script>
 
 <svelte:window on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}}/>
@@ -420,7 +424,7 @@ const sideLinks = [{
     <button on:click={() => {process("extend-session")}}>Give me more time!</button>
   </div>
 </div>
-<TitleBar TITLE={VOLUME.title + " - Trim"} BOTTOM_LINKS={[]} SIDE_LINKS={sideLinks} />
+<TitleBar TITLE={VOLUME.title + " - Trim"} BOTTOM_LINKS={[]} SIDE_LINKS={[]} ICON_LINKS={iconLinks} />
 {#if USER_TYPE == "anonymous"}<div><p>Feel free to mess around; you can't save changes unless you are logged in.</p></div>{/if}
 <div class="svelte-component-main">
   <div class="map-container" style="height: calc(100%-35px);">
