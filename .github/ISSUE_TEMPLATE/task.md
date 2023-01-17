@@ -1,6 +1,6 @@
 ---
-name: Bug Report
-about: Report a bug in the code or an operational issue with the website.
+name: Work Task
+about: Describe a task to complete.
 title: "[Task]"
 labels: task
 assignees: ''
