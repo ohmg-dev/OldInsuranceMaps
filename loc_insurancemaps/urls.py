@@ -29,6 +29,7 @@ urlpatterns += [
     path('mrm/', MRMEndpointList.as_view(), name="mrm_layer_list"),
     path('mrm/<str:layerid>/', MRMEndpointLayer.as_view(), name="mrm_get_resource"),
     path('participants/', Participants.as_view(), name="participants"),
+    path('participation/', RedirectView.as_view(pattern_name='participants', permanent=False)),
 ]
 
 if settings.ENABLE_NEWSLETTER:

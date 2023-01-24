@@ -7,9 +7,7 @@
 {% block title %}{{ resource_params.RESOURCE.title }}{% endblock %}
 
 {% block body_outer %}
-<div class="background-fg">
-    {% display_svelte "Resource.svelte" resource_params %}
-</div>
+{% display_svelte "Resource.svelte" resource_params %}
 {% endblock %}
 
 {% block footer %}

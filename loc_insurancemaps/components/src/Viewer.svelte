@@ -461,7 +461,7 @@ function toggleDetails(id) {
 			{/if}
 		</div>
 		<div class="control-panel-footer">
-			<a title="Find another city" href="/browse">&larr; back to browse</a>
+			<a title="Find another city" href="/browse">&larr; switch city</a>
 			<span>|</span>
 			<a title="Go to home page" href="/">home</a>
 			<span>|</span>
