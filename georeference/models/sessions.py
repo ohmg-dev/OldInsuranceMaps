@@ -7,6 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 from django.core.files import File
+from django.core.mail import send_mass_mail
 from django.utils import timezone
 
 from georeference.models.resources import (
@@ -288,6 +289,13 @@ class SessionBase(models.Model):
         self.date_modified = timezone.now()
         return super(SessionBase, self).save(*args, **kwargs)
 
+    def send_email_notification(self, subject, message):
+        data_tuple = (
+            (subject, message, settings.DEFAULT_FROM_EMAIL, [settings.ADMIN_EMAIL]),
+            (subject, message, settings.DEFAULT_FROM_EMAIL, [self.user.email]),
+        )
+        send_mass_mail(data_tuple)
+
 
 class PrepSession(SessionBase):
     objects = PrepSessionManager()
@@ -385,6 +393,19 @@ class PrepSession(SessionBase):
         self.update_status("success", save=False)
         self.update_stage("finished", save=False)
         self.save()
+
+        processing_time = timezone.now() - self.date_run
+        self.send_email_notification(
+            f"✔️ Prepared: {self.doc}",
+            f""""Preparation completed for {self.doc}.
+ • session id: {self.pk}
+ • user: {self.user.username}
+ • result: {self.note}
+ • user input duration: {self.user_input_duration}
+ • processing time: {processing_time.seconds}
+"""
+        )
+
         return
 
     def undo(self, keep_session=False):
@@ -572,6 +593,18 @@ class GeorefSession(SessionBase):
         self.update_stage("finished", save=False)
         self.update_status("success", save=False)
         self.save()
+
+        processing_time = timezone.now() - self.date_run
+        self.send_email_notification(
+            f"✔️ Georeferenced: {self.lyr}",
+            f"""Georeferencing completed for {self.lyr}.
+ • session id: {self.pk}
+ • user: {self.user.username}
+ • result: {self.note}
+ • user input duration: {self.user_input_duration}
+ • processing time: {processing_time.seconds}
+"""
+        )
 
         return layer
 

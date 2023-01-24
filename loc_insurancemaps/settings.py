@@ -148,6 +148,8 @@ if ENABLE_NEWSLETTER:
     NEWSLETTER_CONFIRM_EMAIL_UNSUBSCRIBE = False
     NEWSLETTER_CONFIRM_EMAIL_UPDATE = False
 
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@localhost")
+
 MIDDLEWARE = (
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
