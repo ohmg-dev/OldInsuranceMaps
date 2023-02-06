@@ -4,44 +4,43 @@ from django.db.models import signals
 from django.dispatch import receiver
 
 from georeference.models.sessions import (
+    SessionBase,
     PrepSession,
     GeorefSession,
 )
 
 logger = logging.getLogger(__name__)
 
+@receiver(signals.pre_delete, sender=SessionBase)
 @receiver(signals.pre_delete, sender=PrepSession)
-def prepsession_on_pre_delete(sender, instance, **kwargs):
-    """
-    Emulate a cancellation of sessions that have not yet been run, i.e. are in
-    the input stage.
-    
-    Reset the document status to 'unprepared'.
-    """
-    instance.unlock_resources()
-    if instance.doc and instance.stage == "input":
-        logger.info(f"{instance.__str__()} | delete session and set document {instance.doc.pk} - 'unprepared'")
-        instance.doc.set_status("unprepared")
-
 @receiver(signals.pre_delete, sender=GeorefSession)
-def georefsession_on_pre_delete(sender, instance, **kwargs):
+def session_on_pre_delete(sender, instance, **kwargs):
     """
     Emulate a cancellation of sessions that have not yet been run, i.e. are in
-    the input stage.
-    
-    Reset the document status to 'prepared' or 'georeferenced'.
+    the input stage. SessionBase and its proxy models must all be linked to
+    this receiver, as .delete() is called on each of these models in various
+    parts of the app.
+
+    Reset the document (and layer, if applicable) status to 'prepared' or
+    'georeferenced' as appropriate.
+
+    Ultimately, much of this logic should probably be pushed upstream to the
+    resource.remove_lock() method, so this receivers only has to call unlock_resources().
     """
     instance.unlock_resources()
     if instance.doc and instance.stage == "input":
         existing_layer = instance.doc.get_layer()
+        if instance.type == "p":
+            new_status = "unprepared"
+        elif instance.type == "g":
+            if existing_layer:
+                new_status = 'georeferenced'
+            else:
+                new_status = 'prepared'
+
         if existing_layer:
-            new_status = 'georeferenced'
-            logger.info(f"{instance.__str__()} | delete session and set document {instance.doc.pk} - '{new_status}'")
-            instance.doc.set_status(new_status)
             logger.info(f"{instance.__str__()} | delete session and set layer {existing_layer.pk} - '{new_status}'")
             existing_layer.set_status(new_status)
-        else:
-            new_status = 'prepared'
-            logger.info(f"{instance.__str__()} | delete session and set document {instance.doc.pk} - '{new_status}'")
-            instance.doc.set_status(new_status)
-        
+
+        logger.info(f"{instance.__str__()} | delete session and set document {instance.doc.pk} - '{new_status}'")
+        instance.doc.set_status(new_status)
