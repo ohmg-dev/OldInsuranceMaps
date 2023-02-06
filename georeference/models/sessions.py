@@ -292,7 +292,7 @@ class SessionBase(models.Model):
     def send_email_notification(self, subject, message):
         data_tuple = (
             (subject, message, settings.DEFAULT_FROM_EMAIL, [settings.ADMIN_EMAIL]),
-            (subject, message, settings.DEFAULT_FROM_EMAIL, [self.user.email]),
+            # (subject, message, settings.DEFAULT_FROM_EMAIL, [self.user.email]),
         )
         send_mass_mail(data_tuple)
 
