@@ -64,6 +64,9 @@ class HomePage(View):
                 user_subscription = Subscription.objects.filter(newsletter=newsletter, user=request.user)
                 if user_subscription.exists() and user_subscription[0].subscribed is True:
                     user_subscribed = True
+        user_email = ""
+        if request.user.is_authenticated and request.user.email is not None:
+            user_email = request.user.email
 
         # lc = CollectionConnection(delay=0)
         # city_list = lc.get_city_list_by_state("louisiana")
@@ -79,6 +82,7 @@ class HomePage(View):
                 "CSRFTOKEN": csrf.get_token(request),
                 "NEWSLETTER_SLUG": newsletter_slug,
                 "USER_SUBSCRIBED": user_subscribed,
+                "USER_EMAIL": user_email,
             },
         }
 
