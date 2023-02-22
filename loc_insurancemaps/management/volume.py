@@ -42,7 +42,7 @@ def import_all_available_volumes(state, apply_filter=True, verbose=False):
         except Volume.DoesNotExist:
             import_volume(volume['identifier'])
 
-def import_volume(identifier):
+def import_volume(identifier, locale=None):
 
     try:
         return Volume.objects.get(pk=identifier)
@@ -62,6 +62,8 @@ def import_volume(identifier):
 
     volume = Volume.objects.create(**volume_kwargs)
     volume.regions.set(parsed.regions)
+    volume.locale = locale
+    volume.save()
 
     return volume
 
@@ -187,6 +189,7 @@ def read_trim_feature_cache(file_path):
 
 def generate_mosaic_json(identifier, trim_all=False):
 
+    logger.info(f"{identifier} | generating mosaic json")
     vol = Volume.objects.get(pk=identifier)
     multimask_geojson = multimask_to_geojson(identifier)
     multimask_file_name = f"multimask-{identifier}"
@@ -194,6 +197,8 @@ def generate_mosaic_json(identifier, trim_all=False):
     with open(multimask_file, "w") as out:
         json.dump(multimask_geojson, out, indent=1)
 
+    logger.debug(f"{identifier} | multimask loaded")
+    logger.info(f"{identifier} | iterating and trimming layers")
     trim_list = []
     for feature in multimask_geojson['features']:
 
@@ -213,12 +218,16 @@ def generate_mosaic_json(identifier, trim_all=False):
 
         layer = Layer.objects.get(slug=layer_name)
         if not layer.file:
+            logger.error(f"{identifier} | no layer file for this layer {layer_name}")
             raise Exception(f"no layer file for this layer {layer_name}")
         in_path = layer.file.path
+        file_name = os.path.basename(in_path)
+        logger.debug(f"{identifier} | processing layer file {file_name}")
 
         feat_cache_path = in_path.replace(".tif", "_trim-feature.json")
         if os.path.isfile(feat_cache_path):
             cached_feature = read_trim_feature_cache(feat_cache_path)
+            logger.debug(f"{identifier} | using cached trim json boundary")
         else:
             cached_feature = None
             write_trim_feature_cache(feature, feat_cache_path)
@@ -228,7 +237,7 @@ def generate_mosaic_json(identifier, trim_all=False):
 
         # compare this multimask feature to the cached one for this layer
         # and only (re)create a trimmed tif if they do not match
-        if feature != cached_feature or trim_all is True:
+        if feature != cached_feature or not os.path.isfile(out_path) or trim_all is True:
             gdal.Warp(trim_vrt_path, in_path, options=wo)
 
             to = gdal.TranslateOptions(
@@ -244,28 +253,29 @@ def generate_mosaic_json(identifier, trim_all=False):
                 ],
             )
 
-            print(f"writing trimmed tif {os.path.basename(out_path)}")
-            gdal.Translate(out_path, trim_vrt_path, options=to)
+            logger.debug(f"writing trimmed tif {os.path.basename(out_path)}")
+            result = gdal.Translate(out_path, trim_vrt_path, options=to)
             write_trim_feature_cache(feature, feat_cache_path)
 
-            print(f" -- building overviews")
             img = gdal.Open(out_path, 1)
+            if img is None:
+                logger.warn(f"{identifier} | file was not properly created, omitting: {file_name}")
+                continue   
+            logger.debug(f"{identifier} | building overview: {file_name}")
             gdal.SetConfigOption("COMPRESS_OVERVIEW", "LZW")
             gdal.SetConfigOption("PREDICTOR", "2")
             gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
             img.BuildOverviews("AVERAGE", [2, 4, 8, 16])
         else:
-            print(f"using existing trimmed tif {os.path.basename(out_path)}")
+            logger.debug(f"{identifier} | using existing trimmed tif {file_name}")
 
         trim_list.append(out_path)
 
-    print(trim_list)
     trim_urls = [
         i.replace(os.path.dirname(settings.MEDIA_ROOT), settings.MEDIA_HOST.rstrip("/")) \
             for i in trim_list
     ]
-    print(trim_urls)
-    print("writing mosaic")
+    logger.info(f"{identifier} | writing mosaic from {len(trim_urls)} trimmed tifs")
     mosaic_data = MosaicJSON.from_urls(trim_urls, minzoom=14)
     mosaic_json_path = os.path.join(settings.TEMP_DIR, f"{identifier}-mosaic.json")
     with MosaicBackend(mosaic_json_path, mosaic_def=mosaic_data) as mosaic:
@@ -274,3 +284,5 @@ def generate_mosaic_json(identifier, trim_all=False):
     with open(mosaic_json_path, 'rb') as f:
         vol.mosaic_geotiff = File(f, name=os.path.basename(mosaic_json_path))
         vol.save()
+
+    logger.info(f"{identifier} | mosaic created: {os.path.basename(mosaic_json_path)}")
