@@ -161,12 +161,26 @@ class Place(models.Model):
             return None
 
     def get_descendants(self):
-
         return Place.objects.filter(direct_parents__id__exact=self.id).order_by("name")
+
+    def get_breadcrumbs(self):
+        breadcrumbs = []
+        p = self
+        while p.direct_parents.all().count() > 0:
+            parent = p.direct_parents.all()[0]
+            par_name = parent.name
+            if parent.category in ("county", "parish", "borough", "census area"):
+                par_name = f"{parent.name} {parent.get_category_display()}"
+            breadcrumbs.append(par_name)
+            p = parent
+        breadcrumbs.reverse()
+        breadcrumbs.append(self.name)
+        return breadcrumbs
 
     def serialize(self):
         return {
             "pk": self.pk,
+            "name": self.name,
             "display_name": self.display_name,
             "category": self.get_category_display(),
             "parents": [{
@@ -182,6 +196,7 @@ class Place(models.Model):
                 "slug": i.slug,
             } for i in self.states],
             "slug": self.slug,
+            "breadcrumbs": self.get_breadcrumbs(),
         }
 
     def save(self, set_slug=True, *args, **kwargs):
@@ -710,6 +725,7 @@ class Volume(models.Model):
             "sorted_layers": self.hydrate_sorted_layers(),
             "multimask": self.multimask,
             "extent": self.extent,
+            "locale": self.locale.serialize(),
         }
 
         if include_session_info:

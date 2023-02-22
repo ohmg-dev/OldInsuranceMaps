@@ -24,6 +24,7 @@ import Utils from './js/ol-utils';
 const utils = new Utils();
 
 import TitleBar from "../../../georeference/components/src/TitleBar.svelte"
+import PlaceSelect from "./PlaceSelect.svelte"
 
 export let VOLUME;
 export let OTHER_VOLUMES;
@@ -335,6 +336,7 @@ const sideLinks = [
 </div>
 <main>
 	<TitleBar TITLE={VOLUME.title} BOTTOM_LINKS={OTHER_VOLUMES} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
+	<PlaceSelect VOLUME={VOLUME} />
 	{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && USER_TYPE != 'anonymous' && !sheetsLoading}
 		<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
 	{/if}

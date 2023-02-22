@@ -15,10 +15,12 @@ from .views import (
     Viewer,
     Browse,
     Participants,
+    PlaceLookup,
 )
 
 urlpatterns += [
     # path('place/<str:place_slug>', PlaceView.as_view(), name='place_view'),
+    path('place-lookup/<str:place_slug>', PlaceLookup.as_view(), name='place_lookup_view'),
     path('viewer/', RedirectView.as_view(pattern_name='browse', permanent=False), name='viewer_base'),
     path('viewer/<str:place_slug>/', Viewer.as_view(), name='viewer'),
     path('browse/', Browse.as_view(), name='browse'),
