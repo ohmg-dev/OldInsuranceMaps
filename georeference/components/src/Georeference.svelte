@@ -136,6 +136,12 @@ const transformations = [
   {id: 'tps', name: 'Thin Plate Spline'},
 ];
 
+let currentTargetProjection = "EPSG:3857"
+const availableProjections = [
+  {id: 'EPSG:3857', name: 'Pseudo Mercator'},
+  {id: 'ESRI:102009', name: 'Lambert North America'},
+];
+
 // generate a uuid, code from here:
 // https://www.cloudhadoop.com/2018/10/guide-to-unique-identifiers-uuid-guid
 function uuid() {
@@ -740,6 +746,7 @@ function process(operation){
   const data = JSON.stringify({
     "gcp_geojson": asGeoJSON(),
     "transformation": currentTransformation,
+    "projection": currentTargetProjection,
     "operation": operation,
     "sesh_id": session_id,
   });
@@ -980,6 +987,17 @@ if (DOCUMENT.layer) {
           </select>
         </label>
       </div>
+      <!--
+      <div>
+        <label style="margin-top:5px;" title="Set georeferencing transformation">
+          Projection:
+          <select class="trans-select" style="width:151px;" bind:value={currentTargetProjection} on:change={() => { process("preview"); }}>
+            {#each availableProjections as proj}
+              <option value={proj.id}>{proj.name}</option>
+            {/each}
+          </select>
+        </label>
+      </div>-->
     </div>
   </nav>
 </div>

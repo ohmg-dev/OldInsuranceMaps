@@ -228,6 +228,7 @@ class GeoreferenceView(View):
         body = json.loads(request.body)
         gcp_geojson = body.get("gcp_geojson", {})
         transformation = body.get("transformation", "poly1")
+        projection = body.get("projection", "EPSG:3857")
         operation = body.get("operation", "preview")
         sesh_id = body.get("sesh_id", None)
 
@@ -243,7 +244,7 @@ class GeoreferenceView(View):
         if operation == "preview":
 
             # prepare Georeferencer object
-            g = Georeferencer(epsg_code=3857)
+            g = Georeferencer(crs_code=projection)
             g.load_gcps_from_geojson(gcp_geojson)
             g.set_transformation(transformation)
             try:
@@ -272,7 +273,11 @@ class GeoreferenceView(View):
 
         if operation == "submit":
 
-            sesh.data['epsg'] = 3857
+            # ultimately, should be putting the whole "EPSG:3857"
+            # in the session data, but for now stick with just the number
+            # see models.sessions.py line 510
+            epsg_code = int(projection.split(":")[1])
+            sesh.data['epsg'] = epsg_code
             sesh.data['gcps'] = gcp_geojson
             sesh.data['transformation'] = transformation
             sesh.save(update_fields=["data"])

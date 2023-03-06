@@ -1,6 +1,7 @@
 import os
 import time
 import logging
+import requests
 from osgeo import gdal, osr, ogr
 
 from io import StringIO
@@ -72,6 +73,22 @@ def get_path_variant(original_path, variant, outdir=None):
     
     return os.path.join(outdir, filename)
 
+def retrieve_srs_wkt(code):
+
+    cache_dir = ".srs_cache"
+    cache_path = os.path.join(cache_dir, f"{code}-wkt.txt")
+    if os.path.isfile(cache_path):
+        with open(cache_path, "r") as o:
+            wkt = o.read()
+    else:
+        url = f"https://epsg.io/{code}.wkt"
+        response = requests.get(url)
+        wkt = response.content.decode("utf-8")
+        # with open(cache_path, "w") as o:
+        #     o.write(wkt)
+
+    return wkt
+
 class Georeferencer(object):
 
     TRANSFORMATIONS = {
@@ -110,11 +127,13 @@ class Georeferencer(object):
     def __init__(self,
             epsg_code=None,
             transformation=None,
+            crs_code=None,
             gdal_gcps=[],
         ):
 
         self.gcps = gdal_gcps
         self.epsg_code = epsg_code
+        self.crs_code = crs_code
         self.transformation = None
         if transformation:
             self.set_transformation(transformation)
@@ -189,7 +208,11 @@ class Georeferencer(object):
     def get_spatial_reference(self):
 
         sr = osr.SpatialReference()
-        sr.ImportFromEPSG(self.epsg_code)
+
+        code = self.crs_code.split(":")[1]
+        wkt = retrieve_srs_wkt(code)
+
+        sr.ImportFromWkt(wkt)
         return sr
 
     def add_overviews(self, image_path):
@@ -233,7 +256,7 @@ class Georeferencer(object):
                 f'MAX_GCP_ORDER={self.transformation["gdal_code"]}',
             ],
             format=output_format,
-            dstSRS=f"EPSG:{self.epsg_code}",
+            dstSRS=f"{self.crs_code}",
             srcNodata=src_nodata,
             dstAlpha=True,
         )
@@ -306,6 +329,30 @@ class Georeferencer(object):
         dst_path = get_path_variant(src_path, "VRT", outdir=output_directory)
 
         self.run_warp(dst_path, vrt_with_gcps, warp_options)
+
+        if self.crs_code != "EPSG:3857":
+            new_path = dst_path.replace(".vrt", "_3857.vrt")
+            src_nodata = None
+            if src_path.endswith(".jpg"):
+                src_nodata = "255 255 255"
+            new_options = gdal.WarpOptions(
+                creationOptions=[
+                    "TILED=YES",
+                    "COMPRESS=DEFLATE",
+                    ## the following is apparently in the COG spec but doesn't work??
+                    # "COPY_SOURCE_OVERVIEWS=YES",
+                ],
+                transformerOptions = [
+                    f'DST_SRS={retrieve_srs_wkt(3857)}',
+                    f'MAX_GCP_ORDER={self.transformation["gdal_code"]}',
+                ],
+                format="VRT",
+                dstSRS=f"EPSG:3857",
+                srcNodata=src_nodata,
+                dstAlpha=True,
+            )
+            gdal.Warp(new_path,dst_path,options=new_options)
+            dst_path = new_path
 
         return dst_path
 
