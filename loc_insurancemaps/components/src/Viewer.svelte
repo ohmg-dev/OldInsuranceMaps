@@ -350,7 +350,7 @@ function MapViewer (elementId) {
                 pixelRatio: 2,
 		view: new View({
 			zoom: 8,
-			minZoom: 14,
+//			minZoom: 14,
 			center: fromLonLat([-92.036, 31.16])
 		})
 	});
