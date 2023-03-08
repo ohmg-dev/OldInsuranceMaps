@@ -32,6 +32,8 @@ import TileLayer from 'ol/layer/Tile';
 import LayerGroup from 'ol/layer/Group';
 import VectorLayer from 'ol/layer/Vector';
 
+import {MouseWheelZoom, defaults} from 'ol/interaction';
+
 import Utils from './js/ol-utils';
 const utils = new Utils();
 
@@ -352,7 +354,12 @@ function MapViewer (elementId) {
 			zoom: 8,
 //			minZoom: 14,
 			center: fromLonLat([-92.036, 31.16])
-		})
+		}),
+		interactions: defaults({mouseWheelZoom: false}).extend([
+			new MouseWheelZoom({
+				constrainResolution: true,
+			}),
+		]),
 	});
 
 	if (homeExtent) {map.getView().fit(homeExtent)}
