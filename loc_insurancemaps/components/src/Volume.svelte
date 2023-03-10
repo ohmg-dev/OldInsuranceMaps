@@ -19,6 +19,7 @@ let layersPresent = VOLUME.items.layers.length > 0;
 // See https://svelte.dev/repl/65c80083b515477784d8128c3655edac?version=3.24.1
 let reinitMap = [{}]
 let showMap = layersPresent
+let showGeoref = true;
 let showUnprepared = VOLUME.status == "initializing...";
 let showPrepared = false;
 let showGeoreferenced = false;
@@ -132,8 +133,7 @@ const sideLinks = [
 		<div class="section-title-bar">
 			<button class="section-toggle-btn" on:click={() => showMap = !showMap} style="">
 				<h2 style="margin-right:10px">Map Overview</h2>
-				<i class="fa {showMap == true ? 'fa-chevron-down' : 'fa-chevron-right'}"></i>
-				<i class="fa {showMap == true ? 'fa-chevron-down' : 'fa-chevron-right'}"></i>
+				<i class="header fa {showMap == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
 			</button>
 		</div>
 		<div class="section-content" style="display:{showMap == true ? 'block' : 'none'};">
@@ -143,213 +143,211 @@ const sideLinks = [
 		</div>
 	</section>
 	<section>
-
-		<div style="display:flex; justify-content:space-between; align-items:center;">
-			<h3>Georeferencing Overview</h3>
-			<div>
-				{#if refreshingLookups}
-				<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
-				{/if}
-				<button class="control-btn" title="Refresh Summary" on:click={() => { postOperation("refresh") }}>
-					<i class="fa fa-refresh" />
-				</button>
-				{#if USER_TYPE != "anonymous"}
-				<button id="repair-button" class="control-btn" title="Repair Summary (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
-					<i class="fa fa-wrench" />
-				</button>
-				{/if}
-			</div>
+		<div class="section-title-bar">
+			<button class="section-toggle-btn" on:click={() => showGeoref = !showGeoref} style="">
+				<h2 style="margin-right:10px">Georeferencing Overview</h2>
+				<i class="header fa {showGeoref == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
+			</button>
 		</div>
-		<div class="sheets-status-bar" style="display:flex; flex-direction: column">
-			<!-- {#if (VOLUME.loaded_by.name != "" && !sheetsLoading) || VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
-				<p><em>{VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.loaded != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}</em></p>
-			{:else if sheetsLoading}
-				<p style="float:left;"><em>Loading sheet {VOLUME.sheet_ct.loaded+1}/{VOLUME.sheet_ct.total}... refresh to update (you can safely leave this page).</em></p>
-				<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
-			{:else if VOLUME.sheet_ct.loaded == 0}
-				<p><em>No sheets loaded yet...</em></p>
-			{/if} -->
-			<div>
-				<p style="float:left;"><em>
-	
-					{#if sheetsLoading}
-					Loading sheet {VOLUME.sheet_ct.loaded+1}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
-					{:else if VOLUME.sheet_ct.loaded == 0}
-					No sheets loaded yet...
-					{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
-					{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
-					{:else}
-					{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}
+		<div class="section-content" style="display:{showGeoref == true ? 'block' : 'none'};">
+			<div style="display:flex; justify-content:space-between; align-items:center;">
+				<div>
+					<em><span>
+						{#if sheetsLoading}
+						Loading sheet {VOLUME.sheet_ct.loaded+1}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
+						{:else if VOLUME.sheet_ct.loaded == 0}
+						No sheets loaded yet...
+						{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
+						{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
+						{:else}
+						{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}
+						{/if}
+					</span></em>
+				</div>
+				<div>
+					{#if refreshingLookups}
+					<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+				{/if}
+				</div>
+				<div>
+					<button class="control-btn" title="Refresh Summary" on:click={() => { postOperation("refresh") }}>
+						<i class="fa fa-refresh" />
+					</button>
+					{#if USER_TYPE != "anonymous"}
+					<button id="repair-button" class="control-btn" title="Repair Summary (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
+						<i class="fa fa-wrench" />
+					</button>
 					{/if}
-				</em></p>
-				{#if sheetsLoading}
-				<div class='lds-ellipsis' style="float:right;"><div></div><div></div><div></div><div></div></div>
-				{/if}
+				</div>
 			</div>
-			<div>
-			<p style="float:left;"><em>
-				{VOLUME.sessions.prep_ct} sheet{#if VOLUME.sessions.prep_ct != 1}s{/if} prepared{#if VOLUME.sessions.prep_ct > 0}&nbsp;by {#each VOLUME.sessions.prep_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.prep_contributors.length-1}, {/if}{/each}{/if}
-			</em></p></div>
-			<div><p><em>
-				{VOLUME.sessions.georef_ct} georeferencing session{#if VOLUME.sessions.georef_ct != 1}s{/if}{#if VOLUME.sessions.georef_ct > 0}&nbsp;by 
-				{#each VOLUME.sessions.georef_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.georef_contributors.length-1}, {/if}{/each}{/if}
-			</em></p></div>
-		</div>
-	
-		{#if USER_TYPE == 'anonymous' }
-		<div class="signin-reminder">
-		<p><em>
-			<!-- svelte-ignore a11y-invalid-attribute -->
-			<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
-			<a href="/account/signup">sign up</a> to work on this content
-		</em></p>
-		</div>
-		{/if}
-		<div class="documents-box">
-			<h4 class="section-toggle" on:click={() => showUnprepared = !showUnprepared}>
-				<i class="fa {showUnprepared == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
-				Unprepared ({VOLUME.items.unprepared.length})
-				{#if VOLUME.items.processing.unprep != 0}
-					&mdash; {VOLUME.items.processing.unprep} in progress...
+			{#if USER_TYPE == 'anonymous' }
+			<div class="signin-reminder">
+			<p><em>
+				<!-- svelte-ignore a11y-invalid-attribute -->
+				<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+				<a href="/account/signup">sign up</a> to work on this content
+			</em></p>
+			</div>
+			{/if}
+			<section class="subsection">
+				<div class="subsection-title-bar">
+					<button class="section-toggle-btn" on:click={() => showUnprepared = !showUnprepared} style="">
+						<h3 style="margin-right:10px">
+							Unprepared ({VOLUME.items.unprepared.length})
+							{#if VOLUME.items.processing.unprep != 0}
+								&mdash; {VOLUME.items.processing.unprep} in progress...
+							{/if}
+						</h3>
+						<i class="subheader fa {showUnprepared == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
+					</button>
+				</div>
+				{#if showUnprepared}
+				<div transition:slide>
+					<p>Unprepared sheets need to be evaluated, and, if they contain more than one mapped area, split into separate pieces.</p>
+					{#if VOLUME.items.unprepared.length == 0}
+						<p><em>
+						{#if VOLUME.sheet_ct.loaded == 0} <!-- this means they have been loaded already -->
+						Sheets will appear here as they are loaded.
+						{:else}
+						All sheets have been prepared.
+						{/if}
+						</em></p>
+					{:else}
+					<p><em>Choose a sheet and click <strong>prepare &rarr;</strong> to start the process.</em></p>
+					<div class="documents-column">
+						{#each VOLUME.items.unprepared as document}
+						<div class="document-item">
+							<div><p><a href={document.urls.resource} title={document.title}>Sheet {document.page_str}</a></p></div>
+							<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
+							<div>
+								{#if document.lock_enabled}
+								<ul style="text-align:center">
+									<li><em>preparation in progress.</em></li>
+									<li><em>user: {document.lock_details.user.name}</em></li>
+								</ul>
+								{:else}
+								<ul>
+									<li><a href={document.urls.split} title="Prepare this document">prepare &rarr;</a></li>
+								</ul>
+								{/if}
+							</div>
+						</div>
+						{/each}
+					</div>
+					{/if}
+				</div>
 				{/if}
-			</h4>
-			{#if showUnprepared}
-			<div transition:slide>
-				<p>Unprepared sheets need to be evaluated, and, if they contain more than one mapped area, split into separate pieces.</p>
-				{#if VOLUME.items.unprepared.length == 0}
+			</section>
+			<section class="subsection">
+				<div class="subsection-title-bar">
+					<button class="section-toggle-btn" on:click={() => showPrepared = !showPrepared} style="">
+						<h3 style="margin-right:10px">Prepared ({VOLUME.items.prepared.length})</h3>
+						<i class="subheader fa {showPrepared == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
+					</button>
+				</div>
+				{#if showPrepared}
+				<div transition:slide>
+					<p>Once a sheet has been prepared it is ready to be georeferenced.</p>
+					{#if VOLUME.items.prepared.length == 0}
+						<p><em>Documents will accumulate here when they are ready to be georeferenced.</em></p>
+					{:else}
+					<p><em>Choose a document and click <strong>georeference &rarr;</strong> to start the process.</em></p>
+					<div class="documents-column">
+						{#each VOLUME.items.prepared as document}
+						<div class="document-item">
+							<div><p><a href={document.urls.resource} title={document.title}>{document.title}</a></p></div>
+							<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
+							<div>
+								{#if document.lock && document.lock.enabled}
+								<ul style="text-align:center">
+									<li><em>session in progress...</em></li>
+									<li>{document.lock.username}</li>
+								</ul>
+								{:else}
+								<ul>
+									<li><a href="{document.urls.georeference}?{referenceLayersParam()}" title="georeference this document">georeference &rarr;</a></li>
+								</ul>
+								{/if}
+							</div>
+						</div>
+						{/each}
+					</div>
+					{/if}
+				</div>
+				{/if}
+			</section>
+			<section class="subsection" style="border-bottom:none;">
+				<div class="subsection-title-bar">
+					<button class="section-toggle-btn" on:click={() => showGeoreferenced = !showGeoreferenced} style="">
+						<h3 style="margin-right:10px">Georeferenced ({VOLUME.items.layers.length})</h3>
+						<i class="subheader fa {showGeoreferenced == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
+					</button>
+				</div>
+				{#if showGeoreferenced}
+				<div transition:slide>
+					<p>Georeferenced documents are represented here as layers.</p>
+					{#if VOLUME.items.layers.length == 0}
+					<p><em>Layers will accumulate here as documents are georeferenced.</em></p>
+					{:else}
 					<p><em>
-					{#if VOLUME.sheet_ct.loaded == 0} <!-- this means they have been loaded already -->
-					Sheets will appear here as they are loaded.
-					{:else}
-					All sheets have been prepared.
-					{/if}
+						Use <strong>Set Key Map</strong> to designate which layers show the <strong>key map</strong> for this volume (if applicable).
 					</em></p>
-				{:else}
-				<p><em>Choose a sheet and click <strong>prepare &rarr;</strong> to start the process.</em></p>
-				<div class="documents-column">
-					{#each VOLUME.items.unprepared as document}
-					<div class="document-item">
-						<div><p><a href={document.urls.resource} title={document.title}>Sheet {document.page_str}</a></p></div>
-						<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
-						<div>
-							{#if document.lock_enabled}
-							<ul style="text-align:center">
-								<li><em>preparation in progress.</em></li>
-								<li><em>user: {document.lock_details.user.name}</em></li>
-							</ul>
-							{:else}
-							<ul>
-								<li><a href={document.urls.split} title="Prepare this document">prepare &rarr;</a></li>
-							</ul>
-							{/if}
-						</div>
+					{#if USER_TYPE != 'anonymous'}
+					<div style="margin-top:10px; margin-bottom:10px;">
+						{#if VOLUME.items.layers.length > 0 && !settingKeyMapLayer}
+						<button on:click={() => settingKeyMapLayer = !settingKeyMapLayer}>Set Key Map</button>
+						{/if}
+						{#if settingKeyMapLayer}
+						<button on:click={() => { settingKeyMapLayer = false; postOperation("set-index-layers"); }}>Save</button>
+						<button on:click={() => { settingKeyMapLayer = false; }}>Cancel</button>
+						{/if}
 					</div>
-					{/each}
-				</div>
-				{/if}
-			</div>
-			{/if}
-			<hr class="hr-dashed">
-			<h4 class="section-toggle" on:click={() => showPrepared = !showPrepared}>
-				<i class="fa {showPrepared == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
-				Prepared ({VOLUME.items.prepared.length})
-				{#if VOLUME.items.processing.prep != 0}
-					&mdash; {VOLUME.items.processing.prep} processing...
-				{/if}
-			</h4>
-			{#if showPrepared}
-			<div transition:slide>
-				<p>Once a sheet has been prepared it is ready to be georeferenced.</p>
-				{#if VOLUME.items.prepared.length == 0}
-					<p><em>Documents will accumulate here when they are ready to be georeferenced.</em></p>
-				{:else}
-				<p><em>Choose a document and click <strong>georeference &rarr;</strong> to start the process.</em></p>
-				<div class="documents-column">
-					{#each VOLUME.items.prepared as document}
-					<div class="document-item">
-						<div><p><a href={document.urls.resource} title={document.title}>{document.title}</a></p></div>
-						<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
-						<div>
-							{#if document.lock && document.lock.enabled}
-							<ul style="text-align:center">
-								<li><em>session in progress...</em></li>
-								<li>{document.lock.username}</li>
-							</ul>
-							{:else}
-							<ul>
-								<li><a href="{document.urls.georeference}?{referenceLayersParam()}" title="georeference this document">georeference &rarr;</a></li>
-							</ul>
-							{/if}
-						</div>
-					</div>
-					{/each}
-				</div>
-				{/if}
-			</div>
-			{/if}
-			<hr class="hr-dashed">
-			<h4 class="section-toggle" on:click={() => showGeoreferenced = !showGeoreferenced}>
-				<i class="fa {showGeoreferenced == true ? 'fa-chevron-down' : 'fa-chevron-right'}" ></i>
-				Georeferenced ({VOLUME.items.layers.length})
-				{#if VOLUME.items.processing.geo_trim != 0}
-					&mdash; {VOLUME.items.processing.geo_trim} processing...
-				{/if}
-			</h4>
-			{#if showGeoreferenced}
-			<div transition:slide>
-				<p>Georeferenced documents are represented here as layers.</p>
-				{#if VOLUME.items.layers.length == 0}
-				<p><em>Layers will accumulate here as documents are georeferenced.</em></p>
-				{:else}
-				<p><em>
-					Click <strong>trim &rarr;</strong> to add a mask polygon and trim the edges of a layer.<br>
-					Click <strong>Create Key Map</strong> to designate which layers show the <strong>key map</strong> for this volume (if applicable).
-				</em></p>
-				{#if USER_TYPE != 'anonymous'}
-				<div style="margin-top:10px; margin-bottom:10px;">
-					{#if VOLUME.items.layers.length > 0 && !settingKeyMapLayer}
-					<button on:click={() => settingKeyMapLayer = !settingKeyMapLayer}>Create Key Map</button>
 					{/if}
-					{#if settingKeyMapLayer}
-					<button on:click={() => { settingKeyMapLayer = false; postOperation("set-index-layers"); }}>Save</button>
-					<button on:click={() => { settingKeyMapLayer = false; }}>Cancel</button>
+					<div class="documents-column">
+						{#each VOLUME.items.layers as layer}
+						<div class="document-item">
+							<div><p><a href={layer.urls.resource} title={layer.title}>{layer.title}</a></p></div>
+							<a href={layer.urls.view} target="_blank" title="inspect layer in standalone map" style="cursor:zoom-in">
+								<img src={layer.urls.thumbnail} alt={document.title}>
+							</a>
+							<div>
+								{#if layer.lock && layer.lock.enabled}
+								<ul style="text-align:center">
+									<li><em>session in progress...</em></li>
+									<li>{layer.lock.username}</li>
+								</ul>
+								{:else}
+								<ul>
+									<li><a href="{layer.urls.georeference}?{referenceLayersParam()}" title="edit georeferencing">edit georeferencing &rarr;</a></li>
+									<!-- link for OHM editor with this layer as basemap -->
+									<!-- layers returning 400 7/14/2022, disabling for now -->
+									<!-- <li><a href={layer.urls.ohm_edit} title="open in OHM editor" target="_blank">OHM &rarr;</a></li> -->
+								</ul>
+								{/if}
+								{#if settingKeyMapLayer}
+								<label>
+									<input type=checkbox bind:group={mapIndexLayerIds} value={layer.slug}> Use layer in Key Map
+								</label>
+								{/if}
+							</div>
+						</div>
+						{/each}
+					</div>
 					{/if}
 				</div>
 				{/if}
-				<div class="documents-column">
-					{#each VOLUME.items.layers as layer}
-					<div class="document-item">
-						<div><p><a href={layer.urls.resource} title={layer.title}>{layer.title}</a></p></div>
-						<a href={layer.urls.view} target="_blank" title="inspect layer in standalone map" style="cursor:zoom-in">
-							<img src={layer.urls.thumbnail} alt={document.title}>
-						</a>
-						<div>
-							{#if layer.lock && layer.lock.enabled}
-							<ul style="text-align:center">
-								<li><em>session in progress...</em></li>
-								<li>{layer.lock.username}</li>
-							</ul>
-							{:else}
-							<ul>
-								<li><a href="{layer.urls.georeference}?{referenceLayersParam()}" title="edit georeferencing">edit georeferencing &rarr;</a></li>
-								<!-- link for OHM editor with this layer as basemap -->
-								<!-- layers returning 400 7/14/2022, disabling for now -->
-								<!-- <li><a href={layer.urls.ohm_edit} title="open in OHM editor" target="_blank">OHM &rarr;</a></li> -->
-							</ul>
-							{/if}
-							{#if settingKeyMapLayer}
-							<label>
-								<input type=checkbox bind:group={mapIndexLayerIds} value={layer.slug}> Use layer in Key Map
-							</label>
-							{/if}
-						</div>
-					</div>
-					{/each}
-				</div>
-				{/if}
-			</div>
-			{/if}
+			</section>
 		</div>
+	</section>
+	<section>
+		<div>
+		<p style="float:left;"><em>
+			{VOLUME.sessions.prep_ct} sheet{#if VOLUME.sessions.prep_ct != 1}s{/if} prepared{#if VOLUME.sessions.prep_ct > 0}&nbsp;by {#each VOLUME.sessions.prep_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.prep_contributors.length-1}, {/if}{/each}{/if}
+		</em></p></div>
+		<div><p><em>
+			{VOLUME.sessions.georef_ct} georeferencing session{#if VOLUME.sessions.georef_ct != 1}s{/if}{#if VOLUME.sessions.georef_ct > 0}&nbsp;by 
+			{#each VOLUME.sessions.georef_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.georef_contributors.length-1}, {/if}{/each}{/if}
+		</em></p></div>
 	</section>
 </main>
 
@@ -363,6 +361,10 @@ section {
 	border-bottom: 1px solid rgb(149, 149, 149);
 }
 
+section.subsection {
+	border-bottom: 1px dashed rgb(149, 149, 149);
+}
+
 button.section-toggle-btn {
 	display: flex;
 	justify-content: space-between;
@@ -370,6 +372,10 @@ button.section-toggle-btn {
 	background: none;
 	border: none;
 	color: #2c689c;
+	padding: 0;
+}
+i.header {
+	font-size: 1.5em;
 }
 
 button.section-toggle-btn:hover {
@@ -378,6 +384,14 @@ button.section-toggle-btn:hover {
 
 button.section-toggle-btn > h2 {
 	font-size: 1.6em;
+}
+
+button.section-toggle-btn > h3 {
+	font-size: 1.3em;
+	margin-top: 15px;
+}
+i.subheader {
+	font-size: 1.3em;
 }
 
 h4.section-toggle {
