@@ -5,6 +5,9 @@ import TitleBar from "../../../georeference/components/src/TitleBar.svelte";
 import PlaceSelect from "./PlaceSelect.svelte";
 import VolumePreviewMap from "./VolumePreviewMap.svelte";
 
+import Utils from './js/ol-utils';
+const utils = new Utils();
+
 export let VOLUME;
 export let OTHER_VOLUMES;
 export let CSRFTOKEN;
@@ -23,6 +26,8 @@ let showGeoref = true;
 let showUnprepared = VOLUME.status == "initializing...";
 let showPrepared = false;
 let showGeoreferenced = false;
+let showMultimask = false;
+let showDownload = true;
 
 let refreshingLookups = false;
 
@@ -99,6 +104,15 @@ function postOperation(operation) {
 	});
 }
 
+let mmLbl = "0/0";
+if (VOLUME.multimask != undefined) {
+	mmLbl = `${Object.keys(VOLUME.multimask).length}/${VOLUME.items.layers.length}`;
+}
+let mosaicUrl = '<not available>';
+if (VOLUME.urls.mosaic) {
+	mosaicUrl = utils.makeTitilerXYZUrl(TITILER_HOST, VOLUME.urls.mosaic)
+}
+
 let settingKeyMapLayer = false;
 
 const sideLinks = [
@@ -107,11 +121,6 @@ const sideLinks = [
 		url: VOLUME.urls.viewer,
 		external: true,
 	},
-	{
-		display: "Open in Library of Congress",
-		url: VOLUME.urls.loc_resource,
-		external: true,
-	}
 ]
 
 </script>
@@ -131,7 +140,7 @@ const sideLinks = [
 	{/if}
 	<section>
 		<div class="section-title-bar">
-			<button class="section-toggle-btn" on:click={() => showMap = !showMap} style="">
+			<button class="section-toggle-btn" disabled={VOLUME.items.layers.length == 0} on:click={() => showMap = !showMap} style="">
 				<h2 style="margin-right:10px">Map Overview</h2>
 				<i class="header fa {showMap == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
 			</button>
@@ -198,7 +207,7 @@ const sideLinks = [
 								&mdash; {VOLUME.items.processing.unprep} in progress...
 							{/if}
 						</h3>
-						<i class="subheader fa {showUnprepared == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
+						<i class="subheader fa {showUnprepared == true ? 'fa-angle-down' : 'fa-angle-right'}"></i>
 					</button>
 				</div>
 				{#if showUnprepared}
@@ -242,7 +251,7 @@ const sideLinks = [
 				<div class="subsection-title-bar">
 					<button class="section-toggle-btn" on:click={() => showPrepared = !showPrepared} style="">
 						<h3 style="margin-right:10px">Prepared ({VOLUME.items.prepared.length})</h3>
-						<i class="subheader fa {showPrepared == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
+						<i class="subheader fa {showPrepared == true ? 'fa-angle-down' : 'fa-angle-right'}"></i>
 					</button>
 				</div>
 				{#if showPrepared}
@@ -276,11 +285,11 @@ const sideLinks = [
 				</div>
 				{/if}
 			</section>
-			<section class="subsection" style="border-bottom:none;">
+			<section class="subsection">
 				<div class="subsection-title-bar">
 					<button class="section-toggle-btn" on:click={() => showGeoreferenced = !showGeoreferenced} style="">
-						<h3 style="margin-right:10px">Georeferenced ({VOLUME.items.layers.length})</h3>
-						<i class="subheader fa {showGeoreferenced == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
+						<a id="georeferenced"><h3 style="margin-right:10px">Georeferenced ({VOLUME.items.layers.length})</h3></a>
+						<i class="subheader fa {showGeoreferenced == true ? 'fa-angle-down' : 'fa-angle-right'}"></i>
 					</button>
 				</div>
 				{#if showGeoreferenced}
@@ -322,6 +331,12 @@ const sideLinks = [
 									<!-- link for OHM editor with this layer as basemap -->
 									<!-- layers returning 400 7/14/2022, disabling for now -->
 									<!-- <li><a href={layer.urls.ohm_edit} title="open in OHM editor" target="_blank">OHM &rarr;</a></li> -->
+									<li><strong>Downloads</strong></li>
+									<li>Image: <a href="{layer.urls.document}" title="Download JPEG">JPEG</a>
+										&bullet;&nbsp;<a href="{layer.urls.cog}" title="Download GeoTIFF">GeoTIFF</a>
+									</li>
+									<li>GCPs: <a href="/mrm/{layer.slug}?resource=gcps-geojson" title="Download GCPs as GeoJSON">GeoJSON</a>
+										&bullet;&nbsp;<a href="{layer.urls.cog}" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</a></li>
 								</ul>
 								{/if}
 								{#if settingKeyMapLayer}
@@ -337,17 +352,76 @@ const sideLinks = [
 				</div>
 				{/if}
 			</section>
+			<section class="subsection" style="border-bottom:none;">
+				<div class="subsection-title-bar">
+					<button class="section-toggle-btn" on:click={() => showMultimask = !showMultimask} style="">
+						<h3 style="margin-right:10px">Multimask ({mmLbl})</h3>
+						<i class="subheader fa {showMultimask == true ? 'fa-angle-down' : 'fa-angle-right'}"></i>
+					</button>
+				</div>
+				{#if showMultimask}
+				<div transition:slide>
+					<p>
+					{#if !VOLUME.multimask}
+						No multimask has been created yet for this volume.
+					{/if}
+					</p>
+					<a href={VOLUME.urls.trim}>{#if VOLUME.multimask}Edit{:else}Create{/if} Multimask</a>
+				</div>
+				{/if}
+			</section>
 		</div>
 	</section>
 	<section>
-		<div>
-		<p style="float:left;"><em>
-			{VOLUME.sessions.prep_ct} sheet{#if VOLUME.sessions.prep_ct != 1}s{/if} prepared{#if VOLUME.sessions.prep_ct > 0}&nbsp;by {#each VOLUME.sessions.prep_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.prep_contributors.length-1}, {/if}{/each}{/if}
-		</em></p></div>
-		<div><p><em>
-			{VOLUME.sessions.georef_ct} georeferencing session{#if VOLUME.sessions.georef_ct != 1}s{/if}{#if VOLUME.sessions.georef_ct > 0}&nbsp;by 
-			{#each VOLUME.sessions.georef_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.georef_contributors.length-1}, {/if}{/each}{/if}
-		</em></p></div>
+		<div class="section-title-bar">
+			<button class="section-toggle-btn" on:click={() => showDownload = !showDownload}>
+				<h2 style="margin-right:10px">Download & Web Services</h2>
+				<i class="header fa {showDownload == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
+			</button>
+		</div>
+		<div class="section-content" style="display:{showDownload == true ? 'block' : 'none'};">
+			<section class="subsection">
+				<p style="font-size:.9em;"><em>
+					Only layers that have been trimmed in the Multimask will appear in the mosaic.
+				</em></p>
+			</section>
+			<section class="subsection" style="padding-top:15px;">
+				<p>GeoTIFF mosaic downloads of this entire volume are available <a href="https://about.oldinsurancemaps.net/contact/">upon request</a>. Untrimmed individual layers can be downloaded as GeoTIFFs through the <a href="#georeferenced">Georeferenced</a> section above.</p>
+			</section>
+			<section class="subsection" style="padding-top:15px; border-bottom:none;">
+				<p>XYZ Tiles URL</p>
+				{#if !VOLUME.urls.mosaic}
+				<p style="font-size:.9em; color:red;"><em>
+					A mosaic endpoint has not yet been generated for this volume. You can get an XYZ endpoint for each individual layer in the <a href="#georeferenced">Georeferenced</a> section above.
+				</em></p>
+				{:else}
+				<pre>{mosaicUrl}</pre>
+				{/if}
+				<p>Here is documentation for how to use this URL in:
+					<a href="https://leafletjs.com/reference.html#tilelayer">Leaflet</a>,
+					<a href="https://openlayers.org/en/latest/examples/xyz.html">OpenLayers</a>,
+					<a href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/">Mapbox/MapLibre GL JS</a>,
+					<a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
+					<a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
+				</p>
+			</section>
+		</div>
+	</section>
+	<section style="border-bottom:none;">
+		<div class="section-title-bar">
+			<h2 style="margin-right:10px">Contributors & Attribution</h2>
+		</div>
+		<div class="section-content" style="display:flex'; flex-direction:column;">
+			<p>
+				{VOLUME.sessions.prep_ct} sheet{#if VOLUME.sessions.prep_ct != 1}s{/if} prepared{#if VOLUME.sessions.prep_ct > 0}&nbsp;by 
+				{#each VOLUME.sessions.prep_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.prep_contributors.length-1}, {/if}{/each}{/if}
+				<br>
+				{VOLUME.sessions.georef_ct} georeferencing session{#if VOLUME.sessions.georef_ct != 1}s{/if}{#if VOLUME.sessions.georef_ct > 0}&nbsp;by 
+				{#each VOLUME.sessions.georef_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.georef_contributors.length-1}, {/if}{/each}{/if}
+			</p>
+			<p><strong>Credit Line: Library of Congress, Geography and Map Division, Sanborn Maps Collection.</strong>
+			<a href="{VOLUME.urls.loc_resource}" target="_blank">View on loc.gov <i class="fa fa-external-link"></i></a></p>
+		</div>
 	</section>
 </main>
 
@@ -355,6 +429,15 @@ const sideLinks = [
 
 main { 
 	margin-bottom: 10px;
+}
+
+h2 {
+	font-size: 1.6em;
+}
+
+h3 {
+	font-size: 1.3em;
+	margin-top: 15px;
 }
 
 section {
@@ -377,58 +460,18 @@ button.section-toggle-btn {
 i.header {
 	font-size: 1.5em;
 }
+i.subheader {
+	font-size: 1.3em;
+}
 
 button.section-toggle-btn:hover {
 	color: #1b4060;
 }
 
-button.section-toggle-btn > h2 {
-	font-size: 1.6em;
+button.section-toggle-btn:disabled {
+	color: grey;
 }
 
-button.section-toggle-btn > h3 {
-	font-size: 1.3em;
-	margin-top: 15px;
-}
-i.subheader {
-	font-size: 1.3em;
-}
-
-h4.section-toggle {
-	cursor: pointer;
-	color: #2c689c;
-}
-h4.section-toggle:hover {
-	color: #1b4060;
-}
-h4.section-toggle > i {
-	font-size: .75em
-}
-
-.section-content {
-	padding-bottom: 15px;
-}
-
-hr {
-	margin-top: 15px;
-	margin-bottom: 15px;
-}
-
-hr.hr-dashed {
-	border-top: 1px dashed rgb(149, 149, 149);
-	margin: 15px 0px;
-}
-
-.sheets-status-bar {
-	width: 100%;
-	display: inline-block;
-	vertical-align: middle;
-	font-size: .9em;
-}
-
-.sheets-status-bar p {
-	margin: 0px;
-}
 
 .documents-column {
 	display: flex;

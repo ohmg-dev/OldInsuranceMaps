@@ -293,20 +293,10 @@ document.addEventListener("fullscreenchange", function(){
 				{/if}
 			</div>
 		</div>
-		<nav>
-			<a href={VOLUME.urls.trim}>Trim Layers</a>
-		</nav>
 	</div>
 </div>
 
 <style>
-
-nav {
-	display: flex;
-	justify-content: center;
-	background: rgb(235, 235, 235);
-	padding: 5px;
-}
 
 i.help-icon {
 	cursor: pointer;
