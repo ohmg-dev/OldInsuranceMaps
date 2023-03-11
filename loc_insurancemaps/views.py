@@ -502,6 +502,7 @@ def get_layer_mrm_urls(layerid):
         "geotiff": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=geotiff",
         "jpg": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=jpg",
         "points": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=points",
+        "gcps-geojson": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=gcps-geojson",
     }
 
 class MRMEndpointList(View):
@@ -534,6 +535,9 @@ class MRMEndpointLayer(View):
                     response['Content-Disposition'] = f'inline; filename={layerid}.tiff'
                     return response
             raise Http404
+
+        elif item == "gcps-geojson":
+            return JsonResponse(layer.get_document().gcp_group.as_geojson)
 
         elif item == "points":
             content = layer.get_document().gcp_group.as_points_file()
