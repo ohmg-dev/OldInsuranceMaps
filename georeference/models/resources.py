@@ -684,7 +684,7 @@ class Layer(ItemBase):
     @property
     def urls(self):
         urls = self._base_urls
-        georef_url = self.get_document().urls['georeference']
+        doc = self.get_document()
         urls.update({
             "resource": full_reverse("resource_detail", args=(self.pk, )),
             # remove detail and progress_page urls once InfoPanel has been fully 
@@ -695,8 +695,12 @@ class Layer(ItemBase):
             "progress_page": f"/layers/geonode:{self.pk}#georeference" if self.slug else "",
             # redundant, I know, but a patch for now
             "cog": settings.MEDIA_HOST.rstrip("/") + urls['image'],
-            "georeference": georef_url,
         })
+        if doc is not None:
+            urls.update({
+                "georeference": doc.urls['georeference'],
+                "document": doc.urls['image'],
+            })
         return urls
 
     def get_sessions(self, serialize=False):
