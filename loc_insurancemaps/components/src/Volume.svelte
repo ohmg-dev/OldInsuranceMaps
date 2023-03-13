@@ -114,10 +114,10 @@ let mosaicUrl;
 let ohmUrl;
 if (VOLUME.urls.mosaic) {
 	mosaicUrl = utils.makeTitilerXYZUrl(TITILER_HOST, VOLUME.urls.mosaic)
-
 	// make the OHM url here
+	const mosaicUrlEncoded = utils.makeTitilerXYZUrl(TITILER_HOST, VOLUME.urls.mosaic, true)
 	const ll = getCenter(VOLUME.extent);
-	ohmUrl = `https://www.openhistoricalmap.org/edit#map=15/${ll[1]}/${ll[0]}?background=custom:${mosaicUrl}`
+	ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}?background=custom:${mosaicUrlEncoded}`
 }
 
 let settingKeyMapLayer = false;
@@ -393,10 +393,11 @@ const sideLinks = [
 				</em></p>
 			</section>
 			<section class="subsection" style="padding-top:15px;">
-				<p>GeoTIFF mosaic downloads of this entire volume are available <a href="https://about.oldinsurancemaps.net/contact/">upon request</a>. Untrimmed individual layers can be downloaded as GeoTIFFs through the <a href="#georeferenced">Georeferenced</a> section above.</p>
+				<p><strong>GeoTIFF</strong> mosaic downloads of this entire volume are available <a href="https://about.oldinsurancemaps.net/contact/">upon request</a>.
+					<br>Untrimmed individual layers can be downloaded as GeoTIFFs through the <a href="#georeferenced">Georeferenced</a> section above.</p>
 			</section>
 			<section class="subsection" style="padding-top:15px; border-bottom:none;">
-				<p>XYZ Tiles URL</p>
+				<p><strong>XYZ Tiles URL</strong></p>
 				{#if !VOLUME.urls.mosaic}
 				<p style="font-size:.9em; color:red;"><em>
 					A mosaic endpoint has not yet been generated for this volume. You can get an XYZ endpoint for each individual layer in the <a href="#georeferenced">Georeferenced</a> section above.
@@ -409,6 +410,7 @@ const sideLinks = [
 					<a href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/">Mapbox/MapLibre GL JS</a>,
 					<a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
 					<a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
+					<br>You can also open this mosaic directly in the <a href="{ohmUrl}" alt="Open mosaic in OHM Editor" target="_blank">Open Historical Map editor <i class="fa fa-external-link"></i></a>.
 				</p>
 				{/if}
 				<p><em>If you appreciate these resources, please consider <a href="/#support">supporting this project</a>.</em></p>
