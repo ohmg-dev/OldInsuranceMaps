@@ -396,7 +396,6 @@ const sideLinks = [
 				</em></p>
 				{:else}
 				<pre>{mosaicUrl}</pre>
-				{/if}
 				<p>Here is documentation for how to use this URL in:
 					<a href="https://leafletjs.com/reference.html#tilelayer">Leaflet</a>,
 					<a href="https://openlayers.org/en/latest/examples/xyz.html">OpenLayers</a>,
@@ -404,6 +403,8 @@ const sideLinks = [
 					<a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
 					<a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
 				</p>
+				{/if}
+				<p><em>If you appreciate these resources, please consider <a href="/#support">supporting this project</a>.</em></p>
 			</section>
 		</div>
 	</section>

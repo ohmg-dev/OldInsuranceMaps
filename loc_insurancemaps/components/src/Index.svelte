@@ -94,7 +94,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 	<div>
 		<h3 id="support">Support this project</h3>
 		<div style="font-size:.9em;">
-			<p>If you'd like to help with this site's (relatively modest) hosting costs you can do so here: <a href="https://paypal.me/oldinsurancemaps">paypal.me/oldinsurancemaps</a>. Be sure to add a note if you want to support development on specific aspects of the site, or sponsor the addition of more volumes. Thanks!</p>
+			<p>If you'd like to help with the (relatively modest) hosting costs and continued development of this site, you can do so here: <a href="https://paypal.me/oldinsurancemaps">paypal.me/oldinsurancemaps</a>. Be sure to add a note if you want to support development on specific aspects of the site, or sponsor the addition of more volumes. Thanks!</p>
 		</div>
 		<hr>
 		<h3 id="support">Some thank yous...</h3>
