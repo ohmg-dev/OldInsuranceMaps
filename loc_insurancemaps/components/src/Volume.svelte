@@ -1,6 +1,8 @@
 <script>
 import { slide } from 'svelte/transition';
 
+import {getCenter} from 'ol/extent';
+
 import TitleBar from "../../../georeference/components/src/TitleBar.svelte";
 import PlaceSelect from "./PlaceSelect.svelte";
 import VolumePreviewMap from "./VolumePreviewMap.svelte";
@@ -108,9 +110,14 @@ let mmLbl = "0/0";
 if (VOLUME.multimask != undefined) {
 	mmLbl = `${Object.keys(VOLUME.multimask).length}/${VOLUME.items.layers.length}`;
 }
-let mosaicUrl = '<not available>';
+let mosaicUrl;
+let ohmUrl;
 if (VOLUME.urls.mosaic) {
 	mosaicUrl = utils.makeTitilerXYZUrl(TITILER_HOST, VOLUME.urls.mosaic)
+
+	// make the OHM url here
+	const ll = getCenter(VOLUME.extent);
+	ohmUrl = `https://www.openhistoricalmap.org/edit#map=15/${ll[1]}/${ll[0]}?background=custom:${mosaicUrl}`
 }
 
 let settingKeyMapLayer = false;
@@ -336,7 +343,7 @@ const sideLinks = [
 										&bullet;&nbsp;<a href="{layer.urls.cog}" title="Download GeoTIFF">GeoTIFF</a>
 									</li>
 									<li>GCPs: <a href="/mrm/{layer.slug}?resource=gcps-geojson" title="Download GCPs as GeoJSON">GeoJSON</a>
-										&bullet;&nbsp;<a href="{layer.urls.cog}" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</a></li>
+										&bullet;&nbsp;<a href="/mrm/{layer.slug}?resource=points" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</a></li>
 								</ul>
 								{/if}
 								{#if settingKeyMapLayer}
