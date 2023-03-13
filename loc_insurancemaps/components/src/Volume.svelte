@@ -389,7 +389,7 @@ const sideLinks = [
 		<div class="section-content" style="display:{showDownload == true ? 'block' : 'none'};">
 			<section class="subsection">
 				<p style="font-size:.9em;"><em>
-					Only layers that have been trimmed in the Multimask will appear in the mosaic.
+					Only layers that have been trimmed in the Multimask will appear in the mosaic. If you appreciate these resources, please consider <a href="/#support">supporting this project</a>.
 				</em></p>
 			</section>
 			<section class="subsection" style="padding-top:15px;">
@@ -413,7 +413,6 @@ const sideLinks = [
 					<br>You can also open this mosaic directly in the <a href="{ohmUrl}" alt="Open mosaic in OHM Editor" target="_blank">Open Historical Map editor <i class="fa fa-external-link"></i></a>.
 				</p>
 				{/if}
-				<p><em>If you appreciate these resources, please consider <a href="/#support">supporting this project</a>.</em></p>
 			</section>
 		</div>
 	</section>
