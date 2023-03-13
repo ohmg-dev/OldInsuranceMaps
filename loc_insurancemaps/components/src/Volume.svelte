@@ -117,7 +117,7 @@ if (VOLUME.urls.mosaic) {
 	// make the OHM url here
 	const mosaicUrlEncoded = utils.makeTitilerXYZUrl(TITILER_HOST, VOLUME.urls.mosaic, true)
 	const ll = getCenter(VOLUME.extent);
-	ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}?background=custom:${mosaicUrlEncoded}`
+	ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
 }
 
 let settingKeyMapLayer = false;
