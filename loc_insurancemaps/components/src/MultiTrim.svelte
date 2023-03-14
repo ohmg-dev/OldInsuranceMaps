@@ -160,7 +160,7 @@ var extentLayer = new VectorLayer({
 const trimShapeSource = new VectorSource();
 const trimShapeLayer = new VectorLayer({
     source: trimShapeSource,
-    style: styles.polyDraw,
+    style: [styles.mmDraw, styles.vertexPoint],
     zIndex: 1001,
   });
 trimShapeSource.on("addfeature", function(e) {
@@ -181,7 +181,7 @@ function makeModifyInteraction(hitDetection, source, targetElement) {
   const modify = new Modify({
     hitDetection: hitDetection,
     source: source,
-    // style: styles.polyModify,
+    style: styles.mmModify,
   });
 
   modify.on(['modifystart', 'modifyend'], function (e) {
@@ -222,7 +222,7 @@ function MapViewer (elementId) {
   const draw = new Draw({
     source: trimShapeSource,
     type: 'Polygon',
-    style: styles.polyDraw,
+    style: styles.mmDraw,
   });
   map.addInteraction(draw)
 

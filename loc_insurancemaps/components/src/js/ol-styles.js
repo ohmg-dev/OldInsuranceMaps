@@ -3,6 +3,7 @@ import Stroke from 'ol/style/Stroke';
 import Circle from 'ol/style/Circle';
 import Fill from 'ol/style/Fill';
 import RegularShape from 'ol/style/RegularShape';
+import MultiPoint from 'ol/geom/MultiPoint';
 
 const btnBlue = '#2c689c';
 
@@ -10,6 +11,25 @@ const interactionPointer = new Circle({
   fill: new Fill({ color: btnBlue, }),
   stroke: new Stroke({ color: '#ffffff', width: 1, }),
   radius: 5,
+})
+
+const whiteFill = new Fill({
+  color:  "rgba(255,255,255,.6",
+})
+const greenFill = new Fill({
+  color:  "rgba(0,200,100,.6",
+})
+
+const mmVertex = new Circle({
+  radius: 5,
+  fill: whiteFill,
+  stroke: new Stroke({ color: "rgba(0,0,0,.8", width: 2, })
+})
+
+const mmModifyVertex = new Circle({
+  radius: 5,
+  fill: greenFill,
+  stroke: new Stroke({ color: "rgba(0,0,0,.8", width: 2, })
 })
 
 const browseMapCircle = new Style({
@@ -97,6 +117,24 @@ class Styles {
   polyModify = new Style({
     image: interactionPointer,
   });
+
+  mmDraw = new Style({
+    stroke: new Stroke({ color: 'rgba(0,0,0,.5)', width: 2, }),
+    image: mmVertex,
+  });
+
+  mmModify = new Style({
+    image: mmModifyVertex,
+  });
+
+  vertexPoint = new Style({
+    image: mmVertex,
+    geometry: function (feature) {
+      // return the coordinates of the first ring of the polygon
+      const coordinates = feature.getGeometry().getCoordinates()[0];
+      return new MultiPoint(coordinates);
+    },
+  })
 
 } 
 
