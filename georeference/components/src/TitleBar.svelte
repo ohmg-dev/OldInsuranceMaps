@@ -12,7 +12,7 @@
     <div class="icon-box">
         {#each ICON_LINKS as link}
         {#if link.visible}
-        <a href="{link.url}" title={link.alt} style="{link.enabled ? '' : 'cursor:default;'}">
+        <a href="{link.url}" title={link.alt} name={link.alt} style="{link.enabled ? '' : 'cursor:default; pointer-events:none;'}">
             <i class="i-{link.iconClass} i-{link.iconClass}-sm" style="display:block; {link.enabled ? '' : 'background:grey;'}"></i>
         </a>
         {/if}
