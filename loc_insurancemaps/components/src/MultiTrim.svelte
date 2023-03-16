@@ -424,7 +424,6 @@ const iconLinks = [
     <button on:click={() => {process("extend-session")}}>Give me more time!</button>
   </div>
 </div>
-<TitleBar TITLE={VOLUME.title + " - Trim"} BOTTOM_LINKS={[]} SIDE_LINKS={[]} ICON_LINKS={iconLinks} />
 {#if USER_TYPE == "anonymous"}<div><p>Feel free to mess around; you can't save changes unless you are logged in.</p></div>{/if}
 <div class="svelte-component-main">
   <div class="map-container" style="height: calc(100%-35px);">

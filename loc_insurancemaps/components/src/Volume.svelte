@@ -140,11 +140,16 @@ const sideLinks = [
 	</div>
 </div>
 <main>
-	<TitleBar TITLE={VOLUME.title} BOTTOM_LINKS={OTHER_VOLUMES} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
-	<PlaceSelect VOLUME={VOLUME} />
-	{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && USER_TYPE != 'anonymous' && !sheetsLoading}
-		<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
-	{/if}
+	<TitleBar TITLE={VOLUME.title} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
+	<section>
+		<p>
+			{#each OTHER_VOLUMES as link, n}
+            {#if n != 0}&nbsp;&bullet;&nbsp;{/if}
+            {#if link.url}<a href={link.url} title={link.alt ? link.alt : link.display}>{link.display}</a>{:else}{link.display}{/if}
+			{/each}
+			<PlaceSelect VOLUME={VOLUME} />
+        </p>
+	</section>
 	<section>
 		<div class="section-title-bar">
 			<button class="section-toggle-btn" disabled={VOLUME.items.layers.length == 0} on:click={() => showMap = !showMap} style="">
