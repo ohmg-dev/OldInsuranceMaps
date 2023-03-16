@@ -24,13 +24,16 @@ let layersPresent = VOLUME.items.layers.length > 0;
 // This variable is used to trigger a reinit of the VolumePreviewMap component.
 // See https://svelte.dev/repl/65c80083b515477784d8128c3655edac?version=3.24.1
 let reinitMap = [{}]
-let showMap = layersPresent
-let showGeoref = true;
-let showUnprepared = VOLUME.status == "initializing...";
-let showPrepared = false;
-let showGeoreferenced = false;
-let showMultimask = false;
-let showDownload = true;
+
+let hash = window.location.hash.substr(1);
+
+$: showMap = hash == 'preview';
+let showOverview = ['overview', 'unprepared', 'prepared', 'georeferenced', 'multimask'].includes(hash);
+$: showUnprepared = hash == 'unprepared';
+$: showPrepared = hash == 'prepared';
+$: showGeoreferenced = hash == 'georeferenced';
+$: showMultimask = hash == 'multimask';
+$: showDownload = hash == 'download';
 
 let refreshingLookups = false;
 
@@ -131,6 +134,16 @@ const sideLinks = [
 	},
 ]
 
+function setHash(newHash) {
+	if (hash == newHash) { 
+		history.replaceState(null, document.title, window.location.pathname + window.location.search);
+		hash = null
+	} else {
+		history.replaceState(null, document.title, `#${newHash}`);
+		hash = newHash
+	}
+}
+
 </script>
 
 <div id="vModal" class="modal">
@@ -153,27 +166,40 @@ const sideLinks = [
 	</section>
 	<section>
 		<div class="section-title-bar">
-			<button class="section-toggle-btn" disabled={VOLUME.items.layers.length == 0} on:click={() => showMap = !showMap} style="">
-				<h2 style="margin-right:10px">Map Overview</h2>
+			<button class="section-toggle-btn" disabled={VOLUME.items.layers.length == 0} 
+				on:click={() => {setHash('preview')}}>
+				<a id="preview"><h2 style="margin-right:10px">Map Preview</h2></a>
 				<i class="header fa {showMap == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
 			</button>
 		</div>
-		<div class="section-content" style="display:{showMap == true ? 'block' : 'none'};">
+		{#if showMap}
+		<div class="section-content" transition:slide>
+		<!-- <div class="section-content" style="display:{showMap == true ? 'block' : 'none'};"> -->
 			{#each reinitMap as key (key)}
 				<VolumePreviewMap VOLUME={VOLUME} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
 			{/each}
+			<div style="margin-top: 5px;">
+				<p>The preview map shows progress toward a full mosaic of this volume's content.</p>
+			</div>
 		</div>
+		{/if}
 	</section>
 	<section>
 		<div class="section-title-bar">
-			<button class="section-toggle-btn" on:click={() => showGeoref = !showGeoref} style="">
-				<h2 style="margin-right:10px">Georeferencing Overview</h2>
-				<i class="header fa {showGeoref == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
+			<button class="section-toggle-btn" on:click={() => showOverview = !showOverview}>
+				<a id="overview"><h2 style="margin-right:10px">Georeferencing Overview</h2></a>
+				<i class="header fa {showOverview == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
 			</button>
 		</div>
-		<div class="section-content" style="display:{showGeoref == true ? 'block' : 'none'};">
+
+		<!-- <div class="section-content" style="display:{showOverview == true ? 'block' : 'none'};"> -->
+		{#if showOverview}
+		<div transition:slide>
 			<div style="display:flex; justify-content:space-between; align-items:center;">
 				<div>
+					{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && USER_TYPE != 'anonymous' && !sheetsLoading}
+						<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
+					{/if}
 					<em><span>
 						{#if sheetsLoading}
 						Loading sheet {VOLUME.sheet_ct.loaded+1}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
@@ -213,14 +239,16 @@ const sideLinks = [
 			{/if}
 			<section class="subsection">
 				<div class="subsection-title-bar">
-					<button class="section-toggle-btn" on:click={() => showUnprepared = !showUnprepared} style="">
+					<button class="section-toggle-btn" on:click={() => setHash("unprepared")}>
+						<a id="unprepared">
 						<h3 style="margin-right:10px">
 							Unprepared ({VOLUME.items.unprepared.length})
 							{#if VOLUME.items.processing.unprep != 0}
 								&mdash; {VOLUME.items.processing.unprep} in progress...
 							{/if}
-						</h3>
+						</h3></a>
 						<i class="subheader fa {showUnprepared == true ? 'fa-angle-down' : 'fa-angle-right'}"></i>
+						
 					</button>
 				</div>
 				{#if showUnprepared}
@@ -262,8 +290,8 @@ const sideLinks = [
 			</section>
 			<section class="subsection">
 				<div class="subsection-title-bar">
-					<button class="section-toggle-btn" on:click={() => showPrepared = !showPrepared} style="">
-						<h3 style="margin-right:10px">Prepared ({VOLUME.items.prepared.length})</h3>
+					<button class="section-toggle-btn" on:click={() => setHash("prepared")}>
+						<a id="prepared"><h3 style="margin-right:10px">Prepared ({VOLUME.items.prepared.length})</h3></a>
 						<i class="subheader fa {showPrepared == true ? 'fa-angle-down' : 'fa-angle-right'}"></i>
 					</button>
 				</div>
@@ -300,7 +328,7 @@ const sideLinks = [
 			</section>
 			<section class="subsection">
 				<div class="subsection-title-bar">
-					<button class="section-toggle-btn" on:click={() => showGeoreferenced = !showGeoreferenced} style="">
+					<button class="section-toggle-btn" on:click={() => setHash("georeferenced")}>
 						<a id="georeferenced"><h3 style="margin-right:10px">Georeferenced ({VOLUME.items.layers.length})</h3></a>
 						<i class="subheader fa {showGeoreferenced == true ? 'fa-angle-down' : 'fa-angle-right'}"></i>
 					</button>
@@ -367,8 +395,8 @@ const sideLinks = [
 			</section>
 			<section class="subsection" style="border-bottom:none;">
 				<div class="subsection-title-bar">
-					<button class="section-toggle-btn" on:click={() => showMultimask = !showMultimask} style="">
-						<h3 style="margin-right:10px">Multimask ({mmLbl})</h3>
+					<button class="section-toggle-btn" on:click={() => setHash('multimask')}>
+						<a id="multimask"><h3 style="margin-right:10px">Multimask ({mmLbl})</h3></a>
 						<i class="subheader fa {showMultimask == true ? 'fa-angle-down' : 'fa-angle-right'}"></i>
 					</button>
 				</div>
@@ -386,11 +414,15 @@ const sideLinks = [
 				{/if}
 			</section>
 		</div>
+		{/if}
 	</section>
+	
 	<section>
 		<div class="section-title-bar">
-			<button class="section-toggle-btn" on:click={() => showDownload = !showDownload}>
+			<button class="section-toggle-btn" on:click={() => setHash("download")}>
+				<a id="download">
 				<h2 style="margin-right:10px">Download & Web Services</h2>
+				</a>
 				<i class="header fa {showDownload == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
 			</button>
 		</div>
@@ -426,7 +458,7 @@ const sideLinks = [
 	</section>
 	<section style="border-bottom:none;">
 		<div class="section-title-bar">
-			<h2 style="margin-right:10px">Contributors & Attribution</h2>
+			<a id="contributors" class="no-link"><h2 style="margin-right:10px">Contributors & Attribution</h2></a>
 		</div>
 		<div class="section-content" style="display:flex'; flex-direction:column;">
 			<p>
@@ -443,6 +475,15 @@ const sideLinks = [
 </main>
 
 <style>
+
+#preview, #unprepared, #prepared, #georeferenced, #multimask, #download, #contributors {
+  scroll-margin-top: 50px;
+}
+
+a.no-link {
+	color:unset;
+	text-decoration:unset;
+}
 
 main { 
 	margin-bottom: 10px;
@@ -481,11 +522,15 @@ i.subheader {
 	font-size: 1.3em;
 }
 
+button.section-toggle-btn, a {
+	text-decoration: none;
+}
+
 button.section-toggle-btn:hover {
 	color: #1b4060;
 }
 
-button.section-toggle-btn:disabled {
+button.section-toggle-btn:disabled, button.section-toggle-btn:disabled > a {
 	color: grey;
 }
 
