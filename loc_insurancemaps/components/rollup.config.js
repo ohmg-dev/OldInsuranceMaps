@@ -85,7 +85,6 @@ let exportable = [];
   "Volumes",
   "Volume",
   "VolumeSearch",
-  "MultiTrim",
   "Viewer",
   "Browse",
   "Index",

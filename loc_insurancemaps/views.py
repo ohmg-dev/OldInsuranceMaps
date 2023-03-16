@@ -197,33 +197,6 @@ class Browse(View):
 
 class VolumeTrim(View):
 
-    def get(self, request, volumeid):
-
-        volume = get_object_or_404(Volume, pk=volumeid)
-        volume_json = volume.serialize()
-
-        volume_json['sorted_layers']['main'].sort(key=lambda item: item.get("slug"))
-
-        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
-        gs = gs.rstrip("/") + "/"
-        geoserver_ows = f"{gs}ows/"
-
-        context_dict = {
-            "svelte_params": {
-                "TITILER_HOST": settings.TITILER_HOST,
-                "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
-                "VOLUME": volume_json,
-                "CSRFTOKEN": csrf.get_token(request),
-                'USER_TYPE': get_user_type(request.user),
-                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-            }
-        }
-        return render(
-            request,
-            "lc/volume_trim.html",
-            context=context_dict
-        )
-
     def post(self, request, volumeid):
 
         volume = get_object_or_404(Volume, pk=volumeid)

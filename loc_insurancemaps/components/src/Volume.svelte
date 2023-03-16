@@ -6,6 +6,7 @@ import {getCenter} from 'ol/extent';
 import TitleBar from "../../../georeference/components/src/TitleBar.svelte";
 import PlaceSelect from "./PlaceSelect.svelte";
 import VolumePreviewMap from "./VolumePreviewMap.svelte";
+import MultiTrim from "./MultiTrim.svelte";
 
 import Utils from './js/ol-utils';
 const utils = new Utils();
@@ -106,7 +107,7 @@ function postOperation(operation) {
 	});
 }
 
-let mmLbl = "0/0";
+let mmLbl = `0/${VOLUME.items.layers.length}`;
 if (VOLUME.multimask != undefined) {
 	mmLbl = `${Object.keys(VOLUME.multimask).length}/${VOLUME.items.layers.length}`;
 }
@@ -373,12 +374,14 @@ const sideLinks = [
 				</div>
 				{#if showMultimask}
 				<div transition:slide>
-					<p>
-					{#if !VOLUME.multimask}
-						No multimask has been created yet for this volume.
-					{/if}
-					</p>
-					<a href={VOLUME.urls.trim}>{#if VOLUME.multimask}Edit{:else}Create{/if} Multimask</a>
+					<MultiTrim VOLUME={VOLUME}
+						CSRFTOKEN={CSRFTOKEN}
+						USER_TYPE={USER_TYPE}
+						MAPBOX_API_KEY={MAPBOX_API_KEY}
+						TITILER_HOST={TITILER_HOST} />
+					<div style="margin-top: 5px;">
+						<p>Only layers with a mask will be included in MosaicJSON or GeoTIFF mosaic output.</p>
+					</div>
 				</div>
 				{/if}
 			</section>
