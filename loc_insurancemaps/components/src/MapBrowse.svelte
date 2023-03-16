@@ -47,19 +47,6 @@ function MapViewer (elementId) {
 		},
 	});
 
-	// create map
-	const map = new Map({
-		target: targetElement,
-		maxTilesLoading: 50,
-		overlays: [overlay],
-		view: new View({
-			zoom: 7,
-			center: fromLonLat([-92.036, 31.16]),
-		})
-	});
-	// map.getView().fit(transformExtent([-94, 28, -88, 33], "EPSG:4326", "EPSG:3857"))
-
-	// if (homeExtent) {map.getView().fit(homeExtent)}
 	const placeLayer = new VectorLayer({
 		source: new VectorSource({
 			features: new GeoJSON().readFeatures(PLACES_GEOJSON, {
@@ -71,8 +58,19 @@ function MapViewer (elementId) {
 		zIndex: 500,
 	});
 
-	map.addLayer(osmLayer);
-	map.addLayer(placeLayer);
+	// create map
+	const map = new Map({
+		target: targetElement,
+		maxTilesLoading: 50,
+		layers: [osmLayer, placeLayer],
+		overlays: [overlay],
+		// view: new View({
+		// 	zoom: 7,
+		// 	center: fromLonLat([-92.036, 31.16]),
+		// })
+	});
+	map.getView().fit(placeLayer.getSource().getExtent(), {padding: [10,10,10,10]})
+
 
 	map.on('pointermove', function (event) {
 		let hit = false;
