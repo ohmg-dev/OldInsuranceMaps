@@ -352,7 +352,6 @@ function MapViewer (elementId) {
                 pixelRatio: 2,
 		view: new View({
 			zoom: 8,
-//			minZoom: 14,
 			center: fromLonLat([-92.036, 31.16])
 		}),
 		interactions: defaults({mouseWheelZoom: false}).extend([
@@ -362,7 +361,12 @@ function MapViewer (elementId) {
 		]),
 	});
 
-	if (homeExtent) {map.getView().fit(homeExtent)}
+	if (homeExtent) {
+		// temporarily constrain to zoom 14 so the fit won't zoom too far out.
+		map.getView().setMinZoom(14)
+		map.getView().fit(homeExtent)
+		map.getView().setMinZoom(0)
+	}
 
 	volumeIds.forEach(function (vol) {
 		if (volumeLookup[vol].mainLayer) {
