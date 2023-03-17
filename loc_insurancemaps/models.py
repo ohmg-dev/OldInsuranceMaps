@@ -120,7 +120,8 @@ class Place(models.Model):
     direct_parents = models.ManyToManyField("Place")
 
     def __str__(self):
-        return self.display_name
+        name = self.display_name if self.display_name else self.name
+        return name
 
     @property
     def state(self):
