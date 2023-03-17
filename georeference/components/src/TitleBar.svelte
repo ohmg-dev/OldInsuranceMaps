@@ -54,7 +54,6 @@
         align-items: end;
         background: #e6e6e6;
         padding: 10px;
-        margin: 10px;
         box-shadow: gray 0px 0px 5px;
         border-radius: 4px;
     }
@@ -65,7 +64,6 @@
         align-items: center;
         background: #e6e6e6;
         padding: 2px;
-        margin: 10px;
         box-shadow: gray 0px 0px 5px;
         border-radius: 4px;
     }

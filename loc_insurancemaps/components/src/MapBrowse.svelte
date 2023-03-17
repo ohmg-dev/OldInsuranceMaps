@@ -64,12 +64,12 @@ function MapViewer (elementId) {
 		maxTilesLoading: 50,
 		layers: [osmLayer, placeLayer],
 		overlays: [overlay],
-		// view: new View({
-		// 	zoom: 7,
-		// 	center: fromLonLat([-92.036, 31.16]),
-		// })
+		view: new View({
+			zoom: 7,
+			center: fromLonLat([-92.036, 31.16]),
+		})
 	});
-	map.getView().fit(placeLayer.getSource().getExtent(), {padding: [10,10,10,10]})
+	// map.getView().fit(placeLayer.getSource().getExtent(), {padding: [10,10,10,10]})
 
 
 	map.on('pointermove', function (event) {
