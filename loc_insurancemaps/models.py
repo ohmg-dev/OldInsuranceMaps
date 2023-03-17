@@ -14,7 +14,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.core.files import File
-from django.db import models
+from django.db import models, transaction
 from django.db.models import signals
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
@@ -117,6 +117,14 @@ class Place(models.Model):
         blank=True,
         editable=False,
     )
+    volume_count = models.IntegerField(
+        default = 0,
+        help_text="Number of volumes attached to this place",
+    )
+    volume_count_inclusive = models.IntegerField(
+        default = 0,
+        help_text="Number of volumes attached to this place and any of its descendants",
+    )
     direct_parents = models.ManyToManyField("Place")
 
     def __str__(self):
@@ -148,6 +156,9 @@ class Place(models.Model):
                         new_candidates.append(i)
             candidates = new_candidates
         return list(set(states))
+
+    def get_volumes(self):
+        return Volume.objects.filter(locale=self).order_by("year")
 
     # def count_all_descendant_maps(self, descendants=[] count=0):
     #     count += Volume.objects.filter(locale=self).count()
@@ -195,9 +206,6 @@ class Place(models.Model):
         return breadcrumbs
 
     def serialize(self):
-        volumes =  Volume.objects.filter(locale=self).order_by("year").values_list(
-            "identifier", "year", "volume_no"
-        )
         return {
             "pk": self.pk,
             "name": self.name,
@@ -210,7 +218,8 @@ class Place(models.Model):
             "descendants": [{
                 "display_name": i.display_name,
                 "slug": i.slug,
-                # "count": i.count_all_descendant_maps(),
+                "volume_count": i.volume_count,
+                "volume_count_inclusive": i.volume_count_inclusive,
                 # "has_descendant_maps": i.has_descendant_maps if self.has_descendant_maps else False,
             } for i in self.get_descendants()],
             "states": [{
@@ -219,8 +228,13 @@ class Place(models.Model):
             } for i in self.states],
             "slug": self.slug,
             "breadcrumbs": self.get_breadcrumbs(),
-            # "descendent_maps": self.has_descendant_maps,
-            "volumes": [{"identifier": i[0], "year": i[1], "volume_no":i[2]} for i in volumes],
+            "volume_count": self.volume_count,
+            "volume_count_inclusive": self.volume_count_inclusive,
+            "volumes": [{
+                "identifier": i[0],
+                "year": i[1],
+                "volume_no":i[2]
+            } for i in self.get_volumes().values_list("identifier", "year", "volume_no")],
         }
 
     def save(self, set_slug=True, *args, **kwargs):
@@ -516,6 +530,22 @@ class Volume(models.Model):
         self.status = status
         self.save(update_fields=['status'])
         logger.info(f"{self.__str__()} | status: {self.status}")
+
+    def update_place_counts(self):
+
+        with transaction.atomic():
+            if self.locale:
+                self.locale.volume_count += 1
+                self.locale.volume_count_inclusive += 1
+                self.locale.save()
+                parents = self.locale.direct_parents.all()
+                while parents:
+                    new_parents = []
+                    for p in parents:
+                        p.volume_count_inclusive += 1
+                        p.save()
+                        new_parents += list(p.direct_parents.all())
+                    parents = new_parents
 
     def get_all_docs(self):
         all_documents = []

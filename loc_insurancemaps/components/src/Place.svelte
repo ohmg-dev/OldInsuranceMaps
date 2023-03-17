@@ -2,12 +2,30 @@
 export let PLACE;
 
 import TitleBar from "../../../georeference/components/src/TitleBar.svelte";
-console.log(PLACE)
+
+function update(place_slug) {
+	fetch(`/${place_slug}?f=json`, {
+	}).then(response => response.json())
+		.then(result => {
+			PLACE = result;
+			history.replaceState({slug:PLACE.slug}, PLACE.display_name, `/${PLACE.slug}`);
+			document.title = PLACE.display_name;
+	})
+}
+
+$: sideLinks = PLACE.volumes.length > 0 ? [
+		{
+			display: "Open in main viewer",
+			url: `/viewer/${PLACE.slug}/`,
+			external: true,
+		},
+	] : [];
+
 </script>
-<TitleBar TITLE={PLACE.display_name} SIDE_LINKS={[]} ICON_LINKS={[]}/>
+<TitleBar TITLE={PLACE.display_name} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
 <div style="font-style:italic;">
 	{#each PLACE.breadcrumbs as bc, n}
-	<a href="/{bc.slug}">{bc.name}</a>{#if n != PLACE.breadcrumbs.length-1}&nbsp;&rarr;&nbsp;{/if}
+	<button on:click={() => {update(bc.slug)}}>{bc.name}</button>{#if n != PLACE.breadcrumbs.length-1}&nbsp;&rarr;&nbsp;{/if}
 	{/each}
 </div>
 <div style="display:flex;">
@@ -16,7 +34,11 @@ console.log(PLACE)
 		{#if PLACE.descendants.length > 0}
 		<ul style="padding-left:20px">
 			{#each PLACE.descendants as d}
-			<li><a href="/{d.slug}">{d.display_name}</a></li>
+			<li>
+				<button on:click={() => {update(d.slug)}} disabled={d.volume_count_inclusive == 0}>
+				{d.display_name} {#if d.volume_count_inclusive != 0}({d.volume_count_inclusive}){/if}
+				</button>
+			</li>
 			{/each}
 		</ul>
 		{:else}
@@ -37,5 +59,17 @@ console.log(PLACE)
 	</div>
 </div>
 <style>
-
+button {
+	border: none;
+	background: none;
+	color: #2c689c;
+}
+button:hover {
+	color: #1b4060;
+	text-decoration: underline;
+}
+button:disabled {
+	color:#555;
+	text-decoration: none;
+}
 </style>

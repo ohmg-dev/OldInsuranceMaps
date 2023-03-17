@@ -65,6 +65,8 @@ def import_volume(identifier, locale=None):
     volume.locale = locale
     volume.save()
 
+    volume.update_place_counts()
+
     return volume
 
 
