@@ -123,13 +123,17 @@ class Browse(View):
             main_lyrs_ct = 0
             if vol.sorted_layers:
                 main_lyrs_ct = len(vol.sorted_layers['main'])
-            mm_ct, mm_todo = 0, 0
+            mm_ct, mm_todo, mm_percent = 0, 0, 0
+            if main_lyrs_ct != 0:
+                # make sure 0/0 appears at the very bottom, then 0/1, 0/2, etc.
+                mm_percent = main_lyrs_ct * .000000001
             mm_display = f"0/{main_lyrs_ct}"
             if vol.multimask is not None:
                 mm_ct = len(vol.multimask)
                 mm_todo = main_lyrs_ct - mm_ct
                 if mm_ct > 0:
                     mm_display = f"{mm_ct}/{main_lyrs_ct}"
+                    mm_percent = mm_ct / main_lyrs_ct
 
             viewer_url = ""
             if vol.locale:
@@ -158,6 +162,9 @@ class Browse(View):
                 "title": vol.__str__(),
                 "mm_ct": mm_todo,
                 "mm_display": mm_display,
+                "mm_percent": mm_percent,
+                # lol
+                "mj_exists": not not vol.mosaic_geotiff,
                 "urls": {
                     "summary": summary_url,
                     "viewer": viewer_url,

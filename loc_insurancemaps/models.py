@@ -416,6 +416,7 @@ class Volume(models.Model):
         on_delete=models.PROTECT,
         related_name="locale",
     )
+    # currently this actually stores the MosaicJSON (ugh) gotta separate these
     mosaic_geotiff = models.FileField(
         upload_to='mosaics',
         null=True,
