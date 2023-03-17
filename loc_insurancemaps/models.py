@@ -149,6 +149,19 @@ class Place(models.Model):
             candidates = new_candidates
         return list(set(states))
 
+    # def count_all_descendant_maps(self, descendants=[] count=0):
+    #     count += Volume.objects.filter(locale=self).count()
+    #     descendants = self.get_descendants()
+    #     for d in descendants:
+    #         self.count_all_descendant_maps(count=count)
+    #     return count
+        if Volume.objects.filter(locale=self).exists():
+            return True
+        for d in self.get_descendants():
+            if Volume.objects.filter(locale=d).exists():
+                return True
+        return False
+
     def get_state_postal(self):
         if self.state and self.state.name.lower() in STATE_POSTAL:
             return STATE_POSTAL[self.state.name.lower()]
@@ -171,14 +184,20 @@ class Place(models.Model):
             parent = p.direct_parents.all()[0]
             par_name = parent.name
             if parent.category in ("county", "parish", "borough", "census area"):
-                par_name = f"{parent.name} {parent.get_category_display()}"
-            breadcrumbs.append(par_name)
+                par_name += f" {parent.get_category_display()}"
+            breadcrumbs.append({"name": par_name, "slug": parent.slug})
             p = parent
         breadcrumbs.reverse()
-        breadcrumbs.append(self.name)
+        name = self.name
+        if self.category in ("county", "parish", "borough", "census area"):
+            name += f" {self.get_category_display()}"
+        breadcrumbs.append({"name": name, "slug": self.slug})
         return breadcrumbs
 
     def serialize(self):
+        volumes =  Volume.objects.filter(locale=self).order_by("year").values_list(
+            "identifier", "year", "volume_no"
+        )
         return {
             "pk": self.pk,
             "name": self.name,
@@ -191,6 +210,8 @@ class Place(models.Model):
             "descendants": [{
                 "display_name": i.display_name,
                 "slug": i.slug,
+                # "count": i.count_all_descendant_maps(),
+                # "has_descendant_maps": i.has_descendant_maps if self.has_descendant_maps else False,
             } for i in self.get_descendants()],
             "states": [{
                 "display_name": i.display_name,
@@ -198,6 +219,8 @@ class Place(models.Model):
             } for i in self.states],
             "slug": self.slug,
             "breadcrumbs": self.get_breadcrumbs(),
+            # "descendent_maps": self.has_descendant_maps,
+            "volumes": [{"identifier": i[0], "year": i[1], "volume_no":i[2]} for i in volumes],
         }
 
     def save(self, set_slug=True, *args, **kwargs):

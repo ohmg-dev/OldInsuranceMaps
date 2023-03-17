@@ -322,24 +322,26 @@ class PlaceView(View):
 
     def get(self, request, place_slug):
 
-        p = Place.objects.filter(slug=place_slug)
+        f = request.GET.get("f", None)
+        p = get_object_or_404(Place, slug=place_slug)
+        data = p.serialize()
 
-        if p.count() == 1:
-            data = p[0].serialize()
+        if f == "json":
+            return JsonResponse(data)
+
         else:
-            data = {"place count": p.count()}
-
-        context_dict = {
-            "svelte_params": {
-                "PLACE": data,
-                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+            context_dict = {
+                "svelte_params": {
+                    "PLACE": data,
+                }
             }
-        }
-        return render(
-            request,
-            "loc/city_summary.html",
-            context=context_dict
-        )
+            
+            
+            return render(
+                request,
+                "place.html",
+                context=context_dict
+            )
 
 class PlaceLookup(View):
 

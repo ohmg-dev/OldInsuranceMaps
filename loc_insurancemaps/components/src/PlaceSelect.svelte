@@ -28,7 +28,7 @@ $: {
 	{:else}
 		{#if VOLUME.locale}
 		{#each breadCrumbs as bc, n}
-		{bc}{#if n != breadCrumbs.length-1}&nbsp;&rarr;&nbsp;{/if}
+		<a href="/{bc.slug}">{bc.name}</a>{#if n != breadCrumbs.length-1}&nbsp;&rarr;&nbsp;{/if}
 		{/each}
 		{:else}
 		<p>No locale defined.</p>
