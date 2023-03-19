@@ -14,7 +14,7 @@ from django.views import View
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.middleware import csrf
 
-from geonode.base.api.serializers import UserSerializer
+# from geonode.base.api.serializers import UserSerializer
 
 from georeference.utils import full_reverse
 from georeference.models.sessions import SessionBase
@@ -417,9 +417,9 @@ class Participants(View):
         participants = []
 
         # user the serializer from GeoNode in order to get the avatar url
-        s = UserSerializer()
+        # s = UserSerializer()
         for p in profiles:
-            p_data = s.to_representation(p)
+            # p_data = s.to_representation(p)
             psesh_ct = SessionBase.objects.filter(user=p, type="p").count()
             gsesh_ct = SessionBase.objects.filter(user=p, type="g").count()
             total = psesh_ct + gsesh_ct
@@ -436,7 +436,8 @@ class Participants(View):
             ]
 
             participants.append({
-                "avatar": p_data['avatar'],
+                # "avatar": p_data['avatar'],
+                "avatar": "",
                 "username": p.username,
                 "profile_url": reverse('profile_detail', args=(p.username, )),
                 "load_ct": load_ct,
