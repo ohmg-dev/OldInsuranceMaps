@@ -54,14 +54,13 @@ def import_volume(identifier, locale=None):
     if response.get("status") == 404:
         return None
 
-    parsed = LOCParser(item=response['item'], include_regions=True)
+    parsed = LOCParser(item=response['item'])
     volume_kwargs = parsed.volume_kwargs()
 
     # add resources to args, not in item (they exist adjacent)
     volume_kwargs["lc_resources"] = response['resources']
 
     volume = Volume.objects.create(**volume_kwargs)
-    volume.regions.set(parsed.regions)
     volume.locale = locale
     volume.save()
 

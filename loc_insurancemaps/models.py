@@ -21,8 +21,6 @@ from django.utils.safestring import mark_safe
 from django.utils.functional import cached_property
 from django.urls import reverse
 
-from geonode.base.models import Region
-
 from georeference.models.resources import (
     Document,
     Layer,
@@ -369,11 +367,6 @@ class Volume(models.Model):
     lc_resources = JSONField(default=None, null=True, blank=True)
     lc_manifest_url = models.CharField(max_length=200, null=True, blank=True,
         verbose_name="LC Manifest URL"
-    )
-    regions = models.ManyToManyField(
-        Region,
-        null=True,
-        blank=True,
     )
     extra_location_tags = JSONField(null=True, blank=True, default=list)
     sheet_ct = models.IntegerField(null=True, blank=True)

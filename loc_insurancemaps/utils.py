@@ -11,8 +11,6 @@ from PIL import Image
 from django.conf import settings
 from django.urls import reverse
 
-from geonode.base.models import Region
-
 from .enumerations import (
     STATE_CHOICES,
 )
@@ -123,13 +121,13 @@ def download_image(url, out_path, retries=3):
 
 class LOCParser(object):
 
-    def __init__(self, item=None, fileset=None, include_regions=False):
+    def __init__(self, item=None, fileset=None):
 
         # passing in an item will automatically parse it as a volume
         if item:
             self.item = item
             self.parse_item_identifier()
-            self.parse_location_info(include_regions=include_regions)
+            self.parse_location_info()
             self.parse_volume_number()
             self.parse_sheet_count()
             self.parse_date_info()
@@ -151,12 +149,11 @@ class LOCParser(object):
 
         self.sheet_ct = sheet_ct
 
-    def parse_location_info(self, include_regions=False):
+    def parse_location_info(self):
 
         self.city = None
         self.county_equivalent = None
         self.state = None
-        self.regions = []
         self.extra_location_tags = []
 
         # collect all location tags into a list.
@@ -230,15 +227,6 @@ class LOCParser(object):
 
         self.extra_location_tags = location_tags
 
-        ## collect region objects. This should be combined to a single db call, but you 
-        ## can't combine __iexact and __in, so not sure how to do this...
-        if include_regions is True:
-            self.regions += list(Region.objects.filter(name__iexact=self.city))
-            self.regions += list(Region.objects.filter(name__iexact=self.county_equivalent))
-            self.regions += list(Region.objects.filter(name__iexact=self.state))
-            for tag in location_tags:
-                self.regions += list(Region.objects.filter(name__iexact=tag))
-
     def parse_date_info(self):
 
         self.year = None
@@ -307,7 +295,6 @@ class LOCParser(object):
             "volume_no": self.volume_no,
             "lc_item": self.item,
             "lc_manifest_url": self.lc_manifest_url,
-            "regions": self.regions,
             "extra_location_tags": self.extra_location_tags,
             "sheet_ct": self.sheet_ct,
             "title": self.title,
