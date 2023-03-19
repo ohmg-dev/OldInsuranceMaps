@@ -112,7 +112,11 @@ VOLUMES.forEach( function (vol, n) {
 		needToShowOneLayer = false;
 		opacity = urlParams.get(vol.identifier)
 	}
-	urlParams.set(vol.identifier, opacity)
+	if (opacity == 0) {
+		urlParams.delete(vol.identifier)
+	} else {
+		urlParams.set(vol.identifier, opacity)
+	}
 
 	const volumeObj = {
 		id: vol.identifier,
@@ -201,7 +205,11 @@ $: changes(volumeLookup)
 function syncUrlParams () {
 	currentHash = window.location.href.split("#")[1]
 	volumeIds.forEach( function (id) {
-		urlParams.set(id,  volumeLookup[id].mainLayerO);
+		if (volumeLookup[id].mainLayerO == 0) {
+			urlParams.delete(id)
+		} else {
+			urlParams.set(id,  volumeLookup[id].mainLayerO);
+		}
 		window.history.replaceState(null, "", baseUrl+"?"+urlParams.toString() + "#" + currentHash)
 			// window.history.replaceState(null, "", window.location.href)
 	});
