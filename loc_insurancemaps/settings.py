@@ -189,6 +189,8 @@ S3_CONFIG = {
     "endpoint_url": os.getenv("S3_ENDPOINT_URL"),
 }
 
+VIEWER_SHOWCASE_SLUG = os.getenv("VIEWER_SHOWCASE_SLUG")
+
 # this is a hack to handle the fact that certain GDAL and Django versions
 # are not compatible, and the order of lat/long gets messed up. ONLY to
 # be used in development!!!!

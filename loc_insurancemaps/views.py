@@ -11,7 +11,7 @@ from django.http import JsonResponse, Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import View
-from django.views.decorators.clickjacking import xframe_options_exempt
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.middleware import csrf
 
 from geonode.base.api.serializers import UserSerializer
@@ -68,8 +68,17 @@ class HomePage(View):
         if request.user.is_authenticated and request.user.email is not None:
             user_email = request.user.email
 
-        # lc = CollectionConnection(delay=0)
-        # city_list = lc.get_city_list_by_state("louisiana")
+        viewer_showcase = None
+        if settings.VIEWER_SHOWCASE_SLUG:
+            try:
+                p = Place.objects.get(slug=settings.VIEWER_SHOWCASE_SLUG)
+                viewer_showcase = {
+                    'name': p.name,
+                    'url': reverse('viewer', args=(settings.VIEWER_SHOWCASE_SLUG,))
+                }
+            except Place.DoesNotExist:
+                pass
+
         context_dict = {
             "search_params": {
                 "CITY_QUERY_URL": reverse('lc_api'),
@@ -83,6 +92,7 @@ class HomePage(View):
                 "NEWSLETTER_SLUG": newsletter_slug,
                 "USER_SUBSCRIBED": user_subscribed,
                 "USER_EMAIL": user_email,
+                "VIEWER_SHOWCASE": viewer_showcase,
             },
         }
 
@@ -97,8 +107,8 @@ class Browse(View):
     def get(self, request):
 
         started_volumes = Volume.objects.filter(status="started").order_by("city", "year")
-        lc = CollectionConnection(delay=0)
-        city_list = lc.get_city_list_by_state("louisiana")
+        # lc = CollectionConnection(delay=0)
+        # city_list = lc.get_city_list_by_state("louisiana")
 
         loaded_summary = []
         places_dict = {}
@@ -363,7 +373,7 @@ class PlaceLookup(View):
 
 class Viewer(View):
 
-    @xframe_options_exempt
+    @xframe_options_sameorigin
     def get(self, request, place_slug):
 
         place_data = {}

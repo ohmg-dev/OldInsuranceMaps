@@ -6,6 +6,7 @@ export let CSRFTOKEN;
 export let NEWSLETTER_SLUG;
 export let USER_SUBSCRIBED;
 export let USER_EMAIL;
+export let VIEWER_SHOWCASE;
 
 let showBrowseMap = !IS_MOBILE;
 $: showBrowseMapBtnLabel = showBrowseMap ? "Hide map finder" : "Show map finder";
@@ -80,16 +81,18 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 			<span><em>Icons by <a href="https://thenounproject.com/browse/creator/alex2900/icon-collections/?p=1">Alex Muravev</a> on the Noun Project.</em></span>
 		</div>
 	</div>
+	{#if VIEWER_SHOWCASE}
 	<div class="map-container">
 		{#if IS_MOBILE}<button class="link-btn" on:click="{() => {showBRMap = !showBRMap}}">{ showBRMapBtnLabel }</button>{/if}
 		{#if showBRMap}
-		<iframe height={IS_MOBILE ? '600px' : '400px'} title="Viewer for Sanborn maps of Baton Rouge, Louisiana" style="width:100%; border:none;" src="https://oldinsurancemaps.net/viewer/baton-rouge-la/?year=1898&utm_source=index#/center/-91.18179,30.44938/zoom/16"></iframe>
+		<iframe height={IS_MOBILE ? '600px' : '400px'} title="Viewer for {VIEWER_SHOWCASE.name}" style="width:100%; border:none;" src={VIEWER_SHOWCASE.url}></iframe>
 		{/if}
-		{#if IS_MOBILE}<a href="https://oldinsurancemaps.net/viewer/baton-rouge-la/?utm_source=index">View in fullscreen &rarr;</a>{/if}
+		{#if IS_MOBILE}<a href={VIEWER_SHOWCASE.url}>View in fullscreen &rarr;</a>{/if}
 		<div style="font-size:.9em;">
 		<p style="margin-right:15px; margin-left:15px;"><em>If you would like to embed this viewer (or that of <a href="/browse">any city</a>) on your own website, please <a href="https://about.oldinsurancemaps.net/contact">get in touch</a> (it's really easy!).</em></p>
 		</div>
 	</div>
+	{/if}
 
 	<div>
 		<h3 id="support">Support this project</h3>
