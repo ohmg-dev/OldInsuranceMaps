@@ -25,6 +25,8 @@ admin.site.register(Volume, VolumeAdmin)
 
 class PlaceAdmin(admin.ModelAdmin):
     readonly_fields = ('display_name', 'slug')
+    search_fields = ('display_name', 'slug')
+    list_display = ('display_name', 'slug')
     list_filter = ('category',)
 
 admin.site.register(Place, PlaceAdmin)

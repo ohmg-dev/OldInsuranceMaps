@@ -188,28 +188,28 @@ const iconLinks = [
     visible: RESOURCE.type == "layer",
     enabled: true,
     iconClass: 'document',
-    alt: RESOURCE.document ? 'Document: ' + RESOURCE.document.title : '',
+    alt: RESOURCE.document ? 'Go to document: ' + RESOURCE.document.title : '',
     url: RESOURCE.document ? RESOURCE.document.urls.resource : '',
   },
   {
     visible: RESOURCE.type == "document",
     enabled: RESOURCE.layer ? true : false,
     iconClass: 'layer',
-    alt: RESOURCE.layer ? 'Layer: ' + RESOURCE.layer.title : 'Layer not yet made',
+    alt: RESOURCE.layer ? 'Go to layer: ' + RESOURCE.layer.title : 'Layer not yet made',
     url: RESOURCE.layer ? RESOURCE.layer.urls.resource : '',
   },
   {
     visible: true,
     enabled: true,
     iconClass: 'volume',
-    alt: 'Volume: ' + VOLUME.title,
+    alt: 'Go to volume: ' + VOLUME.title,
     url: VOLUME.urls.summary,
   }
 ]
 
 </script>
 <main>
-  <TitleBar TITLE={RESOURCE.title} BOTTOM_LINKS={[]} SIDE_LINKS={[]} ICON_LINKS={iconLinks} />
+  <TitleBar TITLE={RESOURCE.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks} />
   <div class="content" style="display:flex;">
     <div id="preview-map">
       {#if RESOURCE.type == "document"}

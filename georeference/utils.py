@@ -145,7 +145,7 @@ END # Map File
                 '    OFFSITE 255 255 255\n',
                 '    TRANSPARENCY 100\n'
                 '    PROJECTION\n',
-                '     "init=epsg:3857"\n',
+                '     AUTO\n',
                 '    END\n',
                 '  END # Layer\n',
                 # '\n',

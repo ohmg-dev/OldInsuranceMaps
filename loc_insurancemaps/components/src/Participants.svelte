@@ -32,7 +32,7 @@ function toggleList(userId) {
 } 
 
 </script>
-<TitleBar TITLE={"Participants"} BOTTOM_LINKS={[]} SIDE_LINKS={[]} ICON_LINKS={[]}/>
+<TitleBar TITLE={"Participants"} SIDE_LINKS={[]} ICON_LINKS={[]}/>
 <input type="text" id="filterInput" placeholder="Filter by username..." bind:value={filterInput}>
 <div style="overflow-x:auto;">
 	<TableSort items={participants}>

@@ -136,6 +136,12 @@ const transformations = [
   {id: 'tps', name: 'Thin Plate Spline'},
 ];
 
+let currentTargetProjection = "EPSG:3857"
+const availableProjections = [
+  {id: 'EPSG:3857', name: 'Pseudo Mercator'},
+  {id: 'ESRI:102009', name: 'Lambert North America'},
+];
+
 // generate a uuid, code from here:
 // https://www.cloudhadoop.com/2018/10/guide-to-unique-identifiers-uuid-guid
 function uuid() {
@@ -740,6 +746,7 @@ function process(operation){
   const data = JSON.stringify({
     "gcp_geojson": asGeoJSON(),
     "transformation": currentTransformation,
+    "projection": currentTargetProjection,
     "operation": operation,
     "sesh_id": session_id,
   });
@@ -835,28 +842,33 @@ function cleanup () {
   }
 }
 
-const sideLinks = [
-    {
-      display: "Back to " + VOLUME.title,
-      url: VOLUME.urls.summary,
-    },
-    {
-      display: "Go to document",
-      alt: DOCUMENT.title,
-      url: DOCUMENT.urls.resource,
-    },
+const iconLinks = [
+  {
+    visible: true,
+    enabled: true,
+    iconClass: 'document',
+    alt: 'Go to document: ' + DOCUMENT.title,
+    url: DOCUMENT.urls.resource,
+  },
+  {
+    visible: true,
+    enabled: DOCUMENT.layer ? true : false,
+    iconClass: 'layer',
+    alt: DOCUMENT.layer ? 'Go to layer: ' + DOCUMENT.layer.title : 'Layer not yet made',
+    url: DOCUMENT.layer ? DOCUMENT.layer.urls.resource : '',
+  },
+  {
+    visible: true,
+    enabled: true,
+    iconClass: 'volume',
+    alt: 'Go to volume: ' + VOLUME.title,
+    url: VOLUME.urls.summary,
+  }
 ]
-if (DOCUMENT.layer) {
-  sideLinks.push({
-    display: "Go to layer",
-    alt: DOCUMENT.layer.title,
-    url: DOCUMENT.layer.urls.resource,
-  })
-}
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
-<TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
+<TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks}/>
 <GeoreferencePreamble />
 <div id="expirationModal" class="modal">
   <div class="modal-content">
@@ -980,6 +992,17 @@ if (DOCUMENT.layer) {
           </select>
         </label>
       </div>
+      <!--
+      <div>
+        <label style="margin-top:5px;" title="Set georeferencing transformation">
+          Projection:
+          <select class="trans-select" style="width:151px;" bind:value={currentTargetProjection} on:change={() => { process("preview"); }}>
+            {#each availableProjections as proj}
+              <option value={proj.id}>{proj.name}</option>
+            {/each}
+          </select>
+        </label>
+      </div>-->
     </div>
   </nav>
 </div>

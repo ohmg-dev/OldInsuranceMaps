@@ -341,16 +341,28 @@ function cleanup () {
   }
 }
 
-const sideLinks = [
-    {
-      display: "Back to " + VOLUME.title,
-      url: VOLUME.urls.summary,
-    },
-    {
-      display: "Got to document",
-      alt: DOCUMENT.title,
-      url: DOCUMENT.urls.resource,
-    },
+const iconLinks = [
+  {
+    visible: true,
+    enabled: true,
+    iconClass: 'document',
+    alt: 'Go to document: ' + DOCUMENT.title,
+    url: DOCUMENT.urls.resource,
+  },
+  {
+    visible: true,
+    enabled: false,
+    iconClass: 'layer',
+    alt: '',
+    url: '',
+  },
+  {
+    visible: true,
+    enabled: true,
+    iconClass: 'volume',
+    alt: 'Go to volume: ' + VOLUME.title,
+    url: VOLUME.urls.summary,
+  }
 ]
 
 </script>
@@ -380,7 +392,7 @@ const sideLinks = [
     <button on:click={() => {document.getElementById('finishedModal').style.display = 'none'}}>OK</button>
   </div>
 </div>
-<TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
+<TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks}/>
 <SplitPreamble />
 <div><em>{currentTxt}</em></div>
 <div class="svelte-component-main">

@@ -32,6 +32,8 @@ import TileLayer from 'ol/layer/Tile';
 import LayerGroup from 'ol/layer/Group';
 import VectorLayer from 'ol/layer/Vector';
 
+import {MouseWheelZoom, defaults} from 'ol/interaction';
+
 import Utils from './js/ol-utils';
 const utils = new Utils();
 
@@ -110,7 +112,11 @@ VOLUMES.forEach( function (vol, n) {
 		needToShowOneLayer = false;
 		opacity = urlParams.get(vol.identifier)
 	}
-	urlParams.set(vol.identifier, opacity)
+	if (opacity == 0) {
+		urlParams.delete(vol.identifier)
+	} else {
+		urlParams.set(vol.identifier, opacity)
+	}
 
 	const volumeObj = {
 		id: vol.identifier,
@@ -199,7 +205,11 @@ $: changes(volumeLookup)
 function syncUrlParams () {
 	currentHash = window.location.href.split("#")[1]
 	volumeIds.forEach( function (id) {
-		urlParams.set(id,  volumeLookup[id].mainLayerO);
+		if (volumeLookup[id].mainLayerO == 0) {
+			urlParams.delete(id)
+		} else {
+			urlParams.set(id,  volumeLookup[id].mainLayerO);
+		}
 		window.history.replaceState(null, "", baseUrl+"?"+urlParams.toString() + "#" + currentHash)
 			// window.history.replaceState(null, "", window.location.href)
 	});
@@ -350,12 +360,21 @@ function MapViewer (elementId) {
                 pixelRatio: 2,
 		view: new View({
 			zoom: 8,
-			minZoom: 14,
 			center: fromLonLat([-92.036, 31.16])
-		})
+		}),
+		interactions: defaults({mouseWheelZoom: false}).extend([
+			new MouseWheelZoom({
+				constrainResolution: true,
+			}),
+		]),
 	});
 
-	if (homeExtent) {map.getView().fit(homeExtent)}
+	if (homeExtent) {
+		// temporarily constrain to zoom 14 so the fit won't zoom too far out.
+		map.getView().setMinZoom(14)
+		map.getView().fit(homeExtent)
+		map.getView().setMinZoom(0)
+	}
 
 	volumeIds.forEach(function (vol) {
 		if (volumeLookup[vol].mainLayer) {

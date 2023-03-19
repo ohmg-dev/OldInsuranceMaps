@@ -4,20 +4,7 @@
 
 {% block title %}{{ svelte_params.PLACE.display_name }}{% endblock title %}
 
+
 {% block body %}
-<h1>{{ svelte_params.PLACE.display_name }}</h1>
-{% if svelte_params.PLACE.category != "State" %}
-{% for state in svelte_params.PLACE.states %}
-    <p><a href="{% url 'place_view' state.slug %}">{{ state.display_name }}</a></p>
-{% endfor %}
-{% endif %}
-<hr>
-{% for parent in svelte_params.PLACE.parents %}
-    <p><a href="{% url 'place_view' parent.slug %}">{{ parent.display_name }}</a></p>
-{% endfor %}
-<hr>
-{% for desc in svelte_params.PLACE.descendants %}
-    <p><a href="{% url 'place_view' desc.slug %}">{{ desc.display_name }}</a></p>
-{% endfor %}
-{{ place }}
+    {% display_svelte "Place.svelte" svelte_params %}
 {% endblock %}

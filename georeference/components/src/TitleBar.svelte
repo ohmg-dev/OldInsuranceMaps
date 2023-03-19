@@ -1,6 +1,5 @@
 <script>
     export let TITLE;
-    export let BOTTOM_LINKS;
     export let SIDE_LINKS;
     export let ICON_LINKS;
 </script>
@@ -8,20 +7,12 @@
 <div class="title-bar">
     <div>
         <h1>{ TITLE }</h1>
-        {#if BOTTOM_LINKS && BOTTOM_LINKS.length > 0}
-        <p>
-        {#each BOTTOM_LINKS as link, n}
-            {#if n != 0}&nbsp;&bullet;&nbsp;{/if}
-            {#if link.url}<a href={link.url} title={link.alt ? link.alt : link.display}>{link.display}</a>{:else}{link.display}{/if}
-        {/each}
-        </p>
-        {/if}
     </div>
     {#if ICON_LINKS.length > 0}
     <div class="icon-box">
         {#each ICON_LINKS as link}
         {#if link.visible}
-        <a href="{link.url}" title={link.alt} style="{link.enabled ? '' : 'cursor:default;'}">
+        <a href="{link.url}" title={link.alt} name={link.alt} style="{link.enabled ? '' : 'cursor:default; pointer-events:none;'}">
             <i class="i-{link.iconClass} i-{link.iconClass}-sm" style="display:block; {link.enabled ? '' : 'background:grey;'}"></i>
         </a>
         {/if}
@@ -63,7 +54,6 @@
         align-items: end;
         background: #e6e6e6;
         padding: 10px;
-        margin: 10px;
         box-shadow: gray 0px 0px 5px;
         border-radius: 4px;
     }
@@ -74,7 +64,6 @@
         align-items: center;
         background: #e6e6e6;
         padding: 2px;
-        margin: 10px;
         box-shadow: gray 0px 0px 5px;
         border-radius: 4px;
     }

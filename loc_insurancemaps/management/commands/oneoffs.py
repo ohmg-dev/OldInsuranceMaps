@@ -3,6 +3,7 @@ import csv
 import boto3
 from pathlib import Path
 
+from django.db import transaction
 from django.db.models.functions import Lower
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -22,6 +23,7 @@ class Command(BaseCommand):
                 "initialize-s3-bucket",
                 "migrate-places",
                 "connect-volumes-to-places",
+                "reset-volume-counts",
             ],
             help="the identifier of the LoC resource to add",
         )
@@ -111,3 +113,13 @@ class Command(BaseCommand):
                     else:
                         volume.locale = locale_p
                         volume.save()
+
+        if options['operation'] == "reset-volume-counts":
+
+            print("set all Place volume counts to 0")
+            Place.objects.all().update(volume_count=0, volume_count_inclusive=0)
+            print("done")
+
+            for volume in Volume.objects.all():
+                print(volume)
+                volume.update_place_counts()

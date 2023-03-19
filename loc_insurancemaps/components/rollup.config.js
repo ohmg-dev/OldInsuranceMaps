@@ -85,13 +85,13 @@ let exportable = [];
   "Volumes",
   "Volume",
   "VolumeSearch",
-  "MultiTrim",
   "Viewer",
   "Browse",
   "Index",
   "Navbar",
   "Footer",
   "Participants",
+  "Place",
 ].forEach((d) => exportable.push(componentExportDetails(d)));
 
 export default exportable;

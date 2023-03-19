@@ -506,9 +506,12 @@ class GeorefSession(SessionBase):
         self.save()
 
         try:
+            # assume EPSG code for now, as making this completely
+            # flexible is still in-development. see views.py line 277
+            crs_code = f"EPSG:{self.data['epsg']}"
             g = Georeferencer(
                 transformation=self.data['transformation'],
-                epsg_code=self.data['epsg'],
+                crs_code=crs_code,
             )
             g.load_gcps_from_geojson(self.data['gcps'])
         except Exception as e:

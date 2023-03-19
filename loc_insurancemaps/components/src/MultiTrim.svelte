@@ -35,10 +35,8 @@ const styles = new Styles();
 import Utils from './js/ol-utils';
 const utils = new Utils();
 
-import TitleBar from "../../../georeference/components/src/TitleBar.svelte"
-
 export let VOLUME;
-export let SESSION_LENGTH;
+// export let SESSION_LENGTH;
 export let CSRFTOKEN;
 export let USER_TYPE;
 export let MAPBOX_API_KEY;
@@ -49,7 +47,7 @@ let currentLayer = null;
 let leaveOkay = true;
 
 // show the extend session prompt 15 seconds before the session expires
-setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
+// setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
 
 let autoRedirect;
 function promptRefresh() {
@@ -146,7 +144,6 @@ function extentLayerStyle (feature, resolution) {
     if (prop.show) {
       return redOutline;
     }
-
     return
 }
 
@@ -160,7 +157,7 @@ var extentLayer = new VectorLayer({
 const trimShapeSource = new VectorSource();
 const trimShapeLayer = new VectorLayer({
     source: trimShapeSource,
-    style: styles.polyDraw,
+    style: [styles.mmDraw, styles.vertexPoint],
     zIndex: 1001,
   });
 trimShapeSource.on("addfeature", function(e) {
@@ -181,7 +178,7 @@ function makeModifyInteraction(hitDetection, source, targetElement) {
   const modify = new Modify({
     hitDetection: hitDetection,
     source: source,
-    // style: styles.polyModify,
+    style: styles.mmModify,
   });
 
   modify.on(['modifystart', 'modifyend'], function (e) {
@@ -222,7 +219,7 @@ function MapViewer (elementId) {
   const draw = new Draw({
     source: trimShapeSource,
     type: 'Polygon',
-    style: styles.polyDraw,
+    style: styles.mmDraw,
   });
   map.addInteraction(draw)
 
@@ -405,15 +402,6 @@ function layerRemoveMask(layer, confirm) {
 
 }
 
-const iconLinks = [
-  {
-    visible: true,
-    enabled: true,
-    iconClass: 'volume',
-    alt: 'Volume: ' + VOLUME.title,
-    url: VOLUME.urls.summary,
-  }
-]
 </script>
 
 <svelte:window on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}}/>
@@ -424,11 +412,10 @@ const iconLinks = [
     <button on:click={() => {process("extend-session")}}>Give me more time!</button>
   </div>
 </div>
-<TitleBar TITLE={VOLUME.title + " - Trim"} BOTTOM_LINKS={[]} SIDE_LINKS={[]} ICON_LINKS={iconLinks} />
 {#if USER_TYPE == "anonymous"}<div><p>Feel free to mess around; you can't save changes unless you are logged in.</p></div>{/if}
 <div class="svelte-component-main">
   <div class="map-container" style="height: calc(100%-35px);">
-    <div id="map-viewer" class="map-item rounded-bottom" style="h"></div>
+    <div id="map-viewer" class="map-item rounded-bottom"></div>
     <div id="layer-panel" style="display:flex; flex-direction:column; justify-content:space-between; max-width: 200px; padding: 10px;" class="map-item rounded-bottom">
       <div>
         <strong>Main Content</strong> <span style="cursor:pointer" on:click={() => setMapExtent()}>🔎</span>
@@ -460,6 +447,7 @@ const iconLinks = [
 </div>
 
 <style>
+
 .layer-entry {
   cursor: pointer;
 }

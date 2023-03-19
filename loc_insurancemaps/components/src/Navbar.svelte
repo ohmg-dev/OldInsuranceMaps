@@ -14,6 +14,9 @@ export let USER;
 			<a href="/browse" title="Browse Maps">Browse Maps</a>
 		</div>
 		<div>
+			<a href="/#support" title="Support this project">Support</a>
+		</div>
+		<div>
 			<a href="https://about.oldinsurancemaps.net" title="Browse">About <i class="fa fa-external-link"></i></a>
 		</div>
 	</div>

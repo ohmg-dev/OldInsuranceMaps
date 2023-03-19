@@ -14,14 +14,12 @@ from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.core.files import File
-from django.db import models
+from django.db import models, transaction
 from django.db.models import signals
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.utils.functional import cached_property
 from django.urls import reverse
-
-from geonode.base.models import Region
 
 from georeference.models.resources import (
     Document,
@@ -117,10 +115,19 @@ class Place(models.Model):
         blank=True,
         editable=False,
     )
+    volume_count = models.IntegerField(
+        default = 0,
+        help_text="Number of volumes attached to this place",
+    )
+    volume_count_inclusive = models.IntegerField(
+        default = 0,
+        help_text="Number of volumes attached to this place and any of its descendants",
+    )
     direct_parents = models.ManyToManyField("Place")
 
     def __str__(self):
-        return self.display_name
+        name = self.display_name if self.display_name else self.name
+        return name
 
     @property
     def state(self):
@@ -148,6 +155,22 @@ class Place(models.Model):
             candidates = new_candidates
         return list(set(states))
 
+    def get_volumes(self):
+        return Volume.objects.filter(locale=self).order_by("year")
+
+    # def count_all_descendant_maps(self, descendants=[] count=0):
+    #     count += Volume.objects.filter(locale=self).count()
+    #     descendants = self.get_descendants()
+    #     for d in descendants:
+    #         self.count_all_descendant_maps(count=count)
+    #     return count
+        if Volume.objects.filter(locale=self).exists():
+            return True
+        for d in self.get_descendants():
+            if Volume.objects.filter(locale=d).exists():
+                return True
+        return False
+
     def get_state_postal(self):
         if self.state and self.state.name.lower() in STATE_POSTAL:
             return STATE_POSTAL[self.state.name.lower()]
@@ -161,12 +184,29 @@ class Place(models.Model):
             return None
 
     def get_descendants(self):
-
         return Place.objects.filter(direct_parents__id__exact=self.id).order_by("name")
+
+    def get_breadcrumbs(self):
+        breadcrumbs = []
+        p = self
+        while p.direct_parents.all().count() > 0:
+            parent = p.direct_parents.all()[0]
+            par_name = parent.name
+            if parent.category in ("county", "parish", "borough", "census area"):
+                par_name += f" {parent.get_category_display()}"
+            breadcrumbs.append({"name": par_name, "slug": parent.slug})
+            p = parent
+        breadcrumbs.reverse()
+        name = self.name
+        if self.category in ("county", "parish", "borough", "census area"):
+            name += f" {self.get_category_display()}"
+        breadcrumbs.append({"name": name, "slug": self.slug})
+        return breadcrumbs
 
     def serialize(self):
         return {
             "pk": self.pk,
+            "name": self.name,
             "display_name": self.display_name,
             "category": self.get_category_display(),
             "parents": [{
@@ -176,12 +216,23 @@ class Place(models.Model):
             "descendants": [{
                 "display_name": i.display_name,
                 "slug": i.slug,
+                "volume_count": i.volume_count,
+                "volume_count_inclusive": i.volume_count_inclusive,
+                # "has_descendant_maps": i.has_descendant_maps if self.has_descendant_maps else False,
             } for i in self.get_descendants()],
             "states": [{
                 "display_name": i.display_name,
                 "slug": i.slug,
             } for i in self.states],
             "slug": self.slug,
+            "breadcrumbs": self.get_breadcrumbs(),
+            "volume_count": self.volume_count,
+            "volume_count_inclusive": self.volume_count_inclusive,
+            "volumes": [{
+                "identifier": i[0],
+                "year": i[1],
+                "volume_no":i[2]
+            } for i in self.get_volumes().values_list("identifier", "year", "volume_no")],
         }
 
     def save(self, set_slug=True, *args, **kwargs):
@@ -317,11 +368,6 @@ class Volume(models.Model):
     lc_manifest_url = models.CharField(max_length=200, null=True, blank=True,
         verbose_name="LC Manifest URL"
     )
-    regions = models.ManyToManyField(
-        Region,
-        null=True,
-        blank=True,
-    )
     extra_location_tags = JSONField(null=True, blank=True, default=list)
     sheet_ct = models.IntegerField(null=True, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
@@ -363,6 +409,7 @@ class Volume(models.Model):
         on_delete=models.PROTECT,
         related_name="locale",
     )
+    # currently this actually stores the MosaicJSON (ugh) gotta separate these
     mosaic_geotiff = models.FileField(
         upload_to='mosaics',
         null=True,
@@ -477,6 +524,22 @@ class Volume(models.Model):
         self.status = status
         self.save(update_fields=['status'])
         logger.info(f"{self.__str__()} | status: {self.status}")
+
+    def update_place_counts(self):
+
+        with transaction.atomic():
+            if self.locale:
+                self.locale.volume_count += 1
+                self.locale.volume_count_inclusive += 1
+                self.locale.save()
+                parents = self.locale.direct_parents.all()
+                while parents:
+                    new_parents = []
+                    for p in parents:
+                        p.volume_count_inclusive += 1
+                        p.save()
+                        new_parents += list(p.direct_parents.all())
+                    parents = new_parents
 
     def get_all_docs(self):
         all_documents = []
@@ -710,6 +773,7 @@ class Volume(models.Model):
             "sorted_layers": self.hydrate_sorted_layers(),
             "multimask": self.multimask,
             "extent": self.extent,
+            "locale": self.locale.serialize(),
         }
 
         if include_session_info:

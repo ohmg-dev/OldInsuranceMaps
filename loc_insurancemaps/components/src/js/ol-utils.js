@@ -137,12 +137,18 @@ class Utils {
     ]
   }
 
-  makeTitilerXYZUrl = function (host, cogUrl) {
-    const cogUrlEncode = encodeURIComponent(cogUrl)
+  makeTitilerXYZUrl = function (host, cogUrl, doubleEncode) {
+    const encodedCog = encodeURIComponent(cogUrl)
+    let finalURL;
     if (String(cogUrl).endsWith(".json")) {
-        return host +"/mosaicjson/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrlEncode;
+      finalURL = host +"/mosaicjson/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + encodedCog;
     } else {
-        return host +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrlEncode;
+      finalURL = host +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + encodedCog;
+    }
+    if (doubleEncode) {
+      return encodeURIComponent(finalURL)
+    } else {
+      return finalURL
     }
   }
 

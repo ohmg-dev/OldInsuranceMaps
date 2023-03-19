@@ -11,10 +11,10 @@ from django.http import JsonResponse, Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import View
-from django.views.decorators.clickjacking import xframe_options_exempt
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.middleware import csrf
 
-from geonode.base.api.serializers import UserSerializer
+# from geonode.base.api.serializers import UserSerializer
 
 from georeference.utils import full_reverse
 from georeference.models.sessions import SessionBase
@@ -64,9 +64,21 @@ class HomePage(View):
                 user_subscription = Subscription.objects.filter(newsletter=newsletter, user=request.user)
                 if user_subscription.exists() and user_subscription[0].subscribed is True:
                     user_subscribed = True
+        user_email = ""
+        if request.user.is_authenticated and request.user.email is not None:
+            user_email = request.user.email
 
-        # lc = CollectionConnection(delay=0)
-        # city_list = lc.get_city_list_by_state("louisiana")
+        viewer_showcase = None
+        if settings.VIEWER_SHOWCASE_SLUG:
+            try:
+                p = Place.objects.get(slug=settings.VIEWER_SHOWCASE_SLUG)
+                viewer_showcase = {
+                    'name': p.name,
+                    'url': reverse('viewer', args=(settings.VIEWER_SHOWCASE_SLUG,))
+                }
+            except Place.DoesNotExist:
+                pass
+
         context_dict = {
             "search_params": {
                 "CITY_QUERY_URL": reverse('lc_api'),
@@ -79,6 +91,8 @@ class HomePage(View):
                 "CSRFTOKEN": csrf.get_token(request),
                 "NEWSLETTER_SLUG": newsletter_slug,
                 "USER_SUBSCRIBED": user_subscribed,
+                "USER_EMAIL": user_email,
+                "VIEWER_SHOWCASE": viewer_showcase,
             },
         }
 
@@ -93,8 +107,8 @@ class Browse(View):
     def get(self, request):
 
         started_volumes = Volume.objects.filter(status="started").order_by("city", "year")
-        lc = CollectionConnection(delay=0)
-        city_list = lc.get_city_list_by_state("louisiana")
+        # lc = CollectionConnection(delay=0)
+        # city_list = lc.get_city_list_by_state("louisiana")
 
         loaded_summary = []
         places_dict = {}
@@ -119,13 +133,17 @@ class Browse(View):
             main_lyrs_ct = 0
             if vol.sorted_layers:
                 main_lyrs_ct = len(vol.sorted_layers['main'])
-            mm_ct, mm_todo = 0, 0
+            mm_ct, mm_todo, mm_percent = 0, 0, 0
+            if main_lyrs_ct != 0:
+                # make sure 0/0 appears at the very bottom, then 0/1, 0/2, etc.
+                mm_percent = main_lyrs_ct * .000000001
             mm_display = f"0/{main_lyrs_ct}"
             if vol.multimask is not None:
                 mm_ct = len(vol.multimask)
                 mm_todo = main_lyrs_ct - mm_ct
                 if mm_ct > 0:
                     mm_display = f"{mm_ct}/{main_lyrs_ct}"
+                    mm_percent = mm_ct / main_lyrs_ct
 
             viewer_url = ""
             if vol.locale:
@@ -154,6 +172,9 @@ class Browse(View):
                 "title": vol.__str__(),
                 "mm_ct": mm_todo,
                 "mm_display": mm_display,
+                "mm_percent": mm_percent,
+                # lol
+                "mj_exists": not not vol.mosaic_geotiff,
                 "urls": {
                     "summary": summary_url,
                     "viewer": viewer_url,
@@ -192,33 +213,6 @@ class Browse(View):
         )
 
 class VolumeTrim(View):
-
-    def get(self, request, volumeid):
-
-        volume = get_object_or_404(Volume, pk=volumeid)
-        volume_json = volume.serialize()
-
-        volume_json['sorted_layers']['main'].sort(key=lambda item: item.get("slug"))
-
-        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
-        gs = gs.rstrip("/") + "/"
-        geoserver_ows = f"{gs}ows/"
-
-        context_dict = {
-            "svelte_params": {
-                "TITILER_HOST": settings.TITILER_HOST,
-                "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
-                "VOLUME": volume_json,
-                "CSRFTOKEN": csrf.get_token(request),
-                'USER_TYPE': get_user_type(request.user),
-                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-            }
-        }
-        return render(
-            request,
-            "lc/volume_trim.html",
-            context=context_dict
-        )
 
     def post(self, request, volumeid):
 
@@ -345,29 +339,41 @@ class PlaceView(View):
 
     def get(self, request, place_slug):
 
-        p = Place.objects.filter(slug=place_slug)
+        f = request.GET.get("f", None)
+        p = get_object_or_404(Place, slug=place_slug)
+        data = p.serialize()
 
-        if p.count() == 1:
-            data = p[0].serialize()
+        if f == "json":
+            return JsonResponse(data)
+
         else:
-            data = {"place count": p.count()}
-
-        context_dict = {
-            "svelte_params": {
-                "PLACE": data,
-                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+            context_dict = {
+                "svelte_params": {
+                    "PLACE": data,
+                }
             }
-        }
-        return render(
-            request,
-            "loc/city_summary.html",
-            context=context_dict
-        )
+            
+            
+            return render(
+                request,
+                "place.html",
+                context=context_dict
+            )
+
+class PlaceLookup(View):
+
+    def get(self, request, place_slug):
+
+        try:
+            p = Place.objects.get(slug=place_slug)
+            return JsonResponse(p.serialize())
+        except Place.DoesNotExist:
+            return JsonResponse({})
 
 
 class Viewer(View):
 
-    @xframe_options_exempt
+    @xframe_options_sameorigin
     def get(self, request, place_slug):
 
         place_data = {}
@@ -411,9 +417,9 @@ class Participants(View):
         participants = []
 
         # user the serializer from GeoNode in order to get the avatar url
-        s = UserSerializer()
+        # s = UserSerializer()
         for p in profiles:
-            p_data = s.to_representation(p)
+            # p_data = s.to_representation(p)
             psesh_ct = SessionBase.objects.filter(user=p, type="p").count()
             gsesh_ct = SessionBase.objects.filter(user=p, type="g").count()
             total = psesh_ct + gsesh_ct
@@ -430,7 +436,8 @@ class Participants(View):
             ]
 
             participants.append({
-                "avatar": p_data['avatar'],
+                # "avatar": p_data['avatar'],
+                "avatar": "",
                 "username": p.username,
                 "profile_url": reverse('profile_detail', args=(p.username, )),
                 "load_ct": load_ct,
@@ -488,6 +495,7 @@ def get_layer_mrm_urls(layerid):
         "geotiff": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=geotiff",
         "jpg": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=jpg",
         "points": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=points",
+        "gcps-geojson": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=gcps-geojson",
     }
 
 class MRMEndpointList(View):
@@ -520,6 +528,9 @@ class MRMEndpointLayer(View):
                     response['Content-Disposition'] = f'inline; filename={layerid}.tiff'
                     return response
             raise Http404
+
+        elif item == "gcps-geojson":
+            return JsonResponse(layer.get_document().gcp_group.as_geojson)
 
         elif item == "points":
             content = layer.get_document().gcp_group.as_points_file()

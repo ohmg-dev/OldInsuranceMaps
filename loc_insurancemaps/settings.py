@@ -102,24 +102,24 @@ INSTALLED_APPS = [
     'markdownify',
     'geonode.api', # needed in geonode.base
     'geonode.base',
-    # 'geonode.br',
+    'geonode.br',
     'geonode.layers',
-    # 'geonode.maps',
-    # 'geonode.geoapps',
+    'geonode.maps',
+    'geonode.geoapps',
     'geonode.documents',
     'geonode.security',
     'geonode.catalogue',
     'geonode.catalogue.metadataxsl',
     'geonode.people',
-    # 'geonode.client',
-    # 'geonode.themes',
+    'geonode.client',
+    'geonode.themes',
     'geonode.proxy',
-    # 'geonode.social',
+    'geonode.social',
     'geonode.groups',
     'geonode.services', # error when removing this app still
     'geonode.geoserver', # needed by geonode.api
     'geonode.upload', # needed to delete users (attached to profile??)
-    # 'geonode.tasks',
+    'geonode.tasks',
     'geonode.messaging',
     'geonode.monitoring', # needed to delete users (attached to profile??)
     'geonode.documents.exif',
@@ -188,6 +188,8 @@ S3_CONFIG = {
     "aws_secret_access_key": os.getenv("S3_SECRET_ACCESS_KEY"),
     "endpoint_url": os.getenv("S3_ENDPOINT_URL"),
 }
+
+VIEWER_SHOWCASE_SLUG = os.getenv("VIEWER_SHOWCASE_SLUG")
 
 # this is a hack to handle the fact that certain GDAL and Django versions
 # are not compatible, and the order of lat/long gets messed up. ONLY to

@@ -5,6 +5,8 @@ export let IS_MOBILE;
 export let CSRFTOKEN;
 export let NEWSLETTER_SLUG;
 export let USER_SUBSCRIBED;
+export let USER_EMAIL;
+export let VIEWER_SHOWCASE;
 
 let showBrowseMap = !IS_MOBILE;
 $: showBrowseMapBtnLabel = showBrowseMap ? "Hide map finder" : "Show map finder";
@@ -16,13 +18,13 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 	<div class="hero-banner">
 		<div class="">
 			<h1>Louisiana Sanborn Maps</h1>
-			<p>Explore historical fire insurance maps of Louisiana as georeferenced web maps overlays. All maps on this site are in the public domain, pulled from the Library of Congress 
+			<p>All maps on this site are in the public domain, pulled from the Library of Congress 
 			<a href="https://loc.gov/collections/sanborn-maps">Sanborn Map Collection</a>.</p>
-			<p>These maps were georeferenced by about <a href="/people">70 participants</a> in early 2022&mdash;over four months, 1,500 individual sheets
-				from 270 different Sanborn atlases were processed, resulting in these seamless mosaics.</p>
+			<p>Thank you to all of our <a href="/people">crowdsourcing participants</a>. Over four months in early 2022, 1,500 individual sheets from 270 different Sanborn atlases were georeferenced.</p>
 			{#if NEWSLETTER_SLUG}
-			<p><a href="#subscribe">Subscribe to project updates</a></p>
+			<p><a href="#subscribe"><strong>Subscribe to updates</strong></a></p>
 			{/if}
+			<p><a href="#support"><strong>Support this project</strong></a></p>
 		</div>
 		<div class="link-panel">
 			<p>Jump to some popular places</p>
@@ -34,7 +36,6 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 			</ul>
 			<p>or search through <a href="/browse">all volumes</a>.</p>
 			<p>Currently, this site includes maps for about 140 different towns and cities across Louisiana. Want to get your hometown added? Check out our <a href="https://about.oldinsurancemaps.net/faq?utm_source=index">FAQ page</a>.</p>
-			<p><em>Thank you so much to everyone who helped with this project, I've tried to make this site into a nice way to show your work!.</em></p>
 		</div>
 	</div>
 	<div class="map-container">
@@ -80,27 +81,44 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 			<span><em>Icons by <a href="https://thenounproject.com/browse/creator/alex2900/icon-collections/?p=1">Alex Muravev</a> on the Noun Project.</em></span>
 		</div>
 	</div>
-	<div class="map-container" style="height:{IS_MOBILE ? '600px' : '400px'};">
+	{#if VIEWER_SHOWCASE}
+	<div class="map-container">
 		{#if IS_MOBILE}<button class="link-btn" on:click="{() => {showBRMap = !showBRMap}}">{ showBRMapBtnLabel }</button>{/if}
 		{#if showBRMap}
-		<iframe height="100%" title="Viewer for Sanborn maps of Baton Rouge, Louisiana" style="width:100%; border:none;" src="https://oldinsurancemaps.net/viewer/baton-rouge-la/?year=1898&utm_source=index#/center/-91.18179,30.44938/zoom/16"></iframe>
+		<iframe height={IS_MOBILE ? '600px' : '400px'} title="Viewer for {VIEWER_SHOWCASE.name}" style="width:100%; border:none;" src={VIEWER_SHOWCASE.url}></iframe>
 		{/if}
-		{#if IS_MOBILE}<a href="https://oldinsurancemaps.net/viewer/baton-rouge-la/?utm_source=index">Fullscreen view &rarr;</a>{/if}
+		{#if IS_MOBILE}<a href={VIEWER_SHOWCASE.url}>View in fullscreen &rarr;</a>{/if}
+		<div style="font-size:.9em;">
+		<p style="margin-right:15px; margin-left:15px;"><em>If you would like to embed this viewer (or that of <a href="/browse">any city</a>) on your own website, please <a href="https://about.oldinsurancemaps.net/contact">get in touch</a> (it's really easy!).</em></p>
+		</div>
 	</div>
-	{#if NEWSLETTER_SLUG}
-	<div id="subscribe">
-		<h3>Subscribe to the newsletter for project updates</h3>
-		{#if USER_SUBSCRIBED}
-		<p><em>You are already subscribed. <a href="/newsletter/{NEWSLETTER_SLUG}?utm_source=index">manage subscription</a></em></p>
-		{:else}
+	{/if}
+
+	<div>
+		<h3 id="support">Support this project</h3>
+		<div style="font-size:.9em;">
+			<p>If you'd like to help with the (relatively modest) hosting costs and continued development of this site, you can do so here: <a href="https://paypal.me/oldinsurancemaps">paypal.me/oldinsurancemaps</a>. Be sure to add a note if you want to support development on specific aspects of the site, or sponsor the addition of more volumes. Thanks!</p>
+		</div>
+		<hr>
+		<h3 id="support">Some thank yous...</h3>
+		<div style="font-size:.9em;">
+			<p>This site is built from many different open source software components, so a big thank you is due to the developers behind <a href="https://geonode.org">GeoNode</a>, <a href="https://github.com/developmentseed/titiler">TiTiler</a>, <a href="https://mapserver.org/">MapServer</a>, <a href="https://postgres.org">Postgres</a>/<a href="https://postgis.net/">PostGIS</a>, <a href="https://www.djangoproject.com/">Django</a>, <a href="https://openlayers.org/">OpenLayers</a>, <a href="https://viglino.github.io/ol-ext/">ol-ext</a>, and <a href="https://svelte.dev/">Svelte</a>.
+			</p>
+		</div>
+		<hr>
+		{#if NEWSLETTER_SLUG}
+		<h3 id="subscribe">Subscribe to our newsletter</h3>
 		<form enctype="multipart/form-data"  method="post" action="/newsletter/{NEWSLETTER_SLUG}/subscribe/">
 			<input type="hidden" name="csrfmiddlewaretoken" value={CSRFTOKEN}>
-			<label for="id_email_field">E-mail:</label> <input type="email" name="email_field" required="" id="id_email_field">
+			<label for="id_email_field" style="margin-right:0;">E-mail:</label> <input type="email" name="email_field" required="" id="id_email_field" value="{USER_EMAIL}" disabled={USER_SUBSCRIBED}>
+			{#if USER_SUBSCRIBED}
+			<a href="/newsletter/{NEWSLETTER_SLUG}?utm_source=index">manage subscription</a>
+			{:else}
 			<button id="id_submit" name="submit" value="Subscribe" type="submit">Subscribe</button>
+			{/if}
 		</form>
 		{/if}
 	</div>
-	{/if}
 </main>
 <style>
 

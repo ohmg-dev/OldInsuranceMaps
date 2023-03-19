@@ -39,7 +39,9 @@ $: updateFilteredList(filterInput)
 			<th data-sort="prepared_ct" style="width:25px; text-align:center;" title="Number of prepared documents">P</th>
 			<th data-sort="georeferenced_ct" style="width:25px; text-align:center;" title="Number of georeferenced documents">G</th>
 			<th data-sort="percent" style="width:25px; text-align:center; border-left:1px solid gray;" title="Percent complete - G/(U+P+G)">%</th>
-			<th data-sort="mm_ct" style="width:25px; text-align:center; border-left:1px solid gray;" title="Number of georeferenced layers in multi-mask">MM</th>
+			<th data-sort="mm_percent" style="width:25px; text-align:center; border-left:1px solid gray;" title="Layers included in multimask">MM</th>
+			<th data-sort="mj_exists" style="width:25px; text-align:center; border-left:1px solid gray;" title="MosaicJSON prepared for this volume?">MJ</th>
+			<!-- <th data-sort="gt_exists" style="width:25px; text-align:center;" title="GeoTIFF mosaic has been prepared for this volume">GT</th> -->
 		</tr>
 		<tr slot="tbody" let:item={v} style="height:38px;">
 			<td>
@@ -53,6 +55,14 @@ $: updateFilteredList(filterInput)
 			<td style="text-align:center;">{v.georeferenced_ct}</td>
 			<td style="text-align:center; border-left:1px solid gray;"><div class="box" style="--p:{v.percent};"></div></td>
 			<td style="text-align:center; border-left:1px solid gray;">{v.mm_display}</td>
+			<td style="text-align:center; border-left:1px solid gray;">
+				{#if v.mj_exists}
+				<span style="color:green">✓</span>
+				{:else}
+				<span style="color:red">x</span>
+				{/if}
+			</td>
+			<!-- <td style="text-align:center;">{v.gt_exists}</td> -->
 		</tr>
 	</TableSort>
 	{/if}
