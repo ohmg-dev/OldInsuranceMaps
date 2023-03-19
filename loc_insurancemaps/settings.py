@@ -102,24 +102,24 @@ INSTALLED_APPS = [
     'markdownify',
     'geonode.api', # needed in geonode.base
     'geonode.base',
-    # 'geonode.br',
+    'geonode.br',
     'geonode.layers',
-    # 'geonode.maps',
-    # 'geonode.geoapps',
+    'geonode.maps',
+    'geonode.geoapps',
     'geonode.documents',
     'geonode.security',
     'geonode.catalogue',
     'geonode.catalogue.metadataxsl',
     'geonode.people',
-    # 'geonode.client',
-    # 'geonode.themes',
+    'geonode.client',
+    'geonode.themes',
     'geonode.proxy',
-    # 'geonode.social',
+    'geonode.social',
     'geonode.groups',
     'geonode.services', # error when removing this app still
     'geonode.geoserver', # needed by geonode.api
     'geonode.upload', # needed to delete users (attached to profile??)
-    # 'geonode.tasks',
+    'geonode.tasks',
     'geonode.messaging',
     'geonode.monitoring', # needed to delete users (attached to profile??)
     'geonode.documents.exif',
