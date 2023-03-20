@@ -1,13 +1,11 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load staticfiles %}
-
-{% load django_svelte %}
 
 {% block title %}{{ resource_params.RESOURCE.title }}{% endblock %}
 
 {% block body_outer %}
-{% display_svelte "Resource.svelte" resource_params %}
+{{ resource_params|json_script:'resource-props'}}
+{% include '_svelte_component.html' with component_name='Resource' %}
 {% endblock %}
 
 {% block footer %}

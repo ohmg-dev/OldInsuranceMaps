@@ -1,6 +1,6 @@
 <script>
 import {TableSort} from 'svelte-tablesort';
-import TitleBar from "../../../georeference/components/src/TitleBar.svelte"
+import TitleBar from './TitleBar.svelte';
 
 export let PARTICIPANTS;
 

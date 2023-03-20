@@ -3,7 +3,7 @@ import { slide } from 'svelte/transition';
 
 import {getCenter} from 'ol/extent';
 
-import TitleBar from "../../../georeference/components/src/TitleBar.svelte";
+import TitleBar from './TitleBar.svelte';
 import PlaceSelect from "./PlaceSelect.svelte";
 import VolumePreviewMap from "./VolumePreviewMap.svelte";
 import MultiTrim from "./MultiTrim.svelte";

@@ -1,7 +1,7 @@
 <script>
 export let PLACE;
 
-import TitleBar from "../../../georeference/components/src/TitleBar.svelte";
+import TitleBar from './TitleBar.svelte';
 
 function update(place_slug) {
 	fetch(`/${place_slug}?f=json`, {

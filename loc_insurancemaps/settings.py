@@ -130,7 +130,6 @@ INSTALLED_APPS = [
 ]
 
 INSTALLED_APPS += (
-    'django_svelte',
     'georeference',
     'loc_insurancemaps',
     'frontend',

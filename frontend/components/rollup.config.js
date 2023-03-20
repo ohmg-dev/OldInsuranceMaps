@@ -82,9 +82,7 @@ let exportable = [];
 
 // Add your component names here!
 [
-  "Volumes",
   "Volume",
-  "VolumeSearch",
   "Viewer",
   "Browse",
   "Index",

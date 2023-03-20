@@ -1,5 +1,4 @@
 django_extensions==3.1.5
-django_svelte
 cogeo-mosaic==4.1
 sorl-thumbnail==12.8.0
 django-newsletter==0.9.1

@@ -1,13 +1,11 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load staticfiles %}
-
-{% load django_svelte %}
 
 {% block title %}{{ split_params.DOCUMENT.title }} — Split{% endblock %}
 
 {% block body_outer %}
-{% display_svelte "Split.svelte" split_params %}
+{{ split_params|json_script:'split-props'}}
+{% include '_svelte_component.html' with component_name='Split' %}
 {% endblock %}
 
 {% block footer %}

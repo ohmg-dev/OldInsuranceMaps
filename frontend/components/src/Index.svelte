@@ -1,4 +1,5 @@
 <script>
+import './css/shared.css';
 import MapBrowse from './MapBrowse.svelte';
 export let PLACES_GEOJSON;
 export let IS_MOBILE;
