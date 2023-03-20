@@ -4,6 +4,8 @@ loc_insurancemaps/cache
 loc_insurancemaps/temp
 mapserver.map
 
+frontend/components/node_modules
+frontend/components/public
 
 _system-configs
 .env

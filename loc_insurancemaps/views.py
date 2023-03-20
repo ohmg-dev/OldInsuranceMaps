@@ -281,7 +281,7 @@ class VolumeDetail(View):
         }
         return render(
             request,
-            "lc/volume_summary.html",
+            "loc_insurancemaps/volume_summary.html",
             context=context_dict
         )
 
