@@ -31,9 +31,7 @@ from geonode.settings import *
 # It is used for relative settings elsewhere.
 LOCAL_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-# This must be the name of the directory holding this file (i.e. the app name)
-PROJECT_NAME = os.path.basename(LOCAL_ROOT)
-WSGI_APPLICATION = f"{PROJECT_NAME}.wsgi.application"
+WSGI_APPLICATION = "loc_insurancemaps.wsgi.application"
 
 # add trailing slash to site url. geoserver url will be relative to this
 if not SITEURL.endswith('/'):
@@ -134,7 +132,7 @@ INSTALLED_APPS = [
 INSTALLED_APPS += (
     'django_svelte',
     'georeference',
-    PROJECT_NAME,
+    'loc_insurancemaps',
 )
 
 ENABLE_NEWSLETTER = os.getenv("ENABLE_NEWSLETTER", False)
@@ -289,7 +287,7 @@ CORS_ORIGIN_ALLOW_ALL = False
 DEFAULT_THUMBNAIL_SIZE = (240, 200)
 
 # Location of url mappings
-ROOT_URLCONF = os.getenv('ROOT_URLCONF', '{}.urls'.format(PROJECT_NAME))
+ROOT_URLCONF = 'loc_insurancemaps.urls'
 
 # Location of locale files
 LOCALE_PATHS = (
