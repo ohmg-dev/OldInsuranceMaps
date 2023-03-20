@@ -310,7 +310,6 @@ class LOCParser(object):
         del data["status"]
         del data["urls"]
         del data["title"]
-        del data["regions"]
         return data
 
     def parse_fileset(self):
