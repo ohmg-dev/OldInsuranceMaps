@@ -13,7 +13,7 @@ import {transformExtent, Projection} from 'ol/proj';
 import {ImageStatic, XYZ} from 'ol/source';
 import {Tile as TileLayer, Image as ImageLayer} from 'ol/layer';
 
-import Utils from './js/ol-utils';
+import Utils from './js/ol-utils-georeference';
 import TitleBar from './TitleBar.svelte';
 const utils = new Utils();
 

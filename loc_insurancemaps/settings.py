@@ -133,6 +133,7 @@ INSTALLED_APPS += (
     'django_svelte',
     'georeference',
     'loc_insurancemaps',
+    'frontend',
 )
 
 ENABLE_NEWSLETTER = os.getenv("ENABLE_NEWSLETTER", False)
@@ -195,6 +196,13 @@ VIEWER_SHOWCASE_SLUG = os.getenv("VIEWER_SHOWCASE_SLUG")
 # this will be removed once Django is upgraded
 SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", False))
 
+# setup frontend app
+TEMPLATES[0]['DIRS'].insert(0, os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "templates"))
+STATICFILES_DIRS += [
+    os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "static"),
+    os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "components", "public", "build"),
+]
+
 # CONFIGURE CELERY
 
 # basic independent setup for Celery Exchange/Queue
@@ -218,31 +226,19 @@ CELERY_TASK_ROUTES = {
 # empty celery beat schedule of default GeoNode jobs
 CELERY_BEAT_SCHEDULE = {}
 
-# conditionally add static files from the 'georeference' app, as well as
-# Mapserver information, used for the georeferencing preview layer
-if 'georeference' in INSTALLED_APPS:
-    TEMPLATES[0]['DIRS'].insert(0, os.path.join(os.path.dirname(LOCAL_ROOT), "georeference", "templates"))
-    STATICFILES_DIRS.append(os.path.join(os.path.dirname(LOCAL_ROOT), "georeference", "static"))
-    # this is the path for the svelte components
-    STATICFILES_DIRS.append(os.path.join(os.path.dirname(LOCAL_ROOT), "georeference", "components", "public", "build"))
 
-    # must have trailing slash
-    MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
-    MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
+# must have trailing slash
+MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
+MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
 
-    CELERY_BEAT_SCHEDULE['delete_expired_sessions'] = {
-        'task': 'georeference.tasks.delete_expired',
-        'schedule': 60.0,
-    }
+CELERY_BEAT_SCHEDULE['delete_expired_sessions'] = {
+    'task': 'georeference.tasks.delete_expired',
+    'schedule': 60.0,
+}
 
-    # prep/georef/trim session duration before expiration (seconds)
-    GEOREFERENCE_SESSION_LENGTH = int(os.getenv("GEOREFERENCE_SESSION_LENGTH", 600))
+# prep/georef session duration before expiration (seconds)
+GEOREFERENCE_SESSION_LENGTH = int(os.getenv("GEOREFERENCE_SESSION_LENGTH", 600))
 
-# add static files and templates that are in the local (loc_insurancemaps) app
-TEMPLATES[0]['DIRS'].insert(0, os.path.join(LOCAL_ROOT, "templates"))
-STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "static"))
-STATICFILES_DIRS.append(os.path.join(LOCAL_ROOT, "components", "public", "build"))
-# add context processor and middleware
 TEMPLATES[0]['OPTIONS']['context_processors'].append("loc_insurancemaps.context_processors.loc_info")
 
 # exclude many default profile fields to reduce to identifiable personal information
@@ -293,10 +289,6 @@ ROOT_URLCONF = 'loc_insurancemaps.urls'
 LOCALE_PATHS = (
     os.path.join(LOCAL_ROOT, 'locale'),
     ) + LOCALE_PATHS
-
-loaders = TEMPLATES[0]['OPTIONS'].get('loaders') or ['django.template.loaders.filesystem.Loader','django.template.loaders.app_directories.Loader']
-TEMPLATES[0]['OPTIONS']['loaders'] = loaders
-TEMPLATES[0].pop('APP_DIRS', None)
 
 LOGGING = {
     'version': 1,

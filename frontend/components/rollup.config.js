@@ -30,7 +30,7 @@ function serve() {
 
 function componentExportDetails(componentName) {
 	return {
-    input: `src/main-${componentName.toLowerCase()}.js`,
+    input: `src/${componentName.toLowerCase()}-main.js`,
 		output: {
 			sourcemap: true,
 			format: 'iife',
@@ -92,6 +92,9 @@ let exportable = [];
   "Footer",
   "Participants",
   "Place",
+  "Georeference",
+  "Split",
+  "Resource",
 ].forEach((d) => exportable.push(componentExportDetails(d)));
 
 export default exportable;

@@ -24,7 +24,7 @@ import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 import LineString from 'ol/geom/LineString';
 
-import Styles from './js/ol-styles';
+import Styles from './js/ol-styles-georeference';
 
 import TitleBar from './TitleBar.svelte';
 import SplitPreamble from './SplitPreamble.svelte';

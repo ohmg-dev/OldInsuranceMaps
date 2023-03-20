@@ -32,9 +32,9 @@ import Draw from 'ol/interaction/Draw';
 import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 
-import Styles from './js/ol-styles';
+import Styles from './js/ol-styles-georeference';
 const styles = new Styles();
-import Utils from './js/ol-utils';
+import Utils from './js/ol-utils-georeference';
 const utils = new Utils();
 
 import TitleBar from './TitleBar.svelte';
