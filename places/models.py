@@ -85,8 +85,7 @@ class Place(models.Model):
 
     def get_volumes(self):
         from loc_insurancemaps.models import Volume
-        # return Volume.objects.filter(locale=self).order_by("year")
-        return Volume.objects.filter(identifier="empty")
+        return Volume.objects.filter(locales__id__exact=self.id).order_by("year")
 
     def get_state_postal(self):
         if self.state and self.state.name.lower() in STATE_POSTAL:

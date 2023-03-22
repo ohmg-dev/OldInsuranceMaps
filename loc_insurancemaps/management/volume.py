@@ -45,7 +45,10 @@ def import_all_available_volumes(state, apply_filter=True, verbose=False):
 def import_volume(identifier, locale=None):
 
     try:
-        return Volume.objects.get(pk=identifier)
+        volume = Volume.objects.get(pk=identifier)
+        volume.locales.add(locale)
+        volume.update_place_counts()
+        return volume
     except Volume.DoesNotExist:
         pass
 
@@ -61,8 +64,7 @@ def import_volume(identifier, locale=None):
     volume_kwargs["lc_resources"] = response['resources']
 
     volume = Volume.objects.create(**volume_kwargs)
-    volume.locale = locale
-    volume.save()
+    volume.locales.add(locale)
 
     volume.update_place_counts()
 

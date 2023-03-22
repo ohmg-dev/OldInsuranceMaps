@@ -6,6 +6,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from django.db import transaction
 
+from loc_insurancemaps.models import Volume
 from places.models import Place
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,11 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "operation",
-            choices=["create", "import-all"],
+            choices=[
+                "create",
+                "import-all",
+                "reset-volume-counts",
+            ],
             help="Name of the new Place.",
         )
         parser.add_argument(
@@ -35,6 +40,19 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
+        ## STASHING
+        # these are misspellings from the census data vs.
+        # what was stored in the Volume objects for city,
+        # county_equivalent, etc. Not used but retained for now.
+        typo_lookup = {
+            "Saint": "St.",
+            "Sanit": "St.",
+            "Balon": "Baton",
+            "La Salle": "LaSalle",
+            "Claibrone": "Claiborne",
+            "Point Coupee": "Pointe Coupee",
+        }
+
         print(options)
         if options['operation'] == "create":
             self.create_new_place(
@@ -42,8 +60,12 @@ class Command(BaseCommand):
                 parent=options['parent'],
                 category=options['category'],
             )
+
         elif options['operation'] == "import-all":
             self.import_all_places()
+
+        elif options['operation'] == "reset-volume-counts":
+            self.reset_volume_counts()
 
     def create_new_place(self, name, parent_slug, category):
 
@@ -81,3 +103,13 @@ class Command(BaseCommand):
         load_place_csv(Path(datadir, "place_states.csv"))
         load_place_csv(Path(datadir, "place_counties.csv"))
         load_place_csv(Path(datadir, "place_other.csv"))
+
+    def reset_volume_counts(self):
+
+        print("set all Place volume counts to 0")
+        Place.objects.all().update(volume_count=0, volume_count_inclusive=0)
+        print("done")
+
+        for volume in Volume.objects.all():
+            print(volume)
+            volume.update_place_counts()

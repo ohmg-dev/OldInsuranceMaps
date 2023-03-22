@@ -51,7 +51,7 @@ class Viewer(View):
             place = Place.objects.get(slug="louisiana")
 
         place_data = place.serialize()
-        for v in Volume.objects.filter(locale=place).order_by("year","volume_no").reverse():
+        for v in Volume.objects.filter(locales__id__exact=place.id).order_by("year","volume_no").reverse():
             volumes.append(v.serialize())
 
         context_dict = {

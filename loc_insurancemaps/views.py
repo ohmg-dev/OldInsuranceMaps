@@ -20,10 +20,12 @@ from georeference.utils import full_reverse
 from georeference.models.sessions import SessionBase
 from georeference.models.resources import GCP, Layer
 
-from loc_insurancemaps.models import Volume, Place
+from loc_insurancemaps.models import Volume
 from loc_insurancemaps.utils import unsanitize_name, filter_volumes_for_use
 from loc_insurancemaps.api import CollectionConnection
 from loc_insurancemaps.tasks import load_docs_as_task
+
+from places.models import Place
 
 if settings.ENABLE_NEWSLETTER:
     from newsletter.models import Newsletter, Subscription
@@ -146,11 +148,12 @@ class Browse(View):
                     mm_percent = mm_ct / main_lyrs_ct
 
             viewer_url = ""
-            if vol.locale:
-                full_reverse("viewer", args=(vol.locale.slug,)) + f"?year={vol.year}",
-                place_name = vol.locale.name
-                if len(vol.locale.direct_parents.all()) > 0:
-                    place_name = f"{place_name}, {vol.locale.direct_parents.all()[0].__str__()}"
+            locale = vol.get_locale()
+            if locale:
+                full_reverse("viewer", args=(locale.slug,)) + f"?year={vol.year}",
+                place_name = locale.name
+                if len(locale.direct_parents.all()) > 0:
+                    place_name = f"{place_name}, {locale.direct_parents.all()[0].__str__()}"
             else:
                 place_name = f"{vol.city}, {vol.county_equivalent}, {vol.state}"
             summary_url = full_reverse("volume_summary", args=(vol.identifier,))
@@ -181,8 +184,8 @@ class Browse(View):
                 }
             }
             loaded_summary.append(vol_content)
-            if vol.locale:
-                places_dict[vol.locale] = places_dict.get(vol.locale, []) + [vol_content]
+            if locale:
+                places_dict[locale] = places_dict.get(locale, []) + [vol_content]
 
         map_geojson = Volume().get_map_geojson()
 
