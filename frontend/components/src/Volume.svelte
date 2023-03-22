@@ -202,7 +202,7 @@ function setHash(newHash) {
 					{/if}
 					<em><span>
 						{#if sheetsLoading}
-						Loading sheet {VOLUME.sheet_ct.loaded+1}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
+						Loading sheet {VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
 						{:else if VOLUME.sheet_ct.loaded == 0}
 						No sheets loaded yet...
 						{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
