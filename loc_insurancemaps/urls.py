@@ -25,8 +25,6 @@ if 'georeference' in settings.INSTALLED_APPS:
     urlpatterns += [url(r'^', include('georeference.urls'))]
 
 urlpatterns += [
-    path('viewer/', RedirectView.as_view(pattern_name='browse', permanent=False), name='viewer_base'),
-    path('viewer/<str:place_slug>/', Viewer.as_view(), name='viewer'),
     path('browse/', Browse.as_view(), name='browse'),
     path('loc/volumes/', RedirectView.as_view(pattern_name='browse', permanent=True), name='volumes_list'),
     path('loc/api/', SimpleAPI.as_view() , name='lc_api'),
@@ -36,9 +34,9 @@ urlpatterns += [
     path('mrm/<str:layerid>/', MRMEndpointLayer.as_view(), name="mrm_get_resource"),
     path('participants/', Participants.as_view(), name="participants"),
     path('participation/', RedirectView.as_view(pattern_name='participants', permanent=False)),
-    # path('<str:place_slug>/view/', Viewer.as_view(), name='place_viewer'),
-    path('<str:place_slug>/', PlaceView.as_view(), name='place'),
 ]
+
+urlpatterns += [path('', include('places.urls'))]
 
 ## these url patterns overwrite existing geonode patterns
 urlpatterns = [

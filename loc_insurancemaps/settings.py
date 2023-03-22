@@ -133,6 +133,7 @@ INSTALLED_APPS += (
     'georeference',
     'loc_insurancemaps',
     'frontend',
+    'places',
 )
 
 ENABLE_NEWSLETTER = os.getenv("ENABLE_NEWSLETTER", False)
