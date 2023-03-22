@@ -396,7 +396,6 @@ class Volume(models.Model):
     sorted_layers = JSONField(
         default=default_sorted_layers_dict,
     )
-    slug = models.CharField(max_length=100, null=True, blank=True)
     multimask = JSONField(null=True, blank=True)
     places = models.ManyToManyField(
         Place,
@@ -842,21 +841,6 @@ class Volume(models.Model):
             map_geojson['features'].append(feature)
 
         return map_geojson
-
-    def save(self, *args, **kwargs):
-
-        slug = ""
-        if self.city:
-            slug = "".join([i for i in self.city if not i in [".", ",", "'",]])
-            slug = slug.replace(" ","-").lower()
-        if self.state:
-            try:
-                slug += "-" + STATE_POSTAL[self.state]
-            except KeyError:
-                pass
-        self.slug = slug
-
-        return super(Volume, self).save(*args, **kwargs)
 
 ## This seems to be where the signals need to be connected. See
 ## https://github.com/mradamcox/loc-insurancemaps/issues/75

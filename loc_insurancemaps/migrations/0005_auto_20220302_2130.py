@@ -3,13 +3,6 @@
 import django.contrib.postgres.fields.jsonb
 from django.db import migrations
 
-from loc_insurancemaps.models import Volume
-
-def update_volume_lookups(apps, schema_editor):
-    """Populate the new lookup fields on all volumes."""
-
-    for volume in Volume.objects.all():
-        volume.populate_lookups()
 
 class Migration(migrations.Migration):
 
@@ -28,5 +21,4 @@ class Migration(migrations.Migration):
             name='layer_lookup',
             field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict, null=True),
         ),
-        migrations.RunPython(update_volume_lookups)
     ]
