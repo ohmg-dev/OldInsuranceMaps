@@ -360,16 +360,6 @@ class PlaceView(View):
                 context=context_dict
             )
 
-class PlaceLookup(View):
-
-    def get(self, request, place_slug):
-
-        try:
-            p = Place.objects.get(slug=place_slug)
-            return JsonResponse(p.serialize())
-        except Place.DoesNotExist:
-            return JsonResponse({})
-
 
 class Viewer(View):
 

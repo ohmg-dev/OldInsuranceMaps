@@ -15,7 +15,6 @@ from .views import (
     Viewer,
     Browse,
     Participants,
-    PlaceLookup,
     PlaceView,
 )
 
@@ -26,7 +25,6 @@ if 'georeference' in settings.INSTALLED_APPS:
     urlpatterns += [url(r'^', include('georeference.urls'))]
 
 urlpatterns += [
-    path('place-lookup/<str:place_slug>', PlaceLookup.as_view(), name='place_lookup_view'),
     path('viewer/', RedirectView.as_view(pattern_name='browse', permanent=False), name='viewer_base'),
     path('viewer/<str:place_slug>/', Viewer.as_view(), name='viewer'),
     path('browse/', Browse.as_view(), name='browse'),
