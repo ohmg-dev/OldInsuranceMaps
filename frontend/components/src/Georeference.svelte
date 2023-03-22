@@ -523,7 +523,9 @@ function removeActiveGCP() {
 }
 
 function confirmGCPRemoval(gcpId) {
-  return window.confirm(`Remove GCP #${gcpId}?`);
+  return window.confirm(`Remove GCP #${gcpId}?<br>
+  NOTE: There is currently a bug that may scramble the remaining GCPs.
+  If possible, move this GCP to a new location rather remove it.`);
 }
 
 function removeGCP(gcpListID) {
