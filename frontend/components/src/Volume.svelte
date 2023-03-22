@@ -104,9 +104,6 @@ function postOperation(operation) {
 		if (operation == "refresh-lookups") {
 			refreshingLookups = false;
 		}
-		if (showMap == false && VOLUME.items.layers.length > 0) {
-			window.location.href = VOLUME.urls.summary;
-		}
 	});
 }
 
