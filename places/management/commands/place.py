@@ -57,7 +57,7 @@ class Command(BaseCommand):
         if options['operation'] == "create":
             self.create_new_place(
                 name=options['name'],
-                parent=options['parent'],
+                parent_slug=options['parent'],
                 category=options['category'],
             )
 
