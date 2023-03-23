@@ -1,7 +1,6 @@
 {% load i18n avatar_tags %}
 {% load static from staticfiles %}
 {% load account socialaccount %}
-{% load base_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -19,15 +18,15 @@
     <meta property="og:description" content="A crowdsourcing site for creating and viewing georeferenced mosaics of historical Sanborn fire insurance maps" />
 
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
-    <link rel="preload" as="style" href="{% static "geonode/css/font-awesome.min.css" %}" />
+    <link rel="preload" as="style" href="{% static "css/font-awesome.min.css" %}" />
 
     <! -- analytics with plausible.io -->
     <script defer data-domain="oldinsurancemaps.net" src="/js/script.js"></script>
 
     {% block head %}
 
-      <link href="{% static "lib/css/assets.min.css" %}" rel="stylesheet"/>
-      <link href="{% static "geonode/css/base.css" %}" rel="stylesheet"/>
+      <!-- <link href="{% static "lib/css/assets.min.css" %}" rel="stylesheet"/> -->
+      <link href="{% static "css/base.css" %}" rel="stylesheet"/>
 
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,7 +45,6 @@
         }
       </style>
     <![endif]-->
-    <link rel="search" type="application/opensearchdescription+xml" href="{% if SITEURL|default:""|slice:"-1:" == "/" %}{{SITEURL}}{% else %}{{SITEURL}}/{% endif %}catalogue/opensearch" title="{% trans "GeoNode Search" %}"/>
 
     <script>
         var siteUrl = '{{ SITEURL }}'.replace(/\/?$/, '/');
@@ -158,8 +156,8 @@
     <!-- quick testing shows that only jquery and bootstrap are needed to 
     retain the sign in modal functionality. This allows for the removal of
     assets.js which was originally included below. -->
-    <script src="{% static "lib/js/jquery.js" %}"></script>
-    <script src="{% static "lib/js/bootstrap.js" %}"></script>
+    <!-- <script src="{% static "lib/js/jquery.js" %}"></script>
+    <script src="{% static "lib/js/bootstrap.js" %}"></script> -->
 
     {% comment %}
     {% if DEBUG_STATIC %}
@@ -183,9 +181,6 @@
     <script src="{% static "lib/js/assets.min.js" %}"></script>
     {% endif %}
     {% endcomment %}
-    <!-- <script src="{% static "geonode/js/utils/utils.js" %}"></script>
-    <script src="{% static "geonode/js/base/base.js" %}"></script> -->
-    <!-- <script type="text/javascript" src="{% url "javascript-catalog" %}"></script> -->
     {% block extra_script %}{% endblock extra_script %}
 
 

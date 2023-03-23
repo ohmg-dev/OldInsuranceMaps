@@ -30,7 +30,8 @@ export let USER;
 		</div>
 		{:else}
 		<div>
-			<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in</a>
+			<a href="/account/login">Sign in</a>
+			<!-- <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in</a> -->
 		</div>
 		{/if}
 	</div>
