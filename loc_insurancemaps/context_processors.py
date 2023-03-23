@@ -10,7 +10,7 @@ def loc_info(request):
         user_info = {
             'is_authenticated': True,
             'name': user.username,
-            'profile': full_reverse("profile_detail", args=(user.username, )),
+            # 'profile': full_reverse("profile_detail", args=(user.username, )),
         }
     else:
         user_info = {

@@ -1,9 +1,10 @@
 from django.conf import settings
 from django.urls import path
+from django.contrib import admin
 from django.conf.urls import url, include
 from django.views.generic import TemplateView, RedirectView
 
-from geonode.urls import urlpatterns
+# from geonode.urls import urlpatterns
 
 from .views import (
     SimpleAPI,
@@ -17,6 +18,13 @@ from .views import (
     Participants,
     PlaceView,
 )
+
+
+urlpatterns = [
+    path('admin/', admin.site.urls, name="admin"),
+    path('account/', include("allauth.urls")),
+]
+# urlpatterns = []
 
 if settings.ENABLE_NEWSLETTER:
     urlpatterns += [path('newsletter/', include('newsletter.urls'))]
@@ -34,13 +42,15 @@ urlpatterns += [
     path('mrm/<str:layerid>/', MRMEndpointLayer.as_view(), name="mrm_get_resource"),
     path('participants/', Participants.as_view(), name="participants"),
     path('participation/', RedirectView.as_view(pattern_name='participants', permanent=False)),
+    path('profile/<str:username>/', HomePage.as_view(), name="profile_detail"),
 ]
 
 urlpatterns += [path('', include('places.urls'))]
+# urlpatterns += [path('', include('accounts.urls'))]
 
 ## these url patterns overwrite existing geonode patterns
 urlpatterns = [
-    url(r'^/?$', HomePage.as_view(), name='home'),
+    path('', HomePage.as_view(), name='home'),
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
     path('getting-started/', TemplateView.as_view(template_name='getting-started.html'),
         name='getting_started'),

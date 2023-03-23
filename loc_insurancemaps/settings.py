@@ -21,22 +21,28 @@
 # Django settings for the GeoNode project.
 import ast
 import os
+import dj_database_url
 
 from kombu import Queue, Exchange
 
 # Load all default geonode settings
-from geonode.settings import *
+# from geonode.settings import *
 
 # Defines the directory that contains the settings file as the LOCAL_ROOT
 # It is used for relative settings elsewhere.
 LOCAL_ROOT = os.path.abspath(os.path.dirname(__file__))
 
+SECRET_KEY = os.getenv("SECRET_KEY")
 WSGI_APPLICATION = "loc_insurancemaps.wsgi.application"
 
+DEBUG = True
+
 # add trailing slash to site url. geoserver url will be relative to this
+SITEURL = os.getenv("SITEURL", "http://localhost:8000")
 if not SITEURL.endswith('/'):
     SITEURL = '{}/'.format(SITEURL)
 
+SITE_ID = int(os.getenv('SITE_ID', '1'))
 SITENAME = os.getenv("SITENAME", 'Example.com')
 
 # Set path to cache directory
@@ -50,10 +56,6 @@ LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', "en")
 
 ## overwrite geonode installed apps to begin paring them down
 INSTALLED_APPS = [
-    'modeltranslation',
-    'dal',
-    'dal_select2',
-    # 'grappelli',
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'django.contrib.sessions',
@@ -64,6 +66,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.humanize',
     'django.contrib.gis',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'accounts',
+
+    'modeltranslation',
+    'dal',
+    'dal_select2',
+    # 'grappelli',
     'dj_pagination',
     'taggit',
     'treebeard',
@@ -73,12 +85,12 @@ INSTALLED_APPS = [
     'mptt',
     'storages',
     'floppyforms',
-    'tinymce',
+    # 'tinymce',
     'widget_tweaks',
     'django_extensions',
-    'rest_framework',
-    'rest_framework_gis',
-    'dynamic_rest',
+    # 'rest_framework',
+    # 'rest_framework_gis',
+    # 'dynamic_rest',
     'drf_spectacular',
     'django_forms_bootstrap',
     'avatar',
@@ -87,41 +99,38 @@ INSTALLED_APPS = [
     'announcements',
     'actstream',
     'user_messages',
-    'tastypie',
+    # 'tastypie',
     'polymorphic',
     'guardian',
-    'oauth2_provider',
+    # 'oauth2_provider',
     'corsheaders',
     'invitations',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'geonode',
-    'markdownify',
-    'geonode.api', # needed in geonode.base
-    'geonode.base',
-    'geonode.br',
-    'geonode.layers',
-    'geonode.maps',
-    'geonode.geoapps',
-    'geonode.documents',
-    'geonode.security',
-    'geonode.catalogue',
-    'geonode.catalogue.metadataxsl',
-    'geonode.people',
-    'geonode.client',
-    'geonode.themes',
-    'geonode.proxy',
-    'geonode.social',
-    'geonode.groups',
-    'geonode.services', # error when removing this app still
-    'geonode.geoserver', # needed by geonode.api
-    'geonode.upload', # needed to delete users (attached to profile??)
-    'geonode.tasks',
-    'geonode.messaging',
-    'geonode.monitoring', # needed to delete users (attached to profile??)
-    'geonode.documents.exif',
-    'geonode.favorite', # needed to delete users (attached to profile??)
+    # 'geonode',
+    # 'markdownify',
+    # 'geonode.api', # needed in geonode.base
+    # 'geonode.base',
+    # 'geonode.br',
+    # 'geonode.layers',
+    # 'geonode.maps',
+    # 'geonode.geoapps',
+    # 'geonode.documents',
+    # 'geonode.security',
+    # 'geonode.catalogue',
+    # 'geonode.catalogue.metadataxsl',
+    # 'geonode.people',
+    # 'geonode.client',
+    # 'geonode.themes',
+    # 'geonode.proxy',
+    # 'geonode.social',
+    # 'geonode.groups',
+    # 'geonode.services', # error when removing this app still
+    # 'geonode.geoserver', # needed by geonode.api
+    # 'geonode.upload', # needed to delete users (attached to profile??)
+    # 'geonode.tasks',
+    # 'geonode.messaging',
+    # 'geonode.monitoring', # needed to delete users (attached to profile??)
+    # 'geonode.documents.exif',
+    # 'geonode.favorite', # needed to delete users (attached to profile??)
     # 'mapstore2_adapter',
     # 'mapstore2_adapter.geoapps',
     # 'mapstore2_adapter.geoapps.geostories',
@@ -129,12 +138,70 @@ INSTALLED_APPS = [
     'pinax.notifications',
 ]
 
+AUTH_USER_MODEL = 'accounts.User'
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.SHA1PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    # 'django.contrib.auth.hashers.Argon2PasswordHasher',
+    # 'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    # 'django.contrib.auth.hashers.BCryptPasswordHasher',
+]
+
 INSTALLED_APPS += (
     'georeference',
     'loc_insurancemaps',
     'frontend',
     'places',
+    # 'accounts',
 )
+
+TEMPLATES = [
+  {
+    "NAME": "Project Templates",
+    "BACKEND": "django.template.backends.django.DjangoTemplates",
+    "DIRS": [
+      os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "templates"),
+    ],
+    "APP_DIRS": True,
+    "OPTIONS": {
+      "context_processors": [
+        "django.template.context_processors.debug",
+        "django.template.context_processors.i18n",
+        "django.template.context_processors.tz",
+        "django.template.context_processors.request",
+        "django.template.context_processors.media",
+        "django.template.context_processors.static",
+        "django.contrib.auth.context_processors.auth",
+        "django.contrib.messages.context_processors.messages",
+        "django.contrib.auth.context_processors.auth",
+        "loc_insurancemaps.context_processors.loc_info"
+      ],
+      "debug": DEBUG,
+    }
+  }
+]
+
+DATABASES = {
+    'default': dj_database_url.parse(
+        os.getenv('DATABASE_URL'),
+        conn_max_age=0
+    )
+}
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "static"),
+    os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "components", "public", "build"),
+]
+
+AUTHENTICATION_BACKENDS = [
+  "django.contrib.auth.backends.ModelBackend",
+  "guardian.backends.ObjectPermissionBackend",
+  "allauth.account.auth_backends.AuthenticationBackend",
+  "announcements.auth_backends.AnnouncementPermissionsBackend"
+]
 
 ENABLE_NEWSLETTER = os.getenv("ENABLE_NEWSLETTER", False)
 if ENABLE_NEWSLETTER:
@@ -197,81 +264,51 @@ VIEWER_SHOWCASE_SLUG = os.getenv("VIEWER_SHOWCASE_SLUG")
 SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", False))
 
 # setup frontend app
-TEMPLATES[0]['DIRS'].insert(0, os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "templates"))
-STATICFILES_DIRS += [
-    os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "static"),
-    os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "components", "public", "build"),
-]
+# TEMPLATES[0]['DIRS'].insert(0, os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "templates"))
+# STATICFILES_DIRS += [
+#     os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "static"),
+#     os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "components", "public", "build"),
+# ]
 
 # CONFIGURE CELERY
+CELERY_BROKER_URL = os.getenv('BROKER_URL')
+print(CELERY_BROKER_URL)
+CELERY_RESULT_BACKEND = f'file:///{os.path.join(LOCAL_ROOT, ".celery_results")}'
 
 # basic independent setup for Celery Exchange/Queue
-PARAMOUNT_EXCHANGE = Exchange('paramount', type='topic')
-CELERY_TASK_QUEUES += (
-    Queue('split', PARAMOUNT_EXCHANGE, routing_key='split', priority=0),
-    Queue('georeference', PARAMOUNT_EXCHANGE, routing_key='georeference', priority=0),
-    Queue('volume', PARAMOUNT_EXCHANGE, routing_key='volume', priority=0),
-    Queue('mosaic', PARAMOUNT_EXCHANGE, routing_key='mosaic', priority=0),
-    Queue('housekeeping', PARAMOUNT_EXCHANGE, routing_key='housekeeping', priority=0),
+DEFAULT_EXCHANGE = Exchange('default', type='topic')
+# CELERY_TASK_QUEUES += (
+CELERY_TASK_QUEUES = (
+    Queue('split', DEFAULT_EXCHANGE, routing_key='split', priority=0),
+    Queue('georeference', DEFAULT_EXCHANGE, routing_key='georeference', priority=0),
+    Queue('volume', DEFAULT_EXCHANGE, routing_key='volume', priority=0),
+    Queue('mosaic', DEFAULT_EXCHANGE, routing_key='mosaic', priority=0),
+    Queue('housekeeping', DEFAULT_EXCHANGE, routing_key='housekeeping', priority=0),
 )
 
 CELERY_TASK_ROUTES = {
- 'georeference.tasks.run_preparation_session': {'queue': 'split'},
- 'georeference.tasks.run_georeference_session': {'queue': 'georeference'},
- 'georeference.tasks.delete_expired': {'queue': 'housekeeping'},
- 'loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
- 'loc_insurancemaps.tasks.generate_mosaic_geotiff_as_task': {'queue': 'mosaic'},
+    'georeference.tasks.run_preparation_session': {'queue': 'split'},
+    'georeference.tasks.run_georeference_session': {'queue': 'georeference'},
+    'georeference.tasks.delete_expired': {'queue': 'housekeeping'},
+    'loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
+    'loc_insurancemaps.tasks.generate_mosaic_geotiff_as_task': {'queue': 'mosaic'},
 }
 
 # empty celery beat schedule of default GeoNode jobs
-CELERY_BEAT_SCHEDULE = {}
+CELERY_BEAT_SCHEDULE = {
+    'delete_expired_sessions': {
+        'task': 'georeference.tasks.delete_expired',
+        'schedule': 60.0,
+    }
+}
 
 
 # must have trailing slash
 MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
 MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
 
-CELERY_BEAT_SCHEDULE['delete_expired_sessions'] = {
-    'task': 'georeference.tasks.delete_expired',
-    'schedule': 60.0,
-}
-
 # prep/georef session duration before expiration (seconds)
 GEOREFERENCE_SESSION_LENGTH = int(os.getenv("GEOREFERENCE_SESSION_LENGTH", 600))
-
-TEMPLATES[0]['OPTIONS']['context_processors'].append("loc_insurancemaps.context_processors.loc_info")
-
-# exclude many default profile fields to reduce to identifiable personal information
-PROFILE_EDIT_EXCLUDE_FIELD = [
-    "first_name",
-    "last_name",
-    "profile",
-    "voice",
-    "fax",
-    "delivery",
-    "city",
-    "area",
-    "zipcode",
-    "country",
-    "keywords",
-    "language",
-]
-
-# disable unnecessary search filters for cleaner interface
-SEARCH_FILTERS = {
-    'TEXT_ENABLED': True,
-    'TYPE_ENABLED': True,
-    'CATEGORIES_ENABLED': False,
-    'OWNERS_ENABLED': False,
-    'KEYWORDS_ENABLED': False,
-    'H_KEYWORDS_ENABLED': False,
-    'T_KEYWORDS_ENABLED': True,
-    'DATE_ENABLED': True,
-    'REGION_ENABLED': True,
-    'EXTENT_ENABLED': True,
-    'GROUPS_ENABLED': False,
-    'GROUP_CATEGORIES_ENABLED': False,
-}
 
 # no trailing slash on server location
 IIIF_SERVER_ENABLED = False
@@ -288,7 +325,7 @@ ROOT_URLCONF = 'loc_insurancemaps.urls'
 # Location of locale files
 LOCALE_PATHS = (
     os.path.join(LOCAL_ROOT, 'locale'),
-    ) + LOCALE_PATHS
+) #+ LOCALE_PATHS
 
 LOGGING = {
     'version': 1,
@@ -404,41 +441,41 @@ for i in ['job', 'consumer', 'mediator', 'control', 'bootsteps']:
         'propagate': True,
     }
 
-CENTRALIZED_DASHBOARD_ENABLED = ast.literal_eval(os.getenv('CENTRALIZED_DASHBOARD_ENABLED', 'False'))
-if CENTRALIZED_DASHBOARD_ENABLED and USER_ANALYTICS_ENABLED and 'geonode_logstash' not in INSTALLED_APPS:
-    INSTALLED_APPS += ('geonode_logstash',)
+# CENTRALIZED_DASHBOARD_ENABLED = ast.literal_eval(os.getenv('CENTRALIZED_DASHBOARD_ENABLED', 'False'))
+# if CENTRALIZED_DASHBOARD_ENABLED and USER_ANALYTICS_ENABLED and 'geonode_logstash' not in INSTALLED_APPS:
+#     INSTALLED_APPS += ('geonode_logstash',)
 
-    CELERY_BEAT_SCHEDULE['dispatch_metrics'] = {
-        'task': 'geonode_logstash.tasks.dispatch_metrics',
-        'schedule': 3600.0,
-    }
+#     CELERY_BEAT_SCHEDULE['dispatch_metrics'] = {
+#         'task': 'geonode_logstash.tasks.dispatch_metrics',
+#         'schedule': 3600.0,
+#     }
 
-LDAP_ENABLED = ast.literal_eval(os.getenv('LDAP_ENABLED', 'False'))
-if LDAP_ENABLED and 'geonode_ldap' not in INSTALLED_APPS:
-    INSTALLED_APPS += ('geonode_ldap',)
+# LDAP_ENABLED = ast.literal_eval(os.getenv('LDAP_ENABLED', 'False'))
+# if LDAP_ENABLED and 'geonode_ldap' not in INSTALLED_APPS:
+#     INSTALLED_APPS += ('geonode_ldap',)
 
 # Add your specific LDAP configuration after this comment:
 # https://docs.geonode.org/en/master/advanced/contrib/#configuration
 
-API_LIMIT_PER_PAGE = 20
-CLIENT_RESULTS_LIMIT = 20
+# API_LIMIT_PER_PAGE = 20
+# CLIENT_RESULTS_LIMIT = 20
 
-# don't use MAPBOX_ACCESS_TOKEN because it will be picked up by GeoNode and
-# trigger many Mapbox-based basemaps. Instead use MAPBOX_API_TOKEN here and
-# manually replace the sentinel imagery basemap with Mapbox Satellite.
+# # don't use MAPBOX_ACCESS_TOKEN because it will be picked up by GeoNode and
+# # trigger many Mapbox-based basemaps. Instead use MAPBOX_API_TOKEN here and
+# # manually replace the sentinel imagery basemap with Mapbox Satellite.
 MAPBOX_API_TOKEN = os.environ.get('MAPBOX_API_TOKEN', None)
-if MAPBOX_API_TOKEN:
-    MAPBOX_SATELLITE_SOURCE = "satellite-streets-v10"
-    MAPBOX_SATELLITE_LAYER = {
-        'type': 'tileprovider',
-        'title': 'MapBox Satellite',
-        'provider': 'MapBoxStyle',
-        'name': 'MapBox Satellite',
-        'accessToken': MAPBOX_API_TOKEN,
-        'source': MAPBOX_SATELLITE_SOURCE,
-        'thumbURL': f'https://api.mapbox.com/styles/v1/mapbox/{MAPBOX_SATELLITE_SOURCE}/tiles/256/6/33/23?access_token={MAPBOX_API_TOKEN}',
-        'group': 'background',
-        'visibility': False,
-    }
-    MAPSTORE_BASELAYERS = [i for i in DEFAULT_MS2_BACKGROUNDS if not i.get('id') == "s2cloudless"]
-    MAPSTORE_BASELAYERS.insert(2, MAPBOX_SATELLITE_LAYER)
+# if MAPBOX_API_TOKEN:
+#     MAPBOX_SATELLITE_SOURCE = "satellite-streets-v10"
+#     MAPBOX_SATELLITE_LAYER = {
+#         'type': 'tileprovider',
+#         'title': 'MapBox Satellite',
+#         'provider': 'MapBoxStyle',
+#         'name': 'MapBox Satellite',
+#         'accessToken': MAPBOX_API_TOKEN,
+#         'source': MAPBOX_SATELLITE_SOURCE,
+#         'thumbURL': f'https://api.mapbox.com/styles/v1/mapbox/{MAPBOX_SATELLITE_SOURCE}/tiles/256/6/33/23?access_token={MAPBOX_API_TOKEN}',
+#         'group': 'background',
+#         'visibility': False,
+#     }
+#     MAPSTORE_BASELAYERS = [i for i in DEFAULT_MS2_BACKGROUNDS if not i.get('id') == "s2cloudless"]
+#     MAPSTORE_BASELAYERS.insert(2, MAPBOX_SATELLITE_LAYER)

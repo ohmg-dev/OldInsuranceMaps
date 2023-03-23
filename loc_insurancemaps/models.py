@@ -218,7 +218,6 @@ class Volume(models.Model):
     locales = models.ManyToManyField(
         NewPlaceModel,
         blank=True,
-        null=True,
     )
     # currently this actually stores the MosaicJSON (ugh) gotta separate these
     mosaic_geotiff = models.FileField(
