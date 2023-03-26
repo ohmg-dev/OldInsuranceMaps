@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.humanize',
     'django.contrib.gis',
+    'django_celery_results',
 
     'allauth',
     'allauth.account',
@@ -273,7 +274,7 @@ SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", Fals
 # CONFIGURE CELERY
 CELERY_BROKER_URL = os.getenv('BROKER_URL')
 print(CELERY_BROKER_URL)
-CELERY_RESULT_BACKEND = f'file:///{os.path.join(LOCAL_ROOT, ".celery_results")}'
+CELERY_RESULT_BACKEND = 'django-db'
 
 # basic independent setup for Celery Exchange/Queue
 DEFAULT_EXCHANGE = Exchange('default', type='topic')
