@@ -25,8 +25,6 @@ from loc_insurancemaps.utils import unsanitize_name, filter_volumes_for_use
 from loc_insurancemaps.api import CollectionConnection
 from loc_insurancemaps.tasks import load_docs_as_task
 
-from places.models import Place
-
 if settings.ENABLE_NEWSLETTER:
     from newsletter.models import Newsletter, Subscription
 
@@ -73,6 +71,7 @@ class HomePage(View):
         viewer_showcase = None
         if settings.VIEWER_SHOWCASE_SLUG:
             try:
+                from places.models import Place
                 p = Place.objects.get(slug=settings.VIEWER_SHOWCASE_SLUG)
                 viewer_showcase = {
                     'name': p.name,
@@ -336,122 +335,6 @@ class VolumeDetail(View):
             volume.refresh_lookups()
             volume_json = volume.serialize(include_session_info=True)
             return JsonResponse(volume_json)
-
-
-class PlaceView(View):
-
-    def get(self, request, place_slug):
-
-        f = request.GET.get("f", None)
-        p = get_object_or_404(Place, slug=place_slug)
-        data = p.serialize()
-
-        if f == "json":
-            return JsonResponse(data)
-
-        else:
-            context_dict = {
-                "svelte_params": {
-                    "PLACE": data,
-                }
-            }
-            
-            
-            return render(
-                request,
-                "place.html",
-                context=context_dict
-            )
-
-
-class Viewer(View):
-
-    @xframe_options_sameorigin
-    def get(self, request, place_slug):
-
-        place_data = {}
-        volumes = []
-
-        p = Place.objects.filter(slug=place_slug)
-        if p.count() == 1:
-            place = p[0]
-        else:
-            place = Place.objects.get(slug="louisiana")
-
-        place_data = place.serialize()
-        for v in Volume.objects.filter(locale=place).order_by("year","volume_no").reverse():
-            volumes.append(v.serialize())
-
-        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
-        gs = gs.rstrip("/") + "/"
-        geoserver_ows = f"{gs}ows/"
-
-        context_dict = {
-            "svelte_params": {
-                "PLACE": place_data,
-                "VOLUMES": volumes,
-                "TITILER_HOST": settings.TITILER_HOST,
-                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-            }
-        }
-        return render(
-            request,
-            "viewer.html",
-            context=context_dict
-        )
-
-
-class Participants(View):
-
-    def get(self, request):
-
-        profiles = get_user_model().objects.all().exclude(username="AnonymousUser").order_by("username")
-
-        participants = []
-
-        # user the serializer from GeoNode in order to get the avatar url
-        # s = UserSerializer()
-        for p in profiles:
-            # p_data = s.to_representation(p)
-            psesh_ct = SessionBase.objects.filter(user=p, type="p").count()
-            gsesh_ct = SessionBase.objects.filter(user=p, type="g").count()
-            total = psesh_ct + gsesh_ct
-            volumes = Volume.objects.filter(loaded_by=p).order_by("city")
-            load_ct = volumes.count()
-            load_volumes = [
-                {
-                    "city": v.city,
-                    "year": v.year,
-                    "url": f"/loc/{v.identifier}",
-                    "volume_no": v.volume_no,
-                    "title": f"{v.city} {v.year}{' vol. ' + v.volume_no if v.volume_no else ''}"
-                } for v in volumes
-            ]
-
-            participants.append({
-                # "avatar": p_data['avatar'],
-                "avatar": "",
-                "username": p.username,
-                "profile_url": reverse('profile_detail', args=(p.username, )),
-                "load_ct": load_ct,
-                "psesh_ct": psesh_ct,
-                "gsesh_ct": gsesh_ct,
-                "total_ct": total,
-                "volumes": load_volumes,
-                "gcp_ct": GCP.objects.filter(created_by=p).count()
-            })
-
-        context_dict = {
-            "svelte_params": {
-                "PARTICIPANTS": participants,
-            }
-        }
-
-        return render(
-            request,
-            "participants.html",
-            context=context_dict,
-        )
 
 
 class SimpleAPI(View):

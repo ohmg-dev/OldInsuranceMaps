@@ -1,54 +1,35 @@
-# -*- coding: utf-8 -*-
-#########################################################################
-#
-# Copyright (C) 2017 OSGeo
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-#
-#########################################################################
-
-# Django settings for the GeoNode project.
 import ast
 import os
 import dj_database_url
+from pathlib import Path
 
 from kombu import Queue, Exchange
 
-# Load all default geonode settings
-# from geonode.settings import *
+# set the project root as the BASE_DIR
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Defines the directory that contains the settings file as the LOCAL_ROOT
-# It is used for relative settings elsewhere.
-LOCAL_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 WSGI_APPLICATION = "loc_insurancemaps.wsgi.application"
 
-DEBUG = True
+# Location of url mappings
+ROOT_URLCONF = 'loc_insurancemaps.urls'
+
+DEBUG = ast.literal_eval(os.getenv("DEBUG", True))
 
 # add trailing slash to site url. geoserver url will be relative to this
-SITEURL = os.getenv("SITEURL", "http://localhost:8000")
+SITEURL = os.getenv("SITEURL", "http://localhost:8000/")
 if not SITEURL.endswith('/'):
-    SITEURL = '{}/'.format(SITEURL)
+    SITEURL += '/'
 
 SITE_ID = int(os.getenv('SITE_ID', '1'))
 SITENAME = os.getenv("SITENAME", 'Example.com')
 
 # Set path to cache directory
-CACHE_DIR = os.path.join(LOCAL_ROOT, "cache")
-TEMP_DIR = os.path.join(LOCAL_ROOT, "temp")
-LOG_DIR = os.path.join(LOCAL_ROOT, "logs")
+CACHE_DIR = BASE_DIR / "loc_insurancemaps" / "cache"
+TEMP_DIR = BASE_DIR / "loc_insurancemaps" / "temp"
+LOG_DIR = BASE_DIR / "loc_insurancemaps" / "logs"
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -163,7 +144,7 @@ TEMPLATES = [
     "NAME": "Project Templates",
     "BACKEND": "django.template.backends.django.DjangoTemplates",
     "DIRS": [
-      os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "templates"),
+      BASE_DIR / "frontend" / "templates",
     ],
     "APP_DIRS": True,
     "OPTIONS": {
@@ -193,8 +174,8 @@ DATABASES = {
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "static"),
-    os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "components", "public", "build"),
+    BASE_DIR / "frontend" / "static",
+    BASE_DIR / "frontend" / "components" / "public" / "build",
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -230,9 +211,6 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'oauth2_provider.middleware.OAuth2TokenMiddleware',
-    # 'geonode.base.middleware.MaintenanceMiddleware',
-    # 'geonode.base.middleware.ReadOnlyMiddleware',
-    # 'geonode.security.middleware.SessionControlMiddleware',
 )
 
 ENABLE_CPROFILER = ast.literal_eval(os.getenv("ENABLE_CPROFILER", False))
@@ -247,6 +225,10 @@ if DEBUG and ENABLE_DEBUG_TOOLBAR:
 
 TITILER_HOST = os.getenv("TITILER_HOST", "")
 
+MEDIA_URL = os.getenv('MEDIA_URL', '/uploaded/')
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / 'loc_insurancemaps' / 'uploaded')
+
+# this is a custom setting to allow apache to be used in development
 MEDIA_HOST = os.getenv("MEDIA_HOST", SITEURL)
 
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
@@ -264,16 +246,8 @@ VIEWER_SHOWCASE_SLUG = os.getenv("VIEWER_SHOWCASE_SLUG")
 # this will be removed once Django is upgraded
 SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", False))
 
-# setup frontend app
-# TEMPLATES[0]['DIRS'].insert(0, os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "templates"))
-# STATICFILES_DIRS += [
-#     os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "static"),
-#     os.path.join(os.path.dirname(LOCAL_ROOT), "frontend", "components", "public", "build"),
-# ]
-
 # CONFIGURE CELERY
 CELERY_BROKER_URL = os.getenv('BROKER_URL')
-print(CELERY_BROKER_URL)
 CELERY_RESULT_BACKEND = 'django-db'
 
 # basic independent setup for Celery Exchange/Queue
@@ -305,10 +279,9 @@ CELERY_BEAT_SCHEDULE = {
 
 ACCOUNT_ADAPTER = "accounts.adapter.AccountAdapter"
 
-
 # must have trailing slash
 MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
-MAPSERVER_MAPFILE = os.path.join(LOCAL_ROOT, "mapserver.map")
+MAPSERVER_MAPFILE = BASE_DIR / "loc_insurancemaps" / "mapserver.map"
 
 # prep/georef session duration before expiration (seconds)
 GEOREFERENCE_SESSION_LENGTH = int(os.getenv("GEOREFERENCE_SESSION_LENGTH", 600))
@@ -322,13 +295,10 @@ CORS_ORIGIN_ALLOW_ALL = False
 
 DEFAULT_THUMBNAIL_SIZE = (240, 200)
 
-# Location of url mappings
-ROOT_URLCONF = 'loc_insurancemaps.urls'
-
 # Location of locale files
 LOCALE_PATHS = (
-    os.path.join(LOCAL_ROOT, 'locale'),
-) #+ LOCALE_PATHS
+    BASE_DIR / 'loc_insurancemaps' / 'locale',
+)
 
 LOGGING = {
     'version': 1,
@@ -444,41 +414,4 @@ for i in ['job', 'consumer', 'mediator', 'control', 'bootsteps']:
         'propagate': True,
     }
 
-# CENTRALIZED_DASHBOARD_ENABLED = ast.literal_eval(os.getenv('CENTRALIZED_DASHBOARD_ENABLED', 'False'))
-# if CENTRALIZED_DASHBOARD_ENABLED and USER_ANALYTICS_ENABLED and 'geonode_logstash' not in INSTALLED_APPS:
-#     INSTALLED_APPS += ('geonode_logstash',)
-
-#     CELERY_BEAT_SCHEDULE['dispatch_metrics'] = {
-#         'task': 'geonode_logstash.tasks.dispatch_metrics',
-#         'schedule': 3600.0,
-#     }
-
-# LDAP_ENABLED = ast.literal_eval(os.getenv('LDAP_ENABLED', 'False'))
-# if LDAP_ENABLED and 'geonode_ldap' not in INSTALLED_APPS:
-#     INSTALLED_APPS += ('geonode_ldap',)
-
-# Add your specific LDAP configuration after this comment:
-# https://docs.geonode.org/en/master/advanced/contrib/#configuration
-
-# API_LIMIT_PER_PAGE = 20
-# CLIENT_RESULTS_LIMIT = 20
-
-# # don't use MAPBOX_ACCESS_TOKEN because it will be picked up by GeoNode and
-# # trigger many Mapbox-based basemaps. Instead use MAPBOX_API_TOKEN here and
-# # manually replace the sentinel imagery basemap with Mapbox Satellite.
 MAPBOX_API_TOKEN = os.environ.get('MAPBOX_API_TOKEN', None)
-# if MAPBOX_API_TOKEN:
-#     MAPBOX_SATELLITE_SOURCE = "satellite-streets-v10"
-#     MAPBOX_SATELLITE_LAYER = {
-#         'type': 'tileprovider',
-#         'title': 'MapBox Satellite',
-#         'provider': 'MapBoxStyle',
-#         'name': 'MapBox Satellite',
-#         'accessToken': MAPBOX_API_TOKEN,
-#         'source': MAPBOX_SATELLITE_SOURCE,
-#         'thumbURL': f'https://api.mapbox.com/styles/v1/mapbox/{MAPBOX_SATELLITE_SOURCE}/tiles/256/6/33/23?access_token={MAPBOX_API_TOKEN}',
-#         'group': 'background',
-#         'visibility': False,
-#     }
-#     MAPSTORE_BASELAYERS = [i for i in DEFAULT_MS2_BACKGROUNDS if not i.get('id') == "s2cloudless"]
-#     MAPSTORE_BASELAYERS.insert(2, MAPBOX_SATELLITE_LAYER)
