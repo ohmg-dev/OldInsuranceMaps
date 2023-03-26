@@ -11,7 +11,7 @@
     <meta Http-Equiv="Pragma-directive: no-cache">
     <meta Http-Equiv="Cache-directive: no-cache">
 
-    <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+    <title>{% block title %}{{ svelte_params.PLACE.display_name }}{% endblock %}</title>
 
     <script defer data-domain="oldinsurancemaps.net" src="/js/script.js"></script>
 
@@ -32,7 +32,7 @@
 
   </head>
   <body style="padding:0; margin:0;">
-    {% block middle %}
-    {% endblock middle %}
+    {{ svelte_params|json_script:'viewer-props'}}
+    {% include '_svelte_component.html' with component_name='Viewer' %}
   </body>
 </html>

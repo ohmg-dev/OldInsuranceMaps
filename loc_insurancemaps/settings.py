@@ -302,6 +302,8 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 
+ACCOUNT_ADAPTER = "accounts.adapter.AccountAdapter"
+
 
 # must have trailing slash
 MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")

@@ -1,43 +1,46 @@
-from django import forms
-from django.contrib.auth import authenticate, login
-from django.http import HttpResponse
-from django.shortcuts import render
+from django.contrib.auth import get_user_model
+from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404
+from django.views import View
 
 
-class AjaxLoginForm(forms.Form):
-    password = forms.CharField(widget=forms.PasswordInput)
-    username = forms.CharField()
+class ProfileView(View):
 
+    def get(self, request, username):
 
-def ajax_login(request):
-    if request.method != 'POST':
-        return HttpResponse(
-            content="ajax login requires HTTP POST",
-            status=405,
-            content_type="text/plain"
-        )
-    form = AjaxLoginForm(data=request.POST)
-    if form.is_valid():
-        username = form.cleaned_data['username']
-        password = form.cleaned_data['password']
-        user = authenticate(username=username, password=password)
-        if user is None or not user.is_active:
-            return HttpResponse(
-                content="bad credentials or disabled user",
-                status=400,
-                content_type="text/plain"
-            )
+        f = request.GET.get("f", None)
+        u = get_object_or_404(get_user_model(), username=username)
+        data = u.serialize()
+
+        if f == "json":
+            return JsonResponse(data)
+
         else:
-            login(request, user)
-            if request.session.test_cookie_worked():
-                request.session.delete_test_cookie()
-            return HttpResponse(
-                content="successful login",
-                status=200,
-                content_type="text/plain"
+            return render(
+                request,
+                "accounts/profile.html",
+                context={
+                    "svelte_params": {
+                        "USER": data,
+                    }
+                }
             )
-    else:
-        return HttpResponse(
-            "The form you submitted doesn't look like a username/password combo.",
-            content_type="text/plain",
-            status=400)
+
+
+class Participants(View):
+
+    def get(self, request):
+
+        profiles = get_user_model().objects.all().exclude(username="AnonymousUser").order_by("username")
+
+        data = [i.serialize() for i in profiles]
+
+        return render(
+            request,
+            "accounts/participants.html",
+            context={
+                "svelte_params": {
+                    "PARTICIPANTS": data,
+                }
+            },
+        )

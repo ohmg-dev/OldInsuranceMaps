@@ -1,0 +1,1 @@
+These are templates are overrides for the allauth defaults.

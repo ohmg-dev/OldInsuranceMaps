@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load bootstrap_tags %}
+{% load account socialaccount %}
+
+{% block title %}{% trans "Sign up" %}{% endblock %}
+
+{% block body_outer %}
+    {{svelte_params}}
+{% endblock %}
+
