@@ -120,8 +120,6 @@ INSTALLED_APPS = [
     'pinax.notifications',
 ]
 
-AUTH_USER_MODEL = 'accounts.User'
-
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.SHA1PasswordHasher',
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
@@ -185,6 +183,22 @@ AUTHENTICATION_BACKENDS = [
   "announcements.auth_backends.AnnouncementPermissionsBackend"
 ]
 
+EMAIL_ENABLE = ast.literal_eval(os.getenv('EMAIL_ENABLE', 'False'))
+
+if EMAIL_ENABLE:
+    EMAIL_BACKEND = os.getenv('DJANGO_EMAIL_BACKEND',
+                              default='django.core.mail.backends.smtp.EmailBackend')
+    EMAIL_HOST = os.getenv('DJANGO_EMAIL_HOST', 'localhost')
+    EMAIL_PORT = os.getenv('DJANGO_EMAIL_PORT', 25)
+    EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_HOST_PASSWORD', '')
+    EMAIL_USE_TLS = ast.literal_eval(os.getenv('DJANGO_EMAIL_USE_TLS', 'False'))
+    EMAIL_USE_SSL = ast.literal_eval(os.getenv('DJANGO_EMAIL_USE_SSL', 'False'))
+    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'GeoNode <no-reply@geonode.org>')
+else:
+    EMAIL_BACKEND = os.getenv('DJANGO_EMAIL_BACKEND',
+                              default='django.core.mail.backends.console.EmailBackend')
+
 ENABLE_NEWSLETTER = os.getenv("ENABLE_NEWSLETTER", False)
 if ENABLE_NEWSLETTER:
     INSTALLED_APPS += (
@@ -195,6 +209,26 @@ if ENABLE_NEWSLETTER:
     NEWSLETTER_CONFIRM_EMAIL_SUBSCRIBE = True
     NEWSLETTER_CONFIRM_EMAIL_UNSUBSCRIBE = False
     NEWSLETTER_CONFIRM_EMAIL_UPDATE = False
+
+# gravatar settings
+AUTO_GENERATE_AVATAR_SIZES = (
+    20, 30, 32, 40, 50, 65, 70, 80, 100, 140, 200, 240
+)
+AVATAR_GRAVATAR_SSL = ast.literal_eval(os.getenv('AVATAR_GRAVATAR_SSL', 'False'))
+
+AVATAR_DEFAULT_URL = os.getenv('AVATAR_DEFAULT_URL', '/img/avatar.png')
+
+try:
+    # try to parse python notation, default in dockerized env
+    AVATAR_PROVIDERS = ast.literal_eval(os.getenv('AVATAR_PROVIDERS'))
+except ValueError:
+    # fallback to regular list of values separated with misc chars
+    AVATAR_PROVIDERS = (
+        'avatar.providers.PrimaryAvatarProvider',
+        'avatar.providers.GravatarAvatarProvider',
+        'avatar.providers.DefaultAvatarProvider'
+    ) if os.getenv('AVATAR_PROVIDERS') is None \
+        else os.getenv('AVATAR_PROVIDERS').split(",")
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@localhost")
 
@@ -277,7 +311,10 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 
+AUTH_USER_MODEL = 'accounts.User'
 ACCOUNT_ADAPTER = "accounts.adapter.AccountAdapter"
+
+ACCOUNT_EMAIL_REQUIRED = True
 
 # must have trailing slash
 MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
@@ -285,6 +322,8 @@ MAPSERVER_MAPFILE = BASE_DIR / "loc_insurancemaps" / "mapserver.map"
 
 # prep/georef session duration before expiration (seconds)
 GEOREFERENCE_SESSION_LENGTH = int(os.getenv("GEOREFERENCE_SESSION_LENGTH", 600))
+
+MAPBOX_API_TOKEN = os.environ.get('MAPBOX_API_TOKEN', None)
 
 # no trailing slash on server location
 IIIF_SERVER_ENABLED = False
@@ -414,4 +453,3 @@ for i in ['job', 'consumer', 'mediator', 'control', 'bootsteps']:
         'propagate': True,
     }
 
-MAPBOX_API_TOKEN = os.environ.get('MAPBOX_API_TOKEN', None)

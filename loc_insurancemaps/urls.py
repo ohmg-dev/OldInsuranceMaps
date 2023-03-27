@@ -26,6 +26,7 @@ urlpatterns = [
 
     path('admin/', admin.site.urls, name="admin"),
     path('account/', include("allauth.urls")),
+    path('avatar/', include('avatar.urls')),
     path('', include('accounts.urls')),
     path('', include('places.urls')),
     path('', include('georeference.urls')),

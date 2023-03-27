@@ -13,8 +13,13 @@
     <meta Http-Equiv="Expires" Content="0">
     <meta Http-Equiv="Pragma-directive: no-cache">
     <meta Http-Equiv="Cache-directive: no-cache">
-
-    <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+    
+    <!-- title is the block used in my own templates (for now) -->
+    <!-- head_title is the block used by the allauth templates -->
+    <title>
+      {% block title %}{{ SITE_NAME }}{% endblock %}
+      {% block head_title %}{% endblock %}
+    </title>
     <meta property="og:description" content="A crowdsourcing site for creating and viewing georeferenced mosaics of historical Sanborn fire insurance maps" />
 
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
@@ -68,22 +73,25 @@
     <div class='lmask'></div>
     <!-- Navbar -->
     {% block header %}{% endblock header %}
-
+    
+    
     {{ navbar_params|json_script:'navbar-props'}}
     {% include '_svelte_component.html' with component_name='Navbar' %}
-
+    
     <div class="alert alert-danger alert-dismissible" role="alert" id="ieflag" style="display:none">
       <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       <h1>{% trans "You are using an outdated browser that is not supported." %}</h1>
       <p>{% trans "Please use a <strong>modern browser</strong> like Mozilla Firefox, Google Chrome or Safari." %}</p>
     </div>
-
+    
     {% block middle %}
     <div class="container background-fg" style="min-height: calc(100vh - 250px);">
       {% include "_status_message.html" %}
       {% include "_announcements.html" %}
       {% include "_messages.html" %}
       {% block body_outer %}
+        <!--content is the block used by the allauth templates -->
+        {% block content %}{% endblock %}
         {% block body %}{% endblock body %}
         {% block sidebar %}{% endblock sidebar %}
       {% endblock body_outer %}

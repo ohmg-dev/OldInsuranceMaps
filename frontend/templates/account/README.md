@@ -1,1 +1,1 @@
-These are templates are overrides for the allauth defaults.
+This base template inherits from the main app base, and it is in turn inherited by all of the default allauth templates.
