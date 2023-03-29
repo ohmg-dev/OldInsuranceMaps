@@ -485,12 +485,14 @@ class Document(ItemBase):
 
     @cached_property
     def image_size(self):
+        size = None
         if self.file:
-            img = Image.open(self.file)
-            size = img.size
-            img.close()
-        else:
-            size = None
+            try:
+                img = Image.open(self.file)
+                size = img.size
+                img.close()
+            except Exception as e:
+                logger.warn(f"error opening file {self.file}: {e}")
         return size
 
     @property
