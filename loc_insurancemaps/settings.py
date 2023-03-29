@@ -118,6 +118,7 @@ INSTALLED_APPS = [
     # 'mapstore2_adapter.geoapps.geostories',
     # 'geonode_mapstore_client',
     'pinax.notifications',
+    'ninja',
 ]
 
 PASSWORD_HASHERS = [

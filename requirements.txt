@@ -2,3 +2,4 @@ django_extensions==3.1.5
 cogeo-mosaic==4.1
 sorl-thumbnail==12.8.0
 django-newsletter==0.9.1
+django-ninja==0.21.0

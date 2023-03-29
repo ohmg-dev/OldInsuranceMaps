@@ -1,10 +1,12 @@
 from django.conf import settings
-from django.urls import path
-from django.contrib import admin
-from django.conf.urls import url, include
-from django.views.generic import TemplateView, RedirectView
 from django.conf.urls.static import static
+from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.views.generic import TemplateView, RedirectView
+from django.urls import include, path
+
+# this looks insane...
+from api.api import api
 
 from .views import (
     SimpleAPI,
@@ -17,6 +19,8 @@ from .views import (
 )
 
 urlpatterns = [
+    path("api/beta/", api.urls),
+
     path('', HomePage.as_view(), name='home'),
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
     path('getting-started/', TemplateView.as_view(template_name='getting-started.html'),
@@ -28,8 +32,8 @@ urlpatterns = [
     path('account/', include("allauth.urls")),
     path('avatar/', include('avatar.urls')),
     path('', include('accounts.urls')),
-    path('', include('places.urls')),
     path('', include('georeference.urls')),
+    # path('api/v1/', include('api.urls')),
 
     path('browse/', Browse.as_view(), name='browse'),
     path('loc/volumes/', RedirectView.as_view(pattern_name='browse', permanent=True), name='volumes_list'),
@@ -38,6 +42,7 @@ urlpatterns = [
     path('loc/trim/<str:volumeid>/', VolumeTrim.as_view(), name="volume_trim"),
     path('mrm/', MRMEndpointList.as_view(), name="mrm_layer_list"),
     path('mrm/<str:layerid>/', MRMEndpointLayer.as_view(), name="mrm_get_resource"),
+    path('', include('places.urls')),
 ]
 
 if settings.ENABLE_NEWSLETTER:
