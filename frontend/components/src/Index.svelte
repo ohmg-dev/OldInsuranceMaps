@@ -1,7 +1,7 @@
 <script>
 import './css/shared.css';
 import MapBrowse from './MapBrowse.svelte';
-export let PLACES_GEOJSON;
+export let PLACES_GEOJSON_URL;
 export let IS_MOBILE;
 export let CSRFTOKEN;
 export let NEWSLETTER_SLUG;
@@ -42,7 +42,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 	<div class="map-container">
 		{#if IS_MOBILE}<span><button class="link-btn" on:click="{() => {showBrowseMap = !showBrowseMap}}">{ showBrowseMapBtnLabel }</button></span>{/if}
 		{#if showBrowseMap}
-		<MapBrowse PLACES_GEOJSON={PLACES_GEOJSON} MAP_HEIGHT={'400'} />
+		<MapBrowse PLACES_GEOJSON_URL={PLACES_GEOJSON_URL} MAP_HEIGHT={'400'} />
 		{/if}
 	</div>
 	<div>

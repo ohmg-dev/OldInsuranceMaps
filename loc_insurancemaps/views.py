@@ -25,6 +25,8 @@ from loc_insurancemaps.utils import unsanitize_name, filter_volumes_for_use
 from loc_insurancemaps.api import CollectionConnection
 from loc_insurancemaps.tasks import load_docs_as_task
 
+from places.models import Place
+
 if settings.ENABLE_NEWSLETTER:
     from newsletter.models import Newsletter, Subscription
 
@@ -71,7 +73,6 @@ class HomePage(View):
         viewer_showcase = None
         if settings.VIEWER_SHOWCASE_SLUG:
             try:
-                from places.models import Place
                 p = Place.objects.get(slug=settings.VIEWER_SHOWCASE_SLUG)
                 viewer_showcase = {
                     'name': p.name,
@@ -87,7 +88,7 @@ class HomePage(View):
                 # 'CITY_LIST': city_list,
             },
             "svelte_params": {
-                "PLACES_GEOJSON": Volume().get_map_geojson(),
+                "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
                 "IS_MOBILE": mobile(request),
                 "CSRFTOKEN": csrf.get_token(request),
                 "NEWSLETTER_SLUG": newsletter_slug,
@@ -107,105 +108,13 @@ class Browse(View):
 
     def get(self, request):
 
-        started_volumes = Volume.objects.filter(status="started").order_by("city", "year")
-        # lc = CollectionConnection(delay=0)
-        # city_list = lc.get_city_list_by_state("louisiana")
-
-        loaded_summary = []
-        places_dict = {}
-        for vol in started_volumes:
-            loaded_by_name, loaded_by_profile = "", ""
-            if vol.loaded_by is not None:
-                loaded_by_name = vol.loaded_by.username,
-                loaded_by_profile = reverse("profile_detail", args=(vol.loaded_by.username, )),
-
-            items = vol.sort_lookups()
-            year_vol = vol.year
-            if vol.volume_no is not None:
-                year_vol = f"{vol.year} vol. {vol.volume_no}"
-
-            unprep_ct = len(items['unprepared'])
-            prep_ct = len(items['prepared'])
-            georef_ct = len(items['georeferenced'])
-            percent = 0
-            if georef_ct > 0:
-                percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
-
-            main_lyrs_ct = 0
-            if vol.sorted_layers:
-                main_lyrs_ct = len(vol.sorted_layers['main'])
-            mm_ct, mm_todo, mm_percent = 0, 0, 0
-            if main_lyrs_ct != 0:
-                # make sure 0/0 appears at the very bottom, then 0/1, 0/2, etc.
-                mm_percent = main_lyrs_ct * .000000001
-            mm_display = f"0/{main_lyrs_ct}"
-            if vol.multimask is not None:
-                mm_ct = len(vol.multimask)
-                mm_todo = main_lyrs_ct - mm_ct
-                if mm_ct > 0:
-                    mm_display = f"{mm_ct}/{main_lyrs_ct}"
-                    mm_percent = mm_ct / main_lyrs_ct
-
-            viewer_url = ""
-            locale = vol.get_locale()
-            if locale:
-                full_reverse("viewer", args=(locale.slug,)) + f"?year={vol.year}",
-                place_name = locale.name
-                if len(locale.direct_parents.all()) > 0:
-                    place_name = f"{place_name}, {locale.direct_parents.all()[0].__str__()}"
-            else:
-                place_name = f"{vol.city}, {vol.county_equivalent}, {vol.state}"
-            summary_url = full_reverse("volume_summary", args=(vol.identifier,))
-            vol_content = {
-                "identifier": vol.identifier,
-                "city": vol.city,
-                "county_equivalent": vol.county_equivalent,
-                "state": vol.state,
-                "place_name": place_name,
-                "year_vol": year_vol,
-                "sheet_ct": vol.sheet_ct,
-                "unprepared_ct": unprep_ct,
-                "prepared_ct": prep_ct,
-                "georeferenced_ct": georef_ct,
-                "percent": percent,
-                "volume_no": vol.volume_no,
-                "loaded_by_name": loaded_by_name,
-                "loaded_by_profile": loaded_by_profile,
-                "title": vol.__str__(),
-                "mm_ct": mm_todo,
-                "mm_display": mm_display,
-                "mm_percent": mm_percent,
-                # lol
-                "mj_exists": not not vol.mosaic_geotiff,
-                "urls": {
-                    "summary": summary_url,
-                    "viewer": viewer_url,
-                }
-            }
-            loaded_summary.append(vol_content)
-            if locale:
-                places_dict[locale] = places_dict.get(locale, []) + [vol_content]
-
-        map_geojson = Volume().get_map_geojson()
-
-        places = []
-        for place, volumes in places_dict.items():
-            name = place.name
-            if len(place.direct_parents.all()) > 0:
-                name = f"{name}, {place.direct_parents.all()[0].__str__()}"
-            p_content = {
-                "name": name,
-                "url": full_reverse("viewer", args=(place.slug,)),
-                "volumes": volumes,
-                "sort_years": ", ".join(sorted([str(i['year_vol']) for i in volumes])),
-            }
-            places.append(p_content)
-
         context_dict = {
             "browse_params": {
-                "PLACES_GEOJSON": map_geojson,
-                "STARTED_VOLUMES": loaded_summary,
-                "PLACES": places,
+                "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
+                "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
+                "PLACES_API_URL": reverse("api-beta:place_list"),
+                "ITEM_CT": Volume.objects.all().exclude(loaded_by=None).count(),
+                "ITEM_API_URL": reverse("api-beta:item_list"),
             },
         }
         return render(
