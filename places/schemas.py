@@ -13,6 +13,7 @@ class PlaceSchema(Schema):
 
     name: str = Field(..., alias="__str__")
     items: list
+    url: str
 
     @staticmethod
     def resolve_items(obj):
@@ -22,3 +23,7 @@ class PlaceSchema(Schema):
         for i in values:
             i['url'] = reverse('volume_summary', args=(i['identifier'], ))
         return values
+
+    @staticmethod
+    def resolve_url(obj):
+        return reverse('viewer', args=(obj.slug, ))
