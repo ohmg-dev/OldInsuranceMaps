@@ -56,7 +56,6 @@ function getPreviousResults() {
 			loadingSessions = false;
 		});
 }
-console.log(PROFILE_USER)
 </script>
 <main>
 

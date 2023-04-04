@@ -446,7 +446,6 @@ function MapViewer (elementId) {
     this.element = targetElement;
     this.drawInteraction = draw;
     this.modifyInteraction = modify;
-
     this.resetExtent = function () {
       map.getView().setRotation(0);
       if (DOCUMENT.gcps_geojson) {
@@ -454,6 +453,10 @@ function MapViewer (elementId) {
       } else if (VOLUME.extent) {
         const extent3857 = transformExtent(VOLUME.extent, "EPSG:4326", "EPSG:3857");
         map.getView().fit(extent3857);
+      } else {
+        // show the entire US
+        map.getView().setCenter( [ -10728204.02342, 4738596.138147663 ]);
+        map.getView().setZoom(5)
       }
     }
 }
