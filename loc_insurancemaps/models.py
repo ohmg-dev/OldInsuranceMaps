@@ -14,7 +14,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.core.files import File
-from django.db import models, transaction
+from django.db import transaction
+from django.contrib.gis.db import models
 from django.db.models import signals
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
@@ -227,6 +228,11 @@ class Volume(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
+    extent = models.PolygonField(
+        null=True,
+        blank=True,
+        srid=4326,
+    )
 
     def __str__(self):
         display_str = f"{self.city}, {STATE_ABBREV[self.state]} | {self.year}"
@@ -234,24 +240,6 @@ class Volume(models.Model):
             display_str += f" | Vol. {self.volume_no}"
 
         return display_str
-
-    @property
-    def extent(self):
-        """for now, calculate extent from all of the layer extents.
-        perhaps would be better to get this from the Place once that
-        those attributes have been added to those instances."""
-
-        layer_extent_polygons = []
-        for l in self.layer_lookup.values():
-            poly = Polygon.from_bbox(l['extent'])
-            layer_extent_polygons.append(poly)
-        if len(layer_extent_polygons) > 0:
-            multi = MultiPolygon(layer_extent_polygons)
-            extent = multi.extent
-        else:
-            # hard-code Louisiana for now
-            extent = Polygon.from_bbox((-94, 28, -88, 33)).extent
-        return extent
 
     @cached_property
     def sheets(self):
@@ -355,13 +343,13 @@ class Volume(models.Model):
             with transaction.atomic():
                 locale.volume_count += 1
                 locale.volume_count_inclusive += 1
-                locale.save()
+                locale.save(update_fields=["volume_count", "volume_count_inclusive"])
                 parents = locale.direct_parents.all()
                 while parents:
                     new_parents = []
                     for p in parents:
                         p.volume_count_inclusive += 1
-                        p.save()
+                        p.save(update_fields=["volume_count_inclusive"])
                         new_parents += list(p.direct_parents.all())
                     parents = new_parents
 
@@ -393,7 +381,6 @@ class Volume(models.Model):
         if self.mosaic_geotiff:
             mosaic_url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_geotiff.url
         return {
-            "doc_search": f"{settings.SITEURL}documents/?{r_facet}&{d_facet}",
             "loc_item": loc_item,
             "loc_resource": resource_url,
             "summary": reverse("volume_summary", args=(self.identifier,)),
@@ -486,6 +473,22 @@ class Volume(models.Model):
         if not data['slug'] in sorted_layers:
             self.sorted_layers["main"].append(data['slug'])
             self.save(update_fields=["sorted_layers"])
+
+        self.set_extent()
+
+    def set_extent(self):
+        # calculate extent from all of the layer extents.
+        # perhaps would be better to get this from the Place once that
+        # those attributes have been added to those instances.
+
+        layer_extent_polygons = []
+        for l in self.layer_lookup.values():
+            poly = Polygon.from_bbox(l['extent'])
+            layer_extent_polygons.append(poly)
+        if len(layer_extent_polygons) > 0:
+            multi = MultiPolygon(layer_extent_polygons)
+            self.extent = Polygon.from_bbox(multi.extent)
+            self.save(update_fields=['extent'])
 
     def sort_lookups(self):
 
@@ -596,7 +599,7 @@ class Volume(models.Model):
             "urls": self.get_urls(),
             "sorted_layers": self.hydrate_sorted_layers(),
             "multimask": self.multimask,
-            "extent": self.extent,
+            "extent": self.extent.extent if self.extent else None,
             "locale": self.get_locale(serialized=True),
         }
 
