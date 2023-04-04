@@ -97,7 +97,7 @@ class SplitView(View):
             sesh.data['cutlines'] = cutlines
             sesh.save(update_fields=["data"])
             logger.info(f"{sesh.__str__()} | begin run() as task")
-            run_preparation_session.apply_async((sesh.pk, ), queue="update")
+            run_preparation_session.delay(sesh.pk)
             return JsonResponse({"success":True})
 
         elif operation == "no_split":
@@ -282,7 +282,7 @@ class GeoreferenceView(View):
             sesh.data['transformation'] = transformation
             sesh.save(update_fields=["data"])
             logger.info(f"{sesh.__str__()} | begin run() as task")
-            run_georeference_session.apply_async((sesh.pk, ), queue="update")
+            run_georeference_session.delay(sesh.pk)
 
             ms.remove_layer(document.file.path)
             return JsonResponse({

@@ -298,10 +298,7 @@ class VolumeDetail(View):
                 volume.loaded_by = request.user
                 volume.load_date = datetime.now()
                 volume.save(update_fields=["loaded_by", "load_date"])
-            load_docs_as_task.apply_async(
-                (volumeid, ),
-                queue="update"
-            )
+            load_docs_as_task.delay(volumeid)
             volume_json = volume.serialize(include_session_info=True)
             volume_json["status"] = "initializing..."
 
