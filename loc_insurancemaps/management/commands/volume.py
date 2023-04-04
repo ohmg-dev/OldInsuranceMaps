@@ -107,10 +107,7 @@ class Command(BaseCommand):
         if options['operation'] == "generate-mosaic":
             if i is not None:
                 if options['background']:
-                    generate_mosaic_geotiff_as_task.apply_async(
-                        (i, ),
-                        queue="update"
-                    )
+                    generate_mosaic_geotiff_as_task.delay(i)
                 else:
                     generate_mosaic_geotiff(i)
 
