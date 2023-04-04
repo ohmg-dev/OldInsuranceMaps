@@ -19,11 +19,35 @@ class UserSchema(Schema):
 
 class DocumentSchema(Schema):
     id: int
+    title: str
+    detail_url: str
+    thumb_url: str = ''
+
+    @staticmethod
+    def resolve_thumb_url(obj):
+        if obj.thumbnail:
+            return obj.thumbnail.url
+
+    @staticmethod
+    def resolve_detail_url(obj):
+        return reverse("resource_detail", args=(obj.pk, ))
 
 
 class LayerSchema(Schema):
     id: int
+    title: str
     slug: str
+    detail_url: str
+    thumb_url: str = ''
+
+    @staticmethod
+    def resolve_thumb_url(obj):
+        if obj.thumbnail:
+            return obj.thumbnail.url
+    
+    @staticmethod
+    def resolve_detail_url(obj):
+        return reverse("resource_detail", args=(obj.pk, ))
 
 
 class SessionSchema(Schema):
@@ -34,8 +58,14 @@ class SessionSchema(Schema):
     note: str = None
     doc: DocumentSchema = None
     lyr: LayerSchema = None
+    status: str
     data: dict
+    user_input_duration: int = None
+    date_created: str = None
 
+    @staticmethod
+    def resolve_date_created(obj):
+        return obj.date_created.strftime("%m/%d/%Y")
 
 class FilterSessionSchema(FilterSchema):
     username: Optional[str] = Field(q='user__username') 
