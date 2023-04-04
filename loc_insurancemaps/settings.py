@@ -121,6 +121,11 @@ INSTALLED_APPS = [
     'ninja',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 100
+}
+
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.SHA1PasswordHasher',
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
@@ -157,7 +162,8 @@ TEMPLATES = [
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
         "django.contrib.auth.context_processors.auth",
-        "loc_insurancemaps.context_processors.loc_info"
+        "loc_insurancemaps.context_processors.loc_info",
+        "loc_insurancemaps.context_processors.general",
       ],
       "debug": DEBUG,
     }
@@ -195,7 +201,7 @@ if EMAIL_ENABLE:
     EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_HOST_PASSWORD', '')
     EMAIL_USE_TLS = ast.literal_eval(os.getenv('DJANGO_EMAIL_USE_TLS', 'False'))
     EMAIL_USE_SSL = ast.literal_eval(os.getenv('DJANGO_EMAIL_USE_SSL', 'False'))
-    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'GeoNode <no-reply@geonode.org>')
+    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Hello <hello@oldinsurancemaps.net>')
 else:
     EMAIL_BACKEND = os.getenv('DJANGO_EMAIL_BACKEND',
                               default='django.core.mail.backends.console.EmailBackend')
@@ -217,7 +223,7 @@ AUTO_GENERATE_AVATAR_SIZES = (
 )
 AVATAR_GRAVATAR_SSL = ast.literal_eval(os.getenv('AVATAR_GRAVATAR_SSL', 'False'))
 
-AVATAR_DEFAULT_URL = os.getenv('AVATAR_DEFAULT_URL', '/img/avatar.png')
+AVATAR_DEFAULT_URL = os.getenv('AVATAR_DEFAULT_URL', '/static/icons/noun-user-1213267-FFFFFF.png')
 
 try:
     # try to parse python notation, default in dockerized env

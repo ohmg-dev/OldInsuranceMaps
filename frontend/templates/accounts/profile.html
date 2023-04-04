@@ -1,8 +1,10 @@
 {% extends "base.html" %}
+{% load avatar_tags %}
 
 {% block title %}{{svelte_params.USER.username}}{% endblock %}
 
-{% block body_outer %}
-    {{svelte_params}}
+{% block main_content %}
+{{ svelte_params|json_script:'profile-props'}}
+{% include '_svelte_component.html' with component_name='Profile' %}
 {% endblock %}
 

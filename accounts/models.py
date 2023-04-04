@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import AbstractUser
+from django.utils.functional import cached_property
 
 from georeference.models.sessions import SessionBase
 from georeference.models.resources import GCP
@@ -14,32 +15,26 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
-    def serialize(self):
+    @cached_property
+    def load_ct(self):
+        return Volume.objects.filter(loaded_by=self).count()
 
-        psesh_ct = SessionBase.objects.filter(user=self, type="p").count()
-        gsesh_ct = SessionBase.objects.filter(user=self, type="g").count()
-        total = psesh_ct + gsesh_ct
-        volumes = Volume.objects.filter(loaded_by=self).order_by("city")
-        load_ct = volumes.count()
-        load_volumes = [
-            {
-                "city": v.city,
-                "year": v.year,
-                "url": f"/loc/{v.identifier}",
-                "volume_no": v.volume_no,
-                "title": f"{v.city} {v.year}{' vol. ' + v.volume_no if v.volume_no else ''}"
-            } for v in volumes
-        ]
+    @cached_property
+    def psesh_ct(self):
+        return SessionBase.objects.filter(user=self, type="p").count()
 
-        return {
-            # "avatar": p_data['avatar'],
-            "avatar": "",
-            "username": self.username,
-            "profile_url": reverse('profile_detail', args=(self.username, )),
-            "load_ct": load_ct,
-            "psesh_ct": psesh_ct,
-            "gsesh_ct": gsesh_ct,
-            "total_ct": total,
-            "volumes": load_volumes,
-            "gcp_ct": GCP.objects.filter(created_by=self).count()
-        }
+    @cached_property
+    def gsesh_ct(self):
+        return SessionBase.objects.filter(user=self, type="g").count()
+
+    @cached_property
+    def gcp_ct(self):
+        return GCP.objects.filter(created_by=self).count()
+
+    @cached_property
+    def volumes(self):
+        return Volume.objects.filter(loaded_by=self).order_by("city")
+
+    @cached_property
+    def profile_url(self):
+        return reverse('profile_detail', args=(self.username, ))

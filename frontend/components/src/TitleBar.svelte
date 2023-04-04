@@ -1,12 +1,16 @@
 <script>
+    export let IMG_URL;
     export let TITLE;
     export let SIDE_LINKS;
     export let ICON_LINKS;
 </script>
 
 <div class="title-bar">
-    <div>
-        <h1>{ TITLE }</h1>
+    <div style="display:flex; flex-direction:row; justify-content:left; align-items:center;">
+        {#if IMG_URL}
+        <img height="40px" style="border-radius:5px; margin-right:10px;" src="{IMG_URL}" alt="profile picture" />
+        {/if}
+        <h1 style="margin-bottom:0px;">{ TITLE }</h1>
     </div>
     {#if ICON_LINKS.length > 0}
     <div class="icon-box">
