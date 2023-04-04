@@ -55,26 +55,26 @@ INSTALLED_APPS = [
     'accounts',
 
     'modeltranslation',
-    'dal',
-    'dal_select2',
+    # 'dal',
+    # 'dal_select2',
     # 'grappelli',
-    'dj_pagination',
-    'taggit',
-    'treebeard',
+    # 'dj_pagination',
+    # 'taggit',
+    # 'treebeard',
     # 'leaflet',
-    'bootstrap3_datetime',
-    'django_filters',
-    'mptt',
+    # 'bootstrap3_datetime',
+    # 'mptt',
     'storages',
-    'floppyforms',
+    # 'floppyforms',
     # 'tinymce',
-    'widget_tweaks',
+    # 'widget_tweaks',
     'django_extensions',
     # 'rest_framework',
     # 'rest_framework_gis',
+    # 'django_filters',
     # 'dynamic_rest',
-    'drf_spectacular',
-    'django_forms_bootstrap',
+    # 'drf_spectacular',
+    # 'django_forms_bootstrap',
     'avatar',
     'dialogos',
     'pinax.ratings',
@@ -121,10 +121,12 @@ INSTALLED_APPS = [
     'ninja',
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 100
-}
+INSTALLED_APPS += (
+    'georeference',
+    'loc_insurancemaps',
+    'frontend',
+    'places',
+)
 
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.SHA1PasswordHasher',
@@ -134,14 +136,6 @@ PASSWORD_HASHERS = [
     # 'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
     # 'django.contrib.auth.hashers.BCryptPasswordHasher',
 ]
-
-INSTALLED_APPS += (
-    'georeference',
-    'loc_insurancemaps',
-    'frontend',
-    'places',
-    # 'accounts',
-)
 
 TEMPLATES = [
   {
