@@ -373,6 +373,9 @@ function MapViewer (elementId) {
 		// temporarily constrain to zoom 14 so the fit won't zoom too far out.
 		map.getView().setMinZoom(14)
 		map.getView().fit(homeExtent)
+		// set initial zoom to integer to improve tile efficiency, esp. when
+		// user zooms in and out with mouse wheel or clicks/taps
+		map.getView().setZoom(Math.round(map.getView().getZoom()))
 		map.getView().setMinZoom(0)
 	}
 

@@ -35,6 +35,9 @@ export let USER;
 		<div>
 			<a href="/account/login">Sign in</a>
 		</div>
+		<div>
+			<a href="/account/signup">Sign up</a>
+		</div>
 		{/if}
 	</div>
 </nav>
