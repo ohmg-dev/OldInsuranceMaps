@@ -11,7 +11,6 @@ from pygments.lexers.data import JsonLexer
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.postgres.fields import JSONField
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.core.files import File
 from django.db import transaction
@@ -31,8 +30,7 @@ from georeference.models.sessions import (
     GeorefSession,
 )
 from georeference.storage import OverwriteStorage
-from georeference.utils import full_reverse
-from places.models import Place as NewPlaceModel
+from places.models import Place
 
 from loc_insurancemaps.utils import LOCParser, get_jpg_from_jp2_url
 from loc_insurancemaps.enumerations import (
@@ -182,12 +180,12 @@ class Volume(models.Model):
     year = models.IntegerField(choices=YEAR_CHOICES)
     month = models.IntegerField(choices=MONTH_CHOICES, null=True, blank=True)
     volume_no = models.CharField(max_length=5, null=True, blank=True)
-    lc_item = JSONField(default=None, null=True, blank=True)
-    lc_resources = JSONField(default=None, null=True, blank=True)
+    lc_item = models.JSONField(default=None, null=True, blank=True)
+    lc_resources = models.JSONField(default=None, null=True, blank=True)
     lc_manifest_url = models.CharField(max_length=200, null=True, blank=True,
         verbose_name="LC Manifest URL"
     )
-    extra_location_tags = JSONField(null=True, blank=True, default=list)
+    extra_location_tags = models.JSONField(null=True, blank=True, default=list)
     sheet_ct = models.IntegerField(null=True, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
     loaded_by = models.ForeignKey(
@@ -197,27 +195,27 @@ class Volume(models.Model):
         on_delete=models.CASCADE)
     load_date = models.DateTimeField(null=True, blank=True)
     # DEPRECATE: marking this field for removal
-    ordered_layers = JSONField(
+    ordered_layers = models.JSONField(
         null=True,
         blank=True,
         default=default_ordered_layers_dict
     )
-    document_lookup = JSONField(
+    document_lookup = models.JSONField(
         null=True,
         blank=True,
         default=dict,
     )
-    layer_lookup = JSONField(
+    layer_lookup = models.JSONField(
         null=True,
         blank=True,
         default=dict,
     )
-    sorted_layers = JSONField(
+    sorted_layers = models.JSONField(
         default=default_sorted_layers_dict,
     )
-    multimask = JSONField(null=True, blank=True)
+    multimask = models.JSONField(null=True, blank=True)
     locales = models.ManyToManyField(
-        NewPlaceModel,
+        Place,
         blank=True,
     )
     # currently this actually stores the MosaicJSON (ugh) gotta separate these

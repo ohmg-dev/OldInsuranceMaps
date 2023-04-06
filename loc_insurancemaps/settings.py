@@ -24,7 +24,7 @@ if not SITEURL.endswith('/'):
     SITEURL += '/'
 
 SITE_ID = int(os.getenv('SITE_ID', '1'))
-SITENAME = os.getenv("SITENAME", 'Example.com')
+SITE_NAME = os.getenv("SITENAME", 'Example.com')
 
 # Set path to cache directory
 CACHE_DIR = BASE_DIR / "loc_insurancemaps" / "cache"
@@ -35,8 +35,9 @@ LOG_DIR = BASE_DIR / "loc_insurancemaps" / "logs"
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', "en")
 
-## overwrite geonode installed apps to begin paring them down
 INSTALLED_APPS = [
+    'accounts',
+
     'django.contrib.contenttypes',
     'django.contrib.auth',
     'django.contrib.sessions',
@@ -47,86 +48,28 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.humanize',
     'django.contrib.gis',
-    'django_celery_results',
 
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'accounts',
 
-    'modeltranslation',
-    # 'dal',
-    # 'dal_select2',
-    # 'grappelli',
-    # 'dj_pagination',
-    # 'taggit',
-    # 'treebeard',
-    # 'leaflet',
-    # 'bootstrap3_datetime',
-    # 'mptt',
+    'bootstrapform',
+    'pinax.announcements',
+    'pinax_theme_bootstrap',
+
     'storages',
-    # 'floppyforms',
-    # 'tinymce',
-    # 'widget_tweaks',
+    'tinymce',
     'django_extensions',
-    # 'rest_framework',
-    # 'rest_framework_gis',
-    # 'django_filters',
-    # 'dynamic_rest',
-    # 'drf_spectacular',
-    # 'django_forms_bootstrap',
     'avatar',
-    'dialogos',
-    'pinax.ratings',
-    'announcements',
-    'actstream',
-    'user_messages',
-    # 'tastypie',
-    'polymorphic',
-    'guardian',
-    # 'oauth2_provider',
-    'corsheaders',
     'invitations',
-    # 'geonode',
-    # 'markdownify',
-    # 'geonode.api', # needed in geonode.base
-    # 'geonode.base',
-    # 'geonode.br',
-    # 'geonode.layers',
-    # 'geonode.maps',
-    # 'geonode.geoapps',
-    # 'geonode.documents',
-    # 'geonode.security',
-    # 'geonode.catalogue',
-    # 'geonode.catalogue.metadataxsl',
-    # 'geonode.people',
-    # 'geonode.client',
-    # 'geonode.themes',
-    # 'geonode.proxy',
-    # 'geonode.social',
-    # 'geonode.groups',
-    # 'geonode.services', # error when removing this app still
-    # 'geonode.geoserver', # needed by geonode.api
-    # 'geonode.upload', # needed to delete users (attached to profile??)
-    # 'geonode.tasks',
-    # 'geonode.messaging',
-    # 'geonode.monitoring', # needed to delete users (attached to profile??)
-    # 'geonode.documents.exif',
-    # 'geonode.favorite', # needed to delete users (attached to profile??)
-    # 'mapstore2_adapter',
-    # 'mapstore2_adapter.geoapps',
-    # 'mapstore2_adapter.geoapps.geostories',
-    # 'geonode_mapstore_client',
-    'pinax.notifications',
-    'ninja',
-]
 
-INSTALLED_APPS += (
+    'ninja',
+
     'georeference',
     'loc_insurancemaps',
     'frontend',
     'places',
-)
+]
 
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.SHA1PasswordHasher',
@@ -158,6 +101,7 @@ TEMPLATES = [
         "django.contrib.auth.context_processors.auth",
         "loc_insurancemaps.context_processors.loc_info",
         "loc_insurancemaps.context_processors.general",
+        "pinax_theme_bootstrap.context_processors.theme",
       ],
       "debug": DEBUG,
     }
@@ -170,6 +114,8 @@ DATABASES = {
         conn_max_age=0
     )
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
@@ -210,6 +156,7 @@ if ENABLE_NEWSLETTER:
     NEWSLETTER_CONFIRM_EMAIL_SUBSCRIBE = True
     NEWSLETTER_CONFIRM_EMAIL_UNSUBSCRIBE = False
     NEWSLETTER_CONFIRM_EMAIL_UPDATE = False
+    NEWSLETTER_RICHTEXT_WIDGET = "tinymce.widgets.TinyMCE"
 
 # gravatar settings
 AUTO_GENERATE_AVATAR_SIZES = (
@@ -217,7 +164,7 @@ AUTO_GENERATE_AVATAR_SIZES = (
 )
 AVATAR_GRAVATAR_SSL = ast.literal_eval(os.getenv('AVATAR_GRAVATAR_SSL', 'False'))
 
-AVATAR_DEFAULT_URL = os.getenv('AVATAR_DEFAULT_URL', '/static/icons/noun-user-1213267-FFFFFF.png')
+AVATAR_DEFAULT_URL = os.getenv('AVATAR_DEFAULT_URL', 'icons/noun-user-1213267-FFFFFF.png')
 
 try:
     # try to parse python notation, default in dockerized env
@@ -226,7 +173,6 @@ except ValueError:
     # fallback to regular list of values separated with misc chars
     AVATAR_PROVIDERS = (
         'avatar.providers.PrimaryAvatarProvider',
-        'avatar.providers.GravatarAvatarProvider',
         'avatar.providers.DefaultAvatarProvider'
     ) if os.getenv('AVATAR_PROVIDERS') is None \
         else os.getenv('AVATAR_PROVIDERS').split(",")
@@ -234,18 +180,15 @@ except ValueError:
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@localhost")
 
 MIDDLEWARE = (
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.contrib.sites.middleware.CurrentSiteMiddleware',
-    'dj_pagination.middleware.PaginationMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'oauth2_provider.middleware.OAuth2TokenMiddleware',
 )
 
 ENABLE_CPROFILER = ast.literal_eval(os.getenv("ENABLE_CPROFILER", False))
@@ -283,7 +226,7 @@ SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", Fals
 
 # CONFIGURE CELERY
 CELERY_BROKER_URL = os.getenv('BROKER_URL')
-CELERY_RESULT_BACKEND = 'django-db'
+CELERY_RESULT_BACKEND = 'rpc://'
 
 # basic independent setup for Celery Exchange/Queue
 DEFAULT_EXCHANGE = Exchange('default', type='topic')
@@ -316,6 +259,7 @@ AUTH_USER_MODEL = 'accounts.User'
 ACCOUNT_ADAPTER = "accounts.adapter.AccountAdapter"
 
 ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_SIGNUP_REDIRECT_URL = "/"
 
 # must have trailing slash
 MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")

@@ -19,7 +19,7 @@ from .views import (
 )
 
 urlpatterns = [
-    path("api/beta/", api.urls),
+    path('api/beta/', api.urls),
 
     path('', HomePage.as_view(), name='home'),
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
@@ -33,7 +33,6 @@ urlpatterns = [
     path('avatar/', include('avatar.urls')),
     path('', include('accounts.urls')),
     path('', include('georeference.urls')),
-    # path('api/v1/', include('api.urls')),
 
     path('browse/', Browse.as_view(), name='browse'),
     path('loc/volumes/', RedirectView.as_view(pattern_name='browse', permanent=True), name='volumes_list'),
@@ -42,11 +41,16 @@ urlpatterns = [
     path('loc/trim/<str:volumeid>/', VolumeTrim.as_view(), name="volume_trim"),
     path('mrm/', MRMEndpointList.as_view(), name="mrm_layer_list"),
     path('mrm/<str:layerid>/', MRMEndpointLayer.as_view(), name="mrm_get_resource"),
-    path('', include('places.urls')),
 ]
 
 if settings.ENABLE_NEWSLETTER:
     urlpatterns += [path('newsletter/', include('newsletter.urls'))]
+
+if "pinax.announcements" in settings.INSTALLED_APPS:
+    urlpatterns += [path("announcements/", include("pinax.announcements.urls", namespace="pinax_announcements"))]
+
+# this places path must be the last url that is tried, because it is a total wildcard.
+urlpatterns += [path('', include('places.urls'))]
 
 urlpatterns += staticfiles_urlpatterns()
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
