@@ -255,6 +255,8 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 
+API_IP_WHITELIST = ast.literal_eval(os.getenv('API_IP_WHITELIST', '["127.0.0.1"]'))
+
 AUTH_USER_MODEL = 'accounts.User'
 ACCOUNT_ADAPTER = "accounts.adapter.AccountAdapter"
 
