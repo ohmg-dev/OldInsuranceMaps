@@ -179,11 +179,6 @@ h2 {
 	font-size: 1.6em;
 }
 
-h3 {
-	font-size: 1.3em;
-	margin-top: 15px;
-}
-
 section {
 	border-bottom: 1px solid rgb(149, 149, 149);
 }
@@ -202,10 +197,6 @@ td > a {
 	align-items: center;
 }
 
-section.subsection {
-	border-bottom: 1px dashed rgb(149, 149, 149);
-}
-
 button.section-toggle-btn {
 	display: flex;
 	justify-content: space-between;
@@ -217,9 +208,6 @@ button.section-toggle-btn {
 }
 i.header {
 	font-size: 1.5em;
-}
-i.subheader {
-	font-size: 1.3em;
 }
 
 button.section-toggle-btn, a {
@@ -234,60 +222,9 @@ button.section-toggle-btn:disabled, button.section-toggle-btn:disabled > a {
 	color: grey;
 }
 
-
-.documents-column {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	gap: 20px;
-	padding-bottom: 15px;
-}
-
-.documents-column p {
-	margin: 0px;
-}
-
-.document-item {
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	border: 1px solid gray;
-	background: white;
-
-}
-
-.document-item img {
-	margin: 15px;
-	max-height: 200px;
-	max-width: 200px;
-	object-fit: scale-down;
-}
-
-.document-item div:first-child {
-	text-align: center;
-}
-
-.document-item div:first-child, .document-item div:last-child {
-	padding: 10px;
-	background: #e6e6e6;
-	width: 100%;
-}
-
-.document-item p, .document-item ul {
-	margin: 0px;
-}
-
-.document-item ul {
-	list-style-type: none;
-	padding: 0;
-}
-
 @media screen and (max-width: 768px){
 	main {
 		max-width: none;
-	}
-	.documents-column {
-		flex-direction: column;
 	}
 }
 

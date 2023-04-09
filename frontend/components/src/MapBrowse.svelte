@@ -141,7 +141,7 @@ onMount(async function() {
 </script>
 <div id="map-viewer" class="spinner" style="height:{MAP_HEIGHT}px; width:100%"></div>
 <div id="popup" class="ol-popup" style="">
-	<a href="#" title="Clsose popup" id="popup-closer" class="ol-popup-closer"></a>
+	<a href="#" title="Close popup" id="popup-closer" class="ol-popup-closer"></a>
 	<div id="popup-content"></div>
 </div>
 <style>

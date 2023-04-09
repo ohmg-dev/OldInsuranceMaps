@@ -594,17 +594,9 @@ tr:nth-child(odd) {
   width: 100%;
 }
 
-.document-item p, .document-item ul {
-  margin: 0px;
-}
-
 .document-item ul {
   list-style-type: none;
   padding: 0;
-}
-
-#refresh-button {
-  float: right;
 }
 
 </style>
