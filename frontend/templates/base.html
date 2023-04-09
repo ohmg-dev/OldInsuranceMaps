@@ -1,7 +1,6 @@
 {% load i18n avatar_tags %}
-{% load static from staticfiles %}
+{% load static from static %}
 {% load account socialaccount %}
-{% load base_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -14,20 +13,25 @@
     <meta Http-Equiv="Expires" Content="0">
     <meta Http-Equiv="Pragma-directive: no-cache">
     <meta Http-Equiv="Cache-directive: no-cache">
-
-    <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+    
+    <!-- title is the block used in my own templates (for now) -->
+    <!-- head_title is the block used by the allauth templates -->
+    <title>
+      {% block title %}{{ SITE_NAME }}{% endblock %}
+      {% block head_title %}{% endblock %}
+    </title>
     <meta property="og:description" content="A crowdsourcing site for creating and viewing georeferenced mosaics of historical Sanborn fire insurance maps" />
 
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
-    <link rel="preload" as="style" href="{% static "geonode/css/font-awesome.min.css" %}" />
+    <link rel="preload" as="style" href="{% static "css/font-awesome.min.css" %}" />
 
     <! -- analytics with plausible.io -->
     <script defer data-domain="oldinsurancemaps.net" src="/js/script.js"></script>
 
     {% block head %}
 
-      <link href="{% static "lib/css/assets.min.css" %}" rel="stylesheet"/>
-      <link href="{% static "geonode/css/base.css" %}" rel="stylesheet"/>
+      <!-- <link href="{% static "lib/css/assets.min.css" %}" rel="stylesheet"/> -->
+      <link href="{% static "css/base.css" %}" rel="stylesheet"/>
 
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,7 +50,6 @@
         }
       </style>
     <![endif]-->
-    <link rel="search" type="application/opensearchdescription+xml" href="{% if SITEURL|default:""|slice:"-1:" == "/" %}{{SITEURL}}{% else %}{{SITEURL}}/{% endif %}catalogue/opensearch" title="{% trans "GeoNode Search" %}"/>
 
     <script>
         var siteUrl = '{{ SITEURL }}'.replace(/\/?$/, '/');
@@ -70,22 +73,25 @@
     <div class='lmask'></div>
     <!-- Navbar -->
     {% block header %}{% endblock header %}
-
+    
+    
     {{ navbar_params|json_script:'navbar-props'}}
     {% include '_svelte_component.html' with component_name='Navbar' %}
-
+    
     <div class="alert alert-danger alert-dismissible" role="alert" id="ieflag" style="display:none">
       <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       <h1>{% trans "You are using an outdated browser that is not supported." %}</h1>
       <p>{% trans "Please use a <strong>modern browser</strong> like Mozilla Firefox, Google Chrome or Safari." %}</p>
     </div>
-
+    
     {% block middle %}
     <div class="container background-fg" style="min-height: calc(100vh - 250px);">
       {% include "_status_message.html" %}
       {% include "_announcements.html" %}
       {% include "_messages.html" %}
       {% block body_outer %}
+        <!--content is the block used by the allauth templates -->
+        {% block content %}{% endblock %}
         {% block body %}{% endblock body %}
         {% block sidebar %}{% endblock sidebar %}
       {% endblock body_outer %}
@@ -158,8 +164,8 @@
     <!-- quick testing shows that only jquery and bootstrap are needed to 
     retain the sign in modal functionality. This allows for the removal of
     assets.js which was originally included below. -->
-    <script src="{% static "lib/js/jquery.js" %}"></script>
-    <script src="{% static "lib/js/bootstrap.js" %}"></script>
+    <!-- <script src="{% static "lib/js/jquery.js" %}"></script>
+    <script src="{% static "lib/js/bootstrap.js" %}"></script> -->
 
     {% comment %}
     {% if DEBUG_STATIC %}
@@ -183,9 +189,6 @@
     <script src="{% static "lib/js/assets.min.js" %}"></script>
     {% endif %}
     {% endcomment %}
-    <!-- <script src="{% static "geonode/js/utils/utils.js" %}"></script>
-    <script src="{% static "geonode/js/base/base.js" %}"></script> -->
-    <!-- <script type="text/javascript" src="{% url "javascript-catalog" %}"></script> -->
     {% block extra_script %}{% endblock extra_script %}
 
 

@@ -53,7 +53,6 @@ let disableInterface = DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name
 let disableReason;
 let leaveOkay = true;
 let enableButtons = false;
-console.log(DOCUMENT.lock_details)
 if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == USER)) {
   leaveOkay = false;
   enableButtons = true;
@@ -64,8 +63,6 @@ setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
 
 let autoRedirect;
 function promptRefresh() {
-  console.log("prompting refresh")
-  console.log("leaveOkay:" + leaveOkay)
   if (!leaveOkay) {
     const modal = document.getElementById("expirationModal");
     modal.style.display = "block";

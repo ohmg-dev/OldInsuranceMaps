@@ -78,7 +78,7 @@ def filter_volumes_for_use(volumes):
 def load_city_name_misspellings(state_name):
 
     lookup = {}
-    file_path = os.path.join(settings.LOCAL_ROOT, "reference_data", "city-name-misspellings.json")
+    file_path = os.path.join(settings.BASE_DIR, "loc_insurancemaps", "reference_data", "city-name-misspellings.json")
     if not os.path.isfile(file_path):
         return lookup
     with open(file_path, "r") as o:

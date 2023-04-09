@@ -3,34 +3,46 @@ import Volumes from './Volumes.svelte';
 import Places from './Places.svelte';
 import MapBrowse from './MapBrowse.svelte';
 
-export let PLACES_GEOJSON;
-export let STARTED_VOLUMES;
-export let PLACES;
+export let PLACES_GEOJSON_URL;
+export let PLACES_CT;
+export let PLACES_API_URL;
+export let ITEM_CT;
+export let ITEM_API_URL;
 
-let currentTab = "map";
+let reinitMap = [{}]
+
+// Use the hash to set the browse view, force to "map" if incoming hash is empty or invalid
+let currentTab = window.location.hash.substr(1) != "" ? window.location.hash.substr(1) : "map";
+if (["map", "place", "items"].indexOf(currentTab) === -1) {currentTab = 'map'};
+$: { history.replaceState(null, document.title, `#${currentTab}`); }
 
 </script>
 
 <main>
 	<div class="tab-row">
-		<div class="{currentTab == 'map' ? 'active' : ''}" on:click={() => {currentTab = "map"}}>
-			<h2>Browse by map</h2>
+		<div class="{currentTab == 'map' ? 'active' : ''}" on:click={() => {currentTab = "map"; reinitMap = [{}];}}>
+			<h2>Map Finder</h2>
 		</div>
 		<div class="{currentTab == 'places' ? 'active' : ''}" on:click={() => {currentTab = "places"}}>
-			<h2>Browse by place ({PLACES.length})</h2>
+			<h2>Browse Places ({PLACES_CT})</h2>
 		</div>
-		<div class="{currentTab == 'volumes' ? 'active' : ''}" on:click={() => {currentTab = "volumes"}}>
-			<h2>Browse by volume ({STARTED_VOLUMES.length})</h2>
+		<div class="{currentTab == 'items' ? 'active' : ''}" on:click={() => {currentTab = "items"}}>
+			<!-- <h2>Browse by volume ({STARTED_VOLUMES.length})</h2> -->
+			<h2>Browse Items ({ITEM_CT})</h2>
 		</div>
 	</div>
 	<div>
-	{#if currentTab == "map"}
-	<MapBrowse PLACES_GEOJSON={PLACES_GEOJSON}/>
-	{:else if currentTab == "volumes"}
-	<Volumes STARTED_VOLUMES={STARTED_VOLUMES}/>
-	{:else if currentTab == "places"}
-	<Places PLACES={PLACES}/>
-	{/if}
+		<div style="display: {currentTab === 'map' ? 'block' : 'none'}">
+			{#each reinitMap as key (key)}
+			<MapBrowse PLACES_GEOJSON_URL={PLACES_GEOJSON_URL}/>
+			{/each}
+		</div>
+		<div style="display: {currentTab === 'places' ? 'block' : 'none'}">
+			<Places PLACES_API_URL={PLACES_API_URL}/>
+		</div>
+		<div style="display: {currentTab === 'items' ? 'block' : 'none'}">
+			<Volumes ITEM_API_URL={ITEM_API_URL}/>
+		</div>
 	</div>
 </main>
 
@@ -43,7 +55,7 @@ main {
 
 .tab-row {
 	display:flex;
-
+	flex-direction: row;
 }
 .tab-row div {
 	color: white;
@@ -66,10 +78,17 @@ main {
 	background-color: #2c689c;
 }
 
-@media (min-width: 640px) {
-	main {
+@media (max-width: 640px) {
+	/* main {
 		max-width: none;
+	} */
+	.tab-row {
+		flex-direction: column;
+	}
+	.tab-row div {
+		width: 100%;
 	}
 }
+
 
 </style>

@@ -11,10 +11,10 @@ from pygments.lexers.data import JsonLexer
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.postgres.fields import JSONField
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.core.files import File
-from django.db import models, transaction
+from django.db import transaction
+from django.contrib.gis.db import models
 from django.db.models import signals
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
@@ -30,8 +30,7 @@ from georeference.models.sessions import (
     GeorefSession,
 )
 from georeference.storage import OverwriteStorage
-from georeference.utils import full_reverse
-from places.models import Place as NewPlaceModel
+from places.models import Place
 
 from loc_insurancemaps.utils import LOCParser, get_jpg_from_jp2_url
 from loc_insurancemaps.enumerations import (
@@ -181,12 +180,12 @@ class Volume(models.Model):
     year = models.IntegerField(choices=YEAR_CHOICES)
     month = models.IntegerField(choices=MONTH_CHOICES, null=True, blank=True)
     volume_no = models.CharField(max_length=5, null=True, blank=True)
-    lc_item = JSONField(default=None, null=True, blank=True)
-    lc_resources = JSONField(default=None, null=True, blank=True)
+    lc_item = models.JSONField(default=None, null=True, blank=True)
+    lc_resources = models.JSONField(default=None, null=True, blank=True)
     lc_manifest_url = models.CharField(max_length=200, null=True, blank=True,
         verbose_name="LC Manifest URL"
     )
-    extra_location_tags = JSONField(null=True, blank=True, default=list)
+    extra_location_tags = models.JSONField(null=True, blank=True, default=list)
     sheet_ct = models.IntegerField(null=True, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
     loaded_by = models.ForeignKey(
@@ -196,29 +195,28 @@ class Volume(models.Model):
         on_delete=models.CASCADE)
     load_date = models.DateTimeField(null=True, blank=True)
     # DEPRECATE: marking this field for removal
-    ordered_layers = JSONField(
+    ordered_layers = models.JSONField(
         null=True,
         blank=True,
         default=default_ordered_layers_dict
     )
-    document_lookup = JSONField(
+    document_lookup = models.JSONField(
         null=True,
         blank=True,
         default=dict,
     )
-    layer_lookup = JSONField(
+    layer_lookup = models.JSONField(
         null=True,
         blank=True,
         default=dict,
     )
-    sorted_layers = JSONField(
+    sorted_layers = models.JSONField(
         default=default_sorted_layers_dict,
     )
-    multimask = JSONField(null=True, blank=True)
+    multimask = models.JSONField(null=True, blank=True)
     locales = models.ManyToManyField(
-        NewPlaceModel,
+        Place,
         blank=True,
-        null=True,
     )
     # currently this actually stores the MosaicJSON (ugh) gotta separate these
     mosaic_geotiff = models.FileField(
@@ -228,6 +226,11 @@ class Volume(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
+    extent = models.PolygonField(
+        null=True,
+        blank=True,
+        srid=4326,
+    )
 
     def __str__(self):
         display_str = f"{self.city}, {STATE_ABBREV[self.state]} | {self.year}"
@@ -235,24 +238,6 @@ class Volume(models.Model):
             display_str += f" | Vol. {self.volume_no}"
 
         return display_str
-
-    @property
-    def extent(self):
-        """for now, calculate extent from all of the layer extents.
-        perhaps would be better to get this from the Place once that
-        those attributes have been added to those instances."""
-
-        layer_extent_polygons = []
-        for l in self.layer_lookup.values():
-            poly = Polygon.from_bbox(l['extent'])
-            layer_extent_polygons.append(poly)
-        if len(layer_extent_polygons) > 0:
-            multi = MultiPolygon(layer_extent_polygons)
-            extent = multi.extent
-        else:
-            # hard-code Louisiana for now
-            extent = Polygon.from_bbox((-94, 28, -88, 33)).extent
-        return extent
 
     @cached_property
     def sheets(self):
@@ -356,13 +341,13 @@ class Volume(models.Model):
             with transaction.atomic():
                 locale.volume_count += 1
                 locale.volume_count_inclusive += 1
-                locale.save()
+                locale.save(update_fields=["volume_count", "volume_count_inclusive"])
                 parents = locale.direct_parents.all()
                 while parents:
                     new_parents = []
                     for p in parents:
                         p.volume_count_inclusive += 1
-                        p.save()
+                        p.save(update_fields=["volume_count_inclusive"])
                         new_parents += list(p.direct_parents.all())
                     parents = new_parents
 
@@ -394,7 +379,6 @@ class Volume(models.Model):
         if self.mosaic_geotiff:
             mosaic_url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_geotiff.url
         return {
-            "doc_search": f"{settings.SITEURL}documents/?{r_facet}&{d_facet}",
             "loc_item": loc_item,
             "loc_resource": resource_url,
             "summary": reverse("volume_summary", args=(self.identifier,)),
@@ -487,6 +471,22 @@ class Volume(models.Model):
         if not data['slug'] in sorted_layers:
             self.sorted_layers["main"].append(data['slug'])
             self.save(update_fields=["sorted_layers"])
+
+        self.set_extent()
+
+    def set_extent(self):
+        # calculate extent from all of the layer extents.
+        # perhaps would be better to get this from the Place once that
+        # those attributes have been added to those instances.
+
+        layer_extent_polygons = []
+        for l in self.layer_lookup.values():
+            poly = Polygon.from_bbox(l['extent'])
+            layer_extent_polygons.append(poly)
+        if len(layer_extent_polygons) > 0:
+            multi = MultiPolygon(layer_extent_polygons)
+            self.extent = Polygon.from_bbox(multi.extent)
+            self.save(update_fields=['extent'])
 
     def sort_lookups(self):
 
@@ -597,7 +597,7 @@ class Volume(models.Model):
             "urls": self.get_urls(),
             "sorted_layers": self.hydrate_sorted_layers(),
             "multimask": self.multimask,
-            "extent": self.extent,
+            "extent": self.extent.extent if self.extent else None,
             "locale": self.get_locale(serialized=True),
         }
 
@@ -605,68 +605,6 @@ class Volume(models.Model):
             data['sessions'] = self.get_user_activity_summary()
 
         return data
-
-    def get_map_geojson(self):
-        """
-        this is a hacky way of getting geojson centers from the volumes for each place
-        instead of taking locations directly from the place themselves (extents have not
-        yet been added but it is in the works)
-        """
-
-        city_extent_dict = {}
-        volumes = Volume.objects.filter(status="started").order_by("city", "year")
-        for vol in volumes:
-
-            if len(vol.layer_lookup.values()) > 0:
-                year_vol = vol.year
-                if vol.volume_no is not None:
-                    year_vol = f"{vol.year} vol. {vol.volume_no}"
-                summary_url = full_reverse("volume_summary", args=(vol.identifier,))
-                try:
-                    temp_id = vol.city+vol.state
-                except Exception as e:
-                    print(e)
-                    continue
-                volume_content = {
-                    'title': vol.__str__(),
-                    'year': year_vol,
-                    'url': summary_url,
-                    'extent': vol.extent,
-                }
-                centroid = Polygon.from_bbox(vol.extent).centroid
-                if temp_id in city_extent_dict:
-                    city_extent_dict[temp_id]['volumes'].append(volume_content)
-                else:
-                    city_extent_dict[temp_id] = {
-                        'volumes': [volume_content],
-                        'place': None,
-                        'centroid': centroid.coords,
-                    }
-                    if vol.get_locale():
-                        city_extent_dict[temp_id]['place'] = {
-                            "name": vol.get_locale().display_name,
-                            "url": full_reverse("viewer", args=(vol.get_locale().slug,)),
-                        }
-
-        map_geojson = {
-            "type": "FeatureCollection",
-            "features": [],
-        }
-        for v in city_extent_dict.values():
-            feature = {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": v['centroid'],
-                },
-                "properties": {
-                    "volumes": v['volumes'],
-                    "place": v['place'],
-                }
-            }
-            map_geojson['features'].append(feature)
-
-        return map_geojson
 
 ## This seems to be where the signals need to be connected. See
 ## https://github.com/mradamcox/loc-insurancemaps/issues/75

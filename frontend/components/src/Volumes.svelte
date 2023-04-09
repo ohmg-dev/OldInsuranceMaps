@@ -1,37 +1,71 @@
 <script>
 import {TableSort} from 'svelte-tablesort'
 
-export let STARTED_VOLUMES;
+export let ITEM_API_URL;
 
-let volumes = STARTED_VOLUMES;
+let all_items = [];
+let filtered_items = [];
+let loading = true
+
+fetch(ITEM_API_URL)
+	.then(response => response.json())
+	.then(result => {
+		all_items = flatten_response(result);
+		filtered_items = all_items;
+	});
+
+function flatten_response(items_json) {
+	const flattened = []
+	items_json.forEach( function(item) {
+		item.loaded_by_name = item.loaded_by.username;
+		item.loaded_by_profile = item.loaded_by.profile_url;
+		item.unprepared_ct = item.stats.unprepared_ct;
+		item.prepared_ct = item.stats.prepared_ct;
+		item.georeferenced_ct = item.stats.georeferenced_ct;
+		item.percent = item.stats.percent;
+		item.mm_ct = item.stats.mm_todo;
+		item.mm_display = item.stats.mm_display;
+		item.mm_percent = item.stats.mm_percent;
+		flattened.push(item)
+	})
+	loading = false
+	return flattened
+}
 
 function updateFilteredList(filterText) {
 	if (filterText && filterText.length > 0) {
-		volumes = [];
-		STARTED_VOLUMES.forEach( function(vol) {
+		filtered_items = [];
+		all_items.forEach( function(vol) {
 			const volumeName = vol.title.toUpperCase();
 			const filterBy = filterText.toUpperCase();
 			if (volumeName.indexOf(filterBy) > -1) {
-				volumes.push(vol);
+				filtered_items.push(vol);
 			}
 		});
 	} else {
-		volumes = STARTED_VOLUMES;
+		filtered_items = all_items;
 	}
 }
 let filterInput;
 $: updateFilteredList(filterInput)
 
 </script>
-
-<input type="text" id="filterInput" placeholder="Filter by place name..." bind:value={filterInput}>
+<div class="filter-container">
+	<input type="text" id="filterInput" placeholder="Filter by title..." bind:value={filterInput}>
+</div>
 <div style="overflow-x:auto;">
-	{#if volumes.length == 0}
-	<p><em>No volumes have been started yet.</em></p>
+	{#if loading}
+	<div style="text-align:center;">
+		<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+	</div>
+	{:else if filtered_items.length == 0}
+	<div style="text-align:center;">
+		<p><em>No items found...</em></p>
+	</div>
 	{:else}
-	<TableSort items={volumes}>
+	<TableSort items={filtered_items}>
 		<tr slot="thead">
-			<th data-sort="place_name" style="max-width:300px;" title="Name of mapped location">Place</th>
+			<th data-sort="title" style="max-width:300px;" title="Title">Item Title</th>
 			<th data-sort="year_vol" title="Year of publication">Year</th>
 			<th data-sort="sheet_ct" style="width:55px; text-align:center;" title="Number of sheets in publication">Sheets</th>
 			<th data-sort="loaded_by_name" style="text-align:center;" title="Volume originally loaded by this user">Loaded by</th>
@@ -45,7 +79,7 @@ $: updateFilteredList(filterInput)
 		</tr>
 		<tr slot="tbody" let:item={v} style="height:38px;">
 			<td>
-				<a href={v.urls.summary} alt="Go to {v.place_name}" title="Go to {v.place_name}">{v.place_name}</a>
+				<a href={v.urls.summary} alt="Go to item summary" title="Go to summary">{v.title}</a>
 			</td>
 			<td>{v.year_vol}</td>
 			<td style="text-align:center;">{v.sheet_ct}</td>
@@ -70,6 +104,14 @@ $: updateFilteredList(filterInput)
 
 <style>
 
+.filter-container {
+	padding: 0px 10px 10px 10px;
+}
+
+.filter-container > input {
+	width: 100%;
+}
+
 /* Credit to this SO answer: https://stackoverflow.com/a/52205730/3873885 */
 /* Could be revisited with other portion of that answer to add animation */
 .box {
@@ -86,14 +128,5 @@ $: updateFilteredList(filterInput)
     linear-gradient(to right, #e6e6e6 50%,#123b4f 0);
 }
 
-main { 
-	margin-bottom: 10px;
-}
-
-@media (min-width: 640px) {
-	main {
-		max-width: none;
-	}
-}
 
 </style>

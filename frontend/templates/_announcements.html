@@ -1,0 +1,16 @@
+{% load i18n pinax_announcements_tags %}
+
+{% announcements as site_wide_announcements %}
+{% if site_wide_announcements %}
+<div id="site_wide_announcements">
+    {% for announcement in site_wide_announcements %}
+    {% if not announcement.members_only or request.user.is_authenticated %}
+    <div class="alert alert-block announcements {{ announcement.level_css  }}">
+        <h4><a href="{{ announcement.get_absolute_url }}">{{ announcement.title }}</a></h4>
+        <p><small><em>{{ announcement.creation_date }}</em></small></p>
+        <div>{{ announcement.content }}</div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endif %}

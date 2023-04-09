@@ -1,9 +1,12 @@
 from django.conf import settings
-from django.urls import path
-from django.conf.urls import url, include
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic import TemplateView, RedirectView
+from django.urls import include, path
 
-from geonode.urls import urlpatterns
+# this looks insane...
+from api.api import api
 
 from .views import (
     SimpleAPI,
@@ -12,19 +15,25 @@ from .views import (
     HomePage,
     MRMEndpointList,
     MRMEndpointLayer,
-    Viewer,
     Browse,
-    Participants,
-    PlaceView,
 )
 
-if settings.ENABLE_NEWSLETTER:
-    urlpatterns += [path('newsletter/', include('newsletter.urls'))]
+urlpatterns = [
+    path('api/beta/', api.urls),
 
-if 'georeference' in settings.INSTALLED_APPS:
-    urlpatterns += [url(r'^', include('georeference.urls'))]
+    path('', HomePage.as_view(), name='home'),
+    path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
+    path('getting-started/', TemplateView.as_view(template_name='getting-started.html'),
+        name='getting_started'),
+    path('help/', RedirectView.as_view(url="https://about.oldinsurancemaps.net")),
+    path('developer/', RedirectView.as_view(url="https://about.oldinsurancemaps.net")),
 
-urlpatterns += [
+    path('admin/', admin.site.urls, name="admin"),
+    path('account/', include("allauth.urls")),
+    path('avatar/', include('avatar.urls')),
+    path('', include('accounts.urls')),
+    path('', include('georeference.urls')),
+
     path('browse/', Browse.as_view(), name='browse'),
     path('loc/volumes/', RedirectView.as_view(pattern_name='browse', permanent=True), name='volumes_list'),
     path('loc/api/', SimpleAPI.as_view() , name='lc_api'),
@@ -32,23 +41,19 @@ urlpatterns += [
     path('loc/trim/<str:volumeid>/', VolumeTrim.as_view(), name="volume_trim"),
     path('mrm/', MRMEndpointList.as_view(), name="mrm_layer_list"),
     path('mrm/<str:layerid>/', MRMEndpointLayer.as_view(), name="mrm_get_resource"),
-    path('participants/', Participants.as_view(), name="participants"),
-    path('participation/', RedirectView.as_view(pattern_name='participants', permanent=False)),
 ]
 
+if settings.ENABLE_NEWSLETTER:
+    urlpatterns += [path('newsletter/', include('newsletter.urls'))]
+
+if "pinax.announcements" in settings.INSTALLED_APPS:
+    urlpatterns += [path("announcements/", include("pinax.announcements.urls", namespace="pinax_announcements"))]
+
+# this places path must be the last url that is tried, because it is a total wildcard.
 urlpatterns += [path('', include('places.urls'))]
 
-## these url patterns overwrite existing geonode patterns
-urlpatterns = [
-    url(r'^/?$', HomePage.as_view(), name='home'),
-    path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
-    path('getting-started/', TemplateView.as_view(template_name='getting-started.html'),
-        name='getting_started'),
-    path('help/', RedirectView.as_view(url="https://about.oldinsurancemaps.net")),
-    # path('about/', RedirectView.as_view(url="https://docs.oldinsurancemaps.net")),
-    path('developer/', RedirectView.as_view(url="https://about.oldinsurancemaps.net")),
-    path('people/', RedirectView.as_view(url="/participants")),
- ] + urlpatterns
+urlpatterns += staticfiles_urlpatterns()
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     urlpatterns += [path('__debug__/', include('debug_toolbar.urls'))]

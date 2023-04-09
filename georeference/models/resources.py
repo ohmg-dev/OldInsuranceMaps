@@ -11,12 +11,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import Polygon
-from django.contrib.postgres.fields import JSONField
 from django.core.files.base import ContentFile
-from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.utils.functional import cached_property
 
@@ -262,7 +259,7 @@ class ItemBase(models.Model):
         ("georeferenced", "Georeferenced"),
     )
 
-    title = models.CharField(_('title'), max_length=255)
+    title = models.CharField('title', max_length=255)
     slug = models.CharField(
         max_length=128, null=True, blank=True
     )
@@ -345,7 +342,7 @@ class ItemBase(models.Model):
     lock_enabled = models.BooleanField(
         default=False,
     )
-    lock_details = JSONField(
+    lock_details = models.JSONField(
         null=True,
         blank=True,
     )
@@ -485,12 +482,14 @@ class Document(ItemBase):
 
     @cached_property
     def image_size(self):
+        size = None
         if self.file:
-            img = Image.open(self.file)
-            size = img.size
-            img.close()
-        else:
-            size = None
+            try:
+                img = Image.open(self.file)
+                size = img.size
+                img.close()
+            except Exception as e:
+                logger.warn(f"error opening file {self.file}: {e}")
         return size
 
     @property

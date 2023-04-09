@@ -19,22 +19,22 @@ import VectorLayer from 'ol/layer/Vector';
 import Styles from './js/ol-styles';
 const styles = new Styles();
 
-export let PLACES_GEOJSON;
+export let PLACES_GEOJSON_URL;
 export let MAP_HEIGHT;
 
 if (!MAP_HEIGHT) {MAP_HEIGHT = '600'};
 
 const osmLayer = new TileLayer({ source: new OSM() });
 
-let mapView;
 let container;
 let content;
 let closer;
 let overlay;
-function MapViewer (elementId) {
 
-	const targetElement = document.getElementById(elementId);
+onMount(async function() {
 
+	const targetElement = document.getElementById('map-viewer');
+	
 	container = document.getElementById('popup');
 	content = document.getElementById('popup-content');
 	closer = document.getElementById('popup-closer');
@@ -47,9 +47,25 @@ function MapViewer (elementId) {
 		},
 	});
 
+	// create map
+	const map = new Map({
+		target: targetElement,
+		maxTilesLoading: 50,
+		layers: [osmLayer],
+		overlays: [overlay],
+		view: new View({
+			zoom: 5,
+			// center: fromLonLat([-92.036, 31.16]),
+			center: [ -10728204.02342, 4738596.138147663 ],
+		})
+	});
+	
+	const response = await fetch(PLACES_GEOJSON_URL)
+	const mapGeoJSON = await response.json()
+	
 	const placeLayer = new VectorLayer({
 		source: new VectorSource({
-			features: new GeoJSON().readFeatures(PLACES_GEOJSON, {
+			features: new GeoJSON().readFeatures(mapGeoJSON, {
 				dataProjection: "EPSG:4326",
 				featureProjection: "EPSG:3857",
 			})
@@ -57,19 +73,11 @@ function MapViewer (elementId) {
 		style: styles.browseMapStyle,
 		zIndex: 500,
 	});
-
-	// create map
-	const map = new Map({
-		target: targetElement,
-		maxTilesLoading: 50,
-		layers: [osmLayer, placeLayer],
-		overlays: [overlay],
-		view: new View({
-			zoom: 7,
-			center: fromLonLat([-92.036, 31.16]),
-		})
-	});
-	// map.getView().fit(placeLayer.getSource().getExtent(), {padding: [10,10,10,10]})
+	map.addLayer(placeLayer)
+	map.getView().fit(placeLayer.getSource().getExtent(), {
+		padding: [25,25,25,25],
+		duration: 500,
+	})
 
 
 	map.on('pointermove', function (event) {
@@ -96,19 +104,18 @@ function MapViewer (elementId) {
 				const props = feature.getProperties();
 				const volList = []
 				props.volumes.forEach( function(vol) {
-					volList.push(`<a title="Summary of this item: ${vol.title}" href="${vol.url}">${vol.year}</a>`)
+					volList.push(`<a title="Go to item summary: ${vol.title}" href="${vol.url}">${vol.year}</a>`)
 				})
 				const volListStr = volList.join(" • ")
 				const popupContent = `
-					<h4>${props.place.name} • <a title="Show all years in viewer" href="${props.place.url}">view &rarr;</a></h4>
-					<div style="font-size:18px;">
-						<div style="margin-bottom:15px;">
-							<div style="border-bottom:1px dashed #000; height:12px; margin-bottom:10px;">
-								<span style="background:#fff; padding-right:5px;">Detailed summaries</span>
-							</div>
+					<h4 style="margin-bottom:0px;">${props.place.name}</h4>
+					<p><a title="Go to viewer" href="${props.place.url}">Go to viewer &rarr;</a></p>
+					<div style="margin-bottom:15px;">
+						<div style="border-bottom:1px dashed #000; height:12px; margin-bottom:10px;">
+							<span style="background:#fff; padding-right:5px;">Content</span>
 						</div>
-						${volListStr}
 					</div>
+					<p>${volListStr}</p>
 				`
 				content.innerHTML = popupContent;
 				overlay.setPosition(feature.getGeometry().getCoordinates());
@@ -126,27 +133,43 @@ function MapViewer (elementId) {
 		closer.blur();
 		return false;
 	};
+	targetElement.classList.remove('spinner');
 
-	this.map = map;
-}
-
-onMount(() => {
-	mapView = new MapViewer("map");
 });
 
 
 </script>
-<div id="map" style="height:{MAP_HEIGHT}px"></div>
+<div id="map-viewer" class="spinner" style="height:{MAP_HEIGHT}px; width:100%"></div>
 <div id="popup" class="ol-popup" style="">
 	<a href="#" title="Close popup" id="popup-closer" class="ol-popup-closer"></a>
 	<div id="popup-content"></div>
 </div>
 <style>
 
-#map {
-	height: 600px;
-	width: 100%;
-	/* position: absolute; */
+@keyframes spinner {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+#map-viewer{
+	position: relative;
+}
+
+.spinner:after {
+	content: "";
+	box-sizing: border-box;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 40px;
+	height: 40px;
+	margin-top: -20px;
+	margin-left: -20px;
+	border-radius: 50%;
+	border: 5px solid rgba(180, 180, 180, 0.6);
+	border-top-color: rgb(18, 59, 79);
+	animation: spinner 0.8s linear infinite;
 }
 
 .ol-popup {

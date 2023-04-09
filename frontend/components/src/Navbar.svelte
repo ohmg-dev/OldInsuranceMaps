@@ -11,7 +11,10 @@ export let USER;
 			</a>
 		</div>
 		<div>
-			<a href="/browse" title="Browse Maps">Browse Maps</a>
+			<a href="/browse" title="Browse">Browse</a>
+		</div>
+		<div>
+			<a href="/people" title="People">People</a>
 		</div>
 		<div>
 			<a href="/#support" title="Support this project">Support</a>
@@ -30,7 +33,10 @@ export let USER;
 		</div>
 		{:else}
 		<div>
-			<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in</a>
+			<a href="/account/login">Sign in</a>
+		</div>
+		<div>
+			<a href="/account/signup">Sign up</a>
 		</div>
 		{/if}
 	</div>

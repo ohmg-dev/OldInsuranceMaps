@@ -1,9 +1,0 @@
-{% extends 'base-viewer.html' %}
-{% load i18n %}
-
-{% block title %}{{ svelte_params.PLACE.display_name }}{% endblock title %}
-
-{% block middle %}
-{{ svelte_params|json_script:'viewer-props'}}
-{% include '_svelte_component.html' with component_name='Viewer' %}
-{% endblock middle %}

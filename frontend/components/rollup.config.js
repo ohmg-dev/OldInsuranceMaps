@@ -93,6 +93,7 @@ let exportable = [];
   "Georeference",
   "Split",
   "Resource",
+  "Profile",
 ].forEach((d) => exportable.push(componentExportDetails(d)));
 
 export default exportable;

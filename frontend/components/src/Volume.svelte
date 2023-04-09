@@ -28,7 +28,6 @@ let reinitMap = [{}]
 let hash = window.location.hash.substr(1);
 
 $: showMap = hash == 'preview';
-let showOverview = ['overview', 'unprepared', 'prepared', 'georeferenced', 'multimask'].includes(hash);
 $: showUnprepared = hash == 'unprepared';
 $: showPrepared = hash == 'prepared';
 $: showGeoreferenced = hash == 'georeferenced';
@@ -165,7 +164,7 @@ function setHash(newHash) {
 		<div class="section-title-bar">
 			<button class="section-toggle-btn" disabled={VOLUME.items.layers.length == 0} 
 				on:click={() => {setHash('preview')}}>
-				<a id="preview"><h2 style="margin-right:10px">Map Preview</h2></a>
+				<a id="preview"><h2 style="margin-right:10px">Mosaic Preview</h2></a>
 				<i class="header fa {showMap == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
 			</button>
 		</div>
@@ -183,15 +182,11 @@ function setHash(newHash) {
 	</section>
 	<section>
 		<div class="section-title-bar">
-			<button class="section-toggle-btn" on:click={() => showOverview = !showOverview}>
-				<a id="overview"><h2 style="margin-right:10px">Georeferencing Overview</h2></a>
-				<i class="header fa {showOverview == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
-			</button>
+			<a id="overview" class="no-link"><h2 style="margin-right:10px; display:inline-block;">Georeferencing Overview</h2>
+				<i class="header fa fa-angle-double-down"></i>
+			</a>
 		</div>
-
-		<!-- <div class="section-content" style="display:{showOverview == true ? 'block' : 'none'};"> -->
-		{#if showOverview}
-		<div transition:slide>
+		<div>
 			<div style="display:flex; justify-content:space-between; align-items:center;">
 				<div>
 					{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && USER_TYPE != 'anonymous' && !sheetsLoading}
@@ -244,7 +239,7 @@ function setHash(newHash) {
 								&mdash; {VOLUME.items.processing.unprep} in progress...
 							{/if}
 						</h3></a>
-						<i class="subheader fa {showUnprepared == true ? 'fa-angle-down' : 'fa-angle-right'}"></i>
+						<i class="subheader fa {showUnprepared == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
 						
 					</button>
 				</div>
@@ -289,7 +284,7 @@ function setHash(newHash) {
 				<div class="subsection-title-bar">
 					<button class="section-toggle-btn" on:click={() => setHash("prepared")}>
 						<a id="prepared"><h3 style="margin-right:10px">Prepared ({VOLUME.items.prepared.length})</h3></a>
-						<i class="subheader fa {showPrepared == true ? 'fa-angle-down' : 'fa-angle-right'}"></i>
+						<i class="subheader fa {showPrepared == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
 					</button>
 				</div>
 				{#if showPrepared}
@@ -327,7 +322,7 @@ function setHash(newHash) {
 				<div class="subsection-title-bar">
 					<button class="section-toggle-btn" on:click={() => setHash("georeferenced")}>
 						<a id="georeferenced"><h3 style="margin-right:10px">Georeferenced ({VOLUME.items.layers.length})</h3></a>
-						<i class="subheader fa {showGeoreferenced == true ? 'fa-angle-down' : 'fa-angle-right'}"></i>
+						<i class="subheader fa {showGeoreferenced == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
 					</button>
 				</div>
 				{#if showGeoreferenced}
@@ -394,7 +389,7 @@ function setHash(newHash) {
 				<div class="subsection-title-bar">
 					<button class="section-toggle-btn" on:click={() => setHash('multimask')}>
 						<a id="multimask"><h3 style="margin-right:10px">Multimask ({mmLbl})</h3></a>
-						<i class="subheader fa {showMultimask == true ? 'fa-angle-down' : 'fa-angle-right'}"></i>
+						<i class="subheader fa {showMultimask == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
 					</button>
 				</div>
 				{#if showMultimask}
@@ -411,7 +406,6 @@ function setHash(newHash) {
 				{/if}
 			</section>
 		</div>
-		{/if}
 	</section>
 	
 	<section>
@@ -426,36 +420,39 @@ function setHash(newHash) {
 		<div class="section-content" style="display:{showDownload == true ? 'block' : 'none'};">
 			<section class="subsection">
 				<p style="font-size:.9em;"><em>
-					Only layers that have been trimmed in the Multimask will appear in the mosaic. If you appreciate these resources, please consider <a href="/#support">supporting this project</a>.
+					Only layers that have been trimmed in the <a href="#multimask">Multimask</a> will appear in the mosaic. You can access untrimmed layers individually through the <a href="#georeferenced">Georeferenced</a> section above. If you appreciate these resources, please consider <a href="/#support">supporting this project</a>.
 				</em></p>
 			</section>
 			<section class="subsection" style="padding-top:15px;">
-				<p><strong>GeoTIFF</strong> mosaic downloads of this entire volume are available <a href="https://about.oldinsurancemaps.net/contact/">upon request</a>.
-					<br>Untrimmed individual layers can be downloaded as GeoTIFFs through the <a href="#georeferenced">Georeferenced</a> section above.</p>
-			</section>
-			<section class="subsection" style="padding-top:15px; border-bottom:none;">
 				<p><strong>XYZ Tiles URL</strong></p>
 				{#if !VOLUME.urls.mosaic}
 				<p style="font-size:.9em; color:red;"><em>
-					A mosaic endpoint has not yet been generated for this volume. You can get an XYZ endpoint for each individual layer in the <a href="#georeferenced">Georeferenced</a> section above.
+					A mosaic endpoint has not yet been generated for this volume.
 				</em></p>
 				{:else}
 				<pre>{mosaicUrl}</pre>
-				<p>Here is documentation for how to use this URL in:
+				<p>Use this URL in:
 					<a href="https://leafletjs.com/reference.html#tilelayer">Leaflet</a>,
 					<a href="https://openlayers.org/en/latest/examples/xyz.html">OpenLayers</a>,
 					<a href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/">Mapbox/MapLibre GL JS</a>,
 					<a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
 					<a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
-					<br>You can also open this mosaic directly in the <a href="{ohmUrl}" alt="Open mosaic in OHM Editor" target="_blank">Open Historical Map editor <i class="fa fa-external-link"></i></a>.
+					<br>Open in the <a href="{ohmUrl}" alt="Open mosaic in OHM Editor" target="_blank">Open Historical Map editor <i class="fa fa-external-link"></i></a>.
 				</p>
 				{/if}
+			</section>
+			<section class="subsection" style="padding-top:15px; border-bottom:none;">
+				<p><strong>GeoTIFF</strong> mosaic downloads of this entire volume are available <a href="https://about.oldinsurancemaps.net/contact/">upon request</a>.</p>
 			</section>
 		</div>
 	</section>
 	<section style="border-bottom:none;">
 		<div class="section-title-bar">
-			<a id="contributors" class="no-link"><h2 style="margin-right:10px">Contributors & Attribution</h2></a>
+			<a id="contributors" class="no-link"><h2 style="margin-right:10px; display: inline-block;">
+				Contributors & Attribution
+			</h2>
+			<i class="header fa fa-angle-double-down"></i>
+			</a>
 		</div>
 		<div class="section-content" style="display:flex'; flex-direction:column;">
 			<p>
@@ -466,7 +463,7 @@ function setHash(newHash) {
 				{#each VOLUME.sessions.georef_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.georef_contributors.length-1}, {/if}{/each}{/if}
 			</p>
 			<p><strong>Credit Line: Library of Congress, Geography and Map Division, Sanborn Maps Collection.</strong>
-			<a href="{VOLUME.urls.loc_resource}" target="_blank">View on loc.gov <i class="fa fa-external-link"></i></a></p>
+			<a href="{VOLUME.urls.loc_resource}" target="_blank">View item on loc.gov <i class="fa fa-external-link"></i></a></p>
 		</div>
 	</section>
 </main>

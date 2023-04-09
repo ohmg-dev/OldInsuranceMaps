@@ -6,7 +6,7 @@ let editing = false;
 let breadCrumbs = []
 $: {
 	if (VOLUME.locale) {
-		fetch("/place-lookup/"+VOLUME.locale.slug, {
+		fetch(`/${VOLUME.locale.slug}/?f=json`, {
 			// method: 'POST',
 			// headers: {
 			// 'Content-Type': 'application/json;charset=utf-8',

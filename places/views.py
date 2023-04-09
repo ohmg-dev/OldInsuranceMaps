@@ -31,7 +31,7 @@ class PlaceView(View):
             }
             return render(
                 request,
-                "place.html",
+                "places/place.html",
                 context=context_dict
             )
 
@@ -64,6 +64,6 @@ class Viewer(View):
         }
         return render(
             request,
-            "viewer.html",
+            "places/viewer.html",
             context=context_dict
         )

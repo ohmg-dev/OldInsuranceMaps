@@ -170,16 +170,23 @@ def generate_mosaic_geotiff(identifier):
     mosaic_tif = mosaic_vrt.replace(".vrt", ".tif")
     gdal.Translate(mosaic_tif, mosaic_vrt, options=to)
 
+    ## for some reason, creating overviews and then saving the file to
+    ## django's filefield with
+    ## with open(mosaic_tif, 'rb') as f:
+    ##    vol.mosaic_geotiff.save(os.path.basename(mosaic_tif), File(f), save=True)
+    ## seems to make an empty tiff... (still need to figure out why...)
+    ## for now, save to django without overviews.
+    ## however, Titiler is still returning empty tiles...
+
+    with open(mosaic_tif, 'rb') as f:
+        vol.mosaic_geotiff.save(os.path.basename(mosaic_tif), File(f), save=True)
+
     print("creating overviews")
-    img = gdal.Open(mosaic_tif, 1)
+    img = gdal.Open(vol.mosaic_geotiff.path, 1)
     gdal.SetConfigOption("COMPRESS_OVERVIEW", "LZW")
     gdal.SetConfigOption("PREDICTOR", "2")
     gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
     img.BuildOverviews("AVERAGE", [2, 4, 8, 16])
-
-    with open(mosaic_tif, 'rb') as f:
-        vol.mosaic_geotiff = File(f, name=os.path.basename(mosaic_tif))
-        vol.save()
 
 def write_trim_feature_cache(feature, file_path):
     with open(file_path, "w") as f:
