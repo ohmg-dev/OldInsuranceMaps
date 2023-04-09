@@ -1,5 +1,4 @@
 <script>
-    import { defaultImageLoadFunction } from 'ol/source/Image';
 import {TableSort} from 'svelte-tablesort';
 import TitleBar from './TitleBar.svelte';
 
@@ -14,7 +13,7 @@ let sessions = [];
 let sessions_next_url;
 let sessions_previous_url;
 let loadingSessions = false;
-let showSessions = false;
+let showSessions = true;
 let showSummary = false;
 
 let currentOffset = 0;
@@ -71,6 +70,7 @@ function getPreviousResults() {
 		</div>
 	</section>
 	{/if}
+	<!--
 	<section>
 		<div class="section-title-bar">
 			<button class="section-toggle-btn"
@@ -83,10 +83,10 @@ function getPreviousResults() {
 		</div>
 		{#if showSummary}
 		<div class="section-content">
-
 		</div>
 		{/if}
 	</section>
+	-->
 	<section>
 		<div class="section-title-bar">
 			<button class="section-toggle-btn"
@@ -117,21 +117,19 @@ function getPreviousResults() {
 				<tr slot="thead">
 					<!-- <th data-sort="username" style="max-width:300px;" title="Name of mapped location"></th> -->
 					<!-- <th data-sort="username" style="max-width:300px;" title="Name of mapped location">Username</th> -->
-					<th title="Number of unprepared sheets">Id</th>
-					<th title="Number of unprepared sheets">Type</th>
+					<th title="Session Id">Id</th>
+					<th title="Session type">Type</th>
 					<th>Resource</th>
 					<th>Status</th>
 					<!-- <th data-sort="psesh_ct" style="width:25px; text-align:center; border-left: 1px solid gray;" title="Number of prep sessions">Prep Sessions</th> -->
 					<!-- <th data-sort="gsesh_ct" style="width:25px; text-align:center;" title="Number of georeferencing sessions">Georef. Sessions</th> -->
 					<!-- <th data-sort="total_ct" style="width:25px; text-align:center; border-left:1px solid gray;" title="Percent complete - G/(U+P+G)">Total Sessions</th> -->
-					<th title="Ground control points created">Result</th>
-					<th title="Ground control points created">Seconds</th>
-					<th title="Ground control points created">Date</th>
+					<th title="Session result note">Result</th>
+					<!-- <th title="Ground control points created">Seconds</th> -->
+					<th title="Date">Date</th>
 				</tr>
 				<tr slot="tbody" let:item={s} style="height:38px; vertical-align:center;">
-					<td>
-						{s.id}
-					</td>
+					<td>{s.id}</td>
 					<td>
 						{#if s.type === "p"}
 						<span title="Preparation">{s.type.toUpperCase()}</span>
@@ -154,18 +152,10 @@ function getPreviousResults() {
 						</a>
 						{/if}
 					</td>
-					<td>
-						{s.status}
-					</td>
-					<td>
-						{s.note}
-					</td>
-					<td>
-						{s.user_input_duration}
-					</td>
-					<td>
-						{s.date_created}
-					</td>
+					<td>{s.status}</td>
+					<td>{s.note}</td>
+					<!-- <td>{s.user_input_duration}</td> -->
+					<td>{s.date_created}</td>
 				</tr>
 			</TableSort>
 			{/if}

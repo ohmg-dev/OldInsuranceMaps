@@ -13,7 +13,7 @@ import {transformExtent, Projection} from 'ol/proj';
 import {ImageStatic, XYZ} from 'ol/source';
 import {Tile as TileLayer, Image as ImageLayer} from 'ol/layer';
 
-import Utils from './js/ol-utils-georeference';
+import Utils from './js/ol-utils';
 import TitleBar from './TitleBar.svelte';
 const utils = new Utils();
 
@@ -28,8 +28,21 @@ export let SESSION_HISTORY;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
 
+console.log(RESOURCE)
+
+let xyzUrl;
+let ohmUrl;
+if (RESOURCE.type == "layer") {
+  xyzUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.urls.cog);
+  ohmUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.urls.cog, true);
+} else if (RESOURCE.layer){
+  xyzUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.layer.urls.cog);
+  ohmUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.layer.urls.cog, true);
+}
+
 let showPrep = false;
 let showGeoreference = false;
+let showDownloads = false;
 
 let splitBtnEnabled = false;
 let noSplitBtnEnabled = false;
@@ -185,15 +198,15 @@ function setSplit(operation) {
 
 const iconLinks = [
   {
-    visible: RESOURCE.type == "layer",
-    enabled: true,
+    visible: true,
+    enabled: RESOURCE.type == "layer",
     iconClass: 'document',
     alt: RESOURCE.document ? 'Go to document: ' + RESOURCE.document.title : '',
     url: RESOURCE.document ? RESOURCE.document.urls.resource : '',
   },
   {
-    visible: RESOURCE.type == "document",
-    enabled: RESOURCE.layer ? true : false,
+    visible: true,
+    enabled: RESOURCE.type == "document",
     iconClass: 'layer',
     alt: RESOURCE.layer ? 'Go to layer: ' + RESOURCE.layer.title : 'Layer not yet made',
     url: RESOURCE.layer ? RESOURCE.layer.urls.resource : '',
@@ -225,7 +238,7 @@ const iconLinks = [
         </p>
       </section>
       <section>
-        <h4 class="expandable" on:click={() => showPrep = !showPrep}>1. Preparation <i class="fa fa-{showPrep == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
+        <h4 class="expandable" on:click={() => showPrep = !showPrep}>Preparation <i class="fa fa-{showPrep == true ? 'angle-double-down' : 'angle-double-right'}"></i></h4>
         {#if showPrep}
         <div transition:slide>
           <div class="section-btn-row">
@@ -293,7 +306,7 @@ const iconLinks = [
         {/if}
       </section>
       <section>
-        <h4 class="expandable" on:click={() => showGeoreference = !showGeoreference}>2. Georeferencing <i class="fa fa-{showGeoreference == true ? 'chevron-down' : 'chevron-right'}"></i></h4>
+        <h4 class="expandable" on:click={() => showGeoreference = !showGeoreference}>Georeferencing <i class="fa fa-{showGeoreference == true ? 'angle-double-down' : 'angle-double-right'}"></i></h4>
         {#if showGeoreference}
         <div transition:slide>
           <div class="section-btn-row">
@@ -352,6 +365,42 @@ const iconLinks = [
             {/if}
             -->
           </div>
+        </div>
+        {/if}
+        
+      </section>
+      <section style="border-bottom:none;">
+        <h4 class="expandable" on:click={() => showDownloads = !showDownloads}>Downloads & Web Services<i class="fa fa-{showDownloads == true ? 'angle-double-down' : 'angle-double-right'}"></i></h4>
+        {#if showDownloads}
+        <div transition:slide>
+          <!-- super duper messy for now...-->
+          {#if RESOURCE.type == "document"}
+            <p>Image: <a href="{RESOURCE.urls.image}" title="Download JPEG">JPEG</a>
+              {#if RESOURCE.layer}
+              &bullet;&nbsp;<a href="{RESOURCE.layer.urls.cog}" title="Download GeoTIFF">GeoTIFF</a>
+              {/if}
+            </p>
+            {#if RESOURCE.layer}
+            <p>GCPs: <a href="/mrm/{RESOURCE.layer.slug}?resource=gcps-geojson" title="Download GCPs as GeoJSON">GeoJSON</a>
+              &bullet;&nbsp;<a href="/mrm/{RESOURCE.layer.slug}?resource=points" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</a></p>
+              
+            {/if}
+          {:else if RESOURCE.type == "layer"}
+          <p>Image: <a href="{RESOURCE.urls.document}" title="Download JPEG">JPEG</a>
+            &bullet;&nbsp;<a href="{RESOURCE.urls.cog}" title="Download GeoTIFF">GeoTIFF</a>
+          </p>
+          <p>GCPs: <a href="/mrm/{RESOURCE.slug}?resource=gcps-geojson" title="Download GCPs as GeoJSON">GeoJSON</a>
+            &bullet;&nbsp;<a href="/mrm/{RESOURCE.slug}?resource=points" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</a></p>
+          XYZ URL: <pre>{xyzUrl}</pre>
+            <p>Use this URL in:
+              <a href="https://leafletjs.com/reference.html#tilelayer">Leaflet</a>,
+              <a href="https://openlayers.org/en/latest/examples/xyz.html">OpenLayers</a>,
+              <a href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/">Mapbox/MapLibre GL JS</a>,
+              <a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
+              <a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
+              <br><a href="{ohmUrl}" alt="Open mosaic in OHM iD editor" target="_blank">Open Historical Map iD editor<i class="fa fa-external-link"></i></a> (direct link).
+            </p>
+          {/if}
         </div>
         {/if}
       </section>
