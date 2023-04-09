@@ -9,7 +9,6 @@ from kombu import Queue, Exchange
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 SECRET_KEY = os.getenv("SECRET_KEY")
 WSGI_APPLICATION = "loc_insurancemaps.wsgi.application"
 
@@ -122,6 +121,7 @@ DATABASES = {
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / 'static')
 STATICFILES_DIRS = [
     BASE_DIR / "frontend" / "static",
     BASE_DIR / "frontend" / "components" / "public" / "build",
