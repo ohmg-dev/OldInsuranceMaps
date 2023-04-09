@@ -3,11 +3,16 @@ import {TableSort} from 'svelte-tablesort';
 import TitleBar from './TitleBar.svelte';
 
 export let USER_API_URL;
+export let OHMG_API_KEY;
 
 let all_participants = [];
 let filtered_participants = []
 
-fetch(USER_API_URL)
+const apiHeaders = {
+	"X-API-Key": OHMG_API_KEY,
+}
+
+fetch(USER_API_URL, { headers: apiHeaders })
 	.then(response => response.json())
     .then(result => {
 		all_participants = result;

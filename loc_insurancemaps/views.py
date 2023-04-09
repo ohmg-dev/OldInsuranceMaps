@@ -91,6 +91,7 @@ class HomePage(View):
                 "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
                 "IS_MOBILE": mobile(request),
                 "CSRFTOKEN": csrf.get_token(request),
+                "OHMG_API_KEY": settings.OHMG_API_KEY,
                 "NEWSLETTER_SLUG": newsletter_slug,
                 "USER_SUBSCRIBED": user_subscribed,
                 "USER_EMAIL": user_email,
@@ -115,6 +116,7 @@ class Browse(View):
                 "PLACES_API_URL": reverse("api-beta:place_list"),
                 "ITEM_CT": Volume.objects.all().exclude(loaded_by=None).count(),
                 "ITEM_API_URL": reverse("api-beta:item_list"),
+                "OHMG_API_KEY": settings.OHMG_API_KEY,
             },
         }
         return render(

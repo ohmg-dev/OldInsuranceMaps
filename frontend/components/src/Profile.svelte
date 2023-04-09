@@ -6,6 +6,7 @@ export let CURRENT_USERNAME;
 export let PROFILE_USER;
 export let CHANGE_AVATAR_URL;
 export let SESSION_API_URL;
+export let OHMG_API_KEY;
 
 let myProfile = CURRENT_USERNAME === PROFILE_USER.username;
 
@@ -22,9 +23,13 @@ let apiLimit = 25
 
 let urlBaseSessions = SESSION_API_URL + `?username=${PROFILE_USER.username}&limit=${apiLimit}`
 
+const apiHeaders = {
+	"X-API-Key": OHMG_API_KEY,
+}
+
 function getInitialResults() {
 	loadingSessions = true;
-	fetch(urlBaseSessions + `&offset=${currentOffset}`)
+	fetch(urlBaseSessions + `&offset=${currentOffset}`, { headers: apiHeaders })
 		.then(response => response.json())
 		.then(result => {
 			sessions = result.items;
@@ -36,7 +41,7 @@ getInitialResults()
 
 function getNextResults() {
 	loadingSessions = true;
-	fetch(urlBaseSessions + `&offset=${currentOffset+apiLimit}`)
+	fetch(urlBaseSessions + `&offset=${currentOffset+apiLimit}`, { headers: apiHeaders })
 		.then(response => response.json())
 		.then(result => {
 			sessions = result.items;
@@ -47,7 +52,7 @@ function getNextResults() {
 
 function getPreviousResults() {
 	loadingSessions = true;
-	fetch(urlBaseSessions + `&offset=${currentOffset-apiLimit}`)
+	fetch(urlBaseSessions + `&offset=${currentOffset-apiLimit}`, { headers: apiHeaders })
 		.then(response => response.json())
 		.then(result => {
 			sessions = result.items;

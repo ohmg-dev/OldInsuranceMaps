@@ -1,4 +1,5 @@
 from avatar.templatetags.avatar_tags import avatar_url
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
@@ -21,7 +22,8 @@ class ProfileView(View):
                     "CURRENT_USERNAME": request.user.username,
                     "PROFILE_USER": UserSchema.from_orm(u).dict(),
                     "CHANGE_AVATAR_URL": reverse('avatar_change'),
-                    "SESSION_API_URL": reverse("api-beta:session_list")
+                    "SESSION_API_URL": reverse("api-beta:session_list"),
+                    "OHMG_API_KEY": settings.OHMG_API_KEY,
                 }
             }
         )
@@ -36,7 +38,8 @@ class Participants(View):
             "accounts/participants.html",
             context={
                 "svelte_params": {
-                    "USER_API_URL": reverse("api-beta:user_list")
+                    "USER_API_URL": reverse("api-beta:user_list"),
+                    "OHMG_API_KEY": settings.OHMG_API_KEY,
                 }
             },
         )
