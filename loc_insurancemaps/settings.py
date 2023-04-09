@@ -28,6 +28,8 @@ SITE_NAME = os.getenv("SITENAME", 'Example.com')
 
 OHMG_API_KEY = os.getenv("OHMG_API_KEY", "")
 
+ALLOWED_HOSTS = ast.literal_eval(os.getenv("ALLOWED_HOSTS", "[]"))
+
 # Set path to cache directory
 CACHE_DIR = BASE_DIR / "loc_insurancemaps" / "cache"
 TEMP_DIR = BASE_DIR / "loc_insurancemaps" / "temp"
