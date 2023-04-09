@@ -21,6 +21,7 @@ const styles = new Styles();
 
 export let PLACES_GEOJSON_URL;
 export let MAP_HEIGHT;
+export let OHMG_API_KEY;
 
 if (!MAP_HEIGHT) {MAP_HEIGHT = '600'};
 
@@ -60,7 +61,11 @@ onMount(async function() {
 		})
 	});
 	
-	const response = await fetch(PLACES_GEOJSON_URL)
+	const response = await fetch(PLACES_GEOJSON_URL, {
+		headers: {
+			'X-API-Key': OHMG_API_KEY,
+		},
+    })
 	const mapGeoJSON = await response.json()
 	
 	const placeLayer = new VectorLayer({

@@ -8,6 +8,7 @@ export let PLACES_CT;
 export let PLACES_API_URL;
 export let ITEM_CT;
 export let ITEM_API_URL;
+export let OHMG_API_KEY;
 
 let reinitMap = [{}]
 
@@ -34,14 +35,14 @@ $: { history.replaceState(null, document.title, `#${currentTab}`); }
 	<div>
 		<div style="display: {currentTab === 'map' ? 'block' : 'none'}">
 			{#each reinitMap as key (key)}
-			<MapBrowse PLACES_GEOJSON_URL={PLACES_GEOJSON_URL}/>
+			<MapBrowse PLACES_GEOJSON_URL={PLACES_GEOJSON_URL} OHMG_API_KEY={OHMG_API_KEY}/>
 			{/each}
 		</div>
 		<div style="display: {currentTab === 'places' ? 'block' : 'none'}">
-			<Places PLACES_API_URL={PLACES_API_URL}/>
+			<Places PLACES_API_URL={PLACES_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
 		</div>
 		<div style="display: {currentTab === 'items' ? 'block' : 'none'}">
-			<Volumes ITEM_API_URL={ITEM_API_URL}/>
+			<Volumes ITEM_API_URL={ITEM_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
 		</div>
 	</div>
 </main>

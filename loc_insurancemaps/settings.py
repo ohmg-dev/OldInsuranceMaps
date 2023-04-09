@@ -26,6 +26,8 @@ if not SITEURL.endswith('/'):
 SITE_ID = int(os.getenv('SITE_ID', '1'))
 SITE_NAME = os.getenv("SITENAME", 'Example.com')
 
+OHMG_API_KEY = os.getenv("OHMG_API_KEY", "")
+
 # Set path to cache directory
 CACHE_DIR = BASE_DIR / "loc_insurancemaps" / "cache"
 TEMP_DIR = BASE_DIR / "loc_insurancemaps" / "temp"
@@ -254,8 +256,6 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': 60.0,
     }
 }
-
-API_IP_WHITELIST = ast.literal_eval(os.getenv('API_IP_WHITELIST', '["127.0.0.1"]'))
 
 AUTH_USER_MODEL = 'accounts.User'
 ACCOUNT_ADAPTER = "accounts.adapter.AccountAdapter"

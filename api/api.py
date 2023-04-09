@@ -8,6 +8,7 @@ from django.urls import reverse
 
 from ninja import NinjaAPI, Query
 from ninja.pagination import paginate
+from ninja.security import APIKeyHeader
 
 from accounts.models import User
 from accounts.schemas import UserSchema
@@ -23,14 +24,17 @@ from places.schemas import PlaceSchema
 
 logger = logging.getLogger(__name__)
 
-def ip_whitelist(request):
-    if request.META["REMOTE_ADDR"] in settings.API_IP_WHITELIST:
-        return True
+class ApiKey(APIKeyHeader):
+    param_name = "X-API-Key"
+
+    def authenticate(self, request, key):
+        if key == settings.OHMG_API_KEY:
+            return key
 
 # going to be useful eventually for Geo support
 # https://github.com/vitalik/django-ninja/issues/335
 api = NinjaAPI(
-    auth=ip_whitelist,
+    auth=ApiKey(),
     title="OldInsuranceMaps.net API",
     version="beta",
     description="An experimental API for accessing content on "\

@@ -2,12 +2,17 @@
 import {TableSort} from 'svelte-tablesort'
 
 export let ITEM_API_URL;
+export let OHMG_API_KEY;
 
 let all_items = [];
 let filtered_items = [];
 let loading = true
 
-fetch(ITEM_API_URL)
+const apiHeaders = {
+	'X-API-Key': OHMG_API_KEY,
+}
+
+fetch(ITEM_API_URL, { headers: apiHeaders })
 	.then(response => response.json())
 	.then(result => {
 		all_items = flatten_response(result);
