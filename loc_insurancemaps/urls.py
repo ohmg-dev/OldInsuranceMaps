@@ -2,7 +2,6 @@ from django.views.generic import TemplateView, RedirectView
 from django.urls import path
 
 from .views import (
-    SimpleAPI,
     VolumeDetail,
     VolumeTrim,
     HomePage,
@@ -22,7 +21,6 @@ urlpatterns = [
 
     path('browse/', Browse.as_view(), name='browse'),
     path('loc/volumes/', RedirectView.as_view(pattern_name='browse', permanent=True), name='volumes_list'),
-    path('loc/api/', SimpleAPI.as_view() , name='lc_api'),
     path('loc/<str:volumeid>/', VolumeDetail.as_view(), name="volume_summary"),
     path('loc/trim/<str:volumeid>/', VolumeTrim.as_view(), name="volume_trim"),
     path('mrm/', MRMEndpointList.as_view(), name="mrm_layer_list"),

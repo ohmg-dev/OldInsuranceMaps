@@ -76,11 +76,6 @@ class HomePage(View):
                 pass
 
         context_dict = {
-            "search_params": {
-                "CITY_QUERY_URL": reverse('lc_api'),
-                'USER_TYPE': get_user_type(request.user),
-                # 'CITY_LIST': city_list,
-            },
             "svelte_params": {
                 "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
                 "IS_MOBILE": mobile(request),
@@ -237,35 +232,6 @@ class VolumeDetail(View):
             volume.refresh_lookups()
             volume_json = volume.serialize(include_session_info=True)
             return JsonResponse(volume_json)
-
-
-class SimpleAPI(View):
-
-    def get(self, request):
-        qtype = request.GET.get("t", None)
-        state = request.GET.get("s", None)
-        city = request.GET.get("c", None)
-
-        lc = LOCConnection(delay=0, verbose=True)
-
-        ## returns a list of all cities with volumes in this state
-        if qtype == "cities":
-            city_list = lc.get_city_list_by_state(state)
-            return JsonResponse(city_list, safe=False)
-
-        ## return a list of all volumes in a city
-        elif qtype == "volumes":
-
-            city = unsanitize_name(state, city)
-            volumes = lc.get_volume_list_by_city(city, state)
-
-            ## a little bit of post-processing on the volume list
-            volumes = filter_volumes_for_use(volumes)
-
-            return JsonResponse(volumes, safe=False)
-        
-        else:
-            return JsonResponse({})
 
 def get_layer_mrm_urls(layerid):
 
