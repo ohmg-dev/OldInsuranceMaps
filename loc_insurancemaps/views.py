@@ -21,8 +21,7 @@ from georeference.models.sessions import SessionBase
 from georeference.models.resources import GCP, Layer
 
 from loc_insurancemaps.models import Volume
-from loc_insurancemaps.utils import unsanitize_name, filter_volumes_for_use
-from loc_insurancemaps.api import CollectionConnection
+from loc_insurancemaps.utils import LOCConnection, unsanitize_name, filter_volumes_for_use
 from loc_insurancemaps.tasks import load_docs_as_task
 
 from places.models import Place
@@ -252,7 +251,7 @@ class SimpleAPI(View):
         state = request.GET.get("s", None)
         city = request.GET.get("c", None)
 
-        lc = CollectionConnection(delay=0, verbose=True)
+        lc = LOCConnection(delay=0, verbose=True)
 
         ## returns a list of all cities with volumes in this state
         if qtype == "cities":
