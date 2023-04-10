@@ -5,20 +5,15 @@ import logging
 from datetime import datetime
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.contrib.gis.geos import GEOSGeometry
 from django.http import JsonResponse, Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import View
-from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.middleware import csrf
 
-# from geonode.base.api.serializers import UserSerializer
-
 from georeference.utils import full_reverse
-from georeference.models.sessions import SessionBase
-from georeference.models.resources import GCP, Layer
+from georeference.models.resources import Layer
 
 from loc_insurancemaps.models import Volume
 from loc_insurancemaps.utils import LOCConnection, unsanitize_name, filter_volumes_for_use
