@@ -293,6 +293,7 @@ sudo supervisorctl reload
             ("ENABLE_CPROFILER", False),
             ("ENABLE_DEBUG_TOOLBAR", False),
             ("ENABLE_NEWSLETTER", False),
+            ("OHMG_API_KEY", ""),
         ]
 
         if self.resolve_var("EMAIL_ENABLE", False) is True:
