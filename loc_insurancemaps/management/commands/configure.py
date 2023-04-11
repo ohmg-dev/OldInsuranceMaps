@@ -134,15 +134,9 @@ class Command(BaseCommand):
             ("CACHE_BUSTING_MEDIA_ENABLED", False),
             ("SITEURL", ""),
             ("DJANGO_SETTINGS_MODULE", None),
-            ("GEOSERVER_ADMIN_PASSWORD", ""),
-            ("GEOSERVER_LOCATION", ""),
-            ("GEOSERVER_PUBLIC_LOCATION", ""),
-            ("GEOSERVER_WEB_UI_LOCATION", ""),
-            ("MONITORING_ENABLED", False),
             ("BROKER_URL", ""),
             ("ASYNC_SIGNALS", False),
             ("DATABASE_URL", ""),
-            ("GEODATABASE_URL", ""),
             ("CACHE_DIR", ""),
             ("MEDIA_ROOT", ""),
         ]
@@ -231,16 +225,14 @@ sudo supervisorctl reload
 
     def write_project_celery_config(self):
 
-        LOCAL_ROOT = self.resolve_var("LOCAL_ROOT", None)
-        project_name = os.path.basename(LOCAL_ROOT)
-        top_dir = os.path.dirname(LOCAL_ROOT)
-        env_file = os.path.join(top_dir, ".env")
+        project_name = settings.WSGI_APPLICATION.split(".")[0]
+        env_file = settings.BASE_DIR / ".env"
         user = self.resolve_var("USER", "username")
         celery_path = os.path.join(os.path.dirname(sys.executable), "celery")
 
         file_content = f"""[program:{project_name}-celery]
 command=sh -c \'. {env_file} && {celery_path} -A {project_name}.celeryapp:app worker -B -E --loglevel=DEBUG --concurrency=10 -n worker1@%%h'
-directory={top_dir}
+directory={settings.BASE_DIR}
 user={user}
 numproc=4
 stdout_logfile=/var/log/{project_name}-celery.log
@@ -258,7 +250,7 @@ stopwaitsecs=600
     def write_celery_deploy(self, celery_conf):
 
         deploy_path = os.path.join(self.out_dir, "deploy-celery.sh")
-        deploy_content = f"""#!/bin/bash
+        deploy_content = f"""#!/bin/bashtop_dir
 sudo ln -sf {celery_conf} /etc/supervisor/conf.d/{os.path.basename(celery_conf)}
 
 # Restart supervisor
@@ -271,47 +263,30 @@ sudo supervisorctl reload
 
     def write_project_uwsgi_ini(self):
 
-        LOCAL_ROOT = self.resolve_var("LOCAL_ROOT")
-        wsgi_file = os.path.join(LOCAL_ROOT, "wsgi.py")
-        project_name = os.path.basename(LOCAL_ROOT)
+        project_name = settings.WSGI_APPLICATION.split(".")[0]
+        wsgi_file = settings.BASE_DIR / project_name / "wsgi.py"
         wsgi_application = f"{project_name}.wsgi:application"
-        top_dir = os.path.dirname(LOCAL_ROOT)
         env_path = os.path.dirname(os.path.dirname(sys.executable))
-        log_dir = self.resolve_var("LOG_DIR", os.path.join(LOCAL_ROOT, "logs"))
+        log_dir = self.resolve_var("LOG_DIR", settings.LOG_DIR)
         user = self.resolve_var("USER", "username")
 
         vars = [
             ("MEDIA_ROOT", ""),
             ("DATABASE_URL", ""),
-            ("GEODATABASE_URL", ""),
             ("DEBUG", False),
             ("DJANGO_SETTINGS_MODULE", None),
             ("SITE_HOST_NAME", ""),
             ("SITEURL", ""),
             ("ALLOWED_HOSTS", []),
-            ("PROXY_ALLOWED_HOSTS", []),
-            ("LOCKDOWN_GEONODE", False),
             ("SESSION_EXPIRED_CONTROL_ENABLED", True),
             ("MONITORING_ENABLED", False),
             ("ADMIN_USERNAME", ""),
             ("ADMIN_PASSWORD", ""),
             ("ADMIN_EMAIL", ""),
-            ("GEOSERVER_PUBLIC_HOST", "localhost"),
-            ("GEOSERVER_PUBLIC_PORT", ""),
-            ("GEOSERVER_ADMIN_PASSWORD", ""),
-            ("GEOSERVER_LOCATION", ""),
-            ("GEOSERVER_PUBLIC_LOCATION", ""),
-            ("GEOSERVER_WEB_UI_LOCATION", ""),
-            ("OGC_REQUEST_TIMEOUT", 60),
-            ("OGC_REQUEST_MAX_RETRIES", 3),
-            ("OGC_REQUEST_POOL_MAXSIZE", 100),
-            ("OGC_REQUEST_POOL_CONNECTIONS", 100),
             ("MAPBOX_API_TOKEN", None),
             ("MAPSERVER_ENDPOINT", ""),
-            ("MONITORING_ENABLED", False),
             ("BROKER_URL", ""),
             ("ASYNC_SIGNALS", False),
-            ("THEME_ACCOUNT_CONTACT_EMAIL", "admin@example.com"),
             ("USE_TITILER", True),
             ("TITILER_HOST", ""),
             ("SWAP_COORDINATE_ORDER", False),
@@ -356,7 +331,7 @@ sudo supervisorctl reload
 
         file_content = f"""[uwsgi]
 # set socket and set its permissions
-socket = {top_dir}/{project_name}.sock
+socket = {settings.BASE_DIR}/{project_name}.sock
 chmod-socket = 664
 
 # set user and group for process
@@ -369,7 +344,7 @@ logto = {log_dir}/uwsgi.log
 pidfile = /tmp/{project_name}.pid
 
 # set location of wsgi app
-chdir = {top_dir}
+chdir = {settings.BASE_DIR}
 module = {wsgi_application}
 
 # virtual env location, not sure if both of these are needed
@@ -424,8 +399,7 @@ cheaper-busyness-backlog-step = 2    ; How many emergency workers to create if t
 
         uwsgi_path = os.path.join(os.path.dirname(sys.executable), "uwsgi")
         user = self.resolve_var("USER", "username")
-        LOCAL_ROOT = self.resolve_var("LOCAL_ROOT")
-        project_name = os.path.basename(LOCAL_ROOT)
+        project_name = settings.WSGI_APPLICATION.split(".")[0]
 
         file_content = f"""[Unit]
 Description={project_name} uWSGI daemon
@@ -465,6 +439,9 @@ sudo systemctl start {service_name}
         return full_deploy_path
 
     def write_nginx_site_conf(self):
+
+        print("not fully implemented")
+        return
 
         SITE_HOST_NAME = self.resolve_var("SITE_HOST_NAME")
         file_name = SITE_HOST_NAME + ".conf"
@@ -517,6 +494,9 @@ server {{
         return self.write_file(outfile_path, file_content)
 
     def write_nginx_ssl_site_conf(self):
+
+        print("not fully implemented")
+        return
 
         SITE_HOST_NAME = self.resolve_var("SITE_HOST_NAME")
         file_name = SITE_HOST_NAME + "-ssl.conf"
