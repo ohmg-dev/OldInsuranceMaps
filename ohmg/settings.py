@@ -15,7 +15,7 @@ WSGI_APPLICATION = "ohmg.wsgi.application"
 # Location of url mappings
 ROOT_URLCONF = 'ohmg.urls'
 
-DEBUG = ast.literal_eval(os.getenv("DEBUG", True))
+DEBUG = ast.literal_eval(os.getenv("DEBUG", "False"))
 
 # add trailing slash to site url. geoserver url will be relative to this
 SITEURL = os.getenv("SITEURL", "http://localhost:8000/")
@@ -226,7 +226,7 @@ VIEWER_SHOWCASE_SLUG = os.getenv("VIEWER_SHOWCASE_SLUG")
 # are not compatible, and the order of lat/long gets messed up. ONLY to
 # be used in development!!!!
 # this will be removed once Django is upgraded
-SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", False))
+SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", "False"))
 
 # CONFIGURE CELERY
 CELERY_BROKER_URL = os.getenv('BROKER_URL')
