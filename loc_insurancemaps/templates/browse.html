@@ -1,9 +1,0 @@
-{% extends 'base.html' %}
-{% load i18n %}
-{% load django_svelte %}
-
-{% block title %}Browse{% endblock title %}
-
-{% block main_content %}
-  {% display_svelte "Browse.svelte" browse_params %}
-{% endblock %}

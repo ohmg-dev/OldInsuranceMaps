@@ -9,7 +9,8 @@ from loc_insurancemaps.management.volume import (
     generate_mosaic_geotiff,
     generate_mosaic_json,
 )
-from loc_insurancemaps.models import Volume, Place
+from loc_insurancemaps.models import Volume
+from places.models import Place as NewPlace
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -84,9 +85,9 @@ class Command(BaseCommand):
             if locale_slug is not None:
                 try:
                     print(f'locale slug: {locale_slug}')
-                    locale = Place.objects.get(slug=locale_slug)
+                    locale = NewPlace.objects.get(slug=locale_slug)
                     print(f'using locale: {locale}')
-                except Place.DoesNotExist:
+                except NewPlace.DoesNotExist:
                     confirm = input('no locale matching this slug, locale will be None. continue? y/N ')
                     if not confirm.lower().startswith("y"):
                         exit()
@@ -106,10 +107,7 @@ class Command(BaseCommand):
         if options['operation'] == "generate-mosaic":
             if i is not None:
                 if options['background']:
-                    generate_mosaic_geotiff_as_task.apply_async(
-                        (i, ),
-                        queue="update"
-                    )
+                    generate_mosaic_geotiff_as_task.delay(i)
                 else:
                     generate_mosaic_geotiff(i)
 

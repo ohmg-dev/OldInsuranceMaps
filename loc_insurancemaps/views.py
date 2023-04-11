@@ -5,25 +5,21 @@ import logging
 from datetime import datetime
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.contrib.gis.geos import GEOSGeometry
 from django.http import JsonResponse, Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import View
-from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.middleware import csrf
 
-# from geonode.base.api.serializers import UserSerializer
-
 from georeference.utils import full_reverse
-from georeference.models.sessions import SessionBase
-from georeference.models.resources import GCP, Layer
+from georeference.models.resources import Layer
 
-from loc_insurancemaps.models import Volume, Place
-from loc_insurancemaps.utils import unsanitize_name, filter_volumes_for_use
-from loc_insurancemaps.api import CollectionConnection
+from loc_insurancemaps.models import Volume
+from loc_insurancemaps.utils import LOCConnection, unsanitize_name, filter_volumes_for_use
 from loc_insurancemaps.tasks import load_docs_as_task
+
+from places.models import Place
 
 if settings.ENABLE_NEWSLETTER:
     from newsletter.models import Newsletter, Subscription
@@ -80,15 +76,11 @@ class HomePage(View):
                 pass
 
         context_dict = {
-            "search_params": {
-                "CITY_QUERY_URL": reverse('lc_api'),
-                'USER_TYPE': get_user_type(request.user),
-                # 'CITY_LIST': city_list,
-            },
             "svelte_params": {
-                "PLACES_GEOJSON": Volume().get_map_geojson(),
+                "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
                 "IS_MOBILE": mobile(request),
                 "CSRFTOKEN": csrf.get_token(request),
+                "OHMG_API_KEY": settings.OHMG_API_KEY,
                 "NEWSLETTER_SLUG": newsletter_slug,
                 "USER_SUBSCRIBED": user_subscribed,
                 "USER_EMAIL": user_email,
@@ -106,104 +98,14 @@ class Browse(View):
 
     def get(self, request):
 
-        started_volumes = Volume.objects.filter(status="started").order_by("city", "year")
-        # lc = CollectionConnection(delay=0)
-        # city_list = lc.get_city_list_by_state("louisiana")
-
-        loaded_summary = []
-        places_dict = {}
-        for vol in started_volumes:
-            loaded_by_name, loaded_by_profile = "", ""
-            if vol.loaded_by is not None:
-                loaded_by_name = vol.loaded_by.username,
-                loaded_by_profile = reverse("profile_detail", args=(vol.loaded_by.username, )),
-
-            items = vol.sort_lookups()
-            year_vol = vol.year
-            if vol.volume_no is not None:
-                year_vol = f"{vol.year} vol. {vol.volume_no}"
-
-            unprep_ct = len(items['unprepared'])
-            prep_ct = len(items['prepared'])
-            georef_ct = len(items['georeferenced'])
-            percent = 0
-            if georef_ct > 0:
-                percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
-
-            main_lyrs_ct = 0
-            if vol.sorted_layers:
-                main_lyrs_ct = len(vol.sorted_layers['main'])
-            mm_ct, mm_todo, mm_percent = 0, 0, 0
-            if main_lyrs_ct != 0:
-                # make sure 0/0 appears at the very bottom, then 0/1, 0/2, etc.
-                mm_percent = main_lyrs_ct * .000000001
-            mm_display = f"0/{main_lyrs_ct}"
-            if vol.multimask is not None:
-                mm_ct = len(vol.multimask)
-                mm_todo = main_lyrs_ct - mm_ct
-                if mm_ct > 0:
-                    mm_display = f"{mm_ct}/{main_lyrs_ct}"
-                    mm_percent = mm_ct / main_lyrs_ct
-
-            viewer_url = ""
-            if vol.locale:
-                full_reverse("viewer", args=(vol.locale.slug,)) + f"?year={vol.year}",
-                place_name = vol.locale.name
-                if len(vol.locale.direct_parents.all()) > 0:
-                    place_name = f"{place_name}, {vol.locale.direct_parents.all()[0].__str__()}"
-            else:
-                place_name = f"{vol.city}, {vol.county_equivalent}, {vol.state}"
-            summary_url = full_reverse("volume_summary", args=(vol.identifier,))
-            vol_content = {
-                "identifier": vol.identifier,
-                "city": vol.city,
-                "county_equivalent": vol.county_equivalent,
-                "state": vol.state,
-                "place_name": place_name,
-                "year_vol": year_vol,
-                "sheet_ct": vol.sheet_ct,
-                "unprepared_ct": unprep_ct,
-                "prepared_ct": prep_ct,
-                "georeferenced_ct": georef_ct,
-                "percent": percent,
-                "volume_no": vol.volume_no,
-                "loaded_by_name": loaded_by_name,
-                "loaded_by_profile": loaded_by_profile,
-                "title": vol.__str__(),
-                "mm_ct": mm_todo,
-                "mm_display": mm_display,
-                "mm_percent": mm_percent,
-                # lol
-                "mj_exists": not not vol.mosaic_geotiff,
-                "urls": {
-                    "summary": summary_url,
-                    "viewer": viewer_url,
-                }
-            }
-            loaded_summary.append(vol_content)
-            if vol.locale:
-                places_dict[vol.locale] = places_dict.get(vol.locale, []) + [vol_content]
-
-        map_geojson = Volume().get_map_geojson()
-
-        places = []
-        for place, volumes in places_dict.items():
-            name = place.name
-            if len(place.direct_parents.all()) > 0:
-                name = f"{name}, {place.direct_parents.all()[0].__str__()}"
-            p_content = {
-                "name": name,
-                "url": full_reverse("viewer", args=(place.slug,)),
-                "volumes": volumes,
-                "sort_years": ", ".join(sorted([str(i['year_vol']) for i in volumes])),
-            }
-            places.append(p_content)
-
         context_dict = {
             "browse_params": {
-                "PLACES_GEOJSON": map_geojson,
-                "STARTED_VOLUMES": loaded_summary,
-                "PLACES": places,
+                "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
+                "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
+                "PLACES_API_URL": reverse("api-beta:place_list"),
+                "ITEM_CT": Volume.objects.all().exclude(loaded_by=None).count(),
+                "ITEM_API_URL": reverse("api-beta:item_list"),
+                "OHMG_API_KEY": settings.OHMG_API_KEY,
             },
         }
         return render(
@@ -281,7 +183,7 @@ class VolumeDetail(View):
         }
         return render(
             request,
-            "lc/volume_summary.html",
+            "loc_insurancemaps/volume_summary.html",
             context=context_dict
         )
 
@@ -296,10 +198,7 @@ class VolumeDetail(View):
                 volume.loaded_by = request.user
                 volume.load_date = datetime.now()
                 volume.save(update_fields=["loaded_by", "load_date"])
-            load_docs_as_task.apply_async(
-                (volumeid, ),
-                queue="update"
-            )
+            load_docs_as_task.delay(volumeid)
             volume_json = volume.serialize(include_session_info=True)
             volume_json["status"] = "initializing..."
 
@@ -333,161 +232,6 @@ class VolumeDetail(View):
             volume.refresh_lookups()
             volume_json = volume.serialize(include_session_info=True)
             return JsonResponse(volume_json)
-
-
-class PlaceView(View):
-
-    def get(self, request, place_slug):
-
-        f = request.GET.get("f", None)
-        p = get_object_or_404(Place, slug=place_slug)
-        data = p.serialize()
-
-        if f == "json":
-            return JsonResponse(data)
-
-        else:
-            context_dict = {
-                "svelte_params": {
-                    "PLACE": data,
-                }
-            }
-            
-            
-            return render(
-                request,
-                "place.html",
-                context=context_dict
-            )
-
-class PlaceLookup(View):
-
-    def get(self, request, place_slug):
-
-        try:
-            p = Place.objects.get(slug=place_slug)
-            return JsonResponse(p.serialize())
-        except Place.DoesNotExist:
-            return JsonResponse({})
-
-
-class Viewer(View):
-
-    @xframe_options_sameorigin
-    def get(self, request, place_slug):
-
-        place_data = {}
-        volumes = []
-
-        p = Place.objects.filter(slug=place_slug)
-        if p.count() == 1:
-            place = p[0]
-        else:
-            place = Place.objects.get(slug="louisiana")
-
-        place_data = place.serialize()
-        for v in Volume.objects.filter(locale=place).order_by("year","volume_no").reverse():
-            volumes.append(v.serialize())
-
-        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
-        gs = gs.rstrip("/") + "/"
-        geoserver_ows = f"{gs}ows/"
-
-        context_dict = {
-            "svelte_params": {
-                "PLACE": place_data,
-                "VOLUMES": volumes,
-                "TITILER_HOST": settings.TITILER_HOST,
-                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-            }
-        }
-        return render(
-            request,
-            "viewer.html",
-            context=context_dict
-        )
-
-
-class Participants(View):
-
-    def get(self, request):
-
-        profiles = get_user_model().objects.all().exclude(username="AnonymousUser").order_by("username")
-
-        participants = []
-
-        # user the serializer from GeoNode in order to get the avatar url
-        # s = UserSerializer()
-        for p in profiles:
-            # p_data = s.to_representation(p)
-            psesh_ct = SessionBase.objects.filter(user=p, type="p").count()
-            gsesh_ct = SessionBase.objects.filter(user=p, type="g").count()
-            total = psesh_ct + gsesh_ct
-            volumes = Volume.objects.filter(loaded_by=p).order_by("city")
-            load_ct = volumes.count()
-            load_volumes = [
-                {
-                    "city": v.city,
-                    "year": v.year,
-                    "url": f"/loc/{v.identifier}",
-                    "volume_no": v.volume_no,
-                    "title": f"{v.city} {v.year}{' vol. ' + v.volume_no if v.volume_no else ''}"
-                } for v in volumes
-            ]
-
-            participants.append({
-                # "avatar": p_data['avatar'],
-                "avatar": "",
-                "username": p.username,
-                "profile_url": reverse('profile_detail', args=(p.username, )),
-                "load_ct": load_ct,
-                "psesh_ct": psesh_ct,
-                "gsesh_ct": gsesh_ct,
-                "total_ct": total,
-                "volumes": load_volumes,
-                "gcp_ct": GCP.objects.filter(created_by=p).count()
-            })
-
-        context_dict = {
-            "svelte_params": {
-                "PARTICIPANTS": participants,
-            }
-        }
-
-        return render(
-            request,
-            "participants.html",
-            context=context_dict,
-        )
-
-
-class SimpleAPI(View):
-
-    def get(self, request):
-        qtype = request.GET.get("t", None)
-        state = request.GET.get("s", None)
-        city = request.GET.get("c", None)
-
-        lc = CollectionConnection(delay=0, verbose=True)
-
-        ## returns a list of all cities with volumes in this state
-        if qtype == "cities":
-            city_list = lc.get_city_list_by_state(state)
-            return JsonResponse(city_list, safe=False)
-
-        ## return a list of all volumes in a city
-        elif qtype == "volumes":
-
-            city = unsanitize_name(state, city)
-            volumes = lc.get_volume_list_by_city(city, state)
-
-            ## a little bit of post-processing on the volume list
-            volumes = filter_volumes_for_use(volumes)
-
-            return JsonResponse(volumes, safe=False)
-        
-        else:
-            return JsonResponse({})
 
 def get_layer_mrm_urls(layerid):
 

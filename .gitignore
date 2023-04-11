@@ -3,7 +3,10 @@ loc_insurancemaps/reference_data/shapefiles
 loc_insurancemaps/cache
 loc_insurancemaps/temp
 mapserver.map
+.celery_results
 
+frontend/components/node_modules
+frontend/components/public
 
 _system-configs
 .env
@@ -22,7 +25,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-# env/
+env/
 build/
 develop-eggs/
 dist/

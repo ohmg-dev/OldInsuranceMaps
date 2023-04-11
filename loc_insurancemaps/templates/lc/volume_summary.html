@@ -1,9 +1,0 @@
-{% extends 'base.html' %}
-{% load i18n %}
-{% load django_svelte %}
-
-{% block title %}{{ svelte_params.VOLUME.title }}{% endblock title %}
-
-{% block main_content %}
-  {% display_svelte "Volume.svelte" svelte_params %} 
-{% endblock %}

@@ -11,10 +11,10 @@ from pygments.lexers.data import JsonLexer
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.postgres.fields import JSONField
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.core.files import File
-from django.db import models, transaction
+from django.db import transaction
+from django.contrib.gis.db import models
 from django.db.models import signals
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
@@ -30,13 +30,12 @@ from georeference.models.sessions import (
     GeorefSession,
 )
 from georeference.storage import OverwriteStorage
-from georeference.utils import slugify, full_reverse
+from places.models import Place
 
 from loc_insurancemaps.utils import LOCParser, get_jpg_from_jp2_url
 from loc_insurancemaps.enumerations import (
     STATE_CHOICES,
     STATE_ABBREV,
-    STATE_POSTAL,
     MONTH_CHOICES,
 )
 logger = logging.getLogger(__name__)
@@ -79,188 +78,6 @@ def format_json_display(data):
     style = "<style>" + formatter.get_style_defs() + "</style><br/>"
 
     return mark_safe(style + response)
-
-
-class Place(models.Model):
-
-    PLACE_CATEGORIES = (
-        ("state", "State"),
-        ("county", "County"),
-        ("parish", "Parish"),
-        ("borough", "Borough"),
-        ("census area", "Census Area"),
-        {"independent city", "Independent City"},
-        ("city", "City"),
-        ("town", "Town"),
-        ("village", "Village"),
-        ("other", "Other"),
-    )
-
-    name = models.CharField(
-        max_length = 200,
-    )
-    category = models.CharField(
-        max_length=20,
-        choices=PLACE_CATEGORIES,
-    )
-    display_name = models.CharField(
-        max_length = 250,
-        editable=False,
-        null=True,
-        blank=True,
-    )
-    slug = models.CharField(
-        max_length = 250,
-        null=True,
-        blank=True,
-        editable=False,
-    )
-    volume_count = models.IntegerField(
-        default = 0,
-        help_text="Number of volumes attached to this place",
-    )
-    volume_count_inclusive = models.IntegerField(
-        default = 0,
-        help_text="Number of volumes attached to this place and any of its descendants",
-    )
-    direct_parents = models.ManyToManyField("Place")
-
-    def __str__(self):
-        name = self.display_name if self.display_name else self.name
-        return name
-
-    @property
-    def state(self):
-        states = self.states
-        state = None
-        if len(states) == 1:
-            state = states[0]
-        elif len(states) > 1:
-            state = states[0]
-            logger.info(f"Place {self.pk} has {len(states)} states. Going with {state.slug}")
-        return state
-
-    @property
-    def states(self):
-        candidates = [self]
-        states = []
-        while candidates:
-            new_candidates = []
-            for p in candidates:
-                if p.category == "state":
-                    states.append(p)
-                else:
-                    for i in p.direct_parents.all():
-                        new_candidates.append(i)
-            candidates = new_candidates
-        return list(set(states))
-
-    def get_volumes(self):
-        return Volume.objects.filter(locale=self).order_by("year")
-
-    # def count_all_descendant_maps(self, descendants=[] count=0):
-    #     count += Volume.objects.filter(locale=self).count()
-    #     descendants = self.get_descendants()
-    #     for d in descendants:
-    #         self.count_all_descendant_maps(count=count)
-    #     return count
-        if Volume.objects.filter(locale=self).exists():
-            return True
-        for d in self.get_descendants():
-            if Volume.objects.filter(locale=d).exists():
-                return True
-        return False
-
-    def get_state_postal(self):
-        if self.state and self.state.name.lower() in STATE_POSTAL:
-            return STATE_POSTAL[self.state.name.lower()]
-        else:
-            return None
-
-    def get_state_abbrev(self):
-        if self.state and self.state.name.lower() in STATE_ABBREV:
-            return STATE_ABBREV[self.state.name.lower()]
-        else:
-            return None
-
-    def get_descendants(self):
-        return Place.objects.filter(direct_parents__id__exact=self.id).order_by("name")
-
-    def get_breadcrumbs(self):
-        breadcrumbs = []
-        p = self
-        while p.direct_parents.all().count() > 0:
-            parent = p.direct_parents.all()[0]
-            par_name = parent.name
-            if parent.category in ("county", "parish", "borough", "census area"):
-                par_name += f" {parent.get_category_display()}"
-            breadcrumbs.append({"name": par_name, "slug": parent.slug})
-            p = parent
-        breadcrumbs.reverse()
-        name = self.name
-        if self.category in ("county", "parish", "borough", "census area"):
-            name += f" {self.get_category_display()}"
-        breadcrumbs.append({"name": name, "slug": self.slug})
-        return breadcrumbs
-
-    def serialize(self):
-        return {
-            "pk": self.pk,
-            "name": self.name,
-            "display_name": self.display_name,
-            "category": self.get_category_display(),
-            "parents": [{
-                "display_name": i.display_name,
-                "slug": i.slug,
-            } for i in self.direct_parents.all()],
-            "descendants": [{
-                "display_name": i.display_name,
-                "slug": i.slug,
-                "volume_count": i.volume_count,
-                "volume_count_inclusive": i.volume_count_inclusive,
-                # "has_descendant_maps": i.has_descendant_maps if self.has_descendant_maps else False,
-            } for i in self.get_descendants()],
-            "states": [{
-                "display_name": i.display_name,
-                "slug": i.slug,
-            } for i in self.states],
-            "slug": self.slug,
-            "breadcrumbs": self.get_breadcrumbs(),
-            "volume_count": self.volume_count,
-            "volume_count_inclusive": self.volume_count_inclusive,
-            "volumes": [{
-                "identifier": i[0],
-                "year": i[1],
-                "volume_no":i[2]
-            } for i in self.get_volumes().values_list("identifier", "year", "volume_no")],
-        }
-
-    def save(self, set_slug=True, *args, **kwargs):
-        if set_slug is True:
-            state_postal = self.get_state_postal()
-            state_abbrev = self.get_state_abbrev()
-            slug, display_name = "", ""
-            if self.category == "state":
-                slug = slugify(self.name)
-                display_name = self.name
-            else:
-                if self.category in ["county", "parish", "borough" "census area"]:
-                    slug = slugify(f"{self.name}-{self.category}")
-                    display_name = f"{self.name} {self.get_category_display()}"
-                else:
-                    slug = slugify(self.name)
-                    display_name = self.name
-                if state_postal is not None:
-                    slug += f"-{state_postal}"
-                if state_abbrev is not None:
-                    display_name += f", {state_abbrev}"
-            if not slug:
-                slug = slugify(self.name)
-            if not display_name:
-                display_name = self.name
-            self.slug = slug
-            self.display_name = display_name
-        super(Place, self).save(*args, **kwargs)
 
 
 class Sheet(models.Model):
@@ -363,12 +180,12 @@ class Volume(models.Model):
     year = models.IntegerField(choices=YEAR_CHOICES)
     month = models.IntegerField(choices=MONTH_CHOICES, null=True, blank=True)
     volume_no = models.CharField(max_length=5, null=True, blank=True)
-    lc_item = JSONField(default=None, null=True, blank=True)
-    lc_resources = JSONField(default=None, null=True, blank=True)
+    lc_item = models.JSONField(default=None, null=True, blank=True)
+    lc_resources = models.JSONField(default=None, null=True, blank=True)
     lc_manifest_url = models.CharField(max_length=200, null=True, blank=True,
         verbose_name="LC Manifest URL"
     )
-    extra_location_tags = JSONField(null=True, blank=True, default=list)
+    extra_location_tags = models.JSONField(null=True, blank=True, default=list)
     sheet_ct = models.IntegerField(null=True, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
     loaded_by = models.ForeignKey(
@@ -378,36 +195,28 @@ class Volume(models.Model):
         on_delete=models.CASCADE)
     load_date = models.DateTimeField(null=True, blank=True)
     # DEPRECATE: marking this field for removal
-    ordered_layers = JSONField(
+    ordered_layers = models.JSONField(
         null=True,
         blank=True,
         default=default_ordered_layers_dict
     )
-    document_lookup = JSONField(
+    document_lookup = models.JSONField(
         null=True,
         blank=True,
         default=dict,
     )
-    layer_lookup = JSONField(
+    layer_lookup = models.JSONField(
         null=True,
         blank=True,
         default=dict,
     )
-    sorted_layers = JSONField(
+    sorted_layers = models.JSONField(
         default=default_sorted_layers_dict,
     )
-    slug = models.CharField(max_length=100, null=True, blank=True)
-    multimask = JSONField(null=True, blank=True)
-    places = models.ManyToManyField(
-        Place,
-        related_name="places",
-    )
-    locale = models.ForeignKey(
+    multimask = models.JSONField(null=True, blank=True)
+    locales = models.ManyToManyField(
         Place,
         blank=True,
-        null=True,
-        on_delete=models.PROTECT,
-        related_name="locale",
     )
     # currently this actually stores the MosaicJSON (ugh) gotta separate these
     mosaic_geotiff = models.FileField(
@@ -417,6 +226,11 @@ class Volume(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
+    extent = models.PolygonField(
+        null=True,
+        blank=True,
+        srid=4326,
+    )
 
     def __str__(self):
         display_str = f"{self.city}, {STATE_ABBREV[self.state]} | {self.year}"
@@ -424,24 +238,6 @@ class Volume(models.Model):
             display_str += f" | Vol. {self.volume_no}"
 
         return display_str
-
-    @property
-    def extent(self):
-        """for now, calculate extent from all of the layer extents.
-        perhaps would be better to get this from the Place once that
-        those attributes have been added to those instances."""
-
-        layer_extent_polygons = []
-        for l in self.layer_lookup.values():
-            poly = Polygon.from_bbox(l['extent'])
-            layer_extent_polygons.append(poly)
-        if len(layer_extent_polygons) > 0:
-            multi = MultiPolygon(layer_extent_polygons)
-            extent = multi.extent
-        else:
-            # hard-code Louisiana for now
-            extent = Polygon.from_bbox((-94, 28, -88, 33)).extent
-        return extent
 
     @cached_property
     def sheets(self):
@@ -461,7 +257,20 @@ class Volume(models.Model):
         for doc in self.get_all_docs():
             sessions += list(chain(sessions, GeorefSession.objects.filter(doc=doc)))
         return sessions
-    
+
+    def get_locale(self, serialized=False):
+        """ Returns the first locale in the list of related locales.
+        This is a patch in use until the frontend is ready for multiple
+        locales per item."""
+        if len(self.locales.all()) > 0:
+            locale = self.locales.all()[0]
+            if serialized:
+                return locale.serialize()
+            else:
+                return locale
+        else:
+            return None
+
     def lc_item_formatted(self):
         return format_json_display(self.lc_item)
     lc_item_formatted.short_description = 'LC Item'
@@ -527,17 +336,18 @@ class Volume(models.Model):
 
     def update_place_counts(self):
 
-        with transaction.atomic():
-            if self.locale:
-                self.locale.volume_count += 1
-                self.locale.volume_count_inclusive += 1
-                self.locale.save()
-                parents = self.locale.direct_parents.all()
+        locale = self.get_locale()
+        if locale is not None:
+            with transaction.atomic():
+                locale.volume_count += 1
+                locale.volume_count_inclusive += 1
+                locale.save(update_fields=["volume_count", "volume_count_inclusive"])
+                parents = locale.direct_parents.all()
                 while parents:
                     new_parents = []
                     for p in parents:
                         p.volume_count_inclusive += 1
-                        p.save()
+                        p.save(update_fields=["volume_count_inclusive"])
                         new_parents += list(p.direct_parents.all())
                     parents = new_parents
 
@@ -562,14 +372,13 @@ class Volume(models.Model):
             resource_url = loc_item
 
         viewer_url = ""
-        if self.locale:
-            viewer_url = reverse("viewer", args=(self.locale.slug,)) + f"?{self.identifier}=100"
+        if self.get_locale():
+            viewer_url = reverse("viewer", args=(self.get_locale().slug,)) + f"?{self.identifier}=100"
 
         mosaic_url = ""
         if self.mosaic_geotiff:
             mosaic_url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_geotiff.url
         return {
-            "doc_search": f"{settings.SITEURL}documents/?{r_facet}&{d_facet}",
             "loc_item": loc_item,
             "loc_resource": resource_url,
             "summary": reverse("volume_summary", args=(self.identifier,)),
@@ -662,6 +471,22 @@ class Volume(models.Model):
         if not data['slug'] in sorted_layers:
             self.sorted_layers["main"].append(data['slug'])
             self.save(update_fields=["sorted_layers"])
+
+        self.set_extent()
+
+    def set_extent(self):
+        # calculate extent from all of the layer extents.
+        # perhaps would be better to get this from the Place once that
+        # those attributes have been added to those instances.
+
+        layer_extent_polygons = []
+        for l in self.layer_lookup.values():
+            poly = Polygon.from_bbox(l['extent'])
+            layer_extent_polygons.append(poly)
+        if len(layer_extent_polygons) > 0:
+            multi = MultiPolygon(layer_extent_polygons)
+            self.extent = Polygon.from_bbox(multi.extent)
+            self.save(update_fields=['extent'])
 
     def sort_lookups(self):
 
@@ -772,91 +597,14 @@ class Volume(models.Model):
             "urls": self.get_urls(),
             "sorted_layers": self.hydrate_sorted_layers(),
             "multimask": self.multimask,
-            "extent": self.extent,
-            "locale": self.locale.serialize(),
+            "extent": self.extent.extent if self.extent else None,
+            "locale": self.get_locale(serialized=True),
         }
 
         if include_session_info:
             data['sessions'] = self.get_user_activity_summary()
 
         return data
-
-    def get_map_geojson(self):
-        """
-        this is a hacky way of getting geojson centers from the volumes for each place
-        instead of taking locations directly from the place themselves (extents have not
-        yet been added but it is in the works)
-        """
-
-        city_extent_dict = {}
-        volumes = Volume.objects.filter(status="started").order_by("city", "year")
-        for vol in volumes:
-
-            if len(vol.layer_lookup.values()) > 0:
-                year_vol = vol.year
-                if vol.volume_no is not None:
-                    year_vol = f"{vol.year} vol. {vol.volume_no}"
-                summary_url = full_reverse("volume_summary", args=(vol.identifier,))
-                try:
-                    temp_id = vol.city+vol.state
-                except Exception as e:
-                    print(e)
-                    continue
-                volume_content = {
-                    'title': vol.__str__(),
-                    'year': year_vol,
-                    'url': summary_url,
-                    'extent': vol.extent,
-                }
-                centroid = Polygon.from_bbox(vol.extent).centroid
-                if temp_id in city_extent_dict:
-                    city_extent_dict[temp_id]['volumes'].append(volume_content)
-                else:
-                    city_extent_dict[temp_id] = {
-                        'volumes': [volume_content],
-                        'place': None,
-                        'centroid': centroid.coords,
-                    }
-                    if vol.locale:
-                        city_extent_dict[temp_id]['place'] = {
-                            "name": vol.locale.display_name,
-                            "url": full_reverse("viewer", args=(vol.locale.slug,)),
-                        }
-
-        map_geojson = {
-            "type": "FeatureCollection",
-            "features": [],
-        }
-        for v in city_extent_dict.values():
-            feature = {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": v['centroid'],
-                },
-                "properties": {
-                    "volumes": v['volumes'],
-                    "place": v['place'],
-                }
-            }
-            map_geojson['features'].append(feature)
-
-        return map_geojson
-
-    def save(self, *args, **kwargs):
-
-        slug = ""
-        if self.city:
-            slug = "".join([i for i in self.city if not i in [".", ",", "'",]])
-            slug = slug.replace(" ","-").lower()
-        if self.state:
-            try:
-                slug += "-" + STATE_POSTAL[self.state]
-            except KeyError:
-                pass
-        self.slug = slug
-
-        return super(Volume, self).save(*args, **kwargs)
 
 ## This seems to be where the signals need to be connected. See
 ## https://github.com/mradamcox/loc-insurancemaps/issues/75

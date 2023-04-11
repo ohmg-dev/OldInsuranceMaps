@@ -5,7 +5,6 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
-from django.contrib.postgres.fields import JSONField
 from django.core.files import File
 from django.core.mail import send_mass_mail
 from django.utils import timezone
@@ -135,7 +134,7 @@ class SessionBase(models.Model):
         blank=True,
         related_name="lyr",
     )
-    data = JSONField(
+    data = models.JSONField(
         default=dict,
         blank=True,
     )

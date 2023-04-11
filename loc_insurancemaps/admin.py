@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from loc_insurancemaps.models import Volume, Sheet, Place
+from loc_insurancemaps.models import Volume, Sheet
 
 class SheetAdmin(admin.ModelAdmin):
     # search_fields = ('volume', 'sheet_no', 'doc')
@@ -22,11 +22,3 @@ class VolumeAdmin(admin.ModelAdmin):
     list_filter = ('identifier', 'city', 'county_equivalent', 'volume_no', 'year', 'status')
 
 admin.site.register(Volume, VolumeAdmin)
-
-class PlaceAdmin(admin.ModelAdmin):
-    readonly_fields = ('display_name', 'slug')
-    search_fields = ('display_name', 'slug')
-    list_display = ('display_name', 'slug')
-    list_filter = ('category',)
-
-admin.site.register(Place, PlaceAdmin)

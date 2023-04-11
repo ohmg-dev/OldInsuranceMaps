@@ -1,0 +1,404 @@
+import ast
+import os
+import dj_database_url
+from pathlib import Path
+
+from kombu import Queue, Exchange
+
+# set the project root as the BASE_DIR
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+WSGI_APPLICATION = "ohmg.wsgi.application"
+
+# Location of url mappings
+ROOT_URLCONF = 'ohmg.urls'
+
+DEBUG = ast.literal_eval(os.getenv("DEBUG", "False"))
+
+# add trailing slash to site url. geoserver url will be relative to this
+SITEURL = os.getenv("SITEURL", "http://localhost:8000/")
+if not SITEURL.endswith('/'):
+    SITEURL += '/'
+
+SITE_ID = int(os.getenv('SITE_ID', '1'))
+SITE_NAME = os.getenv("SITENAME", 'Example.com')
+
+OHMG_API_KEY = os.getenv("OHMG_API_KEY", "")
+
+ALLOWED_HOSTS = ast.literal_eval(os.getenv("ALLOWED_HOSTS", "[]"))
+
+# Set path to cache directory
+CACHE_DIR = BASE_DIR / "loc_insurancemaps" / "cache"
+TEMP_DIR = BASE_DIR / "loc_insurancemaps" / "temp"
+LOG_DIR = BASE_DIR / "loc_insurancemaps" / "logs"
+
+# Language code for this installation. All choices can be found here:
+# http://www.i18nguy.com/unicode/language-identifiers.html
+LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', "en")
+
+INSTALLED_APPS = [
+    'accounts',
+
+    'django.contrib.contenttypes',
+    'django.contrib.auth',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.admin',
+    'django.contrib.sitemaps',
+    'django.contrib.staticfiles',
+    'django.contrib.messages',
+    'django.contrib.humanize',
+    'django.contrib.gis',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+
+    'bootstrapform',
+    'pinax.announcements',
+    'pinax_theme_bootstrap',
+
+    'storages',
+    'tinymce',
+    'django_extensions',
+    'avatar',
+    'invitations',
+
+    'ninja',
+
+    'georeference',
+    'loc_insurancemaps',
+    'frontend',
+    'places',
+]
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.SHA1PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    # 'django.contrib.auth.hashers.Argon2PasswordHasher',
+    # 'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    # 'django.contrib.auth.hashers.BCryptPasswordHasher',
+]
+
+TEMPLATES = [
+  {
+    "NAME": "Project Templates",
+    "BACKEND": "django.template.backends.django.DjangoTemplates",
+    "DIRS": [
+      BASE_DIR / "frontend" / "templates",
+    ],
+    "APP_DIRS": True,
+    "OPTIONS": {
+      "context_processors": [
+        "django.template.context_processors.debug",
+        "django.template.context_processors.i18n",
+        "django.template.context_processors.tz",
+        "django.template.context_processors.request",
+        "django.template.context_processors.media",
+        "django.template.context_processors.static",
+        "django.contrib.auth.context_processors.auth",
+        "django.contrib.messages.context_processors.messages",
+        "django.contrib.auth.context_processors.auth",
+        "loc_insurancemaps.context_processors.loc_info",
+        "loc_insurancemaps.context_processors.general",
+        "pinax_theme_bootstrap.context_processors.theme",
+      ],
+      "debug": DEBUG,
+    }
+  }
+]
+
+DATABASES = {
+    'default': dj_database_url.parse(
+        os.getenv('DATABASE_URL'),
+        conn_max_age=0
+    )
+}
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / 'static')
+STATICFILES_DIRS = [
+    BASE_DIR / "frontend" / "static",
+    BASE_DIR / "frontend" / "components" / "public" / "build",
+]
+
+AUTHENTICATION_BACKENDS = [
+  "django.contrib.auth.backends.ModelBackend",
+  "guardian.backends.ObjectPermissionBackend",
+  "allauth.account.auth_backends.AuthenticationBackend",
+  "announcements.auth_backends.AnnouncementPermissionsBackend"
+]
+
+EMAIL_ENABLE = ast.literal_eval(os.getenv('EMAIL_ENABLE', 'False'))
+
+if EMAIL_ENABLE:
+    EMAIL_BACKEND = os.getenv('DJANGO_EMAIL_BACKEND',
+                              default='django.core.mail.backends.smtp.EmailBackend')
+    EMAIL_HOST = os.getenv('DJANGO_EMAIL_HOST', 'localhost')
+    EMAIL_PORT = os.getenv('DJANGO_EMAIL_PORT', 25)
+    EMAIL_HOST_USER = os.getenv('DJANGO_EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = os.getenv('DJANGO_EMAIL_HOST_PASSWORD', '')
+    EMAIL_USE_TLS = ast.literal_eval(os.getenv('DJANGO_EMAIL_USE_TLS', 'False'))
+    EMAIL_USE_SSL = ast.literal_eval(os.getenv('DJANGO_EMAIL_USE_SSL', 'False'))
+    DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Hello <hello@oldinsurancemaps.net>')
+else:
+    EMAIL_BACKEND = os.getenv('DJANGO_EMAIL_BACKEND',
+                              default='django.core.mail.backends.console.EmailBackend')
+
+ENABLE_NEWSLETTER = os.getenv("ENABLE_NEWSLETTER", False)
+if ENABLE_NEWSLETTER:
+    INSTALLED_APPS += (
+        'sorl.thumbnail',
+        'newsletter',
+    )
+    NEWSLETTER_THUMBNAIL = 'sorl-thumbnail'
+    NEWSLETTER_CONFIRM_EMAIL_SUBSCRIBE = True
+    NEWSLETTER_CONFIRM_EMAIL_UNSUBSCRIBE = False
+    NEWSLETTER_CONFIRM_EMAIL_UPDATE = False
+    NEWSLETTER_RICHTEXT_WIDGET = "tinymce.widgets.TinyMCE"
+
+# gravatar settings
+AUTO_GENERATE_AVATAR_SIZES = (
+    20, 30, 32, 40, 50, 65, 70, 80, 100, 140, 200, 240
+)
+AVATAR_GRAVATAR_SSL = ast.literal_eval(os.getenv('AVATAR_GRAVATAR_SSL', 'False'))
+
+AVATAR_DEFAULT_URL = os.getenv('AVATAR_DEFAULT_URL', 'icons/noun-user-1213267-FFFFFF.png')
+
+try:
+    # try to parse python notation, default in dockerized env
+    AVATAR_PROVIDERS = ast.literal_eval(os.getenv('AVATAR_PROVIDERS'))
+except ValueError:
+    # fallback to regular list of values separated with misc chars
+    AVATAR_PROVIDERS = (
+        'avatar.providers.PrimaryAvatarProvider',
+        'avatar.providers.DefaultAvatarProvider'
+    ) if os.getenv('AVATAR_PROVIDERS') is None \
+        else os.getenv('AVATAR_PROVIDERS').split(",")
+
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@localhost")
+
+MIDDLEWARE = (
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.sites.middleware.CurrentSiteMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+)
+
+ENABLE_CPROFILER = ast.literal_eval(os.getenv("ENABLE_CPROFILER", False))
+if ENABLE_CPROFILER:
+    MIDDLEWARE += ('django_cprofile_middleware.middleware.ProfilerMiddleware', )
+
+ENABLE_DEBUG_TOOLBAR = ast.literal_eval(os.getenv("ENABLE_DEBUG_TOOLBAR", False))
+if DEBUG and ENABLE_DEBUG_TOOLBAR:
+    INSTALLED_APPS += ('debug_toolbar',)
+    MIDDLEWARE = ('debug_toolbar.middleware.DebugToolbarMiddleware', ) + MIDDLEWARE
+    INTERNAL_IPS = ['127.0.0.1']
+
+TITILER_HOST = os.getenv("TITILER_HOST", "")
+
+MEDIA_URL = os.getenv('MEDIA_URL', '/uploaded/')
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / 'loc_insurancemaps' / 'uploaded')
+
+# this is a custom setting to allow apache to be used in development
+MEDIA_HOST = os.getenv("MEDIA_HOST", SITEURL)
+
+S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+S3_CONFIG = {
+    "aws_access_key_id": os.getenv("S3_ACCESS_KEY_ID"),
+    "aws_secret_access_key": os.getenv("S3_SECRET_ACCESS_KEY"),
+    "endpoint_url": os.getenv("S3_ENDPOINT_URL"),
+}
+
+VIEWER_SHOWCASE_SLUG = os.getenv("VIEWER_SHOWCASE_SLUG")
+
+# this is a hack to handle the fact that certain GDAL and Django versions
+# are not compatible, and the order of lat/long gets messed up. ONLY to
+# be used in development!!!!
+# this will be removed once Django is upgraded
+SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", "False"))
+
+# CONFIGURE CELERY
+CELERY_BROKER_URL = os.getenv('BROKER_URL')
+CELERY_RESULT_BACKEND = 'rpc://'
+
+# basic independent setup for Celery Exchange/Queue
+DEFAULT_EXCHANGE = Exchange('default', type='topic')
+# CELERY_TASK_QUEUES += (
+CELERY_TASK_QUEUES = (
+    Queue('split', DEFAULT_EXCHANGE, routing_key='split', priority=0),
+    Queue('georeference', DEFAULT_EXCHANGE, routing_key='georeference', priority=0),
+    Queue('volume', DEFAULT_EXCHANGE, routing_key='volume', priority=0),
+    Queue('mosaic', DEFAULT_EXCHANGE, routing_key='mosaic', priority=0),
+    Queue('housekeeping', DEFAULT_EXCHANGE, routing_key='housekeeping', priority=0),
+)
+
+CELERY_TASK_ROUTES = {
+    'georeference.tasks.run_preparation_session': {'queue': 'split'},
+    'georeference.tasks.run_georeference_session': {'queue': 'georeference'},
+    'georeference.tasks.delete_expired': {'queue': 'housekeeping'},
+    'loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
+    'loc_insurancemaps.tasks.generate_mosaic_geotiff_as_task': {'queue': 'mosaic'},
+}
+
+# empty celery beat schedule of default GeoNode jobs
+CELERY_BEAT_SCHEDULE = {
+    'delete_expired_sessions': {
+        'task': 'georeference.tasks.delete_expired',
+        'schedule': 60.0,
+    }
+}
+
+AUTH_USER_MODEL = 'accounts.User'
+ACCOUNT_ADAPTER = "accounts.adapter.AccountAdapter"
+
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_SIGNUP_REDIRECT_URL = "/"
+
+# must have trailing slash
+MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
+MAPSERVER_MAPFILE = BASE_DIR / "loc_insurancemaps" / "mapserver.map"
+
+# prep/georef session duration before expiration (seconds)
+GEOREFERENCE_SESSION_LENGTH = int(os.getenv("GEOREFERENCE_SESSION_LENGTH", 600))
+
+MAPBOX_API_TOKEN = os.environ.get('MAPBOX_API_TOKEN', None)
+
+# no trailing slash on server location
+IIIF_SERVER_ENABLED = False
+IIIF_SERVER_LOCATION = "http://localhost:8182"
+
+# To allow other sites to read IIIF resources set CORS_ORIGIN_ALLOW_ALL to True
+CORS_ORIGIN_ALLOW_ALL = False
+
+DEFAULT_THUMBNAIL_SIZE = (240, 200)
+
+# Location of locale files
+LOCALE_PATHS = (
+    BASE_DIR / 'loc_insurancemaps' / 'locale',
+)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(name)s %(funcName)s %(process)d '
+                      '%(message)s'
+        },
+        'moderate': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(message)s'
+        },
+        'simple': {
+            'format': '%(message)s',
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+        'console-vb': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
+        ## haven't gotten this to work yet
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler',
+        },
+        'geonode': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'geonode.log'),
+            'formatter': 'moderate',
+        },
+        'info': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'info.log'),
+            'formatter': 'moderate',
+        },
+        'georeference-debug': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'georeference-debug.log'),
+            'formatter': 'verbose',
+        },
+        'loc_insurancemaps-debug': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'loc_insurancemaps-debug.log'),
+            'formatter': 'verbose',
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"], "level": "ERROR", },
+        "geonode": {
+            "handlers": ["geonode"], "level": "DEBUG", },
+        "geoserver-restconfig.catalog": {
+            "handlers": ["console"], "level": "ERROR", },
+        "owslib": {
+            "handlers": ["console"], "level": "ERROR", },
+        "pycsw": {
+            "handlers": ["console"], "level": "ERROR", },
+        "celery": {
+            "handlers": ["console"], "level": "DEBUG", },
+        "mapstore2_adapter.plugins.serializers": {
+            "handlers": ["console"], "level": "DEBUG", },
+        "geonode_logstash.logstash": {
+            "handlers": ["console"], "level": "DEBUG", },
+        # logging for this app specifically
+        "georeference.tests": {
+            "handlers": ["console"], "level": "DEBUG", },
+        "georeference": {
+            "handlers": ["info", "georeference-debug"], "level": "DEBUG", },
+        "loc_insurancemaps": {
+            "handlers": ["info", "loc_insurancemaps-debug"], "level": "DEBUG", },
+    },
+}
+
+# cleanup some celery logging as suggested here:
+# https://stackoverflow.com/a/20719461/3873885
+if DEBUG:
+    celery_log_level = 'DEBUG'
+else:
+    celery_log_level = 'INFO'
+
+LOGGING['loggers']['celery'] = {
+    'handlers': ['console'],
+    'level': celery_log_level,
+    'propagate': True,
+}
+for i in ['worker', 'concurrency', 'beat']:
+    LOGGING['loggers']['celery.' + i] = {
+        'handlers': [],
+        'level': 'WARNING',
+        'propagate': True,
+    }
+for i in ['job', 'consumer', 'mediator', 'control', 'bootsteps']:
+    LOGGING['loggers']['celery.worker.' + i] = {
+        'handlers': [],
+        'level': 'WARNING',
+        'propagate': True,
+    }
+

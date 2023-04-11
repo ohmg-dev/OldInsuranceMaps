@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ svelte_params.PLACE.display_name }}{% endblock title %}
+
+{% block body %}
+{{ svelte_params|json_script:'place-props'}}
+{% include '_svelte_component.html' with component_name='Place' %}
+{% endblock %}

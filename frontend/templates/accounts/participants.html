@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Participants{% endblock title %}
+
+{% block main_content %}
+{{ svelte_params|json_script:'participants-props'}}
+{% include '_svelte_component.html' with component_name='Participants' %}
+{% endblock %}

@@ -1,0 +1,5 @@
+{% load static %}
+
+<link href="{% static component_name|add:'.css' %}" rel="stylesheet">
+<div id="{{ component_name|lower }}-target"></div>
+<script defer src="{% static component_name|add:'.js' %}"></script>

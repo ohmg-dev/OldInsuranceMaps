@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ split_params.DOCUMENT.title }} — Split{% endblock %}
+
+{% block body_outer %}
+{{ split_params|json_script:'split-props'}}
+{% include '_svelte_component.html' with component_name='Split' %}
+{% endblock %}
+
+{% block footer %}
+{% endblock footer %}

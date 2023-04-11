@@ -1,3 +1,4 @@
+from django.contrib.sites.models import Site
 from georeference.utils import full_reverse
 
 def loc_info(request):
@@ -20,4 +21,12 @@ def loc_info(request):
         'navbar_params': {
             'USER': user_info
         }
+    }
+
+def general(request):
+
+    site = Site.objects.get_current()
+    return {
+        'SITE_NAME': site.name,
+        'SITE_DOMAIN': site.domain,
     }

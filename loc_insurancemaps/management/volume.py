@@ -11,9 +11,13 @@ from django.core.files import File
 
 from georeference.models.resources import Layer
 
-from loc_insurancemaps.api import CollectionConnection
 from loc_insurancemaps.models import Volume
-from loc_insurancemaps.utils import LOCParser, filter_volumes_for_use, unsanitize_name
+from loc_insurancemaps.utils import (
+    LOCParser,
+    LOCConnection,
+    filter_volumes_for_use,
+    unsanitize_name
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +26,7 @@ def import_all_available_volumes(state, apply_filter=True, verbose=False):
     state, filters the available volumes for those cities, and then
     imports each one to create a new Volume object."""
 
-    lc = CollectionConnection(delay=0, verbose=verbose)
+    lc = LOCConnection(delay=0, verbose=verbose)
     cities = lc.get_city_list_by_state(state)
 
     volumes = []
@@ -45,11 +49,14 @@ def import_all_available_volumes(state, apply_filter=True, verbose=False):
 def import_volume(identifier, locale=None):
 
     try:
-        return Volume.objects.get(pk=identifier)
+        volume = Volume.objects.get(pk=identifier)
+        volume.locales.add(locale)
+        volume.update_place_counts()
+        return volume
     except Volume.DoesNotExist:
         pass
 
-    lc = CollectionConnection(delay=0, verbose=True)
+    lc = LOCConnection(delay=0, verbose=True)
     response = lc.get_item(identifier)
     if response.get("status") == 404:
         return None
@@ -61,8 +68,7 @@ def import_volume(identifier, locale=None):
     volume_kwargs["lc_resources"] = response['resources']
 
     volume = Volume.objects.create(**volume_kwargs)
-    volume.locale = locale
-    volume.save()
+    volume.locales.add(locale)
 
     volume.update_place_counts()
 
@@ -168,16 +174,23 @@ def generate_mosaic_geotiff(identifier):
     mosaic_tif = mosaic_vrt.replace(".vrt", ".tif")
     gdal.Translate(mosaic_tif, mosaic_vrt, options=to)
 
+    ## for some reason, creating overviews and then saving the file to
+    ## django's filefield with
+    ## with open(mosaic_tif, 'rb') as f:
+    ##    vol.mosaic_geotiff.save(os.path.basename(mosaic_tif), File(f), save=True)
+    ## seems to make an empty tiff... (still need to figure out why...)
+    ## for now, save to django without overviews.
+    ## however, Titiler is still returning empty tiles...
+
+    with open(mosaic_tif, 'rb') as f:
+        vol.mosaic_geotiff.save(os.path.basename(mosaic_tif), File(f), save=True)
+
     print("creating overviews")
-    img = gdal.Open(mosaic_tif, 1)
+    img = gdal.Open(vol.mosaic_geotiff.path, 1)
     gdal.SetConfigOption("COMPRESS_OVERVIEW", "LZW")
     gdal.SetConfigOption("PREDICTOR", "2")
     gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
     img.BuildOverviews("AVERAGE", [2, 4, 8, 16])
-
-    with open(mosaic_tif, 'rb') as f:
-        vol.mosaic_geotiff = File(f, name=os.path.basename(mosaic_tif))
-        vol.save()
 
 def write_trim_feature_cache(feature, file_path):
     with open(file_path, "w") as f:

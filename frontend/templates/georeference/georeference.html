@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ georeference_params.DOCUMENT.title }} — Georeference{% endblock %}
+
+{% block middle %}
+<div class="container" style="width: 100%">
+{{ georeference_params|json_script:'georeference-props'}}
+{% include '_svelte_component.html' with component_name='Georeference' %}
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock footer %}
