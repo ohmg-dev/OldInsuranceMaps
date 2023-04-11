@@ -11,9 +11,13 @@ from django.core.files import File
 
 from georeference.models.resources import Layer
 
-from loc_insurancemaps.api import CollectionConnection
 from loc_insurancemaps.models import Volume
-from loc_insurancemaps.utils import LOCParser, filter_volumes_for_use, unsanitize_name
+from loc_insurancemaps.utils import (
+    LOCParser,
+    LOCConnection,
+    filter_volumes_for_use,
+    unsanitize_name
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +26,7 @@ def import_all_available_volumes(state, apply_filter=True, verbose=False):
     state, filters the available volumes for those cities, and then
     imports each one to create a new Volume object."""
 
-    lc = CollectionConnection(delay=0, verbose=verbose)
+    lc = LOCConnection(delay=0, verbose=verbose)
     cities = lc.get_city_list_by_state(state)
 
     volumes = []
@@ -52,7 +56,7 @@ def import_volume(identifier, locale=None):
     except Volume.DoesNotExist:
         pass
 
-    lc = CollectionConnection(delay=0, verbose=True)
+    lc = LOCConnection(delay=0, verbose=True)
     response = lc.get_item(identifier)
     if response.get("status") == 404:
         return None

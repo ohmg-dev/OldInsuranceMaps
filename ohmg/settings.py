@@ -10,10 +10,10 @@ from kombu import Queue, Exchange
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY")
-WSGI_APPLICATION = "loc_insurancemaps.wsgi.application"
+WSGI_APPLICATION = "ohmg.wsgi.application"
 
 # Location of url mappings
-ROOT_URLCONF = 'loc_insurancemaps.urls'
+ROOT_URLCONF = 'ohmg.urls'
 
 DEBUG = ast.literal_eval(os.getenv("DEBUG", True))
 

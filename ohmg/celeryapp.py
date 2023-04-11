@@ -3,9 +3,9 @@ from __future__ import absolute_import
 import os
 from celery import Celery
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'loc_insurancemaps.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ohmg.settings')
 
-app = Celery('loc_insurancemaps')
+app = Celery('ohmg')
 
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.
