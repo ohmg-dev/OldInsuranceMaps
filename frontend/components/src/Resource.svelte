@@ -34,10 +34,14 @@ let xyzUrl;
 let ohmUrl;
 if (RESOURCE.type == "layer") {
   xyzUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.urls.cog);
-  ohmUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.urls.cog, true);
+  //const ll = getCenter(VOLUME.extent);
+  //ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
+  //ohmUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.urls.cog, true);
 } else if (RESOURCE.layer){
   xyzUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.layer.urls.cog);
-  ohmUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.layer.urls.cog, true);
+  //const ll = getCenter(VOLUME.extent);
+  //ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
+  //ohmUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.layer.urls.cog, true);
 }
 
 let showPrep = false;
@@ -398,7 +402,7 @@ const iconLinks = [
               <a href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/">Mapbox/MapLibre GL JS</a>,
               <a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
               <a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
-              <br><a href="{ohmUrl}" alt="Open mosaic in OHM iD editor" target="_blank">Open Historical Map iD editor<i class="fa fa-external-link"></i></a> (direct link).
+              <!--<br><a href="{ohmUrl}" alt="Open mosaic in OHM iD editor" target="_blank">Open Historical Map iD editor<i class="fa fa-external-link"></i></a> (direct link).-->
             </p>
           {/if}
         </div>
