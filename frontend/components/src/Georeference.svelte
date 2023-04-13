@@ -124,10 +124,6 @@ function cancelAndRedirectToDetail() {
   window.location.href=nextPage;
 }
 
-const beginTxt = "Click a recognizable location on the map document (left panel)"
-const completeTxt = "Now find and click on the corresponding location in the web map (right panel)"
-$: currentTxt = !inProgress ? beginTxt : completeTxt;
-
 const noteInputElId = "note-input";
 
 let currentTransformation = "poly1";
@@ -874,7 +870,7 @@ const iconLinks = [
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 <TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks}/>
-<GeoreferencePreamble />
+<p>Create 3 or more ground control points to georeference this document. To create a ground control point, first click on a location in the left panel, then find and click on the corresponding location in right panel. <a href="https://ohmg.dev/docs/making-the-mosaics/georeferencing" target="_blank">Learn more <i class="fa fa-external-link"></i></a></p>
 <div id="expirationModal" class="modal">
   <div class="modal-content">
     <p>This georeferencing session is expiring, and will be cancelled soon.</p>
@@ -886,14 +882,13 @@ const iconLinks = [
 <div id="anonymousModal" class="modal" style="display:block;">
   <div class="modal-content" style="max-width:325px;">
     <p>Feel free to experiment with the interface. To submit your work, you must
-      <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+      <a href="/account/login">sign in</a> or
       <a href="/account/signup">sign up</a>.</p>
     <button on:click={() => {document.getElementById('anonymousModal').style.display = 'none'}}>OK</button>
   </div>
 </div>
 {/if}
 
-<div class="hidden-small"><em>{currentTxt}</em></div>
 <div class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
@@ -901,7 +896,7 @@ const iconLinks = [
       {#if disableReason == "unauthenticated"}
       <p><em>
         <!-- svelte-ignore a11y-invalid-attribute -->
-        <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >Sign in</a> or
+        <a href="/account/login">Sign in</a> or
         <a href="/account/signup">sign up</a> to proceed.
       </em></p>
       {:else if disableReason == "input" || disableReason == "processing"}

@@ -376,7 +376,7 @@ const iconLinks = [
 <div id="anonymousModal" class="modal" style="display:block;">
   <div class="modal-content" style="max-width:325px;">
     <p>Feel free to experiment with the interface. To submit your work, you must 
-      <a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+      <a href="/account/login">sign in</a> or
       <a href="/account/signup">sign up</a>.</p>
     <button on:click={() => {document.getElementById('anonymousModal').style.display = 'none'}}>OK</button>
   </div>
@@ -390,8 +390,7 @@ const iconLinks = [
   </div>
 </div>
 <TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks}/>
-<SplitPreamble />
-<div><em>{currentTxt}</em></div>
+<p>{currentTxt} <a href="https://ohmg.dev/docs/making-the-mosaics/preparation" target="_blank">Learn more <i class="fa fa-external-link"></i></a></p>
 <div class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
