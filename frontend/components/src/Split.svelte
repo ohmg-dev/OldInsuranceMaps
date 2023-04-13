@@ -27,7 +27,6 @@ import LineString from 'ol/geom/LineString';
 import Styles from './js/ol-styles-georeference';
 
 import TitleBar from './TitleBar.svelte';
-import SplitPreamble from './SplitPreamble.svelte';
 
 const styles = new Styles();
 

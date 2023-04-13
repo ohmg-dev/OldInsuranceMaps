@@ -38,7 +38,6 @@ import Utils from './js/ol-utils-georeference';
 const utils = new Utils();
 
 import TitleBar from './TitleBar.svelte';
-import GeoreferencePreamble from './GeoreferencePreamble.svelte';
 
 export let USER;
 export let SESSION_LENGTH;
