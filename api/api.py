@@ -59,8 +59,13 @@ def list_users(request):
     return list(queryset)
 
 @api.get('items/', response=List[ItemListSchema], url_name="item_list")
-def list_items(request):
-    queryset = Volume.objects.all().exclude(loaded_by=None).order_by('city', 'year')
+def list_items(request, sort: str = "default", limit: int = None):
+    if sort == "load_date":
+        queryset = Volume.objects.all().exclude(loaded_by=None).order_by('-load_date')
+    else:
+        queryset = Volume.objects.all().exclude(loaded_by=None).order_by('city', 'year')
+    if limit:
+        queryset = queryset[:limit]
     return list(queryset)
 
 @api.get('places/', response=List[PlaceSchema], url_name="place_list")
