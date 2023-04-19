@@ -22,6 +22,7 @@ const styles = new Styles();
 export let PLACES_GEOJSON_URL;
 export let MAP_HEIGHT;
 export let OHMG_API_KEY;
+export let EMBEDDED;
 
 if (!MAP_HEIGHT) {MAP_HEIGHT = '600'};
 
@@ -144,7 +145,11 @@ onMount(async function() {
 
 
 </script>
+{#if EMBEDDED}
+<div id="map-viewer" tabindex="1" class="spinner" style="height:{MAP_HEIGHT}px; width:100%; cursor:{EMBEDDED ? 'pointer' : 'default'};"></div>
+{:else}
 <div id="map-viewer" class="spinner" style="height:{MAP_HEIGHT}px; width:100%"></div>
+{/if}
 <div id="popup" class="ol-popup" style="">
 	<a href="#" title="Close popup" id="popup-closer" class="ol-popup-closer"></a>
 	<div id="popup-content"></div>

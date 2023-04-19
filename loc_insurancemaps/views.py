@@ -77,6 +77,8 @@ class HomePage(View):
 
         context_dict = {
             "svelte_params": {
+                "ITEM_API_URL": reverse("api-beta:item_list"),
+                "SESSION_API_URL": reverse("api-beta:session_list"),
                 "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
                 "IS_MOBILE": mobile(request),
                 "CSRFTOKEN": csrf.get_token(request),
@@ -85,6 +87,8 @@ class HomePage(View):
                 "USER_SUBSCRIBED": user_subscribed,
                 "USER_EMAIL": user_email,
                 "VIEWER_SHOWCASE": viewer_showcase,
+                "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
+                "ITEMS_CT": Volume.objects.all().exclude(loaded_by=None).count(),
             },
         }
 

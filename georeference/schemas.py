@@ -65,7 +65,7 @@ class SessionSchema(Schema):
 
     @staticmethod
     def resolve_date_created(obj):
-        return obj.date_created.strftime("%m/%d/%Y")
+        return obj.date_created.strftime("%Y-%m-%d")
 
 class FilterSessionSchema(FilterSchema):
     username: Optional[str] = Field(q='user__username') 

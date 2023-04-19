@@ -1,6 +1,12 @@
 <script>
+
 import './css/shared.css';
 import MapBrowse from './MapBrowse.svelte';
+import RecentActivity from './RecentActivity.svelte';
+import LatestAdditions from './LatestAdditions.svelte';
+
+export let ITEM_API_URL;
+export let SESSION_API_URL;
 export let PLACES_GEOJSON_URL;
 export let IS_MOBILE;
 export let CSRFTOKEN;
@@ -9,6 +15,8 @@ export let NEWSLETTER_SLUG;
 export let USER_SUBSCRIBED;
 export let USER_EMAIL;
 export let VIEWER_SHOWCASE;
+export let PLACES_CT;
+export let ITEMS_CT;
 
 let showBrowseMap = !IS_MOBILE;
 $: showBrowseMapBtnLabel = showBrowseMap ? "Hide map finder" : "Show map finder";
@@ -17,33 +25,43 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 </script>
 
 <main>
+	<div>
+		<h1>OldInsuranceMaps.net</h1>
+		<p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. <a href="https://about.oldinsurancemaps.net" target="_blank">Learn more &nearr;</a></p>
+	</div>
 	<div class="hero-banner">
-		<div class="">
-			<h1>Louisiana Sanborn Maps</h1>
-			<p>All maps on this site are in the public domain, pulled from the Library of Congress 
-			<a href="https://loc.gov/collections/sanborn-maps">Sanborn Map Collection</a>.</p>
-			<p>Thank you to all of our <a href="/people">crowdsourcing participants</a>. Over four months in early 2022, 1,500 individual sheets from 270 different Sanborn atlases were georeferenced.</p>
-			{#if NEWSLETTER_SLUG}
-			<p><a href="#subscribe"><strong>Subscribe to updates</strong></a></p>
-			{/if}
-			<p><a href="#support"><strong>Support this project</strong></a></p>
-		</div>
-		<div class="link-panel">
-			<p>Jump to some popular places</p>
+		<div>
+			<h2>Get Started</h2>
 			<ul>
-				<li><a href="/viewer/new-orleans-la?utm_source=index-top">New Orleans (1885-1893) &rarr;</a></li>
-				<li><a href="/viewer/baton-rouge-la?utm_source=index-top">Baton Rouge (1885, 1891, 1898, 1903, 1908) &rarr;</a></li>
-				<li><a href="/viewer/alexandria-la?utm_source=index-top">Alexandria (1885, 1892, 1896, 1900, 1904, 1909) &rarr;</a></li>
-				<li><a href="/viewer/plaquemine-la?utm_source=index-top">Plaquemine (1885, 1891, 1896, 1900, 1906) &rarr;</a></li>
+				<li><a href="/browse/">View maps of your city &rarr;</a></li>
+				<li><a href="/browse/#items">Browse all volumes &rarr;</a></li>
+				<li><a href="/people">User list &rarr;</a></li>
+				{#if NEWSLETTER_SLUG}
+				<li><a href="#subscribe">Subscribe to newsletter &darr;</a></li>
+				{/if}
+				<li><a href="#support">Support this project &darr;</a></li>
 			</ul>
-			<p>or search through <a href="/browse">all volumes</a>.</p>
-			<p>Currently, this site includes maps for about 140 different towns and cities across Louisiana. Want to get your hometown added? Check out our <a href="https://about.oldinsurancemaps.net/faq?utm_source=index">FAQ page</a>.</p>
+			<h2>Latest Additions</h2>
+			<p>Check out the most recent additions to the site below, or <a href="/browse/#items">browse all {ITEMS_CT}</a>.</p>
+			<LatestAdditions ITEM_API_URL={ITEM_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
+			<span><em>If you or your organization would like to sponsor the addition of more items from the Library of Congress <a href="https://loc.gov/collections/sanborn-maps">Sanborn Map Collection</a>, please <a href="https://about.oldinsurancemaps.net/contact">get in touch</a>.</em></span>
+		</div>
+		<div>
+			<h2>Featured Places</h2>
+			<p>An interactive web viewer aggregates all content that has been georeferenced for a given city. Check out some featured places below, or <a href="/browse/#places">browse all {PLACES_CT} places</a>.
+			<ul>
+				<li><a href="/viewer/new-orleans-la?utm_source=index-top">New Orleans, La. (1885-1893) &rarr;</a></li>
+				<li><a href="/viewer/baton-rouge-la?utm_source=index-top">Baton Rouge, La. (1885, 1891, 1898, 1903, 1908) &rarr;</a></li>
+				<li><a href="/viewer/alexandria-la?utm_source=index-top">Alexandria, La. (1885, 1892, 1896, 1900, 1904, 1909) &rarr;</a></li>
+				<li><a href="/viewer/plaquemine-la?utm_source=index-top">Plaquemine, La. (1885, 1891, 1896, 1900, 1906) &rarr;</a></li>
+			</ul>
+			<RecentActivity SESSION_API_URL={SESSION_API_URL} OHMG_API_KEY={OHMG_API_KEY} />
 		</div>
 	</div>
 	<div class="map-container">
 		{#if IS_MOBILE}<span><button class="link-btn" on:click="{() => {showBrowseMap = !showBrowseMap}}">{ showBrowseMapBtnLabel }</button></span>{/if}
 		{#if showBrowseMap}
-		<MapBrowse PLACES_GEOJSON_URL={PLACES_GEOJSON_URL} MAP_HEIGHT={'400'} OHMG_API_KEY={OHMG_API_KEY} />
+		<MapBrowse PLACES_GEOJSON_URL={PLACES_GEOJSON_URL} MAP_HEIGHT={'400'} OHMG_API_KEY={OHMG_API_KEY} EMBEDDED={true} />
 		{/if}
 	</div>
 	<div>
@@ -97,17 +115,6 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 	{/if}
 
 	<div>
-		<h3 id="support">Support this project</h3>
-		<div style="font-size:.9em;">
-			<p>If you'd like to help with the (relatively modest) hosting costs and continued development of this site, you can do so here: <a href="https://paypal.me/oldinsurancemaps">paypal.me/oldinsurancemaps</a>. Be sure to add a note if you want to support development on specific aspects of the site, or sponsor the addition of more volumes. Thanks!</p>
-		</div>
-		<hr>
-		<h3 id="support">Some thank yous...</h3>
-		<div style="font-size:.9em;">
-			<p>This site is built from many different open source software components, so a big thank you is due to the developers behind <a href="https://geonode.org">GeoNode</a>, <a href="https://github.com/developmentseed/titiler">TiTiler</a>, <a href="https://mapserver.org/">MapServer</a>, <a href="https://postgres.org">Postgres</a>/<a href="https://postgis.net/">PostGIS</a>, <a href="https://www.djangoproject.com/">Django</a>, <a href="https://openlayers.org/">OpenLayers</a>, <a href="https://viglino.github.io/ol-ext/">ol-ext</a>, and <a href="https://svelte.dev/">Svelte</a>.
-			</p>
-		</div>
-		<hr>
 		{#if NEWSLETTER_SLUG}
 		<h3 id="subscribe">Subscribe to our newsletter</h3>
 		<form enctype="multipart/form-data"  method="post" action="/newsletter/{NEWSLETTER_SLUG}/subscribe/">
@@ -119,7 +126,20 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 			<button id="id_submit" name="submit" value="Subscribe" type="submit">Subscribe</button>
 			{/if}
 		</form>
+		<hr>
 		{/if}
+		<h3 id="support">Support this project</h3>
+		<div style="font-size:.9em;">
+			<p>If you'd like to help with the (relatively modest) hosting costs and continued development of this site, you can do so here: <a href="https://paypal.me/oldinsurancemaps">paypal.me/oldinsurancemaps</a>. Be sure to add a note if you want to support development on specific aspects of the site, or sponsor the addition of more volumes. Thanks!</p>
+		</div>
+		<hr>
+		<h3 id="support">Acknowledgements</h3>
+		<div style="font-size:.9em;">
+			<p>All maps on this site are in the public domain, pulled from the Library of Congress <a href="https://loc.gov/collections/sanborn-maps">Sanborn Map Collection</a>.</p>
+			<p>Thank you to all of our <a href="/people">crowdsourcing participants</a>. Over four months in early 2022, volunteers prepared and georeferenced 1,500 individual sheets from 270 different Sanborn atlases. You can read much more about that effort <a href="https://digitalcommons.lsu.edu/gradschool_theses/5641/" target="_blank">here</a>.</p>
+			<p>This site is built from many different open source software components, so a big thank you is due to the developers behind <a href="https://geonode.org">GeoNode</a>, <a href="https://github.com/developmentseed/titiler">TiTiler</a>, <a href="https://mapserver.org/">MapServer</a>, <a href="https://postgres.org">Postgres</a>/<a href="https://postgis.net/">PostGIS</a>, <a href="https://www.djangoproject.com/">Django</a>, <a href="https://openlayers.org/">OpenLayers</a>, <a href="https://viglino.github.io/ol-ext/">ol-ext</a>, and <a href="https://svelte.dev/">Svelte</a>.
+			</p>
+		</div>
 	</div>
 </main>
 <style>
@@ -146,7 +166,7 @@ main p {
 .hero-banner {
 	display: flex;
 	flex-direction: row;
-	justify-content: space-around;
+	justify-content: space-between;
 	background: linear-gradient(0deg, rgba(255 255 255 / 60%), rgba(255 255 255 / 60%)), url(/static/img/no-1885-snippet1-reduce-50qual.jpg);
 	background-repeat: no-repeat;
 	background-position: center;
@@ -158,14 +178,15 @@ main p {
 	border: 2px solid black;
 	border-radius: 4px;
 	padding: 10px;
-	width: 45%;
+	width: 48%;
 }
 
-.link-panel ul {
+.hero-banner > div > ul {
+	font-size: 1.25em;
 	padding: 0;
 	list-style: none;
 }
-.link-panel ul li {
+.hero-banner > div > ul li {
 	padding-left: 5px;
 }
 .map-container {

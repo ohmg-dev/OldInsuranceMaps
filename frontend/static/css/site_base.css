@@ -60,7 +60,7 @@ nav.lahmg-nav {
 	padding: 0px 20px;
 	color:white;
 	font-weight: 500;
-	overflow-x: scroll;
+	overflow-x: auto;
 }
 
 nav.lahmg-nav a {

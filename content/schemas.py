@@ -26,8 +26,16 @@ class ItemListSchema(Schema):
     sheet_ct: int
     stats: dict
     loaded_by: Optional[UserSchema]
+    load_date: str
     volume_no: int = None
     urls: dict
+
+    @staticmethod
+    def resolve_load_date(obj):
+        load_date_str = ""
+        if obj.load_date:
+            load_date_str = obj.load_date.strftime("%Y-%m-%d")
+        return load_date_str
 
     @staticmethod
     def resolve_year_vol(obj):
