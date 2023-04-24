@@ -16,8 +16,8 @@ urlpatterns = [
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
     path('getting-started/', TemplateView.as_view(template_name='getting-started.html'),
         name='getting_started'),
-    path('help/', RedirectView.as_view(url="https://about.oldinsurancemaps.net")),
-    path('developer/', RedirectView.as_view(url="https://about.oldinsurancemaps.net")),
+    path('help/', RedirectView.as_view(url="https://ohmg.dev")),
+    path('developer/', RedirectView.as_view(url="https://ohmg.dev")),
 
     path('browse/', Browse.as_view(), name='browse'),
     path('loc/volumes/', RedirectView.as_view(pattern_name='browse', permanent=True), name='volumes_list'),

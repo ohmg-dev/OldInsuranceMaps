@@ -20,7 +20,7 @@ export let USER;
 			<a href="/#support" title="Support this project">Support</a>
 		</div>
 		<div>
-			<a href="https://about.oldinsurancemaps.net" title="Browse">About <i class="fa fa-external-link"></i></a>
+			<a href="https://ohmg.dev" title="Browse">About <i class="fa fa-external-link"></i></a>
 		</div>
 	</div>
 	<div>

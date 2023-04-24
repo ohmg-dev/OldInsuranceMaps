@@ -442,7 +442,7 @@ function setHash(newHash) {
 				{/if}
 			</section>
 			<section class="subsection" style="padding-top:15px; border-bottom:none;">
-				<p><strong>GeoTIFF</strong> mosaic downloads of this entire volume are available <a href="https://about.oldinsurancemaps.net/contact/">upon request</a>.</p>
+				<p><strong>GeoTIFF</strong> mosaic downloads of this entire volume are available <a href="mailto:hello@oldinsurancemaps.net">upon request</a>.</p>
 			</section>
 		</div>
 	</section>
