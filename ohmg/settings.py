@@ -9,6 +9,16 @@ from kombu import Queue, Exchange
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# the build file is generated and updated with python manage.py update_build
+BUILD_FILE = BASE_DIR / '.build'
+BUILD_NUMBER = ''
+if BUILD_FILE.is_file():
+    print('getting build number')
+    with open(BUILD_FILE, 'r') as o:
+        # print(o.read())
+        # print(o.readlines())
+        BUILD_NUMBER = o.read()
+
 SECRET_KEY = os.getenv("SECRET_KEY")
 WSGI_APPLICATION = "ohmg.wsgi.application"
 
