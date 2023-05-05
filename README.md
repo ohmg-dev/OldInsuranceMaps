@@ -5,7 +5,7 @@ OHMG is a web application that facilitates public participation in the process o
 At present, the system is structured around the Sanborn Map Collection at the Library of Congress ([loc.gov/collections/sanborn-maps](https://loc.gov/collections/sanborn-maps)). More generic ingestion methods are in the works.
 
 - **Implementation:** [oldinsurancemaps.net](https://oldinsurancemaps.net)
-- **Documentation:** [about.oldinsurancemaps.net](https://about.oldinsurancemaps.net)
+- **Documentation:** [ohmg.dev](https://ohmg.dev)
 
 ---
 
@@ -47,7 +47,7 @@ And a "multimask" that allows a volume's sheets to be trimmed *en masse*, a quic
 
 ![Trimming interface](./frontend/static/img/example-multimask-alex-1900.jpg)
 
-Learn much more about each step [in the docs](https://about.oldinsurancemaps.net/docs/category/making-the-mosaics-1).
+Learn much more about each step [in the docs](https://ohmg.dev/docs/category/making-the-mosaics-1).
 
 All user input is tracked through registered accounts, which allows for a comprehensive understanding of user engagement and participation, as well as a complete database of all input georeferencing information, like ground control points, masks, etc.
 

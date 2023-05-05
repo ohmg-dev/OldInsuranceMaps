@@ -14,17 +14,17 @@ export let USER;
 		<div>
 			<h4>Learn More</h4>
 			<ul>
-				<li><a href="https://about.oldinsurancemaps.net/faq">FAQ <i class="fa fa-external-link"></i></a></li>
-				<li><a href="https://about.oldinsurancemaps.net/docs">Documentation <i class="fa fa-external-link"></i></a></li>
-				<li><a href="https://about.oldinsurancemaps.net/docs/category/sanborn-maps-1">About Sanborn Maps <i class="fa fa-external-link"></i></a></li>
+				<li><a href="https://ohmg.dev/faq">FAQ <i class="fa fa-external-link"></i></a></li>
+				<li><a href="https://ohmg.dev/docs">Documentation <i class="fa fa-external-link"></i></a></li>
+				<li><a href="https://ohmg.dev/docs/category/sanborn-maps-1">About Sanborn Maps <i class="fa fa-external-link"></i></a></li>
 			</ul>
 		</div>
 		<div>
 			<h4>News & Updates</h4>
 			<ul>
 				<li><a href="/newsletter/lahmg-news/archive" >Newsletter Archive</a></li>
-				<li><a href="https://about.oldinsurancemaps.net/blog" >Blog <i class="fa fa-external-link"></i></a></li>
-				<li><a href="https://about.oldinsurancemaps.net/contact" >Contact <i class="fa fa-external-link"></i></a></li>
+				<li><a href="https://ohmg.dev/blog" >Blog <i class="fa fa-external-link"></i></a></li>
+				<li><a href="/#contact" >Contact <i class="fa fa-external-link"></i></a></li>
 			</ul>
 		</div>
 	</div>

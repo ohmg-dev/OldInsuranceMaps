@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.sites.models import Site
 from georeference.utils import full_reverse
 
@@ -24,9 +25,10 @@ def loc_info(request):
     }
 
 def general(request):
-
+    """ neifnef """
     site = Site.objects.get_current()
     return {
         'SITE_NAME': site.name,
         'SITE_DOMAIN': site.domain,
+        'BUILD_NUMBER': settings.BUILD_NUMBER,
     }

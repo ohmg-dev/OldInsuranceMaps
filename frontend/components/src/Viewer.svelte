@@ -425,7 +425,7 @@ function toggleDetails(id) {
 		<p>In early 2022, participants in a <a href="https://digitalcommons.lsu.edu/gradschool_theses/5641/" target="_blank">crowdsourcing project</a> georeferenced all of the Louisiana maps you see here, eventually creating these seamless mosaic overlays. These comprise 1,500 individual sheets from 270 different Sanborn atlases, covering of over <a href="/browse">130 different locations</a>.</p>
 		<h2>Further Development</h2>
 		<p>If you are interested in supporting this site <a href="mailto:hello@oldinsuracemaps.net">get in touch</a>. To get more Sanborn maps on here, please fill out <a href="https://forms.gle/3gbZPYKWcPFb1NN5A">this form</a>.</p>
-		<p>To learn much more about the entire project, head to <a href="https://about.oldinsurancemaps.net">about.oldinsurancemaps.net</a>.</p>
+		<p>To learn much more about the entire project, head to <a href="https://ohmg.dev">ohmg.dev</a>.</p>
 		<button on:click={() => {showAboutPanel=false}}>close</button>
 	</div>
 </div>
