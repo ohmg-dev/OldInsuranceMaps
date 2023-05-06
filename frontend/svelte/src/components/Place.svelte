@@ -35,7 +35,7 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 		<ul style="padding-left:20px">
 			{#each PLACE.descendants as d}
 			<li>
-				<button on:click={() => {update(d.slug)}} disabled={d.volume_count_inclusive == 0}>
+				<button on:click={() => {update(d.slug)}} style="{d.volume_count_inclusive == 0 ? 'color:#333333;' : ''}">
 				{d.display_name} {#if d.volume_count_inclusive != 0}({d.volume_count_inclusive}){/if}
 				</button>
 			</li>
