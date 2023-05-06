@@ -8,7 +8,7 @@ import PlaceSelect from "./PlaceSelect.svelte";
 import VolumePreviewMap from "./VolumePreviewMap.svelte";
 import MultiTrim from "./MultiTrim.svelte";
 
-import Utils from './js/ol-utils';
+import Utils from '../js/ol-utils';
 const utils = new Utils();
 
 export let VOLUME;

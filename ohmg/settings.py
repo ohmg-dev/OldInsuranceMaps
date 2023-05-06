@@ -134,7 +134,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / 'static')
 STATICFILES_DIRS = [
     BASE_DIR / "frontend" / "static",
-    BASE_DIR / "frontend" / "components" / "public" / "build",
+    BASE_DIR / "frontend" / "svelte" / "public" / "build",
 ]
 
 AUTHENTICATION_BACKENDS = [

@@ -1,8 +1,8 @@
-import './css/shared.css';
-import './css/interface.css';
+import '../css/shared.css';
+import '../css/interface.css';
 
-import Volume from './Volume.svelte';
-import './css/ol-overrides.css'
+import Volume from '../components/Volume.svelte';
+import '../css/ol-overrides.css'
 
 const volume = new Volume({
 	target: document.getElementById("volume-target"),

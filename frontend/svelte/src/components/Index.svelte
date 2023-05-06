@@ -1,6 +1,6 @@
 <script>
 
-import './css/shared.css';
+import '../css/shared.css';
 import MapBrowse from './MapBrowse.svelte';
 import RecentActivity from './RecentActivity.svelte';
 import LatestAdditions from './LatestAdditions.svelte';

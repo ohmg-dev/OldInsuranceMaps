@@ -11,7 +11,7 @@ import {fromLonLat} from 'ol/proj';
 import {createXYZ} from 'ol/tilegrid';
 
 import 'ol/ol.css';
-import './css/ol-overrides.css';
+import '../css/ol-overrides.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
 
@@ -34,7 +34,7 @@ import VectorLayer from 'ol/layer/Vector';
 
 import {MouseWheelZoom, defaults} from 'ol/interaction';
 
-import Utils from './js/ol-utils';
+import Utils from '../js/ol-utils';
 const utils = new Utils();
 
 export let PLACE;

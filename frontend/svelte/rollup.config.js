@@ -30,7 +30,7 @@ function serve() {
 
 function componentExportDetails(componentName) {
 	return {
-    input: `src/${componentName.toLowerCase()}-main.js`,
+    input: `src/main/${componentName.toLowerCase()}.js`,
 		output: {
 			sourcemap: true,
 			format: 'iife',
@@ -80,20 +80,21 @@ function componentExportDetails(componentName) {
 
 let exportable = [];
 
-// Add your component names here!
+// Add exportables here. These must match a lowercase file in ./main
+// e.g. ./main/browse.js
 [
-  "Volume",
-  "Viewer",
-  "Browse",
-  "Index",
-  "Navbar",
-  "Footer",
-  "Participants",
-  "Place",
-  "Georeference",
-  "Split",
-  "Resource",
-  "Profile",
+	"Browse",
+	"Footer",
+	"Georeference",
+	"Index",
+	"Navbar",
+	"Participants",
+	"Place",
+	"Profile",
+	"Resource",
+	"Split",
+	"Viewer",
+	"Volume",
 ].forEach((d) => exportable.push(componentExportDetails(d)));
 
 export default exportable;

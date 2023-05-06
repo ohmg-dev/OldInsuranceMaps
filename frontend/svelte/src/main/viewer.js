@@ -1,6 +1,6 @@
-import './css/shared.css';
-import './css/ol-overrides.css';
-import Viewer from './Viewer.svelte';
+import '../css/shared.css';
+import '../css/ol-overrides.css';
+import Viewer from '../components/Viewer.svelte';
 
 const viewer = new Viewer({
 	target: document.getElementById("viewer-target"),

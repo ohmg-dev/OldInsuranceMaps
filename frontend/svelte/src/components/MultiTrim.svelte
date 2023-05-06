@@ -30,9 +30,9 @@ import {Draw, Modify, Snap} from 'ol/interaction';
 import Style from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
 
-import Styles from './js/ol-styles';
+import Styles from '../js/ol-styles';
 const styles = new Styles();
-import Utils from './js/ol-utils';
+import Utils from '../js/ol-utils';
 const utils = new Utils();
 
 export let VOLUME;

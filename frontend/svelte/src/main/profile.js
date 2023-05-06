@@ -1,5 +1,5 @@
-import './css/shared.css';
-import Profile from './Profile.svelte';
+import '../css/shared.css';
+import Profile from '../components/Profile.svelte';
 
 const profile = new Profile({
 	target: document.getElementById("profile-target"),

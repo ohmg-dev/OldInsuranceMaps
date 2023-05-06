@@ -1,5 +1,5 @@
-import './css/shared.css';
-import Navbar from './Navbar.svelte';
+import '../css/shared.css';
+import Navbar from '../components/Navbar.svelte';
 
 const navbar = new Navbar({
 	target: document.getElementById("navbar-target"),

@@ -14,7 +14,7 @@ import {
 
 import Crop from 'ol-ext/filter/Crop';
 
-import Utils from './js/ol-utils';
+import Utils from '../js/ol-utils';
 const utils = new Utils();
 
 export let VOLUME;
