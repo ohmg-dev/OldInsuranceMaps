@@ -27,7 +27,7 @@ let reinitMap = [{}]
 
 let hash = window.location.hash.substr(1);
 
-$: showMap = hash == 'preview';
+$: showMap = (hash == 'preview' || layersPresent);
 $: showUnprepared = hash == 'unprepared';
 $: showPrepared = hash == 'prepared';
 $: showGeoreferenced = hash == 'georeferenced';
@@ -108,7 +108,7 @@ function postOperation(operation) {
 
 let mmLbl = `0/${VOLUME.items.layers.length}`;
 if (VOLUME.multimask != undefined) {
-	mmLbl = `${Object.keys(VOLUME.multimask).length}/${VOLUME.items.layers.length}`;
+	mmLbl = `${Object.keys(VOLUME.multimask).length}/${VOLUME.sorted_layers.main.length}`;
 }
 let mosaicUrl;
 let ohmUrl;
