@@ -89,7 +89,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 			<div>
 				<div><i class="i-webmap i-webmap-lg"></i></div>
 				<p>
-					As they are georeferenced, layers slowly build a collage of all the content from a given volume, and their overlapping margins <a href="/loc/trim/sanborn03275_001?utm_source=index">must be trimmed</a> to create a seamless mosaic.
+					As they are georeferenced, layers slowly build a collage of all the content from a given volume, and their overlapping margins <a href="/loc/sanborn03275_001#multimask?utm_source=index">must be trimmed</a> to create a seamless mosaic.
 				</p>
 			</div>
 			<div>
