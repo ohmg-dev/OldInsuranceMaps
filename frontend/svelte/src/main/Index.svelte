@@ -1,9 +1,9 @@
 <script>
 
 import '../css/shared.css';
-import MapBrowse from './MapBrowse.svelte';
-import RecentActivity from './RecentActivity.svelte';
-import LatestAdditions from './LatestAdditions.svelte';
+import MapBrowse from '../components/MapBrowse.svelte';
+import RecentActivity from '../components/RecentActivity.svelte';
+import LatestAdditions from '../components/LatestAdditions.svelte';
 
 export let ITEM_API_URL;
 export let SESSION_API_URL;

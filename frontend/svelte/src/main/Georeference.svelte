@@ -1,6 +1,15 @@
 <script>
 import {onMount} from 'svelte';
 
+import Icon from 'svelte-icons-pack/Icon.svelte';
+import FiCheck from 'svelte-icons-pack/fi/FiCheck';
+import FiX from 'svelte-icons-pack/fi/FiX';
+import FiRefreshCcw from 'svelte-icons-pack/fi/FiRefreshCcw';
+import FiMinimize2 from 'svelte-icons-pack/fi/FiMinimize2';
+import FiMaximize2 from 'svelte-icons-pack/fi/FiMaximize2';
+import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
+import FiTrash2 from 'svelte-icons-pack/fi/FiTrash2';
+
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
@@ -37,7 +46,8 @@ const styles = new Styles();
 import Utils from '../js/ol-utils-georeference';
 const utils = new Utils();
 
-import TitleBar from './TitleBar.svelte';
+import {toggleFullscreen} from '../js/utils';
+import TitleBar from '../components/TitleBar.svelte';
 
 export let USER;
 export let SESSION_LENGTH;
@@ -691,17 +701,7 @@ $: {
   }
 }
 
-function toggleFullscreen () {
-  if (document.fullscreenElement == null) {
-    let promise = document.getElementsByClassName('svelte-component-main')[0].requestFullscreen();
-    document.getElementById("fs-icon").classList.remove("fa-arrows-alt");
-    document.getElementById("fs-icon").classList.add("fa-times");
-  } else {
-    document.exitFullscreen();
-    document.getElementById("fs-icon").classList.remove("fa-times");
-    document.getElementById("fs-icon").classList.add("fa-arrows-alt");
-  }
-}
+let inFullscreen = false;
 
 // convert the map features to GeoJSON for sending to georeferencing operation
 $: asGeoJSON = () => {
@@ -869,7 +869,7 @@ const iconLinks = [
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 <TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks}/>
-<p>Create 3 or more ground control points to georeference this document. To create a ground control point, first click on a location in the left panel, then find and click on the corresponding location in right panel. <a href="https://ohmg.dev/docs/making-the-mosaics/georeferencing" target="_blank">Learn more <i class="fa fa-external-link"></i></a></p>
+<p>Create 3 or more ground control points to georeference this document. To create a ground control point, first click on a location in the left panel, then find and click on the corresponding location in right panel. <a href="https://ohmg.dev/docs/making-the-mosaics/georeferencing" target="_blank">Learn more <Icon src={FiExternalLink} /></a></p>
 <div id="expirationModal" class="modal">
   <div class="modal-content">
     <p>This georeferencing session is expiring, and will be cancelled soon.</p>
@@ -888,13 +888,12 @@ const iconLinks = [
 </div>
 {/if}
 
-<div class="svelte-component-main">
+<div id="map-container" class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
     <div class="signin-reminder">
       {#if disableReason == "unauthenticated"}
       <p><em>
-        <!-- svelte-ignore a11y-invalid-attribute -->
         <a href="/account/login">Sign in</a> or
         <a href="/account/signup">sign up</a> to proceed.
       </em></p>
@@ -913,7 +912,6 @@ const iconLinks = [
   {/if}
   <nav>
     <div>
-      <button title="Enter fullscreen" on:click={toggleFullscreen}><i id="fs-icon" class="fa fa-arrows-alt" /></button>
       <select title="Set panel size" bind:value={panelFocus} disabled={syncPanelWidth}>
         <option value="equal">equal panels</option>
         <option value="left">more left</option>
@@ -922,9 +920,22 @@ const iconLinks = [
       <label><input type=checkbox bind:checked={syncPanelWidth}> autosize</label>
     </div>
     <div>
-        <button title="Save control points" disabled={!enableSave} on:click={() => { process("submit") }}>Save Control Points</button>
-        <button title="Cancel georeferencing" disabled={!enableButtons} on:click={() => { process("cancel") }}>Cancel</button>
-        <button title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}><i class="fa fa-refresh" /></button>
+        <button class="control-btn tool-ui" title="Save control points" disabled={!enableSave} on:click={() => { process("submit") }}>
+          <Icon src={FiCheck} />
+        </button>
+        <button class="control-btn tool-ui" title="Cancel georeferencing" disabled={!enableButtons} on:click={() => { process("cancel") }}>
+          <Icon src={FiX} />
+        </button>
+        <button class="control-btn tool-ui" title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}>
+          <Icon src={FiRefreshCcw} />
+        </button>
+        <button class="control-btn tool-ui" title={inFullscreen ? "Exit fullscreen" : "Enter fullscreen"} on:click={() => {inFullscreen = toggleFullscreen('map-container')}}>
+          {#if inFullscreen}
+          <Icon src={FiMinimize2} />
+          {:else}
+          <Icon src={FiMaximize2} />
+          {/if}
+        </button>
     </div>
   </nav>
   <div class="map-container">
@@ -947,7 +958,7 @@ const iconLinks = [
             </option>
           {/each}
         </select>
-        <button title="Remove control point {activeGCP} (d)" on:click={removeActiveGCP}><i class="fa fa-trash" /></button>
+        <button class="control-btn tool-ui" title="Remove control point {activeGCP} (d)" on:click={removeActiveGCP}><Icon src={FiTrash2} /></button>
       </div>
       <label style="margin-top:5px;" title="Add note about control point {activeGCP}">
         <span class="">Note:</span>

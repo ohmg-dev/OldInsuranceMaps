@@ -1,5 +1,4 @@
-import '../css/shared.css';
-import Footer from '../components/Footer.svelte';
+import Footer from './Footer.svelte';
 
 const footer = new Footer({
 	target: document.getElementById("footer-target"),

@@ -497,10 +497,10 @@ class Document(ItemBase):
         urls = self._base_urls
         urls.update({
             "resource": full_reverse("resource_detail", args=(self.pk, )),
-            # remove detail and progress_page urls once InfoPanel has been fully 
-            # deprecated and volume summary has been updated.
-            "detail": f"/documents/{self.pk}",
-            "progress_page": f"/documents/{self.pk}#georeference",
+            # # remove detail and progress_page urls once InfoPanel has been fully 
+            # # deprecated and volume summary has been updated.
+            # "detail": f"/documents/{self.pk}",
+            # "progress_page": f"/documents/{self.pk}#georeference",
             "split": full_reverse("split_view", args=(self.pk, )),
             "georeference": full_reverse("georeference_view", args=(self.pk, )),
         })

@@ -1,5 +1,5 @@
 import '../css/shared.css';
-import Participants from '../components/Participants.svelte';
+import Participants from './Participants.svelte';
 
 const participants = new Participants({
 	target: document.getElementById("participants-target"),

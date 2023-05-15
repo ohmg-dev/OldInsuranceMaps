@@ -1,12 +1,18 @@
 <script>
 import { slide } from 'svelte/transition';
 
+import Icon from 'svelte-icons-pack/Icon.svelte';
+import FiTool from 'svelte-icons-pack/fi/FiTool';
+import FiRefreshCcw from 'svelte-icons-pack/fi/FiRefreshCcw';
+import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
+
 import {getCenter} from 'ol/extent';
 
-import TitleBar from './TitleBar.svelte';
-import PlaceSelect from "./PlaceSelect.svelte";
-import VolumePreviewMap from "./VolumePreviewMap.svelte";
-import MultiTrim from "./MultiTrim.svelte";
+import TitleBar from '../components/TitleBar.svelte';
+import PlaceSelect from "../components/PlaceSelect.svelte";
+import VolumePreviewMap from "../components/VolumePreviewMap.svelte";
+import MultiTrim from "../components/MultiTrim.svelte";
+import ConditionalDoubleChevron from '../components/ConditionalDoubleChevron.svelte';
 
 import Utils from '../js/ol-utils';
 const utils = new Utils();
@@ -20,14 +26,16 @@ export let TITILER_HOST;
 
 $: sheetsLoading = VOLUME.status == "initializing...";
 
-let layersPresent = VOLUME.items.layers.length > 0;
 // This variable is used to trigger a reinit of the VolumePreviewMap component.
 // See https://svelte.dev/repl/65c80083b515477784d8128c3655edac?version=3.24.1
 let reinitMap = [{}]
 
 let hash = window.location.hash.substr(1);
+if (VOLUME.items.layers.length > 0 && hash === "") {
+	setHash("preview")
+}
 
-$: showMap = (hash == 'preview' || layersPresent);
+$: showMap = hash == 'preview';
 $: showUnprepared = hash == 'unprepared';
 $: showPrepared = hash == 'prepared';
 $: showGeoreferenced = hash == 'georeferenced';
@@ -131,6 +139,8 @@ const sideLinks = [
 ]
 
 function setHash(newHash) {
+	// override the exception that allows the preview map to be shown on initial load
+	// showPreviewOnLoad = false;
 	if (hash == newHash) { 
 		history.replaceState(null, document.title, window.location.pathname + window.location.search);
 		hash = null
@@ -164,8 +174,8 @@ function setHash(newHash) {
 		<div class="section-title-bar">
 			<button class="section-toggle-btn" disabled={VOLUME.items.layers.length == 0} 
 				on:click={() => {setHash('preview')}}>
-				<a id="preview"><h2 style="margin-right:10px">Mosaic Preview</h2></a>
-				<i class="header fa {showMap == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
+				<ConditionalDoubleChevron down={showMap} size="md"/>
+				<a id="preview"><h2>Mosaic Preview</h2></a>
 			</button>
 		</div>
 		{#if showMap}
@@ -182,8 +192,8 @@ function setHash(newHash) {
 	</section>
 	<section>
 		<div class="section-title-bar">
-			<a id="overview" class="no-link"><h2 style="margin-right:10px; display:inline-block;">Georeferencing Overview</h2>
-				<i class="header fa fa-angle-double-down"></i>
+			<ConditionalDoubleChevron down={true} size="md" /><a id="overview" class="no-link">
+				<h2 style="margin-right:10px; display:inline-block;">Georeferencing Overview</h2>
 			</a>
 		</div>
 		<div>
@@ -210,21 +220,20 @@ function setHash(newHash) {
 				{/if}
 				</div>
 				<div>
-					<button class="control-btn" title="Refresh Summary" on:click={() => { postOperation("refresh") }}>
-						<i class="fa fa-refresh" />
-					</button>
 					{#if USER_TYPE != "anonymous"}
-					<button id="repair-button" class="control-btn" title="Repair Summary (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
-						<i class="fa fa-wrench" />
+					<button class="control-btn" title="Repair Summary (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
+						<Icon src={FiTool} />
 					</button>
 					{/if}
+					<button class="control-btn" title="Refresh Summary" on:click={() => { postOperation("refresh") }}>
+						<Icon src={FiRefreshCcw} />
+					</button>
 				</div>
 			</div>
 			{#if USER_TYPE == 'anonymous' }
 			<div class="signin-reminder">
 			<p><em>
-				<!-- svelte-ignore a11y-invalid-attribute -->
-				<a href="#" data-toggle="modal" data-target="#SigninModal" role="button" >sign in</a> or
+				<a href="/account/login">sign in</a> or
 				<a href="/account/signup">sign up</a> to work on this content
 			</em></p>
 			</div>
@@ -232,15 +241,15 @@ function setHash(newHash) {
 			<section class="subsection">
 				<div class="subsection-title-bar">
 					<button class="section-toggle-btn" on:click={() => setHash("unprepared")}>
+						<ConditionalDoubleChevron down={showUnprepared} size="md" />
 						<a id="unprepared">
-						<h3 style="margin-right:10px">
-							Unprepared ({VOLUME.items.unprepared.length})
-							{#if VOLUME.items.processing.unprep != 0}
+							<h3>
+								Unprepared ({VOLUME.items.unprepared.length})
+								{#if VOLUME.items.processing.unprep != 0}
 								&mdash; {VOLUME.items.processing.unprep} in progress...
-							{/if}
-						</h3></a>
-						<i class="subheader fa {showUnprepared == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
-						
+								{/if}
+							</h3>
+						</a>
 					</button>
 				</div>
 				{#if showUnprepared}
@@ -283,8 +292,8 @@ function setHash(newHash) {
 			<section class="subsection">
 				<div class="subsection-title-bar">
 					<button class="section-toggle-btn" on:click={() => setHash("prepared")}>
-						<a id="prepared"><h3 style="margin-right:10px">Prepared ({VOLUME.items.prepared.length})</h3></a>
-						<i class="subheader fa {showPrepared == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
+						<ConditionalDoubleChevron down={showPrepared} size="md" />
+						<a id="prepared"><h3>Prepared ({VOLUME.items.prepared.length})</h3></a>
 					</button>
 				</div>
 				{#if showPrepared}
@@ -321,8 +330,8 @@ function setHash(newHash) {
 			<section class="subsection">
 				<div class="subsection-title-bar">
 					<button class="section-toggle-btn" on:click={() => setHash("georeferenced")}>
-						<a id="georeferenced"><h3 style="margin-right:10px">Georeferenced ({VOLUME.items.layers.length})</h3></a>
-						<i class="subheader fa {showGeoreferenced == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
+						<ConditionalDoubleChevron down={showGeoreferenced} size="md" />
+						<a id="georeferenced"><h3>Georeferenced ({VOLUME.items.layers.length})</h3></a>
 					</button>
 				</div>
 				{#if showGeoreferenced}
@@ -388,8 +397,8 @@ function setHash(newHash) {
 			<section class="subsection" style="border-bottom:none;">
 				<div class="subsection-title-bar">
 					<button class="section-toggle-btn" on:click={() => setHash('multimask')}>
-						<a id="multimask"><h3 style="margin-right:10px">Multimask ({mmLbl})</h3></a>
-						<i class="subheader fa {showMultimask == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
+						<ConditionalDoubleChevron down={showMultimask} size="md" />
+						<a id="multimask"><h3>MultiMask ({mmLbl})</h3></a>
 					</button>
 				</div>
 				{#if showMultimask}
@@ -411,13 +420,14 @@ function setHash(newHash) {
 	<section>
 		<div class="section-title-bar">
 			<button class="section-toggle-btn" on:click={() => setHash("download")}>
+				<ConditionalDoubleChevron down={showDownload} size="md"/>
 				<a id="download">
-				<h2 style="margin-right:10px">Download & Web Services</h2>
+					<h2 style="margin-right:10px; display: inline-block;">Download & Web Services</h2>
 				</a>
-				<i class="header fa {showDownload == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
 			</button>
 		</div>
-		<div class="section-content" style="display:{showDownload == true ? 'block' : 'none'};">
+		{#if showDownload}
+		<div transition:slide class="section-content">
 			<section class="subsection">
 				<p style="font-size:.9em;"><em>
 					Only layers that have been trimmed in the <a href="#multimask">Multimask</a> will appear in the mosaic. You can access untrimmed layers individually through the <a href="#georeferenced">Georeferenced</a> section above. If you appreciate these resources, please consider <a href="/#support">supporting this project</a>.
@@ -437,7 +447,7 @@ function setHash(newHash) {
 					<a href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/">Mapbox/MapLibre GL JS</a>,
 					<a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
 					<a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
-					<br>Open in the <a href="{ohmUrl}" alt="Open mosaic in OHM Editor" target="_blank">Open Historical Map editor <i class="fa fa-external-link"></i></a>.
+					<br>Open in the <a href="{ohmUrl}" alt="Open mosaic in OHM Editor" target="_blank">Open Historical Map editor <Icon src={FiExternalLink} /></a>.
 				</p>
 				{/if}
 			</section>
@@ -445,13 +455,12 @@ function setHash(newHash) {
 				<p><strong>GeoTIFF</strong> mosaic downloads of this entire volume are available <a href="mailto:hello@oldinsurancemaps.net">upon request</a>.</p>
 			</section>
 		</div>
+		{/if}
 	</section>
 	<section style="border-bottom:none;">
 		<div class="section-title-bar">
-			<a id="contributors" class="no-link"><h2 style="margin-right:10px; display: inline-block;">
-				Contributors & Attribution
-			</h2>
-			<i class="header fa fa-angle-double-down"></i>
+			<ConditionalDoubleChevron down={true} size="md"/><a id="contributors" class="no-link">
+				<h2 style="margin-right:10px; display: inline-block;">Contributors & Attribution</h2>
 			</a>
 		</div>
 		<div class="section-content" style="display:flex'; flex-direction:column;">
@@ -463,7 +472,7 @@ function setHash(newHash) {
 				{#each VOLUME.sessions.georef_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.georef_contributors.length-1}, {/if}{/each}{/if}
 			</p>
 			<p><strong>Credit Line: Library of Congress, Geography and Map Division, Sanborn Maps Collection.</strong>
-			<a href="{VOLUME.urls.loc_resource}" target="_blank">View item on loc.gov <i class="fa fa-external-link"></i></a></p>
+			<a href="{VOLUME.urls.loc_resource}" target="_blank">View item on loc.gov <Icon src={FiExternalLink} /></a></p>
 		</div>
 	</section>
 </main>

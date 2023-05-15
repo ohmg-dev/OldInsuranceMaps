@@ -1,14 +1,17 @@
 <script>
+import Icon from 'svelte-icons-pack/Icon.svelte';
+import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
 export let USER;
 </script>
 <nav class="lahmg-nav">
 	<div>
 		<div>
 			<a href="/" title="LaHMG">
-				<img src="/static/img/colored-full-linework.png" alt="LaHMG" class="navbar-brand-new">
-				&nbsp;&nbsp;
-				<strong>Home</strong>
+				<img style="height:45px; width:45px;" src="/static/img/colored-full-linework.png" alt="LaHMG" class="navbar-brand-new">
 			</a>
+		</div>
+		<div>
+			<a href="/" title="Home">Home</a>
 		</div>
 		<div>
 			<a href="/browse" title="Browse">Browse</a>
@@ -20,7 +23,7 @@ export let USER;
 			<a href="/#support" title="Support this project">Support</a>
 		</div>
 		<div>
-			<a href="https://ohmg.dev" title="Browse">About <i class="fa fa-external-link"></i></a>
+			<a href="https://ohmg.dev" title="Browse">About <Icon src={FiExternalLink} /></a>
 		</div>
 	</div>
 	<div>
@@ -60,6 +63,7 @@ nav.lahmg-nav {
 	color:white;
 	font-weight: 500;
 	overflow-x: auto;
+	border: none;
 }
 
 nav.lahmg-nav a {
@@ -81,7 +85,8 @@ nav.lahmg-nav div div {
 	white-space: nowrap;
 }
 
-.navbar-brand-new {
+/* .navbar-brand-new {
 	height: 45px;
-}
+	width: 45px;
+} */
 </style>

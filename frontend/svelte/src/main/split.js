@@ -1,5 +1,5 @@
 import '../css/interface.css';
-import Split from '../components/Split.svelte';
+import Split from './Split.svelte';
 import '../css/ol-overrides.css'
 
 const app = new Split({

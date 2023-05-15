@@ -1,5 +1,10 @@
 <script>
 import {onMount} from 'svelte';
+
+import Icon from 'svelte-icons-pack/Icon.svelte';
+import FiRefreshCcw from 'svelte-icons-pack/fi/FiRefreshCcw';
+import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
+
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
@@ -26,7 +31,7 @@ import LineString from 'ol/geom/LineString';
 
 import Styles from '../js/ol-styles-georeference';
 
-import TitleBar from './TitleBar.svelte';
+import TitleBar from '../components/TitleBar.svelte';
 
 const styles = new Styles();
 
@@ -389,7 +394,7 @@ const iconLinks = [
   </div>
 </div>
 <TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks}/>
-<p>{currentTxt} <a href="https://ohmg.dev/docs/making-the-mosaics/preparation" target="_blank">Learn more <i class="fa fa-external-link"></i></a></p>
+<p>{currentTxt} <a href="https://ohmg.dev/docs/making-the-mosaics/preparation" target="_blank">Learn more <Icon src={FiExternalLink} /></a></p>
 <div class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
@@ -427,10 +432,10 @@ const iconLinks = [
     </div>
     
     <div class="tb-top-item">
-      <button title="Run split operation" disabled={divisions.length<=1 || !enableButtons} on:click={() => {process("split")}}>Split</button>
-      <button title="No split needed" disabled={divisions.length>0 || !enableButtons} on:click={() => {process("no_split")}}>No Split Needed</button>
-      <button title="Cancel this preparation" disabled={session_id == null || !enableButtons} on:click={() => {process("cancel")}}>Cancel</button>
-      <button title="Reset interface" disabled={unchanged} on:click={resetInterface}><i id="fs-icon" class="fa fa-refresh" /></button>
+      <button class="control-btn" title="Run split operation" disabled={divisions.length<=1 || !enableButtons} on:click={() => {process("split")}}>Split</button>
+      <button class="control-btn" title="No split needed" disabled={divisions.length>0 || !enableButtons} on:click={() => {process("no_split")}}>No Split Needed</button>
+      <button class="control-btn" title="Cancel this preparation" disabled={session_id == null || !enableButtons} on:click={() => {process("cancel")}}>Cancel</button>
+      <button class="control-btn" title="Reset interface" disabled={unchanged} on:click={resetInterface}><Icon src={FiRefreshCcw} /></button>
     </div>
   </nav>
   <div class="map-container" style="border-top: 1.5px solid rgb(150, 150, 150)">

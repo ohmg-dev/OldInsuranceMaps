@@ -1,39 +1,42 @@
 <script>
+import Icon from 'svelte-icons-pack/Icon.svelte';
+import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
+
 export let USER;
 </script>
-<nav class="lahmg-footer">
+<footer class="lahmg-footer">
 	<div class="main-row">
 		<div>
 			<h4>Content</h4>
 			<ul>
 				<li><a href="/browse">Browse Maps</a></li>
 				<li><a href="/people">Participants</a></li>
-				<li><a href="https://github.com/mradamcox/loc-insurancemaps">GitHub <i class="fa fa-external-link"></i></a></li>
+				<li><a href="https://github.com/mradamcox/loc-insurancemaps">GitHub <Icon src={FiExternalLink} /></a></li>
 			</ul>
 		</div>
 		<div>
 			<h4>Learn More</h4>
 			<ul>
-				<li><a href="https://ohmg.dev/faq">FAQ <i class="fa fa-external-link"></i></a></li>
-				<li><a href="https://ohmg.dev/docs">Documentation <i class="fa fa-external-link"></i></a></li>
-				<li><a href="https://ohmg.dev/docs/category/sanborn-maps-1">About Sanborn Maps <i class="fa fa-external-link"></i></a></li>
+				<li><a href="https://ohmg.dev/faq">FAQ <Icon src={FiExternalLink} /></a></li>
+				<li><a href="https://ohmg.dev/docs">Documentation <Icon src={FiExternalLink} /></a></li>
+				<li><a href="https://ohmg.dev/docs/category/sanborn-maps-1">About Sanborn Maps <Icon src={FiExternalLink} /></a></li>
 			</ul>
 		</div>
 		<div>
 			<h4>News & Updates</h4>
 			<ul>
 				<li><a href="/newsletter/lahmg-news/archive" >Newsletter Archive</a></li>
-				<li><a href="https://ohmg.dev/blog" >Blog <i class="fa fa-external-link"></i></a></li>
-				<li><a href="/#contact" >Contact <i class="fa fa-external-link"></i></a></li>
+				<li><a href="https://ohmg.dev/blog" >Blog <Icon src={FiExternalLink} /></a></li>
+				<li><a href="/#contact" >Contact <Icon src={FiExternalLink} /></a></li>
 			</ul>
 		</div>
 	</div>
 	<div style="color:lightgrey; text-align:right;">
 		<p>Copyright © 2023</p>
 	</div>
-</nav>
+</footer>
 <style>
-	nav.lahmg-footer {
+	footer {
 		display: flex;
 		flex-direction: column;
 		background:#123B4F;
@@ -47,12 +50,12 @@ export let USER;
 		flex-direction: row;
 		justify-content: space-around;
 	}
-	nav.lahmg-footer a {
+	footer a {
 		color: white;
 		text-decoration: none;
 	}
 
-	nav.lahmg-footer > div {
+	footer > div {
 		margin: 0px 10px;
 	}
 

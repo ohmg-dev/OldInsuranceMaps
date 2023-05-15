@@ -1,3 +1,4 @@
+import re
 import logging
 
 from django.conf import settings
@@ -10,6 +11,16 @@ from loc_insurancemaps.models import Volume
 from places.models import Place
 
 logger = logging.getLogger(__name__)
+
+def mobile(request):
+    """Return True if the request comes from a mobile device."""
+
+    MOBILE_AGENT_RE=re.compile(r".*(iphone|mobile|androidtouch)",re.IGNORECASE)
+
+    if MOBILE_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
+        return True
+    else:
+        return False
 
 
 class PlaceView(View):
@@ -60,6 +71,7 @@ class Viewer(View):
                 "VOLUMES": volumes,
                 "TITILER_HOST": settings.TITILER_HOST,
                 "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+                "ON_MOBILE": mobile(request),
             }
         }
         return render(

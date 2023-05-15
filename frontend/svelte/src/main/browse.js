@@ -1,5 +1,5 @@
 import '../css/shared.css';
-import Browse from '../components/Browse.svelte';
+import Browse from './Browse.svelte';
 
 const browse = new Browse({
 	target: document.getElementById("browse-target"),

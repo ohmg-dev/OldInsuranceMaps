@@ -1,4 +1,4 @@
-import Index from '../components/Index.svelte';
+import Index from './Index.svelte';
 
 const index = new Index({
 	target: document.getElementById("index-target"),

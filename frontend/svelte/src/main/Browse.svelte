@@ -1,7 +1,7 @@
 <script>
-import Volumes from './Volumes.svelte';
-import Places from './Places.svelte';
-import MapBrowse from './MapBrowse.svelte';
+import Volumes from '../components/Volumes.svelte';
+import Places from '../components/Places.svelte';
+import MapBrowse from '../components/MapBrowse.svelte';
 
 export let PLACES_GEOJSON_URL;
 export let PLACES_CT;

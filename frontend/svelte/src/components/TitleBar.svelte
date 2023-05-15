@@ -1,4 +1,7 @@
 <script>
+    import Icon from 'svelte-icons-pack/Icon.svelte';
+    import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
+
     export let IMG_URL;
     export let TITLE;
     export let SIDE_LINKS;
@@ -26,7 +29,7 @@
     {#if SIDE_LINKS.length > 0}
     <div class="link-box">
         {#each SIDE_LINKS as link}
-            <a href={link.url} title={link.alt ? link.alt : link.display} target={link.external ? "_blank" : "_self"}>{link.display} {#if link.external}<i class="fa fa-external-link"></i>{:else}&rarr;{/if}</a>
+            <a href={link.url} title={link.alt ? link.alt : link.display} target={link.external ? "_blank" : "_self"}>{link.display} {#if link.external}<Icon src={FiExternalLink} />{:else}&rarr;{/if}</a>
         {/each}
     </div>
     {/if}
@@ -37,7 +40,6 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin: 10px 0px 15px 0px;
         padding-bottom: 10px;
         border-bottom: 1px solid rgb(149, 149, 149);
     }

@@ -14,10 +14,10 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  margin: 5px 0px;
-  padding: 0px 5px;
+  padding: 5px;
+  background: lightgrey;
 }
-
+/* 
 .svelte-component-main nav button {
   height: 30px;
   min-width: 25px;
@@ -29,7 +29,7 @@
 .svelte-component-main nav button:disabled {
   color: grey;
   background: rgb(235, 235, 235);;
-}
+} */
 
 .svelte-component-main nav label {
   margin: 0px;

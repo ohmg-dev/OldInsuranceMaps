@@ -1,6 +1,6 @@
 <script>
 import {TableSort} from 'svelte-tablesort';
-import TitleBar from './TitleBar.svelte';
+import TitleBar from '../components/TitleBar.svelte';
 
 export let USER_API_URL;
 export let OHMG_API_KEY;

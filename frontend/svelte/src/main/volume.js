@@ -1,7 +1,7 @@
 import '../css/shared.css';
 import '../css/interface.css';
 
-import Volume from '../components/Volume.svelte';
+import Volume from './Volume.svelte';
 import '../css/ol-overrides.css'
 
 const volume = new Volume({

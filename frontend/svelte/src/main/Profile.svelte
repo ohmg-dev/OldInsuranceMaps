@@ -1,6 +1,10 @@
 <script>
+import { slide } from 'svelte/transition';
 import {TableSort} from 'svelte-tablesort';
-import TitleBar from './TitleBar.svelte';
+
+import TitleBar from '../components/TitleBar.svelte';
+import ConditionalDoubleChevron from '../components/ConditionalDoubleChevron.svelte';
+import PaginationButtons from '../components/buttons/PaginationButtons.svelte';
 
 export let CURRENT_USERNAME;
 export let PROFILE_USER;
@@ -11,11 +15,8 @@ export let OHMG_API_KEY;
 let myProfile = CURRENT_USERNAME === PROFILE_USER.username;
 
 let sessions = [];
-let sessions_next_url;
-let sessions_previous_url;
 let loadingSessions = false;
 let showSessions = true;
-let showSummary = false;
 
 let currentOffset = 0;
 let sessionTotal = 0
@@ -67,54 +68,36 @@ function getPreviousResults() {
 	{#if myProfile}
 	<section>
 		<div class="section-title-bar">
-			<a class="no-link"><h2 style="margin-right:10px">My Account</h2></a>
+			<h2>My Account</h2>
 		</div>
 		<div class="section-content">
-			<a href="/account/password/change/" title="Change password">change my password</a>
-			<a href="{CHANGE_AVATAR_URL}" title="Change profile picture">change my profile picture</a>
+			<ul>
+				<li><a href="/account/password/change/" title="Change password">change my password</a></li>
+				<li><a href="{CHANGE_AVATAR_URL}" title="Change profile picture">change my profile picture</a></li>
+			</ul>
 		</div>
 	</section>
 	{/if}
-	<!--
-	<section>
-		<div class="section-title-bar">
-			<button class="section-toggle-btn"
-				on:click={() => {showSummary = !showSummary}}>
-				<a id="preview"><h2 style="margin-right:10px">
-					{#if myProfile}My {/if}Content Summary
-				</h2></a>
-				<i class="header fa {showSummary == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
-			</button>
-		</div>
-		{#if showSummary}
-		<div class="section-content">
-		</div>
-		{/if}
-	</section>
-	-->
 	<section>
 		<div class="section-title-bar">
 			<button class="section-toggle-btn"
 				on:click={() => {showSessions = !showSessions}}>
+				<ConditionalDoubleChevron down={showSessions} size="md" />
 				<a id="preview"><h2 style="margin-right:10px">
 					{#if myProfile}My {/if}Session History
 				</h2></a>
-				<i class="header fa {showSessions == true ? 'fa-angle-double-down' : 'fa-angle-double-right'}"></i>
 			</button>
 		</div>
 		{#if showSessions}
-		<div class="section-content">
-			<div>
-				<button disabled={currentOffset < apiLimit || loadingSessions} on:click={getPreviousResults}>
-					<i class="fa fa-angle-double-left"></i>
-					newer
-				</button>
-				{currentOffset} - {currentOffset + apiLimit < sessionTotal ? currentOffset + apiLimit : sessionTotal} ({sessionTotal})
-				<button disabled={currentOffset + apiLimit >= sessionTotal || loadingSessions} on:click={getNextResults}>
-					older
-					<i class="fa fa-angle-double-right"></i>
-				</button>
-			</div>
+		<div class="section-content" transition:slide>
+			<PaginationButtons
+				loading={loadingSessions}
+				currentOffset={currentOffset}
+				apiLimit={apiLimit}
+				total={sessionTotal}
+				getPrevious={getPreviousResults}
+				getNext={getNextResults}
+				/>
 			{#if loadingSessions}
 			<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
 			{:else}

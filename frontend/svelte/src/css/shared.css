@@ -167,3 +167,8 @@ tbody tr:nth-child(odd){
 	  width: 100%;
 	}
   }
+
+  .reloading-btn.active {
+	color: white;
+	background: black;
+  }

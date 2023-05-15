@@ -1,7 +1,13 @@
 <script>
 import { slide } from 'svelte/transition';
-
 import {onMount} from 'svelte';
+
+import Icon from 'svelte-icons-pack/Icon.svelte';
+import FiScissors from 'svelte-icons-pack/fi/FiScissors';
+import FiCheck from 'svelte-icons-pack/fi/FiCheck';
+import FiEdit from 'svelte-icons-pack/fi/FiEdit';
+import FiRotateCcw from 'svelte-icons-pack/fi/FiRotateCcw';
+import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -14,7 +20,8 @@ import {ImageStatic, XYZ} from 'ol/source';
 import {Tile as TileLayer, Image as ImageLayer} from 'ol/layer';
 
 import Utils from '../js/ol-utils';
-import TitleBar from './TitleBar.svelte';
+import TitleBar from '../components/TitleBar.svelte';
+import ConditionalDoubleChevron from '../components/ConditionalDoubleChevron.svelte';
 const utils = new Utils();
 
 export let CSRFTOKEN;
@@ -238,34 +245,35 @@ const iconLinks = [
     <div id="sidebar">
       <section >
         <p><strong>Status:</strong> {RESOURCE.status}{processing ? " in progress..." : ""}
-          <!--<button id="refresh-button" title="refresh overview" on:click={refresh}><i class="fa fa-refresh" /></button>-->
         </p>
       </section>
       <section>
-        <h4 class="expandable" on:click={() => showPrep = !showPrep}>Preparation <i class="fa fa-{showPrep == true ? 'angle-double-down' : 'angle-double-right'}"></i></h4>
+        <h4 class="expandable" on:click={() => showPrep = !showPrep}>
+          <ConditionalDoubleChevron down={showPrep} />
+          Preparation</h4>
         {#if showPrep}
         <div transition:slide>
           <div class="section-btn-row">
-            <button 
+            <button
               title="Click to split this document"
               disabled={!splitBtnEnabled}
               onclick="window.location.href='{RESOURCE.urls.split}'"
-              class="{splitNeeded == true ? 'btn-chosen': ''}">
-              <i class="fa fa-cut" />
+              class="control-btn{splitNeeded == true ? ' btn-chosen': ''}">
+              <Icon src={FiScissors} />
             </button>
-            <button 
+            <button
               title="Click to set this document as prepared"
               disabled={!noSplitBtnEnabled}
               on:click={() => {setSplit("no_split")}}
-              class="{splitNeeded == false ? 'btn-chosen': ''}">
-              <i class="fa fa-check-square-o" />
+              class="control-btn{splitNeeded == false ? ' btn-chosen': ''}">
+              <Icon src={FiCheck} />
             </button>
             <!--
             <button 
               title={undoBtnTitle}
               disabled={!undoBtnEnabled}
               on:click={() => {setSplit("undo")}}>
-              <i class="fa fa-undo" />
+              <Icon src={FiRotateCcw} />
             </button>
             -->
           </div>
@@ -310,7 +318,10 @@ const iconLinks = [
         {/if}
       </section>
       <section>
-        <h4 class="expandable" on:click={() => showGeoreference = !showGeoreference}>Georeferencing <i class="fa fa-{showGeoreference == true ? 'angle-double-down' : 'angle-double-right'}"></i></h4>
+        <h4 class="expandable" on:click={() => showGeoreference = !showGeoreference}>
+          <ConditionalDoubleChevron down={showGeoreference} />
+          Georeferencing
+        </h4>
         {#if showGeoreference}
         <div transition:slide>
           <div class="section-btn-row">
@@ -318,7 +329,7 @@ const iconLinks = [
               title={georeferenceBtnTitle}
               disabled={!georeferenceBtnEnable}
               onclick="window.location.href='{RESOURCE.urls.georeference}'">
-              <i class="fa fa-map-pin" />{georeferenceBtnTitle}
+              <Icon src={FiEdit} />{georeferenceBtnTitle}
             </button>
           </div>
           <div class="section-body">
@@ -374,7 +385,10 @@ const iconLinks = [
         
       </section>
       <section style="border-bottom:none;">
-        <h4 class="expandable" on:click={() => showDownloads = !showDownloads}>Downloads & Web Services<i class="fa fa-{showDownloads == true ? 'angle-double-down' : 'angle-double-right'}"></i></h4>
+        <h4 class="expandable" on:click={() => showDownloads = !showDownloads}>
+          <ConditionalDoubleChevron down={showDownloads} />
+          Downloads & Web Services
+        </h4>
         {#if showDownloads}
         <div transition:slide>
           <!-- super duper messy for now...-->
@@ -402,7 +416,7 @@ const iconLinks = [
               <a href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/">Mapbox/MapLibre GL JS</a>,
               <a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
               <a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
-              <!--<br><a href="{ohmUrl}" alt="Open mosaic in OHM iD editor" target="_blank">Open Historical Map iD editor<i class="fa fa-external-link"></i></a> (direct link).-->
+              <!--<br><a href="{ohmUrl}" alt="Open in OHM iD editor" target="_blank">Open Historical Map iD editor<Icon src={FiExternalLink} /></a> (direct link).-->
             </p>
           {/if}
         </div>

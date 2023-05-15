@@ -2,6 +2,14 @@
 import {onMount} from 'svelte';
 import { slide } from 'svelte/transition';
 
+import Icon from 'svelte-icons-pack';
+import FiCrosshair from 'svelte-icons-pack/fi/FiCrosshair';
+import FiX from 'svelte-icons-pack/fi/FiX';
+import FiMoreHorizontal from 'svelte-icons-pack/fi/FiMoreHorizontal';
+import FiMaximize from 'svelte-icons-pack/fi/FiMaximize';
+import FiCode from 'svelte-icons-pack/fi/FiCode';
+import FiLayers from 'svelte-icons-pack/fi/FiLayers';
+
 import sync from 'ol-hashed';
 
 import {createEmpty} from 'ol/extent';
@@ -41,9 +49,9 @@ export let PLACE;
 export let MAPBOX_API_KEY;
 export let VOLUMES;
 export let TITILER_HOST;
+export let ON_MOBILE;
 
 let showPanel = true;
-$: showHideBtnIcon = showPanel ? "✖" : "•••";
 
 let volumeIds = [];
 let volumeLookup = {};
@@ -393,6 +401,10 @@ function MapViewer (elementId) {
 		})
 	);
 
+	if (ON_MOBILE){
+		map.on('singleclick', function() { showPanel = !showPanel })
+	}
+
 	sync(map);
 	this.map = map;
 }
@@ -406,6 +418,10 @@ function toggleDetails(id) {
 	el.style.display = el.style.display ? "" : "flex";
 }
 
+function getCompletedStr(id) {
+	return `${volumeLookup[id].progress.georef_ct}/${volumeLookup[id].progress.unprep_ct+volumeLookup[id].progress.prep_ct+volumeLookup[id].progress.georef_ct}`
+} 
+
 
 </script>
 {#if showAboutPanel}
@@ -416,7 +432,7 @@ function toggleDetails(id) {
 			<li>Use
 				<i class="transparency-toggle full-circle"/> /
 				<i class="transparency-toggle half-circle"/> /
-				<i class="transparency-toggle empty-circle"/>
+				<i class="transparency-toggle empty-circle"/>, or the slider,
 				to change layer opacity</li>
 			<li>Share the browser URL at any time to retain current location and layer settings</li>
 		</ul>
@@ -432,7 +448,9 @@ function toggleDetails(id) {
 {/if}
 <main>
 	<div id="locate-button" class="ol-control ol-unselectable">
-		<button title="Show my location" on:click={locateUser}><i class="fa fa-crosshairs"></i></button>
+		<button title="Show my location" on:click={locateUser}>
+			<Icon src={FiCrosshair} />
+		</button>
 	</div>
 	<div id="map">
 		{#if currentBasemap == "satellite"}
@@ -440,16 +458,20 @@ function toggleDetails(id) {
 		{/if}
 	</div>
 	<div id="panel-btn">
-		<button on:click={() => {showPanel=!showPanel}} style="{showPanel ? 'border-color:#333; color:#333;' : ''};">
-			<span>{showHideBtnIcon}</span>
+		<button class="control-btn" on:click={() => {showPanel=!showPanel}}>
+			{#if showPanel}
+			<Icon src={FiX} />
+			{:else}
+			<Icon src={FiLayers} />
+			{/if}
 		</button>
 	</div>
 	{#if showPanel}
 	<div id="layer-panel" style="display:{showPanel == true ? 'flex' : 'none'}">
 		<div class="control-panel-buttons">
-			<button title="Change basemap" on:click={toggleBasemap}><i class="fa fa-exchange" /></button>
-			<button title="{watchId ? 'Disable' : 'Show'} my location" on:click={toggleGPSLocation} style="color:{watchId ? 'blue' : 'black'}"><i class="fa fa-crosshairs" /></button>
-			<button title="Reset to original extent and settings" on:click={resetExtent}><i class="fa fa-refresh" /></button>
+			<button class="control-btn" title="Change basemap" on:click={toggleBasemap}><Icon src={FiCode} /></button>
+			<button class="control-btn" title="{watchId ? 'Disable' : 'Show'} my location" on:click={toggleGPSLocation} style="{watchId ? 'color:blue' : ''}"><Icon src={FiCrosshair} /></button>
+			<button class="control-btn" title="Reset to original extent and settings" on:click={resetExtent}><Icon src={FiMaximize} /></button>
 		</div>
 		<div class="control-panel-title">
 			<h1>{PLACE.display_name}</h1>
@@ -459,20 +481,28 @@ function toggleDetails(id) {
 			{#each volumeIds as id }
 			<div class="volume-item">
 				<div class="volume-header">
-					<button class="toggle-button" disabled={!volumeLookup[id].mainLayer} on:click={() => toggleLayerTransparencyIcon(id)}>
-						<i class="{volumeLookup[id].mainLayer != undefined ? 'transparency-toggle' : ''} {getClass(volumeLookup[id].mainLayerO)}" style="{volumeLookup[id].mainLayer != undefined ? '' : 'background:grey;border-color:grey;'}"  />
-						<span>{volumeLookup[id].displayName}</span>
-					</button>
-					<button style="" on:click={() => toggleDetails(id)}>•••</button>
-					<input type=range disabled={volumeLookup[id].mainLayer ? "" : "disabled"} class="transparency-slider" bind:value={volumeLookup[id].mainLayerO} on:mouseup={syncUrlParams} min=0 max=100>
+					<div>
+						<button class="toggle-button" disabled={!volumeLookup[id].mainLayer} on:click={() => toggleLayerTransparencyIcon(id)}>
+							<i class="{volumeLookup[id].mainLayer != undefined ? 'transparency-toggle' : ''} {getClass(volumeLookup[id].mainLayerO)}" style="{volumeLookup[id].mainLayer != undefined ? '' : 'background:grey;border-color:grey;'}"  />
+							<span>{volumeLookup[id].displayName}</span>
+						</button>
+						<input type=range disabled={volumeLookup[id].mainLayer ? "" : "disabled"} class="transparency-slider" bind:value={volumeLookup[id].mainLayerO} on:mouseup={syncUrlParams} min=0 max=100>
+					</div>
+					<div>
+						<button style="" on:click={() => toggleDetails(id)}><Icon src={FiMoreHorizontal} size="1.5em" /></button>
+					</div>
 				</div>
 				<div id="{id}" class="volume-detail">
-					<span title="{volumeLookup[id].progress.georef_ct}/{volumeLookup[id].progress.unprep_ct+volumeLookup[id].progress.prep_ct+volumeLookup[id].progress.georef_ct} georeferenced">
-						{volumeLookup[id].progress.percent}% done
-					</span>
-					<a title="The full summary includes content from this year that has not yet been georeferenced." href="{volumeLookup[id].summaryUrl}">
-						Go to full summary &rarr;
-					</a>
+					<div>
+						<span title="{getCompletedStr(id)} georeferenced">
+							{volumeLookup[id].progress.percent}&percnt; ({getCompletedStr(id)})
+						</span>
+					</div>
+					<div>
+						<a title="The full summary includes content that has not yet been georeferenced." href="{volumeLookup[id].summaryUrl}">
+							Summary &rarr;
+						</a>
+					</div>
 				</div>
 			</div>
 			{/each}
@@ -497,7 +527,7 @@ main {
 	display: flex;
 }
 h1, h2 {
-	font-size: 1.5em;
+	font-size: 1.4em;
 	margin-top: 10px;
 	margin-bottom: 10px;
 }
@@ -526,7 +556,7 @@ h1, h2 {
 }
 
 #locate-button {
-  top: 6em;
+  top: 4em;
   left: .5em;
 }
 
@@ -540,28 +570,14 @@ h1, h2 {
 	position: absolute;
 	top: .5em;
 	right: .5em;
-	width: 50px;
 	height: 1.5em;
 	text-align: center;
 	z-index: 1000;
 	
 }
 
-#panel-btn button {
-	display: inline-flex;
-  	align-items: center;
-	justify-content: center;
-	color: #666666;
-	background: lightgrey;
-	border-radius: 4px;
-	border: 1px solid #333333;
-	cursor: pointer;
-	width: 50px;
-	font-size: 1.2em;
-}
-
-#panel-btn button:hover {
-	color: #333333;
+#panel-btn > button {
+	border-color:black;
 }
 
 #layer-panel {
@@ -591,7 +607,7 @@ h1, h2 {
 }
 
 .control-panel-title {
-	padding: 10px;
+	padding: 5px;
 }
 .control-panel-title h1 {
 	margin: 0;
@@ -601,6 +617,10 @@ h1, h2 {
 	justify-content: start;
 	padding-right: 50px;
 	width: 100%;
+}
+
+.control-panel-buttons > button {
+	margin-left: 10px;
 }
 
 .control-panel-content {
@@ -641,10 +661,15 @@ h1, h2 {
 .volume-header, .volume-detail {
 	display: flex;
 	flex-direction: row;
-	justify-content: space-around;
-	align-items: center;
+	justify-content: space-between;
 	height: 30px;
 	width: 100%;
+}
+.volume-detail {
+	padding: 0px 5px;
+}
+.volume-detail > div:first-child {
+	margin-right: 10px;
 }
 
 .volume-header button {
@@ -755,14 +780,6 @@ h1, h2 {
 		right: 0;
 		left: 0;
 		bottom: 3em;
-		margin-right: auto;
-		margin-left: auto;
-	}
-	#panel-btn {
-		top: unset;
-		right: 0;
-		left: 0;
-		bottom: 1em;
 		margin-right: auto;
 		margin-left: auto;
 	}
