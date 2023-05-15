@@ -6,8 +6,8 @@ loc_insurancemaps/temp
 mapserver.map
 .celery_results
 
-frontend/components/node_modules
-frontend/components/public
+frontend/svelte/node_modules
+frontend/svelte/public
 
 _system-configs
 .env

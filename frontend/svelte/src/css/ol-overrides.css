@@ -1,0 +1,30 @@
+.ol-control > button {
+    background: #2c689c !important;
+}
+
+.ol-mouse-position {
+    background: rgba(255,255,255,0.5) !important;
+    padding: 1px 5px !important;
+    cursor: default !important;
+    border-radius: 4px !important;
+}
+
+.ol-rotate {
+    top: 6em !important;
+    left: .5em !important;
+    right: unset !important;
+}
+
+@media only screen and (max-width: 480px) {
+
+    #locate-button {
+    	top: 6em !important;
+	}
+	.ol-rotate {
+    	top: 9em !important;
+	}
+}
+
+/* .ol-rotate-reset {
+    background: #2c689c !important;
+} */

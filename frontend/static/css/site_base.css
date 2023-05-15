@@ -1,9 +1,51 @@
+html, * {
+	font-family: 'Josefin Sans', sans-serif;
+}
+
 body {
-  font-family: 'Josefin Sans', sans-serif;
   letter-spacing: -.3px;
   padding-top: 60px;
   background-color: #F7F1E1;
 }
+
+:root {
+	--universal-margin: 0;
+	--universal-padding: 0;
+	--header-back-color: #123B4F;
+	--header-hover-back-color: #123B4F;
+	--header-fore-color: white;
+	--footer-back-color: #123B4F;
+	--footer-fore-color: white;
+}
+
+a.button {
+	text-transform: none;
+}
+
+button.control-btn {
+	display: flex;
+	align-items: center;
+	border-radius: 4px;
+	font-size: 19.2px;
+	color: #1b4060;
+	height: 30px;
+}
+
+button.control-btn.tool-ui {
+	color: white;
+	background: #1b4060;
+}
+
+button.control-btn.tool-ui:hover {
+	background: #2c689c;
+	color:white;
+}
+
+button.control-btn[disabled], button.control-btn[disabled]:hover {
+	color: darkslategrey;
+	background: lightgrey;
+}
+
 @media (max-width: 991px) {
 	body {
 	  padding-top: 60px;
