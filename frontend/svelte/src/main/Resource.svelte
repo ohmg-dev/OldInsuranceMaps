@@ -5,9 +5,11 @@ import {onMount} from 'svelte';
 import Icon from 'svelte-icons-pack/Icon.svelte';
 import FiScissors from 'svelte-icons-pack/fi/FiScissors';
 import FiCheck from 'svelte-icons-pack/fi/FiCheck';
+import FiCheckSquare from 'svelte-icons-pack/fi/FiCheckSquare';
 import FiEdit from 'svelte-icons-pack/fi/FiEdit';
 import FiRotateCcw from 'svelte-icons-pack/fi/FiRotateCcw';
 import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
+import FaSolidMapPin from 'svelte-icons-pack/fa/FaSolidMapPin';
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -253,20 +255,20 @@ const iconLinks = [
           Preparation</h4>
         {#if showPrep}
         <div transition:slide>
-          <div class="section-btn-row">
+          <div class="control-btn-group">
             <button
-              title="Click to split this document"
+              title="Split this document"
               disabled={!splitBtnEnabled}
               onclick="window.location.href='{RESOURCE.urls.split}'"
               class="control-btn{splitNeeded == true ? ' btn-chosen': ''}">
               <Icon src={FiScissors} />
             </button>
             <button
-              title="Click to set this document as prepared"
+              title="This document does not need to be split"
               disabled={!noSplitBtnEnabled}
               on:click={() => {setSplit("no_split")}}
               class="control-btn{splitNeeded == false ? ' btn-chosen': ''}">
-              <Icon src={FiCheck} />
+              <Icon src={FiCheckSquare} />
             </button>
             <!--
             <button 
@@ -329,7 +331,7 @@ const iconLinks = [
               title={georeferenceBtnTitle}
               disabled={!georeferenceBtnEnable}
               onclick="window.location.href='{RESOURCE.urls.georeference}'">
-              <Icon src={FiEdit} />{georeferenceBtnTitle}
+              <Icon src={FaSolidMapPin} color="white" />{georeferenceBtnTitle}
             </button>
           </div>
           <div class="section-body">

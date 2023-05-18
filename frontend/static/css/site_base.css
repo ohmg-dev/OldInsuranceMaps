@@ -46,6 +46,11 @@ button.control-btn[disabled], button.control-btn[disabled]:hover {
 	background: lightgrey;
 }
 
+.control-btn-group {
+	display: flex;
+	flex-direction: row;
+}
+
 @media (max-width: 991px) {
 	body {
 	  padding-top: 60px;

@@ -219,7 +219,7 @@ function setHash(newHash) {
 					<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
 				{/if}
 				</div>
-				<div>
+				<div class="control-btn-group">
 					{#if USER_TYPE != "anonymous"}
 					<button class="control-btn" title="Repair Summary (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
 						<Icon src={FiTool} />

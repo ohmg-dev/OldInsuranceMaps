@@ -4,6 +4,12 @@ import {onMount} from 'svelte';
 import Icon from 'svelte-icons-pack/Icon.svelte';
 import FiRefreshCcw from 'svelte-icons-pack/fi/FiRefreshCcw';
 import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
+import FiMinimize2 from 'svelte-icons-pack/fi/FiMinimize2';
+import FiMaximize2 from 'svelte-icons-pack/fi/FiMaximize2';
+import FiCheckSquare from 'svelte-icons-pack/fi/FiCheckSquare';
+import FiScissors from 'svelte-icons-pack/fi/FiScissors';
+import FiRotateCcw from 'svelte-icons-pack/fi/FiRotateCcw';
+import FiX from 'svelte-icons-pack/fi/FiX';
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -32,6 +38,7 @@ import LineString from 'ol/geom/LineString';
 import Styles from '../js/ol-styles-georeference';
 
 import TitleBar from '../components/TitleBar.svelte';
+import {toggleFullscreen} from '../js/utils';
 
 const styles = new Styles();
 
@@ -286,6 +293,12 @@ function handleKeydown(event) {
 
 function process(operation) {
 
+  if (operation == "no_split") {
+    if (!confirm("Are you sure this document does not need to be split?")) {
+      return
+    }
+  }
+
   if (operation == "split" || operation == "no_split" || operation == "cancel") {
     disableReason = operation;
     leaveOkay = true;
@@ -366,6 +379,8 @@ const iconLinks = [
   }
 ]
 
+let inFullscreen = false;
+
 </script>
 <svelte:window on:keydown={handleKeydown} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 
@@ -395,7 +410,7 @@ const iconLinks = [
 </div>
 <TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks}/>
 <p>{currentTxt} <a href="https://ohmg.dev/docs/making-the-mosaics/preparation" target="_blank">Learn more <Icon src={FiExternalLink} /></a></p>
-<div class="svelte-component-main">
+<div id="map-container" class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
     <div class="signin-reminder">
@@ -431,11 +446,27 @@ const iconLinks = [
     </label>
     </div>
     
-    <div class="tb-top-item">
-      <button class="control-btn" title="Run split operation" disabled={divisions.length<=1 || !enableButtons} on:click={() => {process("split")}}>Split</button>
-      <button class="control-btn" title="No split needed" disabled={divisions.length>0 || !enableButtons} on:click={() => {process("no_split")}}>No Split Needed</button>
-      <button class="control-btn" title="Cancel this preparation" disabled={session_id == null || !enableButtons} on:click={() => {process("cancel")}}>Cancel</button>
-      <button class="control-btn" title="Reset interface" disabled={unchanged} on:click={resetInterface}><Icon src={FiRefreshCcw} /></button>
+    <div class="control-btn-group">
+      <button class="control-btn tool-ui" title="Run split operation" disabled={divisions.length<=1 || !enableButtons} on:click={() => {process("split")}}>
+        <Icon src={FiScissors} />
+      </button>
+      <button class="control-btn tool-ui" title="No split needed" disabled={divisions.length>0 || !enableButtons} on:click={() => {process("no_split")}}>
+        <Icon src={FiCheckSquare} />
+      </button>
+      <button class="control-btn tool-ui" title="Cancel this preparation" disabled={session_id == null || !enableButtons} on:click={() => {process("cancel")}}>
+        <Icon src={FiX} />
+      </button>
+      <button class="control-btn tool-ui" title="Reset interface" disabled={unchanged} on:click={resetInterface}>
+        <Icon src={FiRotateCcw} />
+      </button>
+      <button class="control-btn tool-ui" title={inFullscreen ? "Exit fullscreen" : "Enter fullscreen"} on:click={() => {inFullscreen = toggleFullscreen('map-container')}}>
+        {#if inFullscreen}
+        <Icon src={FiMinimize2} />
+        {:else}
+        <Icon src={FiMaximize2} />
+        {/if}
+      </button>
+    
     </div>
   </nav>
   <div class="map-container" style="border-top: 1.5px solid rgb(150, 150, 150)">
