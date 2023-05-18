@@ -10,6 +10,7 @@ import FiMaximize2 from 'svelte-icons-pack/fi/FiMaximize2';
 import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
 import FiTrash2 from 'svelte-icons-pack/fi/FiTrash2';
 import FiLayers from 'svelte-icons-pack/fi/FiLayers';
+import FiSettings from 'svelte-icons-pack/fi/FiSettings';
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -81,7 +82,10 @@ let activeGCP = null;
 $: nextGCP = gcpList.length + 1;
 
 let unchanged = true;
+
 let showLayerPanel = false;
+let showNotePanel = false;
+let showSettingsPanel = false;
 
 let docFullMaskLayer;
 let mapFullMaskLayer;
@@ -1035,6 +1039,27 @@ const iconLinks = [
     </label>
   </nav>
   {/if}
+  {#if showSettingsPanel}
+  <nav style="justify-content: end;">
+    <label title="Set georeferencing transformation">
+      Transformation:
+      <!-- svelte-ignore a11y-no-onchange -->
+      <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={() => { process("preview"); }}>
+        {#each transformations as trans}
+        <option value={trans.id}>{trans.name}</option>
+        {/each}
+      </select>
+    </label>
+  </nav>
+  {/if}
+  {#if showNotePanel}
+  <nav style="justify-content: start;">
+    <label title="Add note about control point {activeGCP}">
+      <span class="">Note:</span>
+      <input type="text" id="{noteInputElId}" style="height:30px; width:250px;" disabled={gcpList.length == 0} on:change={updateNote}>
+    </label>
+  </nav>
+  {/if}
   <nav>
     <div style="display:flex; flex-direction:column;">
       {#if gcpList.length == 0}
@@ -1050,28 +1075,21 @@ const iconLinks = [
             </option>
           {/each}
         </select>
-        <button class="control-btn tool-ui" title="Remove control point {activeGCP} (d)" on:click={removeActiveGCP}><Icon src={FiTrash2} /></button>
+        <button class="control-btn tool-ui" title="Remove control point {activeGCP} (d)" on:click={removeActiveGCP}>
+          <Icon src={FiTrash2} />
+        </button>
+        <button class="control-btn" on:click={() => {showNotePanel=!showNotePanel}}>
+          Note
+        </button>
       </div>
-      <label style="margin-top:5px;" title="Add note about control point {activeGCP}">
-        <span class="">Note:</span>
-        <input type="text" id="{noteInputElId}" style="height:30px; width:250px;" disabled={gcpList.length == 0} on:change={updateNote}>
-      </label>
       {/if}
     </div>
     <div style="display:flex; flex-direction:row; text-align:right;">
-      <div>
-        <label style="margin-top:5px;" title="Set georeferencing transformation">
-          Transformation:
-          <!-- svelte-ignore a11y-no-onchange -->
-          <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={() => { process("preview"); }}>
-            {#each transformations as trans}
-              <option value={trans.id}>{trans.name}</option>
-            {/each}
-          </select>
-        </label>
-      </div>
-      <div>
-        <button class="control-btn" on:click={() => {showLayerPanel=!showLayerPanel}}>
+      <div class="control-btn-group">
+        <button class="control-btn tool-ui" on:click={() => {showSettingsPanel=!showSettingsPanel}}>
+          <Icon src={FiSettings} />
+        </button>
+        <button class="control-btn tool-ui" on:click={() => {showLayerPanel=!showLayerPanel}}>
           <Icon src={FiLayers} />
         </button>
       </div>
