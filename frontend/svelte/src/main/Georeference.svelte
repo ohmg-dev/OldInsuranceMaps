@@ -9,6 +9,7 @@ import FiMinimize2 from 'svelte-icons-pack/fi/FiMinimize2';
 import FiMaximize2 from 'svelte-icons-pack/fi/FiMaximize2';
 import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
 import FiTrash2 from 'svelte-icons-pack/fi/FiTrash2';
+import FiLayers from 'svelte-icons-pack/fi/FiLayers';
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -46,6 +47,8 @@ const styles = new Styles();
 import Utils from '../js/ol-utils-georeference';
 const utils = new Utils();
 
+import {makeGroupLayerFromVolume} from '../js/ol-utils';
+
 import {toggleFullscreen} from '../js/utils';
 import TitleBar from '../components/TitleBar.svelte';
 
@@ -59,7 +62,7 @@ export let MAPSERVER_LAYERNAME;
 export let MAPBOX_API_KEY;
 
 // reference layers are disabled for now, but all pieces are still retained
-// export let TITILER_HOST;
+export let TITILER_HOST;
 // export let REFERENCE_LAYERS;
 
 let previewMode = "n/a";
@@ -78,6 +81,7 @@ let activeGCP = null;
 $: nextGCP = gcpList.length + 1;
 
 let unchanged = true;
+let showLayerPanel = false;
 
 let docFullMaskLayer;
 let mapFullMaskLayer;
@@ -162,6 +166,14 @@ function uuid() {
 const basemaps = utils.makeBasemaps(MAPBOX_API_KEY);
 let currentBasemap = basemaps[0].id;
 
+function toggleBasemap() {
+  if (currentBasemap === "osm") {
+    currentBasemap = "satellite"
+  } else {
+    currentBasemap = "osm"
+  }
+}
+
 const docGCPSource = new VectorSource();
 docGCPSource.on('addfeature', function (e) {
 
@@ -209,26 +221,53 @@ let endloads = 0;
 previewSource.on("tileloadstart", function (e) { startloads++ })
 previewSource.on("tileloadend", function (e) { endloads++ })
 
-const previewLayer = new TileLayer({ source: previewSource });
+const previewLayer = new TileLayer({ 
+  source: previewSource,
+  zIndex: 20,
+});
 
-// const refGroup = new LayerGroup();
-// REFERENCE_LAYERS.forEach( function (layer) {
-//   const newLayer = new TileLayer({
-//     source: new TileWMS({
-//       url: GEOSERVER_WMS,
-//       params: {
-//         'LAYERS': layer,
-//         'TILED': true,
-//       },
-//     })
-//   });
-//   refGroup.getLayers().push(newLayer)
-// });
+const refGroupKey = makeGroupLayerFromVolume(VOLUME, 'key-map', TITILER_HOST)
+refGroupKey.setZIndex(10)
+let excludeLayer;
+if (DOCUMENT.layer) { excludeLayer = DOCUMENT.layer.id }
+const refGroupMain = makeGroupLayerFromVolume(VOLUME, 'main', TITILER_HOST, excludeLayer)
+refGroupMain.setZIndex(11)
 
-// let referenceVisible = REFERENCE_LAYERS.length > 0;
-// $: {
-//   refGroup.setVisible(referenceVisible)
-// }
+const refLayers = [
+  {
+    id: "none",
+    label: "None",
+    layer: false,
+    enabled: true,
+  },
+  {
+    id: "keyMap",
+    label: "Key Map",
+    layer: refGroupKey,
+    enabled: refGroupKey != false,
+  },
+  {
+    id: "mainLayers",
+    label: "Main Layers",
+    layer: refGroupMain,
+    enabled: refGroupMain != false,
+  }
+]
+
+let currentRefLayer = 'none';
+if (refGroupKey) { currentRefLayer = "keyMap"}
+
+$: {
+  refLayers.forEach( function(layerDef) {
+    if (layerDef.layer) {
+      if (currentRefLayer === layerDef.id) {
+        layerDef.layer.setVisible(true)
+      } else {
+        layerDef.layer.setVisible(false)
+      }
+    }
+  })
+}
 
 // this Modify interaction is created individually for each map panel
 function makeModifyInteraction(hitDetection, source, targetElement) {
@@ -352,6 +391,7 @@ function DocumentViewer (elementId) {
   docRotate = utils.makeRotateCenterLayer();
   map.addLayer(docRotate.layer);
 
+
   // add some click actions to the map
   map.on("click", function(e) {
     let found = false;
@@ -388,6 +428,7 @@ function MapViewer (elementId) {
     const gcpLayer = new VectorLayer({
       source: mapGCPSource,
       style: styles.gcpDefault,
+      zIndex: 30,
     });
 
     // create map
@@ -440,6 +481,9 @@ function MapViewer (elementId) {
 
     mapRotate = utils.makeRotateCenterLayer()
     map.addLayer(mapRotate.layer)
+
+    map.addLayer(refGroupKey)
+    map.addLayer(refGroupMain)
 
     // add transition actions to the map element
     function updateMapEl() {map.updateSize()}
@@ -783,7 +827,7 @@ function handleKeydown(e) {
       case "d": case "D":
         removeActiveGCP();
         break;
-      case "w": case "W":
+      case "w": case "W": case "p": case "P":
         // cyle through the three preview level options
         if (previewMode == "none") {
           previewMode = "transparent"
@@ -791,6 +835,22 @@ function handleKeydown(e) {
           previewMode = "full"
         } else if (previewMode == "full") {
           previewMode = "none"
+        }
+        break;
+      case "b": case "B":
+        toggleBasemap();
+        break;
+      case "r": case "R":
+        let currentIndex;
+        refLayers.forEach( function (layerDef, n) {
+          if (layerDef.id == currentRefLayer) {
+            currentIndex = n
+          }
+        })
+        if (currentIndex == refLayers.length - 1) {
+          currentRefLayer = refLayers[0].id
+        } else {
+          currentRefLayer = refLayers[currentIndex+1].id
         }
         break;
     }
@@ -919,7 +979,7 @@ const iconLinks = [
       </select>
       <label><input type=checkbox bind:checked={syncPanelWidth}> autosize</label>
     </div>
-    <div>
+    <div class="control-btn-group">
         <button class="control-btn tool-ui" title="Save control points" disabled={!enableSave} on:click={() => { process("submit") }}>
           <Icon src={FiCheck} />
         </button>
@@ -943,6 +1003,38 @@ const iconLinks = [
     <div id="map-viewer" class="map-item"></div>
     <div id="preview-loading" style="top: 55px; right: 35px;" class={previewLoading ? 'lds-ellipsis': ''}><div></div><div></div><div></div><div></div></div>
   </div>
+  {#if showLayerPanel}
+  <nav style="justify-content: end;">
+    <div>
+      <span style="color:lightgray">{startloads}/{endloads}</span>
+    </div>
+    <label title="Change preview opacity">
+      Preview (p)
+      <select title="Set preview (w)" bind:value={previewMode} disabled={previewMode == "n/a"}>
+        {#if previewMode == "n/a"}<option value="n/a" disabled>n/a</option>{/if}
+        <option value="none">none</option>
+        <option value="transparent">1/2</option>
+        <option value="full">full</option>
+      </select>
+    </label>
+    <label title="Change reference layer">
+      Reference (r)
+      <select  style="width:151px;" bind:value={currentRefLayer}>
+        {#each refLayers as refLayer}
+        <option value={refLayer.id}>{refLayer.label}</option>
+        {/each}
+      </select>
+    </label>
+    <label title="Change basemap">
+      Basemap (b)
+      <select  style="width:151px;" bind:value={currentBasemap}>
+        {#each basemaps as basemap}
+        <option value={basemap.id}>{basemap.label}</option>
+        {/each}
+      </select>
+    </label>
+  </nav>
+  {/if}
   <nav>
     <div style="display:flex; flex-direction:column;">
       {#if gcpList.length == 0}
@@ -966,31 +1058,7 @@ const iconLinks = [
       </label>
       {/if}
     </div>
-    <div style="display:flex; flex-direction:column; text-align:right;">
-      <div>
-        <span style="color:lightgray">{startloads}/{endloads}</span>
-        <label title="Change basemap">
-          Preview
-          <select title="Set preview (w)" bind:value={previewMode} disabled={previewMode == "n/a"}>
-            {#if previewMode == "n/a"}<option value="n/a" disabled>n/a</option>{/if}
-            <option value="none">none</option>
-            <option value="transparent">1/2</option>
-            <option value="full">full</option>
-          </select>
-        </label>
-        <!-- <label title="Show reference layers">
-          Reference
-          <input type="checkbox" title="Show reference layers" bind:checked={referenceVisible} disabled={REFERENCE_LAYERS == 0}>
-        </label> -->
-        <label title="Change basemap">
-          Basemap
-          <select  style="width:151px;" bind:value={currentBasemap}>
-            {#each basemaps as basemap}
-            <option value={basemap.id}>{basemap.label}</option>
-            {/each}
-          </select>
-        </label>
-      </div>
+    <div style="display:flex; flex-direction:row; text-align:right;">
       <div>
         <label style="margin-top:5px;" title="Set georeferencing transformation">
           Transformation:
@@ -1001,6 +1069,11 @@ const iconLinks = [
             {/each}
           </select>
         </label>
+      </div>
+      <div>
+        <button class="control-btn" on:click={() => {showLayerPanel=!showLayerPanel}}>
+          <Icon src={FiLayers} />
+        </button>
       </div>
       <!--
       <div>

@@ -4,6 +4,8 @@ import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import TileWMS from 'ol/source/TileWMS';
 
+import {transformExtent} from 'ol/proj';
+
 import Feature from 'ol/Feature';
 import Polygon from 'ol/geom/Polygon';
 import Point from 'ol/geom/Point';
@@ -59,6 +61,56 @@ function makeOSMLayer () {
       ]
     }),
   })
+}
+
+export function makeGroupLayerFromVolume(volume, layerSet, titilerHost, excludeLayerId) {
+
+  const lyrGroup = new LayerGroup();
+
+  let layerDefs = [];
+  if (layerSet === "main") {
+    layerDefs = volume.sorted_layers.main;
+  } else if (layerSet === "key-map") {
+    layerDefs = volume.sorted_layers.key_map
+  } else {
+    console.log("invalid layerSet requested:" + layerSet)
+    return
+  }
+
+  if (layerDefs.length === 0) { return false }
+
+  layerDefs.forEach( function(layerDef) {
+
+    if (layerDef.id == excludeLayerId) { return }
+
+    // create the actual ol layers and add to group.
+    const u = new Utils()
+    let newLayer = new TileLayer({
+      source: new XYZ({
+        url: u.makeTitilerXYZUrl(titilerHost, layerDef.urls.cog),
+      }),
+      extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+    });
+
+    lyrGroup.getLayers().push(newLayer)
+
+    if (volume.multimask) {
+      Object.entries(volume.multimask).forEach(kV => {
+        if (kV[0] == layerDef.slug) {
+          const feature = new GeoJSON().readFeature(kV[1])
+        feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
+          const crop = new Crop({
+            feature: feature,
+            wrapX: true,
+            inner: false
+          });
+        newLayer.addFilter(crop);
+        }
+      });
+    }
+  });
+
+  return lyrGroup
 }
 
 class Utils {
@@ -150,6 +202,10 @@ class Utils {
     } else {
       return finalURL
     }
+  }
+
+  makeLayerGroupFromVolume = function(volume, layerSet, excludeId) {
+    return makeLayerGroupFromVolume(volume, layerSet, excludeId)
   }
 
 }

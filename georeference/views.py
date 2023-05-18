@@ -203,7 +203,7 @@ class GeoreferenceView(View):
             "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
             ## these variables will be reevaluated when reference layers re-implemented
             # "REFERENCE_LAYERS": reference_layers,
-            # "TITILER_HOST": settings.TITILER_HOST,
+            "TITILER_HOST": settings.TITILER_HOST,
         }
 
         return render(
