@@ -4,6 +4,8 @@ import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import TileWMS from 'ol/source/TileWMS';
 
+import GeoJSON from 'ol/format/GeoJSON';
+
 import {transformExtent} from 'ol/proj';
 
 import Feature from 'ol/Feature';
@@ -19,6 +21,8 @@ import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import LayerGroup from 'ol/layer/Group';
 import MapboxVector from 'ol/layer/MapboxVector';
+
+import Crop from 'ol-ext/filter/Crop';
 
 function makeSatelliteLayer (apiKey) {
   return new TileLayer({
@@ -63,9 +67,9 @@ function makeOSMLayer () {
   })
 }
 
-export function makeGroupLayerFromVolume(volume, layerSet, titilerHost, excludeLayerId) {
+export function makeGroupLayerFromVolume(volume, layerSet, zIndex, titilerHost, excludeLayerId) {
 
-  const lyrGroup = new LayerGroup();
+  const lyrGroup = new LayerGroup({zIndex: zIndex});
 
   let layerDefs = [];
   if (layerSet === "main") {

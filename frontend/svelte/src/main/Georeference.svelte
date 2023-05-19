@@ -230,12 +230,10 @@ const previewLayer = new TileLayer({
   zIndex: 20,
 });
 
-const refGroupKey = makeGroupLayerFromVolume(VOLUME, 'key-map', TITILER_HOST)
-refGroupKey.setZIndex(10)
+const refGroupKey = makeGroupLayerFromVolume(VOLUME, 'key-map', 10, TITILER_HOST)
 let excludeLayer;
 if (DOCUMENT.layer) { excludeLayer = DOCUMENT.layer.id }
-const refGroupMain = makeGroupLayerFromVolume(VOLUME, 'main', TITILER_HOST, excludeLayer)
-refGroupMain.setZIndex(11)
+const refGroupMain = makeGroupLayerFromVolume(VOLUME, 'main', 11, TITILER_HOST, excludeLayer)
 
 const refLayers = [
   {
@@ -486,8 +484,8 @@ function MapViewer (elementId) {
     mapRotate = utils.makeRotateCenterLayer()
     map.addLayer(mapRotate.layer)
 
-    map.addLayer(refGroupKey)
-    map.addLayer(refGroupMain)
+    if (refGroupKey) {map.addLayer(refGroupKey)}
+    if (refGroupMain) {map.addLayer(refGroupMain)}
 
     // add transition actions to the map element
     function updateMapEl() {map.updateSize()}
