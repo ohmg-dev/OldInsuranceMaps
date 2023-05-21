@@ -29,6 +29,8 @@ class ItemListSchema(Schema):
     load_date: str
     volume_no: int = None
     urls: dict
+    mj_exists: bool
+    gt_exists: bool
 
     @staticmethod
     def resolve_load_date(obj):
@@ -82,7 +84,11 @@ class ItemListSchema(Schema):
 
     @staticmethod
     def resolve_mj_exists(obj):
-        return obj.mosaic_geotiff is not None
+        return False if not obj.mosaic_json else True
+
+    @staticmethod
+    def resolve_gt_exists(obj):
+        return False if not obj.mosaic_geotiff else True
 
     @staticmethod
     def resolve_urls(obj):

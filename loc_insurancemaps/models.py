@@ -218,8 +218,14 @@ class Volume(models.Model):
         Place,
         blank=True,
     )
-    # currently this actually stores the MosaicJSON (ugh) gotta separate these
     mosaic_geotiff = models.FileField(
+        upload_to='mosaics',
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
+    )
+    mosaic_json = models.FileField(
         upload_to='mosaics',
         null=True,
         blank=True,
@@ -375,16 +381,20 @@ class Volume(models.Model):
         if self.get_locale():
             viewer_url = reverse("viewer", args=(self.get_locale().slug,)) + f"?{self.identifier}=100"
 
-        mosaic_url = ""
+        mosaic_gt_url = ""
         if self.mosaic_geotiff:
-            mosaic_url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_geotiff.url
+            mosaic_gt_url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_geotiff.url
+        mosaic_json_url = ""
+        if self.mosaic_json:
+            mosaic_json_url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_json.url
         return {
             "loc_item": loc_item,
             "loc_resource": resource_url,
             "summary": reverse("volume_summary", args=(self.identifier,)),
             "trim": reverse("volume_trim", args=(self.identifier,)),
             "viewer": viewer_url,
-            "mosaic": mosaic_url,
+            "mosaic_geotiff": mosaic_gt_url,
+            "mosaic_json": mosaic_json_url,
         }
 
     def hydrate_sorted_layers(self):

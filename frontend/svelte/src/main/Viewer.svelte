@@ -100,10 +100,10 @@ VOLUMES.forEach( function (vol, n) {
 	let mainGroup;
 
 	// if there is a mosaic JSON url for the volume, use that to make the layer
-	if (vol.urls.mosaic) {
+	if (vol.urls.mosaic_json) {
 		mainGroup = new TileLayer({
 			source: new XYZ({
-				url: utils.makeTitilerXYZUrl(TITILER_HOST, vol.urls.mosaic),
+				url: utils.makeTitilerXYZUrl(TITILER_HOST, vol.urls.mosaic_json),
 			}),
 			extent: transformExtent(vol.extent, "EPSG:4326", "EPSG:3857")
 		});

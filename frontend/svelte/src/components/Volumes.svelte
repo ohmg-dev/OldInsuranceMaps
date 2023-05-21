@@ -80,7 +80,7 @@ $: updateFilteredList(filterInput)
 			<th data-sort="percent" style="width:25px; text-align:center; border-left:1px solid gray;" title="Percent complete - G/(U+P+G)">%</th>
 			<th data-sort="mm_percent" style="width:25px; text-align:center; border-left:1px solid gray;" title="Layers included in multimask">MM</th>
 			<th data-sort="mj_exists" style="width:25px; text-align:center; border-left:1px solid gray;" title="MosaicJSON prepared for this volume?">MJ</th>
-			<!-- <th data-sort="gt_exists" style="width:25px; text-align:center;" title="GeoTIFF mosaic has been prepared for this volume">GT</th> -->
+			<th data-sort="gt_exists" style="width:25px; text-align:center;" title="GeoTIFF mosaic has been prepared for this volume">GT</th>
 		</tr>
 		<tr slot="tbody" let:item={v} style="height:38px;">
 			<td>
@@ -101,7 +101,13 @@ $: updateFilteredList(filterInput)
 				<span style="color:red">x</span>
 				{/if}
 			</td>
-			<!-- <td style="text-align:center;">{v.gt_exists}</td> -->
+			<td style="text-align:center; border-left:1px solid gray;">
+				{#if v.gt_exists}
+				<span style="color:green">✓</span>
+				{:else}
+				<span style="color:red">x</span>
+				{/if}
+			</td>
 		</tr>
 	</TableSort>
 	{/if}

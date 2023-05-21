@@ -120,10 +120,10 @@ if (VOLUME.multimask != undefined) {
 }
 let mosaicUrl;
 let ohmUrl;
-if (VOLUME.urls.mosaic) {
-	mosaicUrl = utils.makeTitilerXYZUrl(TITILER_HOST, VOLUME.urls.mosaic)
+if (VOLUME.urls.mosaic_json) {
+	mosaicUrl = utils.makeTitilerXYZUrl(TITILER_HOST, VOLUME.urls.mosaic_json)
 	// make the OHM url here
-	const mosaicUrlEncoded = utils.makeTitilerXYZUrl(TITILER_HOST, VOLUME.urls.mosaic, true)
+	const mosaicUrlEncoded = utils.makeTitilerXYZUrl(TITILER_HOST, VOLUME.urls.mosaic_json, true)
 	const ll = getCenter(VOLUME.extent);
 	ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
 }
@@ -435,7 +435,7 @@ function setHash(newHash) {
 			</section>
 			<section class="subsection" style="padding-top:15px;">
 				<p><strong>XYZ Tiles URL</strong></p>
-				{#if !VOLUME.urls.mosaic}
+				{#if !VOLUME.urls.mosaic_json}
 				<p style="font-size:.9em; color:red;"><em>
 					A mosaic endpoint has not yet been generated for this volume.
 				</em></p>
