@@ -43,6 +43,12 @@ class Command(BaseCommand):
             help="run the operation in the background with celery"
         )
         parser.add_argument(
+            "--trim-all",
+            action="store_true",
+            default=False,
+            help="re-trim all layers during mosaic JSON creation"
+        )
+        parser.add_argument(
             "--username",
             help="username to use for load operation"
         )
@@ -113,4 +119,4 @@ class Command(BaseCommand):
 
         if options['operation'] == "generate-mosaic-json":
             if i is not None:
-                generate_mosaic_json(i)
+                generate_mosaic_json(i, trim_all=options['trim_all'])

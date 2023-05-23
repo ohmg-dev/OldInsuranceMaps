@@ -277,6 +277,19 @@ class Volume(models.Model):
         else:
             return None
 
+    def get_multimask_geojson(self):
+        """Really, the multimask property on Volume should be reimplemented
+        so it is always storing a GeoJSON FeatureCollection with the layer
+        name in the properties of each feature. This helper function will
+        convert the existing multimask format for now."""
+
+        multimask_geojson = {"type": "FeatureCollection", "features": []}
+        for layer, geojson in self.multimask.items():
+            geojson["properties"] = {"layer": layer}
+            multimask_geojson['features'].append(geojson)
+
+        return multimask_geojson
+
     def lc_item_formatted(self):
         return format_json_display(self.lc_item)
     lc_item_formatted.short_description = 'LC Item'

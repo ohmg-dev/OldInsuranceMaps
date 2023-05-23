@@ -1,6 +1,8 @@
 import os
+import glob
 import json
 import logging
+from datetime import datetime
 from osgeo import gdal
 
 from cogeo_mosaic.mosaic import MosaicJSON
@@ -17,6 +19,10 @@ from loc_insurancemaps.utils import (
     LOCConnection,
     filter_volumes_for_use,
     unsanitize_name
+)
+
+from georeference.utils import (
+    random_alnum,
 )
 
 logger = logging.getLogger(__name__)
@@ -74,28 +80,15 @@ def import_volume(identifier, locale=None):
 
     return volume
 
-
-def multimask_to_geojson(identifier):
-    """Really, the multimask property on Volume should be reimplemented
-    so it is always storing a GeoJSON FeatureCollection with the layer
-    name in the properties of each feature. This helper function will
-    convert the existing multimask format for now."""
-
-    vol = Volume.objects.get(pk=identifier)
-    multimask_geojson = {"type": "FeatureCollection", "features": []}
-    for layer, geojson in vol.multimask.items():
-        geojson["properties"] = {"layer": layer}
-        multimask_geojson['features'].append(geojson)
-
-    return multimask_geojson
-
 def generate_mosaic_geotiff(identifier):
     """ A helpful reference from the BPLv used during the creation of this method:
     https://github.com/bplmaps/atlascope-utilities/blob/master/new-workflow/atlas-tools.py
     """
 
+    start = datetime.now()
+
     vol = Volume.objects.get(pk=identifier)
-    multimask_geojson = multimask_to_geojson(identifier)
+    multimask_geojson = vol.get_multimask_geojson()
     multimask_file_name = f"multimask-{identifier}"
     multimask_file = os.path.join(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
     with open(multimask_file, "w") as out:
@@ -137,9 +130,11 @@ def generate_mosaic_geotiff(identifier):
         trim_list.append(noalpha_path)
 
     mosaic_vrt = os.path.join(settings.TEMP_DIR, f"{identifier}.vrt")
+    bounds = vol.extent.transform(3857, True).extent
     vo = gdal.BuildVRTOptions(
         resolution = 'highest',
-        outputSRS = 'EPSG:3857',
+        outputSRS="EPSG:3857",
+        outputBounds=bounds,
         separate = False,
         srcNodata = "255 255 255",
     )
@@ -159,11 +154,12 @@ def generate_mosaic_geotiff(identifier):
     gdal.BuildVRT(mosaic_vrt, trim_list, options=vo)
 
     print("building final geotiff")
+
     to = gdal.TranslateOptions(
         format="GTiff",
         creationOptions = [
             "TILED=YES",
-            "COMPRESS=LZW",
+            "COMPRESS=DEFLATE",
             "PREDICTOR=2",
             "NUM_THREADS=ALL_CPUS",
             ## the following is apparently in the COG spec but doesn't work??
@@ -182,15 +178,28 @@ def generate_mosaic_geotiff(identifier):
     ## for now, save to django without overviews.
     ## however, Titiler is still returning empty tiles...
 
+    existing_file_path = None
+    if vol.mosaic_geotiff:
+        existing_file_path = vol.mosaic_geotiff.path
+
+    file_name = f"{identifier}__{random_alnum(6)}.tif"
+
     with open(mosaic_tif, 'rb') as f:
-        vol.mosaic_geotiff.save(os.path.basename(mosaic_tif), File(f), save=True)
+        vol.mosaic_geotiff.save(file_name, File(f))
 
     print("creating overviews")
     img = gdal.Open(vol.mosaic_geotiff.path, 1)
-    gdal.SetConfigOption("COMPRESS_OVERVIEW", "LZW")
+    gdal.SetConfigOption("COMPRESS_OVERVIEW", "DEFLATE")
     gdal.SetConfigOption("PREDICTOR", "2")
     gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
     img.BuildOverviews("AVERAGE", [2, 4, 8, 16])
+
+    os.remove(mosaic_tif)
+    if existing_file_path:
+        os.remove(existing_file_path)
+
+    print(f"completed - elapsed time: {datetime.now() - start}")
+
 
 def write_trim_feature_cache(feature, file_path):
     with open(file_path, "w") as f:
@@ -205,7 +214,7 @@ def generate_mosaic_json(identifier, trim_all=False):
 
     logger.info(f"{identifier} | generating mosaic json")
     vol = Volume.objects.get(pk=identifier)
-    multimask_geojson = multimask_to_geojson(identifier)
+    multimask_geojson = vol.get_multimask_geojson()
     multimask_file_name = f"multimask-{identifier}"
     multimask_file = os.path.join(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
     with open(multimask_file, "w") as out:
@@ -217,26 +226,19 @@ def generate_mosaic_json(identifier, trim_all=False):
     for feature in multimask_geojson['features']:
 
         layer_name = feature['properties']['layer']
-        wo = gdal.WarpOptions(
-            format="VRT",
-            dstSRS = "EPSG:3857",
-            cutlineDSName = multimask_file,
-            cutlineLayer = multimask_file_name,
-            cutlineWhere = f"layer='{layer_name}'",
-            cropToCutline = True,
-            # creationOptions = ['COMPRESS=LZW', 'BIGTIFF=YES'],
-            # resampleAlg = 'cubic',
-            # dstAlpha = False,
-            dstNodata = "255 255 255",
-        )
-
         layer = Layer.objects.get(slug=layer_name)
         if not layer.file:
             logger.error(f"{identifier} | no layer file for this layer {layer_name}")
             raise Exception(f"no layer file for this layer {layer_name}")
         in_path = layer.file.path
+
+        layer_dir = os.path.dirname(in_path)
         file_name = os.path.basename(in_path)
         logger.debug(f"{identifier} | processing layer file {file_name}")
+
+        file_root = os.path.splitext(file_name)[0]
+        existing_trimmed_tif = glob.glob(f"{layer_dir}/{file_root}*_trim.tif")
+        print(existing_trimmed_tif)
 
         feat_cache_path = in_path.replace(".tif", "_trim-feature.json")
         if os.path.isfile(feat_cache_path):
@@ -246,12 +248,26 @@ def generate_mosaic_json(identifier, trim_all=False):
             cached_feature = None
             write_trim_feature_cache(feature, feat_cache_path)
 
-        trim_vrt_path = in_path.replace(".tif", "_trim.vrt")
+        unique_id = random_alnum(6)
+        trim_vrt_path = in_path.replace(".tif", f"_{unique_id}_trim.vrt")
         out_path = trim_vrt_path.replace(".vrt", ".tif")
 
         # compare this multimask feature to the cached one for this layer
         # and only (re)create a trimmed tif if they do not match
-        if feature != cached_feature or not os.path.isfile(out_path) or trim_all is True:
+        if feature != cached_feature or trim_all is True:
+
+            wo = gdal.WarpOptions(
+                format="VRT",
+                dstSRS = "EPSG:3857",
+                cutlineDSName = multimask_file,
+                cutlineLayer = multimask_file_name,
+                cutlineWhere = f"layer='{layer_name}'",
+                cropToCutline = True,
+                creationOptions = ['COMPRESS=LZW', 'BIGTIFF=YES'],
+                resampleAlg = 'cubic',
+                dstAlpha = False,
+                dstNodata = "255 255 255",
+            )
             gdal.Warp(trim_vrt_path, in_path, options=wo)
 
             to = gdal.TranslateOptions(
@@ -280,6 +296,7 @@ def generate_mosaic_json(identifier, trim_all=False):
             gdal.SetConfigOption("PREDICTOR", "2")
             gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
             img.BuildOverviews("AVERAGE", [2, 4, 8, 16])
+
         else:
             logger.debug(f"{identifier} | using existing trimmed tif {file_name}")
 
@@ -296,7 +313,7 @@ def generate_mosaic_json(identifier, trim_all=False):
         mosaic.write(overwrite=True)
 
     with open(mosaic_json_path, 'rb') as f:
-        vol.mosaic_geotiff = File(f, name=os.path.basename(mosaic_json_path))
+        vol.mosaic_json = File(f, name=os.path.basename(mosaic_json_path))
         vol.save()
 
     logger.info(f"{identifier} | mosaic created: {os.path.basename(mosaic_json_path)}")
