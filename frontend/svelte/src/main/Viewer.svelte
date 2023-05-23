@@ -99,8 +99,19 @@ VOLUMES.forEach( function (vol, n) {
 
 	let mainGroup;
 
-	// if there is a mosaic JSON url for the volume, use that to make the layer
-	if (vol.urls.mosaic_json) {
+	// look for mosaics of this item, and use the one that is indicated by the volume's
+	// mosaic_preference field. If neither mosaics exist, load
+	// each layer individually and apply the Crop mask
+	let mosaicUrl;
+	let mosaicType;
+	if (vol.urls.mosaic_geotiff && vol.mosaic_preference === 'geotiff') {
+		mosaicUrl = vol.urls.mosaic_geotiff;
+		mosaicType = "gt";
+	} else if (vol.urls.mosaic_json && vol.mosaic_preference === 'mosaicjson') {
+		mosaicUrl = vol.urls.mosaic_json;
+		mosaicType = "mj";
+	}
+	if (mosaicUrl) {
 		mainGroup = new TileLayer({
 			source: new XYZ({
 				url: utils.makeTitilerXYZUrl(TITILER_HOST, vol.urls.mosaic_json),
@@ -133,6 +144,7 @@ VOLUMES.forEach( function (vol, n) {
 		progress: vol.progress,
 		mainLayer: mainGroup,
 		mainLayerO: opacity,
+		mosaicType: mosaicType,
 	};
 	volumeIds.push(vol.identifier);
 	volumeLookup[vol.identifier] = volumeObj;
@@ -497,6 +509,11 @@ function getCompletedStr(id) {
 						<span title="{getCompletedStr(id)} georeferenced">
 							{volumeLookup[id].progress.percent}&percnt; ({getCompletedStr(id)})
 						</span>
+						{#if volumeLookup[id].mosaicType}
+						<span style="color:lightgrey;" title="Mosaic stored as {volumeLookup[id].mosaicType == 'gt' ? 'GeoTIFF' : 'MosaicJSON'}">
+							{volumeLookup[id].mosaicType}
+						</span>
+						{/if}
 					</div>
 					<div>
 						<a title="The full summary includes content that has not yet been georeferenced." href="{volumeLookup[id].summaryUrl}">
@@ -662,6 +679,7 @@ h1, h2 {
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
+	align-items: center;
 	height: 30px;
 	width: 100%;
 }

@@ -31,6 +31,7 @@ class ItemListSchema(Schema):
     urls: dict
     mj_exists: bool
     gt_exists: bool
+    mosaic_preference: str
 
     @staticmethod
     def resolve_load_date(obj):

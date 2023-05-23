@@ -232,6 +232,11 @@ class Volume(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
+    mosaic_preference = models.CharField(
+        choices=(('mosaicjson', 'MosaicJSON'), ('geotiff', 'GeoTIFF')),
+        default='mosaicjson',
+        max_length=20,
+    )
     extent = models.PolygonField(
         null=True,
         blank=True,
@@ -622,6 +627,7 @@ class Volume(models.Model):
             "multimask": self.multimask,
             "extent": self.extent.extent if self.extent else None,
             "locale": self.get_locale(serialized=True),
+            "mosaic_preference": self.mosaic_preference,
         }
 
         if include_session_info:
