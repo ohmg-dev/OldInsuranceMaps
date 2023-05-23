@@ -114,7 +114,7 @@ VOLUMES.forEach( function (vol, n) {
 	if (mosaicUrl) {
 		mainGroup = new TileLayer({
 			source: new XYZ({
-				url: utils.makeTitilerXYZUrl(TITILER_HOST, vol.urls.mosaic_json),
+				url: utils.makeTitilerXYZUrl(TITILER_HOST, mosaicUrl),
 			}),
 			extent: transformExtent(vol.extent, "EPSG:4326", "EPSG:3857")
 		});
