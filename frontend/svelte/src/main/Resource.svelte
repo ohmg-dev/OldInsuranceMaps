@@ -10,6 +10,7 @@ import FiEdit from 'svelte-icons-pack/fi/FiEdit';
 import FiRotateCcw from 'svelte-icons-pack/fi/FiRotateCcw';
 import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
 import FaSolidMapPin from 'svelte-icons-pack/fa/FaSolidMapPin';
+import FiTrash2 from 'svelte-icons-pack/fi/FiTrash2';
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -28,6 +29,7 @@ const utils = new Utils();
 
 export let CSRFTOKEN;
 export let USER_AUTHENTICATED;
+export let USER_STAFF;
 export let RESOURCE;
 export let VOLUME;
 export let REFRESH_URL;
@@ -177,7 +179,7 @@ onMount(() => {
   }
 })
 
-
+// needs to be reimplented via API
 function refresh() {
   fetch(REFRESH_URL)
   .then(response => response.json())
@@ -205,7 +207,33 @@ function setSplit(operation) {
     })
     .then(response => response.json())
     .then(result => {
-      refresh()
+      console.log(result)
+      window.location = window.location
+    });
+}
+
+function unGeoreference() {
+
+  let data = JSON.stringify({
+    "operation": "ungeoreference",
+  });
+
+  fetch(RESOURCE.urls.georeference, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+        'X-CSRFToken': CSRFTOKEN,
+      },
+      body: data,
+    })
+    .then(response => response.json())
+    .then(result => {
+      console.log(result)
+      if (RESOURCE.type == "layer") {
+        window.location = RESOURCE.document.urls.resource
+      } else {
+        window.location = window.location
+      }
     });
 }
 
@@ -219,7 +247,7 @@ const iconLinks = [
   },
   {
     visible: true,
-    enabled: RESOURCE.type == "document",
+    enabled: RESOURCE.type == "document" && RESOURCE.layer,
     iconClass: 'layer',
     alt: RESOURCE.layer ? 'Go to layer: ' + RESOURCE.layer.title : 'Layer not yet made',
     url: RESOURCE.layer ? RESOURCE.layer.urls.resource : '',
@@ -270,14 +298,15 @@ const iconLinks = [
               class="control-btn{splitNeeded == false ? ' btn-chosen': ''}">
               <Icon src={FiCheckSquare} />
             </button>
-            <!--
+            {#if USER_AUTHENTICATED}
             <button 
+              class="control-btn"
               title={undoBtnTitle}
               disabled={!undoBtnEnabled}
               on:click={() => {setSplit("undo")}}>
               <Icon src={FiRotateCcw} />
             </button>
-            -->
+            {/if}
           </div>
           <div class="section-body">
             {#if SPLIT_SUMMARY}
@@ -326,13 +355,23 @@ const iconLinks = [
         </h4>
         {#if showGeoreference}
         <div transition:slide>
-          <div class="section-btn-row">
+          <div class="control-btn-group">
             <button 
+              class="control-btn"
               title={georeferenceBtnTitle}
               disabled={!georeferenceBtnEnable}
               onclick="window.location.href='{RESOURCE.urls.georeference}'">
-              <Icon src={FaSolidMapPin} color="white" />{georeferenceBtnTitle}
+              <Icon src={FaSolidMapPin} />{georeferenceBtnTitle}
             </button>
+            {#if USER_STAFF}
+            <button
+              class="control-btn"
+              title="Remove all georeferencing for this resource"
+              disabled={RESOURCE.status != "georeferenced"}
+              on:click={unGeoreference}>
+              <Icon src={FiTrash2} />
+            </button>
+            {/if}
           </div>
           <div class="section-body">
             {#if GEOREFERENCE_SUMMARY.gcp_geojson}
@@ -508,12 +547,12 @@ main {
 }
 
 
-i {
+/* i {
   width: 20px;
   text-align: center;
-}
+} */
 
-button:enabled {
+/* button:enabled {
   color: white;
   background-color: #2c689c;
   border-radius: 4px;
@@ -524,7 +563,7 @@ button:hover:enabled {
   color: white;
   background-color: #204d74;
   border-color: #193b58;
-}
+} */
 
 .btn-chosen {
   border: 2px solid #2c2c2c;

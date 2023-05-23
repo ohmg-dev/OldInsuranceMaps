@@ -15,6 +15,7 @@ from georeference.models.resources import (
     Layer,
     Document,
     ItemBase,
+    GCPGroup,
 )
 from georeference.models.sessions import (
     PrepSession,
@@ -113,7 +114,6 @@ class SplitView(View):
                     return JsonResponse({"success":False, "message": "no session to cancel"})
             # otherwise this request was made straight from the volume summary or
             # doc detail, so a new session must be created now
-            # AS YET NOT FULLY TESTED
             else:
                 sesh = PrepSession.objects.create(
                     doc=document,
@@ -148,13 +148,14 @@ class SplitView(View):
             return JsonResponse({"success":True})
 
         elif operation == "undo":
-
             try:
                 sesh = PrepSession.objects.get(doc=document)
-                # sesh = PrepSession.objects.get(document=doc_proxy.resource)
-            except PrepSession.DoesNotExist:
-                return JsonResponse({"success":False, "message": "no session to undo"})
-            sesh.undo()
+            except Exception as e:
+                return JsonResponse({"success":False, "message": str(e)})
+            try:
+                sesh.undo()
+            except Exception as e:
+                return JsonResponse({"success":False, "message": str(e)})
             return JsonResponse({"success":True})
 
         else:
@@ -257,6 +258,30 @@ class GeoreferenceView(View):
                 response["message"] = str(e)
             return JsonResponse(response)
 
+        if operation == "ungeoreference":
+
+            if not request.user.is_staff:
+                return JsonResponse({
+                    "success":False,
+                    "message": "user not authorized for this operation"
+                })
+            
+            sessions = GeorefSession.objects.filter(doc=document)
+            for s in sessions:
+                s.delete()
+            layer = document.get_layer()
+            if layer:
+                layer.delete()
+            try:
+                gcp_group = GCPGroup.objects.get(doc=document)
+                gcp_group.delete()
+            except GCPGroup.DoesNotExist:
+                pass
+            document.set_status("prepared")
+            vol = find_volume(document)
+            vol.refresh_lookups()
+            return JsonResponse({"success":True})
+
         if sesh_id is None:
             return JsonResponse({
                 "success":False,
@@ -339,6 +364,7 @@ class ResourceView(View):
                     'VOLUME': volume_json,
                     'CSRFTOKEN': csrf.get_token(request),
                     'USER_AUTHENTICATED': request.user.is_authenticated,
+                    'USER_STAFF': request.user.is_staff,
                     "SPLIT_SUMMARY": split_summary,
                     "GEOREFERENCE_SUMMARY": georeference_summary,
                     "SESSION_HISTORY": sessions_json,

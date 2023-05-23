@@ -111,6 +111,7 @@ function postOperation(operation) {
 		if (operation == "refresh-lookups") {
 			refreshingLookups = false;
 		}
+		console.log(VOLUME)
 	});
 }
 
@@ -293,7 +294,12 @@ function setHash(newHash) {
 				<div class="subsection-title-bar">
 					<button class="section-toggle-btn" on:click={() => setHash("prepared")}>
 						<ConditionalDoubleChevron down={showPrepared} size="md" />
-						<a id="prepared"><h3>Prepared ({VOLUME.items.prepared.length})</h3></a>
+						<a id="prepared"><h3>
+							Prepared ({VOLUME.items.prepared.length})
+							{#if VOLUME.items.processing.prep != 0}
+							&mdash; {VOLUME.items.processing.prep} in progress...
+							{/if}
+						</h3></a>
 					</button>
 				</div>
 				{#if showPrepared}
@@ -309,10 +315,10 @@ function setHash(newHash) {
 							<div><p><a href={document.urls.resource} title={document.title}>{document.title}</a></p></div>
 							<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
 							<div>
-								{#if document.lock && document.lock.enabled}
+								{#if document.lock_enabled}
 								<ul style="text-align:center">
-									<li><em>session in progress...</em></li>
-									<li>{document.lock.username}</li>
+									<li><em>georeferencing in progress...</em></li>
+									<li>{document.lock_details.user.name}</li>
 								</ul>
 								{:else}
 								<ul>
