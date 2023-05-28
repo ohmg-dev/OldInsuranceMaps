@@ -1,4 +1,3 @@
-import '../css/shared.css';
 import Browse from './Browse.svelte';
 
 const browse = new Browse({

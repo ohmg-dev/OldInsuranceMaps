@@ -464,8 +464,11 @@ let inFullscreen = false;
               </button>
               {/if}
               &nbsp;
-              {#if currentLayer == layer.layerDef.slug}<div style="color:red" on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
+              {#if currentLayer == layer.layerDef.slug}
+              <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+              <div style="color:red" on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
               {:else}
+              <!-- svelte-ignore a11y-mouse-events-have-key-events -->
               <div class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
               {/if}
             </div>

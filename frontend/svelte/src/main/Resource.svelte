@@ -578,9 +578,6 @@ section {
   border-bottom: 1px dashed rgb(149,149,149);;
 }
 
-section h4 i {
-  font-size: .65em;
-}
 section h4.expandable {
   color: #2c689c;
   cursor: pointer;

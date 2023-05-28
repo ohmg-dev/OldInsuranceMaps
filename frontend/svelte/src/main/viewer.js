@@ -1,5 +1,3 @@
-import '../css/shared.css';
-import '../css/ol-overrides.css';
 import Viewer from './Viewer.svelte';
 
 const viewer = new Viewer({

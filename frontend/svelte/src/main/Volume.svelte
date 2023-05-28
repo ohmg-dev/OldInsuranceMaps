@@ -529,12 +529,6 @@ button.section-toggle-btn {
 	color: #2c689c;
 	padding: 0;
 }
-i.header {
-	font-size: 1.5em;
-}
-i.subheader {
-	font-size: 1.3em;
-}
 
 button.section-toggle-btn, a {
 	text-decoration: none;
