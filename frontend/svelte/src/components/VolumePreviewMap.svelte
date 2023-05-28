@@ -1,6 +1,5 @@
 <script>
 import {onMount} from 'svelte';
-import { slide } from 'svelte/transition';
 
 import Icon from 'svelte-icons-pack/Icon.svelte';
 import FiMaximize from 'svelte-icons-pack/fi/FiMaximize';
@@ -15,18 +14,14 @@ import 'ol/ol.css';
 import Map from 'ol/Map';
 import {transformExtent} from 'ol/proj';
 import {OSM, XYZ} from 'ol/source';
-import GeoJSON from 'ol/format/GeoJSON';
+
 import {
 	Tile as TileLayer,
 	Group as LayerGroup,
 } from 'ol/layer';
 
-import Crop from 'ol-ext/filter/Crop';
-
 import '../css/map-panel.css';
-import {toggleFullscreen} from '../js/utils';
-import Utils from '../js/ol-utils';
-const utils = new Utils();
+import {toggleFullscreen, makeLayerGroupFromVolume} from '../js/utils';
 
 export let VOLUME;
 export let MAPBOX_API_KEY;
@@ -143,50 +138,22 @@ function setLayersFromVolume(setExtent) {
 	mainGroup.getLayers().clear();
 	keyGroup.getLayers().clear();
 
-	VOLUME.sorted_layers.main.forEach( function(layerDef, n) {
-		// push to the lightweight list used for the draggable layer list
-		const pName = layerDef.title.slice(layerDef.title.lastIndexOf('|')+6, layerDef.title.length)
-
-		// create the actual ol layers and add to group.
-		let newLayer = new TileLayer({
-			source: new XYZ({
-				url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
-			}),
-			extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-		});
-
-		mainGroup.getLayers().push(newLayer)
-
-		if (VOLUME.multimask) {		
-			Object.entries(VOLUME.multimask).forEach(kV => {
-				if (kV[0] == layerDef.slug) {
-					const feature = new GeoJSON().readFeature(kV[1])
-				feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
-					const crop = new Crop({ 
-						feature: feature, 
-						wrapX: true,
-						inner: false
-					});
-				newLayer.addFilter(crop);
-				}
-			});
-		}
-	});
-
-	VOLUME.sorted_layers.key_map.forEach( function(layerDef, n) {
-		const pName = layerDef.title.slice(layerDef.title.lastIndexOf('|')+6, layerDef.title.length)
-		mapIndexLayerIds.push(layerDef.slug)
-
-		// create the actual ol layers and add to group.
-		let newLayer = new TileLayer({
-			source: new XYZ({
-				url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
-			}),
-			extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-		});
-
-		keyGroup.getLayers().push(newLayer)
-	});
+	// use this function to get a LayerGroup, but don't use it, just iterate
+	// its layers and add them to the existing groups.
+	makeLayerGroupFromVolume({
+		volume: VOLUME,
+		layerSet: "main",
+		titilerHost: TITILER_HOST,
+	}).getLayers().forEach( function(lyr) {
+		mainGroup.getLayers().push(lyr)
+	})
+	makeLayerGroupFromVolume({
+		volume: VOLUME,
+		layerSet: "key-map",
+		titilerHost: TITILER_HOST,
+	}).getLayers().forEach( function(lyr) {
+		keyGroup.getLayers().push(lyr)
+	})
 
 	if (setExtent) { setMapExtent() };
 }

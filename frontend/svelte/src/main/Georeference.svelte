@@ -43,14 +43,18 @@ import Draw from 'ol/interaction/Draw';
 import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 
-import Styles from '../js/ol-styles-georeference';
+import Styles from '../js/ol-styles';
 const styles = new Styles();
-import Utils from '../js/ol-utils-georeference';
-const utils = new Utils();
+import {
+  toggleFullscreen,
+  makeLayerGroupFromVolume,
+  makeBasemaps,
+  generateFullMaskLayer,
+  makeRotateCenterLayer,
+  showRotateCenter,
+  removeRotateCenter,
+} from '../js/utils';
 
-import {makeGroupLayerFromVolume} from '../js/ol-utils';
-
-import {toggleFullscreen} from '../js/utils';
 import TitleBar from '../components/TitleBar.svelte';
 
 export let USER;
@@ -167,7 +171,7 @@ function uuid() {
   return uuidValue;
 }
 
-const basemaps = utils.makeBasemaps(MAPBOX_API_KEY);
+const basemaps = makeBasemaps(MAPBOX_API_KEY);
 let currentBasemap = basemaps[0].id;
 
 function toggleBasemap() {
@@ -230,10 +234,20 @@ const previewLayer = new TileLayer({
   zIndex: 20,
 });
 
-const refGroupKey = makeGroupLayerFromVolume(VOLUME, 'key-map', 10, TITILER_HOST)
-let excludeLayer;
-if (DOCUMENT.layer) { excludeLayer = DOCUMENT.layer.id }
-const refGroupMain = makeGroupLayerFromVolume(VOLUME, 'main', 11, TITILER_HOST, excludeLayer)
+const refGroupKey = makeLayerGroupFromVolume({
+  volume: VOLUME,
+  layerSet: 'key-map',
+  zIndex: 10,
+  titilerHost: TITILER_HOST,
+})
+
+const refGroupMain = makeLayerGroupFromVolume({
+  volume: VOLUME,
+  layerSet: 'main',
+  zIndex: 11,
+  titilerHost: TITILER_HOST,
+  excludeLayerId: DOCUMENT.layer ? DOCUMENT.layer.id : '',
+})
 
 const refLayers = [
   {
@@ -348,7 +362,7 @@ function DocumentViewer (elementId) {
     })
   });
 
-  docFullMaskLayer = utils.generateFullMaskLayer(map)
+  docFullMaskLayer = generateFullMaskLayer(map)
   map.addLayer(docFullMaskLayer)
 
   function coordWithinDoc (coordinate) {
@@ -390,7 +404,7 @@ function DocumentViewer (elementId) {
   });
   map.addControl(mousePositionControl);
 
-  docRotate = utils.makeRotateCenterLayer();
+  docRotate = makeRotateCenterLayer();
   map.addLayer(docRotate.layer);
 
 
@@ -445,7 +459,7 @@ function MapViewer (elementId) {
       view: new View(),
     });
 
-    mapFullMaskLayer = utils.generateFullMaskLayer(map)
+    mapFullMaskLayer = generateFullMaskLayer(map)
     map.addLayer(mapFullMaskLayer)
 
     // create interactions
@@ -481,7 +495,7 @@ function MapViewer (elementId) {
       if (!found && !draw.getActive()) {activeGCP = null}
     });
 
-    mapRotate = utils.makeRotateCenterLayer()
+    mapRotate = makeRotateCenterLayer()
     map.addLayer(mapRotate.layer)
 
     if (refGroupKey) {map.addLayer(refGroupKey)}
@@ -862,8 +876,8 @@ function handleKeydown(e) {
 	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = true}
 	if (keyPressed.shift && keyPressed.alt) {
     if (mapView && docView) {
-      utils.showRotateCenter(docView.map, docRotate.layer, docRotate.feature)
-      utils.showRotateCenter(mapView.map, mapRotate.layer, mapRotate.feature)
+      showRotateCenter(docView.map, docRotate.layer, docRotate.feature)
+      showRotateCenter(mapView.map, mapRotate.layer, mapRotate.feature)
     }
 	}
 }
@@ -874,8 +888,8 @@ function handleKeyup(e) {
 	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = false}
 	if (!keyPressed.shift && !keyPressed.alt) {
 		if (mapView && docView) {
-      utils.removeRotateCenter(docRotate.layer)
-      utils.removeRotateCenter(mapRotate.layer)
+      removeRotateCenter(docRotate.layer)
+      removeRotateCenter(mapRotate.layer)
     }
 	}
 };

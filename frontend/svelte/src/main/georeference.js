@@ -1,6 +1,4 @@
 import '../css/interface.css';
-import '../js/ol-styles.js';
-import '../js/ol-utils.js';
 import Georeference from './Georeference.svelte';
 import '../css/ol-overrides.css'
 

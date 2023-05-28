@@ -22,10 +22,13 @@ import {transformExtent, Projection} from 'ol/proj';
 import {ImageStatic, XYZ} from 'ol/source';
 import {Tile as TileLayer, Image as ImageLayer} from 'ol/layer';
 
-import Utils from '../js/ol-utils';
 import TitleBar from '../components/TitleBar.svelte';
 import ConditionalDoubleChevron from '../components/ConditionalDoubleChevron.svelte';
-const utils = new Utils();
+
+import {
+  makeTitilerXYZUrl,
+  makeBasemaps,
+} from '../js/utils';
 
 export let CSRFTOKEN;
 export let USER_AUTHENTICATED;
@@ -39,17 +42,21 @@ export let SESSION_HISTORY;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
 
-console.log(RESOURCE)
-
 let xyzUrl;
 let ohmUrl;
 if (RESOURCE.type == "layer") {
-  xyzUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.urls.cog);
+  xyzUrl = makeTitilerXYZUrl({
+    host: TITILER_HOST,
+    url: RESOURCE.urls.cog
+  });
   //const ll = getCenter(VOLUME.extent);
   //ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
   //ohmUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.urls.cog, true);
 } else if (RESOURCE.layer){
-  xyzUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.layer.urls.cog);
+  xyzUrl = makeTitilerXYZUrl({
+    host: TITILER_HOST,
+    url: RESOURCE.layer.urls.cog
+  });
   //const ll = getCenter(VOLUME.extent);
   //ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
   //ohmUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.layer.urls.cog, true);
@@ -144,17 +151,16 @@ function DocViewer () {
 function LayerViewer () {
 
   const targetElement = document.getElementById('preview-map');
-  // function makeTitilerXYZUrl (host, cogUrl) {
-    
-  //   return 
-  // }
-  const basemaps = utils.makeBasemaps(MAPBOX_API_KEY);
+
+  const basemaps = makeBasemaps(MAPBOX_API_KEY);
   const extent = transformExtent(RESOURCE.extent, "EPSG:4326", "EPSG:3857");
 
-  const cogUrlEncode = encodeURIComponent(RESOURCE.urls.cog)
   const resLayer = new TileLayer({
     source: new XYZ({
-      url: TITILER_HOST +"/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad&url=" + cogUrlEncode,
+      url: makeTitilerXYZUrl({
+        host: TITILER_HOST,
+        url: RESOURCE.urls.cog,
+      }),
     }),
     extent: extent
   });
@@ -207,7 +213,6 @@ function setSplit(operation) {
     })
     .then(response => response.json())
     .then(result => {
-      console.log(result)
       window.location = window.location
     });
 }
@@ -228,7 +233,6 @@ function unGeoreference() {
     })
     .then(response => response.json())
     .then(result => {
-      console.log(result)
       if (RESOURCE.type == "layer") {
         window.location = RESOURCE.document.urls.resource
       } else {

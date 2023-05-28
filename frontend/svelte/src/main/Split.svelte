@@ -35,7 +35,7 @@ import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 import LineString from 'ol/geom/LineString';
 
-import Styles from '../js/ol-styles-georeference';
+import Styles from '../js/ol-styles';
 
 import TitleBar from '../components/TitleBar.svelte';
 import {toggleFullscreen} from '../js/utils';

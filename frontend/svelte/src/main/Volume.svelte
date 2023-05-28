@@ -14,8 +14,7 @@ import VolumePreviewMap from "../components/VolumePreviewMap.svelte";
 import MultiTrim from "../components/MultiTrim.svelte";
 import ConditionalDoubleChevron from '../components/ConditionalDoubleChevron.svelte';
 
-import Utils from '../js/ol-utils';
-const utils = new Utils();
+import {makeTitilerXYZUrl} from '../js/utils';
 
 export let VOLUME;
 export let OTHER_VOLUMES;
@@ -111,7 +110,6 @@ function postOperation(operation) {
 		if (operation == "refresh-lookups") {
 			refreshingLookups = false;
 		}
-		console.log(VOLUME)
 	});
 }
 
@@ -122,9 +120,16 @@ if (VOLUME.multimask != undefined) {
 let mosaicUrl;
 let ohmUrl;
 if (VOLUME.urls.mosaic_json) {
-	mosaicUrl = utils.makeTitilerXYZUrl(TITILER_HOST, VOLUME.urls.mosaic_json)
+	mosaicUrl = makeTitilerXYZUrl({
+		host: TITILER_HOST,
+		url: VOLUME.urls.mosaic_json
+	})
 	// make the OHM url here
-	const mosaicUrlEncoded = utils.makeTitilerXYZUrl(TITILER_HOST, VOLUME.urls.mosaic_json, true)
+	const mosaicUrlEncoded = makeTitilerXYZUrl({
+		host: TITILER_HOST,
+		url: VOLUME.urls.mosaic_json,
+		doubleEncode: true
+	})
 	const ll = getCenter(VOLUME.extent);
 	ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
 }

@@ -42,10 +42,8 @@ import Stroke from 'ol/style/Stroke';
 
 import Styles from '../js/ol-styles';
 const styles = new Styles();
-import Utils from '../js/ol-utils';
-const utils = new Utils();
 
-import {toggleFullscreen} from '../js/utils';
+import {toggleFullscreen, makeTitilerXYZUrl, makeBasemaps} from '../js/utils';
 
 export let VOLUME;
 // export let SESSION_LENGTH;
@@ -108,7 +106,10 @@ function addIncomingMasks() {
       // create the actual ol layers and add to group.
       let newLayer = new TileLayer({
         source: new XYZ({
-          url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
+          url: makeTitilerXYZUrl({
+            host: TITILER_HOST,
+            url: layerDef.urls.cog
+          }),
         }),
         extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
       });
@@ -143,7 +144,7 @@ function addIncomingMasks() {
     unchanged = true;
   }
 
-const basemaps = utils.makeBasemaps(MAPBOX_API_KEY)
+const basemaps = makeBasemaps(MAPBOX_API_KEY)
 const osmBasemap = basemaps[0]
 osmBasemap.layer.setZIndex(0)
 

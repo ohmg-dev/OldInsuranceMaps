@@ -42,8 +42,7 @@ import VectorLayer from 'ol/layer/Vector';
 
 import {MouseWheelZoom, defaults} from 'ol/interaction';
 
-import Utils from '../js/ol-utils';
-const utils = new Utils();
+import {makeTitilerXYZUrl, makeLayerGroupFromVolume, makeBasemaps} from '../js/utils';
 
 export let PLACE;
 export let MAPBOX_API_KEY;
@@ -63,7 +62,11 @@ const tileGrid = createXYZ({
 let showAboutPanel = false;
 
 let homeExtent;
-const layerExtent = createEmpty();
+if (VOLUMES.length > 0) {
+	homeExtent = createEmpty();
+} else {
+	homeExtent = transformExtent([-100, 30, -80, 50], "EPSG:4326", "EPSG:3857")
+}
 
 // set variable to hold id for Geolocation.watchPosition()
 let watchId;
@@ -90,6 +93,10 @@ let baseUrl = baseFromUrl(originalUrl);
 let needToShowOneLayer = true;
 VOLUMES.forEach( function (vol, n) {
 
+	if (vol.extent) {
+		extend(homeExtent, transformExtent(vol.extent, "EPSG:4326", "EPSG:3857"))
+	}
+
 	// zIndex guide (not all categories are implemented):
 	// 0 = basemaps
 	// 100 = graphic map of volumes
@@ -114,15 +121,23 @@ VOLUMES.forEach( function (vol, n) {
 	if (mosaicUrl) {
 		mainGroup = new TileLayer({
 			source: new XYZ({
-				url: utils.makeTitilerXYZUrl(TITILER_HOST, mosaicUrl),
+				url: makeTitilerXYZUrl({
+					host: TITILER_HOST,
+					url: mosaicUrl,
+				}),
 			}),
 			extent: transformExtent(vol.extent, "EPSG:4326", "EPSG:3857")
 		});
-		homeExtent = transformExtent(vol.extent, "EPSG:4326", "EPSG:3857");;
-	} 
-        // otherwise make a group layer out of all the main layers in the volume.
-        else if (vol.sorted_layers.main.length > 0) {
-		mainGroup = getMainLayerGroupFromVolume(vol);
+	}
+	// otherwise make a group layer out of all the main layers in the volume.
+	else if (vol.sorted_layers.main.length > 0) {
+		// mainGroup = getMainLayerGroupFromVolume(vol);
+		mainGroup = makeLayerGroupFromVolume({
+			volume: vol,
+			titilerHost: TITILER_HOST,
+			zIndex: 400+n,
+			layerSet: "main",
+		})
 		mainGroup.setZIndex(400+n)
 	}
 
@@ -149,7 +164,6 @@ VOLUMES.forEach( function (vol, n) {
 	volumeIds.push(vol.identifier);
 	volumeLookup[vol.identifier] = volumeObj;
 
-	
 })
 
 // if the params didn't have opacity settings for any layer, then set the latest
@@ -245,7 +259,7 @@ function setOpacitiesFromParams() {
 
 // setup all the basemap stuff
 
-const basemaps = utils.makeBasemaps(MAPBOX_API_KEY)
+const basemaps = makeBasemaps(MAPBOX_API_KEY)
 
 
 const baseGroup = new LayerGroup({
@@ -263,47 +277,6 @@ function toggleBasemap() {
 		layerItem.layer.setVisible(!layerItem.layer.getVisible())
 		if (layerItem.layer.getVisible()) { currentBasemap = layerItem.id}
 	});
-}
-
-// GENERATE THE MOSAIC LAYERS FOR EACH VOLUME
-
-function getMainLayerGroupFromVolume(volumeJson) {
-	// this is pulled from the Volume Summary construction, and should be
-	// significantly refactored...
-
-	const lyrGroup = new LayerGroup();
-
-	volumeJson.sorted_layers.main.forEach( function(layerDef) {
-
-		const extent3857 = transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857");
-		extend(layerExtent, extent3857)
-		homeExtent = layerExtent;
-
-		// create the actual ol layers and add to group.
-		const newLayer = new TileLayer({
-			source: new XYZ({
-				url: utils.makeTitilerXYZUrl(TITILER_HOST, layerDef.urls.cog),
-			}),
-			extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
-		});
-		lyrGroup.getLayers().push(newLayer)
-
-		if (volumeJson.multimask) {
-			Object.entries(volumeJson.multimask).forEach(kV => {
-				if (kV[0] == layerDef.slug) {
-					const feature = new GeoJSON().readFeature(kV[1])
-					feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
-					const crop = new Crop({ 
-						feature: feature, 
-						wrapX: true,
-						inner: false
-					});
-					newLayer.addFilter(crop);
-				}
-			});
-		}
-	});
-	return lyrGroup
 }
 
 // GEOLOCATION MANAGEMENT
@@ -390,8 +363,11 @@ function MapViewer (elementId) {
 	});
 
 	if (homeExtent) {
+		// only if there are layers to show...
 		// temporarily constrain to zoom 14 so the fit won't zoom too far out.
-		map.getView().setMinZoom(14)
+		if (VOLUMES.length > 0) {
+			map.getView().setMinZoom(14)
+		}
 		map.getView().fit(homeExtent)
 		// set initial zoom to integer to improve tile efficiency, esp. when
 		// user zooms in and out with mouse wheel or clicks/taps

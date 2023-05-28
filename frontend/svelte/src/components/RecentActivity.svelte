@@ -17,7 +17,6 @@ function getInitialResults() {
 	.then(response => response.json())
 	.then(result => {
 		recentSessions = result.items;
-		console.log(recentSessions[0])
 		loadingSessions = false;
 	});
 }
