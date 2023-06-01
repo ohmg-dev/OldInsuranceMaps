@@ -1,10 +1,12 @@
+import os
 import json
+from datetime import datetime
 import logging
 
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.views import View
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.middleware import csrf
 
 from georeference.tasks import (
@@ -24,6 +26,7 @@ from georeference.models.sessions import (
 from georeference.utils import MapServerManager
 from georeference.georeferencer import Georeferencer
 from georeference.splitter import Splitter
+from georeference.tasks import delete_preview_vrt
 
 from loc_insurancemaps.models import find_volume
 
@@ -232,11 +235,44 @@ class GeoreferenceView(View):
         projection = body.get("projection", "EPSG:3857")
         operation = body.get("operation", "preview")
         sesh_id = body.get("sesh_id", None)
+        cleanup_preview = body.get("cleanup_preview", None)
 
         response = {
             "status": "",
             "message": ""
         }
+
+        def _generate_preview_id(request, sesh_id):
+
+            try:
+                ip_val = request.META.get('REMOTE_ADDR', '0.0.0.0.').replace(".", "-")
+            except Exception as e:
+                ip_val = "000000000"
+
+            sesh_val = 0
+            if sesh_id:
+                sesh_val = sesh_id
+
+            return f"{ip_val}-{sesh_val}-{int(datetime.now().timestamp())}"
+
+        def _cleanup_preview(document, previous_url):
+            """ Run this deletion through celery, so that it doesn't delay
+            the return of whatever function called it. """
+            if previous_url:
+                delete_preview_vrt.delay(document.file.path, previous_url)
+
+        def _get_georef_session(sesh_id):
+
+            try:
+                sesh = GeorefSession.objects.get(pk=sesh_id)
+            except GeorefSession.DoesNotExist:
+                sesh = None
+            return sesh
+
+        SESSION_NOT_FOUND_RESPONSE = JsonResponse({
+            "success":False,
+            "message": f"session {sesh_id} not found: {operation} must be called with existing session"
+        })
 
         # if preview mode, modify/create the vrt for this map.
         # the vrt layer should already be served to the interface via mapserver,
@@ -248,17 +284,23 @@ class GeoreferenceView(View):
             g = Georeferencer(crs_code=projection)
             g.load_gcps_from_geojson(gcp_geojson)
             g.set_transformation(transformation)
+            preview_id = _generate_preview_id(request, sesh_id)
             try:
-                out_path = g.make_vrt(document.file.path)
+                out_path = g.make_vrt(document.file.path, preview_id=preview_id)
+                out_path_relative = os.path.join(os.path.dirname(document.file.url), os.path.basename(out_path))
+                preview_url = settings.MEDIA_HOST.rstrip("/") + out_path_relative
                 response["status"] = "success"
                 response["message"] = "all good"
+                response["preview_url"] = preview_url
+                # queue clean up of the last preview
+                _cleanup_preview(document, cleanup_preview)
             except Exception as e:
                 logger.error(e)
                 response["status"] = "fail"
                 response["message"] = str(e)
             return JsonResponse(response)
 
-        if operation == "ungeoreference":
+        elif operation == "ungeoreference":
 
             if not request.user.is_staff:
                 return JsonResponse({
@@ -282,55 +324,55 @@ class GeoreferenceView(View):
             vol.refresh_lookups()
             return JsonResponse({"success":True})
 
-        if sesh_id is None:
-            return JsonResponse({
-                "success":False,
-                "message": "no session id: view must be called on existing session"
-            })
+        elif operation == "submit":
 
-        try:
-            sesh = GeorefSession.objects.get(pk=sesh_id)
-        except GeorefSession.DoesNotExist:
-            return JsonResponse({
-                "success":False,
-                "message": f"session {sesh_id} not found: view must be called existing on session"
-            })
+            sesh = _get_georef_session(sesh_id)
+            if sesh:
+                # ultimately, should be putting the whole "EPSG:3857"
+                # in the session data, but for now stick with just the number
+                # see models.sessions.py line 510
+                epsg_code = int(projection.split(":")[1])
+                sesh.data['epsg'] = epsg_code
+                sesh.data['gcps'] = gcp_geojson
+                sesh.data['transformation'] = transformation
+                sesh.save(update_fields=["data"])
+                logger.info(f"{sesh.__str__()} | begin run() as task")
+                run_georeference_session.delay(sesh.pk)
 
-        if operation == "submit":
+                ms.remove_layer(document.file.path)
+                _cleanup_preview(document, cleanup_preview)
+                return JsonResponse({
+                    "success": True,
+                    "message": "all good",
+                })
 
-            # ultimately, should be putting the whole "EPSG:3857"
-            # in the session data, but for now stick with just the number
-            # see models.sessions.py line 510
-            epsg_code = int(projection.split(":")[1])
-            sesh.data['epsg'] = epsg_code
-            sesh.data['gcps'] = gcp_geojson
-            sesh.data['transformation'] = transformation
-            sesh.save(update_fields=["data"])
-            logger.info(f"{sesh.__str__()} | begin run() as task")
-            run_georeference_session.delay(sesh.pk)
-
-            ms.remove_layer(document.file.path)
-            return JsonResponse({
-                "success": True,
-                "message": "all good",
-            })
+            else:
+                return SESSION_NOT_FOUND_RESPONSE
 
         elif operation == "extend-session":
 
-            ## extend the lock expiration time on doc and lyr instance attached
-            ## to this session
-            sesh.extend_locks()
-            return JsonResponse({"success":True})
+            sesh = _get_georef_session(sesh_id)
+            if sesh:
+                ## extend the lock expiration time on doc and lyr instance 
+                ## attached to this session
+                sesh.extend_locks()
+                return JsonResponse({"success":True})
+            else:
+                return SESSION_NOT_FOUND_RESPONSE
 
         elif operation == "cancel":
 
-            if sesh.stage != "input":
-                msg = "can't cancel session that is past the input stage"
-                logger.warn(f"{sesh.__str__()} | {msg}")
-                return JsonResponse({"success":True, "message": msg})
+            sesh = _get_georef_session(sesh_id)
+            if sesh:
+                if sesh.stage != "input":
+                    msg = "can't cancel session that is past the input stage"
+                    logger.warn(f"{sesh.__str__()} | {msg}")
+                    return JsonResponse({"success":True, "message": msg})
 
-            ms.remove_layer(document.file.path)
-            sesh.delete()
+                ms.remove_layer(document.file.path)
+                sesh.delete()
+
+            _cleanup_preview(document, cleanup_preview)
             return JsonResponse({"success":True})
 
         else:

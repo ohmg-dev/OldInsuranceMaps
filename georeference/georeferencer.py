@@ -312,7 +312,7 @@ class Georeferencer(object):
 
         return vrt_with_gcps
 
-    def make_vrt(self, src_path, output_directory=None):
+    def make_vrt(self, src_path, output_directory=None, preview_id=None):
         """This method uses gdal.Translate to put all control points into a VRT, and then
         returns that file path."""
 
@@ -327,6 +327,8 @@ class Georeferencer(object):
         warp_options = self.make_warp_options(src_path, "VRT")
 
         dst_path = get_path_variant(src_path, "VRT", outdir=output_directory)
+        if preview_id:
+            dst_path = dst_path.replace('.vrt', f'_{preview_id}.vrt')
 
         self.run_warp(dst_path, vrt_with_gcps, warp_options)
 

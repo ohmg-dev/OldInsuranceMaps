@@ -48,6 +48,7 @@ const styles = new Styles();
 import {
   toggleFullscreen,
   makeLayerGroupFromVolume,
+  makeTitilerXYZUrl,
   makeBasemaps,
   generateFullMaskLayer,
   makeRotateCenterLayer,
@@ -71,6 +72,7 @@ export let TITILER_HOST;
 // export let REFERENCE_LAYERS;
 
 let previewMode = "n/a";
+let previewUrl = '';
 
 let inProgress = false;
 let loadingInitial = false;
@@ -222,16 +224,6 @@ const previewSource = new TileWMS({
       'TILED': true,
   },
   serverType: 'mapserver',
-});
-
-let startloads = 0;
-let endloads = 0;
-previewSource.on("tileloadstart", function (e) { startloads++ })
-previewSource.on("tileloadend", function (e) { endloads++ })
-
-const previewLayer = new TileLayer({ 
-  source: previewSource,
-  zIndex: 20,
 });
 
 const refGroupKey = makeLayerGroupFromVolume({
@@ -763,6 +755,32 @@ $: {
 
 let inFullscreen = false;
 
+
+const previewLayer = new TileLayer({
+  source: new XYZ(),
+  zIndex: 20,
+});
+
+let startloads = 0;
+let endloads = 0;
+
+function updatePreviewSource (previewUrl) {
+  if (previewUrl) {
+    const source = new XYZ({
+      url: makeTitilerXYZUrl({
+        host: TITILER_HOST,
+        url: previewUrl,
+      }),
+    })
+    source.on("tileloadstart", function (e) { startloads++ })
+    source.on("tileloadend", function (e) { endloads++ })
+    endloads = 0;
+    startloads = 0;
+    previewLayer.setSource(source)
+  }
+}
+$: updatePreviewSource(previewUrl)
+
 // convert the map features to GeoJSON for sending to georeferencing operation
 $: asGeoJSON = () => {
   let featureCollection = { "type": "FeatureCollection", "features": [] };
@@ -803,13 +821,16 @@ function process(operation){
     setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
   }
 
-  const data = JSON.stringify({
+  const body = {
     "gcp_geojson": asGeoJSON(),
     "transformation": currentTransformation,
     "projection": currentTargetProjection,
     "operation": operation,
     "sesh_id": session_id,
-  });
+    "cleanup_preview": previewUrl,
+  }
+
+  const data = JSON.stringify(body);
   fetch(DOCUMENT.urls.georeference, {
       method: 'POST',
       headers: {
@@ -821,10 +842,10 @@ function process(operation){
     .then(response => response.json())
     .then(result => {
       if (operation == "preview") {
-        if (previewMode == "n/a") { previewMode = "transparent"};
-        let sourceUrl = previewSource.getUrls()[0];
-        previewSource.setUrl(sourceUrl.replace(/\/[^\/]*$/, '/'+Math.random()));
-        previewSource.refresh()
+        previewMode = previewMode == "n/a" ? "transparent" : previewMode;
+        // updating this variable will trigger the preview layer to be
+        // updated with the new source url
+        previewUrl = result['preview_url'];
       } else if (operation == "submit" || operation == "cancel") {
           window.location.href = nextPage;
       }
@@ -900,22 +921,8 @@ function confirmLeave () {
   return "...";
 }
 
-// function cleanup () {
-//   // if this is an in-progress session
-//   if (LOCK.stage == "in-progress") {
-//     // and if a preparation submission hasn't been made and a
-//     // cancel post isn't already taking place
-//     if (disableReason != 'submit' && disableReason != 'cancel') {
-//         // then cancel the session (delete it)
-//         process("cancel")
-//     }
-//   }
-// }
 function cleanup () {
-  // if this is an in-progress session for the current user
-  if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == USER) && !leaveOkay) {
-    process("cancel")
-  }
+  process('cancel')
 }
 
 const iconLinks = [
