@@ -317,7 +317,9 @@ class GeoreferenceView(View):
 
         elif operation == "extend-session":
 
-            sesh.extend()
+            ## extend the lock expiration time on doc and lyr instance attached
+            ## to this session
+            sesh.extend_locks()
             return JsonResponse({"success":True})
 
         elif operation == "cancel":

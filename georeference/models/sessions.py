@@ -203,24 +203,6 @@ class SessionBase(models.Model):
         if self.lyr:
             self.lyr.extend_lock()
 
-    def extend(self, delta_kwargs=None):
-        """
-        Advances the date_create of this session by the default session length,
-        effectively protecting this session from auto-removal for an additional
-        length of time.
-
-        Optional delta_kwargs argument can take a dictionary of timedelta
-        keyword arguments, e.g. {"hours":1} or {"minutes":10} to overwrite
-        the settings.GEOREFERENCE_SESSION_LENGTH value (which is in seconds).
-        """
-
-        if delta_kwargs is None:
-            delta_kwargs = {"seconds": settings.GEOREFERENCE_SESSION_LENGTH}
-
-        delta = timedelta(**delta_kwargs)
-        self.date_created += delta
-        self.save(update_fields=['date_created'])
-
     def serialize(self):
 
         # handle the non- js-serializable attributes
