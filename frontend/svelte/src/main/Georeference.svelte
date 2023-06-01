@@ -232,19 +232,19 @@ const refLayers = [
     id: "none",
     label: "None",
     layer: false,
-    enabled: true,
+    disabled: null,
   },
   {
     id: "keyMap",
     label: "Key Map",
     layer: refGroupKey,
-    enabled: refGroupKey != false,
+    disabled: refGroupKey.getLayers().getArray().length == 0 ? true : null,
   },
   {
     id: "mainLayers",
     label: "Main Layers",
     layer: refGroupMain,
-    enabled: refGroupMain != false,
+    disabled: refGroupMain.getLayers().getArray().length == 0 ? true : null,
   }
 ]
 
@@ -430,7 +430,6 @@ function MapViewer (elementId) {
       target: targetElement,
       layers: [
         basemaps[0].layer,
-        // refGroup,
         previewLayer,
         gcpLayer,
       ],
@@ -476,8 +475,8 @@ function MapViewer (elementId) {
     mapRotate = makeRotateCenterLayer()
     map.addLayer(mapRotate.layer)
 
-    if (refGroupKey) {map.addLayer(refGroupKey)}
-    if (refGroupMain) {map.addLayer(refGroupMain)}
+    map.addLayer(refGroupKey)
+    map.addLayer(refGroupMain)
 
     // add transition actions to the map element
     function updateMapEl() {map.updateSize()}
@@ -1030,7 +1029,7 @@ const iconLinks = [
       Reference (r)
       <select  style="width:151px;" bind:value={currentRefLayer}>
         {#each refLayers as refLayer}
-        <option value={refLayer.id}>{refLayer.label}</option>
+        <option value={refLayer.id} disabled={refLayer.disabled}>{refLayer.label}</option>
         {/each}
       </select>
     </label>
