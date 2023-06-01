@@ -62,6 +62,4 @@ The Django project has a few novel dependencies:
 
 The frontend is build with [Svelte](https://svelte.dev) and [OpenLayers](https://openlayers.org).
 
-Titiler must accompany the project to furnish the map interfaces with tiles.
-
-MapServer must accompany the project to provide the live preview in the georeferencing interface.
+Titiler must accompany the project to furnish the map interfaces with tiles and a live preview layer during georeferencing.

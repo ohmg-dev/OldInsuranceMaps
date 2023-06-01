@@ -63,8 +63,6 @@ export let SESSION_LENGTH;
 export let DOCUMENT;
 export let VOLUME;
 export let CSRFTOKEN;
-export let MAPSERVER_ENDPOINT;
-export let MAPSERVER_LAYERNAME;
 export let MAPBOX_API_KEY;
 
 // reference layers are disabled for now, but all pieces are still retained
@@ -213,18 +211,6 @@ mapGCPSource.on(['addfeature'], function (e) {
   inProgress = false;
   activeGCP = e.feature.getProperties().listId;
 })
-
-// create the preview layer from mapserver
-const previewSource = new TileWMS({
-  url: MAPSERVER_ENDPOINT,
-  params: {
-      // set this as env variable in apache conf file,
-      // 'MAP': '/path/to/mapfile.map',
-      'LAYERS': MAPSERVER_LAYERNAME,
-      'TILED': true,
-  },
-  serverType: 'mapserver',
-});
 
 const refGroupKey = makeLayerGroupFromVolume({
   volume: VOLUME,

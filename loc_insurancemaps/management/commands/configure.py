@@ -284,7 +284,6 @@ sudo supervisorctl reload
             ("ADMIN_PASSWORD", ""),
             ("ADMIN_EMAIL", ""),
             ("MAPBOX_API_TOKEN", None),
-            ("MAPSERVER_ENDPOINT", ""),
             ("BROKER_URL", ""),
             ("ASYNC_SIGNALS", False),
             ("USE_TITILER", True),

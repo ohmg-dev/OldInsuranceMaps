@@ -23,7 +23,6 @@ from georeference.models.sessions import (
     PrepSession,
     GeorefSession,
 )
-from georeference.utils import MapServerManager
 from georeference.georeferencer import Georeferencer
 from georeference.splitter import Splitter
 from georeference.tasks import delete_preview_vrt
@@ -187,8 +186,6 @@ class GeoreferenceView(View):
         volume = find_volume(doc)
         volume_json = volume.serialize()
 
-        ms = MapServerManager()
-
         # reference_layers_param = request.GET.get('reference', '')
         # reference_layers = []
         # for alt in reference_layers_param.split(","):
@@ -202,8 +199,6 @@ class GeoreferenceView(View):
             "DOCUMENT": doc_data,
             "VOLUME": volume_json,
             # "REGION_EXTENT": extent,
-            "MAPSERVER_ENDPOINT": ms.endpoint,
-            "MAPSERVER_LAYERNAME": ms.add_layer(doc.file.path),
             "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
             ## these variables will be reevaluated when reference layers re-implemented
             # "REFERENCE_LAYERS": reference_layers,
@@ -227,7 +222,6 @@ class GeoreferenceView(View):
             return BadPostRequest
 
         document = get_object_or_404(Document, pk=docid)
-        ms = MapServerManager()
 
         body = json.loads(request.body)
         gcp_geojson = body.get("gcp_geojson", {})
@@ -275,8 +269,6 @@ class GeoreferenceView(View):
         })
 
         # if preview mode, modify/create the vrt for this map.
-        # the vrt layer should already be served to the interface via mapserver,
-        # and it will be automatically reloaded there.
         # allow this to happen without looking for or using a session
         if operation == "preview":
 
@@ -339,7 +331,6 @@ class GeoreferenceView(View):
                 logger.info(f"{sesh.__str__()} | begin run() as task")
                 run_georeference_session.delay(sesh.pk)
 
-                ms.remove_layer(document.file.path)
                 _cleanup_preview(document, cleanup_preview)
                 return JsonResponse({
                     "success": True,
@@ -369,7 +360,6 @@ class GeoreferenceView(View):
                     logger.warn(f"{sesh.__str__()} | {msg}")
                     return JsonResponse({"success":True, "message": msg})
 
-                ms.remove_layer(document.file.path)
                 sesh.delete()
 
             _cleanup_preview(document, cleanup_preview)
