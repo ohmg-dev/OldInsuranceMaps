@@ -61,6 +61,10 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 	<div class="map-container">
 		{#if IS_MOBILE}<span><button class="link-btn" on:click="{() => {showBrowseMap = !showBrowseMap}}">{ showBrowseMapBtnLabel }</button></span>{/if}
 		{#if showBrowseMap}
+		<div style="margin: 0px 10px;">
+			<h3>Explore historical maps in these locations...</h3>
+			<p>Click a point to access the viewer for that city or town.</p>
+		</div>
 		<MapBrowse PLACES_GEOJSON_URL={PLACES_GEOJSON_URL} MAP_HEIGHT={'400'} OHMG_API_KEY={OHMG_API_KEY} EMBEDDED={true} />
 		{/if}
 	</div>
@@ -77,7 +81,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 			<div>
 				<div><i class="i-document i-document-lg"></i></div>
 				<p>
-					Crowdsourcing participants <a href="/split/244/">prepare each sheet</a> in the volume individually, sometimes splitting a sheet into multiple documents, each of which must be georeferenced individually (see <a href="/resource/244?utm_source=index">Baton Rouge, 1885, page 1</a>).
+					Crowdsourcing participants <a href="/split/244/">prepare each sheet</a> in the volume, sometimes splitting a sheet into multiple documents, each to be georeferenced individually (see <a href="/resource/244?utm_source=index">Baton Rouge, 1885, page 1</a>).
 				</p>
 			</div>
 			<div>
@@ -121,7 +125,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 		<div id="getting-started-list">
 			<div>
 				<h4>Georeference content...</h4>
-				<p><a href="/account/signup">Create an account</a> then head to <a href="https://ohmg.dev/docs/category/making-the-mosaics-1">Making the Mosaics</a> to learn more about the process. The <a href="/browse/#items">Browse</a> page is the best place to find content to work on.</p>
+				<p><a href="/account/signup">Create an account</a> then head to <a href="https://ohmg.dev/docs/category/making-the-mosaics-1">Making the Mosaics</a> to learn more about the process. The <a href="/browse/#items">Browse</a> page is the best place to find maps to work on.</p>
 			</div>
 			{#if NEWSLETTER_SLUG}
 			<div>
@@ -141,7 +145,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 			{/if}
 			<div>
 				<h4 id="support">Support the project...</h4> 
-				<p>You can donate to <a href="https://paypal.me/oldinsurancemaps">paypal.me/oldinsurancemaps</a> to help with this site's (relatively modest) hosting costs. To sponsor development on specific aspects of the site or the addition of more volumes, please get in touch through the methods described below.</p>
+				<p>You can donate to <a href="https://paypal.me/oldinsurancemaps">paypal.me/oldinsurancemaps</a> to help with hosting costs, any amount appreciated! To sponsor development on specific aspects of the site or the addition of more volumes, please get in touch through the methods described below.</p>
 			</div>
 			<div>
 				<h4 id="contact">Get in touch...</h4>
