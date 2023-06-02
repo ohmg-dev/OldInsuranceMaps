@@ -48,7 +48,7 @@ getInitialResults()
 				<a href="{s.doc.detail_url}" title="{s.doc.title}">
 					<img style="max-height:50px; border: 1px solid grey;" src={s.doc.thumb_url} alt=""/>
 				</a>
-				{:else if s.type === "g" || s.type === "t"}
+				{:else if (s.type === "g" || s.type === "t") && s.lyr}
 				<a href="{s.lyr.detail_url}" title="{s.lyr.title}">
 					<img style="max-height:50px; border: 1px solid grey;" src={s.lyr.thumb_url} alt=""/>
 				</a>
@@ -62,7 +62,7 @@ getInitialResults()
 				<div>
 					{s.date_created} &mdash; prepared by <a href="{s.user.profile_url}">{s.user.username}</a>
 				</div>
-				{:else if s.type === "g" || s.type === "t"}
+				{:else if (s.type === "g" || s.type === "t") && s.lyr}
 				<div>
 					<a href="{s.lyr.detail_url}" title="{s.lyr.title}">{s.lyr.title}</a>
 				</div>

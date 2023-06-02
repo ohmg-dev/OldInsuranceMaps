@@ -1,4 +1,5 @@
 <script>
+import '../css/shared.css';
 import Volumes from '../components/Volumes.svelte';
 import Places from '../components/Places.svelte';
 import MapBrowse from '../components/MapBrowse.svelte';

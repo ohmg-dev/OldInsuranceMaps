@@ -272,6 +272,7 @@ CELERY_TASK_ROUTES = {
     'georeference.tasks.run_preparation_session': {'queue': 'split'},
     'georeference.tasks.run_georeference_session': {'queue': 'georeference'},
     'georeference.tasks.delete_expired': {'queue': 'housekeeping'},
+    'georeference.tasks.delete_preview_vrt': {'queue': 'housekeeping'},
     'loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
     'loc_insurancemaps.tasks.generate_mosaic_geotiff_as_task': {'queue': 'mosaic'},
 }
@@ -289,10 +290,6 @@ ACCOUNT_ADAPTER = "accounts.adapter.AccountAdapter"
 
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_SIGNUP_REDIRECT_URL = "/"
-
-# must have trailing slash
-MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
-MAPSERVER_MAPFILE = BASE_DIR / "loc_insurancemaps" / "mapserver.map"
 
 # prep/georef session duration before expiration (seconds)
 GEOREFERENCE_SESSION_LENGTH = int(os.getenv("GEOREFERENCE_SESSION_LENGTH", 600))

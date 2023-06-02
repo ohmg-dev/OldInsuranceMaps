@@ -167,9 +167,7 @@ export function makeLayerGroupFromVolume(options) {
 		console.log("invalid layerSet requested:" + options.layerSet)
 		return
 	}
-	
-	if (layerDefs.length === 0) { return false }
-	
+
 	layerDefs.forEach( function(layerDef) {
 	
 		if (layerDef.id != options.excludeLayerId) {

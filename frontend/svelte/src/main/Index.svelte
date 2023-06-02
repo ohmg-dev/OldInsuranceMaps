@@ -61,6 +61,10 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 	<div class="map-container">
 		{#if IS_MOBILE}<span><button class="link-btn" on:click="{() => {showBrowseMap = !showBrowseMap}}">{ showBrowseMapBtnLabel }</button></span>{/if}
 		{#if showBrowseMap}
+		<div style="margin: 0px 10px;">
+			<h3>Explore historical maps in these locations...</h3>
+			<p>Click a point to access the viewer for that city or town.</p>
+		</div>
 		<MapBrowse PLACES_GEOJSON_URL={PLACES_GEOJSON_URL} MAP_HEIGHT={'400'} OHMG_API_KEY={OHMG_API_KEY} EMBEDDED={true} />
 		{/if}
 	</div>
@@ -77,7 +81,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 			<div>
 				<div><i class="i-document i-document-lg"></i></div>
 				<p>
-					Crowdsourcing participants <a href="/split/244/">prepare each sheet</a> in the volume individually, sometimes splitting a sheet into multiple documents, each of which must be georeferenced individually (see <a href="/resource/244?utm_source=index">Baton Rouge, 1885, page 1</a>).
+					Crowdsourcing participants <a href="/split/244/">prepare each sheet</a> in the volume, sometimes splitting a sheet into multiple documents, each to be georeferenced individually (see <a href="/resource/244?utm_source=index">Baton Rouge, 1885, page 1</a>).
 				</p>
 			</div>
 			<div>
@@ -121,7 +125,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 		<div id="getting-started-list">
 			<div>
 				<h4>Georeference content...</h4>
-				<p><a href="/account/signup">Create an account</a> then head to <a href="https://ohmg.dev/docs/category/making-the-mosaics-1">Making the Mosaics</a> to learn more about the process. The <a href="/browse/#items">Browse</a> page is the best place to find content to work on.</p>
+				<p><a href="/account/signup">Create an account</a> then head to <a href="https://ohmg.dev/docs/category/making-the-mosaics-1">Making the Mosaics</a> to learn more about the process. The <a href="/browse/#items">Browse</a> page is the best place to find maps to work on.</p>
 			</div>
 			{#if NEWSLETTER_SLUG}
 			<div>
@@ -141,7 +145,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 			{/if}
 			<div>
 				<h4 id="support">Support the project...</h4> 
-				<p>You can donate to <a href="https://paypal.me/oldinsurancemaps">paypal.me/oldinsurancemaps</a> to help with this site's (relatively modest) hosting costs. To sponsor development on specific aspects of the site or the addition of more volumes, please get in touch through the methods described below.</p>
+				<p>You can donate to <a href="https://paypal.me/oldinsurancemaps">paypal.me/oldinsurancemaps</a> to help with hosting costs, any amount appreciated! To sponsor development on specific aspects of the site or the addition of more volumes, please get in touch through the methods described below.</p>
 			</div>
 			<div>
 				<h4 id="contact">Get in touch...</h4>
@@ -157,7 +161,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 		<h3 id="acknowledgements">Acknowledgments</h3>
 		<div style="font-size:.9em;">
 			<p>Thank you to all of our <a href="/people">crowdsourcing participants</a>. Over four months in early 2022, volunteers prepared and georeferenced 1,500 individual sheets from 270 different Sanborn atlases. You can read much more about that effort <a href="https://digitalcommons.lsu.edu/gradschool_theses/5641/" target="_blank">here</a>.</p>
-			<p>This site is built from many different open source software components, so a big thank you is due to the developers behind <a href="https://geonode.org">GeoNode</a>, <a href="https://github.com/developmentseed/titiler">TiTiler</a>, <a href="https://mapserver.org/">MapServer</a>, <a href="https://postgres.org">Postgres</a>/<a href="https://postgis.net/">PostGIS</a>, <a href="https://www.djangoproject.com/">Django</a>, <a href="https://openlayers.org/">OpenLayers</a>, <a href="https://viglino.github.io/ol-ext/">ol-ext</a>, and <a href="https://svelte.dev/">Svelte</a>.
+			<p>This site is built from many different open source software components, so a big thank you is due to the developers behind <a href="https://geonode.org">GeoNode</a>, <a href="https://github.com/developmentseed/titiler">TiTiler</a>, <a href="https://postgres.org">Postgres</a>/<a href="https://postgis.net/">PostGIS</a>, <a href="https://www.djangoproject.com/">Django</a>, <a href="https://openlayers.org/">OpenLayers</a>, <a href="https://viglino.github.io/ol-ext/">ol-ext</a>, and <a href="https://svelte.dev/">Svelte</a>.
 			</p>
 			<p>All maps on this site are in the public domain, pulled from the Library of Congress <a href="https://loc.gov/collections/sanborn-maps">Sanborn Map Collection</a>.</p>
 		</div>

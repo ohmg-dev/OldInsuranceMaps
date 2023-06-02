@@ -48,6 +48,7 @@ const styles = new Styles();
 import {
   toggleFullscreen,
   makeLayerGroupFromVolume,
+  makeTitilerXYZUrl,
   makeBasemaps,
   generateFullMaskLayer,
   makeRotateCenterLayer,
@@ -62,8 +63,6 @@ export let SESSION_LENGTH;
 export let DOCUMENT;
 export let VOLUME;
 export let CSRFTOKEN;
-export let MAPSERVER_ENDPOINT;
-export let MAPSERVER_LAYERNAME;
 export let MAPBOX_API_KEY;
 
 // reference layers are disabled for now, but all pieces are still retained
@@ -71,6 +70,7 @@ export let TITILER_HOST;
 // export let REFERENCE_LAYERS;
 
 let previewMode = "n/a";
+let previewUrl = '';
 
 let inProgress = false;
 let loadingInitial = false;
@@ -212,28 +212,6 @@ mapGCPSource.on(['addfeature'], function (e) {
   activeGCP = e.feature.getProperties().listId;
 })
 
-// create the preview layer from mapserver
-const previewSource = new TileWMS({
-  url: MAPSERVER_ENDPOINT,
-  params: {
-      // set this as env variable in apache conf file,
-      // 'MAP': '/path/to/mapfile.map',
-      'LAYERS': MAPSERVER_LAYERNAME,
-      'TILED': true,
-  },
-  serverType: 'mapserver',
-});
-
-let startloads = 0;
-let endloads = 0;
-previewSource.on("tileloadstart", function (e) { startloads++ })
-previewSource.on("tileloadend", function (e) { endloads++ })
-
-const previewLayer = new TileLayer({ 
-  source: previewSource,
-  zIndex: 20,
-});
-
 const refGroupKey = makeLayerGroupFromVolume({
   volume: VOLUME,
   layerSet: 'key-map',
@@ -254,19 +232,19 @@ const refLayers = [
     id: "none",
     label: "None",
     layer: false,
-    enabled: true,
+    disabled: null,
   },
   {
     id: "keyMap",
     label: "Key Map",
     layer: refGroupKey,
-    enabled: refGroupKey != false,
+    disabled: refGroupKey.getLayers().getArray().length == 0 ? true : null,
   },
   {
     id: "mainLayers",
     label: "Main Layers",
     layer: refGroupMain,
-    enabled: refGroupMain != false,
+    disabled: refGroupMain.getLayers().getArray().length == 0 ? true : null,
   }
 ]
 
@@ -452,7 +430,6 @@ function MapViewer (elementId) {
       target: targetElement,
       layers: [
         basemaps[0].layer,
-        // refGroup,
         previewLayer,
         gcpLayer,
       ],
@@ -498,8 +475,8 @@ function MapViewer (elementId) {
     mapRotate = makeRotateCenterLayer()
     map.addLayer(mapRotate.layer)
 
-    if (refGroupKey) {map.addLayer(refGroupKey)}
-    if (refGroupMain) {map.addLayer(refGroupMain)}
+    map.addLayer(refGroupKey)
+    map.addLayer(refGroupMain)
 
     // add transition actions to the map element
     function updateMapEl() {map.updateSize()}
@@ -763,6 +740,32 @@ $: {
 
 let inFullscreen = false;
 
+
+const previewLayer = new TileLayer({
+  source: new XYZ(),
+  zIndex: 20,
+});
+
+let startloads = 0;
+let endloads = 0;
+
+function updatePreviewSource (previewUrl) {
+  if (previewUrl) {
+    const source = new XYZ({
+      url: makeTitilerXYZUrl({
+        host: TITILER_HOST,
+        url: previewUrl,
+      }),
+    })
+    source.on("tileloadstart", function (e) { startloads++ })
+    source.on("tileloadend", function (e) { endloads++ })
+    endloads = 0;
+    startloads = 0;
+    previewLayer.setSource(source)
+  }
+}
+$: updatePreviewSource(previewUrl)
+
 // convert the map features to GeoJSON for sending to georeferencing operation
 $: asGeoJSON = () => {
   let featureCollection = { "type": "FeatureCollection", "features": [] };
@@ -803,13 +806,16 @@ function process(operation){
     setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
   }
 
-  const data = JSON.stringify({
+  const body = {
     "gcp_geojson": asGeoJSON(),
     "transformation": currentTransformation,
     "projection": currentTargetProjection,
     "operation": operation,
     "sesh_id": session_id,
-  });
+    "cleanup_preview": previewUrl,
+  }
+
+  const data = JSON.stringify(body);
   fetch(DOCUMENT.urls.georeference, {
       method: 'POST',
       headers: {
@@ -821,10 +827,10 @@ function process(operation){
     .then(response => response.json())
     .then(result => {
       if (operation == "preview") {
-        if (previewMode == "n/a") { previewMode = "transparent"};
-        let sourceUrl = previewSource.getUrls()[0];
-        previewSource.setUrl(sourceUrl.replace(/\/[^\/]*$/, '/'+Math.random()));
-        previewSource.refresh()
+        previewMode = previewMode == "n/a" ? "transparent" : previewMode;
+        // updating this variable will trigger the preview layer to be
+        // updated with the new source url
+        previewUrl = result['preview_url'];
       } else if (operation == "submit" || operation == "cancel") {
           window.location.href = nextPage;
       }
@@ -900,22 +906,8 @@ function confirmLeave () {
   return "...";
 }
 
-// function cleanup () {
-//   // if this is an in-progress session
-//   if (LOCK.stage == "in-progress") {
-//     // and if a preparation submission hasn't been made and a
-//     // cancel post isn't already taking place
-//     if (disableReason != 'submit' && disableReason != 'cancel') {
-//         // then cancel the session (delete it)
-//         process("cancel")
-//     }
-//   }
-// }
 function cleanup () {
-  // if this is an in-progress session for the current user
-  if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == USER) && !leaveOkay) {
-    process("cancel")
-  }
+  process('cancel')
 }
 
 const iconLinks = [
@@ -1037,7 +1029,7 @@ const iconLinks = [
       Reference (r)
       <select  style="width:151px;" bind:value={currentRefLayer}>
         {#each refLayers as refLayer}
-        <option value={refLayer.id}>{refLayer.label}</option>
+        <option value={refLayer.id} disabled={refLayer.disabled}>{refLayer.label}</option>
         {/each}
       </select>
     </label>
