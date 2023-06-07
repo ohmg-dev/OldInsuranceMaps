@@ -43,7 +43,22 @@ $: showDownload = hash == 'download';
 
 let refreshingLookups = false;
 
-let mapIndexLayerIds = []; 
+let layerCategories = [
+	{value: "graphic_map_of_volumes", label: "Graphic Map of Volumes"},
+	{value: "key_map", label: "Key Map"},
+	{value: "congested_district", label: "Congested District Map"},
+	{value: "main", label: "Main Content (default)"},
+]
+let layerCategoryLookup = {};
+function setLayerCategoryLookup(VOLUME) {
+	layerCategoryLookup = {};
+	for (let category in VOLUME.sorted_layers) {
+		VOLUME.sorted_layers[category].forEach( function (lyr) {
+			layerCategoryLookup[lyr.slug] = category;
+		});
+	}
+}
+$: setLayerCategoryLookup(VOLUME)
 
 function showImgModal(imgUrl, caption) {
 	const modalImg = document.getElementById("modalImg")
@@ -82,14 +97,13 @@ $: manageAutoReload(autoReload)
 
 function postOperation(operation) {
 	let indexLayerIds = [];
-	if (operation == "set-index-layers") {
-		indexLayerIds = mapIndexLayerIds
-	} else if (operation == "refresh-lookups") {
+	if (operation == "refresh-lookups") {
 		refreshingLookups = true;
 	}
 	const data = JSON.stringify({
 		"operation": operation,
 		"indexLayerIds": indexLayerIds,
+		"layerCategoryLookup": layerCategoryLookup,
 	});
 	fetch(VOLUME.urls.summary, {
 		method: 'POST',
@@ -393,9 +407,11 @@ function setHash(newHash) {
 								</ul>
 								{/if}
 								{#if settingKeyMapLayer}
-								<label>
-									<input type=checkbox bind:group={mapIndexLayerIds} value={layer.slug}> Use layer in Key Map
-								</label>
+								<select bind:value={layerCategoryLookup[layer.slug]}>
+									{#each layerCategories as layerCat}
+									<option value={layerCat.value}>{layerCat.label}</option>
+									{/each}
+								</select>
 								{/if}
 							</div>
 						</div>

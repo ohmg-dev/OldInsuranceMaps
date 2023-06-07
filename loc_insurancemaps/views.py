@@ -212,15 +212,10 @@ class VolumeDetail(View):
 
             volume = Volume.objects.get(pk=volumeid)
 
-            index_layers = body.get("indexLayerIds", [])
+            lcat_lookup = body.get("layerCategoryLookup", {})
 
-            volume.sorted_layers["key_map"] = index_layers
-            # remove key map layers from main layer list
-            volume.sorted_layers["main"] = [i for i in volume.sorted_layers['main'] if not i in index_layers]
-            # move old key map layers back into the main layer list
-            for l in volume.layer_lookup.keys():
-                if not l in volume.sorted_layers["main"] and not l in index_layers:
-                    volume.sorted_layers["main"].append(l)
+            for cat in volume.sorted_layers:
+                volume.sorted_layers[cat] = [k for k, v in lcat_lookup.items() if v == cat]
 
             volume.save(update_fields=["sorted_layers"])
             volume_json = volume.serialize(include_session_info=True)
