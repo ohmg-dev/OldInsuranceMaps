@@ -522,6 +522,7 @@ class Volume(models.Model):
             "unprepared": [],
             "prepared": [],
             "georeferenced": [],
+            "nonmaps": [],
             "processing": {
                 "unprep": 0,
                 "prep": 0,
@@ -541,6 +542,8 @@ class Volume(models.Model):
                 sorted_items['georeferenced'].append(v)
                 if v['status'] == "trimming":
                     sorted_items['processing']['geo_trim'] += 1
+            if v['status'] == "nonmap":
+                sorted_items['nonmaps'].append(v)
 
         sorted_items['layers'] = list(self.layer_lookup.values())
 
@@ -548,6 +551,7 @@ class Volume(models.Model):
         sorted_items['prepared'].sort(key=lambda item: item.get("slug"))
         sorted_items['georeferenced'].sort(key=lambda item: item.get("slug"))
         sorted_items['layers'].sort(key=lambda item: item.get("slug"))
+        sorted_items['nonmaps'].sort(key=lambda item: item.get("slug"))
 
         return sorted_items
 

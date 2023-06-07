@@ -38,6 +38,7 @@ $: showMap = hash == 'preview';
 $: showUnprepared = hash == 'unprepared';
 $: showPrepared = hash == 'prepared';
 $: showGeoreferenced = hash == 'georeferenced';
+$: showNonmaps = hash == 'nonmaps';
 $: showMultimask = hash == 'multimask';
 $: showDownload = hash == 'download';
 
@@ -112,6 +113,25 @@ function postOperation(operation) {
 		if (operation == "refresh-lookups") {
 			refreshingLookups = false;
 		}
+	});
+}
+
+function postGeoref(url, operation, status) {
+	const data = JSON.stringify({
+		"operation": operation,
+		"status": status,
+	});
+	fetch(url, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json;charset=utf-8',
+			'X-CSRFToken': CSRFTOKEN,
+		},
+		body: data,
+	})
+	.then(response => response.json())
+	.then(result => {
+		postOperation("refresh");
 	});
 }
 
@@ -330,6 +350,7 @@ function setHash(newHash) {
 								{:else}
 								<ul>
 									<li><a href={document.urls.georeference} title="georeference this document">georeference &rarr;</a></li>
+									<li><button on:click={() => {postGeoref(document.urls.georeference, "set-status", "nonmap")}}>this is not a map</button></li>
 								</ul>
 								{/if}
 							</div>
@@ -409,7 +430,7 @@ function setHash(newHash) {
 				</div>
 				{/if}
 			</section>
-			<section class="subsection" style="border-bottom:none;">
+			<section class="subsection">
 				<div class="subsection-title-bar">
 					<button class="section-toggle-btn" on:click={() => setHash('multimask')}>
 						<ConditionalDoubleChevron down={showMultimask} size="md" />
@@ -425,6 +446,34 @@ function setHash(newHash) {
 						TITILER_HOST={TITILER_HOST} />
 					<div style="margin-top: 5px;">
 						<p>Only layers with a mask will be included in MosaicJSON or GeoTIFF mosaic output.</p>
+					</div>
+				</div>
+				{/if}
+			</section>
+			<section class="subsection" style="border-bottom:none;">
+				<div class="subsection-title-bar">
+					<button class="section-toggle-btn" on:click={() => setHash("nonmaps")}>
+						<ConditionalDoubleChevron down={showNonmaps} size="md" />
+						<a id="georeferenced"><h3>Non-Map Content ({VOLUME.items.nonmaps.length})</h3></a>
+					</button>
+				</div>
+				{#if showNonmaps}
+				<div transition:slide>
+					<p>Some content may not contain a map to be georeferenced, such as a title page or a text index. You can designate such content in the "Prepared" section above and it will appear here.</p>
+					<div class="documents-column">
+						{#each VOLUME.items.nonmaps as nonmap}
+						<div class="document-item">
+							<div><p><a href={nonmap.urls.resource} title={nonmap.title}>{nonmap.title}</a></p></div>
+							<a href={nonmap.urls.resource} target="_blank" title="go to detail page for this document" style="cursor:zoom-in">
+								<img src={nonmap.urls.thumbnail} alt={nonmap.title}>
+							</a>
+							<div>
+								<ul>
+									<li><button on:click={() => {postGeoref(nonmap.urls.georeference, "set-status", "prepared")}} title="set this document back to 'prepared' so it can be georeferenced">this <em>is</em> a map</button></li>
+								</ul>
+							</div>
+						</div>
+						{/each}
 					</div>
 				</div>
 				{/if}

@@ -257,6 +257,7 @@ class ItemBase(models.Model):
         ("prepared", "Prepared"),
         ("georeferencing", "Georeferencing - in progress"),
         ("georeferenced", "Georeferenced"),
+        ("nonmap", "Non-Map"),
     )
 
     title = models.CharField('title', max_length=255)

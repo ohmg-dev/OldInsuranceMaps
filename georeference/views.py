@@ -340,6 +340,23 @@ class GeoreferenceView(View):
             else:
                 return SESSION_NOT_FOUND_RESPONSE
 
+        elif operation == "set-status":
+
+            if request.user.is_authenticated:
+                new_status = body.get("status", None)
+                if new_status:
+                    document.set_status(new_status)
+                return JsonResponse({
+                    "success": True,
+                    "message": "all good",
+                })
+
+            else:
+                return JsonResponse({
+                    "success": False,
+                    "message": "must be authenticated to perform this operation",
+                })
+
         elif operation == "extend-session":
 
             sesh = _get_georef_session(sesh_id)
