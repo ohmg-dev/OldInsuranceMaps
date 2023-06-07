@@ -350,7 +350,7 @@ function setHash(newHash) {
 								{:else}
 								<ul>
 									<li><a href={document.urls.georeference} title="georeference this document">georeference &rarr;</a></li>
-									<li><button on:click={() => {postGeoref(document.urls.georeference, "set-status", "nonmap")}}>this is not a map</button></li>
+									<li><button class="btn-link" on:click={() => {postGeoref(document.urls.georeference, "set-status", "nonmap")}}><em>set as non-map</em></button></li>
 								</ul>
 								{/if}
 							</div>
@@ -469,7 +469,7 @@ function setHash(newHash) {
 							</a>
 							<div>
 								<ul>
-									<li><button on:click={() => {postGeoref(nonmap.urls.georeference, "set-status", "prepared")}} title="set this document back to 'prepared' so it can be georeferenced">this <em>is</em> a map</button></li>
+									<li><button class="btn-link" on:click={() => {postGeoref(nonmap.urls.georeference, "set-status", "prepared")}} title="set this document back to 'prepared' so it can be georeferenced">this <em>is</em> a map</button></li>
 								</ul>
 							</div>
 						</div>
