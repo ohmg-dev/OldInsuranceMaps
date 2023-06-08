@@ -404,15 +404,15 @@ function setHash(newHash) {
 								{:else}
 								<ul>
 									<li><a href={layer.urls.georeference} title="edit georeferencing">edit georeferencing &rarr;</a></li>
-									<!-- link for OHM editor with this layer as basemap -->
-									<!-- layers returning 400 7/14/2022, disabling for now -->
-									<!-- <li><a href={layer.urls.ohm_edit} title="open in OHM editor" target="_blank">OHM &rarr;</a></li> -->
-									<li><strong>Downloads</strong></li>
-									<li>Image: <a href="{layer.urls.document}" title="Download JPEG">JPEG</a>
-										&bullet;&nbsp;<a href="{layer.urls.cog}" title="Download GeoTIFF">GeoTIFF</a>
-									</li>
-									<li>GCPs: <a href="/mrm/{layer.slug}?resource=gcps-geojson" title="Download GCPs as GeoJSON">GeoJSON</a>
-										&bullet;&nbsp;<a href="/mrm/{layer.slug}?resource=points" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</a></li>
+									<li><a href={layer.urls.resource} title="edit georeferencing">downloads & web services &rarr;</a></li>
+									<!--
+										<li><strong>Downloads</strong></li>
+										<li>Image: <a href="{layer.urls.document}" title="Download JPEG">JPEG</a>
+											&bullet;&nbsp;<a href="{layer.urls.cog}" title="Download GeoTIFF">GeoTIFF</a>
+										</li>
+										<li>GCPs: <a href="/mrm/{layer.slug}?resource=gcps-geojson" title="Download GCPs as GeoJSON">GeoJSON</a>
+											&bullet;&nbsp;<a href="/mrm/{layer.slug}?resource=points" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</a></li>
+										-->
 								</ul>
 								{/if}
 								{#if settingKeyMapLayer}

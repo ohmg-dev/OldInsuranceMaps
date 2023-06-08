@@ -17,6 +17,8 @@ import Map from 'ol/Map';
 import View from 'ol/View';
 import Feature from 'ol/Feature';
 
+import {getCenter} from 'ol/extent';
+
 import {transformExtent, Projection} from 'ol/proj';
 
 import {ImageStatic, XYZ} from 'ol/source';
@@ -44,22 +46,34 @@ export let TITILER_HOST;
 
 let xyzUrl;
 let ohmUrl;
+let ll;
+let doubleEncodedXYZUrl;
 if (RESOURCE.type == "layer") {
   xyzUrl = makeTitilerXYZUrl({
     host: TITILER_HOST,
-    url: RESOURCE.urls.cog
+    url: RESOURCE.urls.cog,
   });
-  //const ll = getCenter(VOLUME.extent);
-  //ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
-  //ohmUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.urls.cog, true);
+  doubleEncodedXYZUrl = makeTitilerXYZUrl({
+    host: TITILER_HOST,
+    url: RESOURCE.urls.cog,
+    doubleEncode: true,
+  });
+  ll = getCenter(RESOURCE.extent);
 } else if (RESOURCE.layer){
   xyzUrl = makeTitilerXYZUrl({
     host: TITILER_HOST,
-    url: RESOURCE.layer.urls.cog
+    url: RESOURCE.layer.urls.cog,
+    doubleEncode: true,
   });
-  //const ll = getCenter(VOLUME.extent);
-  //ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
-  //ohmUrl = utils.makeTitilerXYZUrl(TITILER_HOST, RESOURCE.layer.urls.cog, true);
+  doubleEncodedXYZUrl = makeTitilerXYZUrl({
+    host: TITILER_HOST,
+    url: RESOURCE.layer.urls.cog,
+    doubleEncode: true,
+  });
+  ll = getCenter(RESOURCE.layer.extent);
+}
+if (doubleEncodedXYZUrl && ll) {
+  ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${doubleEncodedXYZUrl}`
 }
 
 let showPrep = false;
@@ -104,7 +118,8 @@ $: {
       georeferenceBtnEnable = true;
       break;
     case "georeferenced":
-      showGeoreference = true;
+      showGeoreference = false;
+      showDownloads = true;
       georeferenceBtnEnable = true;
       georeferenceBtnTitle = "Edit Control Points";
       break;
@@ -461,7 +476,9 @@ const iconLinks = [
               <a href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/">Mapbox/MapLibre GL JS</a>,
               <a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
               <a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
-              <!--<br><a href="{ohmUrl}" alt="Open in OHM iD editor" target="_blank">Open Historical Map iD editor<Icon src={FiExternalLink} /></a> (direct link).-->
+              {#if ohmUrl}
+              <br><a href="{ohmUrl}" alt="View in OHM iD editor" target="_blank">View in Open Historical Map iD editor<Icon src={FiExternalLink} /></a> (direct link).
+              {/if}
             </p>
           {/if}
         </div>
