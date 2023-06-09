@@ -53,7 +53,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 				<li><a href="/viewer/new-orleans-la?utm_source=index-top">New Orleans, La. (1885-1893) &rarr;</a></li>
 				<li><a href="/viewer/baton-rouge-la?utm_source=index-top">Baton Rouge, La. (1885, 1891, 1898, 1903, 1908) &rarr;</a></li>
 				<li><a href="/viewer/alexandria-la?utm_source=index-top">Alexandria, La. (1885, 1892, 1896, 1900, 1904, 1909) &rarr;</a></li>
-				<li><a href="/viewer/plaquemine-la?utm_source=index-top">Plaquemine, La. (1885, 1891, 1896, 1900, 1906) &rarr;</a></li>
+				<li><a href="/viewer/richmond-va?utm_source=index-top">Richmond, Va. (1886, 1895) &rarr;</a></li>
 			</ul>
 			<RecentActivity SESSION_API_URL={SESSION_API_URL} OHMG_API_KEY={OHMG_API_KEY} />
 		</div>
@@ -63,7 +63,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 		{#if showBrowseMap}
 		<div style="margin: 0px 10px;">
 			<h3>Explore historical maps in these locations...</h3>
-			<p>Click a point to access the viewer for that city or town.</p>
+			<p>Click a point to access the viewer for that city or town. To add more maps, make a request with <a href="https://forms.gle/9fNLTmRrVWV9dtff7">this form</a>.</p>
 		</div>
 		<MapBrowse PLACES_GEOJSON_URL={PLACES_GEOJSON_URL} MAP_HEIGHT={'400'} OHMG_API_KEY={OHMG_API_KEY} EMBEDDED={true} />
 		{/if}
@@ -161,7 +161,7 @@ $: showBRMapBtnLabel = showBRMap ? "Hide example viewer (Baton Rouge)" : "Show e
 		<h3 id="acknowledgements">Acknowledgments</h3>
 		<div style="font-size:.9em;">
 			<p>Thank you to all of our <a href="/people">crowdsourcing participants</a>. Over four months in early 2022, volunteers prepared and georeferenced 1,500 individual sheets from 270 different Sanborn atlases. You can read much more about that effort <a href="https://digitalcommons.lsu.edu/gradschool_theses/5641/" target="_blank">here</a>.</p>
-			<p>This site is built from many different open source software components, so a big thank you is due to the developers behind <a href="https://geonode.org">GeoNode</a>, <a href="https://github.com/developmentseed/titiler">TiTiler</a>, <a href="https://postgres.org">Postgres</a>/<a href="https://postgis.net/">PostGIS</a>, <a href="https://www.djangoproject.com/">Django</a>, <a href="https://openlayers.org/">OpenLayers</a>, <a href="https://viglino.github.io/ol-ext/">ol-ext</a>, and <a href="https://svelte.dev/">Svelte</a>.
+			<p>This site is built from many different open source software components, so a big thank you is due to the developers behind <a href="https://www.djangoproject.com/">Django</a>, <a href="https://postgres.org">Postgres</a>/<a href="https://postgis.net/">PostGIS</a>, <a href="https://openlayers.org/">OpenLayers</a>, <a href="https://viglino.github.io/ol-ext/">ol-ext</a>, <a href="https://svelte.dev/">Svelte</a>, and <a href="https://github.com/developmentseed/titiler">TiTiler</a>.
 			</p>
 			<p>All maps on this site are in the public domain, pulled from the Library of Congress <a href="https://loc.gov/collections/sanborn-maps">Sanborn Map Collection</a>.</p>
 		</div>
