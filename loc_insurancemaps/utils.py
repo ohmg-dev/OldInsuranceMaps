@@ -228,28 +228,36 @@ class LOCParser(object):
         self.extra_location_tags = location_tags
 
     def parse_date_info(self):
+        """ Parse the date tag from LOC item. If any errors, or missing date tag, use Battle of Agincourt."""
 
         self.year = None
         self.month = None
+        good_month = False
         self.datetime = None
         date_tag = self.item.get("date", None)
         if date_tag is None:
-            return
-
-        try:
-            dt = datetime.strptime(date_tag, "%Y-%m")
-            d = pytz.utc.localize(dt)
-            self.datetime = d
-            self.year = d.year
-            self.month = d.month
-        except ValueError:
+            logger.warning("no date tag on item")
+            dt = datetime.strptime("1415-10-25", "%Y-%m-%d")
+        else:
             try:
-                dt = datetime.strptime(date_tag, "%Y")
-                d = pytz.utc.localize(dt)
-                self.datetime = d
-                self.year = d.year
+                dt = datetime.strptime(date_tag, "%Y-%m-%d")
+                good_month = True
             except ValueError:
-                print("problem parsing date: " + date_tag)
+                try:
+                    dt = datetime.strptime(date_tag, "%Y-%m")
+                    good_month = True
+                except ValueError:
+                    try:
+                        dt = datetime.strptime(date_tag, "%Y")
+                    except ValueError:
+                        logger.warning("problem parsing date: " + date_tag)
+                        dt = datetime.strptime("1415-10-25", "%Y-%m-%d")
+
+        d = pytz.utc.localize(dt)
+        self.datetime = d
+        self.year = d.year
+        if good_month:
+            self.month = d.month
 
     def parse_volume_number(self):
 
