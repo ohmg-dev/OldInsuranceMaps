@@ -10,6 +10,8 @@
 
 <script lang="ts">
 import {onDestroy} from 'svelte'
+
+import '../css/modal.css';
 	
 let topDiv
 let visible=false
@@ -70,67 +72,3 @@ onDestroy(()=>{
 		</div>
 	</div>
 </div>
-
-<style>
-	#topModal {
-		visibility: hidden;
-		z-index: 9999;
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: #4448;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	#modal {
-		position: relative;
-		border-radius: 6px;
-		background: #123B4F;
-		color: white;
-		/* border: 1px solid #000; */
-		filter: drop-shadow(5px 5px 5px #555);
-		padding: 1em;
-		margin: 1em;
-		max-height: 100vh;
-	}
-	:global(#modal img) {
-		max-height: calc(100vh - 2em);
-	}
-	
-	.visible {
-		visibility: visible !important;
-	}
-
-	#close {
-		position: absolute;
-		top:-12px;
-		right:-12px;
-		width:24px;
-		height:24px;
-		cursor: pointer;
-		fill:#F44;
-		/* transition: transform 0.3s; */
-	}	
-
-	#close:hover {
-		/* transform: scale(2); */
-	}
-
-	#close line {
-		stroke:#FFF;
-		stroke-width:2;
-	}
-	#modal-content {
-		max-width: calc(100vw - 20px);
-		max-height: calc(100vh - 20px);
-		overflow: auto;
-	}
-	:global(#modal-content a) {
-		text-decoration: underline;
-		color: white;
-		font-weight: bolder;
-	}
-</style>

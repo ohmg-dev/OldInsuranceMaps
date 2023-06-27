@@ -23,6 +23,8 @@ import {
 import '../css/map-panel.css';
 import {toggleFullscreen, makeLayerGroupFromVolume} from '../js/utils';
 
+import Modal, {getModal} from './Modal.svelte';
+
 export let VOLUME;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
@@ -44,8 +46,6 @@ const keyGroup = new LayerGroup({
 const mainGroup = new LayerGroup({
 	// zIndex: 200
 });
-
-let mapIndexLayerIds = []; 
 
 const keyImgUrl = "/static/img/key-nola-1940.png"
 const keyImgCaption = "Sanborn Map Key"
@@ -132,9 +132,6 @@ function setLayersFromVolume(setExtent) {
 		VOLUME.sorted_layers.main.length == mainGroup.getLayers().length
 	) { return }
 
-	// empty the light layers lists used for interactivity, need to be repopulated
-	mapIndexLayerIds = [];
-
 	mainGroup.getLayers().clear();
 	keyGroup.getLayers().clear();
 
@@ -169,25 +166,12 @@ onMount(() => {
 	initMap();
 });
 
-function showImgModal(imgUrl, caption) {
-	const modalImg = document.getElementById("modalImg")
-	modalImg.src = imgUrl;
-	modalImg.alt = caption;
-	document.getElementById("imgCaption").firstChild.innerHTML = caption;
-	document.getElementById("vModal").style.display = "block";
-}
-function closeModal() {
-	document.getElementById("vModal").style.display = "none";
-	document.getElementById("modalImg").src = "";
-}
-
 let inFullscreen = false;
 
 </script>
-
-<h4>
-	Preview Map ({VOLUME.items.layers.length} layers)
-</h4>
+<Modal id="modal-map-key">
+	<img src={keyImgUrl} alt={keyImgCaption}>
+</Modal>
 <div id="map-container" class="map-container"  style="display:flex; justify-content: center; height:550px">
 	<div id="map-panel">
 		<div id="map" style="height: 100%;"></div>
@@ -197,7 +181,7 @@ let inFullscreen = false;
 			<button class="control-btn" title="Go to full extent" on:click={setMapExtent}>
 				<Icon src={FiMaximize} />
 			</button>
-			<button id="show-key-img" on:click={() => {showImgModal(keyImgUrl, keyImgCaption)}} class="control-btn">
+			<button class="control-btn" on:click={() => {getModal('modal-map-key').open()}}>
 				<Icon src={FiKey} />
 			</button>
 			<button class="control-btn" title={inFullscreen ? "Exit fullscreen" : "Enter fullscreen"} on:click={() => {inFullscreen = toggleFullscreen('map-container')}}>
@@ -245,45 +229,3 @@ let inFullscreen = false;
 		</div>
 	</div>
 </div>
-
-<style>
-
-
-/* input[type="range"] {
- -webkit-appearance: none;
-}
-
-input[type="range"]:focus {
- outline: none;
-} */
-
-
-/* input[type="range"]::-webkit-slider-runnable-track {
- background: #123B4F;
- height: 5px;
-}
-
-input[type="range"]::-moz-range-track {
- background: #123B4F;
- height: 5px;
-} */
-
-
-/* input[type="range"]::-webkit-slider-thumb {
- -webkit-appearance: none;
- height: 15px;
- width: 15px;
- background: #123B4F;
- margin-top: -5px;
- border-radius: 50%;
-}
-
-input[type="range"]::-moz-range-thumb {
- height: 15px;
- width: 15px;
- background: #123B4F;
- margin-top: -5px;
- border-radius: 50%;
-} */
-
-</style>

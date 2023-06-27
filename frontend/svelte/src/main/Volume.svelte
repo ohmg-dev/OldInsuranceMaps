@@ -3,8 +3,14 @@ import { slide } from 'svelte/transition';
 
 import Icon from 'svelte-icons-pack/Icon.svelte';
 import FiTool from 'svelte-icons-pack/fi/FiTool';
+import FiScissors from 'svelte-icons-pack/fi/FiScissors';
 import FiRefreshCcw from 'svelte-icons-pack/fi/FiRefreshCcw';
 import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
+import FiCrop from 'svelte-icons-pack/fi/FiCrop';
+import FiHome from 'svelte-icons-pack/fi/FiHome';
+import FiTrash from 'svelte-icons-pack/fi/FiTrash';
+import FiCheck from 'svelte-icons-pack/fi/FiCheck';
+import FiX from 'svelte-icons-pack/fi/FiX';
 
 import {getCenter} from 'ol/extent';
 
@@ -13,6 +19,10 @@ import PlaceSelect from "../components/PlaceSelect.svelte";
 import VolumePreviewMap from "../components/VolumePreviewMap.svelte";
 import MultiTrim from "../components/MultiTrim.svelte";
 import ConditionalDoubleChevron from '../components/ConditionalDoubleChevron.svelte';
+
+import Modal, {getModal} from '../components/Modal.svelte';
+
+import InfoButton from '../components/buttons/InfoButton.svelte';
 
 import {makeTitilerXYZUrl} from '../js/utils';
 
@@ -42,6 +52,9 @@ $: showNonmaps = hash == 'nonmaps';
 $: showMultimask = hash == 'multimask';
 $: showDownload = hash == 'download';
 
+let modalDocSrc;
+let modalDocTitle;
+
 let refreshingLookups = false;
 
 let layerCategories = [
@@ -60,18 +73,6 @@ function setLayerCategoryLookup(VOLUME) {
 	}
 }
 $: setLayerCategoryLookup(VOLUME)
-
-function showImgModal(imgUrl, caption) {
-	const modalImg = document.getElementById("modalImg")
-	modalImg.src = imgUrl;
-	modalImg.alt = caption;
-	document.getElementById("imgCaption").firstChild.innerHTML = caption;
-	document.getElementById("vModal").style.display = "block";
-}
-function closeModal() {
-	document.getElementById("vModal").style.display = "none";
-	document.getElementById("modalImg").src = "";
-}
 
 let intervalId;
 function manageAutoReload(run) {
@@ -160,7 +161,7 @@ let settingKeyMapLayer = false;
 
 const sideLinks = [
 	{
-		display: "Open in main viewer",
+		display: `View all ${VOLUME.locale.display_name} mosaics`,
 		url: VOLUME.urls.viewer,
 		external: true,
 	},
@@ -180,13 +181,47 @@ function setHash(newHash) {
 
 </script>
 
-<div id="vModal" class="modal">
-	<button id="closeModal" class="close close-vmodal" on:click={closeModal}>&times;</button>
-	<div class="modal-content" style="text-align:center;">
-		<img id="modalImg" alt="" src="">
-		<div id="imgCaption"><h5>~</h5></div>
-	</div>
-</div>
+<Modal id="modal-doc-view">
+	<img src={modalDocSrc} alt={modalDocTitle}>
+</Modal>
+<Modal id="modal-preview-map">
+	<p>The <strong>Mosaic Preview</strong> shows progress toward a full mosaic of this item's content&mdash;as documents are georeferenced, they will automatically appear here. You can also view this mosaic alongside all other mosaics for this locale: <a href={VOLUME.urls.viewer} target="_blank" title={"Open viewer for " + VOLUME.locale.display_name}>{VOLUME.locale.display_name} <Icon src={FiExternalLink} /></a></p>
+</Modal>
+<Modal id="modal-georeference-overview">
+	<p>The <strong>Georeferencing Overview</strong> provides a per-document summary and access point to the entire georeferencing process for this item's content.</p>
+</Modal>
+<Modal id="modal-unprepared">
+	<p>Each document in the <strong>Unprepared</strong> section must be evaluated individually, and, if it contains more than one mapped area, split into separate pieces.</p>
+</Modal>
+<Modal id="modal-prepared">
+	<p>Content in the <strong>Prepared</strong> section is ready to be georeferenced. You can also decide here if a particular document should be moved to the <strong>Non-map Content</strong> section, for example if it is a title page or text index (this designation can be easily reversed).</p>
+</Modal>
+<Modal id="modal-georeferenced">
+	<p>The <strong>Georeferenced</strong> section holds all content that has been spatially rectified, though you can still edit the control points for any layer whose georeferencing should be improved. Use the <strong>Classify Layers</strong> button to sort layers into different categories, if applicable. For example, if a Key Map is present, classify it here so other interfaces will treat it appropriately.</p>
+</Modal>
+<Modal id="modal-multimask">
+	<p>The <strong>MultiMask</strong> is a mechanism for trimming the margins from every layer in a way that guarantees a seamless mosaic across this item's content.<p>
+	<h4>How to create a MultiMask</h4>
+	<ul>
+		<li>Use <Icon src={FiCrop} /> to start a mask for a particular layer.</li>
+		<li>Use <Icon src={FiTrash} /> to delete an existing mask.</li>
+		<li>Use <Icon src={FiCheck} /> to save your work (do this often!).</li>
+		<li>Use <Icon src={FiX} /> to discard all changes since the last save.</li>
+	</ul>
+	<h4>Important Notes</h4>
+	<ul>
+		<li>You must be signed in to save your work, so don't get started before you are signed in!</li>
+		<li>The vertices of every adjacent mask should be snapped together</li>
+		<li>You can drag existing vertices to snap them to others, but this is sometimes "sticky" and takes a couple of tries.</li>
+		<li>If a mosaic is generated for this item, only layers that have been masked will be included in the mosaic.</li>
+	</ul>
+</Modal>
+<Modal id="modal-non-map">
+	<p>The <strong>Non-Map Content</strong> section holds documents (or document fragments) that are not maps, like a title page or text index.</p>
+</Modal>
+<Modal id="modal-download-section">
+	<p></p>
+</Modal>
 <main>
 	<TitleBar TITLE={VOLUME.title} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
 	<section>
@@ -203,8 +238,9 @@ function setHash(newHash) {
 			<button class="section-toggle-btn" disabled={VOLUME.items.layers.length == 0} 
 				on:click={() => {setHash('preview')}}>
 				<ConditionalDoubleChevron down={showMap} size="md"/>
-				<a id="preview"><h2>Mosaic Preview</h2></a>
+				<a id="preview"><h2>Mosaic Preview ({VOLUME.items.layers.length} layers)</h2></a>
 			</button>
+			<InfoButton modalName="modal-preview-map" />
 		</div>
 		{#if showMap}
 		<div class="section-content" transition:slide>
@@ -212,17 +248,21 @@ function setHash(newHash) {
 			{#each reinitMap as key (key)}
 				<VolumePreviewMap VOLUME={VOLUME} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
 			{/each}
-			<div style="margin-top: 5px;">
-				<p>The preview map shows progress toward a full mosaic of this volume's content.</p>
-			</div>
 		</div>
 		{/if}
 	</section>
 	<section>
 		<div class="section-title-bar">
-			<ConditionalDoubleChevron down={true} size="md" /><a id="overview" class="no-link">
-				<h2 style="margin-right:10px; display:inline-block;">Georeferencing Overview</h2>
-			</a>
+			<div>
+				<ConditionalDoubleChevron down={true} size="md" />
+				<a id="overview" class="no-link">
+					<h2 style="margin-right:10px; display:inline-block;">Georeferencing Overview</h2>
+				</a>
+			</div>
+			{#if refreshingLookups}
+				<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+			{/if}
+			<InfoButton modalName="modal-georeference-overview" />
 		</div>
 		<div>
 			<div style="display:flex; justify-content:space-between; align-items:center;">
@@ -241,11 +281,6 @@ function setHash(newHash) {
 						{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}
 						{/if}
 					</span></em>
-				</div>
-				<div>
-					{#if refreshingLookups}
-					<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
-				{/if}
 				</div>
 				<div class="control-btn-group">
 					{#if USER_TYPE != "anonymous"}
@@ -279,25 +314,22 @@ function setHash(newHash) {
 							</h3>
 						</a>
 					</button>
+					<InfoButton modalName="modal-unprepared" />
 				</div>
 				{#if showUnprepared}
 				<div transition:slide>
-					<p>Unprepared sheets need to be evaluated, and, if they contain more than one mapped area, split into separate pieces.</p>
-					{#if VOLUME.items.unprepared.length == 0}
-						<p><em>
-						{#if VOLUME.sheet_ct.loaded == 0} <!-- this means they have been loaded already -->
-						Sheets will appear here as they are loaded.
-						{:else}
-						All sheets have been prepared.
-						{/if}
-						</em></p>
-					{:else}
-					<p><em>Choose a sheet and click <strong>prepare &rarr;</strong> to start the process.</em></p>
 					<div class="documents-column">
 						{#each VOLUME.items.unprepared as document}
 						<div class="document-item">
 							<div><p><a href={document.urls.resource} title={document.title}>Sheet {document.page_str}</a></p></div>
-							<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
+							<img style="cursor:zoom-in"
+								on:click={() => {
+									modalDocSrc=document.urls.image;
+									modalDocTitle=document.title;
+									getModal('modal-doc-view').open()}}
+								src={document.urls.thumbnail}
+								alt={document.title}
+								>
 							<div>
 								{#if document.lock_enabled}
 								<ul style="text-align:center">
@@ -313,7 +345,6 @@ function setHash(newHash) {
 						</div>
 						{/each}
 					</div>
-					{/if}
 				</div>
 				{/if}
 			</section>
@@ -328,19 +359,22 @@ function setHash(newHash) {
 							{/if}
 						</h3></a>
 					</button>
+					<InfoButton modalName="modal-prepared" />
 				</div>
 				{#if showPrepared}
 				<div transition:slide>
-					<p>Once a sheet has been prepared it is ready to be georeferenced.</p>
-					{#if VOLUME.items.prepared.length == 0}
-						<p><em>Documents will accumulate here when they are ready to be georeferenced.</em></p>
-					{:else}
-					<p><em>Choose a document and click <strong>georeference &rarr;</strong> to start the process.</em></p>
 					<div class="documents-column">
 						{#each VOLUME.items.prepared as document}
 						<div class="document-item">
 							<div><p><a href={document.urls.resource} title={document.title}>{document.title}</a></p></div>
-							<img style="cursor:zoom-in" on:click={() => {showImgModal(document.urls.image, document.title)}} src={document.urls.thumbnail} alt={document.title}>
+							<img style="cursor:zoom-in"
+								on:click={() => {
+									modalDocSrc=document.urls.image;
+									modalDocTitle=document.title;
+									getModal('modal-doc-view').open()}}
+								src={document.urls.thumbnail}
+								alt={document.title}
+								>
 							<div>
 								{#if document.lock_enabled}
 								<ul style="text-align:center">
@@ -357,7 +391,6 @@ function setHash(newHash) {
 						</div>
 						{/each}
 					</div>
-					{/if}
 				</div>
 				{/if}
 			</section>
@@ -367,27 +400,22 @@ function setHash(newHash) {
 						<ConditionalDoubleChevron down={showGeoreferenced} size="md" />
 						<a id="georeferenced"><h3>Georeferenced ({VOLUME.items.layers.length})</h3></a>
 					</button>
+					<InfoButton modalName="modal-georeferenced" />
 				</div>
 				{#if showGeoreferenced}
 				<div transition:slide>
-					<p>Georeferenced documents are represented here as layers.</p>
-					{#if VOLUME.items.layers.length == 0}
-					<p><em>Layers will accumulate here as documents are georeferenced.</em></p>
-					{:else}
-					<p><em>
-						Use <strong>Set Key Map</strong> to designate which layers show the <strong>key map</strong> for this volume (if applicable).
-					</em></p>
-					{#if USER_TYPE != 'anonymous'}
-					<div style="margin-top:10px; margin-bottom:10px;">
+					<div style="margin: 10px 0px;">
 						{#if VOLUME.items.layers.length > 0 && !settingKeyMapLayer}
-						<button on:click={() => settingKeyMapLayer = !settingKeyMapLayer}>Set Key Map</button>
+						<button on:click={() => settingKeyMapLayer = !settingKeyMapLayer}
+							disabled={USER_TYPE == 'anonymous'}
+							title={USER_TYPE == 'anonymous' ? 'You must be signed in to classify layers' : 'Click to enable layer classification'}
+							>Classify Layers</button>
 						{/if}
 						{#if settingKeyMapLayer}
 						<button on:click={() => { settingKeyMapLayer = false; postOperation("set-index-layers"); }}>Save</button>
 						<button on:click={() => { settingKeyMapLayer = false; }}>Cancel</button>
 						{/if}
 					</div>
-					{/if}
 					<div class="documents-column">
 						{#each VOLUME.items.layers as layer}
 						<div class="document-item">
@@ -426,7 +454,7 @@ function setHash(newHash) {
 						</div>
 						{/each}
 					</div>
-					{/if}
+					<!-- {/if} -->
 				</div>
 				{/if}
 			</section>
@@ -436,6 +464,7 @@ function setHash(newHash) {
 						<ConditionalDoubleChevron down={showMultimask} size="md" />
 						<a id="multimask"><h3>MultiMask ({mmLbl})</h3></a>
 					</button>
+					<InfoButton modalName="modal-multimask" />
 				</div>
 				{#if showMultimask}
 				<div transition:slide>
@@ -444,9 +473,6 @@ function setHash(newHash) {
 						USER_TYPE={USER_TYPE}
 						MAPBOX_API_KEY={MAPBOX_API_KEY}
 						TITILER_HOST={TITILER_HOST} />
-					<div style="margin-top: 5px;">
-						<p>Only layers with a mask will be included in MosaicJSON or GeoTIFF mosaic output.</p>
-					</div>
 				</div>
 				{/if}
 			</section>
@@ -456,10 +482,10 @@ function setHash(newHash) {
 						<ConditionalDoubleChevron down={showNonmaps} size="md" />
 						<a id="georeferenced"><h3>Non-Map Content ({VOLUME.items.nonmaps.length})</h3></a>
 					</button>
+					<InfoButton modalName="modal-non-map" />
 				</div>
 				{#if showNonmaps}
 				<div transition:slide>
-					<p>Some content may not contain a map to be georeferenced, such as a title page or a text index. You can designate such content in the "Prepared" section above and it will appear here.</p>
 					<div class="documents-column">
 						{#each VOLUME.items.nonmaps as nonmap}
 						<div class="document-item">
@@ -523,9 +549,13 @@ function setHash(newHash) {
 	</section>
 	<section style="border-bottom:none;">
 		<div class="section-title-bar">
-			<ConditionalDoubleChevron down={true} size="md"/><a id="contributors" class="no-link">
-				<h2 style="margin-right:10px; display: inline-block;">Contributors & Attribution</h2>
-			</a>
+			<div>
+				<ConditionalDoubleChevron down={true} size="md"/>
+				<a id="contributors" class="no-link">
+					<h2 style="margin-right:10px; display: inline-block;">Contributors & Attribution</h2>
+				</a>
+			</div>
+			<div></div>
 		</div>
 		<div class="section-content" style="display:flex'; flex-direction:column;">
 			<p>
@@ -595,6 +625,19 @@ button.section-toggle-btn:disabled, button.section-toggle-btn:disabled > a {
 	color: grey;
 }
 
+.section-title-bar {
+	display:flex;
+	flex-direction:row;
+	justify-content:space-between;
+	align-items:center;
+}
+
+.subsection-title-bar {
+	display:flex;
+	flex-direction:row;
+	justify-content:space-between;
+	align-items:center;
+}
 
 .documents-column {
 	display: flex;

@@ -39,6 +39,7 @@ import Styles from '../js/ol-styles';
 
 import TitleBar from '../components/TitleBar.svelte';
 import {toggleFullscreen} from '../js/utils';
+import Modal, {getModal} from '../components/Modal.svelte';
 
 const styles = new Styles();
 
@@ -75,8 +76,7 @@ setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
 let autoRedirect;
 function promptRefresh() {
   if (!leaveOkay) {
-    const modal = document.getElementById("expirationModal");
-    modal.style.display = "block";
+    getModal('modal-expiration').open()
     leaveOkay = true;
     autoRedirect = setTimeout(cancelAndRedirectToDetail, 10000);
   }
@@ -262,6 +262,7 @@ $: {
 onMount(() => {
   docView = new DocViewer("doc-viewer");
   resetInterface();
+  if (!USER) { getModal('modal-anonymous').open() }
 });
 
 $: {
@@ -308,7 +309,6 @@ function process(operation) {
   if (operation == "extend-session") {
     leaveOkay = false;
     clearTimeout(autoRedirect)
-    document.getElementById("expirationModal").style.display = "none";
     setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
   }
 
@@ -384,30 +384,25 @@ let inFullscreen = false;
 </script>
 <svelte:window on:keydown={handleKeydown} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 
-<div id="expirationModal" class="modal">
-  <div class="modal-content">
-    <p>This preparation session is expiring, and will be cancelled soon.</p>
-    <button on:click={() => {process("extend-session")}}>Give me more time!</button>
-  </div>
-</div>
+<Modal id="modal-expiration">
+  <p>This preparation session is expiring, and will be cancelled soon.</p>
+  <button on:click={() => {
+    process("extend-session");
+    getModal('modal-expiration').close()}
+    }>Give me more time!</button>
+</Modal>
 
-{#if !USER}
-<div id="anonymousModal" class="modal" style="display:block;">
-  <div class="modal-content" style="max-width:325px;">
-    <p>Feel free to experiment with the interface. To submit your work, you must 
-      <a href="/account/login">sign in</a> or
-      <a href="/account/signup">sign up</a>.</p>
-    <button on:click={() => {document.getElementById('anonymousModal').style.display = 'none'}}>OK</button>
-  </div>
-</div>
-{/if}
+<Modal id="modal-anonymous">
+  <p>Feel free to experiment with the interface, but submit your work you must 
+    <a href="/account/login">sign in</a> or
+    <a href="/account/signup">sign up</a>.
+  </p>
+</Modal>
 
-<div id="finishedModal" class="modal">
-  <div class="modal-content" style="max-width:325px;">
-    <p>This document has already been prepared!</p>
-    <button on:click={() => {document.getElementById('finishedModal').style.display = 'none'}}>OK</button>
-  </div>
-</div>
+<Modal id="modal-finished">
+  <p>This document has already been prepared!</p>
+</Modal>
+
 <TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks}/>
 <p>{currentTxt} <a href="https://ohmg.dev/docs/making-the-mosaics/preparation" target="_blank">Learn more <Icon src={FiExternalLink} /></a></p>
 <div id="map-container" class="svelte-component-main">
