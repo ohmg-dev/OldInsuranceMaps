@@ -56,24 +56,6 @@ let currentLayer = null;
 
 let leaveOkay = true;
 
-// show the extend session prompt 15 seconds before the session expires
-// setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
-
-let autoRedirect;
-function promptRefresh() {
-  if (!leaveOkay) {
-    const modal = document.getElementById("expirationModal");
-    modal.style.display = "block";
-    leaveOkay = true;
-    autoRedirect = setTimeout(cancelAndRedirectToDetail, 15000);
-  }
-}
-
-function cancelAndRedirectToDetail() {
-  process("cancel");
-  window.location.href='';
-}
-
 let unchanged = true;
 let mapView;
 
@@ -326,12 +308,6 @@ function submitMultiMask() {
   })
 }
 
-function confirmLeave () {
-  event.preventDefault();
-  event.returnValue = "";
-  return "...";
-}
-
 function zoomToLayer(layer) {
   if (mapView) {
     const extent3857 = transformExtent(layer.layerDef.extent, "EPSG:4326", "EPSG:3857");
@@ -417,15 +393,6 @@ function layerRemoveMask(layer, confirm) {
 let inFullscreen = false;
 
 </script>
-
-<svelte:window on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}}/>
-
-<div id="expirationModal" class="modal">
-  <div class="modal-content">
-    <p>This trimming session is expiring, and will be cancelled soon.</p>
-    <button on:click={() => {process("extend-session")}}>Give me more time!</button>
-  </div>
-</div>
 
 {#if USER_TYPE == "anonymous"}<div><p>Feel free to mess around; you can't save changes unless you are logged in.</p></div>{/if}
 <div class="svelte-component-main">

@@ -43,6 +43,7 @@ import VectorLayer from 'ol/layer/Vector';
 import {MouseWheelZoom, defaults} from 'ol/interaction';
 
 import {makeTitilerXYZUrl, makeLayerGroupFromVolume, makeBasemaps} from '../js/utils';
+import Modal, {getModal} from '../components/Modal.svelte'
 
 export let PLACE;
 export let MAPBOX_API_KEY;
@@ -58,8 +59,6 @@ let volumeLookup = {};
 const tileGrid = createXYZ({
 	tileSize: 512,
 });
-
-let showAboutPanel = false;
 
 let homeExtent;
 if (VOLUMES.length > 0) {
@@ -410,30 +409,25 @@ function getCompletedStr(id) {
 	return `${volumeLookup[id].progress.georef_ct}/${volumeLookup[id].progress.unprep_ct+volumeLookup[id].progress.prep_ct+volumeLookup[id].progress.georef_ct}`
 } 
 
-
 </script>
-{#if showAboutPanel}
-<div class="about-modal-bg">
-	<div class="about-modal-content">
-		<h1>Using this Viewer</h1>
-		<ul>
-			<li>Use
-				<i class="transparency-toggle full-circle"/> /
-				<i class="transparency-toggle half-circle"/> /
-				<i class="transparency-toggle empty-circle"/>, or the slider,
-				to change layer opacity</li>
-			<li>Share the browser URL at any time to retain current location and layer settings</li>
-		</ul>
-		<h2>About the Maps</h2>
-		<p>These historical fire insurance maps were originally created by the Sanborn Map Company, and provided here via the <a title="LOC Sanborn Maps Collection" href="https://loc.gov/collections/sanborn-maps/about-this-collection">Library of Congress</a> collection.</p>
-		<p>In early 2022, participants in a <a href="https://digitalcommons.lsu.edu/gradschool_theses/5641/" target="_blank">crowdsourcing project</a> georeferenced all of the Louisiana maps you see here, eventually creating these seamless mosaic overlays. These comprise 1,500 individual sheets from 270 different Sanborn atlases, covering of over <a href="/browse">130 different locations</a>.</p>
-		<h2>Further Development</h2>
-		<p>If you are interested in supporting this site <a href="mailto:hello@oldinsuracemaps.net">get in touch</a>. To get more Sanborn maps on here, please fill out <a href="https://forms.gle/3gbZPYKWcPFb1NN5A">this form</a>.</p>
-		<p>To learn much more about the entire project, head to <a href="https://ohmg.dev">ohmg.dev</a>.</p>
-		<button on:click={() => {showAboutPanel=false}}>close</button>
-	</div>
-</div>
-{/if}
+
+<Modal id='modal-about'>
+	<h1>Using this Viewer</h1>
+	<ul>
+		<li>Use
+			<i class="transparency-toggle full-circle"/> /
+			<i class="transparency-toggle half-circle"/> /
+			<i class="transparency-toggle empty-circle"/>, or the slider,
+			to change layer opacity</li>
+		<li>Share the browser URL at any time to retain current location and layer settings</li>
+	</ul>
+	<h2>About the Maps</h2>
+	<p>These historical fire insurance maps were originally created by the Sanborn Map Company, and provided here via the <a title="LOC Sanborn Maps Collection" href="https://loc.gov/collections/sanborn-maps/about-this-collection">Library of Congress</a> collection.</p>
+	<p>In early 2022, participants in a <a href="https://digitalcommons.lsu.edu/gradschool_theses/5641/" target="_blank">crowdsourcing project</a> georeferenced all of the Louisiana maps you see here, eventually creating these seamless mosaic overlays. These comprise 1,500 individual sheets from 270 different Sanborn atlases, covering of over <a href="/browse">130 different locations</a>.</p>
+	<h2>Further Development</h2>
+	<p>If you are interested in supporting this site <a href="mailto:hello@oldinsuracemaps.net">get in touch</a>. To get more Sanborn maps on here, please fill out <a href="https://forms.gle/3gbZPYKWcPFb1NN5A">this form</a>.</p>
+	<p>To learn much more about the entire project, head to <a href="https://ohmg.dev">ohmg.dev</a>.</p>
+</Modal>
 <main>
 	<div id="locate-button" class="ol-control ol-unselectable">
 		<button title="Show my location" on:click={locateUser}>
@@ -510,7 +504,7 @@ function getCompletedStr(id) {
 			<span>|</span>
 			<a title="Go to home page" href="/">home</a>
 			<span>|</span>
-			<button title="About this viewer" on:click={() => {showAboutPanel = !showAboutPanel}}>info</button>
+			<button title="About this viewer" on:click={() => {getModal('modal-about').open()}}>info</button>
 		</div>
 	</div>
 	{/if}

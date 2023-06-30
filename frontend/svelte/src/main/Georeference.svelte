@@ -57,6 +57,7 @@ import {
 } from '../js/utils';
 
 import TitleBar from '../components/TitleBar.svelte';
+import Modal, {getModal} from '../components/Modal.svelte';
 
 export let USER;
 export let SESSION_LENGTH;
@@ -119,27 +120,20 @@ if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == USER)) {
 }
 $: enableSave = gcpList.length >= 3 && enableButtons;
 
-// let disableInterface = LOCK.enabled;
-// let disableReason = LOCK.type == "unauthenticated" ? LOCK.type : LOCK.stage;
-// let leaveOkay = true;
-// if (LOCK.stage == "in-progress") {
-//   leaveOkay = false;
-// }
-
 // show the extend session prompt 15 seconds before the session expires
 setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
 
 let autoRedirect;
 function promptRefresh() {
   if (!leaveOkay) {
-    const modal = document.getElementById("expirationModal");
-    modal.style.display = "block";
+    if (document.fullscreenElement != null) {  document.exitFullscreen(); }
+    getModal('modal-expiration').open()
     leaveOkay = true;
     autoRedirect = setTimeout(cancelAndRedirectToDetail, 15000);
   }
 }
 
-const nextPage = DOCUMENT.layer ? DOCUMENT.layer.urls.resource : DOCUMENT.urls.resource;
+const nextPage = VOLUME.urls.summary;
 function cancelAndRedirectToDetail() {
   process("cancel");
   window.location.href=nextPage;
@@ -510,6 +504,7 @@ onMount(() => {
   loadIncomingGCPs();
   disabledMap(disableInterface)
   inProgress = false;
+  if (!USER) { getModal('modal-anonymous').open() }
 });
 
 function disabledMap(disabled) {
@@ -802,7 +797,6 @@ function process(operation){
   if (operation == "extend-session") {
     leaveOkay = false;
     clearTimeout(autoRedirect)
-    document.getElementById("expirationModal").style.display = "none";
     setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
   }
 
@@ -938,23 +932,21 @@ const iconLinks = [
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 <TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks}/>
 <p>Create 3 or more ground control points to georeference this document. To create a ground control point, first click on a location in the left panel, then find and click on the corresponding location in right panel. <a href="https://ohmg.dev/docs/making-the-mosaics/georeferencing" target="_blank">Learn more <Icon src={FiExternalLink} /></a></p>
-<div id="expirationModal" class="modal">
-  <div class="modal-content">
-    <p>This georeferencing session is expiring, and will be cancelled soon.</p>
-    <button on:click={() => {process("extend-session")}}>Give me more time!</button>
-  </div>
-</div>
 
-{#if !USER}
-<div id="anonymousModal" class="modal" style="display:block;">
-  <div class="modal-content" style="max-width:325px;">
-    <p>Feel free to experiment with the interface. To submit your work, you must
-      <a href="/account/login">sign in</a> or
-      <a href="/account/signup">sign up</a>.</p>
-    <button on:click={() => {document.getElementById('anonymousModal').style.display = 'none'}}>OK</button>
-  </div>
-</div>
-{/if}
+<Modal id="modal-expiration">
+  <p>This georeferencing session is expiring, and will be cancelled soon.</p>
+  <button on:click={() => {
+    process("extend-session");
+    getModal('modal-expiration').close()}
+    }>Give me more time!</button>
+</Modal>
+
+<Modal id="modal-anonymous">
+  <p>Feel free to experiment with the interface, but submit your work you must 
+    <a href="/account/login">sign in</a> or
+    <a href="/account/signup">sign up</a>.
+  </p>
+</Modal>
 
 <div id="map-container" class="svelte-component-main">
   {#if disableInterface}
