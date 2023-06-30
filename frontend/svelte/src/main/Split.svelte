@@ -76,6 +76,7 @@ setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
 let autoRedirect;
 function promptRefresh() {
   if (!leaveOkay) {
+    if (document.fullscreenElement != null) {  document.exitFullscreen(); }
     getModal('modal-expiration').open()
     leaveOkay = true;
     autoRedirect = setTimeout(cancelAndRedirectToDetail, 10000);
