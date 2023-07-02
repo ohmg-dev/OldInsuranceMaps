@@ -244,12 +244,25 @@ class Georeferencer(object):
             src_nodata = "255 255 255"
         ## make WarpOptions to handle more settings in the final process
         # https://gdal.org/python/osgeo.gdal-module.html#WarpOptions
+
+        if output_format == "GTiff":
+            output_format = "COG"
         wo = gdal.WarpOptions(
             creationOptions=[
-                "TILED=YES",
-                "COMPRESS=DEFLATE",
-                ## the following is apparently in the COG spec but doesn't work??
-                # "COPY_SOURCE_OVERVIEWS=YES",
+                ## originally used this set of flags used
+                # "TILED=YES",
+                # "COMPRESS=DEFLATE",
+                ## should have been used PREDICTOR=2 with DEFLATE but didn't know about it
+                # "PREDICTOR=2"
+                ## useful in general but not needed when using COG driver
+                # "BLOCKXSIZE=512",
+                # "BLOCKYSIZE=512",
+                ## advisable if using JPEG with GTiff, but not supported in COG
+                # "JPEG_QUALITY=75",
+                # "PHOTOMETRIC=YCBCR",
+                ## Use JPEG, as recommended by Paul Ramsey article:
+                ## https://blog.cleverelephant.ca/2015/02/geotiff-compression-for-dummies.html
+                "COMPRESS=JPEG",
             ],
             transformerOptions = [
                 f'DST_SRS={sr_wkt}',
@@ -259,6 +272,7 @@ class Georeferencer(object):
             dstSRS=f"{self.crs_code}",
             srcNodata=src_nodata,
             dstAlpha=True,
+            resampleAlg='bilinear',
         )
 
         return wo
@@ -378,11 +392,12 @@ class Georeferencer(object):
 
         dst_path = get_path_variant(src_path, "GTiff", outdir=output_directory)
 
+        logger.debug(f"{fname} | running warp...")
         self.run_warp(dst_path, vrt_with_gcps, warp_options)
         logger.debug(f"{fname} | warp completed in {round(time.time() - a, 3)} seconds.")
 
         b = time.time()
-        self.add_overviews(dst_path)
+        # self.add_overviews(dst_path)
         logger.debug(f"{fname} | overviews created in {round(time.time() - b, 3)} seconds.")
 
         logger.info(f"{fname} | georeference successful in {round(time.time() - a, 3)} seconds.")
