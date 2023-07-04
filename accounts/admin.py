@@ -8,6 +8,6 @@ class LocalUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
     model = User
-    list_display = ["email", "username",]
+    list_display = ["email", "username", "date_joined", "last_login"]
 
 admin.site.register(User, LocalUserAdmin)
