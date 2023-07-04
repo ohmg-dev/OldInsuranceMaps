@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from georeference.models.resources import Document, Layer
 from georeference.georeferencer import Georeferencer
+from georeference.renderers import generate_layer_thumbnail_content
 
 class Command(BaseCommand):
     help = 'Command line access point for the internal georeferencing utilities.'
@@ -77,5 +78,6 @@ class Command(BaseCommand):
                 lyr.save(set_thumbnail=True)
             
             elif options['file']:
-                from georeference.renderers import generate_layer_thumbnail_content
-                generate_layer_thumbnail_content(options['file'])
+                content = generate_layer_thumbnail_content(options['file'])
+                with open('thumb_output.jpg', 'wb') as out:
+                    out.write(content)
