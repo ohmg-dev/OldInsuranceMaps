@@ -170,7 +170,7 @@ export function makeLayerGroupFromVolume(options) {
 
 	layerDefs.forEach( function(layerDef) {
 	
-		if (layerDef.id != options.excludeLayerId) {
+		if (layerDef.id != options.excludeLayerId && layerDef.extent) {
 	
 			// create the actual ol layers and add to group.
 			let newLayer = new TileLayer({

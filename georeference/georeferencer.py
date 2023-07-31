@@ -245,10 +245,13 @@ class Georeferencer(object):
         ## make WarpOptions to handle more settings in the final process
         # https://gdal.org/python/osgeo.gdal-module.html#WarpOptions
 
+        gdal.SetConfigOption('GDAL_TIFF_INTERNAL_MASK', 'YES')
+
         if output_format == "GTiff":
             output_format = "COG"
         wo = gdal.WarpOptions(
             creationOptions=[
+                "NUM_THREADS=ALL_CPUS",
                 ## originally used this set of flags used
                 # "TILED=YES",
                 # "COMPRESS=DEFLATE",
@@ -263,6 +266,7 @@ class Georeferencer(object):
                 ## Use JPEG, as recommended by Paul Ramsey article:
                 ## https://blog.cleverelephant.ca/2015/02/geotiff-compression-for-dummies.html
                 "COMPRESS=JPEG",
+                "ADD_ALPHA=YES",
             ],
             transformerOptions = [
                 f'DST_SRS={sr_wkt}',
@@ -279,6 +283,8 @@ class Georeferencer(object):
 
     def run_warp(self, dst_path, vrt_with_gcps, options):
         """Wrap the actual warping operation for debugging purposes."""
+
+        gdal.SetConfigOption('GDAL_NUM_THREADS', 'ALL_CPUS')
 
         fname = os.path.basename(dst_path)
         # with CapturingStderr() as output:
@@ -372,6 +378,90 @@ class Georeferencer(object):
 
         return dst_path
 
+    def make_warped_vrt(self, src_path, output_directory=None, preview_id=None):
+        """Input the vrt with embedded GCPs and return a warped version of it as VRT."""
+
+        if output_directory is None:
+            self.set_workspace(os.path.dirname(src_path))
+        else:
+            self.set_workspace(output_directory)
+
+        vrt_with_gcps = self.make_gcps_vrt(src_path, output_directory=output_directory)
+        # warp_options = self.make_warp_options(src_path, "VRT")
+
+        sr_wkt = self.get_spatial_reference().ExportToWkt()
+
+        ## if a jpg is passed in, assume that white (255, 255, 255) should be
+        ## interpreted as the no data value
+        src_nodata = None
+        if src_path.endswith(".jpg"):
+            src_nodata = "255 255 255"
+        ## make WarpOptions to handle more settings in the final process
+        # https://gdal.org/python/osgeo.gdal-module.html#WarpOptions
+
+        # gdal.SetConfigOption('GDAL_TIFF_INTERNAL_MASK', 'YES')
+
+        wo = gdal.WarpOptions(
+            # creationOptions=[
+            #     "NUM_THREADS=ALL_CPUS",
+            #     ## originally used this set of flags used
+            #     # "TILED=YES",
+            #     # "COMPRESS=DEFLATE",
+            #     ## should have been used PREDICTOR=2 with DEFLATE but didn't know about it
+            #     # "PREDICTOR=2"
+            #     ## useful in general but not needed when using COG driver
+            #     # "BLOCKXSIZE=512",
+            #     # "BLOCKYSIZE=512",
+            #     ## advisable if using JPEG with GTiff, but not supported in COG
+            #     # "JPEG_QUALITY=75",
+            #     # "PHOTOMETRIC=YCBCR",
+            #     ## Use JPEG, as recommended by Paul Ramsey article:
+            #     ## https://blog.cleverelephant.ca/2015/02/geotiff-compression-for-dummies.html
+            #     "COMPRESS=JPEG",
+            #     "ADD_ALPHA=YES",
+            # ],
+            transformerOptions = [
+                f'DST_SRS={sr_wkt}',
+                f'MAX_GCP_ORDER={self.transformation["gdal_code"]}',
+            ],
+            format="VRT",
+            dstSRS=f"{self.crs_code}",
+            # srcNodata=src_nodata,
+            dstAlpha=True,
+            resampleAlg='bilinear',
+        )
+
+        dst_path = get_path_variant(src_path, "VRT", outdir=output_directory)
+        if preview_id:
+            dst_path = dst_path.replace('.vrt', f'_{preview_id}.vrt')
+
+        self.run_warp(dst_path, vrt_with_gcps, wo)
+
+        if self.crs_code != "EPSG:3857":
+            new_path = dst_path.replace(".vrt", "_3857.vrt")
+            src_nodata = None
+            if src_path.endswith(".jpg"):
+                src_nodata = "255 255 255"
+            new_options = gdal.WarpOptions(
+                creationOptions=[
+                    "TILED=YES",
+                    "COMPRESS=DEFLATE",
+                    ## the following is apparently in the COG spec but doesn't work??
+                    # "COPY_SOURCE_OVERVIEWS=YES",
+                ],
+                transformerOptions = [
+                    f'DST_SRS={retrieve_srs_wkt(3857)}',
+                    f'MAX_GCP_ORDER={self.transformation["gdal_code"]}',
+                ],
+                format="VRT",
+                dstSRS=f"EPSG:3857",
+                srcNodata=src_nodata,
+                dstAlpha=True,
+            )
+            gdal.Warp(new_path,dst_path,options=new_options)
+            dst_path = new_path
+
+        return dst_path
 
     def make_tif(self, src_path, output_directory=None):
         """This is the entry point for creating a final GeoTIFF. It calls make_gcps_vrt()
@@ -388,16 +478,31 @@ class Georeferencer(object):
             self.set_workspace(output_directory)
 
         vrt_with_gcps = self.make_gcps_vrt(src_path, output_directory=output_directory)
-        warp_options = self.make_warp_options(src_path, "GTiff")
+        # warp_options = self.make_warp_options(src_path, "GTiff")
+
+
+        logger.debug(f"{fname} | running warp...")
+        warped_vrt = self.make_warped_vrt(vrt_with_gcps)
+        # self.run_warp(dst_path, vrt_with_gcps, warp_options)
+        logger.debug(f"{fname} | warp completed in {round(time.time() - a, 3)} seconds.")
 
         dst_path = get_path_variant(src_path, "GTiff", outdir=output_directory)
 
-        logger.debug(f"{fname} | running warp...")
-        self.run_warp(dst_path, vrt_with_gcps, warp_options)
-        logger.debug(f"{fname} | warp completed in {round(time.time() - a, 3)} seconds.")
+        to  = gdal.TranslateOptions(
+            format="GTiff",
+            # maskBand="mask",
+            creationOptions=[
+                'COMPRESS=JPEG',
+                'TILED=YES',
+                'BLOCKXSIZE=512',
+                'BLOCKYSIZE=512',
+                # "PHOTOMETRIC=YCBCR",
+            ]
+        )
+        gdal.Translate(dst_path, warped_vrt, options=to)
 
         b = time.time()
-        # self.add_overviews(dst_path)
+        self.add_overviews(dst_path)
         logger.debug(f"{fname} | overviews created in {round(time.time() - b, 3)} seconds.")
 
         logger.info(f"{fname} | georeference successful in {round(time.time() - a, 3)} seconds.")

@@ -25,6 +25,7 @@ class Command(BaseCommand):
                 "make-sheets",
                 "generate-mosaic",
                 "generate-mosaic-json",
+                "set-extent",
             ],
             help="the operation to perform",
         ),
@@ -112,6 +113,9 @@ class Command(BaseCommand):
 
         if options['operation'] == "generate-mosaic":
             if i is not None:
+                vol = Volume.objects.get(pk=i)
+                vol.generate_cog()
+                return
                 if options['background']:
                     generate_mosaic_geotiff_as_task.delay(i)
                 else:
@@ -120,3 +124,8 @@ class Command(BaseCommand):
         if options['operation'] == "generate-mosaic-json":
             if i is not None:
                 generate_mosaic_json(i, trim_all=options['trim_all'])
+
+        if options['operation'] == "set-extent":
+            if i is not None:
+                vol = Volume.objects.get(identifier=i)
+                vol.set_extent()

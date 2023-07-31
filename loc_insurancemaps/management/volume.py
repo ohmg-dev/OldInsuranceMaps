@@ -156,14 +156,18 @@ def generate_mosaic_geotiff(identifier):
     print("building final geotiff")
 
     to = gdal.TranslateOptions(
-        format="GTiff",
+        # format="GTiff",
+        format="COG",
         creationOptions = [
-            "TILED=YES",
-            "COMPRESS=DEFLATE",
-            "PREDICTOR=2",
-            "NUM_THREADS=ALL_CPUS",
+            # for the GTiff format
+            # "TILED=YES",
+            # "COMPRESS=DEFLATE",
+            # "PREDICTOR=2",
+            # "NUM_THREADS=ALL_CPUS",
             ## the following is apparently in the COG spec but doesn't work??
             # "COPY_SOURCE_OVERVIEWS=YES",
+            # for the COG format
+            "COMPRESS=JPEG",
         ],
     )
 
@@ -187,12 +191,12 @@ def generate_mosaic_geotiff(identifier):
     with open(mosaic_tif, 'rb') as f:
         vol.mosaic_geotiff.save(file_name, File(f))
 
-    print("creating overviews")
-    img = gdal.Open(vol.mosaic_geotiff.path, 1)
-    gdal.SetConfigOption("COMPRESS_OVERVIEW", "DEFLATE")
-    gdal.SetConfigOption("PREDICTOR", "2")
-    gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
-    img.BuildOverviews("AVERAGE", [2, 4, 8, 16])
+    # print("creating overviews")
+    # img = gdal.Open(vol.mosaic_geotiff.path, 1)
+    # gdal.SetConfigOption("COMPRESS_OVERVIEW", "DEFLATE")
+    # gdal.SetConfigOption("PREDICTOR", "2")
+    # gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
+    # img.BuildOverviews("AVERAGE", [2, 4, 8, 16])
 
     os.remove(mosaic_tif)
     if existing_file_path:

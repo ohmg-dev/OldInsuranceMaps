@@ -37,8 +37,10 @@ def delete_expired_sessions():
         if now > resource.lock_details['expiration']:
             try:
                 session = SessionBase.objects.get(pk=resource.lock_details['session_id'])
-                logger.info(f"delete session {session.pk} to unlock resource {resource.pk}")
-                session.delete()
+                # only delete a session if it hasn't been submitted.
+                if session.stage == "input":
+                    logger.info(f"deleting session {session.pk} to unlock resource {resource.pk}")
+                    session.delete()
             except SessionBase.DoesNotExist:
                 logger.warn(f"error during session cleanup. can't find SessionBase object for resource {resource.pk}. unlocking.")
                 resource.remove_lock()

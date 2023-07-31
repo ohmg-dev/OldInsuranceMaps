@@ -5,6 +5,8 @@ import logging
 from itertools import chain
 from datetime import datetime
 
+from osgeo import gdal
+
 from pygments import highlight
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers.data import JsonLexer
@@ -30,6 +32,7 @@ from georeference.models.sessions import (
     GeorefSession,
 )
 from georeference.storage import OverwriteStorage
+from georeference.utils import random_alnum
 from places.models import Place
 
 from loc_insurancemaps.utils import LOCParser, get_jpg_from_jp2_url
@@ -39,6 +42,26 @@ from loc_insurancemaps.enumerations import (
     MONTH_CHOICES,
 )
 logger = logging.getLogger(__name__)
+
+def write_trim_feature_cache(feature, file_path):
+    with open(file_path, "w") as f:
+        json.dump(feature, f, indent=2)
+
+def read_trim_feature_cache(file_path):
+    with open(file_path, "r") as f:
+        feature = json.load(f)
+    return feature
+
+def check_trim_feature_cache(in_path, feature):
+
+    feat_cache_path = in_path.replace(".tif", "_trim-feature.json")
+    if os.path.isfile(feat_cache_path):
+        cached_feature = read_trim_feature_cache(feat_cache_path)
+    else:
+        cached_feature = None
+        write_trim_feature_cache(feature, feat_cache_path)
+    
+
 
 def find_volume(item):
     """Attempt to get the volume from which a Document or Layer
@@ -509,8 +532,9 @@ class Volume(models.Model):
 
         layer_extent_polygons = []
         for l in self.layer_lookup.values():
-            poly = Polygon.from_bbox(l['extent'])
-            layer_extent_polygons.append(poly)
+            if l['extent']:
+                poly = Polygon.from_bbox(l['extent'])
+                layer_extent_polygons.append(poly)
         if len(layer_extent_polygons) > 0:
             multi = MultiPolygon(layer_extent_polygons)
             self.extent = Polygon.from_bbox(multi.extent)
@@ -638,6 +662,121 @@ class Volume(models.Model):
             data['sessions'] = self.get_user_activity_summary()
 
         return data
+
+    def make_trim_vrts(self):
+        pass
+
+    def generate_cog(self, trim_all=False):
+        """ A helpful reference from the BPLv used during the creation of this method:
+        https://github.com/bplmaps/atlascope-utilities/blob/master/new-workflow/atlas-tools.py
+        """
+
+        start = datetime.now()
+
+        gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
+        gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")
+
+        multimask_geojson = self.get_multimask_geojson()
+        multimask_file_name = f"multimask-{self.identifier}"
+        multimask_file = os.path.join(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
+        with open(multimask_file, "w") as out:
+            json.dump(multimask_geojson, out, indent=1)
+
+        trim_list = []
+        layer_extent_polygons = []
+        for feature in multimask_geojson['features']:
+
+            layer_name = feature['properties']['layer']
+
+            layer = Layer.objects.get(slug=layer_name)
+            if not layer.file:
+                raise Exception(f"no layer file for this layer {layer_name}")
+
+            if layer.extent:
+                extent_poly = Polygon.from_bbox(layer.extent)
+                layer_extent_polygons.append(extent_poly)
+
+            in_path = layer.file.path
+            trim_name = os.path.basename(in_path).replace(".tif", "_trim.vrt")
+            out_path = os.path.join(settings.TEMP_DIR, trim_name)
+
+            wo = gdal.WarpOptions(
+                # format="COG",
+                format="VRT",
+                dstSRS = "EPSG:3857",
+                cutlineDSName = multimask_file,
+                cutlineLayer = multimask_file_name,
+                cutlineWhere = f"layer='{layer_name}'",
+                cropToCutline = True,
+                # srcAlpha = True,
+                # dstAlpha = True,
+                # creationOptions= [
+                #     'COMPRESS=JPEG',
+                # ]
+                # creationOptions= [
+                #     'COMPRESS=DEFLATE',
+                #     'PREDICTOR=2',
+                # ]
+            )
+            gdal.Warp(out_path, in_path, options=wo)
+            print("warped")
+
+            trim_list.append(out_path)
+
+        if len(layer_extent_polygons) > 0:
+            multi = MultiPolygon(layer_extent_polygons, srid=4326)
+
+        mosaic_vrt = os.path.join(settings.TEMP_DIR, f"{self.identifier}.vrt")
+        bounds = multi.transform(3857, True).extent
+        vo = gdal.BuildVRTOptions(
+            resolution = 'highest',
+            outputSRS="EPSG:3857",
+            outputBounds=bounds,
+            separate = False,
+            # addAlpha = True,
+            # srcNodata = "255 255 255",
+        )
+        print("building vrt")
+
+        mosaic_vrt = os.path.join(settings.TEMP_DIR, f"{self.identifier}.vrt")
+        gdal.BuildVRT(mosaic_vrt, trim_list, options=vo)
+
+        print("building final geotiff")
+
+        to = gdal.TranslateOptions(
+            format="COG",
+            creationOptions = [
+                "COMPRESS=JPEG",
+            ],
+        )
+
+        mosaic_tif = mosaic_vrt.replace(".vrt", ".tif")
+        gdal.Translate(mosaic_tif, mosaic_vrt, options=to)
+
+        existing_file_path = None
+        if self.mosaic_geotiff:
+            existing_file_path = self.mosaic_geotiff.path
+
+        file_name = f"{self.identifier}__{random_alnum(6)}.tif"
+
+        with open(mosaic_tif, 'rb') as f:
+            self.mosaic_geotiff.save(file_name, File(f))
+
+        # print("creating overviews")
+        # img = gdal.Open(vol.mosaic_geotiff.path, 1)
+        # gdal.SetConfigOption("COMPRESS_OVERVIEW", "DEFLATE")
+        # gdal.SetConfigOption("PREDICTOR", "2")
+        # 
+        # img.BuildOverviews("AVERAGE", [2, 4, 8, 16])
+
+        # os.remove(mosaic_tif)
+        if existing_file_path:
+            os.remove(existing_file_path)
+
+        self.mosaic_preference = "geotiff"
+        self.save(update_fields=['mosaic_preference'])
+
+        print(f"completed - elapsed time: {datetime.now() - start}")
 
 ## This seems to be where the signals need to be connected. See
 ## https://github.com/mradamcox/loc-insurancemaps/issues/75

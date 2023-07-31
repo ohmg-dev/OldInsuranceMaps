@@ -12,7 +12,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "operation",
-            choices=['georeference', 'thumbnail'],
+            choices=['georeference', 'thumbnail', 'set-extent'],
             help="operation to perform",
         )
         parser.add_argument(
@@ -63,10 +63,20 @@ class Command(BaseCommand):
         op = options['operation']
 
         if op == "georeference":
-            doc = Document.objects.get(pk=options['docid'])
-            print(doc)
-            if doc.georeference_sessions.exists():
-                list(doc.georeference_sessions)[-1].run()
+            if options['docid']:
+                resource = Document.objects.get(pk=options['docid'])
+                sessions = resource.georeference_sessions
+            elif options['lyrid']:
+                resource = Layer.objects.get(pk=options['lyrid'])
+                sessions = resource.get_document().georeference_sessions
+            print(sessions)
+            if sessions.exists():
+                list(sessions)[-1].run()
+
+        if op == "set-extent":
+            if options['lyrid']:
+                lyr = Layer.objects.get(pk=options['lyrid'])
+                lyr.save(set_extent=True)
 
         elif op == "thumbnail":
             if options['docid']:
