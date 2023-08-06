@@ -118,6 +118,19 @@ class Browse(View):
             context=context_dict
         )
 
+class About(View):
+
+    def get(self, request):
+
+        context_dict = {
+            "about_params": {},
+        }
+        return render(
+            request,
+            "about.html",
+            context=context_dict
+        )
+
 class VolumeTrim(View):
 
     def post(self, request, volumeid):

@@ -95,6 +95,7 @@ let exportable = [];
 	"Split",
 	"Viewer",
 	"Volume",
+	"About",
 ].forEach((d) => exportable.push(componentExportDetails(d)));
 
 export default exportable;

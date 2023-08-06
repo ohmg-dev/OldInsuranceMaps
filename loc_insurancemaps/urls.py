@@ -8,6 +8,7 @@ from .views import (
     MRMEndpointList,
     MRMEndpointLayer,
     Browse,
+    About,
 )
 
 urlpatterns = [
@@ -18,7 +19,7 @@ urlpatterns = [
         name='getting_started'),
     path('help/', RedirectView.as_view(url="https://ohmg.dev")),
     path('developer/', RedirectView.as_view(url="https://ohmg.dev")),
-
+    path('about/', About.as_view(), name='about'),
     path('browse/', Browse.as_view(), name='browse'),
     path('loc/volumes/', RedirectView.as_view(pattern_name='browse', permanent=True), name='volumes_list'),
     path('loc/<str:volumeid>/', VolumeDetail.as_view(), name="volume_summary"),
