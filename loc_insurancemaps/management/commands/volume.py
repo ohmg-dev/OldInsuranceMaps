@@ -3,11 +3,10 @@ from datetime import datetime
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 
-from loc_insurancemaps.tasks import generate_mosaic_geotiff_as_task
-from loc_insurancemaps.management.volume import (
-    import_volume,
-    generate_mosaic_geotiff,
-    generate_mosaic_json,
+from content.models import Item
+from loc_insurancemaps.tasks import (
+    generate_mosaic_cog_task,
+    generate_mosaic_json_task,
 )
 from loc_insurancemaps.models import Volume
 from places.models import Place as NewPlace
@@ -23,7 +22,7 @@ class Command(BaseCommand):
                 "refresh-lookups-old",
                 "refresh-lookups",
                 "make-sheets",
-                "generate-mosaic",
+                "generate-mosaic-cog",
                 "generate-mosaic-json",
                 "set-extent",
             ],
@@ -99,7 +98,7 @@ class Command(BaseCommand):
                     if not confirm.lower().startswith("y"):
                         exit()
 
-            vol = import_volume(i, locale=locale)
+            vol = Volume().import_volume(i, locale=locale)
             print(vol)
 
         if options['operation'] == "make-sheets":
@@ -111,19 +110,21 @@ class Command(BaseCommand):
                 vol.save(update_fields=["loaded_by", "load_date"])
                 vol.load_sheet_docs(force_reload=True)
 
-        if options['operation'] == "generate-mosaic":
+        if options['operation'] == "generate-mosaic-cog":
             if i is not None:
-                vol = Volume.objects.get(pk=i)
-                vol.generate_cog()
-                return
                 if options['background']:
-                    generate_mosaic_geotiff_as_task.delay(i)
+                    generate_mosaic_cog_task.delay(i)
                 else:
-                    generate_mosaic_geotiff(i)
+                    item = Item(i)
+                    item.generate_mosaic_cog()
 
         if options['operation'] == "generate-mosaic-json":
             if i is not None:
-                generate_mosaic_json(i, trim_all=options['trim_all'])
+                if options['background']:
+                    generate_mosaic_json_task.delay(i, trim_all=options['trim_all'])
+                else:
+                    item = Item(i)
+                    item.generate_mosaic_json(trim_all=options['trim_all'])
 
         if options['operation'] == "set-extent":
             if i is not None:

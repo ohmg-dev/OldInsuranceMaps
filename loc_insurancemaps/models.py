@@ -5,8 +5,6 @@ import logging
 from itertools import chain
 from datetime import datetime
 
-from osgeo import gdal
-
 from pygments import highlight
 from pygments.formatters.html import HtmlFormatter
 from pygments.lexers.data import JsonLexer
@@ -35,7 +33,13 @@ from georeference.storage import OverwriteStorage
 from georeference.utils import random_alnum
 from places.models import Place
 
-from loc_insurancemaps.utils import LOCParser, get_jpg_from_jp2_url
+from loc_insurancemaps.utils import (
+    LOCParser,
+    LOCConnection,
+    filter_volumes_for_use,
+    unsanitize_name,
+    get_jpg_from_jp2_url,
+)
 from loc_insurancemaps.enumerations import (
     STATE_CHOICES,
     STATE_ABBREV,
@@ -663,120 +667,58 @@ class Volume(models.Model):
 
         return data
 
-    def make_trim_vrts(self):
-        pass
+    def import_all_available_volumes(self, state, apply_filter=True, verbose=False):
+        """Preparatory step that runs through all cities in the provided
+        state, filters the available volumes for those cities, and then
+        imports each one to create a new Volume object."""
 
-    def generate_cog(self, trim_all=False):
-        """ A helpful reference from the BPLv used during the creation of this method:
-        https://github.com/bplmaps/atlascope-utilities/blob/master/new-workflow/atlas-tools.py
-        """
+        lc = LOCConnection(delay=0, verbose=verbose)
+        cities = lc.get_city_list_by_state(state)
 
-        start = datetime.now()
+        volumes = []
+        for city in cities:
+            lc.reset()
+            city = unsanitize_name(state, city[0])
+            vols = lc.get_volume_list_by_city(city, state)
+            if apply_filter is True:
+                vols = filter_volumes_for_use(vols)
+                volumes += [i for i in vols if i['include'] is True]
+            else:
+                volumes += vols
 
-        gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
-        gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")
+        for volume in volumes:
+            try:
+                Volume.objects.get(pk=volume['identifier'])
+            except Volume.DoesNotExist:
+                Volume().import_volume(volume['identifier'])
 
-        multimask_geojson = self.get_multimask_geojson()
-        multimask_file_name = f"multimask-{self.identifier}"
-        multimask_file = os.path.join(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
-        with open(multimask_file, "w") as out:
-            json.dump(multimask_geojson, out, indent=1)
+    def import_volume(self, identifier, locale=None):
 
-        trim_list = []
-        layer_extent_polygons = []
-        for feature in multimask_geojson['features']:
+        try:
+            volume = Volume.objects.get(pk=identifier)
+            volume.locales.set([locale])
+            volume.update_place_counts()
+            return volume
+        except Volume.DoesNotExist:
+            pass
 
-            layer_name = feature['properties']['layer']
+        lc = LOCConnection(delay=0, verbose=True)
+        response = lc.get_item(identifier)
+        if response.get("status") == 404:
+            return None
 
-            layer = Layer.objects.get(slug=layer_name)
-            if not layer.file:
-                raise Exception(f"no layer file for this layer {layer_name}")
+        parsed = LOCParser(item=response['item'])
+        volume_kwargs = parsed.volume_kwargs()
 
-            if layer.extent:
-                extent_poly = Polygon.from_bbox(layer.extent)
-                layer_extent_polygons.append(extent_poly)
+        # add resources to args, not in item (they exist adjacent)
+        volume_kwargs["lc_resources"] = response['resources']
 
-            in_path = layer.file.path
-            trim_name = os.path.basename(in_path).replace(".tif", "_trim.vrt")
-            out_path = os.path.join(settings.TEMP_DIR, trim_name)
+        volume = Volume.objects.create(**volume_kwargs)
+        volume.locales.add(locale)
 
-            wo = gdal.WarpOptions(
-                # format="COG",
-                format="VRT",
-                dstSRS = "EPSG:3857",
-                cutlineDSName = multimask_file,
-                cutlineLayer = multimask_file_name,
-                cutlineWhere = f"layer='{layer_name}'",
-                cropToCutline = True,
-                # srcAlpha = True,
-                # dstAlpha = True,
-                # creationOptions= [
-                #     'COMPRESS=JPEG',
-                # ]
-                # creationOptions= [
-                #     'COMPRESS=DEFLATE',
-                #     'PREDICTOR=2',
-                # ]
-            )
-            gdal.Warp(out_path, in_path, options=wo)
-            print("warped")
+        volume.update_place_counts()
 
-            trim_list.append(out_path)
-
-        if len(layer_extent_polygons) > 0:
-            multi = MultiPolygon(layer_extent_polygons, srid=4326)
-
-        mosaic_vrt = os.path.join(settings.TEMP_DIR, f"{self.identifier}.vrt")
-        bounds = multi.transform(3857, True).extent
-        vo = gdal.BuildVRTOptions(
-            resolution = 'highest',
-            outputSRS="EPSG:3857",
-            outputBounds=bounds,
-            separate = False,
-            # addAlpha = True,
-            # srcNodata = "255 255 255",
-        )
-        print("building vrt")
-
-        mosaic_vrt = os.path.join(settings.TEMP_DIR, f"{self.identifier}.vrt")
-        gdal.BuildVRT(mosaic_vrt, trim_list, options=vo)
-
-        print("building final geotiff")
-
-        to = gdal.TranslateOptions(
-            format="COG",
-            creationOptions = [
-                "COMPRESS=JPEG",
-            ],
-        )
-
-        mosaic_tif = mosaic_vrt.replace(".vrt", ".tif")
-        gdal.Translate(mosaic_tif, mosaic_vrt, options=to)
-
-        existing_file_path = None
-        if self.mosaic_geotiff:
-            existing_file_path = self.mosaic_geotiff.path
-
-        file_name = f"{self.identifier}__{random_alnum(6)}.tif"
-
-        with open(mosaic_tif, 'rb') as f:
-            self.mosaic_geotiff.save(file_name, File(f))
-
-        # print("creating overviews")
-        # img = gdal.Open(vol.mosaic_geotiff.path, 1)
-        # gdal.SetConfigOption("COMPRESS_OVERVIEW", "DEFLATE")
-        # gdal.SetConfigOption("PREDICTOR", "2")
-        # 
-        # img.BuildOverviews("AVERAGE", [2, 4, 8, 16])
-
-        # os.remove(mosaic_tif)
-        if existing_file_path:
-            os.remove(existing_file_path)
-
-        self.mosaic_preference = "geotiff"
-        self.save(update_fields=['mosaic_preference'])
-
-        print(f"completed - elapsed time: {datetime.now() - start}")
+        return volume
 
 ## This seems to be where the signals need to be connected. See
 ## https://github.com/mradamcox/loc-insurancemaps/issues/75
