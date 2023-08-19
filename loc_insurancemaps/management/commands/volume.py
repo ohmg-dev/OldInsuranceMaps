@@ -10,6 +10,7 @@ from loc_insurancemaps.tasks import (
 )
 from loc_insurancemaps.models import Volume
 from places.models import Place as NewPlace
+from georeference.models.resources import ItemBase
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -24,6 +25,7 @@ class Command(BaseCommand):
                 "make-sheets",
                 "generate-mosaic-cog",
                 "generate-mosaic-json",
+                "generate-thumbnails",
                 "set-extent",
             ],
             help="the operation to perform",
@@ -55,6 +57,11 @@ class Command(BaseCommand):
         parser.add_argument(
             "--locale",
             help="slug for the Place to attach to this volume"
+        )
+        parser.add_argument(
+            "--all",
+            help="apply to all volumes",
+            action="store_true",
         )
 
     def handle(self, *args, **options):
@@ -130,3 +137,24 @@ class Command(BaseCommand):
             if i is not None:
                 vol = Volume.objects.get(identifier=i)
                 vol.set_extent()
+
+        if options['operation'] == 'generate-thumbnails':
+            volumes = []
+            if options['identifier']:
+                volumes += [Volume.objects.get(pk=options['identifier'])]
+            elif options['all']:
+                volumes += Volume.objects.all()
+
+            for v in volumes:
+                print(v)
+                for i in v.document_lookup.keys():
+                    print(i)
+                    d = ItemBase.objects.get(pk=i)
+                    d.set_thumbnail()
+                for l in v.layer_lookup.keys():
+                    s = ItemBase.objects.filter(slug=l)
+                    for ss in s:
+                        print(ss)
+                        ss.set_thumbnail()
+                print("refreshing volume lookup.")
+                v.refresh_lookups()
