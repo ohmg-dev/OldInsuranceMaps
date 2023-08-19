@@ -273,12 +273,14 @@ class GeoreferenceView(View):
         if operation == "preview":
 
             # prepare Georeferencer object
-            g = Georeferencer(crs_code=projection)
-            g.load_gcps_from_geojson(gcp_geojson)
-            g.set_transformation(transformation)
+            g = Georeferencer(
+                crs=projection,
+                gcps_geojson=gcp_geojson,
+                transformation=transformation,
+            )
             preview_id = _generate_preview_id(request, sesh_id)
             try:
-                out_path = g.make_vrt(document.file.path, preview_id=preview_id)
+                out_path = g.warp(document.file.path, return_vrt=True, preview_id=preview_id)
                 out_path_relative = os.path.join(os.path.dirname(document.file.url), os.path.basename(out_path))
                 preview_url = settings.MEDIA_HOST.rstrip("/") + out_path_relative
                 response["status"] = "success"
