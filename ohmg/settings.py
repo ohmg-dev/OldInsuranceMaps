@@ -13,10 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 BUILD_FILE = BASE_DIR / '.build'
 BUILD_NUMBER = ''
 if BUILD_FILE.is_file():
-    print('getting build number')
     with open(BUILD_FILE, 'r') as o:
-        # print(o.read())
-        # print(o.readlines())
         BUILD_NUMBER = o.read()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -403,6 +400,8 @@ LOGGING = {
 # https://stackoverflow.com/a/20719461/3873885
 if DEBUG:
     celery_log_level = 'DEBUG'
+    LOGGING['loggers']['georeference']['handlers'].append('console')
+    LOGGING['loggers']['loc_insurancemaps']['handlers'].append('console')
 else:
     celery_log_level = 'INFO'
 

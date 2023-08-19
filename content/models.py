@@ -80,8 +80,9 @@ class Item:
                 extent_poly = Polygon.from_bbox(layer.extent)
                 layer_extent_polygons.append(extent_poly)
 
-            in_path = layer.file.path
-            trim_name = os.path.basename(in_path).replace(".tif", "_trim.vrt")
+            latest_sesh = list(layer.get_document().georeference_sessions)[-1]
+            in_path = latest_sesh.run(return_vrt=True)
+            trim_name = os.path.basename(in_path).replace(".vrt", "_trim.vrt")
             out_path = os.path.join(settings.TEMP_DIR, trim_name)
 
             wo = gdal.WarpOptions(
