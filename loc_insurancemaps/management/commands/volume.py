@@ -10,7 +10,7 @@ from loc_insurancemaps.tasks import (
 )
 from loc_insurancemaps.models import Volume
 from places.models import Place as NewPlace
-from georeference.models.resources import ItemBase
+from georeference.models.resources import ItemBase, Layer
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -27,6 +27,7 @@ class Command(BaseCommand):
                 "generate-mosaic-json",
                 "generate-thumbnails",
                 "set-extent",
+                "warp-layers",
             ],
             help="the operation to perform",
         ),
@@ -62,6 +63,11 @@ class Command(BaseCommand):
             "--all",
             help="apply to all volumes",
             action="store_true",
+        )
+        parser.add_argument(
+            "-e", "--exclude",
+            nargs="*",
+            help="identifiers of volumes to exclude, used in conjunction with --all."
         )
 
     def handle(self, *args, **options):
@@ -158,3 +164,23 @@ class Command(BaseCommand):
                         ss.set_thumbnail()
                 print("refreshing volume lookup.")
                 v.refresh_lookups()
+
+        if options['operation'] == 'warp-layers':
+            volumes = []
+            if options['identifier']:
+                volumes += [Volume.objects.get(pk=options['identifier'])]
+            elif options['all']:
+                volumes += Volume.objects.all()
+            for v in volumes:
+                if v.identifier in options['exclude']:
+                    print(f"skipping excluded: {v.identifier}")
+                    continue
+                print(f'{v.identifier} - {v.title}')
+                for l in v.layer_lookup.keys():
+                    print(f'  {l}')
+                    ss = Layer.objects.filter(slug=l)
+                    for s in ss:
+                        latest_sesh = list(s.get_document().georeference_sessions)[-1]
+                        print(f"  running session {latest_sesh.pk}")
+                        latest_sesh.run()
+                        print("    done")

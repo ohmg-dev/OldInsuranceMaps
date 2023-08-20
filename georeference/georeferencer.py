@@ -507,6 +507,8 @@ class Georeferencer:
         a new preview layer during georeferencing.
         """
 
+        gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
+
         fname = os.path.basename(src_path)
 
         logger.debug(f"{fname} | start")
