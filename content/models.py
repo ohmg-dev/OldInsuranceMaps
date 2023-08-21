@@ -129,6 +129,7 @@ class Item:
             format="COG",
             creationOptions = [
                 "COMPRESS=JPEG",
+                "TILING_SCHEME=GoogleMapsCompatible",
             ],
         )
 
