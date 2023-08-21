@@ -3,14 +3,14 @@ from datetime import datetime
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 
-from loc_insurancemaps.tasks import generate_mosaic_geotiff_as_task
-from loc_insurancemaps.management.volume import (
-    import_volume,
-    generate_mosaic_geotiff,
-    generate_mosaic_json,
+from content.models import Item
+from loc_insurancemaps.tasks import (
+    generate_mosaic_cog_task,
+    generate_mosaic_json_task,
 )
 from loc_insurancemaps.models import Volume
 from places.models import Place as NewPlace
+from georeference.models.resources import ItemBase, Layer
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -23,8 +23,11 @@ class Command(BaseCommand):
                 "refresh-lookups-old",
                 "refresh-lookups",
                 "make-sheets",
-                "generate-mosaic",
+                "generate-mosaic-cog",
                 "generate-mosaic-json",
+                "generate-thumbnails",
+                "set-extent",
+                "warp-layers",
             ],
             help="the operation to perform",
         ),
@@ -55,6 +58,16 @@ class Command(BaseCommand):
         parser.add_argument(
             "--locale",
             help="slug for the Place to attach to this volume"
+        )
+        parser.add_argument(
+            "--all",
+            help="apply to all volumes",
+            action="store_true",
+        )
+        parser.add_argument(
+            "-e", "--exclude",
+            nargs="*",
+            help="identifiers of volumes to exclude, used in conjunction with --all."
         )
 
     def handle(self, *args, **options):
@@ -98,7 +111,7 @@ class Command(BaseCommand):
                     if not confirm.lower().startswith("y"):
                         exit()
 
-            vol = import_volume(i, locale=locale)
+            vol = Volume().import_volume(i, locale=locale)
             print(vol)
 
         if options['operation'] == "make-sheets":
@@ -110,13 +123,64 @@ class Command(BaseCommand):
                 vol.save(update_fields=["loaded_by", "load_date"])
                 vol.load_sheet_docs(force_reload=True)
 
-        if options['operation'] == "generate-mosaic":
+        if options['operation'] == "generate-mosaic-cog":
             if i is not None:
                 if options['background']:
-                    generate_mosaic_geotiff_as_task.delay(i)
+                    generate_mosaic_cog_task.delay(i)
                 else:
-                    generate_mosaic_geotiff(i)
+                    item = Item(i)
+                    item.generate_mosaic_cog()
 
         if options['operation'] == "generate-mosaic-json":
             if i is not None:
-                generate_mosaic_json(i, trim_all=options['trim_all'])
+                if options['background']:
+                    generate_mosaic_json_task.delay(i, trim_all=options['trim_all'])
+                else:
+                    item = Item(i)
+                    item.generate_mosaic_json(trim_all=options['trim_all'])
+
+        if options['operation'] == "set-extent":
+            if i is not None:
+                vol = Volume.objects.get(identifier=i)
+                vol.set_extent()
+
+        if options['operation'] == 'generate-thumbnails':
+            volumes = []
+            if options['identifier']:
+                volumes += [Volume.objects.get(pk=options['identifier'])]
+            elif options['all']:
+                volumes += Volume.objects.all()
+
+            for v in volumes:
+                print(v)
+                for i in v.document_lookup.keys():
+                    print(i)
+                    d = ItemBase.objects.get(pk=i)
+                    d.set_thumbnail()
+                for l in v.layer_lookup.keys():
+                    s = ItemBase.objects.filter(slug=l)
+                    for ss in s:
+                        print(ss)
+                        ss.set_thumbnail()
+                print("refreshing volume lookup.")
+                v.refresh_lookups()
+
+        if options['operation'] == 'warp-layers':
+            volumes = []
+            if options['identifier']:
+                volumes += [Volume.objects.get(pk=options['identifier'])]
+            elif options['all']:
+                volumes += Volume.objects.all()
+            for v in volumes:
+                if v.identifier in options['exclude']:
+                    print(f"skipping excluded: {v.identifier}")
+                    continue
+                print(f'{v.identifier} - {v.title}')
+                for l in v.layer_lookup.keys():
+                    print(f'  {l}')
+                    ss = Layer.objects.filter(slug=l)
+                    for s in ss:
+                        latest_sesh = list(s.get_document().georeference_sessions)[-1]
+                        print(f"  running session {latest_sesh.pk}")
+                        latest_sesh.run()
+                        print("    done")

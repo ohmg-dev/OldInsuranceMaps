@@ -1,7 +1,7 @@
 from celery import shared_task
 
+from content.models import Item
 from loc_insurancemaps.models import Volume
-from loc_insurancemaps.management.volume import generate_mosaic_geotiff
 
 @shared_task
 def load_docs_as_task(volume_id):
@@ -9,5 +9,11 @@ def load_docs_as_task(volume_id):
     volume.load_sheet_docs()
 
 @shared_task
-def generate_mosaic_geotiff_as_task(volume_id):
-    generate_mosaic_geotiff(volume_id)
+def generate_mosaic_cog_task(volume_id):
+    item = Item(volume_id)
+    item.generate_mosaic_cog()
+
+@shared_task
+def generate_mosaic_json_task(volume_id, trim_all=False):
+    item = Item(volume_id)
+    item.generate_mosaic_json(trim_all=trim_all)

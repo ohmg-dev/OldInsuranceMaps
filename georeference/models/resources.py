@@ -411,14 +411,16 @@ class ItemBase(models.Model):
 
     def set_thumbnail(self):
         if self.file is not None:
+            if self.thumbnail:
+                self.thumbnail.delete()
             path = self.file.path
             name = os.path.splitext(os.path.basename(path))[0]
             if self.type == "document":
                 content = generate_document_thumbnail_content(path)
-                tname = f"{name}-doc-thumb.png"
+                tname = f"{name}-doc-thumb.jpg"
             elif self.type == "layer":
                 content = generate_layer_thumbnail_content(path)
-                tname = f"{name}-lyr-thumb.png"
+                tname = f"{name}-lyr-thumb.jpg"
             else:
                 return None
             self.thumbnail.save(tname, ContentFile(content))

@@ -37,8 +37,10 @@ def delete_expired_sessions():
         if now > resource.lock_details['expiration']:
             try:
                 session = SessionBase.objects.get(pk=resource.lock_details['session_id'])
-                logger.info(f"delete session {session.pk} to unlock resource {resource.pk}")
-                session.delete()
+                # only delete a session if it hasn't been submitted.
+                if session.stage == "input":
+                    logger.info(f"deleting session {session.pk} to unlock resource {resource.pk}")
+                    session.delete()
             except SessionBase.DoesNotExist:
                 logger.warn(f"error during session cleanup. can't find SessionBase object for resource {resource.pk}. unlocking.")
                 resource.remove_lock()
@@ -465,7 +467,18 @@ class GeorefSession(SessionBase):
     def __str__(self):
         return f"Georeference Session ({self.pk})"
 
-    def run(self):
+    def run(self, return_vrt=False):
+
+        # short-cut here to use this session data to produce a vrt of the warped original
+        if return_vrt:
+            crs_code = f"EPSG:{self.data['epsg']}"
+            g = Georeferencer(
+                crs=crs_code,
+                transformation=self.data['transformation'],
+                gcps_geojson=self.data['gcps'],
+            )
+            vrt_path = g.warp(self.doc.file.path, return_vrt=True)
+            return vrt_path
 
         doc_previous_status = self.doc.status
         self.doc.set_status("georeferencing")
@@ -491,10 +504,10 @@ class GeorefSession(SessionBase):
             # flexible is still in-development. see views.py line 277
             crs_code = f"EPSG:{self.data['epsg']}"
             g = Georeferencer(
+                crs=crs_code,
                 transformation=self.data['transformation'],
-                crs_code=crs_code,
+                gcps_geojson=self.data['gcps'],
             )
-            g.load_gcps_from_geojson(self.data['gcps'])
         except Exception as e:
             self.update_stage("finished", save=False)
             self.update_status("failed", save=False)
@@ -507,8 +520,9 @@ class GeorefSession(SessionBase):
             return None
         self.update_status("warping")
         try:
-            out_path = g.make_tif(self.doc.file.path)
+            out_path = g.warp(self.doc.file.path)
         except Exception as e:
+            logger.error(e)
             self.update_stage("finished", save=False)
             self.update_status("failed", save=False)
             self.note = f"{e}"

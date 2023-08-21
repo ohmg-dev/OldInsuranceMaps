@@ -30,15 +30,42 @@ from georeference.models.sessions import (
     GeorefSession,
 )
 from georeference.storage import OverwriteStorage
+from georeference.utils import random_alnum
 from places.models import Place
 
-from loc_insurancemaps.utils import LOCParser, get_jpg_from_jp2_url
+from loc_insurancemaps.utils import (
+    LOCParser,
+    LOCConnection,
+    filter_volumes_for_use,
+    unsanitize_name,
+    get_jpg_from_jp2_url,
+)
 from loc_insurancemaps.enumerations import (
     STATE_CHOICES,
     STATE_ABBREV,
     MONTH_CHOICES,
 )
 logger = logging.getLogger(__name__)
+
+def write_trim_feature_cache(feature, file_path):
+    with open(file_path, "w") as f:
+        json.dump(feature, f, indent=2)
+
+def read_trim_feature_cache(file_path):
+    with open(file_path, "r") as f:
+        feature = json.load(f)
+    return feature
+
+def check_trim_feature_cache(in_path, feature):
+
+    feat_cache_path = in_path.replace(".tif", "_trim-feature.json")
+    if os.path.isfile(feat_cache_path):
+        cached_feature = read_trim_feature_cache(feat_cache_path)
+    else:
+        cached_feature = None
+        write_trim_feature_cache(feature, feat_cache_path)
+    
+
 
 def find_volume(item):
     """Attempt to get the volume from which a Document or Layer
@@ -509,8 +536,9 @@ class Volume(models.Model):
 
         layer_extent_polygons = []
         for l in self.layer_lookup.values():
-            poly = Polygon.from_bbox(l['extent'])
-            layer_extent_polygons.append(poly)
+            if l['extent']:
+                poly = Polygon.from_bbox(l['extent'])
+                layer_extent_polygons.append(poly)
         if len(layer_extent_polygons) > 0:
             multi = MultiPolygon(layer_extent_polygons)
             self.extent = Polygon.from_bbox(multi.extent)
@@ -638,6 +666,59 @@ class Volume(models.Model):
             data['sessions'] = self.get_user_activity_summary()
 
         return data
+
+    def import_all_available_volumes(self, state, apply_filter=True, verbose=False):
+        """Preparatory step that runs through all cities in the provided
+        state, filters the available volumes for those cities, and then
+        imports each one to create a new Volume object."""
+
+        lc = LOCConnection(delay=0, verbose=verbose)
+        cities = lc.get_city_list_by_state(state)
+
+        volumes = []
+        for city in cities:
+            lc.reset()
+            city = unsanitize_name(state, city[0])
+            vols = lc.get_volume_list_by_city(city, state)
+            if apply_filter is True:
+                vols = filter_volumes_for_use(vols)
+                volumes += [i for i in vols if i['include'] is True]
+            else:
+                volumes += vols
+
+        for volume in volumes:
+            try:
+                Volume.objects.get(pk=volume['identifier'])
+            except Volume.DoesNotExist:
+                Volume().import_volume(volume['identifier'])
+
+    def import_volume(self, identifier, locale=None):
+
+        try:
+            volume = Volume.objects.get(pk=identifier)
+            volume.locales.set([locale])
+            volume.update_place_counts()
+            return volume
+        except Volume.DoesNotExist:
+            pass
+
+        lc = LOCConnection(delay=0, verbose=True)
+        response = lc.get_item(identifier)
+        if response.get("status") == 404:
+            return None
+
+        parsed = LOCParser(item=response['item'])
+        volume_kwargs = parsed.volume_kwargs()
+
+        # add resources to args, not in item (they exist adjacent)
+        volume_kwargs["lc_resources"] = response['resources']
+
+        volume = Volume.objects.create(**volume_kwargs)
+        volume.locales.add(locale)
+
+        volume.update_place_counts()
+
+        return volume
 
 ## This seems to be where the signals need to be connected. See
 ## https://github.com/mradamcox/loc-insurancemaps/issues/75

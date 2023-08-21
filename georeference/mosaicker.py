@@ -15,7 +15,7 @@ from cogeo_mosaic.backends import MosaicBackend
 
 from django.conf import settings
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
-from django.contrib.gis.geos import GEOSGeometry, GeometryCollection, Polygon
+from django.contrib.gis.geos import GEOSGeometry, GeometryCollection, Polygon, MultiPolygon
 from django.core.files import File
 
 from georeference.models.resources import Layer
@@ -208,29 +208,14 @@ def make_geotiff(identifier, trim_all=False):
 
     multimask_geojson = vol.get_multimask_geojson()
 
-    extent = vol.extent.transform(3857, True).extent
-    ct = CoordTransform(SpatialReference(4326), SpatialReference(3857))
-
-    # Construct rasterio transform object using x and y coordiantes
-    width, height, transform = calculate_tranform_info(extent)
-
-    profile = DefaultGTiffProfile()
-    profile.update(
-        crs="EPSG:3857",
-        width=width,
-        height=height,
-        transform=transform,
-        count=3,
-        nodata=255,
-    )
-    print(profile)
-
     out_geotiff_path = os.path.join(settings.TEMP_DIR, f"{identifier}-mosaic.tif")
+
+    ct = CoordTransform(SpatialReference(4326), SpatialReference(3857))
 
     # with rasterio.open("./merged.tif", "w", **profile) as mainfile:
 
     merge_tifs = []
-
+    tif_extents = []
     for feature in multimask_geojson['features']:
 
         mask_geom = Polygon(feature['geometry']['coordinates'][0], srid=4326)
@@ -242,6 +227,11 @@ def make_geotiff(identifier, trim_all=False):
         layer = Layer.objects.get(slug=layer_name)
         if not layer.file:
             raise Exception(f"no layer file for this layer {layer_name}")
+
+        if layer.extent:
+            extent_poly = Polygon.from_bbox(layer.extent)
+            tif_extents.append(extent_poly)
+
         in_path = layer.file.path
 
         file_name = os.path.basename(in_path)
@@ -264,7 +254,10 @@ def make_geotiff(identifier, trim_all=False):
 
             logger.debug(f"{identifier} | trimming tif {file_name}")
             with rasterio.open(in_path, "r") as src:
-                out_image, out_transform = mask(src, [mask_geojson], nodata=255, indexes=[1,2,3])
+                out_image, out_transform = mask(src, 
+                                                [mask_geojson],
+                                                #  nodata=255, indexes=[1,2,3]
+                                                 )
 
                 # mask_dataset = create_rasterio_dataset(out_image, src.crs, out_transform)
 
@@ -274,25 +267,48 @@ def make_geotiff(identifier, trim_all=False):
                 m_width = out_image.shape[2]
 
                 with rasterio.open(trimmed_tif_path, "w",
-                    driver="GTiff",
                     width=m_width,
                     height=m_height,
                     transform=out_transform,
-                    count=3,
+                    count=4,
                     dtype='uint8',
                     crs="EPSG:3857",
-                    nodata=255,
-                    interleave='band',
+
+                    # nodata=255,
+                    driver="GTiff",
+                    interleave='pixel',
                     tiled=True,
-                    blockxsize=256,
-                    blockysize=256,
-                    compress='lzw',
+                    blockxsize=512,
+                    blockysize=512,
+                    compress='deflate',
+                    predictor=2,
+
+                    # driver="COG",
+                    # compress="jpeg",
                 ) as trim_temp:
                     trim_temp.write(out_image)
                 del out_image
             merge_tifs.append(trimmed_tif_path)
         else:
             logger.info(f"{identifier} | skipping {file_name}, mask feature unchanged")
+
+    multi = MultiPolygon(tif_extents, srid=4326)
+    extent = multi.transform(3857, True).extent
+    
+
+    # Construct rasterio transform object using x and y coordiantes
+    width, height, transform = calculate_tranform_info(extent)
+
+    profile = DefaultGTiffProfile()
+    profile.update(
+        crs="EPSG:3857",
+        width=width,
+        height=height,
+        transform=transform,
+        count=3,
+        nodata=255,
+    )
+    print(profile)
 
     if len(merge_tifs) > 0:
         logger.info(f"{identifier} | merging {len(merge_tifs)} trimmed layers")
