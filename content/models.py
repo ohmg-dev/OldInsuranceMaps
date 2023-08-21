@@ -86,7 +86,6 @@ class Item:
             out_path = os.path.join(settings.TEMP_DIR, trim_name)
 
             wo = gdal.WarpOptions(
-                # format="COG",
                 format="VRT",
                 dstSRS = "EPSG:3857",
                 cutlineDSName = multimask_file,
@@ -118,8 +117,6 @@ class Item:
             outputSRS="EPSG:3857",
             outputBounds=bounds,
             separate = False,
-            # addAlpha = True,
-            # srcNodata = "255 255 255",
         )
         print("building vrt")
 
@@ -147,7 +144,7 @@ class Item:
         with open(mosaic_tif, 'rb') as f:
             self.vol.mosaic_geotiff.save(file_name, File(f))
 
-        # os.remove(mosaic_tif)
+        os.remove(mosaic_tif)
         if existing_file_path:
             os.remove(existing_file_path)
 
@@ -264,3 +261,25 @@ class Item:
 
         logger.info(f"{self.vol.identifier} | mosaic created: {os.path.basename(mosaic_json_path)}")
         return mosaic_json_path
+
+    def export_mosaic_jpg(self, out_path):
+        ''' Create a non-geo JPEG version of the COG mosaic. Still a work in progress...
+
+        Ultimately, would like for this JPEG to not have internal overviews, but I haven't
+        had any luck removing them during the conversion.
+
+        Tried using PIL instead of gdal, but still getting the overviews. PIL can seek "frames"
+        in the image, and different overviews ARE different frames, but the base data still
+        seems to include all of the upper overviews!
+        '''
+
+        cog_path = self.vol.mosaic_geotiff.path
+
+        wo = gdal.WarpOptions(
+            format="JPEG",
+            dstSRS=None, # set to None to remove CRS info
+            overviewLevel=0, # not sure this does anything
+            creationOptions=["COLOR_TRANSFORM=RGB"] # does't seem to be valid, though docs say it should be...
+        )
+
+        gdal.Warp(out_path, cog_path, options=wo)
