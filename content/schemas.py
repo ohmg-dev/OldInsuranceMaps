@@ -16,6 +16,38 @@ class UserSchema(Schema):
         return reverse('profile_detail', args=(obj.username, ))
 
 
+class ItemFullSchema(Schema):
+
+    identifier: str
+    title: str = Field(..., alias="__str__")
+    year: int = None
+    loaded_by: Optional[UserSchema]
+    status: str = None
+    progress: dict
+    extent: tuple = None
+    multimask: dict = None
+    mosaic_preference: str = None
+
+    def resolve_extent(obj):
+        return obj.extent.extent if obj.extent else None
+
+    def resolve_progress(obj):
+        items = obj.sort_lookups()
+        unprep_ct = len(items['unprepared'])
+        prep_ct = len(items['prepared'])
+        georef_ct = len(items['georeferenced'])
+        percent = 0
+        if georef_ct > 0:
+            percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
+
+        return {
+            "unprep_ct": unprep_ct,
+            "prep_ct": prep_ct,
+            "georef_ct": georef_ct,
+            "percent": percent,
+        }
+
+
 class ItemListSchema(Schema):
     identifier: str
     title: str = Field(..., alias="__str__")
