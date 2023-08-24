@@ -37,9 +37,9 @@ OHMG_API_KEY = os.getenv("OHMG_API_KEY", "")
 ALLOWED_HOSTS = ast.literal_eval(os.getenv("ALLOWED_HOSTS", "[]"))
 
 # Set path to cache directory
-CACHE_DIR = BASE_DIR / "loc_insurancemaps" / "cache"
-TEMP_DIR = BASE_DIR / "loc_insurancemaps" / "temp"
-LOG_DIR = BASE_DIR / "loc_insurancemaps" / "logs"
+LOG_DIR = os.getenv('LOG_DIR', BASE_DIR / "logs")
+CACHE_DIR = os.getenv('CACHE_DIR', BASE_DIR / ".ohmg_cache")
+TEMP_DIR = os.getenv('TEMP_DIR', BASE_DIR / ".temp")
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html

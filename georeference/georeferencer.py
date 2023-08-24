@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import logging
 import requests
@@ -6,11 +7,10 @@ from osgeo import gdal, osr, ogr
 
 from io import StringIO
 from contextlib import redirect_stdout, redirect_stderr
-import sys
+
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
-
-CACHE_DIR = os.getenv("CACHE_DIR", '.ohmg_cache')
 
 TRANSFORMATION_LOOKUP = {
     "tps": {
@@ -110,7 +110,7 @@ def get_path_variant(original_path, variant, outdir=None):
 
 def retrieve_srs_wkt(code):
 
-    srs_cache_dir = os.path.join(CACHE_DIR, 'srs_wkt')
+    srs_cache_dir = os.path.join(settings.CACHE_DIR, 'srs_wkt')
     if not os.path.isdir(srs_cache_dir):
         os.makedirs(srs_cache_dir, exist_ok=True)
     cache_path = os.path.join(srs_cache_dir, f"{code}-wkt.txt")

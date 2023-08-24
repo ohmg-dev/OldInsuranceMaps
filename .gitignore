@@ -1,10 +1,9 @@
+logs
 .ohmg_cache
 .build
-docs/site
+.temp
+
 loc_insurancemaps/reference_data/shapefiles
-loc_insurancemaps/cache
-loc_insurancemaps/temp
-mapserver.map
 .celery_results
 
 frontend/svelte/node_modules
