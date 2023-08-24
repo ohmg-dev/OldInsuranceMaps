@@ -22,9 +22,8 @@ celery==5.2.7
 django_celery_results==2.5.0
 
 requests==2.28.2
-## pygdal should be matched to the native gdal installation
-## so pinning a version here isn't the best idea.
-#pygdal==3.5.1.11
+## ohmg requires GDAL 3.5.1, so it's ok to pin pygdal here
+pygdal==3.5.1.11
 
 cogeo-mosaic==4.1
 sorl-thumbnail==12.8.0
