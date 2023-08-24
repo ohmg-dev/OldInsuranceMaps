@@ -4,6 +4,8 @@ import time
 import logging
 
 from PIL import Image, ImageDraw, ImageFilter
+from osgeo import ogr, gdal
+
 
 from django.db import connection
 from django.conf import settings
@@ -165,7 +167,7 @@ class Splitter(object):
         """ """
 
         start = time.time()
-        format_lookup = {"jpg": "JPEG", "png": "PNG"}
+        format_lookup = {"jpg": "JPEG", "png": "PNG", 'tif': "GTiff"}
 
         img = Image.open(self.img_file)
         w, h = img.size
@@ -219,3 +221,28 @@ class Splitter(object):
         logger.info(f"{os.path.basename(self.img_file)} split completed | {t} seconds | {len(out_paths)} parts")
 
         return out_paths
+
+    def split_image_to_tif(self):
+        """ WIP attempt to replace PIL in the image split process with GDAL.
+        Not sure this will be pursued, but retained for future reference. """
+
+        drv = ogr.GetDriverByName('GeoJSON')
+        feature_ds = drv.CreateDataSource("/vsimem/feature.geojson")
+
+        feature_layer = feature_ds.CreateLayer("layer", geom_type=ogr.wkbPolygon)
+
+        featureDefnHeaders = feature_layer.GetLayerDefn()
+
+        outFeature = ogr.Feature(featureDefnHeaders)
+
+        geometry = feature.GetGeometryRef() #This feature is a polygon and comes from another dataset 
+
+
+        outFeature.SetGeometry(geometry)
+
+        feature_layer.CreateFeature(outFeature)     
+
+        feature_ds.FlushCache()
+
+        #https://gis.stackexchange.com/questions/328358/gdal-warp-memory-datasource-as-cutline
+        #https://gdal.org/api/python/osgeo.ogr.html
