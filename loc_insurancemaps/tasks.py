@@ -1,6 +1,6 @@
 from celery import shared_task
 
-from content.models import Item
+from ohmg.content.models import Item
 from loc_insurancemaps.models import Volume
 
 @shared_task

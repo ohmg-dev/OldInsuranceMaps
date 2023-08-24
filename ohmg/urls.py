@@ -4,11 +4,11 @@ from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
 
-from api.api import api
+from ohmg.api.api import api
 
 urlpatterns = [
     path('', include('loc_insurancemaps.urls')),
-    path('', include('accounts.urls')),
+    path('', include('ohmg.accounts.urls')),
     path('', include('georeference.urls')),
     path('admin/', admin.site.urls, name="admin"),
     path('account/', include("allauth.urls")),
@@ -23,7 +23,7 @@ if "pinax.announcements" in settings.INSTALLED_APPS:
     urlpatterns += [path("announcements/", include("pinax.announcements.urls", namespace="pinax_announcements"))]
 
 # this places path must be the last url that is tried, because it is a total wildcard.
-urlpatterns += [path('', include('places.urls'))]
+urlpatterns += [path('', include('ohmg.places.urls'))]
 
 urlpatterns += staticfiles_urlpatterns()
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

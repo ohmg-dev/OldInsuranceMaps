@@ -6,8 +6,8 @@ logs
 loc_insurancemaps/reference_data/shapefiles
 .celery_results
 
-frontend/svelte/node_modules
-frontend/svelte/public
+node_modules
+public
 
 _system-configs
 .env

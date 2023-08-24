@@ -3,13 +3,13 @@ from datetime import datetime
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 
-from content.models import Item
+from ohmg.content.models import Item
 from loc_insurancemaps.tasks import (
     generate_mosaic_cog_task,
     generate_mosaic_json_task,
 )
 from loc_insurancemaps.models import Volume
-from places.models import Place as NewPlace
+from ohmg.places.models import Place as NewPlace
 from georeference.models.resources import ItemBase, Layer
 
 class Command(BaseCommand):

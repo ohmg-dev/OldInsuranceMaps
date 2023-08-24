@@ -5,9 +5,10 @@ from pathlib import Path
 
 from kombu import Queue, Exchange
 
-# set the project root as the BASE_DIR
+# set the repo root as the BASE_DIR, project root at PROJECT_DIR
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_DIR = Path(__file__).resolve().parent
+BASE_DIR = PROJECT_DIR.parent
 
 # the build file is generated and updated with python manage.py update_build
 BUILD_FILE = BASE_DIR / '.build'
@@ -46,7 +47,7 @@ TEMP_DIR = os.getenv('TEMP_DIR', BASE_DIR / ".temp")
 LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', "en")
 
 INSTALLED_APPS = [
-    'accounts',
+    'ohmg.accounts',
 
     'django.contrib.contenttypes',
     'django.contrib.auth',
@@ -77,8 +78,8 @@ INSTALLED_APPS = [
 
     'georeference',
     'loc_insurancemaps',
-    'frontend',
-    'places',
+    'ohmg.frontend',
+    'ohmg.places',
 ]
 
 PASSWORD_HASHERS = [
@@ -95,7 +96,7 @@ TEMPLATES = [
     "NAME": "Project Templates",
     "BACKEND": "django.template.backends.django.DjangoTemplates",
     "DIRS": [
-      BASE_DIR / "frontend" / "templates",
+      PROJECT_DIR / "frontend" / "templates",
     ],
     "APP_DIRS": True,
     "OPTIONS": {
@@ -130,8 +131,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / 'static')
 STATICFILES_DIRS = [
-    BASE_DIR / "frontend" / "static",
-    BASE_DIR / "frontend" / "svelte" / "public" / "build",
+    PROJECT_DIR / "frontend" / "static",
+    PROJECT_DIR / "frontend" / "svelte" / "public" / "build",
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -282,8 +283,10 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 
+# note: this is app_label.ModelClass,
 AUTH_USER_MODEL = 'accounts.User'
-ACCOUNT_ADAPTER = "accounts.adapter.AccountAdapter"
+# while this is a module path to the adapter class
+ACCOUNT_ADAPTER = "ohmg.accounts.adapter.AccountAdapter"
 
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_SIGNUP_REDIRECT_URL = "/"
@@ -304,7 +307,7 @@ DEFAULT_THUMBNAIL_SIZE = (240, 200)
 
 # Location of locale files
 LOCALE_PATHS = (
-    BASE_DIR / 'loc_insurancemaps' / 'locale',
+    PROJECT_DIR / 'locale',
 )
 
 LOGGING = {

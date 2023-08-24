@@ -31,7 +31,7 @@ from georeference.models.sessions import (
 )
 from georeference.storage import OverwriteStorage
 from georeference.utils import random_alnum
-from places.models import Place
+from ohmg.places.models import Place
 
 from loc_insurancemaps.utils import (
     LOCParser,

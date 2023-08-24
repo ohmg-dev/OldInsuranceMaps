@@ -1,5 +1,5 @@
 from django.contrib import admin
-from places.models import Place
+from ohmg.places.models import Place
 
 class PlaceAdmin(admin.ModelAdmin):
     readonly_fields = ('display_name', 'slug')

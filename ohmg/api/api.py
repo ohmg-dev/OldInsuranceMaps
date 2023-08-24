@@ -10,17 +10,17 @@ from ninja import NinjaAPI, Query
 from ninja.pagination import paginate
 from ninja.security import APIKeyHeader
 
-from accounts.models import User
-from accounts.schemas import UserSchema
+from ohmg.accounts.models import User
+from ohmg.accounts.schemas import UserSchema
 from loc_insurancemaps.models import Volume
-from content.schemas import ItemListSchema
+from ohmg.content.schemas import ItemListSchema
 from georeference.models.sessions import SessionBase
 from georeference.schemas import (
     FilterSessionSchema,
     SessionSchema,
 )
-from places.models import Place
-from places.schemas import PlaceSchema
+from ohmg.places.models import Place
+from ohmg.places.schemas import PlaceSchema
 
 logger = logging.getLogger(__name__)
 

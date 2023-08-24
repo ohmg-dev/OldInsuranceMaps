@@ -19,7 +19,7 @@ from loc_insurancemaps.models import Volume
 from loc_insurancemaps.utils import LOCConnection, unsanitize_name, filter_volumes_for_use
 from loc_insurancemaps.tasks import load_docs_as_task
 
-from places.models import Place
+from ohmg.places.models import Place
 
 if settings.ENABLE_NEWSLETTER:
     from newsletter.models import Newsletter, Subscription

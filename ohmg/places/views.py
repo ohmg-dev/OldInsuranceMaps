@@ -8,7 +8,7 @@ from django.views import View
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from loc_insurancemaps.models import Volume
-from places.models import Place
+from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
 

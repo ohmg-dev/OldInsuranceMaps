@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db import transaction
 
 from loc_insurancemaps.models import Volume
-from places.models import Place
+from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
 
