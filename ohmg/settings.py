@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     'ohmg.loc_insurancemaps',
     'ohmg.frontend',
     'ohmg.places',
+    'ohmg.snippets',
 ]
 
 PASSWORD_HASHERS = [
