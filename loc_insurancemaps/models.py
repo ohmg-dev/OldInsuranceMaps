@@ -21,16 +21,16 @@ from django.utils.safestring import mark_safe
 from django.utils.functional import cached_property
 from django.urls import reverse
 
-from georeference.models.resources import (
+from ohmg.georeference.models.resources import (
     Document,
     Layer,
 )
-from georeference.models.sessions import (
+from ohmg.georeference.models.sessions import (
     PrepSession,
     GeorefSession,
 )
-from georeference.storage import OverwriteStorage
-from georeference.utils import random_alnum
+from ohmg.georeference.storage import OverwriteStorage
+from ohmg.georeference.utils import random_alnum
 from ohmg.places.models import Place
 
 from loc_insurancemaps.utils import (

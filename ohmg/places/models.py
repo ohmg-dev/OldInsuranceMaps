@@ -1,7 +1,7 @@
 import logging
 from django.db import models
 
-from georeference.utils import slugify
+from ohmg.georeference.utils import slugify
 from loc_insurancemaps.enumerations import (
     STATE_ABBREV,
     STATE_POSTAL,

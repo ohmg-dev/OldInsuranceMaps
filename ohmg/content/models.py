@@ -29,8 +29,8 @@ from osgeo import gdal
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.backends import MosaicBackend
 
-from georeference.models.resources import Layer
-from georeference.utils import random_alnum
+from ohmg.georeference.models.resources import Layer
+from ohmg.georeference.utils import random_alnum
 from loc_insurancemaps.models import Volume, Sheet
 
 logger = logging.getLogger(__name__)

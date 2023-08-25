@@ -9,16 +9,16 @@ from django.core.files import File
 from django.core.mail import send_mass_mail
 from django.utils import timezone
 
-from georeference.models.resources import (
+from ohmg.georeference.models.resources import (
     GCPGroup,
     ItemBase,
     Document,
     Layer,
     DocumentLink
 )
-from georeference.georeferencer import Georeferencer
-from georeference.splitter import Splitter
-from georeference.utils import (
+from ohmg.georeference.georeferencer import Georeferencer
+from ohmg.georeference.splitter import Splitter
+from ohmg.georeference.utils import (
     full_reverse,
     random_alnum,
 )
@@ -468,6 +468,8 @@ class GeorefSession(SessionBase):
         return f"Georeference Session ({self.pk})"
 
     def run(self, return_vrt=False):
+
+        logger.debug("in run()")
 
         # short-cut here to use this session data to produce a vrt of the warped original
         if return_vrt:

@@ -9,7 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from geonode.documents.models import Document as GNDocument
 from geonode.layers.models import Layer as GNLayer
 
-from georeference.models.resources import (
+from ohmg.georeference.models.resources import (
     Document,
     Layer,
     DocumentLink,
@@ -18,9 +18,9 @@ from georeference.models.resources import (
     ItemBase,
     GCPGroup,
 )
-from georeference.models.sessions import SessionBase
+from ohmg.georeference.models.sessions import SessionBase
 try:
-    from georeference.proxy_models import LayerProxy, DocumentProxy
+    from ohmg.georeference.proxy_models import LayerProxy, DocumentProxy
 except ImportError:
     print("DocumentProxy and LayerProxy cannot be imported, proceeding without!")
 

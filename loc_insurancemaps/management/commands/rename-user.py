@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
-from georeference.models.sessions import GeorefSession
+from ohmg.georeference.models.sessions import GeorefSession
 
 logger = logging.getLogger(__name__)
 

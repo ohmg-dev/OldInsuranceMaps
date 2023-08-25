@@ -76,7 +76,7 @@ INSTALLED_APPS = [
 
     'ninja',
 
-    'georeference',
+    'ohmg.georeference',
     'loc_insurancemaps',
     'ohmg.frontend',
     'ohmg.places',
@@ -267,10 +267,10 @@ CELERY_TASK_QUEUES = (
 )
 
 CELERY_TASK_ROUTES = {
-    'georeference.tasks.run_preparation_session': {'queue': 'split'},
-    'georeference.tasks.run_georeference_session': {'queue': 'georeference'},
-    'georeference.tasks.delete_expired': {'queue': 'housekeeping'},
-    'georeference.tasks.delete_preview_vrt': {'queue': 'housekeeping'},
+    'ohmg.georeference.tasks.run_preparation_session': {'queue': 'split'},
+    'ohmg.georeference.tasks.run_georeference_session': {'queue': 'georeference'},
+    'ohmg.georeference.tasks.delete_expired': {'queue': 'housekeeping'},
+    'ohmg.georeference.tasks.delete_preview_vrt': {'queue': 'housekeeping'},
     'loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
     'loc_insurancemaps.tasks.generate_mosaic_geotiff_as_task': {'queue': 'mosaic'},
 }
@@ -278,7 +278,7 @@ CELERY_TASK_ROUTES = {
 # empty celery beat schedule of default GeoNode jobs
 CELERY_BEAT_SCHEDULE = {
     'delete_expired_sessions': {
-        'task': 'georeference.tasks.delete_expired',
+        'task': 'ohmg.georeference.tasks.delete_expired',
         'schedule': 60.0,
     }
 }
@@ -390,9 +390,9 @@ LOGGING = {
         "geonode_logstash.logstash": {
             "handlers": ["console"], "level": "DEBUG", },
         # logging for this app specifically
-        "georeference.tests": {
+        "ohmg.georeference.tests": {
             "handlers": ["console"], "level": "DEBUG", },
-        "georeference": {
+        "ohmg.georeference": {
             "handlers": ["info", "georeference-debug"], "level": "DEBUG", },
         "loc_insurancemaps": {
             "handlers": ["info", "loc_insurancemaps-debug"], "level": "DEBUG", },
@@ -403,7 +403,7 @@ LOGGING = {
 # https://stackoverflow.com/a/20719461/3873885
 if DEBUG:
     celery_log_level = 'DEBUG'
-    LOGGING['loggers']['georeference']['handlers'].append('console')
+    LOGGING['loggers']['ohmg.georeference']['handlers'].append('console')
     LOGGING['loggers']['loc_insurancemaps']['handlers'].append('console')
 else:
     celery_log_level = 'INFO'

@@ -12,8 +12,8 @@ from django.urls import reverse
 from django.views import View
 from django.middleware import csrf
 
-from georeference.utils import full_reverse
-from georeference.models.resources import Layer
+from ohmg.georeference.utils import full_reverse
+from ohmg.georeference.models.resources import Layer
 
 from loc_insurancemaps.models import Volume
 from loc_insurancemaps.utils import LOCConnection, unsanitize_name, filter_volumes_for_use

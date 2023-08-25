@@ -6,8 +6,8 @@ from django.contrib.auth import get_user_model
 
 from geonode.documents.models import Document
 
-from georeference.models.models import GCPGroup
-from georeference.georeferencer import Georeferencer
+from ohmg.georeference.models.models import GCPGroup
+from ohmg.georeference.georeferencer import Georeferencer
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'

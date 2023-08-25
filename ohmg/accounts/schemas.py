@@ -5,7 +5,7 @@ from ninja import (
     Schema,
 )
 
-from georeference.schemas import SessionSchema
+from ohmg.georeference.schemas import SessionSchema
 from loc_insurancemaps.models import Volume
 
 

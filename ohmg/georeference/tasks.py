@@ -1,8 +1,8 @@
 import os
 import logging
-from celery import shared_task
 
-from georeference.models.sessions import (
+from ohmg.celeryapp import app
+from ohmg.georeference.models.sessions import (
     PrepSession,
     GeorefSession,
     delete_expired_sessions,
@@ -10,21 +10,23 @@ from georeference.models.sessions import (
 
 logger = logging.getLogger(__name__)
 
-@shared_task
+@app.task
 def run_preparation_session(sessionid):
     session = PrepSession.objects.get(pk=sessionid)
     session.run()
 
-@shared_task
+@app.task
 def run_georeference_session(sessionid):
+    print('in task function')
+    logger.debug("in tasks.run georef ....")
     session = GeorefSession.objects.get(pk=sessionid)
     session.run()
 
-@shared_task
+@app.task
 def delete_expired():
     delete_expired_sessions()
 
-@shared_task
+@app.task
 def delete_preview_vrt(base_file_path, preview_url_to_remove):
 
     if not preview_url_to_remove.endswith(".vrt"):

@@ -4,7 +4,7 @@ from django.conf import settings
 import django.contrib.gis.db.models.fields
 from django.db import migrations, models
 import django.db.models.deletion
-import georeference.storage
+import ohmg.georeference.storage
 import loc_insurancemaps.models
 
 
@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
                 ('layer_lookup', models.JSONField(blank=True, default=dict, null=True)),
                 ('sorted_layers', models.JSONField(default=loc_insurancemaps.models.default_sorted_layers_dict)),
                 ('multimask', models.JSONField(blank=True, null=True)),
-                ('mosaic_geotiff', models.FileField(blank=True, max_length=255, null=True, storage=georeference.storage.OverwriteStorage(), upload_to='mosaics')),
+                ('mosaic_geotiff', models.FileField(blank=True, max_length=255, null=True, storage=ohmg.georeference.storage.OverwriteStorage(), upload_to='mosaics')),
                 ('extent', django.contrib.gis.db.models.fields.PolygonField(blank=True, null=True, srid=4326)),
                 ('loaded_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
                 ('locales', models.ManyToManyField(blank=True, to='places.Place')),

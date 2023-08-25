@@ -9,23 +9,23 @@ from django.views import View
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.middleware import csrf
 
-from georeference.tasks import (
+from ohmg.georeference.tasks import (
     run_preparation_session,
     run_georeference_session,
 )
-from georeference.models.resources import (
+from ohmg.georeference.models.resources import (
     Layer,
     Document,
     ItemBase,
     GCPGroup,
 )
-from georeference.models.sessions import (
+from ohmg.georeference.models.sessions import (
     PrepSession,
     GeorefSession,
 )
-from georeference.georeferencer import Georeferencer
-from georeference.splitter import Splitter
-from georeference.tasks import delete_preview_vrt
+from ohmg.georeference.georeferencer import Georeferencer
+from ohmg.georeference.splitter import Splitter
+from ohmg.georeference.tasks import delete_preview_vrt
 
 from loc_insurancemaps.models import find_volume
 
@@ -331,8 +331,8 @@ class GeoreferenceView(View):
                 sesh.data['transformation'] = transformation
                 sesh.save(update_fields=["data"])
                 logger.info(f"{sesh.__str__()} | begin run() as task")
-                run_georeference_session.delay(sesh.pk)
-
+                run_georeference_session.apply_async((sesh.pk,))
+                print('task should be running')
                 _cleanup_preview(document, cleanup_preview)
                 return JsonResponse({
                     "success": True,

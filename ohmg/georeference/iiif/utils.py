@@ -122,7 +122,7 @@ def gcps_as_annotation(gcps):
     """Has not been tested since having been moved here, but should work
     as follows:
 
-    from georeference.models import GCPGroup
+    from ohmg.georeference.models import GCPGroup
     
     g = GCPGroup.objects.get(document=document)
     anno = gcps_as_annotation(g.gcps)

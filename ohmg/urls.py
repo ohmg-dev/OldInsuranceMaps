@@ -9,7 +9,7 @@ from ohmg.api.api import api
 urlpatterns = [
     path('', include('loc_insurancemaps.urls')),
     path('', include('ohmg.accounts.urls')),
-    path('', include('georeference.urls')),
+    path('', include('ohmg.georeference.urls')),
     path('admin/', admin.site.urls, name="admin"),
     path('account/', include("allauth.urls")),
     path('avatar/', include('avatar.urls')),

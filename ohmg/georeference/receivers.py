@@ -3,7 +3,7 @@ import logging
 from django.db.models import signals
 from django.dispatch import receiver
 
-from georeference.models.sessions import (
+from ohmg.georeference.models.sessions import (
     SessionBase,
     PrepSession,
     GeorefSession,

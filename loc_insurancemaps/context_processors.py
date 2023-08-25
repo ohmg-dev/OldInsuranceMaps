@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.sites.models import Site
-from georeference.utils import full_reverse
+from ohmg.georeference.utils import full_reverse
 
 def loc_info(request):
 

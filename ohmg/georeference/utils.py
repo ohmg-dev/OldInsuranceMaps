@@ -6,7 +6,7 @@ import logging
 from django.conf import settings
 from django.urls import reverse
 
-from georeference.georeferencer import get_path_variant
+from ohmg.georeference.georeferencer import get_path_variant
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from georeference.mosaicker import make_geotiff, make_mosaicjson
+from ohmg.georeference.mosaicker import make_geotiff, make_mosaicjson
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'

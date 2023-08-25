@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from georeference.models.sessions import (
+from ohmg.georeference.models.sessions import (
     delete_expired_sessions,
     SessionBase,
     PrepSession,

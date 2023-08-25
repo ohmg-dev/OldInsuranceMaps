@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 
-from georeference.models.sessions import (
+from ohmg.georeference.models.sessions import (
     SessionBase
 )
 

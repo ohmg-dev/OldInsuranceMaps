@@ -3,9 +3,9 @@ import json
 from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 
-from georeference.models.resources import Document, Layer
-from georeference.georeferencer import Georeferencer
-from georeference.renderers import generate_layer_thumbnail_content
+from ohmg.georeference.models.resources import Document, Layer
+from ohmg.georeference.georeferencer import Georeferencer
+from ohmg.georeference.renderers import generate_layer_thumbnail_content
 
 class Command(BaseCommand):
     help = 'Command line access point for the internal georeferencing utilities.'

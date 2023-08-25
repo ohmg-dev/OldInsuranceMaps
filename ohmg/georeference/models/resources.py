@@ -17,12 +17,12 @@ from django.core.files.base import ContentFile
 from django.utils import timezone
 from django.utils.functional import cached_property
 
-from georeference.utils import (
+from ohmg.georeference.utils import (
     full_reverse,
     slugify,
 )
-from georeference.renderers import generate_document_thumbnail_content, generate_layer_thumbnail_content
-from georeference.storage import OverwriteStorage
+from ohmg.georeference.renderers import generate_document_thumbnail_content, generate_layer_thumbnail_content
+from ohmg.georeference.storage import OverwriteStorage
 
 
 logger = logging.getLogger(__name__)
@@ -511,7 +511,7 @@ class Document(ItemBase):
 
     @property
     def preparation_session(self):
-        from georeference.models.sessions import PrepSession
+        from ohmg.georeference.models.sessions import PrepSession
         try:
             return PrepSession.objects.get(doc=self)
         except PrepSession.DoesNotExist:
@@ -525,7 +525,7 @@ class Document(ItemBase):
 
     @property
     def georeference_sessions(self):
-        from georeference.models.sessions import GeorefSession
+        from ohmg.georeference.models.sessions import GeorefSession
         return GeorefSession.objects.filter(doc=self.id).order_by("date_run")
 
     @property

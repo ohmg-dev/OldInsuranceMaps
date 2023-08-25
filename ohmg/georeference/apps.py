@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 
 class GeoreferenceConfig(AppConfig):
-    name = 'georeference'
+    name = 'ohmg.georeference'
 
     def ready(self):
-        import georeference.receivers
+        import ohmg.georeference.receivers
