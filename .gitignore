@@ -3,7 +3,9 @@ logs
 .build
 .temp
 
-loc_insurancemaps/reference_data/shapefiles
+# allow old directory to remain here locally for uploaded files
+./loc_insurancemaps
+
 .celery_results
 
 node_modules
