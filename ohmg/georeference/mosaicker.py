@@ -23,7 +23,7 @@ from ohmg.georeference.utils import (
     random_alnum,
 )
 
-from loc_insurancemaps.models import Volume
+from ohmg.loc_insurancemaps.models import Volume
 
 logger = logging.getLogger(__name__)
 

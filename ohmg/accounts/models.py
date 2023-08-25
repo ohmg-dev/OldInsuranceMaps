@@ -6,7 +6,7 @@ from django.utils.functional import cached_property
 from ohmg.georeference.models.sessions import SessionBase
 from ohmg.georeference.models.resources import GCP
 
-from loc_insurancemaps.models import Volume
+from ohmg.loc_insurancemaps.models import Volume
 
 class User(AbstractUser):
     class Meta:

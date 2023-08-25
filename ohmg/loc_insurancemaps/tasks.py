@@ -1,6 +1,6 @@
 from ohmg.celeryapp import app
 from ohmg.content.models import Item
-from loc_insurancemaps.models import Volume
+from ohmg.loc_insurancemaps.models import Volume
 
 @app.task
 def load_docs_as_task(volume_id):

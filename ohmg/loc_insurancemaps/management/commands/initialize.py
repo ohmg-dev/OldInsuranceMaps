@@ -4,7 +4,7 @@ from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.contenttypes.models import ContentType
 
-from loc_insurancemaps.models import Volume
+from ohmg.loc_insurancemaps.models import Volume
 
 class Command(BaseCommand):
     help = 'management command for migration initialization'

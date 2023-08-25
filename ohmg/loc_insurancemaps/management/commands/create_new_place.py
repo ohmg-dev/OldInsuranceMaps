@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
-from loc_insurancemaps.models import Place
+from ohmg.loc_insurancemaps.models import Place
 
 logger = logging.getLogger(__name__)
 

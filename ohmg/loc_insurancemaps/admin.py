@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from loc_insurancemaps.models import Volume, Sheet
+from ohmg.loc_insurancemaps.models import Volume, Sheet
 
 class SheetAdmin(admin.ModelAdmin):
     # search_fields = ('volume', 'sheet_no', 'doc')

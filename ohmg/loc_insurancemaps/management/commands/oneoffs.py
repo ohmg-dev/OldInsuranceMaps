@@ -10,7 +10,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.template.loader import render_to_string
 from django.test.client import RequestFactory
 
-from loc_insurancemaps.models import Volume, Place
+from ohmg.loc_insurancemaps.models import Volume, Place
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'

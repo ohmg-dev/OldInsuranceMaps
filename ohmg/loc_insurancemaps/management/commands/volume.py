@@ -4,11 +4,11 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 
 from ohmg.content.models import Item
-from loc_insurancemaps.tasks import (
+from ohmg.loc_insurancemaps.tasks import (
     generate_mosaic_cog_task,
     generate_mosaic_json_task,
 )
-from loc_insurancemaps.models import Volume
+from ohmg.loc_insurancemaps.models import Volume
 from ohmg.places.models import Place as NewPlace
 from ohmg.georeference.models.resources import ItemBase, Layer
 

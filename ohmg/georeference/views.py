@@ -27,7 +27,7 @@ from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.georeference.tasks import delete_preview_vrt
 
-from loc_insurancemaps.models import find_volume
+from ohmg.loc_insurancemaps.models import find_volume
 
 logger = logging.getLogger(__name__)
 

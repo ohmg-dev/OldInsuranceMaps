@@ -12,7 +12,7 @@ from ninja.security import APIKeyHeader
 
 from ohmg.accounts.models import User
 from ohmg.accounts.schemas import UserSchema
-from loc_insurancemaps.models import Volume
+from ohmg.loc_insurancemaps.models import Volume
 from ohmg.content.schemas import ItemListSchema
 from ohmg.georeference.models.sessions import SessionBase
 from ohmg.georeference.schemas import (

@@ -11,7 +11,7 @@ from ohmg.georeference.models.sessions import (
     SessionBase
 )
 
-from loc_insurancemaps.models import find_volume, Volume
+from ohmg.loc_insurancemaps.models import find_volume, Volume
 
 logger = logging.getLogger(__name__)
 

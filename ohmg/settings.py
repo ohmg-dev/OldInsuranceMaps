@@ -77,7 +77,7 @@ INSTALLED_APPS = [
     'ninja',
 
     'ohmg.georeference',
-    'loc_insurancemaps',
+    'ohmg.loc_insurancemaps',
     'ohmg.frontend',
     'ohmg.places',
 ]
@@ -110,8 +110,8 @@ TEMPLATES = [
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
         "django.contrib.auth.context_processors.auth",
-        "loc_insurancemaps.context_processors.loc_info",
-        "loc_insurancemaps.context_processors.general",
+        "ohmg.loc_insurancemaps.context_processors.loc_info",
+        "ohmg.loc_insurancemaps.context_processors.general",
         "pinax_theme_bootstrap.context_processors.theme",
       ],
       "debug": DEBUG,
@@ -271,8 +271,8 @@ CELERY_TASK_ROUTES = {
     'ohmg.georeference.tasks.run_georeference_session': {'queue': 'georeference'},
     'ohmg.georeference.tasks.delete_expired': {'queue': 'housekeeping'},
     'ohmg.georeference.tasks.delete_preview_vrt': {'queue': 'housekeeping'},
-    'loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
-    'loc_insurancemaps.tasks.generate_mosaic_geotiff_as_task': {'queue': 'mosaic'},
+    'ohmg.loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
+    'ohmg.loc_insurancemaps.tasks.generate_mosaic_geotiff_as_task': {'queue': 'mosaic'},
 }
 
 # empty celery beat schedule of default GeoNode jobs
@@ -394,7 +394,7 @@ LOGGING = {
             "handlers": ["console"], "level": "DEBUG", },
         "ohmg.georeference": {
             "handlers": ["info", "georeference-debug"], "level": "DEBUG", },
-        "loc_insurancemaps": {
+        "ohmg.loc_insurancemaps": {
             "handlers": ["info", "loc_insurancemaps-debug"], "level": "DEBUG", },
     },
 }
@@ -404,7 +404,7 @@ LOGGING = {
 if DEBUG:
     celery_log_level = 'DEBUG'
     LOGGING['loggers']['ohmg.georeference']['handlers'].append('console')
-    LOGGING['loggers']['loc_insurancemaps']['handlers'].append('console')
+    LOGGING['loggers']['ohmg.loc_insurancemaps']['handlers'].append('console')
 else:
     celery_log_level = 'INFO'
 

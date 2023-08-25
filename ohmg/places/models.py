@@ -2,7 +2,7 @@ import logging
 from django.db import models
 
 from ohmg.georeference.utils import slugify
-from loc_insurancemaps.enumerations import (
+from ohmg.loc_insurancemaps.enumerations import (
     STATE_ABBREV,
     STATE_POSTAL,
 )
@@ -84,7 +84,7 @@ class Place(models.Model):
         return list(set(states))
 
     def get_volumes(self):
-        from loc_insurancemaps.models import Volume
+        from ohmg.loc_insurancemaps.models import Volume
         return Volume.objects.filter(locales__id__exact=self.id).order_by("year")
 
     def get_state_postal(self):

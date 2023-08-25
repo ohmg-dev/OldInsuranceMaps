@@ -33,14 +33,14 @@ from ohmg.georeference.storage import OverwriteStorage
 from ohmg.georeference.utils import random_alnum
 from ohmg.places.models import Place
 
-from loc_insurancemaps.utils import (
+from ohmg.loc_insurancemaps.utils import (
     LOCParser,
     LOCConnection,
     filter_volumes_for_use,
     unsanitize_name,
     get_jpg_from_jp2_url,
 )
-from loc_insurancemaps.enumerations import (
+from ohmg.loc_insurancemaps.enumerations import (
     STATE_CHOICES,
     STATE_ABBREV,
     MONTH_CHOICES,

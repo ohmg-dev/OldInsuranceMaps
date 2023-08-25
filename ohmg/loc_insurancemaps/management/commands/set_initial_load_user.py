@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
-from loc_insurancemaps.models import Volume
+from ohmg.loc_insurancemaps.models import Volume
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'

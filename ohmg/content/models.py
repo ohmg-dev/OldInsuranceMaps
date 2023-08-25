@@ -7,8 +7,8 @@ database content and running migrations.
 
 The eventual migration plan is this:
 
-loc_insurancemaps.models.Volume --> content.models.Item
-loc_insurancemaps.models.Sheet  --> content.models.Resource
+ohmg.loc_insurancemaps.models.Volume --> content.models.Item
+ohmg.loc_insurancemaps.models.Sheet  --> content.models.Resource
 
 new model                       --> content.models.ItemConfigPreset
     This would allow an extraction of Sanborn-specific properties vs. generic item
@@ -31,7 +31,7 @@ from cogeo_mosaic.backends import MosaicBackend
 
 from ohmg.georeference.models.resources import Layer
 from ohmg.georeference.utils import random_alnum
-from loc_insurancemaps.models import Volume, Sheet
+from ohmg.loc_insurancemaps.models import Volume, Sheet
 
 logger = logging.getLogger(__name__)
 

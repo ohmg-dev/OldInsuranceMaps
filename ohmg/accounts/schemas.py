@@ -6,7 +6,7 @@ from ninja import (
 )
 
 from ohmg.georeference.schemas import SessionSchema
-from loc_insurancemaps.models import Volume
+from ohmg.loc_insurancemaps.models import Volume
 
 
 class UserSchema(Schema):

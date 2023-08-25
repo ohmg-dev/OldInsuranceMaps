@@ -24,7 +24,7 @@ try:
 except ImportError:
     print("DocumentProxy and LayerProxy cannot be imported, proceeding without!")
 
-from loc_insurancemaps.models import Volume, Sheet
+from ohmg.loc_insurancemaps.models import Volume, Sheet
 
 class Command(BaseCommand):
     help = 'A one-time migration command to copy the contents from GeoNode Document '\

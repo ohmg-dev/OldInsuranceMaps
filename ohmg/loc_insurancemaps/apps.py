@@ -2,7 +2,7 @@ from django.apps import AppConfig as BaseAppConfig
 
 class AppConfig(BaseAppConfig):
 
-    name = "loc_insurancemaps"
+    name = "ohmg.loc_insurancemaps"
     verbose_name = "LOC Insurance Maps"
 
     def ready(self):

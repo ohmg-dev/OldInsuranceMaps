@@ -5,7 +5,7 @@ from geonode.documents.models import Document
 from geonode.layers.models import Layer
 from geonode.maps.models import Map
 
-from loc_insurancemaps.models import Volume, Sheet, FullThumbnail
+from ohmg.loc_insurancemaps.models import Volume, Sheet, FullThumbnail
 
 class Command(BaseCommand):
     help = 'delete model instances.'

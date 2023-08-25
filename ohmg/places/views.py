@@ -7,7 +7,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
-from loc_insurancemaps.models import Volume
+from ohmg.loc_insurancemaps.models import Volume
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)

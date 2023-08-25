@@ -5,7 +5,7 @@ import django.contrib.gis.db.models.fields
 from django.db import migrations, models
 import django.db.models.deletion
 import ohmg.georeference.storage
-import loc_insurancemaps.models
+import ohmg.loc_insurancemaps.models
 
 
 class Migration(migrations.Migration):
@@ -36,10 +36,10 @@ class Migration(migrations.Migration):
                 ('sheet_ct', models.IntegerField(blank=True, null=True)),
                 ('status', models.CharField(choices=[('not started', 'not started'), ('initializing...', 'initializing...'), ('started', 'started'), ('all georeferenced', 'all georeferenced')], default='not started', max_length=50)),
                 ('load_date', models.DateTimeField(blank=True, null=True)),
-                ('ordered_layers', models.JSONField(blank=True, default=loc_insurancemaps.models.default_ordered_layers_dict, null=True)),
+                ('ordered_layers', models.JSONField(blank=True, default=ohmg.loc_insurancemaps.models.default_ordered_layers_dict, null=True)),
                 ('document_lookup', models.JSONField(blank=True, default=dict, null=True)),
                 ('layer_lookup', models.JSONField(blank=True, default=dict, null=True)),
-                ('sorted_layers', models.JSONField(default=loc_insurancemaps.models.default_sorted_layers_dict)),
+                ('sorted_layers', models.JSONField(default=ohmg.loc_insurancemaps.models.default_sorted_layers_dict)),
                 ('multimask', models.JSONField(blank=True, null=True)),
                 ('mosaic_geotiff', models.FileField(blank=True, max_length=255, null=True, storage=ohmg.georeference.storage.OverwriteStorage(), upload_to='mosaics')),
                 ('extent', django.contrib.gis.db.models.fields.PolygonField(blank=True, null=True, srid=4326)),
@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
                 ('lc_iiif_service', models.CharField(blank=True, max_length=150, null=True)),
                 ('jp2_url', models.CharField(blank=True, max_length=150, null=True)),
                 ('doc', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='georeference.document')),
-                ('volume', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='loc_insurancemaps.volume')),
+                ('volume', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ohmg.loc_insurancemaps.volume')),
             ],
         ),
     ]

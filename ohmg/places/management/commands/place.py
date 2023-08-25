@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from django.db import transaction
 
-from loc_insurancemaps.models import Volume
+from ohmg.loc_insurancemaps.models import Volume
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)

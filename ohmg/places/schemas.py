@@ -6,7 +6,7 @@ from ninja import (
     Field
 )
 
-from loc_insurancemaps.models import Volume
+from ohmg.loc_insurancemaps.models import Volume
 
 class PlaceSchema(Schema):
     """ very lightweight serialization of a Place with its Items"""

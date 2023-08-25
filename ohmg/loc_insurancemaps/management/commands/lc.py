@@ -5,9 +5,9 @@ from django.conf import settings
 from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 
-from loc_insurancemaps.api import Importer, import_all_available_volumes
-from loc_insurancemaps.enumerations import STATE_NAMES
-from loc_insurancemaps.utils import LOCParser
+from ohmg.loc_insurancemaps.api import Importer, import_all_available_volumes
+from ohmg.loc_insurancemaps.enumerations import STATE_NAMES
+from ohmg.loc_insurancemaps.utils import LOCParser
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
