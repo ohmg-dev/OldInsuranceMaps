@@ -6,7 +6,7 @@ from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 
 from ohmg.loc_insurancemaps.api import Importer, import_all_available_volumes
-from ohmg.loc_insurancemaps.enumerations import STATE_NAMES
+from ohmg.utils import STATE_NAMES
 from ohmg.loc_insurancemaps.utils import LOCParser
 
 class Command(BaseCommand):

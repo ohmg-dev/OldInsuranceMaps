@@ -12,11 +12,10 @@ from django.urls import reverse
 from django.views import View
 from django.middleware import csrf
 
-from ohmg.georeference.utils import full_reverse
+from ohmg.utils import full_reverse
 from ohmg.georeference.models.resources import Layer
 
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.loc_insurancemaps.utils import LOCConnection, unsanitize_name, filter_volumes_for_use
 from ohmg.loc_insurancemaps.tasks import load_docs_as_task
 
 from ohmg.places.models import Place

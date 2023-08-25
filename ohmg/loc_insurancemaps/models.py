@@ -1,6 +1,5 @@
 import os
 import json
-import uuid
 import logging
 from itertools import chain
 from datetime import datetime
@@ -30,7 +29,6 @@ from ohmg.georeference.models.sessions import (
     GeorefSession,
 )
 from ohmg.georeference.storage import OverwriteStorage
-from ohmg.georeference.utils import random_alnum
 from ohmg.places.models import Place
 
 from ohmg.loc_insurancemaps.utils import (
@@ -40,7 +38,7 @@ from ohmg.loc_insurancemaps.utils import (
     unsanitize_name,
     get_jpg_from_jp2_url,
 )
-from ohmg.loc_insurancemaps.enumerations import (
+from ohmg.utils import (
     STATE_CHOICES,
     STATE_ABBREV,
     MONTH_CHOICES,

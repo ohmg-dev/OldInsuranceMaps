@@ -18,7 +18,7 @@ from ohmg.georeference.models.resources import (
 )
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
-from ohmg.georeference.utils import (
+from ohmg.utils import (
     full_reverse,
     random_alnum,
 )

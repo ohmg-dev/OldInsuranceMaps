@@ -19,7 +19,7 @@ from django.contrib.gis.geos import GEOSGeometry, GeometryCollection, Polygon, M
 from django.core.files import File
 
 from ohmg.georeference.models.resources import Layer
-from ohmg.georeference.utils import (
+from ohmg.utils import (
     random_alnum,
 )
 

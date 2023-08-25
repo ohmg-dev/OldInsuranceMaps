@@ -17,7 +17,7 @@ from django.core.files.base import ContentFile
 from django.utils import timezone
 from django.utils.functional import cached_property
 
-from ohmg.georeference.utils import (
+from ohmg.utils import (
     full_reverse,
     slugify,
 )

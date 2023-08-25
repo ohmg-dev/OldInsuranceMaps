@@ -1,3 +1,61 @@
+import time
+import shutil
+import string
+import random
+import requests
+import logging
+
+from django.conf import settings
+from django.urls import reverse
+
+logger = logging.getLogger(__name__)
+
+def download_image(url, out_path, retries=3):
+
+    # basic download code: https://stackoverflow.com/a/18043472/3873885
+    while True:
+        logger.debug(f"request {url}")
+        response = requests.get(url, stream=True)
+        if response.status_code == 200:
+            with open(out_path, 'wb') as out_file:
+                shutil.copyfileobj(response.raw, out_file)
+            return out_path
+        else:
+            logger.warn(f"response code: {response.status_code} retries left: {retries}")
+            time.sleep(5)
+            retries -= 1
+            if retries == 0:
+                logger.warn(f"request failed, cancelling")
+                return None
+
+def full_capitalize(in_str):
+    return " ".join([i.capitalize() for i in in_str.split(" ")])
+
+def full_reverse(view_name, **kwargs):
+    """Wraps the reverse utility to prepend the site base domain."""
+    base = settings.SITEURL.rstrip("/")
+    full_url = base + reverse(view_name, **kwargs)
+    return full_url
+
+def slugify(input_string, join_char="-"):
+
+    output = input_string.lower()
+    remove_chars = [".", ",", "'", '"', "|", "[", "]", "(", ")"]
+    output = "".join([i for i in output if not i in remove_chars])
+    for i in ["_", "  ", " - ", " ", "--", "-"]:
+        output = output.replace(i, join_char)
+    return output.lower()
+
+def random_alnum(size=6):
+    """
+    Generate random 6 character alphanumeric string
+    credit: https://codereview.stackexchange.com/a/232184
+    """
+    # List of characters [a-zA-Z0-9]
+    chars = string.ascii_letters + string.digits
+    code = ''.join(random.choice(chars) for _ in range(size))
+    return code
+
 MONTH_CHOICES = [
     (1, "JAN."),
     (2, "FEB."),
