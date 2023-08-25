@@ -7,7 +7,7 @@ from django.urls import include, path
 from ohmg.api.api import api
 
 urlpatterns = [
-    path('', include('ohmg.loc_insurancemaps.urls')),
+    path('', include('ohmg.frontend.urls')),
     path('', include('ohmg.accounts.urls')),
     path('', include('ohmg.georeference.urls')),
     path('admin/', admin.site.urls, name="admin"),

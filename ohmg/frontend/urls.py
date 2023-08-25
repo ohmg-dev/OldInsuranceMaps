@@ -1,7 +1,7 @@
 from django.views.generic import TemplateView, RedirectView
 from django.urls import path
 
-from .views import (
+from ohmg.frontend.views import (
     VolumeDetail,
     VolumeTrim,
     HomePage,
