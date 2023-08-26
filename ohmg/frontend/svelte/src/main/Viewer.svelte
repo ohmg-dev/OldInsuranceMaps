@@ -120,6 +120,7 @@ VOLUMES.forEach( function (vol, n) {
 	if (mosaicUrl) {
 		mainGroup = new TileLayer({
 			source: new XYZ({
+				transition: 0,
 				url: makeTitilerXYZUrl({
 					host: TITILER_HOST,
 					url: mosaicUrl,
@@ -348,8 +349,8 @@ function MapViewer (elementId) {
 	const map = new Map({
 		target: targetElement,
 		layers: [baseGroup],
-		maxTilesLoading: 50,
-                pixelRatio: 2,
+		maxTilesLoading: 32,
+		pixelRatio: 2,
 		view: new View({
 			zoom: 8,
 			center: fromLonLat([-92.036, 31.16])

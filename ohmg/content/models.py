@@ -128,6 +128,7 @@ class Item:
         to = gdal.TranslateOptions(
             format="COG",
             creationOptions = [
+                "BIGTIFF=YES",
                 "COMPRESS=JPEG",
                 "TILING_SCHEME=GoogleMapsCompatible",
             ],

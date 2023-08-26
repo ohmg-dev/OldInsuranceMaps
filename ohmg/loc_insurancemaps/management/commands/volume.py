@@ -175,7 +175,7 @@ class Command(BaseCommand):
                 if v.identifier in options['exclude']:
                     print(f"skipping excluded: {v.identifier}")
                     continue
-                print(f'{v.identifier} - {v.title}')
+                print(f'{v.identifier} - {v.__str__()}')
                 for l in v.layer_lookup.keys():
                     print(f'  {l}')
                     ss = Layer.objects.filter(slug=l)

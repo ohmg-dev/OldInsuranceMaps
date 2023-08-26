@@ -285,7 +285,9 @@ class MRMEndpointLayer(View):
             raise Http404
 
         elif item == "gcps-geojson":
-            return JsonResponse(layer.get_document().gcp_group.as_geojson)
+            response = layer.get_document().gcp_group.as_geojson
+            response['warning'] = 'ATTENTION: this endpoint will be retired very soon. please get in touch with hello@oldinsurancemaps.net if you are interested in a replacement for it! Also just to say hi!'
+            return JsonResponse(response)
 
         elif item == "points":
             content = layer.get_document().gcp_group.as_points_file()
