@@ -1,14 +1,15 @@
+logs
 .ohmg_cache
 .build
-docs/site
-loc_insurancemaps/reference_data/shapefiles
-loc_insurancemaps/cache
-loc_insurancemaps/temp
-mapserver.map
+.temp
+
+# allow old directory to remain here locally for uploaded files
+./loc_insurancemaps
+
 .celery_results
 
-frontend/svelte/node_modules
-frontend/svelte/public
+node_modules
+public
 
 _system-configs
 .env
