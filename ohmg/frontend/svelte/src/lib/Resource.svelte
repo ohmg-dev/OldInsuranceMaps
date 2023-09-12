@@ -180,7 +180,6 @@ function DocViewer () {
   this.map = map;
 }
 
-console.log(RESOURCE)
 function LayerViewer () {
 
   const targetElement = document.getElementById('preview-map');

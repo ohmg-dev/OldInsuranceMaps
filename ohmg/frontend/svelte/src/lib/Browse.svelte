@@ -13,8 +13,6 @@ export let OHMG_API_KEY;
 
 let reinitMap = [{}]
 
-console.log("browse page")
-
 // Use the hash to set the browse view, force to "map" if incoming hash is empty or invalid
 let currentTab = window.location.hash.substr(1) != "" ? window.location.hash.substr(1) : "map";
 if (["map", "place", "items"].indexOf(currentTab) === -1) {currentTab = 'map'};
