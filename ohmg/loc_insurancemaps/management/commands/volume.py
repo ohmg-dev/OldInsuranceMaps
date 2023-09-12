@@ -25,6 +25,7 @@ class Command(BaseCommand):
                 "make-sheets",
                 "generate-mosaic-cog",
                 "generate-mosaic-json",
+                "generate-non-geo-mosaic",
                 "generate-thumbnails",
                 "set-extent",
                 "warp-layers",
@@ -130,6 +131,16 @@ class Command(BaseCommand):
                 else:
                     item = Item(i)
                     item.generate_mosaic_cog()
+
+        if options['operation'] == "generate-non-geo-mosaic":
+            if i is not None:
+                if options['background']:
+                    print('not implemented')
+                    return
+                    #generate_mosaic_cog_task.delay(i)
+                else:
+                    item = Item(i)
+                    item.export_mosaic_jpg(f"{i}.jpg")
 
         if options['operation'] == "generate-mosaic-json":
             if i is not None:

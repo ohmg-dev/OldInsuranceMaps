@@ -425,6 +425,7 @@ class ResourceView(View):
                     "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
                     "OHMG_API_KEY": settings.OHMG_API_KEY,
                     "SESSION_API_URL": reverse("api-beta:session_list"),
+                    "TITILER_HOST": settings.TITILER_HOST,
                 }
             }
         )
