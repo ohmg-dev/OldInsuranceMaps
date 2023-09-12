@@ -36,11 +36,26 @@ if (urlSegs[urlSegs.length - 2] == 'about') {
 		<h1>OldInsuranceMaps.net</h1>
 		<p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. See <a href="/#how-it-works">how it works</a> or visit the <a href="/faq?utm_source=hero" target="_blank">about</a> or <a href="/faq?utm_source=hero" target="_blank">FAQ</a> pages to learn more.</p>
 	</div>
+
+	<div class="hero-banner2 img-bg-3">
+		<div style="padding:0;">
+			<div style="padding:5px;">
+				<h3>Explore georeferenced maps from {PLACES_CT} locations...</h3>
+				<p>Click a point to access the viewer for that locale, or <a href="/search/#places">search by place name</a>.
+			</div>
+			{#if IS_MOBILE}<span><button class="link-btn" on:click="{() => {showBrowseMap = !showBrowseMap}}">{ showBrowseMapBtnLabel }</button></span>{/if}
+			{#if showBrowseMap}
+			<MapBrowse PLACES_GEOJSON_URL={PLACES_GEOJSON_URL} MAP_HEIGHT={'400'} OHMG_API_KEY={OHMG_API_KEY} EMBEDDED={true} />
+			{/if}
+		</div>
+	</div>
+
 	<div class="hero-banner img-bg-2">
 		<div class="hero-banner-inner">
 			<div>
 			<h3>Recently Added Maps</h3>
 			<LatestAdditions ITEM_API_URL={ITEM_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
+			<span><em>Want to see more? View <a href="/search/#items">all items</a> and sort by <strong>Load date</strong>.</em></span>
 		</div>
 			<div id="link-list">
 				<h3>Search All Maps</h3>
@@ -49,7 +64,7 @@ if (urlSegs[urlSegs.length - 2] == 'about') {
 					<li><a href="/search/#places">By place name ({PLACES_CT})</a></li>
 					<li><a href="/search/#places">By item ({ITEMS_CT})</a></li>
 				</ul>
-				<span><em>To add more maps, <a href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link">fill out this form</a> or <a href="https://ohmg.dev/contact">get in touch</a>.</em></span>
+				<span><em>To request more maps, <a href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link">fill out this form</a> or <a href="https://ohmg.dev/contact">get in touch</a>.</em></span>
 			</div>
 		</div>
 		{#if NEWSLETTER_SLUG}
@@ -66,19 +81,6 @@ if (urlSegs[urlSegs.length - 2] == 'about') {
 			<a href="/newsletter/{NEWSLETTER_SLUG}/archive/">newsletter archive</a>
 		</div>
 		{/if}
-	</div>
-
-	<div class="hero-banner2 img-bg-3">
-		<div style="padding:0;">
-			<div style="padding:5px;">
-				<h3>Explore georeferenced maps from {PLACES_CT} locations...</h3>
-				<p>Click a point to access the viewer for that locale, or <a href="/search/#places">search by place name</a>.
-			</div>
-			{#if IS_MOBILE}<span><button class="link-btn" on:click="{() => {showBrowseMap = !showBrowseMap}}">{ showBrowseMapBtnLabel }</button></span>{/if}
-			{#if showBrowseMap}
-			<MapBrowse PLACES_GEOJSON_URL={PLACES_GEOJSON_URL} MAP_HEIGHT={'400'} OHMG_API_KEY={OHMG_API_KEY} EMBEDDED={true} />
-			{/if}
-		</div>
 	</div>
 
 	<div id="how-it-works" class="hero-banner2 img-bg-1">

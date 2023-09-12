@@ -7,7 +7,7 @@ let latestItems = [];
 
 function getInitialResults() {
 	loadingItems = true;
-	fetch(ITEM_API_URL+"?limit=10&sort=load_date", {
+	fetch(ITEM_API_URL+"?limit=6&sort=load_date", {
 		headers: {
 			'X-API-Key': OHMG_API_KEY,
 		}
