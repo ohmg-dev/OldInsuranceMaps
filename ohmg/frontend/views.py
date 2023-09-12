@@ -75,19 +75,22 @@ class HomePage(View):
                 pass
 
         context_dict = {
-            "svelte_params": {
-                "ITEM_API_URL": reverse("api-beta:item_list"),
-                "SESSION_API_URL": reverse("api-beta:session_list"),
-                "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
-                "IS_MOBILE": mobile(request),
-                "CSRFTOKEN": csrf.get_token(request),
-                "OHMG_API_KEY": settings.OHMG_API_KEY,
-                "NEWSLETTER_SLUG": newsletter_slug,
-                "USER_SUBSCRIBED": user_subscribed,
-                "USER_EMAIL": user_email,
-                "VIEWER_SHOWCASE": viewer_showcase,
-                "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
-                "ITEMS_CT": Volume.objects.all().exclude(loaded_by=None).count(),
+            "params": {
+                "PAGE_NAME": 'home',
+                'PARAMS': {
+                    "ITEM_API_URL": reverse("api-beta:item_list"),
+                    "SESSION_API_URL": reverse("api-beta:session_list"),
+                    "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
+                    "IS_MOBILE": mobile(request),
+                    "CSRFTOKEN": csrf.get_token(request),
+                    "OHMG_API_KEY": settings.OHMG_API_KEY,
+                    "NEWSLETTER_SLUG": newsletter_slug,
+                    "USER_SUBSCRIBED": user_subscribed,
+                    "USER_EMAIL": user_email,
+                    "VIEWER_SHOWCASE": viewer_showcase,
+                    "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
+                    "ITEMS_CT": Volume.objects.all().exclude(loaded_by=None).count(),
+                }
             },
         }
 
@@ -102,31 +105,44 @@ class Browse(View):
     def get(self, request):
 
         context_dict = {
-            "browse_params": {
-                "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
-                "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
-                "PLACES_API_URL": reverse("api-beta:place_list"),
-                "ITEM_CT": Volume.objects.all().exclude(loaded_by=None).count(),
-                "ITEM_API_URL": reverse("api-beta:item_list"),
-                "OHMG_API_KEY": settings.OHMG_API_KEY,
-            },
+            "params": {
+                "PAGE_NAME": 'browse',
+                "PARAMS": {
+                    "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
+                    "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
+                    "PLACES_API_URL": reverse("api-beta:place_list"),
+                    "ITEM_CT": Volume.objects.all().exclude(loaded_by=None).count(),
+                    "ITEM_API_URL": reverse("api-beta:item_list"),
+                    "OHMG_API_KEY": settings.OHMG_API_KEY,
+                }
+            }
         }
         return render(
             request,
-            "browse.html",
+            "index.html",
             context=context_dict
         )
 
-class About(View):
+class BasicPage(View):
 
-    def get(self, request):
+    def get(self, request, slug, title):
 
         context_dict = {
-            "about_params": {},
+            "params": {
+                "PAGE_TITLE": title,
+                "PAGE_NAME": slug,
+                "PARAMS": {}
+            }
         }
+
+        if slug == "activity":
+            context_dict['params']['PARAMS'].update({
+                "SESSION_API_URL": reverse("api-beta:session_list"),
+                "OHMG_API_KEY": settings.OHMG_API_KEY,
+            })
         return render(
             request,
-            "about.html",
+            "index.html",
             context=context_dict
         )
 
@@ -199,7 +215,7 @@ class VolumeDetail(View):
         }
         return render(
             request,
-            "loc_insurancemaps/volume_summary.html",
+            "content/item.html",
             context=context_dict
         )
 

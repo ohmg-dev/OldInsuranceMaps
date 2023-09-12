@@ -1,7 +1,6 @@
 from avatar.templatetags.avatar_tags import avatar_url
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.urls import reverse
@@ -16,14 +15,17 @@ class ProfileView(View):
 
         return render(
             request,
-            "accounts/profile.html",
+            "index.html",
             context={
-                "svelte_params": {
-                    "CURRENT_USERNAME": request.user.username,
-                    "PROFILE_USER": UserSchema.from_orm(u).dict(),
-                    "CHANGE_AVATAR_URL": reverse('avatar_change'),
-                    "SESSION_API_URL": reverse("api-beta:session_list"),
-                    "OHMG_API_KEY": settings.OHMG_API_KEY,
+                "params": {
+                    "PAGE_NAME": 'profile',
+                    "PARAMS": {
+                        "CURRENT_USERNAME": request.user.username,
+                        "PROFILE_USER": UserSchema.from_orm(u).dict(),
+                        "CHANGE_AVATAR_URL": reverse('avatar_change'),
+                        "SESSION_API_URL": reverse("api-beta:session_list"),
+                        "OHMG_API_KEY": settings.OHMG_API_KEY,
+                    }
                 }
             }
         )
@@ -35,11 +37,14 @@ class Participants(View):
 
         return render(
             request,
-            "accounts/participants.html",
+            "index.html",
             context={
-                "svelte_params": {
-                    "USER_API_URL": reverse("api-beta:user_list"),
-                    "OHMG_API_KEY": settings.OHMG_API_KEY,
+                "params": {
+                    "PAGE_NAME": "profiles",
+                    "PARAMS": {
+                        "OHMG_API_KEY": settings.OHMG_API_KEY,
+                        "USER_API_URL": reverse("api-beta:user_list"),
+                    }
                 }
             },
         )
