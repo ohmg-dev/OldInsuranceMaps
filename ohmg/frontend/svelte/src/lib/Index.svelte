@@ -35,7 +35,7 @@
     ITEMS_CT={PARAMS.ITEMS_CT} />
 {:else if PAGE_NAME == 'about'}
 <About />
-{:else if PAGE_NAME == 'about-fire-insurance-maps'}
+{:else if PAGE_NAME == 'about-sanborn-maps'}
 <FireInsuranceMaps />
 {:else if PAGE_NAME == 'faq'}
 <FAQ />

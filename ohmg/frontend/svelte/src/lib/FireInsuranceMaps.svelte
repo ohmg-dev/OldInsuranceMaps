@@ -46,4 +46,4 @@ Thus, on OldInsuranceMaps.net, **volume** is the highest level of grouping of hi
 `
 </script>
 
-<MarkdownPage source={source} title={"A bit about the Sanborn maps"} />
+<MarkdownPage source={source} title={"A bit about Sanborn maps"} />
