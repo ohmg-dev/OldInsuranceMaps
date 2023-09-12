@@ -268,3 +268,9 @@ export function removeRotateCenter (layer) {
 		layer.setVisible(false)
 	}
 }
+
+// adding color here seems to override :hover color rules, so best to
+// just inherit color I think.
+export const iconProps = {
+	weight: 'bold',
+}
