@@ -8,6 +8,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.middleware import csrf
+from django.urls import reverse
 
 from ohmg.georeference.tasks import (
     run_preparation_session,
@@ -422,7 +423,8 @@ class ResourceView(View):
                     "GEOREFERENCE_SUMMARY": georeference_summary,
                     "SESSION_HISTORY": sessions_json,
                     "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-                    "TITILER_HOST": settings.TITILER_HOST,
+                    "OHMG_API_KEY": settings.OHMG_API_KEY,
+                    "SESSION_API_URL": reverse("api-beta:session_list"),
                 }
             }
         )
