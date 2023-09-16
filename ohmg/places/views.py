@@ -36,13 +36,16 @@ class PlaceView(View):
 
         else:
             context_dict = {
-                "svelte_params": {
-                    "PLACE": data,
+                "params": {
+                    "PAGE_NAME": 'place',
+                    "PARAMS": {
+                        "PLACE": data,
+                    }
                 }
             }
             return render(
                 request,
-                "places/place.html",
+                "index.html",
                 context=context_dict
             )
 
@@ -76,6 +79,6 @@ class Viewer(View):
         }
         return render(
             request,
-            "places/viewer.html",
+            "viewer.html",
             context=context_dict
         )
