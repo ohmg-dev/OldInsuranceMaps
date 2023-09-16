@@ -9,6 +9,7 @@ export let PROFILE_USER;
 export let CHANGE_AVATAR_URL;
 export let SESSION_API_URL;
 export let OHMG_API_KEY;
+export let USER_API_KEYS = [];
 
 let myProfile = CURRENT_USERNAME === PROFILE_USER.username;
 
@@ -31,6 +32,12 @@ const sessionFilterParam = `username=${PROFILE_USER.username}`
 				<li><a href="{CHANGE_AVATAR_URL}" title="Change profile picture">Change my profile picture</a></li>
 				<li><a href="/account/logout">Sign out</a></li>
 			</ul>
+			{#if USER_API_KEYS.length > 0}
+			<h4>Api Keys</h4>
+			{#each USER_API_KEYS as key}
+			<pre>key</pre>
+			{/each}
+			{/if}
 		</div>
 	</section>
 	{/if}

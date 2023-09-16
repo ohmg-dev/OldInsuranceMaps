@@ -5,13 +5,16 @@ from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.urls import reverse
 
-from .schemas import UserSchema
+from ohmg.accounts.schemas import UserSchema
+from ohmg.api.models import Key
 
 class ProfileView(View):
 
     def get(self, request, username):
 
         u = get_object_or_404(get_user_model(), username=username)
+
+        api_keys = [i for i in Key.objects.filter(account=u).values_list('value', flat=True)]
 
         return render(
             request,
@@ -25,6 +28,7 @@ class ProfileView(View):
                         "CHANGE_AVATAR_URL": reverse('avatar_change'),
                         "SESSION_API_URL": reverse("api-beta:session_list"),
                         "OHMG_API_KEY": settings.OHMG_API_KEY,
+                        "USER_API_KEYS": api_keys,
                     }
                 }
             }
