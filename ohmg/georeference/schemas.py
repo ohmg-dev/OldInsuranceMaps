@@ -92,7 +92,9 @@ class SessionSchema(Schema):
         return d
 
 class FilterSessionSchema(FilterSchema):
-    username: Optional[str] = Field(q='user__username') 
+    username: Optional[str] = Field(q='user__username')
     item: Optional[List[int]] = Field(q=['doc_id', 'lyr_id'])
     resource: Optional[List[int]] = Field(q=['doc_id__in', 'lyr_id__in'])
     type: Optional[str]
+    start_date: Optional[str] = Field(q='date_created__gte')
+    end_date: Optional[str] = Field(q='date_created__lte')
