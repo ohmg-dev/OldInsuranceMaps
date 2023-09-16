@@ -12,6 +12,7 @@ from ninja.security import APIKeyHeader
 
 from ohmg.accounts.models import User
 from ohmg.accounts.schemas import UserSchema
+from ohmg.api.models import Key
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.content.schemas import ItemListSchema
 from ohmg.georeference.models.sessions import SessionBase
@@ -29,6 +30,9 @@ class ApiKey(APIKeyHeader):
 
     def authenticate(self, request, key):
         if key == settings.OHMG_API_KEY:
+            return key
+        elif key in Key.objects.filter(active=True).values_list('value', flat=True):
+            Key.objects.get(value=key).increment_count()
             return key
 
 # going to be useful eventually for Geo support

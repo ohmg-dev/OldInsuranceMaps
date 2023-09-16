@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'ohmg.frontend',
     'ohmg.places',
     'ohmg.snippets',
+    'ohmg.api',
 ]
 
 PASSWORD_HASHERS = [
