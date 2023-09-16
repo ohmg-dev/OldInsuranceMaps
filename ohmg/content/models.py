@@ -7,10 +7,12 @@ database content and running migrations.
 
 The eventual migration plan is this:
 
-ohmg.loc_insurancemaps.models.Volume --> content.models.Item
-ohmg.loc_insurancemaps.models.Sheet  --> content.models.Resource
+ohmg.loc_insurancemaps.models.Volume        --> content.models.Item
+ohmg.loc_insurancemaps.models.Sheet         --> content.models.Resource
+ohmg.georeference.models.resources.Document --> content.models.VirtualResource
+ohmg.georeference.models.resources.Layer    --> content.models.VirtualResource
 
-new model                       --> content.models.ItemConfigPreset
+new model                                   --> content.models.ItemConfigPreset
     This would allow an extraction of Sanborn-specific properties vs. generic item
     uploads. Still unclear exactly what to call this, or everything that it would have.
 '''
