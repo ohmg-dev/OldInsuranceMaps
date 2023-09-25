@@ -5,18 +5,16 @@ from pathlib import Path
 
 from kombu import Queue, Exchange
 
-# set the project root as the BASE_DIR
+# set the repo root as the BASE_DIR, project root at PROJECT_DIR
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_DIR = Path(__file__).resolve().parent
+BASE_DIR = PROJECT_DIR.parent
 
 # the build file is generated and updated with python manage.py update_build
 BUILD_FILE = BASE_DIR / '.build'
 BUILD_NUMBER = ''
 if BUILD_FILE.is_file():
-    print('getting build number')
     with open(BUILD_FILE, 'r') as o:
-        # print(o.read())
-        # print(o.readlines())
         BUILD_NUMBER = o.read()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -40,16 +38,16 @@ OHMG_API_KEY = os.getenv("OHMG_API_KEY", "")
 ALLOWED_HOSTS = ast.literal_eval(os.getenv("ALLOWED_HOSTS", "[]"))
 
 # Set path to cache directory
-CACHE_DIR = BASE_DIR / "loc_insurancemaps" / "cache"
-TEMP_DIR = BASE_DIR / "loc_insurancemaps" / "temp"
-LOG_DIR = BASE_DIR / "loc_insurancemaps" / "logs"
+LOG_DIR = os.getenv('LOG_DIR', BASE_DIR / "logs")
+CACHE_DIR = os.getenv('CACHE_DIR', BASE_DIR / ".ohmg_cache")
+TEMP_DIR = os.getenv('TEMP_DIR', BASE_DIR / ".temp")
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', "en")
 
 INSTALLED_APPS = [
-    'accounts',
+    'ohmg.accounts',
 
     'django.contrib.contenttypes',
     'django.contrib.auth',
@@ -78,10 +76,12 @@ INSTALLED_APPS = [
 
     'ninja',
 
-    'georeference',
-    'loc_insurancemaps',
-    'frontend',
-    'places',
+    'ohmg.georeference',
+    'ohmg.loc_insurancemaps',
+    'ohmg.frontend',
+    'ohmg.places',
+    'ohmg.snippets',
+    'ohmg.api',
 ]
 
 PASSWORD_HASHERS = [
@@ -98,7 +98,7 @@ TEMPLATES = [
     "NAME": "Project Templates",
     "BACKEND": "django.template.backends.django.DjangoTemplates",
     "DIRS": [
-      BASE_DIR / "frontend" / "templates",
+      PROJECT_DIR / "frontend" / "templates",
     ],
     "APP_DIRS": True,
     "OPTIONS": {
@@ -112,8 +112,8 @@ TEMPLATES = [
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
         "django.contrib.auth.context_processors.auth",
-        "loc_insurancemaps.context_processors.loc_info",
-        "loc_insurancemaps.context_processors.general",
+        "ohmg.frontend.context_processors.loc_info",
+        "ohmg.frontend.context_processors.general",
         "pinax_theme_bootstrap.context_processors.theme",
       ],
       "debug": DEBUG,
@@ -133,8 +133,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / 'static')
 STATICFILES_DIRS = [
-    BASE_DIR / "frontend" / "static",
-    BASE_DIR / "frontend" / "components" / "public" / "build",
+    PROJECT_DIR / "frontend" / "static",
+    PROJECT_DIR / "frontend" / "svelte" / "public" / "build",
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -171,6 +171,21 @@ if ENABLE_NEWSLETTER:
     NEWSLETTER_CONFIRM_EMAIL_UNSUBSCRIBE = False
     NEWSLETTER_CONFIRM_EMAIL_UPDATE = False
     NEWSLETTER_RICHTEXT_WIDGET = "tinymce.widgets.TinyMCE"
+
+    TINYMCE_DEFAULT_CONFIG = {
+        "theme": "silver",
+        "height": 500,
+        "menubar": False,
+        "plugins": "advlist,autolink,lists,link,image,charmap,print,preview,anchor,"
+        "searchreplace,visualblocks,code,fullscreen,insertdatetime,media,table,paste,"
+        "code,help,wordcount",
+        "toolbar": "undo redo | formatselect | image link | "
+        "bold italic backcolor | alignleft aligncenter "
+        "alignright alignjustify | bullist numlist outdent indent | "
+        "removeformat | help",
+        "relative_urls": False,
+        "convert_urls": False,
+    }
 
 # gravatar settings
 AUTO_GENERATE_AVATAR_SIZES = (
@@ -254,30 +269,29 @@ CELERY_TASK_QUEUES = (
 )
 
 CELERY_TASK_ROUTES = {
-    'georeference.tasks.run_preparation_session': {'queue': 'split'},
-    'georeference.tasks.run_georeference_session': {'queue': 'georeference'},
-    'georeference.tasks.delete_expired': {'queue': 'housekeeping'},
-    'loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
-    'loc_insurancemaps.tasks.generate_mosaic_geotiff_as_task': {'queue': 'mosaic'},
+    'ohmg.georeference.tasks.run_preparation_session': {'queue': 'split'},
+    'ohmg.georeference.tasks.run_georeference_session': {'queue': 'georeference'},
+    'ohmg.georeference.tasks.delete_expired': {'queue': 'housekeeping'},
+    'ohmg.georeference.tasks.delete_preview_vrt': {'queue': 'housekeeping'},
+    'ohmg.loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
+    'ohmg.loc_insurancemaps.tasks.generate_mosaic_geotiff_as_task': {'queue': 'mosaic'},
 }
 
 # empty celery beat schedule of default GeoNode jobs
 CELERY_BEAT_SCHEDULE = {
     'delete_expired_sessions': {
-        'task': 'georeference.tasks.delete_expired',
+        'task': 'ohmg.georeference.tasks.delete_expired',
         'schedule': 60.0,
     }
 }
 
+# note: this is app_label.ModelClass,
 AUTH_USER_MODEL = 'accounts.User'
-ACCOUNT_ADAPTER = "accounts.adapter.AccountAdapter"
+# while this is a module path to the adapter class
+ACCOUNT_ADAPTER = "ohmg.accounts.adapter.AccountAdapter"
 
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_SIGNUP_REDIRECT_URL = "/"
-
-# must have trailing slash
-MAPSERVER_ENDPOINT = os.getenv("MAPSERVER_ENDPOINT", "http://localhost:9999/wms/")
-MAPSERVER_MAPFILE = BASE_DIR / "loc_insurancemaps" / "mapserver.map"
 
 # prep/georef session duration before expiration (seconds)
 GEOREFERENCE_SESSION_LENGTH = int(os.getenv("GEOREFERENCE_SESSION_LENGTH", 600))
@@ -295,7 +309,7 @@ DEFAULT_THUMBNAIL_SIZE = (240, 200)
 
 # Location of locale files
 LOCALE_PATHS = (
-    BASE_DIR / 'loc_insurancemaps' / 'locale',
+    PROJECT_DIR / 'locale',
 )
 
 LOGGING = {
@@ -378,11 +392,11 @@ LOGGING = {
         "geonode_logstash.logstash": {
             "handlers": ["console"], "level": "DEBUG", },
         # logging for this app specifically
-        "georeference.tests": {
+        "ohmg.georeference.tests": {
             "handlers": ["console"], "level": "DEBUG", },
-        "georeference": {
+        "ohmg.georeference": {
             "handlers": ["info", "georeference-debug"], "level": "DEBUG", },
-        "loc_insurancemaps": {
+        "ohmg.loc_insurancemaps": {
             "handlers": ["info", "loc_insurancemaps-debug"], "level": "DEBUG", },
     },
 }
@@ -391,6 +405,8 @@ LOGGING = {
 # https://stackoverflow.com/a/20719461/3873885
 if DEBUG:
     celery_log_level = 'DEBUG'
+    LOGGING['loggers']['ohmg.georeference']['handlers'].append('console')
+    LOGGING['loggers']['ohmg.loc_insurancemaps']['handlers'].append('console')
 else:
     celery_log_level = 'INFO'
 

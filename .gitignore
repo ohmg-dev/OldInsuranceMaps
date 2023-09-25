@@ -1,13 +1,15 @@
+logs
+.ohmg_cache
 .build
-docs/site
-loc_insurancemaps/reference_data/shapefiles
-loc_insurancemaps/cache
-loc_insurancemaps/temp
-mapserver.map
+.temp
+
+# allow old directory to remain here locally for uploaded files
+./loc_insurancemaps
+
 .celery_results
 
-frontend/components/node_modules
-frontend/components/public
+node_modules
+public
 
 _system-configs
 .env
@@ -33,7 +35,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+./lib/
 lib64/
 parts/
 sdist/

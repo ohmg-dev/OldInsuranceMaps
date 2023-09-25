@@ -1,0 +1,139 @@
+{% load i18n avatar_tags %}
+{% load static from static %}
+{% load account socialaccount %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta Http-Equiv="Cache-Control" Content="no-cache">
+    <meta Http-Equiv="Pragma" Content="no-cache">
+    <meta Http-Equiv="Expires" Content="0">
+    <meta Http-Equiv="Pragma-directive: no-cache">
+    <meta Http-Equiv="Cache-directive: no-cache">
+    
+    <!-- title is the block used in my own templates (for now) -->
+    <!-- head_title is the block used by the allauth templates -->
+    <title>
+      {% block title %}{{ SITE_NAME }}{% endblock %}
+      {% block head_title %}{% endblock %}
+    </title>
+    <meta property="og:description" content="A crowdsourcing site for creating and viewing georeferenced mosaics of historical Sanborn fire insurance maps" />
+
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
+
+    <! -- analytics with plausible.io -->
+    <script defer data-domain="oldinsurancemaps.net" src="/js/script.js"></script>
+
+    {% block head %}
+
+      <link href="{% static "css/base.css" %}" rel="stylesheet"/>
+
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
+      
+      <link href="{{ STATIC_URL }}css/site_base.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
+      <link href="{{ STATIC_URL }}css/icons.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
+    {% endblock %}
+    <!--[if IE]>
+      <script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+      <style>
+        #ieflag{
+            display: block !important;
+            height: 150px;
+            text-align: center;
+        }
+      </style>
+    <![endif]-->
+
+    <script>
+        var siteUrl = '{{ SITEURL }}'.replace(/\/?$/, '/');
+        var staticUrl = '{% static "" %}';
+    </script>
+
+    <!-- RTL styles -->
+    {% get_current_language_bidi as LANGUAGE_BIDI %}
+    {% if LANGUAGE_BIDI %}
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-rtl/3.3.4/css/bootstrap-rtl.min.css">
+        {% if DEBUG_STATIC %}
+          <link rel="stylesheet" type="text/css" href="{% static "geonode/css/geonode-rtl.css" %}">
+        {% else %}
+          <link rel="stylesheet" type="text/css" href="{% static "geonode/css/geonode-rtl.min.css" %}">
+        {% endif %}
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  </head>
+
+  <body class="{% block body_class %}{% endblock %}">
+    <!-- Loading Mask -->
+    <div class='lmask'></div>
+    <!-- Navbar -->
+    {% block header %}{% endblock header %}
+    
+    {{ navbar_params|json_script:'navbar-props'}}
+    {% include '_svelte_component.html' with component_name='Navbar' %}
+
+    <!-- Initial work on a mini.css-based navbar. needs more work though...-->
+    <!-- <header class="sticky" style="display:flex; justify-content:space-between; align-items:center; overflow-x:auto;">
+      <div>
+        <a href="/" class="logo"><img src="/static/img/colored-full-linework.png" style="height:45px"/></a>
+        <a href="/" class="button">Home</a>
+        <a href="/browse" title="Browse" class="button">Browse</a>
+        <a href="/people" title="People" class="button">People</a>
+        <a href="/#support" title="Support this project" class="button">Support</a>
+        <a href="https://ohmg.dev" title="Browse" class="button">About <i class="fa fa-external-link"></i></a>
+      </div>
+      <div>
+        {% if USER.is_authenticated %}
+        <a href={{ USER.profile }} class="button">{USER.name}</a>
+        <a href="/account/logout" class="button">Sign out</a>
+        {% else %}
+			  <a href="/account/login" class="button">Sign in</a>
+  			<a href="/account/signup" class="button">Sign up</a>
+		    {% endif %}
+      </div>
+    </header> -->
+    
+    <div class="alert alert-danger alert-dismissible" role="alert" id="ieflag" style="display:none">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <h1>{% trans "You are using an outdated browser that is not supported." %}</h1>
+      <p>{% trans "Please use a <strong>modern browser</strong> like Mozilla Firefox, Google Chrome or Safari." %}</p>
+    </div>
+    
+    {% block middle %}
+    <div class="container background-fg" style="min-height: calc(100vh - 250px);">
+      <!-- <div class="row"> -->
+        {% include "_status_message.html" %}
+        {% include "_announcements.html" %}
+        {% include "_messages.html" %}
+      <!-- </div>
+      <div class="row"> -->
+        {% block body_outer %}
+          <!--content is the block used by the allauth templates -->
+          {% block content %}{% endblock %}
+          {% block body %}{% endblock body %}
+          {% block sidebar %}{% endblock sidebar %}
+        {% endblock body_outer %}
+        {% block main_content %}{% endblock %}
+      <!-- </div> -->
+    </div>
+    {% endblock middle %}
+
+    {% block extra_mainbody %}
+    {% endblock extra_mainbody %}
+
+  {% block monitoring %}
+  {% endblock %}
+
+
+  {% block footer %}
+  {{ navbar_params|json_script:'footer-props'}}
+  {% include '_svelte_component.html' with component_name='Footer' %}
+  {% endblock footer %}
+
+  </body>
+</html>

@@ -51,17 +51,18 @@ Learn much more about each step [in the docs](https://ohmg.dev/docs/category/mak
 
 All user input is tracked through registered accounts, which allows for a comprehensive understanding of user engagement and participation, as well as a complete database of all input georeferencing information, like ground control points, masks, etc.
 
-## Dependencies
+## Software Details
 
-The Django project has a few novel dependencies:
+This is a Django project, with a frontend built (mostly) with [Svelte](https://svelte.dev), using [OpenLayers](https://openlayers.org) for all map interfaces. OpenStreetMap and Mapbox are the basemap sources.
 
-- Postgres/PostGIS - Geo-enabled relational database backend
-- Django Ninja - API
-- Celery + RabbitMQ/Redis - Background tasks
-- Django Newsletter (optional) - Adds a newsletter to the site
+### Third-party Django Apps
 
-The frontend is build with [Svelte](https://svelte.dev) and [OpenLayers](https://openlayers.org).
+- [Django Ninja](https://django-ninja.rest-framework.com) - API
+- [Django Newsletter](https://github.com/jazzband/django-newsletter) - Adds a newsletter to the site
 
-Titiler must accompany the project to furnish the map interfaces with tiles.
+### External Dependencies
 
-MapServer must accompany the project to provide the live preview in the georeferencing interface.
+- Postgres/PostGIS
+- Celery + RabbitMQ
+- GDAL >= 3.5
+- [TiTiler](https://developmentseed.org/titiler)
