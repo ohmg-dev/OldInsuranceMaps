@@ -137,10 +137,9 @@ class Command(BaseCommand):
                 if options['background']:
                     print('not implemented')
                     return
-                    #generate_mosaic_cog_task.delay(i)
                 else:
                     item = Item(i)
-                    item.export_mosaic_jpg(f"{i}.jpg")
+                    item.generate_mosaic_jpg(f"{i}.jpg")
 
         if options['operation'] == "generate-mosaic-json":
             if i is not None:

@@ -52,12 +52,10 @@ class Item:
 
         self.vol = Volume.objects.get(pk=volume_pk)
 
-    def generate_mosaic_cog(self):
+    def generate_mosaic_vrt(self):
         """ A helpful reference from the BPLv used during the creation of this method:
         https://github.com/bplmaps/atlascope-utilities/blob/master/new-workflow/atlas-tools.py
         """
-
-        start = datetime.now()
 
         gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
         gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")
@@ -124,6 +122,14 @@ class Item:
 
         mosaic_vrt = os.path.join(settings.TEMP_DIR, f"{self.vol.identifier}.vrt")
         gdal.BuildVRT(mosaic_vrt, trim_list, options=vo)
+
+        return mosaic_vrt
+
+    def generate_mosaic_cog(self):
+
+        start = datetime.now()
+
+        mosaic_vrt = self.generate_mosaic_vrt()
 
         print("building final geotiff")
 
@@ -266,7 +272,7 @@ class Item:
         logger.info(f"{self.vol.identifier} | mosaic created: {os.path.basename(mosaic_json_path)}")
         return mosaic_json_path
 
-    def export_mosaic_jpg(self, out_path):
+    def generate_mosaic_jpg(self, out_path):
         ''' Create a non-geo JPEG version of the COG mosaic. Still a work in progress...
 
         Ultimately, would like for this JPEG to not have internal overviews, but I haven't
@@ -277,13 +283,15 @@ class Item:
         seems to include all of the upper overviews!
         '''
 
-        cog_path = self.vol.mosaic_geotiff.path
+        mosaic_vrt = self.generate_mosaic_vrt()
 
-        wo = gdal.WarpOptions(
-            format="JPEG",
-            dstSRS=None, # set to None to remove CRS info
-            overviewLevel=0, # not sure this does anything
-            creationOptions=["COLOR_TRANSFORM=RGB"] # does't seem to be valid, though docs say it should be...
+        to = gdal.TranslateOptions(
+            format="GTiff",
+            creationOptions = [
+                "COMPRESS=JPEG",
+                "BIGTIFF=YES",
+                #"INTERNAL_MASK=NO",
+            ],
         )
 
-        gdal.Warp(out_path, cog_path, options=wo)
+        gdal.Translate(out_path, mosaic_vrt, options=to)
