@@ -40,7 +40,7 @@ class Command(BaseCommand):
             rf = RequestFactory()
             request = rf.get('/')
             content = render_to_string('500.html.template', request=request)
-            outpath = os.path.join(settings.LOCAL_ROOT, "templates/500.html")
+            outpath = os.path.join(settings.PROJECT_DIR, "frontend/templates/500.html")
             with open(outpath, 'w') as static_file:
                 static_file.write(content)
             print(f"file saved to: {outpath}")
