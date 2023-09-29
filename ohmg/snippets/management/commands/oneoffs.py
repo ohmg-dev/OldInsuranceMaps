@@ -19,7 +19,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "operation",
             choices=[
-                "generate-500.html",
+                "generate-error-pages",
                 "initialize-s3-bucket",
                 "migrate-places",
                 "connect-volumes-to-places",
@@ -36,14 +36,15 @@ class Command(BaseCommand):
 
         print(f"operation: {options['operation']}")
 
-        if options['operation'] == "generate-500.html":
+        if options['operation'] == "generate-error-pages":
             rf = RequestFactory()
             request = rf.get('/')
-            content = render_to_string('500.html.template', request=request)
-            outpath = os.path.join(settings.PROJECT_DIR, "frontend/templates/500.html")
-            with open(outpath, 'w') as static_file:
-                static_file.write(content)
-            print(f"file saved to: {outpath}")
+            for status in [404, 500]:
+                content = render_to_string(f'{status}.html.template', request=request)
+                outpath = os.path.join(settings.PROJECT_DIR, f"frontend/templates/{status}.html")
+                with open(outpath, 'w') as static_file:
+                    static_file.write(content)
+                print(f"file saved to: {outpath}")
 
         if options['operation'] == "initialize-s3-bucket":
             client = boto3.client("s3", **settings.S3_CONFIG)

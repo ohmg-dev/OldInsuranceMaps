@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block body %}
+  <div id="description"><h3>{% trans "Page not found" %}</h3></div>
+  {% if message %}
+      {{ message }}
+  {% else %}
+      {% comment %}
+          Internal server error. Please contact an admin if the problem persists: <a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a>.
+      {% endcomment %}
+  {% endif %}
+{% endblock %}
