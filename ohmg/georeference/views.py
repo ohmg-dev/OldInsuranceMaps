@@ -410,7 +410,7 @@ class ResourceView(View):
 
         return render(
             request,
-            "georeference/resource.html",
+            "content/resource.html",
             context={
                 'resource_params': {
                     'REFRESH_URL': None,
