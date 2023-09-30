@@ -1,5 +1,6 @@
 .ol-control > button {
-    background: #2c689c !important;
+    background: #123b4f !important;
+
 }
 
 .ol-mouse-position {
@@ -7,6 +8,24 @@
     padding: 1px 5px !important;
     cursor: default !important;
     border-radius: 4px !important;
+}
+
+.ol-zoom-extent {
+    top: .5em;
+    right: .5em;
+    left: unset;
+}
+
+.ol-zoom-extent button {
+    line-height: .4em;
+}
+
+.ol-touch .ol-zoom-extent {
+    top: .5em;
+}
+
+.ol-touch .ol-control button {
+    font-size: unset;
 }
 
 .ol-rotate {

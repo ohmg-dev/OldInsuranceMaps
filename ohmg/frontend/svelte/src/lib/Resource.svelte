@@ -1,6 +1,5 @@
 <script>
 import { slide } from 'svelte/transition';
-import {onMount} from 'svelte';
 
 import IconContext from 'phosphor-svelte/lib/IconContext';
 import { iconProps } from "../js/utils"
@@ -15,24 +14,17 @@ import FaSolidMapPin from 'svelte-icons-pack/fa/FaSolidMapPin';
 import FiTrash2 from 'svelte-icons-pack/fi/FiTrash2';
 
 import 'ol/ol.css';
-import Map from 'ol/Map';
-import View from 'ol/View';
-import Feature from 'ol/Feature';
 
 import {getCenter} from 'ol/extent';
-
-import {transformExtent, Projection} from 'ol/proj';
-
-import {ImageStatic, XYZ} from 'ol/source';
-import {Tile as TileLayer, Image as ImageLayer} from 'ol/layer';
 
 import TitleBar from './components/TitleBar.svelte';
 import ConditionalDoubleChevron from './components/ConditionalDoubleChevron.svelte';
 import SessionList from './components/SessionList.svelte'
+import SingleLayerViewer from './components/SingleLayerViewer.svelte';
+import SingleDocumentViewer from './components/SingleDocumentViewer.svelte';
 
 import {
   makeTitilerXYZUrl,
-  makeBasemaps,
 } from '../js/utils';
 
 export let CSRFTOKEN;
@@ -143,80 +135,6 @@ $: {
   }
 }
 
-function DocViewer () {
-
-  const targetElement = document.getElementById('preview-map');
-
-  // items needed by layers and map
-  // set the extent and projection with 0, 0 at the **top left** of the image
-  const docExtent = [0, -RESOURCE.image_size[1], RESOURCE.image_size[0], 0];
-  const projection = new Projection({
-    units: 'pixels',
-    extent: docExtent,
-  });
-
-  // create layers
-  const resLayer = new ImageLayer({
-    source: new ImageStatic({
-      url: RESOURCE.urls.image,
-      projection: projection,
-      imageExtent: docExtent,
-    }),
-  })
-
-  // create map
-  const map = new Map({
-    target: targetElement,
-    layers: [resLayer],
-    view: new View({
-      projection: projection,
-      zoom: 1,
-      maxZoom: 8,
-    })
-  });
-
-  map.getView().fit(docExtent, {padding: [10, 10, 10, 10]});
-
-  this.map = map;
-}
-
-function LayerViewer () {
-
-  const targetElement = document.getElementById('preview-map');
-
-  const basemaps = makeBasemaps(MAPBOX_API_KEY);
-  const extent = transformExtent(RESOURCE.extent, "EPSG:4326", "EPSG:3857");
-
-  const resLayer = new TileLayer({
-    source: new XYZ({
-      url: makeTitilerXYZUrl({
-        host: TITILER_HOST,
-        url: RESOURCE.urls.cog,
-      }),
-    }),
-    extent: extent
-  });
-
-  // create map
-  const map = new Map({
-    target: targetElement,
-    layers: [basemaps[0].layer, resLayer],
-  });
-
-  map.getView().fit(extent);
-
-  this.map = map;
-}
-
-let viewer;
-onMount(() => {
-  if (RESOURCE.type == "document") {
-    // viewer = new DocViewer();
-  } else if (RESOURCE.type == "layer") {
-    viewer = new LayerViewer();
-  }
-})
-
 // needs to be reimplented via API
 function refresh() {
   fetch(REFRESH_URL)
@@ -295,19 +213,21 @@ const iconLinks = [
     url: VOLUME.urls.summary,
   }
 ]
-
+let reinitMap = [{}]
 </script>
 
 <IconContext values={iconProps}>
 <main>
   <TitleBar TITLE={RESOURCE.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks} />
   <div class="content" style="display:flex;">
-    <div id="preview-map">
+    <div id="map-panel">
+      {#each reinitMap as key (key)}
       {#if RESOURCE.type == "document"}
-        <a href={RESOURCE.urls.image} title={RESOURCE.title}>
-          <img style="width: 100%" src={RESOURCE.urls.image} alt={RESOURCE.title} />
-        </a>
+        <SingleDocumentViewer  LAYER_URL={RESOURCE.urls.image} IMAGE_SIZE={RESOURCE.image_size} />
+      {:else}
+        <SingleLayerViewer  LAYER_URL={RESOURCE.urls.cog} EXTENT={RESOURCE.extent} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
       {/if}
+      {/each}
     </div>
     <div id="sidebar">
       <section >
@@ -505,9 +425,6 @@ const iconLinks = [
     </div>
   </div>
   <div>
-    
-  </div>
-  <div>
     <h3>Session History</h3>
     <SessionList OHMG_API_KEY={OHMG_API_KEY} SESSION_API_URL={SESSION_API_URL} FILTER_PARAM={filterParam} showResource={false}/>
   </div>
@@ -536,22 +453,17 @@ main {
   padding: 10px;
 }
 
-#preview-map {
-  width: 60%;
-  min-height: 500px;
-}
-
-#preview-map img {
-  /* border-radius: 4px; */
-  box-shadow: gray 0px 0px 5px;
+#map-panel {
+  width: 100%;
+  height: 500px;
 }
 
 @media screen and (max-width: 768px){
   .content {
     flex-direction: column;
   }
-  #preview-map {
-    width: 100%;
+  main {
+    padding: 0;
   }
   #sidebar {
     width: 100%;
