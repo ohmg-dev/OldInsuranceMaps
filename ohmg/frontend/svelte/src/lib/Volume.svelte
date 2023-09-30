@@ -29,6 +29,9 @@ import InfoButton from './components/buttons/InfoButton.svelte';
 
 import {makeTitilerXYZUrl} from '../js/utils';
 
+import SingleLayerViewer from './components/SingleLayerViewer.svelte';
+import SingleDocumentViewer from './components/SingleDocumentViewer.svelte';
+
 export let VOLUME;
 export let OTHER_VOLUMES;
 export let CSRFTOKEN;
@@ -54,9 +57,6 @@ $: showGeoreferenced = hash == 'georeferenced';
 $: showNonmaps = hash == 'nonmaps';
 $: showMultimask = hash == 'multimask';
 $: showDownload = hash == 'download';
-
-let modalDocSrc;
-let modalDocTitle;
 
 let refreshingLookups = false;
 
@@ -182,10 +182,17 @@ function setHash(newHash) {
 	}
 }
 
+let reinitMap2 = [{}]
+let modalDocUrl = "";
+let modalDocImageSize = "";
+
 </script>
 <IconContext values={iconProps}>
-<Modal id="modal-doc-view">
-	<img src={modalDocSrc} alt={modalDocTitle}>
+<Modal id="modal-doc-view" full={true}>
+	<!-- <img src={modalDocSrc} alt={modalDocTitle}> -->
+	{#each reinitMap2 as key (key)}
+	<SingleDocumentViewer LAYER_URL={modalDocUrl} IMAGE_SIZE={modalDocImageSize} />
+	{/each}
 </Modal>
 <Modal id="modal-preview-map">
 	<p>The <strong>Mosaic Preview</strong> shows progress toward a full mosaic of this item's content&mdash;as documents are georeferenced, they will automatically appear here. You can also view this mosaic alongside all other mosaics for this locale: <a href={VOLUME.urls.viewer} target="_blank" title={"Open viewer for " + VOLUME.locale.display_name}>{VOLUME.locale.display_name} <Icon src={FiExternalLink} /></a></p>
@@ -327,9 +334,10 @@ function setHash(newHash) {
 							<div><p><a href={document.urls.resource} title={document.title}>Sheet {document.page_str}</a></p></div>
 							<img style="cursor:zoom-in"
 								on:click={() => {
-									modalDocSrc=document.urls.image;
-									modalDocTitle=document.title;
-									getModal('modal-doc-view').open()}}
+									modalDocUrl=document.urls.image;
+									modalDocImageSize=document.image_size;
+									getModal('modal-doc-view').open();
+									reinitMap2 = [{}]}}
 								src={document.urls.thumbnail}
 								alt={document.title}
 								>
@@ -372,9 +380,12 @@ function setHash(newHash) {
 							<div><p><a href={document.urls.resource} title={document.title}>{document.title}</a></p></div>
 							<img style="cursor:zoom-in"
 								on:click={() => {
-									modalDocSrc=document.urls.image;
-									modalDocTitle=document.title;
-									getModal('modal-doc-view').open()}}
+									// modalDocSrc=document.urls.image;
+									// modalDocTitle=document.title;
+									modalDocUrl=document.urls.image;
+									modalDocImageSize=document.image_size;
+									getModal('modal-doc-view').open();
+									reinitMap2 = [{}]}}
 								src={document.urls.thumbnail}
 								alt={document.title}
 								>

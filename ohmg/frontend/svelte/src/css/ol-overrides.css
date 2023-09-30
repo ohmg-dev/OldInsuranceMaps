@@ -1,6 +1,6 @@
 .ol-control > button {
     background: #123b4f !important;
-
+    color: white !important;
 }
 
 .ol-mouse-position {
@@ -11,13 +11,13 @@
 }
 
 .ol-zoom-extent {
-    top: .5em;
-    right: .5em;
-    left: unset;
+    top: .5em !important;
+    right: .5em !important;
+    left: unset !important;
 }
 
 .ol-zoom-extent button {
-    line-height: .4em;
+    line-height: .4em !important;
 }
 
 .ol-touch .ol-zoom-extent {

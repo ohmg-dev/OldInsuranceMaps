@@ -14,6 +14,7 @@ import {onDestroy} from 'svelte'
 import SvelteMarkdown from 'svelte-markdown';
 
 import '../../css/modal.css';
+import '../../css/ol-overrides.css';
 	
 let topDiv
 let visible=false
@@ -22,6 +23,7 @@ let closeCallback
 
 export let id=''
 export let mdContent = ''
+export let full = false
 
 function keyPress(ev){
 	//only respond if the current modal is the top one
@@ -60,17 +62,17 @@ onDestroy(()=>{
 	delete modals[id]
 	window.removeEventListener("keydown",keyPress)
 })
-	
+
 </script>
 
 <div id="topModal" class:visible bind:this={topDiv} on:click={()=>close('')}>
-	<div id='modal' on:click|stopPropagation={()=>{}}>
+	<div id='modal' class={full ? 'full-modal' : ''} on:click|stopPropagation={()=>{}}>
 		<svg id="close" on:click={()=>close('')} viewBox="0 0 12 12">
 			<circle cx=6 cy=6 r=6 />
 			<line x1=3 y1=3 x2=9 y2=9 />
 			<line x1=9 y1=3 x2=3 y2=9 />
 		</svg>
-		<div id='modal-content'>
+		<div id='modal-content' class={full ? 'full-modal-content' : ''}>
 			{#if mdContent}
 			<SvelteMarkdown source={mdContent} />
 			{:else}
@@ -79,3 +81,16 @@ onDestroy(()=>{
 		</div>
 	</div>
 </div>
+
+<style>
+	.full-modal {
+		width: 100%;
+		height: calc(100vh - 30px);
+	}
+
+	.full-modal-content {
+		width: 100%;
+		height: 100%;
+	}
+</style>
+
