@@ -22,7 +22,7 @@
 
     function DocViewer () {
 
-        const targetElement = document.getElementById('map');
+        const targetElement = document.getElementById('doc-viewer');
 
         // items needed by layers and map
         // set the extent and projection with 0, 0 at the **top left** of the image
@@ -41,7 +41,7 @@
             }),
         })
 
-        const extentIconEl = document.getElementById('extent-icon')
+        const extentIconEl = document.getElementById('doc-extent-icon')
 
         const map = new Map({
             target: targetElement,
@@ -70,11 +70,11 @@
     })
 </script>
 <IconContext values={iconProps}>
-    <i id='extent-icon'><CornersOut size={'20px'} /></i>
-    <div id="map"></div>
+    <i id='doc-extent-icon'><CornersOut size={'20px'} /></i>
+    <div id="doc-viewer"></div>
 </IconContext>
 <style>
-    #map {
+    #doc-viewer {
         background: url('../../static/img/sandpaper-bg-vlite.jpg');
         height: 100%;
         width: 100%;

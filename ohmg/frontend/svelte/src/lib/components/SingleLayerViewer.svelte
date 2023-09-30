@@ -28,7 +28,7 @@
 
     function LayerViewer () {
 
-        const targetElement = document.getElementById('map');
+        const targetElement = document.getElementById('lyr-viewer');
 
         const basemaps = makeBasemaps(MAPBOX_API_KEY);
         const extent = transformExtent(EXTENT, "EPSG:4326", "EPSG:3857");
@@ -43,7 +43,7 @@
             extent: extent
         });
 
-        const extentIconEl = document.getElementById('extent-icon')
+        const extentIconEl = document.getElementById('lyr-extent-icon')
 
         const map = new Map({
             target: targetElement,
@@ -67,6 +67,6 @@
     })
 </script>
 <IconContext values={iconProps}>
-    <i id='extent-icon'><CornersOut size={'20px'} /></i>
-    <div id="map" style="height:100%; width:100%;"></div>
+    <i id='lyr-extent-icon'><CornersOut size={'20px'} /></i>
+    <div id="lyr-viewer" style="height:100%; width:100%;"></div>
 </IconContext>

@@ -186,12 +186,20 @@ let reinitMap2 = [{}]
 let modalDocUrl = "";
 let modalDocImageSize = "";
 
+let reinitMap3 = [{}]
+let modalLyrUrl = "";
+let modalLyrExtent = "";
+
 </script>
 <IconContext values={iconProps}>
 <Modal id="modal-doc-view" full={true}>
-	<!-- <img src={modalDocSrc} alt={modalDocTitle}> -->
 	{#each reinitMap2 as key (key)}
 	<SingleDocumentViewer LAYER_URL={modalDocUrl} IMAGE_SIZE={modalDocImageSize} />
+	{/each}
+</Modal>
+<Modal id="modal-lyr-view" full={true}>
+	{#each reinitMap3 as key (key)}
+	<SingleLayerViewer LAYER_URL={modalLyrUrl} EXTENT={modalLyrExtent} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
 	{/each}
 </Modal>
 <Modal id="modal-preview-map">
@@ -434,9 +442,20 @@ let modalDocImageSize = "";
 						{#each VOLUME.items.layers as layer}
 						<div class="document-item">
 							<div><p><a href={layer.urls.resource} title={layer.title}>{layer.title}</a></p></div>
-							<a href={layer.urls.view} target="_blank" title="inspect layer in standalone map" style="cursor:zoom-in">
+							<!-- <a href={layer.urls.view} target="_blank" title="inspect layer in standalone map" style="cursor:zoom-in">
 								<img src={layer.urls.thumbnail} alt={document.title}>
-							</a>
+							</a> -->
+							<img style="cursor:zoom-in"
+								on:click={() => {
+									// modalDocSrc=document.urls.image;
+									// modalDocTitle=document.title;
+									modalLyrUrl=layer.urls.cog;
+									modalLyrExtent=layer.extent;
+									getModal('modal-lyr-view').open();
+									reinitMap3 = [{}]}}
+								src={layer.urls.thumbnail}
+								alt={layer.title}
+								>
 							<div>
 								{#if layer.lock && layer.lock.enabled}
 								<ul style="text-align:center">
