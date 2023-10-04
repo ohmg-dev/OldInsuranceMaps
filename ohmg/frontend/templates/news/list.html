@@ -10,9 +10,9 @@
     {% for submission in submissions %}
     <tr>
         <td>
-            <a href="{% url 'article' slug=submission.message.slug %}">{{ submission.message.title }} {%if submission.is_newsletter %}(newsletter){% endif %}</a>
-            <div>{{submission.publish_date}}</div>
-            <p>{{submission.message.articles.all.0.text|truncatewords:30|safe}}</p>
+            <h4><a href="{% url 'article' slug=submission.message.slug %}">{{ submission.message.title }}</a></h4>
+            <div><em>{%if submission.is_newsletter %}newsletter sent {% endif %}{{submission.publish_date}}</em></div>
+            <p>{{submission.message.articles.all.0.text|truncatewords:10|safe}}</p>
         </td>
     </tr>
     {% endfor %}
