@@ -60,8 +60,8 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 			<button on:click={() => {showAboutDD = !showAboutDD}} title="About">About <CaretDown /></button>
 			{#if showAboutDD}
 			<div class="dropdown">
+				<a href="/news" title="News">News</a>
 				<a href="/faq" title="Frequently Asked Questions">FAQ</a>
-				<a href="/newsletter/lahmg-news/" title="Newsletter">Newsletter</a>
 				<a href="/contact" title="Contact">Contact</a>
 				<a href="/about-sanborn-maps" title="About Sanborn maps">About Sanborn maps</a>
 				<a href="/about" title="About this site...">About this site...</a>

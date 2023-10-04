@@ -12,6 +12,8 @@ from django.urls import reverse
 from django.views import View
 from django.middleware import csrf
 
+from newsletter.models import Submission, Message
+
 from ohmg.utils import full_reverse
 from ohmg.georeference.models.resources import Layer
 
@@ -322,3 +324,46 @@ class MRMEndpointLayer(View):
 
         else:
             raise Http404
+
+class NewsList(View):
+
+    def get(self, request):
+
+        submissions = Submission.objects.filter(publish=True).order_by("-publish_date")
+        for s in submissions:
+            ## consider it a "newsletter" post if it's been sent to more than one subscription
+            ## the assumption being that a "blog" post will be sent to only the admin email address.
+            if s.subscriptions.all().count() > 1:
+                s.is_newsletter = True
+            else:
+                s.is_newsletter = False
+
+        context_dict = {
+            "submissions": submissions
+        }
+
+        return render(
+            request,
+            "news/list.html",
+            context=context_dict
+        )
+
+class NewsArticle(View):
+
+    def get(self, request, slug):
+
+        message = get_object_or_404(Message, slug=slug)
+        submissions = Submission.objects.filter(message=message).order_by("-publish_date")
+        if not submissions.exists():
+            return Http404
+
+        context_dict = {
+            "message": message,
+            "publish_date": submissions[0].publish_date,
+        }
+
+        return render(
+            request,
+            "news/article.html",
+            context=context_dict
+        )

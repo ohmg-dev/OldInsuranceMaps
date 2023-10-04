@@ -9,6 +9,8 @@ from ohmg.frontend.views import (
     MRMEndpointLayer,
     Browse,
     BasicPage,
+    NewsList,
+    NewsArticle,
 )
 
 urlpatterns = [
@@ -42,4 +44,6 @@ urlpatterns = [
     path('loc/trim/<str:volumeid>/', VolumeTrim.as_view(), name="volume_trim"),
     path('mrm/', MRMEndpointList.as_view(), name="mrm_layer_list"),
     path('mrm/<str:layerid>/', MRMEndpointLayer.as_view(), name="mrm_get_resource"),
+    path('news/', NewsList.as_view(), name="news"),
+    path('news/<str:slug>/', NewsArticle.as_view(), name="article")
 ]
