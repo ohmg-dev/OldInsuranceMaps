@@ -11,7 +11,7 @@
     <tr>
         <td>
             <h4><a href="{% url 'article' slug=submission.message.slug %}">{{ submission.message.title }}</a></h4>
-            <div><em>{%if submission.is_newsletter %}newsletter sent {% endif %}{{submission.publish_date}}</em></div>
+            <div><em>{% comment %}{%if submission.is_newsletter %}newsletter sent {% endif %}{% endcomment %}{{submission.publish_date}}</em></div>
             <p>{{submission.message.articles.all.0.text|truncatewords:10|safe}}</p>
         </td>
     </tr>
