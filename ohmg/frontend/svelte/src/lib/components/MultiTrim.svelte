@@ -60,13 +60,24 @@ let unchanged = true;
 let mapView;
 
 let layerLookup = {}
+let layerLookupMaskedArr = [];
+let layerLookupUnmaskedArr = [];
 let layerLookupArr = [];
 
 function updateLayerArr(){
-  layerLookupArr = []
+  layerLookupArr = [];
+  layerLookupMaskedArr = [];
+  layerLookupUnmaskedArr = [];
   Object.entries(layerLookup).forEach(kV => {
+    if (kV[1].feature === null) {
+      layerLookupUnmaskedArr.push(kV[1])
+    } else {
+      layerLookupMaskedArr.push(kV[1])
+    }
     layerLookupArr.push(kV[1])
   })
+  layerLookupMaskedArr.sort((a, b) => a.layerDef.sort_order - b.layerDef.sort_order)
+  layerLookupUnmaskedArr.sort((a, b) => a.layerDef.sort_order - b.layerDef.sort_order)
 }
 
 function addIncomingMasks() {
@@ -414,22 +425,37 @@ let inFullscreen = false;
         </button>
       </div>
       <div id="layer-list" style="flex:2;">
-        
         <div class="layer-section-header">
-          <span>Main Layers</span>
+          <span>Unmasked</span>
         </div>
         <div class="layer-section-subheader" style="overflow-y:auto">
-          {#each layerLookupArr as layer}		
+          {#each layerLookupUnmaskedArr as layer}		
             <div style="display:flex;">
-              {#if !layer.feature }
               <button class="control-btn" title="add mask" on:click={() => addMask(layer)} style="display: inline-block;">
                 <Icon src={FiCrop} />
               </button>
+              &nbsp;
+              {#if currentLayer == layer.layerDef.slug}
+              <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+              <div style="color:red" on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
               {:else}
+              <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+              <div class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
+              {/if}
+            </div>
+          {:else}
+            <div>No layers</div>
+          {/each}
+        </div>
+        <div class="layer-section-header">
+          <span>Masked</span>
+        </div>
+        <div class="layer-section-subheader" style="overflow-y:auto">
+          {#each layerLookupMaskedArr as layer}		
+            <div style="display:flex;">
               <button class="control-btn" title="remove mask" on:click={() => layerRemoveMask(layer)} style="display: inline-block;">
                 <Icon src={FiTrash} />
               </button>
-              {/if}
               &nbsp;
               {#if currentLayer == layer.layerDef.slug}
               <!-- svelte-ignore a11y-mouse-events-have-key-events -->
