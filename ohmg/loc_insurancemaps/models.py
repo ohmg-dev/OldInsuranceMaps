@@ -520,11 +520,11 @@ class Volume(models.Model):
             if "[" in data['page_str']:
                 s = data['page_str'].split("[")
                 try:
-                    n1 = int(s[0])
+                    n1 = int(s[0].replace("R","").replace("L",""))
                     n2 = s[1].rstrip("]")
                     data['sort_order'] = float(f"{n1}.{n2}")
                 except Exception as e:
-                    print(e)
+                    logger.warn(f"error making sort_order for {data['title']}: {e}")
                     data['sort_order'] = 0
             else:
                 data['sort_order'] = 0
