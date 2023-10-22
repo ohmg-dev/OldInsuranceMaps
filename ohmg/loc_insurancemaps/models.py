@@ -513,6 +513,24 @@ class Volume(models.Model):
         except IndexError:
             data["page_str"] = data['title']
 
+        # even more hacky method of creating a sort order from this page_str
+        try:
+            data['sort_order'] = float(data['page_str'])
+        except ValueError:
+            if "[" in data['page_str']:
+                s = data['page_str'].split("[")
+                try:
+                    n1 = int(s[0])
+                    n2 = s[1].rstrip("]")
+                    data['sort_order'] = float(f"{n1}.{n2}")
+                except Exception as e:
+                    print(e)
+                    data['sort_order'] = 0
+            else:
+                data['sort_order'] = 0
+        except:
+            data['sort_order'] = 0
+
         self.layer_lookup[data['slug']] = data
         self.save(update_fields=["layer_lookup"])
 
