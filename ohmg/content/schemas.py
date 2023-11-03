@@ -59,7 +59,7 @@ class ItemListSchema(Schema):
     stats: dict
     loaded_by: Optional[UserSchema]
     load_date: str
-    volume_no: int = None
+    volume_no: str = None
     urls: dict
     mj_exists: bool
     gt_exists: bool
