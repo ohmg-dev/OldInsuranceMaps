@@ -158,23 +158,30 @@ class VolumeTrim(View):
         multimask = body.get('multiMask')
 
         # data validation
+        errors = []
         if multimask is not None and isinstance(multimask, dict):
             for k, v in multimask.items():
                 try:
                     geom_str = json.dumps(v['geometry'])
-                    GEOSGeometry(geom_str)
+                    g = GEOSGeometry(geom_str)
+                    if not g.valid:
+                        logger.error(f"{volumeid} | invalid mask: {k} - {g.valid_reason}")
+                        errors.append((k, g.valid_reason))
                 except Exception as e:
                     logger.error(f"{volumeid} | improper GeoJSON in multimask: {k}")
-                    return JsonResponse({"status": "error"})
-
+                    errors.append((k, e))
+        if errors:
+            response = {
+                "status": "error",
+                "errors": errors,
+            }
+        else:
             volume.multimask = multimask
             volume.save()
-        
-        volume_json = volume.serialize()
-        response = {
-            "status": "ok",
-            "volume_json": volume_json
-        }
+            response = {
+                "status": "ok",
+                "volume_json": volume.serialize()
+            }
 
         return JsonResponse(response)
 

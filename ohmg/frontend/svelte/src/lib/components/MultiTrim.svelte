@@ -314,7 +314,14 @@ function submitMultiMask() {
       unchanged = true;
       VOLUME = result.volume_json;
     } else {
-      window.alert("Error while saving.")
+      let errMsg = "Error! MultiMask not saved."
+      if (result.errors) {
+        errMsg += "\nYou must remove and remake the following masks:"
+        result.errors.forEach((e) => {
+          errMsg += `\n${e[0]}\n  Reason: ${e[1]}`
+        })
+      }
+      window.alert(errMsg)
     }
   })
 }
