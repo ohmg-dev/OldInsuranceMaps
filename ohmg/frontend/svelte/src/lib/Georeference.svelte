@@ -92,7 +92,7 @@ $: nextGCP = gcpList.length + 1;
 
 let unchanged = true;
 
-let showLayerPanel = false;
+let showLayerPanel = true;
 let showNotePanel = false;
 let showSettingsPanel = false;
 
