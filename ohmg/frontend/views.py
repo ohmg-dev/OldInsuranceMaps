@@ -194,7 +194,8 @@ class VolumeDetail(View):
         volume_json = volume.serialize(include_session_info=True)
 
         other_vols = []
-        for v in Volume.objects.filter(city=volume.city):
+        locale_slugs = [i.slug for i in volume.locales.all()]
+        for v in Volume.objects.filter(city=volume.city, state=volume.state):
             url = reverse("volume_summary", args=(v.pk, ))
             if v.pk == volume.pk:
                 url = None
