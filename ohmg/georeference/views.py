@@ -157,6 +157,8 @@ class SplitView(View):
                 return JsonResponse({"success":False, "message": str(e)})
             try:
                 sesh.undo()
+                vol = find_volume(document)
+                vol.refresh_lookups()
             except Exception as e:
                 return JsonResponse({"success":False, "message": str(e)})
             return JsonResponse({"success":True})
