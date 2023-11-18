@@ -408,13 +408,18 @@ function layerRemoveMask(layer, confirm) {
 
 }
 
-let inFullscreen = false;
+let ffs = false
+function handleFfs(elementId) {
+  ffs = !ffs
+  document.getElementById(elementId).classList.toggle('ffs');
+  mapView.map.updateSize();
+}
 
 </script>
 
 <IconContext values={iconProps} >
 {#if USER_TYPE == "anonymous"}<div><p>Feel free to mess around; you can't save changes unless you are logged in.</p></div>{/if}
-<div class="svelte-component-main">
+<div id='mm-container' class="svelte-component-main">
   <div id="map-container" class="map-container" style="height: calc(100%-35px);">
     <div id="map-viewer" class="map-item rounded-bottom">
 
@@ -491,6 +496,14 @@ let inFullscreen = false;
 </div>
 </IconContext>
 <style>
+
+:global(.ffs) {
+  position: fixed;
+  width: 100%;
+  top: 60px;
+  height: calc(100vh - 60px);
+  left: 0;
+}
 
 .layer-entry {
   cursor: pointer;
