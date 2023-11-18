@@ -1,5 +1,8 @@
 <script>
 import SvelteMarkdown from 'svelte-markdown'
+
+import IconContext from 'phosphor-svelte/lib/IconContext';
+import { iconProps } from "../js/utils"
 import ArrowSquareOut from 'phosphor-svelte/lib/ArrowSquareOut'
 
 import MapBrowse from './components/MapBrowse.svelte';
@@ -30,7 +33,7 @@ if (urlSegs[urlSegs.length - 2] == 'about') {
 }
 
 </script>
-
+<IconContext values={iconProps}>
 <main>
 	<div>
 		<h1>OldInsuranceMaps.net</h1>
@@ -141,6 +144,8 @@ Many thanks also to our individual sponsors: Kevin H., Andrew M., and Peter M. T
 		</div>
 	</div>
 </main>
+</IconContext>
+
 <style>
 
 main {

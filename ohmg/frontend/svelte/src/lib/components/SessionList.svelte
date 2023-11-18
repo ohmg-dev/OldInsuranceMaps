@@ -1,13 +1,12 @@
 <script>
 import {TableSort} from 'svelte-tablesort';
 
-import Icon from 'svelte-icons-pack';
-import FiChevronsLeft from 'svelte-icons-pack/fi/FiChevronsLeft'
-import FiChevronsRight from 'svelte-icons-pack/fi/FiChevronsRight'
-import FiRefreshCw from 'svelte-icons-pack/fi/FiRefreshCw'
+import IconContext from 'phosphor-svelte/lib/IconContext';
+import { iconProps } from "../../js/utils"
 
 import CaretDoubleLeft from 'phosphor-svelte/lib/CaretDoubleLeft'
 import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight'
+import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise'
 
 import Modal, {getModal} from './Modal.svelte';
 
@@ -58,16 +57,17 @@ If you are looking for a list of the most recently added items (volumes), go to 
 *More sophisticated filter and sort capabilities for this list are in the works. This data is also accessible via the [beta API](/api/beta/docs). Please [get in touch](/contact) if you would like a key for the API.*`
 </script>
 <Modal id="modal-preview-map" mdContent={modalContent} />
+<IconContext values={iconProps} >
 <div>
 	{#if allowPagination}
 	<div class="btn-row">
 		<div class="btn-container">
 			<button disabled={offset < limitInt || loading} on:click={() => {offset = offset - limitInt}}>
-				<Icon src={CaretDoubleLeft} />
+				<CaretDoubleLeft />
 			</button>
 			<span>{offset} - {offset + limitInt < total ? offset + limitInt : total} ({total})</span>
 			<button disabled={offset + limitInt >= total || loading} on:click={() => {offset = offset + limitInt}}>
-				<Icon src={CaretDoubleRight} />
+				<CaretDoubleRight />
 			</button>
 		</div>
 		<div class="btn-container">
@@ -87,7 +87,7 @@ If you are looking for a list of the most recently added items (volumes), go to 
 			</div>
 			<div>
 				<button on:click={() => {offset = 1000; offset=0}}>
-					<Icon src={FiRefreshCw} />
+					<ArrowsClockwise />
 				</button>
 			</div>
 			<div>
@@ -161,6 +161,7 @@ If you are looking for a list of the most recently added items (volumes), go to 
 			{/if}
 	</div>
 </div>
+</IconContext>
 <style>
     button {
         display:flex;

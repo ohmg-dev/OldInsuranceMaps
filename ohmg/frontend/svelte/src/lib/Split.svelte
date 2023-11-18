@@ -3,15 +3,14 @@ import {onMount} from 'svelte';
 
 import IconContext from 'phosphor-svelte/lib/IconContext';
 import { iconProps } from "../js/utils"
-import Icon from 'svelte-icons-pack/Icon.svelte';
-import FiRefreshCcw from 'svelte-icons-pack/fi/FiRefreshCcw';
-import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
-import FiMinimize2 from 'svelte-icons-pack/fi/FiMinimize2';
-import FiMaximize2 from 'svelte-icons-pack/fi/FiMaximize2';
-import FiCheckSquare from 'svelte-icons-pack/fi/FiCheckSquare';
-import FiScissors from 'svelte-icons-pack/fi/FiScissors';
-import FiRotateCcw from 'svelte-icons-pack/fi/FiRotateCcw';
-import FiX from 'svelte-icons-pack/fi/FiX';
+
+import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
+import ArrowsOutSimple from "phosphor-svelte/lib/ArrowsOutSimple";
+import ArrowsInSimple from "phosphor-svelte/lib/ArrowsInSimple";
+import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
+import Scissors from "phosphor-svelte/lib/Scissors";
+import ArrowCounterClockwise from "phosphor-svelte/lib/ArrowCounterClockwise";
+import X from "phosphor-svelte/lib/X";
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -407,7 +406,7 @@ let inFullscreen = false;
 </Modal>
 
 <TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks}/>
-<p>{currentTxt} <a href="https://ohmg.dev/docs/making-the-mosaics/preparation" target="_blank">Learn more <Icon src={FiExternalLink} /></a></p>
+<p>{currentTxt} <a href="https://ohmg.dev/docs/making-the-mosaics/preparation" target="_blank">Learn more<ArrowSquareOut /></a></p>
 <div id="map-container" class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
@@ -446,22 +445,22 @@ let inFullscreen = false;
     
     <div class="control-btn-group">
       <button class="control-btn tool-ui" title="Run split operation" disabled={divisions.length<=1 || !enableButtons} on:click={() => {process("split")}}>
-        <Icon src={FiScissors} />
+        <Scissors />
       </button>
       <button class="control-btn tool-ui" title="No split needed" disabled={divisions.length>0 || !enableButtons} on:click={() => {process("no_split")}}>
-        <Icon src={FiCheckSquare} />
+        <CheckSquareOffset />
       </button>
       <button class="control-btn tool-ui" title="Cancel this preparation" disabled={session_id == null || !enableButtons} on:click={() => {process("cancel")}}>
-        <Icon src={FiX} />
+        <X />
       </button>
       <button class="control-btn tool-ui" title="Reset interface" disabled={unchanged} on:click={resetInterface}>
-        <Icon src={FiRotateCcw} />
+        <ArrowCounterClockwise />
       </button>
       <button class="control-btn tool-ui" title={inFullscreen ? "Exit fullscreen" : "Enter fullscreen"} on:click={() => {inFullscreen = toggleFullscreen('map-container')}}>
         {#if inFullscreen}
-        <Icon src={FiMinimize2} />
+        <ArrowsInSimple />
         {:else}
-        <Icon src={FiMaximize2} />
+        <ArrowsOutSimple />
         {/if}
       </button>
     
