@@ -6,6 +6,7 @@ from ohmg.georeference.models.sessions import (
     PrepSession,
     GeorefSession,
 )
+from ohmg.loc_insurancemaps.models import find_volume
 
 class Command(BaseCommand):
     help = 'Command line access point for the internal georeferencing utilities.'
@@ -71,7 +72,9 @@ class Command(BaseCommand):
                     # because all previous outputs are reliably overwritten
                     session.run()
             elif operation == "undo":
+                vol = find_volume(session.doc)
                 session.undo()
+                vol.refresh_lookups()
 
 
         elif operation == "list":

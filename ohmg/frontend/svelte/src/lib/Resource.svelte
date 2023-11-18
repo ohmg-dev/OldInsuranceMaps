@@ -3,15 +3,13 @@ import { slide } from 'svelte/transition';
 
 import IconContext from 'phosphor-svelte/lib/IconContext';
 import { iconProps } from "../js/utils"
-import Icon from 'svelte-icons-pack/Icon.svelte';
-import FiScissors from 'svelte-icons-pack/fi/FiScissors';
-import FiCheck from 'svelte-icons-pack/fi/FiCheck';
-import FiCheckSquare from 'svelte-icons-pack/fi/FiCheckSquare';
-import FiEdit from 'svelte-icons-pack/fi/FiEdit';
-import FiRotateCcw from 'svelte-icons-pack/fi/FiRotateCcw';
-import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
-import FaSolidMapPin from 'svelte-icons-pack/fa/FaSolidMapPin';
-import FiTrash2 from 'svelte-icons-pack/fi/FiTrash2';
+
+import Scissors from "phosphor-svelte/lib/Scissors";
+import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
+import ArrowCounterClockwise from "phosphor-svelte/lib/ArrowCounterClockwise";
+import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
+import MapPin from "phosphor-svelte/lib/MapPin";
+import Trash from "phosphor-svelte/lib/Trash";
 
 import 'ol/ol.css';
 
@@ -246,14 +244,14 @@ let reinitMap = [{}]
               disabled={!splitBtnEnabled}
               onclick="window.location.href='{RESOURCE.urls.split}'"
               class="control-btn{splitNeeded == true ? ' btn-chosen': ''}">
-              <Icon src={FiScissors} />
+              <Scissors />
             </button>
             <button
               title="This document does not need to be split"
               disabled={!noSplitBtnEnabled}
               on:click={() => {setSplit("no_split")}}
               class="control-btn{splitNeeded == false ? ' btn-chosen': ''}">
-              <Icon src={FiCheckSquare} />
+              <CheckSquareOffset />
             </button>
             {#if USER_AUTHENTICATED}
             <button 
@@ -261,7 +259,7 @@ let reinitMap = [{}]
               title={undoBtnTitle}
               disabled={!undoBtnEnabled}
               on:click={() => {setSplit("undo")}}>
-              <Icon src={FiRotateCcw} />
+              <ArrowCounterClockwise />
             </button>
             {/if}
           </div>
@@ -318,7 +316,7 @@ let reinitMap = [{}]
               title={georeferenceBtnTitle}
               disabled={!georeferenceBtnEnable}
               onclick="window.location.href='{RESOURCE.urls.georeference}'">
-              <Icon src={FaSolidMapPin} />{georeferenceBtnTitle}
+              <MapPin />{georeferenceBtnTitle}
             </button>
             {#if USER_STAFF}
             <button
@@ -326,7 +324,7 @@ let reinitMap = [{}]
               title="Remove all georeferencing for this resource"
               disabled={RESOURCE.status != "georeferenced"}
               on:click={unGeoreference}>
-              <Icon src={FiTrash2} />
+              <Trash />
             </button>
             {/if}
           </div>
@@ -415,7 +413,7 @@ let reinitMap = [{}]
               <a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
               <a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
               {#if ohmUrl}
-              <br><a href="{ohmUrl}" alt="View in OHM iD editor" target="_blank">View in Open Historical Map iD editor<Icon src={FiExternalLink} /></a> (direct link).
+              <br><a href="{ohmUrl}" alt="View in OHM iD editor" target="_blank">View in Open Historical Map iD editor<ArrowSquareOut /></a> (direct link).
               {/if}
             </p>
           {/if}
@@ -430,6 +428,7 @@ let reinitMap = [{}]
   </div>
 </main>
 </IconContext>
+
 <style>
 
 main {

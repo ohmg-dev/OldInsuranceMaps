@@ -4,16 +4,13 @@ import { slide } from 'svelte/transition';
 import IconContext from 'phosphor-svelte/lib/IconContext';
 import { iconProps } from "../js/utils"
 
-import Icon from 'svelte-icons-pack/Icon.svelte';
-import FiTool from 'svelte-icons-pack/fi/FiTool';
-import FiScissors from 'svelte-icons-pack/fi/FiScissors';
-import FiRefreshCcw from 'svelte-icons-pack/fi/FiRefreshCcw';
-import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
-import FiCrop from 'svelte-icons-pack/fi/FiCrop';
-import FiHome from 'svelte-icons-pack/fi/FiHome';
-import FiTrash from 'svelte-icons-pack/fi/FiTrash';
-import FiCheck from 'svelte-icons-pack/fi/FiCheck';
-import FiX from 'svelte-icons-pack/fi/FiX';
+import X from "phosphor-svelte/lib/X";
+import Check from "phosphor-svelte/lib/Check";
+import CropIcon from "phosphor-svelte/lib/Crop";
+import Wrench from "phosphor-svelte/lib/Wrench";
+import ArrowsClockwise from "phosphor-svelte/lib/ArrowsClockwise";
+import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
+import Trash from "phosphor-svelte/lib/Trash";
 
 import {getCenter} from 'ol/extent';
 
@@ -203,7 +200,7 @@ let modalLyrExtent = "";
 	{/each}
 </Modal>
 <Modal id="modal-preview-map">
-	<p>The <strong>Mosaic Preview</strong> shows progress toward a full mosaic of this item's content&mdash;as documents are georeferenced, they will automatically appear here. You can also view this mosaic alongside all other mosaics for this locale: <a href={VOLUME.urls.viewer} target="_blank" title={"Open viewer for " + VOLUME.locale.display_name}>{VOLUME.locale.display_name} <Icon src={FiExternalLink} /></a></p>
+	<p>The <strong>Mosaic Preview</strong> shows progress toward a full mosaic of this item's content&mdash;as documents are georeferenced, they will automatically appear here. You can also view this mosaic alongside all other mosaics for this locale: <a href={VOLUME.urls.viewer} target="_blank" title={"Open viewer for " + VOLUME.locale.display_name}>{VOLUME.locale.display_name} <ArrowSquareOut /></a></p>
 </Modal>
 <Modal id="modal-georeference-overview">
 	<p>The <strong>Georeferencing Overview</strong> provides a per-document summary and access point to the entire georeferencing process for this item's content.</p>
@@ -221,10 +218,10 @@ let modalLyrExtent = "";
 	<p>The <strong>MultiMask</strong> is a mechanism for trimming the margins from every layer in a way that guarantees a seamless mosaic across this item's content.<p>
 	<h4>How to create a MultiMask</h4>
 	<ul>
-		<li>Use <Icon src={FiCrop} /> to start a mask for a particular layer.</li>
-		<li>Use <Icon src={FiTrash} /> to delete an existing mask.</li>
-		<li>Use <Icon src={FiCheck} /> to save your work (do this often!).</li>
-		<li>Use <Icon src={FiX} /> to discard all changes since the last save.</li>
+		<li>Use <CropIcon /> to start a mask for a particular layer.</li>
+		<li>Use <Trash /> to delete an existing mask.</li>
+		<li>Use <Check /> to save your work (do this often!).</li>
+		<li>Use <X /> to discard all changes since the last save.</li>
 	</ul>
 	<h4>Important Notes</h4>
 	<ul>
@@ -303,11 +300,11 @@ let modalLyrExtent = "";
 				<div class="control-btn-group">
 					{#if USER_TYPE != "anonymous"}
 					<button class="control-btn" title="Repair Summary (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
-						<Icon src={FiTool} />
+						<Wrench />
 					</button>
 					{/if}
 					<button class="control-btn" title="Refresh Summary" on:click={() => { postOperation("refresh") }}>
-						<Icon src={FiRefreshCcw} />
+						<ArrowsClockwise />
 					</button>
 				</div>
 			</div>
@@ -570,7 +567,7 @@ let modalLyrExtent = "";
 					<a href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/">Mapbox/MapLibre GL JS</a>,
 					<a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
 					<a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
-					<br>Open in the <a href="{ohmUrl}" alt="Open mosaic in OHM Editor" target="_blank">Open Historical Map editor <Icon src={FiExternalLink} /></a>.
+					<br>Open in the <a href="{ohmUrl}" alt="Open mosaic in OHM Editor" target="_blank">Open Historical Map editor <ArrowSquareOut /></a>.
 				</p>
 				{/if}
 			</section>
@@ -599,7 +596,7 @@ let modalLyrExtent = "";
 				{#each VOLUME.sessions.georef_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.georef_contributors.length-1}, {/if}{/each}{/if}
 			</p>
 			<p><strong>Credit Line: Library of Congress, Geography and Map Division, Sanborn Maps Collection.</strong>
-			<a href="{VOLUME.urls.loc_resource}" target="_blank">View item on loc.gov <Icon src={FiExternalLink} /></a></p>
+			<a href="{VOLUME.urls.loc_resource}" target="_blank">View item on loc.gov<ArrowSquareOut /></a></p>
 		</div>
 	</section>
 </main>

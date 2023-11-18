@@ -1,6 +1,7 @@
 <script>
-    import Icon from 'svelte-icons-pack/Icon.svelte';
-    import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
+    import IconContext from 'phosphor-svelte/lib/IconContext';
+    import { iconProps } from "../../js/utils"
+    import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
 
     export let IMG_URL;
     export let TITLE;
@@ -8,6 +9,7 @@
     export let ICON_LINKS = [];
 </script>
 
+<IconContext values={iconProps}>
 <div class="title-bar">
     <div style="display:flex; flex-direction:row; justify-content:left; align-items:center;">
         {#if IMG_URL}
@@ -29,11 +31,12 @@
     {#if SIDE_LINKS.length > 0}
     <div class="link-box">
         {#each SIDE_LINKS as link}
-            <a href={link.url} title={link.alt ? link.alt : link.display} target={link.external ? "_blank" : "_self"}>{link.display} {#if link.external}<Icon src={FiExternalLink} />{:else}&rarr;{/if}</a>
+            <a href={link.url} title={link.alt ? link.alt : link.display} target={link.external ? "_blank" : "_self"}>{link.display} {#if link.external}<ArrowSquareOut />{:else}&rarr;{/if}</a>
         {/each}
     </div>
     {/if}
 </div>
+</IconContext>
 
 <style>
     .title-bar {

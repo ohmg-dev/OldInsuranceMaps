@@ -1,7 +1,9 @@
 <script>
-    import Icon from 'svelte-icons-pack';
-    import FiChevronsLeft from 'svelte-icons-pack/fi/FiChevronsLeft'
-    import FiChevronsRight from 'svelte-icons-pack/fi/FiChevronsRight'
+    import IconContext from 'phosphor-svelte/lib/IconContext';
+    import { iconProps } from "../../../js/utils"
+
+    import CaretDoubleLeft from 'phosphor-svelte/lib/CaretDoubleLeft'
+    import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight'
 
     export let loading = false;
     export let currentOffset = 0;
@@ -11,17 +13,19 @@
     export let getNext = () => {}
 </script>
 
+<IconContext values={iconProps}>
 <div class="btn-container">
     <button disabled={currentOffset < apiLimit || loading} on:click={getPrevious}>
-        <Icon src={FiChevronsLeft} />
+        <CaretDoubleLeft />
         newer
     </button>
     <span>{currentOffset} - {currentOffset + apiLimit < total ? currentOffset + apiLimit : total} ({total})</span>
     <button disabled={currentOffset + apiLimit >= total || loading} on:click={getNext}>
         older
-        <Icon src={FiChevronsRight} />
+        <CaretDoubleRight />
     </button>
 </div>
+</IconContext>
 
 <style>
     button {
