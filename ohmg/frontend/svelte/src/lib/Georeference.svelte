@@ -942,12 +942,21 @@ const iconLinks = [
     getModal('modal-expiration').close()}
     }>Give me more time!</button>
 </Modal>
-
 <Modal id="modal-anonymous">
   <p>Feel free to experiment with the interface, but submit your work you must 
     <a href="/account/login">sign in</a> or
     <a href="/account/signup">sign up</a>.
   </p>
+</Modal>
+<Modal id="modal-cancel">
+	<p>Are you sure you want to cancel this session?</p>
+  <button on:click={() => {
+    process("cancel");
+    getModal('modal-cancel').close()
+    }}>Yes</button>
+  <button on:click={() => {
+    getModal('modal-cancel').close()}
+    }>No - keep working</button>
 </Modal>
 
 <div id="map-container" class="svelte-component-main">
@@ -985,7 +994,7 @@ const iconLinks = [
         <button class="control-btn tool-ui" title="Save control points" disabled={!enableSave} on:click={() => { process("submit") }}>
           <Check />
         </button>
-        <button class="control-btn tool-ui" title="Cancel georeferencing" disabled={!enableButtons} on:click={() => { process("cancel") }}>
+        <button class="control-btn tool-ui" title="Cancel georeferencing" disabled={!enableButtons} on:click={() => { getModal('modal-cancel').open() }}>
           <X />
         </button>
         <button class="control-btn tool-ui" title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}>

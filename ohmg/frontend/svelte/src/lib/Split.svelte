@@ -404,6 +404,16 @@ let inFullscreen = false;
 <Modal id="modal-finished">
   <p>This document has already been prepared!</p>
 </Modal>
+<Modal id="modal-cancel">
+	<p>Are you sure you want to cancel this session?</p>
+  <button on:click={() => {
+    process("cancel");
+    getModal('modal-cancel').close()
+    }}>Yes</button>
+  <button on:click={() => {
+    getModal('modal-cancel').close()}
+    }>No - keep working</button>
+</Modal>
 
 <TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks}/>
 <p>{currentTxt} <a href="https://ohmg.dev/docs/making-the-mosaics/preparation" target="_blank">Learn more<ArrowSquareOut /></a></p>
@@ -450,7 +460,7 @@ let inFullscreen = false;
       <button class="control-btn tool-ui" title="No split needed" disabled={divisions.length>0 || !enableButtons} on:click={() => {process("no_split")}}>
         <CheckSquareOffset />
       </button>
-      <button class="control-btn tool-ui" title="Cancel this preparation" disabled={session_id == null || !enableButtons} on:click={() => {process("cancel")}}>
+      <button class="control-btn tool-ui" title="Cancel this preparation" disabled={session_id == null || !enableButtons} on:click={() => { getModal('modal-cancel').open() }}>
         <X />
       </button>
       <button class="control-btn tool-ui" title="Reset interface" disabled={unchanged} on:click={resetInterface}>
