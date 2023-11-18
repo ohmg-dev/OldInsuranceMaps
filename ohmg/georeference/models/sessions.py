@@ -343,8 +343,8 @@ class PrepSession(SessionBase):
                 fname = os.path.basename(file_path)
                 new_doc = Document.objects.get(pk=self.doc.pk)
                 new_doc.pk = None
-                
-                
+                new_doc.thumbnail = None
+
                 new_doc.title = f"{self.doc.title} [{n}]"
                 with open(file_path, "rb") as openf:
                     new_doc.file.save(fname, File(openf))
