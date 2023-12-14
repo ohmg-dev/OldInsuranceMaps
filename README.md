@@ -17,19 +17,19 @@ Please don't hesitate to [open a ticket](https://github.com/mradamcox/loc-insura
 
 You can browse content in the platform by map, by place name, or by item name.
 
-![Homepage](./frontend/static/img/browse.jpg)
+![Homepage](./ohmg/frontend/static/img/browse.jpg)
 
 Each volume's summary page has an interactive Map Overview showing all of the sheets that have been georeferenced so far.
 
-![Volume Summary - Map Overview](./frontend/static/img/vsummary-031922.jpg)
+![Volume Summary - Map Overview](./ohmg/frontend/static/img/vsummary-031922.jpg)
 
 Each volume's summary page also lists the progress and georeferencing stage of each sheet.
 
-![Volume Summary - Georeferencing Overview](./frontend/static/img/vsummary2-031922.jpg)
+![Volume Summary - Georeferencing Overview](./ohmg/frontend/static/img/vsummary2-031922.jpg)
 
 Finally, each resource itself has it's own page, showing a complete lineage of the work that has been performed on it by various users.
 
-![Alexandria, La, 1900, p1 [2]](./frontend/static/img/example-resource-alex-1900.jpg)
+![Alexandria, La, 1900, p1 [2]](./ohmg/frontend/static/img/example-resource-alex-1900.jpg)
 
 ## Process Overview
 
@@ -37,15 +37,15 @@ The georeferencing process generally consists of three operations, each with the
 
 Document preparation (sometimes they must be split into multiple pieces):
 
-![Splitting interface](./frontend/static/img/example-split-alex-1900.jpg)
+![Splitting interface](./ohmg/frontend/static/img/example-split-alex-1900.jpg)
 
 Ground control point creation (these are used to warp the document into a geotiff):
 
-![Georeferencing interface](./frontend/static/img/example-georef-alex-1900.jpg)
+![Georeferencing interface](./ohmg/frontend/static/img/example-georef-alex-1900.jpg)
 
 And a "multimask" that allows a volume's sheets to be trimmed *en masse*, a quick way to create a seamless mosaic from overlapping sheets:
 
-![Trimming interface](./frontend/static/img/example-multimask-alex-1900.jpg)
+![Trimming interface](./ohmg/frontend/static/img/example-multimask-alex-1900.jpg)
 
 Learn much more about each step [in the docs](https://ohmg.dev/docs/category/making-the-mosaics-1).
 
@@ -66,3 +66,62 @@ This is a Django project, with a frontend built (mostly) with [Svelte](https://s
 - Celery + RabbitMQ
 - GDAL >= 3.5
 - [TiTiler](https://developmentseed.org/titiler)
+
+## Installation
+
+(section still in progress)
+
+### Create database
+
+```bash
+psql -U postgres -c "CREATE USER ohmg WITH ENCRYPTED PASSWORD '$DB_PASSWORD'"
+psql -U postgres -c "CREATE DATABASE oldinsurancemaps WITH OWNER ohmg;"
+psql -U postgres -d oldinsurancemaps -c "CREATE EXTENSION PostGIS;"
+```
+
+See also scripts/create_database.sh.
+
+### Install Django project
+
+Make virtual env
+
+```bash
+python3 -m venv env
+source env/bin/activate
+```
+
+Install Python deps
+
+```bash
+git clone https://github.com/mradamcox/ohmg && cd ohmg
+pip install -r requirements.txt
+```
+
+Set environment variables
+
+```bash
+cp .env.original .env
+```
+
+Initialize database, create admin user
+
+```bash
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+Load all the place objects to create geography scaffolding
+
+```bash
+python manage.py place import-all
+```
+
+### Build frontend
+
+The frontend uses a series of independently built svelte components.
+
+```bash
+cd ohmg/frontend/svelte
+pnpm install
+pnpm run dev
+```
