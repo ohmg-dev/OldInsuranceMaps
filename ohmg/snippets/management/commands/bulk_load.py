@@ -7,7 +7,6 @@ from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
-from ohmg.georeference.models.sessions import GeorefSession
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)

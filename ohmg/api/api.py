@@ -15,7 +15,7 @@ from ohmg.accounts.schemas import UserSchema
 from ohmg.api.models import Key
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.content.schemas import ItemListSchema
-from ohmg.georeference.models.sessions import SessionBase
+from ohmg.georeference.models import SessionBase
 from ohmg.georeference.schemas import (
     FilterSessionSchema,
     SessionSchema,

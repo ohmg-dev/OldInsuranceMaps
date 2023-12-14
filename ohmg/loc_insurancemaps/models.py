@@ -20,11 +20,9 @@ from django.utils.safestring import mark_safe
 from django.utils.functional import cached_property
 from django.urls import reverse
 
-from ohmg.georeference.models.resources import (
+from ohmg.georeference.models import (
     Document,
     Layer,
-)
-from ohmg.georeference.models.sessions import (
     PrepSession,
     GeorefSession,
 )

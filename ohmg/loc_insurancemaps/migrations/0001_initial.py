@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
                 ('lc_iiif_service', models.CharField(blank=True, max_length=150, null=True)),
                 ('jp2_url', models.CharField(blank=True, max_length=150, null=True)),
                 ('doc', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='georeference.document')),
-                ('volume', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ohmg.loc_insurancemaps.volume')),
+                ('volume', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='loc_insurancemaps.volume')),
             ],
         ),
     ]

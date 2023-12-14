@@ -3,7 +3,7 @@ import json
 from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 
-from ohmg.georeference.models.resources import Document, Layer
+from ohmg.georeference.models import Document, Layer
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.renderers import generate_layer_thumbnail_content
 

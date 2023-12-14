@@ -14,13 +14,11 @@ from ohmg.georeference.tasks import (
     run_preparation_session,
     run_georeference_session,
 )
-from ohmg.georeference.models.resources import (
+from ohmg.georeference.models import (
     Layer,
     Document,
     ItemBase,
     GCPGroup,
-)
-from ohmg.georeference.models.sessions import (
     PrepSession,
     GeorefSession,
 )

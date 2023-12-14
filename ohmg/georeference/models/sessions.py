@@ -9,7 +9,7 @@ from django.core.files import File
 from django.core.mail import send_mass_mail
 from django.utils import timezone
 
-from ohmg.georeference.models.resources import (
+from ohmg.georeference.models import (
     GCPGroup,
     ItemBase,
     Document,

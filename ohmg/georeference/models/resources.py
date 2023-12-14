@@ -511,7 +511,7 @@ class Document(ItemBase):
 
     @property
     def preparation_session(self):
-        from ohmg.georeference.models.sessions import PrepSession
+        from ohmg.georeference.models import PrepSession
         try:
             return PrepSession.objects.get(doc=self)
         except PrepSession.DoesNotExist:
@@ -525,7 +525,7 @@ class Document(ItemBase):
 
     @property
     def georeference_sessions(self):
-        from ohmg.georeference.models.sessions import GeorefSession
+        from ohmg.georeference.models import GeorefSession
         return GeorefSession.objects.filter(doc=self.id).order_by("date_run")
 
     @property

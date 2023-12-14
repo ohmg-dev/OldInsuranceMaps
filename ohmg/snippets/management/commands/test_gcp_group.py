@@ -4,9 +4,7 @@ from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 
-from geonode.documents.models import Document
-
-from ohmg.georeference.models.models import GCPGroup
+from ohmg.georeference.models import GCPGroup
 from ohmg.georeference.georeferencer import Georeferencer
 
 class Command(BaseCommand):

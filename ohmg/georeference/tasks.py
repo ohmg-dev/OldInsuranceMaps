@@ -2,7 +2,7 @@ import os
 import logging
 
 from ohmg.celeryapp import app
-from ohmg.georeference.models.sessions import (
+from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,
     delete_expired_sessions,

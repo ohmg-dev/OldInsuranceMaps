@@ -10,7 +10,7 @@ from ohmg.loc_insurancemaps.tasks import (
 )
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.places.models import Place as NewPlace
-from ohmg.georeference.models.resources import ItemBase, Layer
+from ohmg.georeference.models import ItemBase, Layer
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'

@@ -3,8 +3,8 @@ from django.urls import reverse
 from django.contrib.auth.models import AbstractUser
 from django.utils.functional import cached_property
 
-from ohmg.georeference.models.sessions import SessionBase
-from ohmg.georeference.models.resources import GCP
+from ohmg.georeference.models import SessionBase
+from ohmg.georeference.models import GCP
 
 from ohmg.loc_insurancemaps.models import Volume
 

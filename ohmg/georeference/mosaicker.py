@@ -18,7 +18,7 @@ from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.gis.geos import GEOSGeometry, GeometryCollection, Polygon, MultiPolygon
 from django.core.files import File
 
-from ohmg.georeference.models.resources import Layer
+from ohmg.georeference.models import Layer
 from ohmg.utils import (
     random_alnum,
 )
