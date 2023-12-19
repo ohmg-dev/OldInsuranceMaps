@@ -246,7 +246,12 @@ class LOCParser(object):
     def parse_volume_number(self):
 
         volume_no = None
-        created_published = self.item["item"].get("created_published", "").lower()
+        created_published = self.item["item"].get("created_published", "")
+        if isinstance(created_published, list):
+            created_published = created_published[0]
+        else:
+            created_published = created_published.lower()
+
         if "vol." in created_published:
             a = created_published.split("vol.")[1]
             b = a.lstrip(" ").split(" ")
