@@ -1,10 +1,8 @@
+uploaded
 logs
 .ohmg_cache
 .build
 .temp
-
-# allow old directory to remain here locally for uploaded files
-./loc_insurancemaps
 
 .celery_results
 
