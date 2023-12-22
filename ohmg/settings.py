@@ -76,12 +76,11 @@ INSTALLED_APPS = [
 
     'ninja',
 
+    'ohmg.api',
+    'ohmg.frontend',
     'ohmg.georeference',
     'ohmg.loc_insurancemaps',
-    'ohmg.frontend',
     'ohmg.places',
-    'ohmg.snippets',
-    'ohmg.api',
 ]
 
 PASSWORD_HASHERS = [
