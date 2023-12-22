@@ -1,7 +1,7 @@
 import csv
 from datetime import datetime
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
 from ohmg.content.models import Item
@@ -135,7 +135,7 @@ class Command(BaseCommand):
                 with open(options['csv_file'], "r") as o:
                     reader = csv.DictReader(o)
                     for row in reader:
-                        if not "identifier" or not "locale" in row:
+                        if "identifier" not in row or "locale" not in row:
                             print("missing info in row")
                             print(row)
                             continue
@@ -205,8 +205,8 @@ class Command(BaseCommand):
                     print(i)
                     d = ItemBase.objects.get(pk=i)
                     d.set_thumbnail()
-                for l in v.layer_lookup.keys():
-                    s = ItemBase.objects.filter(slug=l)
+                for i in v.layer_lookup.keys():
+                    s = ItemBase.objects.filter(slug=i)
                     for ss in s:
                         print(ss)
                         ss.set_thumbnail()
@@ -224,9 +224,9 @@ class Command(BaseCommand):
                     print(f"skipping excluded: {v.identifier}")
                     continue
                 print(f'{v.identifier} - {v.__str__()}')
-                for l in v.layer_lookup.keys():
-                    print(f'  {l}')
-                    ss = Layer.objects.filter(slug=l)
+                for i in v.layer_lookup.keys():
+                    print(f'  {i}')
+                    ss = Layer.objects.filter(slug=i)
                     for s in ss:
                         latest_sesh = list(s.get_document().georeference_sessions)[-1]
                         print(f"  running session {latest_sesh.pk}")

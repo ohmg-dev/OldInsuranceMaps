@@ -1,10 +1,6 @@
-import json
-
-from django.core import management
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError # noqa: F401
 
 from ohmg.georeference.models import Document, Layer
-from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.renderers import generate_layer_thumbnail_content
 
 class Command(BaseCommand):

@@ -1,6 +1,6 @@
 import os
 import json
-import base64
+#import base64
 from PIL import Image
 
 from django.conf import settings
@@ -65,10 +65,10 @@ def document_as_iiif_canvas(document, resource=None, iiif_server=False):
 def document_as_iiif_manifest(document, canvas=None, iiif_server=False):
     """ creates a manifest for the document's image """
 
-    # this base64 encoding seems optional, but would probably be good to work in
-    base_url = "http://localhost:8080/cantaloupe/iiii/2/"
-    urlSafeEncodedBytes = base64.urlsafe_b64encode(base_url.encode("utf-8"))
-    urlSafeEncodedStr = str(urlSafeEncodedBytes, "utf-8")
+    ## this base64 encoding seems optional, but would probably be good to work in
+    # base_url = "http://localhost:8080/cantaloupe/iiii/2/"
+    # urlSafeEncodedBytes = base64.urlsafe_b64encode(base_url.encode("utf-8"))
+    # urlSafeEncodedStr = str(urlSafeEncodedBytes, "utf-8")
 
     this_url = reverse('document_manifest', args=(document.id,))
     manifest_id = settings.SITEURL.rstrip("/") + this_url

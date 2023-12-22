@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from django.urls import reverse
 from ninja import (
     Schema,

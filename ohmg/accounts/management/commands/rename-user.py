@@ -1,6 +1,6 @@
 import logging
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
@@ -34,7 +34,7 @@ class Command(BaseCommand):
                 old_name = user.username
                 user.username = new_name
                 user.save()
-                logger.info(f"username updated.")
+                logger.info("username updated.")
         logger.info(f"renaming user: {old_name} --> {new_name}")
         if user is None:
             logger.info("no existing user matches this username")
@@ -44,7 +44,7 @@ class Command(BaseCommand):
         for s in GeorefSession.objects.all():
             if not s.data:
                 continue
-            if not 'features' in s.data['gcps']:
+            if 'features' not in s.data['gcps']:
                 continue
             gcp_users = set([u['properties']['username'] for u in s.data['gcps']['features']])
             if old_name in gcp_users:

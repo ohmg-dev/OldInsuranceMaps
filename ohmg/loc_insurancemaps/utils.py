@@ -145,11 +145,11 @@ class LOCParser(object):
         # {'bexar county': 'https://www.loc.gov/search/?at=item&fa=location:bexar+county&fo=json'}
         # while other times each location tag is just a string.
         location_tags = []
-        for l in self.item['location']:
-            if isinstance(l, dict):
-                location_tags.append(list(l.keys())[0])
+        for lyr in self.item['location']:
+            if isinstance(lyr, dict):
+                location_tags.append(list(lyr.keys())[0])
             else:
-                location_tags.append(l)
+                location_tags.append(lyr)
 
         # split the title of the item which has a lot of geographic info in it
         title = self.item["item"]["title"].replace("Sanborn Fire Insurance Map from ", "").rstrip(".")
@@ -171,7 +171,7 @@ class LOCParser(object):
             print(f"BAD STATE IN TITLE: {state_seg}")
         
         # get city
-        location_tags = [i for i in location_tags if not i in used_tags]
+        location_tags = [i for i in location_tags if i not in used_tags]
         city_seg = title_segs[0]
         misspellings = load_city_name_misspellings(self.state)
         if city_seg in misspellings:
@@ -182,7 +182,7 @@ class LOCParser(object):
             if lt == city_seg.lower():
                 used_tags.append(lt)
 
-        location_tags = [i for i in location_tags if not i in used_tags]
+        location_tags = [i for i in location_tags if i not in used_tags]
         # find the county/parish and remove that from the tag list
         county_seg = None
         c_terms = ["county", "counties", "parish", "parishes", "census division"]
@@ -204,10 +204,10 @@ class LOCParser(object):
                     used_tags.append(lt)
 
         # print leftover tags
-        location_tags = [i for i in location_tags if not i in used_tags]
+        location_tags = [i for i in location_tags if i not in used_tags]
         if len(location_tags) > 0:
             msg = f"WARNING: unparsed location tags - {self.identifier} - {title} - {location_tags}"
-            # print(msg)
+            print(msg)
 
         self.extra_location_tags = location_tags
 
@@ -487,7 +487,7 @@ class LOCConnection(object):
     def get_volume_list_by_city(self, city, state):
 
         items = self.get_items(
-            locations=[i for i in [state, city] if not i is None],
+            locations=[i for i in [state, city] if i is not None],
         )
 
         if self.verbose:

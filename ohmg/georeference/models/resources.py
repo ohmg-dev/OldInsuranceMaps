@@ -11,7 +11,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.gis.geos import Point, Polygon
+from django.contrib.gis.geos import Point
 from django.contrib.gis.db import models
 from django.core.files.base import ContentFile
 from django.utils import timezone
@@ -713,18 +713,6 @@ class Layer(ItemBase):
 
     def get_georeference_summary(self):
         return self.get_document().get_georeference_summary()
-
-    # not currently in used, but retained as a placeholder for the future
-    def get_ohm_url(self):
-        try:
-            tms_url = f"https://oldinsurancemaps.net/geoserver/gwc/service/tms/1.0.0/{lp.alternate}/{{z}}/{{x}}/{{-y}}.png"
-            centroid = Polygon().from_bbox(self.extent).centroid
-            ohm_url = f"https://www.openhistoricalmap.org/edit#map=15/{centroid.coords[1]}/{centroid.coords[0]}&background=custom:{tms_url}"
-            return ohm_url
-        except Exception as e:
-            print("ERROR:")
-            print(e)
-            return "https://www.openhistoricalmap.org/edit"
 
     def get_document(self):
         try:

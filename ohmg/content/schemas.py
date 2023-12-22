@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from django.urls import reverse
 from ninja import (

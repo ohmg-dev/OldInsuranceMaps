@@ -2,7 +2,6 @@ import logging
 from typing import List
 
 from django.conf import settings
-from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 

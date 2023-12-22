@@ -1,3 +1,4 @@
+static
 uploaded
 logs
 .ohmg_cache
@@ -71,15 +72,5 @@ docs/_build/
 
 # PyBuilder
 target/
-
-# Downstream Project
-downloaded/
-uploaded/
-static_root/
-development.db
-development.db-journal
-local_settings.py
-
-.idea/
 
 .vscode

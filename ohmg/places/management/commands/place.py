@@ -2,8 +2,7 @@ import csv
 import logging
 from pathlib import Path
 
-from django.core.management.base import BaseCommand, CommandError
-from django.conf import settings
+from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from ohmg.loc_insurancemaps.models import Volume
@@ -44,14 +43,14 @@ class Command(BaseCommand):
         # these are misspellings from the census data vs.
         # what was stored in the Volume objects for city,
         # county_equivalent, etc. Not used but retained for now.
-        typo_lookup = {
-            "Saint": "St.",
-            "Sanit": "St.",
-            "Balon": "Baton",
-            "La Salle": "LaSalle",
-            "Claibrone": "Claiborne",
-            "Point Coupee": "Pointe Coupee",
-        }
+        # typo_lookup = {
+        #     "Saint": "St.",
+        #     "Sanit": "St.",
+        #     "Balon": "Baton",
+        #     "La Salle": "LaSalle",
+        #     "Claibrone": "Claiborne",
+        #     "Point Coupee": "Pointe Coupee",
+        # }
 
         print(options)
         if options['operation'] == "create":

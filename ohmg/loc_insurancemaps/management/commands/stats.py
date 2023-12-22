@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import logging
 
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
 from ohmg.georeference.models import SessionBase
@@ -84,8 +84,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        data = []
-
         admins = get_user_model().objects.filter(username__in=["acfc", "admin"])
         users = get_user_model().objects.all().exclude(username__in=["acfc", "admin", "AnonymousUser"])
 
@@ -144,8 +142,8 @@ class Command(BaseCommand):
             write_dict_csv("sessions-by-date.csv", rows)                
 
             # if options['operation'] in ["sessions-by-week", "all"]:
-            start_week = datetime.strptime("2022-01-31", "%Y-%m-%d")
-            end_week = start_week + timedelta(days=6)
+            # start_week = datetime.strptime("2022-01-31", "%Y-%m-%d")
+            # end_week = start_week + timedelta(days=6)
 
             session_bins = get_week_bins()
             # add custom data holders for this set of data
@@ -236,8 +234,6 @@ class Command(BaseCommand):
 
             sessions = SessionBase.objects.all().order_by("date_created")
             headers = ["create_date", "seconds", "user", "city", "year", "volume"]
-            p_headers = headers + ["split", "div_count"]
-            g_headers = headers + ["gcp_count"]
 
             prep_session_rows = []
             georef_session_rows = []
@@ -294,7 +290,7 @@ class Command(BaseCommand):
                 print(v)
                 dps = v.get_all_docs()
                 documents = [i.resource for i in dps]
-                layers = [i.get_layer() for i in dps if not i.get_layer() is None]
+                layers = [i.get_layer() for i in dps if i.get_layer() is not None]
                 s1 = SessionBase.objects.filter(document__in=documents)
                 s2 = SessionBase.objects.filter(layer__in=layers)
                 s = s1 | s2
