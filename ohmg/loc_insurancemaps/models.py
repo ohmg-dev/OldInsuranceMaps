@@ -706,7 +706,7 @@ class Volume(models.Model):
             except Volume.DoesNotExist:
                 Volume().import_volume(volume['identifier'])
 
-    def import_volume(self, identifier, locale=None):
+    def import_volume(self, identifier, locale=None, dry_run=False):
 
         try:
             volume = Volume.objects.get(pk=identifier)
@@ -727,12 +727,13 @@ class Volume(models.Model):
         # add resources to args, not in item (they exist adjacent)
         volume_kwargs["lc_resources"] = response['resources']
 
-        volume = Volume.objects.create(**volume_kwargs)
-        volume.locales.add(locale)
-
-        volume.update_place_counts()
-
-        return volume
+        if dry_run:
+            return volume_kwargs
+        else:
+            volume = Volume.objects.create(**volume_kwargs)
+            volume.locales.add(locale)
+            volume.update_place_counts()
+            return volume
 
 ## This seems to be where the signals need to be connected. See
 ## https://github.com/mradamcox/loc-insurancemaps/issues/75

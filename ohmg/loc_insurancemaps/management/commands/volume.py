@@ -1,3 +1,4 @@
+import csv
 from datetime import datetime
 
 from django.core.management.base import BaseCommand, CommandError
@@ -9,7 +10,7 @@ from ohmg.loc_insurancemaps.tasks import (
     generate_mosaic_json_task,
 )
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.places.models import Place as NewPlace
+from ohmg.places.models import Place
 from ohmg.georeference.models import ItemBase, Layer
 
 class Command(BaseCommand):
@@ -35,6 +36,16 @@ class Command(BaseCommand):
         parser.add_argument(
             "-i", "--identifier",
             help="the identifier of the LoC resource to add",
+        ),
+        parser.add_argument(
+            "-f", "--csv-file",
+            help="path to file for bulk import",
+        ),
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            default=False,
+            help="perform a dry-run of the operation",
         ),
         parser.add_argument(
             "--load-documents",
@@ -100,20 +111,47 @@ class Command(BaseCommand):
 
         if options['operation'] == "import":
 
-            locale_slug = options['locale']
-            locale = None
-            if locale_slug is not None:
+            def get_locale(locale_slug):
                 try:
                     print(f'locale slug: {locale_slug}')
-                    locale = NewPlace.objects.get(slug=locale_slug)
+                    locale = Place.objects.get(slug=locale_slug)
                     print(f'using locale: {locale}')
-                except NewPlace.DoesNotExist:
+                except Place.DoesNotExist:
+                    locale = None
+                return locale
+
+            to_load = []
+
+            if i:
+                locale = get_locale(options['locale'])
+                if locale is None:
                     confirm = input('no locale matching this slug, locale will be None. continue? y/N ')
                     if not confirm.lower().startswith("y"):
                         exit()
+                to_load.append((i, locale))
 
-            vol = Volume().import_volume(i, locale=locale)
-            print(vol)
+            elif options['csv_file']:
+
+                with open(options['csv_file'], "r") as o:
+                    reader = csv.DictReader(o)
+                    for row in reader:
+                        if not "identifier" or not "locale" in row:
+                            print("missing info in row")
+                            print(row)
+                            continue
+                        locale = get_locale(row['locale'])
+                        if locale is None:
+                            print(f"can't find locale {row['locale']}, skipping.")
+                            continue
+                        to_load.append((row["identifier"], locale))
+
+            for identifier, locale in to_load:
+                vol = Volume().import_volume(
+                    identifier,
+                    locale=locale,
+                    dry_run=options['dry_run']
+                )
+                print(vol)
 
         if options['operation'] == "make-sheets":
             vol = Volume.objects.get(pk=i)
