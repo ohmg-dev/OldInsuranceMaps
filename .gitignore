@@ -7,6 +7,8 @@ logs
 
 .celery_results
 
+.ruff_cache
+
 node_modules
 public
 
