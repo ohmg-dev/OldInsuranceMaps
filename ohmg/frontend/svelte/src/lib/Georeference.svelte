@@ -1050,7 +1050,6 @@ const iconLinks = [
   <nav style="justify-content: end;">
     <label title="Set georeferencing transformation">
       Transformation:
-      <!-- svelte-ignore a11y-no-onchange -->
       <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={() => { process("preview"); }}>
         {#each transformations as trans}
         <option value={trans.id}>{trans.name}</option>

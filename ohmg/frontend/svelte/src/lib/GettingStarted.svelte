@@ -41,7 +41,7 @@ Places are heirarchical geographical boundaries, state, county, city, etc.--and 
 	<h2>Collaborations</h2>
 	<div class="collab-tile">
 		<div style="display:flex; justify-content:left; align-items:center;">
-			<img height=30 width=30 src="https://www.openhistoricalmap.org/assets/osm_logo-796d69930b9f9f0fb3aa93152588ad4a2719ffd0b1e321d6045bf343a44e863e.png" />
+			<img alt="OHM Logo" height=30 width=30 src="https://www.openhistoricalmap.org/assets/osm_logo-796d69930b9f9f0fb3aa93152588ad4a2719ffd0b1e321d6045bf343a44e863e.png" />
 			<h4><a href="https://www.openhistoricalmap.org">OpenHistoricalMap</a></h4>
 		</div>
 		<div>
