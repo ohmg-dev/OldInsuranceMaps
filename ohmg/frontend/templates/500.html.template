@@ -1,13 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block body %}
+{% block middle %}
   <div id="description"><h3>{% trans "Server Error" %}</h3></div>
-  {% if message %}
-      {{ message }}
-  {% else %}
-      {% blocktrans %}
-          Internal server error. Please contact an admin if the problem persists: <a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a>.
-      {% endblocktrans %}
-  {% endif %}
+  <p>Internal server error. Please contact an admin if the problem persists: <a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a></p>.
 {% endblock %}
