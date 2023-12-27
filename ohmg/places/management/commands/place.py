@@ -5,8 +5,8 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from ohmg.loc_insurancemaps.models import Volume
 from ohmg.places.models import Place
+from ohmg.places.management.utils import reset_volume_counts
 
 logger = logging.getLogger(__name__)
 
@@ -103,12 +103,6 @@ class Command(BaseCommand):
         load_place_csv(Path(datadir, "place_counties.csv"))
         load_place_csv(Path(datadir, "place_other.csv"))
 
-    def reset_volume_counts(self):
+    def reset_all_counts(self):
 
-        print("set all Place volume counts to 0")
-        Place.objects.all().update(volume_count=0, volume_count_inclusive=0)
-        print("done")
-
-        for volume in Volume.objects.all():
-            print(volume)
-            volume.update_place_counts()
+        reset_volume_counts(verbose=True)

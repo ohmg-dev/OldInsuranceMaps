@@ -11,7 +11,8 @@ from ohmg.loc_insurancemaps.tasks import (
 )
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.places.models import Place
-from ohmg.georeference.models import ItemBase, Layer
+from ohmg.places.management.utils import reset_volume_counts
+from ohmg.georeference.models import ItemBase, Layer, DocumentLink
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -21,6 +22,7 @@ class Command(BaseCommand):
             "operation",
             choices=[
                 "import",
+                "remove",
                 "refresh-lookups-old",
                 "refresh-lookups",
                 "make-sheets",
@@ -152,6 +154,48 @@ class Command(BaseCommand):
                     dry_run=options['dry_run']
                 )
                 print(vol)
+
+        if options['operation'] == "remove":
+            vol = Volume.objects.get(pk=i)
+
+            sheets = list(vol.sheets)
+            documents = []
+            layers = []
+            gcp_groups = []
+            all_gcps = []
+            sessions = []
+            doc_links = []
+
+            for s in sheets:
+                if s.doc:
+                    documents.append(s.doc)
+                    sessions += s.doc.get_sessions()
+                    documents += s.doc.children
+                    doc_links += list(DocumentLink.objects.filter(source=s.doc))
+                    layer = s.doc.get_layer()
+                    if layer:
+                        layers.append(layer)
+                        gcp_group = s.doc.gcp_group
+                        gcp_groups.append(gcp_group)
+                        all_gcps += list(gcp_group.gcps)
+
+
+            print(vol)
+            print(f"sheets {len(sheets)}")
+            print(f"documents {len(documents)}")
+            print(f"layers {len(layers)}")
+            print(f"gcp groups {len(gcp_groups)}")
+            print(f"gcps {len(all_gcps)}")
+            print(f"sessions {len(sessions)}")
+            print(f"document links: {len(doc_links)}")
+
+            confirm = input("Delete all of these objects? y/N ")
+            if confirm.lower().startswith("y"):
+                for i in sessions + all_gcps + gcp_groups + layers + doc_links + documents + sheets + [vol]:
+                    print(i)
+                    i.delete()
+
+            reset_volume_counts()
 
         if options['operation'] == "make-sheets":
             vol = Volume.objects.get(pk=i)
