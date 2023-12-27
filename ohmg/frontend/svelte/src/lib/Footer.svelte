@@ -43,7 +43,7 @@
 		flex-direction: column;
 		background:#123B4F;
 		color: white;
-		padding: 20px;
+		padding: 15px;
 		font-weight: 500;
 		min-height: 190px;
 	}

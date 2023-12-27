@@ -57,42 +57,4 @@ main {
 	flex-direction: column;
 }
 
-.tab-row {
-	display:flex;
-	flex-direction: row;
-}
-.tab-row div {
-	color: white;
-	width: 50%;
-	cursor: pointer;
-	background-color: #123B4F;
-	margin: 10px;
-	border-radius: 10px;
-	font-size: 1em;
-	text-align: center;
-}
-.tab-row div h2 {
-	font-size: 1.5em;
-	margin: 10px 0px;
-}
-.tab-row div.active {
-	background-color: #2c689c;
-}
-.tab-row div:hover {
-	background-color: #2c689c;
-}
-
-@media (max-width: 640px) {
-	/* main {
-		max-width: none;
-	} */
-	.tab-row {
-		flex-direction: column;
-	}
-	.tab-row div {
-		width: 100%;
-	}
-}
-
-
 </style>
