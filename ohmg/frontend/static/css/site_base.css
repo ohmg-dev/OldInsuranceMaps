@@ -1,13 +1,3 @@
-html, * {
-	font-family: 'Josefin Sans', sans-serif;
-}
-
-body {
-  letter-spacing: -.3px;
-  padding-top: 60px;
-  background-color: #F7F1E1;
-}
-
 :root {
 	--universal-margin: 0;
 	--universal-padding: 0;
@@ -18,9 +8,149 @@ body {
 	--footer-fore-color: white;
 }
 
+* {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+html, * {
+	font-family: 'Josefin Sans', sans-serif;
+}
+
+body {
+  letter-spacing: -.3px;
+  padding-top: 60px;
+  background-color: #F7F1E1;
+  margin: 0;
+  line-height: 1.42857143;
+  color: #333333;
+}
+
+img {
+	vertical-align: middle;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+pre {
+	display: block;
+	padding: 10.5px;
+	margin: 0 0 11px;
+	font-size: 15px;
+	line-height: 1.42857143;
+	color: #333333;
+	word-break: break-all;
+	word-wrap: break-word;
+	background-color: #f5f5f5;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	overflow: auto;
+  }
+pre code {
+	padding: 0;
+	font-size: inherit;
+	color: inherit;
+	white-space: pre-wrap;
+	background-color: transparent;
+	border-radius: 0;
+}
+code, kbd, pre, samp {
+	font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+h1 {
+	font-size: 2.25em;
+}
+h2 {
+	font-size: 2em;
+}
+h3 {
+  font-size: 1.6em;
+}
+h4 {
+  font-size: 1.25em;
+}
+h5 {
+  font-size: 1.15em;
+}
+h6 {
+	font-size: 1.1em;
+}
+h1, h2, h3, h4, h5, h6 {
+	font-weight: 400;
+	line-height: 1.1;
+}
+h1, h2, h3 {
+	margin-top: 22px;
+  	margin-bottom: 11px;
+}
+h4, h5, h6 {
+	margin-top: 11px;
+  	margin-bottom: 11px;
+}
+
+p  {
+	margin: 0 0 11px;
+}
+
+input[type="range"] {
+	display: block;
+	width: 100%;
+}
+
+.container {
+	padding-right: 15px;
+	padding-left: 15px;
+	margin-right: auto;
+	margin-left: auto;
+	display: flex;
+	flex-direction: column;
+  }
+  @media (min-width: 768px) {
+	.container {
+	  width: 750px;
+	}
+  }
+  @media (min-width: 992px) {
+	.container {
+	  width: 970px;
+	}
+  }
+  @media (min-width: 1200px) {
+	.container {
+	  width: 1170px;
+	}
+  }
+
+a {
+	color: #2c689c;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
 a.button {
 	text-transform: none;
 }
+
+input, button, select, textarea {
+	font-family: inherit;
+	font-size: inherit;
+	line-height: inherit;
+}
+
+button, html input[type="button"], input[type="reset"], input[type="submit"] {
+	appearance: button;
+	-moz-appearance: button;
+	-webkit-appearance: button;
+	cursor: pointer;
+  }
 
 button.control-btn {
 	display: flex;
@@ -63,14 +193,6 @@ footer a:hover {
 
 #wrap {
 	margin-top: 50px !important;
-}
-
-h1 {
-	font-size: 2.25em;
-}
-
-h1, h2, h3, h4, h5, h6 {
-	font-weight: 400;
 }
 
 .banner-wrap {
@@ -291,3 +413,79 @@ h1, h2, h3, h4, h5, h6 {
 	background-color: #eaeaea;
 	padding: 5px;
 }
+
+.alert {
+	padding: 15px;
+	margin-bottom: 22px;
+	border: 1px solid transparent;
+	border-radius: 4px;
+  }
+  .alert h4 {
+	margin-top: 0;
+	color: inherit;
+  }
+  .alert .alert-link {
+	font-weight: bold;
+  }
+  .alert > p,
+  .alert > ul {
+	margin-bottom: 0;
+  }
+  .alert > p + p {
+	margin-top: 5px;
+  }
+  .alert-dismissable,
+  .alert-dismissible {
+	padding-right: 35px;
+  }
+  .alert-dismissable .close,
+  .alert-dismissible .close {
+	position: relative;
+	top: -2px;
+	right: -21px;
+	color: inherit;
+  }
+  .alert-success {
+	color: #3c763d;
+	background-color: #dff0d8;
+	border-color: #d6e9c6;
+  }
+  .alert-success hr {
+	border-top-color: #c9e2b3;
+  }
+  .alert-success .alert-link {
+	color: #2b542c;
+  }
+  .alert-info {
+	color: #31708f;
+	background-color: #d9edf7;
+	border-color: #bce8f1;
+  }
+  .alert-info hr {
+	border-top-color: #a6e1ec;
+  }
+  .alert-info .alert-link {
+	color: #245269;
+  }
+  .alert-warning {
+	color: #8a6d3b;
+	background-color: #fcf8e3;
+	border-color: #faebcc;
+  }
+  .alert-warning hr {
+	border-top-color: #f7e1b5;
+  }
+  .alert-warning .alert-link {
+	color: #66512c;
+  }
+  .alert-danger {
+	color: #a94442;
+	background-color: #f2dede;
+	border-color: #ebccd1;
+  }
+  .alert-danger hr {
+	border-top-color: #e4b9c0;
+  }
+  .alert-danger .alert-link {
+	color: #843534;
+  }

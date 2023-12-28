@@ -1,16 +1,10 @@
 import os
-import csv
 import boto3
-from pathlib import Path
 
-from django.db import transaction
-from django.db.models.functions import Lower
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.template.loader import render_to_string
 from django.test.client import RequestFactory
-
-from ohmg.loc_insurancemaps.models import Volume, Place
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'

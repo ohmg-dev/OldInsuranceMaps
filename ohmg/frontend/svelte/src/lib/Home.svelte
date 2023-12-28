@@ -137,8 +137,6 @@ if (urlSegs[urlSegs.length - 2] == 'about') {
 		<div>
 			<SvelteMarkdown source={`OldInsuranceMaps.net is funded in part by the National Institutes of Health (National Institute on Aging: [R01AG080401](https://reporter.nih.gov/search/bCrnkRo-rkWJJXyXqsj44g/project-details/10582012)) through a partnership with University of Michigan [Institute for Social Research](https://isr.umich.edu/), University of Richmond [Digital Scholarship Lab](https://dsl.richmond.edu/), and the [National Community Reinvestment Coalition](https://ncrc.org). Read more in the [ISR press release](https://isr.umich.edu/news-events/news-releases/grant-to-enable-creation-of-new-data-resources-for-studying-structural-racism/).
 
----
-
 Many thanks also to our individual sponsors: Kevin H., Andrew M., and Peter M. To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
 `} />
 		</div>
@@ -187,17 +185,12 @@ main p {
 	background: linear-gradient(0deg, rgba(255 255 255 / 60%), rgba(255 255 255 / 60%)), url(/static/img/no-1885-snippet1-reduce-50qual.jpg) -700px -400px;
 }
 
-.img-bg-4 {
-	background: linear-gradient(0deg, rgba(255 255 255 / 60%), rgba(255 255 255 / 60%)), url(/static/img/no-1885-snippet1-reduce-50qual.jpg) -700px -600px;
-}
-
 .hero-banner2 > div {
 	background: rgba(255,255,255, .7);
 	border: 2px solid black;
 	border-radius: 4px;
 	padding: 10px;
 	margin-bottom: 10px;
-	width: 100%
 }
 
 .hero-banner {
@@ -273,10 +266,6 @@ button.link-btn {
 
 	.hero-banner > div {
 		width: 100%;
-	}
-
-	.hero-banner > div.link-panel {
-		margin-top: 15px;
 	}
 
 	.hero-banner-inner {

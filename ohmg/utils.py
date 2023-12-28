@@ -25,7 +25,7 @@ def download_image(url, out_path, retries=3):
             time.sleep(5)
             retries -= 1
             if retries == 0:
-                logger.warn(f"request failed, cancelling")
+                logger.warn("request failed, cancelling")
                 return None
 
 def full_capitalize(in_str):
@@ -41,7 +41,7 @@ def slugify(input_string, join_char="-"):
 
     output = input_string.lower()
     remove_chars = [".", ",", "'", '"', "|", "[", "]", "(", ")"]
-    output = "".join([i for i in output if not i in remove_chars])
+    output = "".join([i for i in output if i not in remove_chars])
     for i in ["_", "  ", " - ", " ", "--", "-"]:
         output = output.replace(i, join_char)
     return output.lower()

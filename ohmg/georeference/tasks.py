@@ -2,7 +2,7 @@ import os
 import logging
 
 from ohmg.celeryapp import app
-from ohmg.georeference.models.sessions import (
+from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,
     delete_expired_sessions,
@@ -30,7 +30,7 @@ def delete_expired():
 def delete_preview_vrt(base_file_path, preview_url_to_remove):
 
     if not preview_url_to_remove.endswith(".vrt"):
-        logger.warn(f"will not delete non-VRT")
+        logger.warn("will not delete non-VRT")
         return
     prev_file = os.path.basename(preview_url_to_remove)
     prev_file_path = os.path.join(os.path.dirname(base_file_path), prev_file)

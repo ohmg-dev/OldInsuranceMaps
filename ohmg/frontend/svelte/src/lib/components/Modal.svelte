@@ -65,8 +65,12 @@ onDestroy(()=>{
 
 </script>
 
+<!-- this modal works fine with keyboard interaction, disabling a11y warnings -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
 <div id="topModal" class:visible bind:this={topDiv} on:click={()=>close('')}>
+	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<div id='modal' class={full ? 'full-modal' : ''} on:click|stopPropagation={()=>{}}>
+		<!-- svelte-ignore a11y-click-events-have-key-events -->
 		<svg id="close" on:click={()=>close('')} viewBox="0 0 12 12">
 			<circle cx=6 cy=6 r=6 />
 			<line x1=3 y1=3 x2=9 y2=9 />

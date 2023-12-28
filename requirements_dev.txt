@@ -1,3 +1,4 @@
 django_debug_toolbar==4.0.0
 django-cprofile-middleware==1.0.5
 pygraphviz
+ruff

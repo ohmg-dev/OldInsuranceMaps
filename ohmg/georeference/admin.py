@@ -1,13 +1,11 @@
 from django.contrib import admin
 
-from ohmg.georeference.models.resources import (
+from ohmg.georeference.models import (
     GCP,
     GCPGroup,
     Layer,
     Document,
     DocumentLink,
-)
-from ohmg.georeference.models.sessions import (
     PrepSession,
     GeorefSession,
 )

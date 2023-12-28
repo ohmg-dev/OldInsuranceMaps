@@ -31,9 +31,9 @@ from osgeo import gdal
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.backends import MosaicBackend
 
-from ohmg.georeference.models.resources import Layer
+from ohmg.georeference.models import Layer
 from ohmg.utils import random_alnum
-from ohmg.loc_insurancemaps.models import Volume, Sheet
+from ohmg.loc_insurancemaps.models import Volume
 
 logger = logging.getLogger(__name__)
 
@@ -237,7 +237,7 @@ class Item:
                 )
 
                 logger.debug(f"writing trimmed tif {os.path.basename(out_path)}")
-                result = gdal.Translate(out_path, trim_vrt_path, options=to)
+                gdal.Translate(out_path, trim_vrt_path, options=to)
                 write_trim_feature_cache(feature, feat_cache_path)
 
                 img = gdal.Open(out_path, 1)

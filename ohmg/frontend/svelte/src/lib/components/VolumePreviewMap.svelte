@@ -206,7 +206,9 @@ let inFullscreen = false;
 			
 			<div class="layer-section-header">
 				<span>Key Map</span>
-				<i class="transparency-toggle {getClass(kGV)}" on:click={() => {kGV = toggleTransparency(kGV)}}></i>
+				<button class="transparency-toggle" on:click={() => {kGV = toggleTransparency(kGV)}}>
+					<i class="{getClass(kGV)}" />
+				</button>
 			</div>
 			<div class="layer-section-subheader">
 				{#if VOLUME.sorted_layers.key_map.length == 0}
@@ -217,7 +219,9 @@ let inFullscreen = false;
 			</div>
 			<div class="layer-section-header">
 				<span>Main Layers</span>
-				<i class="transparency-toggle {getClass(mGV)}" on:click={() => {mGV = toggleTransparency(mGV)}}></i>
+				<button class="transparency-toggle" on:click={() => {mGV = toggleTransparency(mGV)}}>
+					<i class="{getClass(mGV)}" />
+				</button>
 			</div>
 			<div class="layer-section-subheader">
 				{#if VOLUME.sorted_layers.main.length == 0}

@@ -448,13 +448,9 @@ function handleFfs(elementId) {
                   <CropIcon />
               </button>
               &nbsp;
-              {#if currentLayer == layer.layerDef.slug}
-              <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-              <div style="color:red" on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
-              {:else}
-              <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-              <div class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
-              {/if}
+              <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
+                <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.page_str}</span>
+              </button>
             </div>
           {:else}
             <div>No layers</div>
@@ -470,13 +466,9 @@ function handleFfs(elementId) {
                 <Trash />
               </button>
               &nbsp;
-              {#if currentLayer == layer.layerDef.slug}
-              <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-              <div style="color:red" on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
-              {:else}
-              <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-              <div class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)}>sheet {layer.layerDef.page_str}</div>
-              {/if}
+              <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
+                <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.page_str}</span>
+              </button>
             </div>
           {:else}
             <div>No layers</div>
@@ -505,10 +497,12 @@ function handleFfs(elementId) {
   left: 0;
 }
 
-.layer-entry {
+button.layer-entry {
   cursor: pointer;
+  border: none;
+  background: none;
 }
-.layer-entry:hover {
+button.layer-entry:hover {
   color: red;
 }
 </style>

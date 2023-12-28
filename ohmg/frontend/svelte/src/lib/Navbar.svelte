@@ -104,6 +104,7 @@ nav.lahmg-nav {
 
 nav.lahmg-nav a {
 	color:white;
+	text-decoration: none;
 }
 
 nav.lahmg-nav a:hover {
@@ -111,8 +112,14 @@ nav.lahmg-nav a:hover {
 	text-decoration: none;
 }
 
+nav.lahmg-nav button {
+	color: white;
+	font-size: inherit;
+}
+
 nav.lahmg-nav button:hover {
 	color: #cecece;
+	cursor: pointer;
 }
 
 nav.lahmg-nav > div {

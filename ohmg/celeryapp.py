@@ -1,7 +1,10 @@
 from __future__ import absolute_import
 
 import os
+import dotenv
 from celery import Celery
+
+dotenv.load_dotenv()
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ohmg.settings')
 

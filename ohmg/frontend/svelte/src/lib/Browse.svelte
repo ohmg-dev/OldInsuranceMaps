@@ -22,16 +22,15 @@ $: { history.replaceState(null, document.title, `#${currentTab}`); }
 
 <main>
 	<div class="tab-row">
-		<div class="{currentTab == 'map' ? 'active' : ''}" on:click={() => {currentTab = "map"; reinitMap = [{}];}}>
-			<h2>Map Finder</h2>
-		</div>
-		<div class="{currentTab == 'places' ? 'active' : ''}" on:click={() => {currentTab = "places"}}>
-			<h2>Browse Places ({PLACES_CT})</h2>
-		</div>
-		<div class="{currentTab == 'items' ? 'active' : ''}" on:click={() => {currentTab = "items"}}>
-			<!-- <h2>Browse by volume ({STARTED_VOLUMES.length})</h2> -->
-			<h2>Browse Items ({ITEM_CT})</h2>
-		</div>
+		<button class="{currentTab == 'map' ? 'active' : ''}" on:click={() => {currentTab = "map"; reinitMap = [{}];}}>
+			Map Finder
+		</button>
+		<button class="{currentTab == 'places' ? 'active' : ''}" on:click={() => {currentTab = "places"}}>
+			Browse Places ({PLACES_CT})
+		</button>
+		<button class="{currentTab == 'items' ? 'active' : ''}" on:click={() => {currentTab = "items"}}>
+			Browse Items ({ITEM_CT})
+		</button>
 	</div>
 	<div>
 		<div style="display: {currentTab === 'map' ? 'block' : 'none'}">
@@ -58,10 +57,11 @@ main {
 .tab-row {
 	display:flex;
 	flex-direction: row;
+	justify-content: space-evenly;
 }
-.tab-row div {
+.tab-row button {
 	color: white;
-	width: 50%;
+	width: 30%;
 	cursor: pointer;
 	background-color: #123B4F;
 	margin: 10px;
@@ -69,25 +69,22 @@ main {
 	font-size: 1em;
 	text-align: center;
 }
-.tab-row div h2 {
+.tab-row button {
 	font-size: 1.5em;
 	margin: 10px 0px;
 }
-.tab-row div.active {
+.tab-row button.active {
 	background-color: #2c689c;
 }
-.tab-row div:hover {
+.tab-row button:hover {
 	background-color: #2c689c;
 }
 
 @media (max-width: 640px) {
-	/* main {
-		max-width: none;
-	} */
 	.tab-row {
 		flex-direction: column;
 	}
-	.tab-row div {
+	.tab-row button {
 		width: 100%;
 	}
 }

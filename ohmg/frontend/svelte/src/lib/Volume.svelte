@@ -337,15 +337,16 @@ let modalLyrExtent = "";
 						{#each VOLUME.items.unprepared as document}
 						<div class="document-item">
 							<div><p><a href={document.urls.resource} title={document.title}>Sheet {document.page_str}</a></p></div>
-							<img style="cursor:zoom-in"
-								on:click={() => {
-									modalDocUrl=document.urls.image;
-									modalDocImageSize=document.image_size;
-									getModal('modal-doc-view').open();
-									reinitMap2 = [{}]}}
-								src={document.urls.thumbnail}
-								alt={document.title}
-								>
+							<button class="thumbnail-btn" on:click={() => {
+								modalDocUrl=document.urls.image;
+								modalDocImageSize=document.image_size;
+								getModal('modal-doc-view').open();
+								reinitMap2 = [{}]}} >
+								<img style="cursor:zoom-in"
+									src={document.urls.thumbnail}
+									alt={document.title}
+									/>
+							</button>
 							<div>
 								{#if document.lock_enabled}
 								<ul style="text-align:center">
@@ -383,17 +384,16 @@ let modalLyrExtent = "";
 						{#each VOLUME.items.prepared as document}
 						<div class="document-item">
 							<div><p><a href={document.urls.resource} title={document.title}>{document.title}</a></p></div>
-							<img style="cursor:zoom-in"
-								on:click={() => {
-									// modalDocSrc=document.urls.image;
-									// modalDocTitle=document.title;
-									modalDocUrl=document.urls.image;
-									modalDocImageSize=document.image_size;
-									getModal('modal-doc-view').open();
-									reinitMap2 = [{}]}}
-								src={document.urls.thumbnail}
-								alt={document.title}
-								>
+							<button class="thumbnail-btn" on:click={() => {
+								modalDocUrl=document.urls.image;
+								modalDocImageSize=document.image_size;
+								getModal('modal-doc-view').open();
+								reinitMap2 = [{}]}} >
+								<img style="cursor:zoom-in"
+									src={document.urls.thumbnail}
+									alt={document.title}
+									/>
+							</button>
 							<div>
 								{#if document.lock_enabled}
 								<ul style="text-align:center">
@@ -442,17 +442,17 @@ let modalLyrExtent = "";
 							<!-- <a href={layer.urls.view} target="_blank" title="inspect layer in standalone map" style="cursor:zoom-in">
 								<img src={layer.urls.thumbnail} alt={document.title}>
 							</a> -->
-							<img style="cursor:zoom-in"
-								on:click={() => {
-									// modalDocSrc=document.urls.image;
-									// modalDocTitle=document.title;
-									modalLyrUrl=layer.urls.cog;
-									modalLyrExtent=layer.extent;
-									getModal('modal-lyr-view').open();
-									reinitMap3 = [{}]}}
-								src={layer.urls.thumbnail}
-								alt={layer.title}
-								>
+							<!-- <a  /> -->
+							<button class="thumbnail-btn" on:click={() => {
+								modalLyrUrl=layer.urls.cog;
+								modalLyrExtent=layer.extent;
+								getModal('modal-lyr-view').open();
+								reinitMap3 = [{}]}}>
+								<img style="cursor:zoom-in"
+									src={layer.urls.thumbnail}
+									alt={layer.title}
+									>
+							</button>
 							<div>
 								{#if layer.lock && layer.lock.enabled}
 								<ul style="text-align:center">
@@ -612,10 +612,6 @@ a.no-link {
 	text-decoration:unset;
 }
 
-main { 
-	margin-bottom: 10px;
-}
-
 h2 {
 	font-size: 1.6em;
 }
@@ -653,6 +649,12 @@ button.section-toggle-btn:hover {
 
 button.section-toggle-btn:disabled, button.section-toggle-btn:disabled > a {
 	color: grey;
+}
+
+button.thumbnail-btn {
+	border: none;
+	background: none;
+	cursor: zoom-in;
 }
 
 .section-title-bar {

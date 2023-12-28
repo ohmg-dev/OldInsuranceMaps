@@ -20,11 +20,9 @@ from django.utils.safestring import mark_safe
 from django.utils.functional import cached_property
 from django.urls import reverse
 
-from ohmg.georeference.models.resources import (
+from ohmg.georeference.models import (
     Document,
     Layer,
-)
-from ohmg.georeference.models.sessions import (
     PrepSession,
     GeorefSession,
 )
@@ -62,6 +60,8 @@ def check_trim_feature_cache(in_path, feature):
     else:
         cached_feature = None
         write_trim_feature_cache(feature, feat_cache_path)
+
+    return cached_feature
     
 
 
@@ -408,10 +408,6 @@ class Volume(models.Model):
 
     def get_urls(self):
 
-        # put these search result urls into Volume.serialize()
-        d_facet = f"date__gte={self.year}-01-01T00:00:00.000Z"
-        r_facet = f"region__name__in={self.city}"
-
         loc_item = f"https://loc.gov/item/{self.identifier}",
         try:
             resource_url = self.lc_item['resources'][0]['url']
@@ -528,7 +524,8 @@ class Volume(models.Model):
                     data['sort_order'] = 0
             else:
                 data['sort_order'] = 0
-        except:
+        except Exception as e:
+            logger.warn(e)
             data['sort_order'] = 0
 
         self.layer_lookup[data['slug']] = data
@@ -539,7 +536,7 @@ class Volume(models.Model):
         for v in self.sorted_layers.values():
             sorted_layers += v
 
-        if not data['slug'] in sorted_layers:
+        if data['slug'] not in sorted_layers:
             self.sorted_layers["main"].append(data['slug'])
             self.save(update_fields=["sorted_layers"])
 
@@ -551,9 +548,9 @@ class Volume(models.Model):
         # those attributes have been added to those instances.
 
         layer_extent_polygons = []
-        for l in self.layer_lookup.values():
-            if l['extent']:
-                poly = Polygon.from_bbox(l['extent'])
+        for lyr in self.layer_lookup.values():
+            if lyr['extent']:
+                poly = Polygon.from_bbox(lyr['extent'])
                 layer_extent_polygons.append(poly)
         if len(layer_extent_polygons) > 0:
             multi = MultiPolygon(layer_extent_polygons)
@@ -708,7 +705,7 @@ class Volume(models.Model):
             except Volume.DoesNotExist:
                 Volume().import_volume(volume['identifier'])
 
-    def import_volume(self, identifier, locale=None):
+    def import_volume(self, identifier, locale=None, dry_run=False):
 
         try:
             volume = Volume.objects.get(pk=identifier)
@@ -729,12 +726,13 @@ class Volume(models.Model):
         # add resources to args, not in item (they exist adjacent)
         volume_kwargs["lc_resources"] = response['resources']
 
-        volume = Volume.objects.create(**volume_kwargs)
-        volume.locales.add(locale)
-
-        volume.update_place_counts()
-
-        return volume
+        if dry_run:
+            return volume_kwargs
+        else:
+            volume = Volume.objects.create(**volume_kwargs)
+            volume.locales.add(locale)
+            volume.update_place_counts()
+            return volume
 
 ## This seems to be where the signals need to be connected. See
 ## https://github.com/mradamcox/loc-insurancemaps/issues/75

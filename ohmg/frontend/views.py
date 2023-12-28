@@ -15,7 +15,7 @@ from django.middleware import csrf
 from newsletter.models import Submission, Message
 
 from ohmg.utils import full_reverse
-from ohmg.georeference.models.resources import Layer
+from ohmg.georeference.models import Layer
 
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.loc_insurancemaps.tasks import load_docs_as_task
@@ -194,7 +194,6 @@ class VolumeDetail(View):
         volume_json = volume.serialize(include_session_info=True)
 
         other_vols = []
-        locale_slugs = [i.slug for i in volume.locales.all()]
         for v in Volume.objects.filter(city=volume.city, state=volume.state):
             url = reverse("volume_summary", args=(v.pk, ))
             if v.pk == volume.pk:
@@ -208,10 +207,6 @@ class VolumeDetail(View):
                 item['display'] += f" vol. {v.volume_no}"
             other_vols.append(item)
         other_vols.sort(key=lambda i: i['display'])
-
-        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
-        gs = gs.rstrip("/") + "/"
-        geoserver_ows = f"{gs}ows/"
 
         context_dict = {
             "svelte_params": {
@@ -284,8 +279,8 @@ class MRMEndpointList(View):
     def get(self, request):
 
         output = {}
-        for l in Layer.objects.all().order_by("slug"):
-            output[l.slug] = get_layer_mrm_urls(l.slug)
+        for lyr in Layer.objects.all().order_by("slug"):
+            output[lyr.slug] = get_layer_mrm_urls(lyr.slug)
 
         return JsonResponse(output)
 

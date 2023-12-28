@@ -233,9 +233,10 @@ let reinitMap = [{}]
         </p>
       </section>
       <section>
-        <h4 class="expandable" on:click={() => showPrep = !showPrep}>
-          <ConditionalDoubleChevron down={showPrep} />
-          Preparation</h4>
+        <button class="expandable" on:click={() => showPrep = !showPrep}>
+          <span><ConditionalDoubleChevron down={showPrep} /></span>
+          <h4>Preparation</h4>
+        </button>
         {#if showPrep}
         <div transition:slide>
           <div class="control-btn-group">
@@ -304,10 +305,10 @@ let reinitMap = [{}]
         {/if}
       </section>
       <section>
-        <h4 class="expandable" on:click={() => showGeoreference = !showGeoreference}>
-          <ConditionalDoubleChevron down={showGeoreference} />
-          Georeferencing
-        </h4>
+        <button class="expandable" on:click={() => showGeoreference = !showGeoreference}>
+          <span><ConditionalDoubleChevron down={showGeoreference} /></span>
+          <h4>Georeferencing</h4>
+        </button>
         {#if showGeoreference}
         <div transition:slide>
           <div class="control-btn-group">
@@ -381,10 +382,10 @@ let reinitMap = [{}]
         
       </section>
       <section style="border-bottom:none;">
-        <h4 class="expandable" on:click={() => showDownloads = !showDownloads}>
-          <ConditionalDoubleChevron down={showDownloads} />
-          Downloads & Web Services
-        </h4>
+        <button class="expandable" on:click={() => showDownloads = !showDownloads}>
+          <span><ConditionalDoubleChevron down={showDownloads} /></span>
+          <h4>Downloads & Web Services</h4>
+        </button>
         {#if showDownloads}
         <div transition:slide>
           <!-- super duper messy for now...-->
@@ -470,25 +471,6 @@ main {
   }
 }
 
-
-/* i {
-  width: 20px;
-  text-align: center;
-} */
-
-/* button:enabled {
-  color: white;
-  background-color: #2c689c;
-  border-radius: 4px;
-  border: 1px solid transparent;
-}
-
-button:hover:enabled {
-  color: white;
-  background-color: #204d74;
-  border-color: #193b58;
-} */
-
 .btn-chosen {
   border: 2px solid #2c2c2c;
   border-radius: 4px;
@@ -498,9 +480,20 @@ section {
   border-bottom: 1px dashed rgb(149,149,149);;
 }
 
-section h4.expandable {
+button.expandable {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border: none;
+  background: none;
   color: #2c689c;
   cursor: pointer;
+}
+
+button.expandable > span {
+  font-size: 1.2em;
+  margin-right: 4px;
+  line-height: 1;
 }
 
 .section-body {

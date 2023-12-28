@@ -6,7 +6,7 @@ import logging
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.views import View
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.middleware import csrf
 from django.urls import reverse
 
@@ -14,13 +14,11 @@ from ohmg.georeference.tasks import (
     run_preparation_session,
     run_georeference_session,
 )
-from ohmg.georeference.models.resources import (
+from ohmg.georeference.models import (
     Layer,
     Document,
     ItemBase,
     GCPGroup,
-)
-from ohmg.georeference.models.sessions import (
     PrepSession,
     GeorefSession,
 )
@@ -244,6 +242,7 @@ class GeoreferenceView(View):
             try:
                 ip_val = request.META.get('REMOTE_ADDR', '0.0.0.0.').replace(".", "-")
             except Exception as e:
+                logger.warn(e)
                 ip_val = "000000000"
 
             sesh_val = 0
