@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError # noqa: F401
 
 from ohmg.georeference.mosaicker import make_geotiff, make_mosaicjson
 

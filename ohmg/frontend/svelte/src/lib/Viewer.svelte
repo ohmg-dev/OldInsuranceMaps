@@ -4,13 +4,13 @@ import { slide } from 'svelte/transition';
 
 import IconContext from 'phosphor-svelte/lib/IconContext';
 import { iconProps } from "../js/utils"
-import Icon from 'svelte-icons-pack';
-import FiCrosshair from 'svelte-icons-pack/fi/FiCrosshair';
-import FiX from 'svelte-icons-pack/fi/FiX';
-import FiMoreHorizontal from 'svelte-icons-pack/fi/FiMoreHorizontal';
-import FiMaximize from 'svelte-icons-pack/fi/FiMaximize';
-import FiCode from 'svelte-icons-pack/fi/FiCode';
-import FiLayers from 'svelte-icons-pack/fi/FiLayers';
+
+import CrosshairSimple from "phosphor-svelte/lib/CrosshairSimple";
+import MapTrifold from "phosphor-svelte/lib/MapTrifold";
+import CornersOut from "phosphor-svelte/lib/CornersOut";
+import DotsThreeOutline from "phosphor-svelte/lib/DotsThreeOutline";
+import Stack from "phosphor-svelte/lib/Stack";
+import X from "phosphor-svelte/lib/X";
 
 import sync from 'ol-hashed';
 
@@ -434,7 +434,7 @@ function getCompletedStr(id) {
 <main>
 	<div id="locate-button" class="ol-control ol-unselectable">
 		<button title="Show my location" on:click={locateUser}>
-			<Icon src={FiCrosshair} />
+			<CrosshairSimple />
 		</button>
 	</div>
 	<div id="map">
@@ -445,18 +445,18 @@ function getCompletedStr(id) {
 	<div id="panel-btn">
 		<button class="control-btn" on:click={() => {showPanel=!showPanel}}>
 			{#if showPanel}
-			<Icon src={FiX} />
+			<X />
 			{:else}
-			<Icon src={FiLayers} />
+			<Stack />
 			{/if}
 		</button>
 	</div>
 	{#if showPanel}
 	<div id="layer-panel" style="display:{showPanel == true ? 'flex' : 'none'}">
 		<div class="control-panel-buttons">
-			<button class="control-btn" title="Change basemap" on:click={toggleBasemap}><Icon src={FiCode} /></button>
-			<button class="control-btn" title="{watchId ? 'Disable' : 'Show'} my location" on:click={toggleGPSLocation} style="{watchId ? 'color:blue' : ''}"><Icon src={FiCrosshair} /></button>
-			<button class="control-btn" title="Reset to original extent and settings" on:click={resetExtent}><Icon src={FiMaximize} /></button>
+			<button class="control-btn" title="Change basemap" on:click={toggleBasemap}><MapTrifold /></button>
+			<button class="control-btn" title="{watchId ? 'Disable' : 'Show'} my location" on:click={toggleGPSLocation} style="{watchId ? 'color:blue' : ''}"><CrosshairSimple /></button>
+			<button class="control-btn" title="Reset to original extent and settings" on:click={resetExtent}><CornersOut /></button>
 		</div>
 		<div class="control-panel-title">
 			<h1>{PLACE.display_name}</h1>
@@ -474,7 +474,7 @@ function getCompletedStr(id) {
 						<input type=range disabled={volumeLookup[id].mainLayer ? "" : "disabled"} class="transparency-slider" bind:value={volumeLookup[id].mainLayerO} on:mouseup={syncUrlParams} min=0 max=100>
 					</div>
 					<div>
-						<button style="" on:click={() => toggleDetails(id)}><Icon src={FiMoreHorizontal} size="1.5em" /></button>
+						<button style="" on:click={() => toggleDetails(id)}><DotsThreeOutline /></button>
 					</div>
 				</div>
 				<div id="{id}" class="volume-detail">

@@ -1,9 +1,7 @@
 import os
 import sys
-import subprocess
 from django.conf import settings
-from django.core import management
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand 
 
 
 class Command(BaseCommand):
@@ -52,7 +50,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
 
-        if not 'local-dirs' in options["type"]:
+        if 'local-dirs' not in options["type"]:
             options['type'].append('local-dirs')
 
         self.verbose = options["verbose"]

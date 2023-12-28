@@ -1,38 +1,28 @@
 <script>
 import { slide } from 'svelte/transition';
-import {onMount} from 'svelte';
 
 import IconContext from 'phosphor-svelte/lib/IconContext';
 import { iconProps } from "../js/utils"
-import Icon from 'svelte-icons-pack/Icon.svelte';
-import FiScissors from 'svelte-icons-pack/fi/FiScissors';
-import FiCheck from 'svelte-icons-pack/fi/FiCheck';
-import FiCheckSquare from 'svelte-icons-pack/fi/FiCheckSquare';
-import FiEdit from 'svelte-icons-pack/fi/FiEdit';
-import FiRotateCcw from 'svelte-icons-pack/fi/FiRotateCcw';
-import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
-import FaSolidMapPin from 'svelte-icons-pack/fa/FaSolidMapPin';
-import FiTrash2 from 'svelte-icons-pack/fi/FiTrash2';
+
+import Scissors from "phosphor-svelte/lib/Scissors";
+import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
+import ArrowCounterClockwise from "phosphor-svelte/lib/ArrowCounterClockwise";
+import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
+import MapPin from "phosphor-svelte/lib/MapPin";
+import Trash from "phosphor-svelte/lib/Trash";
 
 import 'ol/ol.css';
-import Map from 'ol/Map';
-import View from 'ol/View';
-import Feature from 'ol/Feature';
 
 import {getCenter} from 'ol/extent';
-
-import {transformExtent, Projection} from 'ol/proj';
-
-import {ImageStatic, XYZ} from 'ol/source';
-import {Tile as TileLayer, Image as ImageLayer} from 'ol/layer';
 
 import TitleBar from './components/TitleBar.svelte';
 import ConditionalDoubleChevron from './components/ConditionalDoubleChevron.svelte';
 import SessionList from './components/SessionList.svelte'
+import SingleLayerViewer from './components/SingleLayerViewer.svelte';
+import SingleDocumentViewer from './components/SingleDocumentViewer.svelte';
 
 import {
   makeTitilerXYZUrl,
-  makeBasemaps,
 } from '../js/utils';
 
 export let CSRFTOKEN;
@@ -143,80 +133,6 @@ $: {
   }
 }
 
-function DocViewer () {
-
-  const targetElement = document.getElementById('preview-map');
-
-  // items needed by layers and map
-  // set the extent and projection with 0, 0 at the **top left** of the image
-  const docExtent = [0, -RESOURCE.image_size[1], RESOURCE.image_size[0], 0];
-  const projection = new Projection({
-    units: 'pixels',
-    extent: docExtent,
-  });
-
-  // create layers
-  const resLayer = new ImageLayer({
-    source: new ImageStatic({
-      url: RESOURCE.urls.image,
-      projection: projection,
-      imageExtent: docExtent,
-    }),
-  })
-
-  // create map
-  const map = new Map({
-    target: targetElement,
-    layers: [resLayer],
-    view: new View({
-      projection: projection,
-      zoom: 1,
-      maxZoom: 8,
-    })
-  });
-
-  map.getView().fit(docExtent, {padding: [10, 10, 10, 10]});
-
-  this.map = map;
-}
-
-function LayerViewer () {
-
-  const targetElement = document.getElementById('preview-map');
-
-  const basemaps = makeBasemaps(MAPBOX_API_KEY);
-  const extent = transformExtent(RESOURCE.extent, "EPSG:4326", "EPSG:3857");
-
-  const resLayer = new TileLayer({
-    source: new XYZ({
-      url: makeTitilerXYZUrl({
-        host: TITILER_HOST,
-        url: RESOURCE.urls.cog,
-      }),
-    }),
-    extent: extent
-  });
-
-  // create map
-  const map = new Map({
-    target: targetElement,
-    layers: [basemaps[0].layer, resLayer],
-  });
-
-  map.getView().fit(extent);
-
-  this.map = map;
-}
-
-let viewer;
-onMount(() => {
-  if (RESOURCE.type == "document") {
-    // viewer = new DocViewer();
-  } else if (RESOURCE.type == "layer") {
-    viewer = new LayerViewer();
-  }
-})
-
 // needs to be reimplented via API
 function refresh() {
   fetch(REFRESH_URL)
@@ -295,19 +211,21 @@ const iconLinks = [
     url: VOLUME.urls.summary,
   }
 ]
-
+let reinitMap = [{}]
 </script>
 
 <IconContext values={iconProps}>
 <main>
   <TitleBar TITLE={RESOURCE.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks} />
   <div class="content" style="display:flex;">
-    <div id="preview-map">
+    <div id="map-panel">
+      {#each reinitMap as key (key)}
       {#if RESOURCE.type == "document"}
-        <a href={RESOURCE.urls.image} title={RESOURCE.title}>
-          <img style="width: 100%" src={RESOURCE.urls.image} alt={RESOURCE.title} />
-        </a>
+        <SingleDocumentViewer  LAYER_URL={RESOURCE.urls.image} IMAGE_SIZE={RESOURCE.image_size} />
+      {:else}
+        <SingleLayerViewer  LAYER_URL={RESOURCE.urls.cog} EXTENT={RESOURCE.extent} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
       {/if}
+      {/each}
     </div>
     <div id="sidebar">
       <section >
@@ -315,9 +233,10 @@ const iconLinks = [
         </p>
       </section>
       <section>
-        <h4 class="expandable" on:click={() => showPrep = !showPrep}>
-          <ConditionalDoubleChevron down={showPrep} />
-          Preparation</h4>
+        <button class="expandable" on:click={() => showPrep = !showPrep}>
+          <span><ConditionalDoubleChevron down={showPrep} /></span>
+          <h4>Preparation</h4>
+        </button>
         {#if showPrep}
         <div transition:slide>
           <div class="control-btn-group">
@@ -326,14 +245,14 @@ const iconLinks = [
               disabled={!splitBtnEnabled}
               onclick="window.location.href='{RESOURCE.urls.split}'"
               class="control-btn{splitNeeded == true ? ' btn-chosen': ''}">
-              <Icon src={FiScissors} />
+              <Scissors />
             </button>
             <button
               title="This document does not need to be split"
               disabled={!noSplitBtnEnabled}
               on:click={() => {setSplit("no_split")}}
               class="control-btn{splitNeeded == false ? ' btn-chosen': ''}">
-              <Icon src={FiCheckSquare} />
+              <CheckSquareOffset />
             </button>
             {#if USER_AUTHENTICATED}
             <button 
@@ -341,7 +260,7 @@ const iconLinks = [
               title={undoBtnTitle}
               disabled={!undoBtnEnabled}
               on:click={() => {setSplit("undo")}}>
-              <Icon src={FiRotateCcw} />
+              <ArrowCounterClockwise />
             </button>
             {/if}
           </div>
@@ -386,10 +305,10 @@ const iconLinks = [
         {/if}
       </section>
       <section>
-        <h4 class="expandable" on:click={() => showGeoreference = !showGeoreference}>
-          <ConditionalDoubleChevron down={showGeoreference} />
-          Georeferencing
-        </h4>
+        <button class="expandable" on:click={() => showGeoreference = !showGeoreference}>
+          <span><ConditionalDoubleChevron down={showGeoreference} /></span>
+          <h4>Georeferencing</h4>
+        </button>
         {#if showGeoreference}
         <div transition:slide>
           <div class="control-btn-group">
@@ -398,7 +317,7 @@ const iconLinks = [
               title={georeferenceBtnTitle}
               disabled={!georeferenceBtnEnable}
               onclick="window.location.href='{RESOURCE.urls.georeference}'">
-              <Icon src={FaSolidMapPin} />{georeferenceBtnTitle}
+              <MapPin />{georeferenceBtnTitle}
             </button>
             {#if USER_STAFF}
             <button
@@ -406,7 +325,7 @@ const iconLinks = [
               title="Remove all georeferencing for this resource"
               disabled={RESOURCE.status != "georeferenced"}
               on:click={unGeoreference}>
-              <Icon src={FiTrash2} />
+              <Trash />
             </button>
             {/if}
           </div>
@@ -463,10 +382,10 @@ const iconLinks = [
         
       </section>
       <section style="border-bottom:none;">
-        <h4 class="expandable" on:click={() => showDownloads = !showDownloads}>
-          <ConditionalDoubleChevron down={showDownloads} />
-          Downloads & Web Services
-        </h4>
+        <button class="expandable" on:click={() => showDownloads = !showDownloads}>
+          <span><ConditionalDoubleChevron down={showDownloads} /></span>
+          <h4>Downloads & Web Services</h4>
+        </button>
         {#if showDownloads}
         <div transition:slide>
           <!-- super duper messy for now...-->
@@ -495,7 +414,7 @@ const iconLinks = [
               <a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
               <a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
               {#if ohmUrl}
-              <br><a href="{ohmUrl}" alt="View in OHM iD editor" target="_blank">View in Open Historical Map iD editor<Icon src={FiExternalLink} /></a> (direct link).
+              <br><a href="{ohmUrl}" alt="View in OHM iD editor" target="_blank">View in Open Historical Map iD editor<ArrowSquareOut /></a> (direct link).
               {/if}
             </p>
           {/if}
@@ -505,14 +424,12 @@ const iconLinks = [
     </div>
   </div>
   <div>
-    
-  </div>
-  <div>
     <h3>Session History</h3>
     <SessionList OHMG_API_KEY={OHMG_API_KEY} SESSION_API_URL={SESSION_API_URL} FILTER_PARAM={filterParam} showResource={false}/>
   </div>
 </main>
 </IconContext>
+
 <style>
 
 main {
@@ -536,47 +453,23 @@ main {
   padding: 10px;
 }
 
-#preview-map {
-  width: 60%;
-  min-height: 500px;
-}
-
-#preview-map img {
-  /* border-radius: 4px; */
-  box-shadow: gray 0px 0px 5px;
+#map-panel {
+  width: 100%;
+  height: 500px;
 }
 
 @media screen and (max-width: 768px){
   .content {
     flex-direction: column;
   }
-  #preview-map {
-    width: 100%;
+  main {
+    padding: 0;
   }
   #sidebar {
     width: 100%;
     margin-left: 0px;
   }
 }
-
-
-/* i {
-  width: 20px;
-  text-align: center;
-} */
-
-/* button:enabled {
-  color: white;
-  background-color: #2c689c;
-  border-radius: 4px;
-  border: 1px solid transparent;
-}
-
-button:hover:enabled {
-  color: white;
-  background-color: #204d74;
-  border-color: #193b58;
-} */
 
 .btn-chosen {
   border: 2px solid #2c2c2c;
@@ -587,9 +480,20 @@ section {
   border-bottom: 1px dashed rgb(149,149,149);;
 }
 
-section h4.expandable {
+button.expandable {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border: none;
+  background: none;
   color: #2c689c;
   cursor: pointer;
+}
+
+button.expandable > span {
+  font-size: 1.2em;
+  margin-right: 4px;
+  line-height: 1;
 }
 
 .section-body {

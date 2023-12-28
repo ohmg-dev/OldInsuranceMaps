@@ -30,7 +30,6 @@
 	font-size: 1.2em;
 	border-top: 2px solid grey;
 	padding: 5px;
-	width: 100%;
 	background: lightgray;
 }
 
@@ -52,12 +51,17 @@
 	font-size: .9em;
 }
 
-.transparency-toggle {
+button.transparency-toggle {
+	display: flex;
+	border: none;
+	background: none;
+}
+button.transparency-toggle > i {
 	display: inline-block;
 	cursor: pointer;
 	color: #2c689c;
 }
-.transparency-toggle:hover {
+button.transparency-toggle:hover > i {
 	color: #1b4060;
 }
 

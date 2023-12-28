@@ -4,16 +4,13 @@ import { slide } from 'svelte/transition';
 import IconContext from 'phosphor-svelte/lib/IconContext';
 import { iconProps } from "../js/utils"
 
-import Icon from 'svelte-icons-pack/Icon.svelte';
-import FiTool from 'svelte-icons-pack/fi/FiTool';
-import FiScissors from 'svelte-icons-pack/fi/FiScissors';
-import FiRefreshCcw from 'svelte-icons-pack/fi/FiRefreshCcw';
-import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
-import FiCrop from 'svelte-icons-pack/fi/FiCrop';
-import FiHome from 'svelte-icons-pack/fi/FiHome';
-import FiTrash from 'svelte-icons-pack/fi/FiTrash';
-import FiCheck from 'svelte-icons-pack/fi/FiCheck';
-import FiX from 'svelte-icons-pack/fi/FiX';
+import X from "phosphor-svelte/lib/X";
+import Check from "phosphor-svelte/lib/Check";
+import CropIcon from "phosphor-svelte/lib/Crop";
+import Wrench from "phosphor-svelte/lib/Wrench";
+import ArrowsClockwise from "phosphor-svelte/lib/ArrowsClockwise";
+import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
+import Trash from "phosphor-svelte/lib/Trash";
 
 import {getCenter} from 'ol/extent';
 
@@ -28,6 +25,9 @@ import Modal, {getModal} from './components/Modal.svelte';
 import InfoButton from './components/buttons/InfoButton.svelte';
 
 import {makeTitilerXYZUrl} from '../js/utils';
+
+import SingleLayerViewer from './components/SingleLayerViewer.svelte';
+import SingleDocumentViewer from './components/SingleDocumentViewer.svelte';
 
 export let VOLUME;
 export let OTHER_VOLUMES;
@@ -54,9 +54,6 @@ $: showGeoreferenced = hash == 'georeferenced';
 $: showNonmaps = hash == 'nonmaps';
 $: showMultimask = hash == 'multimask';
 $: showDownload = hash == 'download';
-
-let modalDocSrc;
-let modalDocTitle;
 
 let refreshingLookups = false;
 
@@ -182,13 +179,28 @@ function setHash(newHash) {
 	}
 }
 
+let reinitMap2 = [{}]
+let modalDocUrl = "";
+let modalDocImageSize = "";
+
+let reinitMap3 = [{}]
+let modalLyrUrl = "";
+let modalLyrExtent = "";
+
 </script>
 <IconContext values={iconProps}>
-<Modal id="modal-doc-view">
-	<img src={modalDocSrc} alt={modalDocTitle}>
+<Modal id="modal-doc-view" full={true}>
+	{#each reinitMap2 as key (key)}
+	<SingleDocumentViewer LAYER_URL={modalDocUrl} IMAGE_SIZE={modalDocImageSize} />
+	{/each}
+</Modal>
+<Modal id="modal-lyr-view" full={true}>
+	{#each reinitMap3 as key (key)}
+	<SingleLayerViewer LAYER_URL={modalLyrUrl} EXTENT={modalLyrExtent} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
+	{/each}
 </Modal>
 <Modal id="modal-preview-map">
-	<p>The <strong>Mosaic Preview</strong> shows progress toward a full mosaic of this item's content&mdash;as documents are georeferenced, they will automatically appear here. You can also view this mosaic alongside all other mosaics for this locale: <a href={VOLUME.urls.viewer} target="_blank" title={"Open viewer for " + VOLUME.locale.display_name}>{VOLUME.locale.display_name} <Icon src={FiExternalLink} /></a></p>
+	<p>The <strong>Mosaic Preview</strong> shows progress toward a full mosaic of this item's content&mdash;as documents are georeferenced, they will automatically appear here. You can also view this mosaic alongside all other mosaics for this locale: <a href={VOLUME.urls.viewer} target="_blank" title={"Open viewer for " + VOLUME.locale.display_name}>{VOLUME.locale.display_name} <ArrowSquareOut /></a></p>
 </Modal>
 <Modal id="modal-georeference-overview">
 	<p>The <strong>Georeferencing Overview</strong> provides a per-document summary and access point to the entire georeferencing process for this item's content.</p>
@@ -206,10 +218,10 @@ function setHash(newHash) {
 	<p>The <strong>MultiMask</strong> is a mechanism for trimming the margins from every layer in a way that guarantees a seamless mosaic across this item's content.<p>
 	<h4>How to create a MultiMask</h4>
 	<ul>
-		<li>Use <Icon src={FiCrop} /> to start a mask for a particular layer.</li>
-		<li>Use <Icon src={FiTrash} /> to delete an existing mask.</li>
-		<li>Use <Icon src={FiCheck} /> to save your work (do this often!).</li>
-		<li>Use <Icon src={FiX} /> to discard all changes since the last save.</li>
+		<li>Use <CropIcon /> to start a mask for a particular layer.</li>
+		<li>Use <Trash /> to delete an existing mask.</li>
+		<li>Use <Check /> to save your work (do this often!).</li>
+		<li>Use <X /> to discard all changes since the last save.</li>
 	</ul>
 	<h4>Important Notes</h4>
 	<ul>
@@ -288,11 +300,11 @@ function setHash(newHash) {
 				<div class="control-btn-group">
 					{#if USER_TYPE != "anonymous"}
 					<button class="control-btn" title="Repair Summary (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
-						<Icon src={FiTool} />
+						<Wrench />
 					</button>
 					{/if}
 					<button class="control-btn" title="Refresh Summary" on:click={() => { postOperation("refresh") }}>
-						<Icon src={FiRefreshCcw} />
+						<ArrowsClockwise />
 					</button>
 				</div>
 			</div>
@@ -325,14 +337,16 @@ function setHash(newHash) {
 						{#each VOLUME.items.unprepared as document}
 						<div class="document-item">
 							<div><p><a href={document.urls.resource} title={document.title}>Sheet {document.page_str}</a></p></div>
-							<img style="cursor:zoom-in"
-								on:click={() => {
-									modalDocSrc=document.urls.image;
-									modalDocTitle=document.title;
-									getModal('modal-doc-view').open()}}
-								src={document.urls.thumbnail}
-								alt={document.title}
-								>
+							<button class="thumbnail-btn" on:click={() => {
+								modalDocUrl=document.urls.image;
+								modalDocImageSize=document.image_size;
+								getModal('modal-doc-view').open();
+								reinitMap2 = [{}]}} >
+								<img style="cursor:zoom-in"
+									src={document.urls.thumbnail}
+									alt={document.title}
+									/>
+							</button>
 							<div>
 								{#if document.lock_enabled}
 								<ul style="text-align:center">
@@ -370,14 +384,16 @@ function setHash(newHash) {
 						{#each VOLUME.items.prepared as document}
 						<div class="document-item">
 							<div><p><a href={document.urls.resource} title={document.title}>{document.title}</a></p></div>
-							<img style="cursor:zoom-in"
-								on:click={() => {
-									modalDocSrc=document.urls.image;
-									modalDocTitle=document.title;
-									getModal('modal-doc-view').open()}}
-								src={document.urls.thumbnail}
-								alt={document.title}
-								>
+							<button class="thumbnail-btn" on:click={() => {
+								modalDocUrl=document.urls.image;
+								modalDocImageSize=document.image_size;
+								getModal('modal-doc-view').open();
+								reinitMap2 = [{}]}} >
+								<img style="cursor:zoom-in"
+									src={document.urls.thumbnail}
+									alt={document.title}
+									/>
+							</button>
 							<div>
 								{#if document.lock_enabled}
 								<ul style="text-align:center">
@@ -423,9 +439,20 @@ function setHash(newHash) {
 						{#each VOLUME.items.layers as layer}
 						<div class="document-item">
 							<div><p><a href={layer.urls.resource} title={layer.title}>{layer.title}</a></p></div>
-							<a href={layer.urls.view} target="_blank" title="inspect layer in standalone map" style="cursor:zoom-in">
+							<!-- <a href={layer.urls.view} target="_blank" title="inspect layer in standalone map" style="cursor:zoom-in">
 								<img src={layer.urls.thumbnail} alt={document.title}>
-							</a>
+							</a> -->
+							<!-- <a  /> -->
+							<button class="thumbnail-btn" on:click={() => {
+								modalLyrUrl=layer.urls.cog;
+								modalLyrExtent=layer.extent;
+								getModal('modal-lyr-view').open();
+								reinitMap3 = [{}]}}>
+								<img style="cursor:zoom-in"
+									src={layer.urls.thumbnail}
+									alt={layer.title}
+									>
+							</button>
 							<div>
 								{#if layer.lock && layer.lock.enabled}
 								<ul style="text-align:center">
@@ -540,7 +567,7 @@ function setHash(newHash) {
 					<a href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/">Mapbox/MapLibre GL JS</a>,
 					<a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
 					<a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
-					<br>Open in the <a href="{ohmUrl}" alt="Open mosaic in OHM Editor" target="_blank">Open Historical Map editor <Icon src={FiExternalLink} /></a>.
+					<br>Open in the <a href="{ohmUrl}" alt="Open mosaic in OHM Editor" target="_blank">Open Historical Map editor <ArrowSquareOut /></a>.
 				</p>
 				{/if}
 			</section>
@@ -569,7 +596,7 @@ function setHash(newHash) {
 				{#each VOLUME.sessions.georef_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.georef_contributors.length-1}, {/if}{/each}{/if}
 			</p>
 			<p><strong>Credit Line: Library of Congress, Geography and Map Division, Sanborn Maps Collection.</strong>
-			<a href="{VOLUME.urls.loc_resource}" target="_blank">View item on loc.gov <Icon src={FiExternalLink} /></a></p>
+			<a href="{VOLUME.urls.loc_resource}" target="_blank">View item on loc.gov<ArrowSquareOut /></a></p>
 		</div>
 	</section>
 </main>
@@ -583,10 +610,6 @@ function setHash(newHash) {
 a.no-link {
 	color:unset;
 	text-decoration:unset;
-}
-
-main { 
-	margin-bottom: 10px;
 }
 
 h2 {
@@ -626,6 +649,12 @@ button.section-toggle-btn:hover {
 
 button.section-toggle-btn:disabled, button.section-toggle-btn:disabled > a {
 	color: grey;
+}
+
+button.thumbnail-btn {
+	border: none;
+	background: none;
+	cursor: zoom-in;
 }
 
 .section-title-bar {

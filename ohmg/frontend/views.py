@@ -12,8 +12,10 @@ from django.urls import reverse
 from django.views import View
 from django.middleware import csrf
 
+from newsletter.models import Submission, Message
+
 from ohmg.utils import full_reverse
-from ohmg.georeference.models.resources import Layer
+from ohmg.georeference.models import Layer
 
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.loc_insurancemaps.tasks import load_docs_as_task
@@ -156,23 +158,30 @@ class VolumeTrim(View):
         multimask = body.get('multiMask')
 
         # data validation
+        errors = []
         if multimask is not None and isinstance(multimask, dict):
             for k, v in multimask.items():
                 try:
                     geom_str = json.dumps(v['geometry'])
-                    GEOSGeometry(geom_str)
+                    g = GEOSGeometry(geom_str)
+                    if not g.valid:
+                        logger.error(f"{volumeid} | invalid mask: {k} - {g.valid_reason}")
+                        errors.append((k, g.valid_reason))
                 except Exception as e:
                     logger.error(f"{volumeid} | improper GeoJSON in multimask: {k}")
-                    return JsonResponse({"status": "error"})
-
+                    errors.append((k, e))
+        if errors:
+            response = {
+                "status": "error",
+                "errors": errors,
+            }
+        else:
             volume.multimask = multimask
             volume.save()
-        
-        volume_json = volume.serialize()
-        response = {
-            "status": "ok",
-            "volume_json": volume_json
-        }
+            response = {
+                "status": "ok",
+                "volume_json": volume.serialize()
+            }
 
         return JsonResponse(response)
 
@@ -185,7 +194,7 @@ class VolumeDetail(View):
         volume_json = volume.serialize(include_session_info=True)
 
         other_vols = []
-        for v in Volume.objects.filter(city=volume.city):
+        for v in Volume.objects.filter(city=volume.city, state=volume.state):
             url = reverse("volume_summary", args=(v.pk, ))
             if v.pk == volume.pk:
                 url = None
@@ -198,10 +207,6 @@ class VolumeDetail(View):
                 item['display'] += f" vol. {v.volume_no}"
             other_vols.append(item)
         other_vols.sort(key=lambda i: i['display'])
-
-        gs = os.getenv("GEOSERVER_LOCATION", "http://localhost:8080/geoserver/")
-        gs = gs.rstrip("/") + "/"
-        geoserver_ows = f"{gs}ows/"
 
         context_dict = {
             "svelte_params": {
@@ -274,8 +279,8 @@ class MRMEndpointList(View):
     def get(self, request):
 
         output = {}
-        for l in Layer.objects.all().order_by("slug"):
-            output[l.slug] = get_layer_mrm_urls(l.slug)
+        for lyr in Layer.objects.all().order_by("slug"):
+            output[lyr.slug] = get_layer_mrm_urls(lyr.slug)
 
         return JsonResponse(output)
 
@@ -322,3 +327,46 @@ class MRMEndpointLayer(View):
 
         else:
             raise Http404
+
+class NewsList(View):
+
+    def get(self, request):
+
+        submissions = Submission.objects.filter(publish=True).order_by("-publish_date")
+        for s in submissions:
+            ## consider it a "newsletter" post if it's been sent to more than one subscription
+            ## the assumption being that a "blog" post will be sent to only the admin email address.
+            if s.subscriptions.all().count() > 1:
+                s.is_newsletter = True
+            else:
+                s.is_newsletter = False
+
+        context_dict = {
+            "submissions": submissions
+        }
+
+        return render(
+            request,
+            "news/list.html",
+            context=context_dict
+        )
+
+class NewsArticle(View):
+
+    def get(self, request, slug):
+
+        message = get_object_or_404(Message, slug=slug)
+        submissions = Submission.objects.filter(message=message).order_by("-publish_date")
+        if not submissions.exists():
+            return Http404
+
+        context_dict = {
+            "message": message,
+            "publish_date": submissions[0].publish_date,
+        }
+
+        return render(
+            request,
+            "news/article.html",
+            context=context_dict
+        )

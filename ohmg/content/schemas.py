@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from django.urls import reverse
 from ninja import (
@@ -59,7 +59,7 @@ class ItemListSchema(Schema):
     stats: dict
     loaded_by: Optional[UserSchema]
     load_date: str
-    volume_no: int = None
+    volume_no: str = None
     urls: dict
     mj_exists: bool
     gt_exists: bool

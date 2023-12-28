@@ -1,14 +1,13 @@
 <script>
 import {onMount} from 'svelte';
 
-import Icon from 'svelte-icons-pack/Icon.svelte';
-import FiMaximize from 'svelte-icons-pack/fi/FiMaximize';
-import FiMaximize2 from 'svelte-icons-pack/fi/FiMaximize2';
-import FiMinimize2 from 'svelte-icons-pack/fi/FiMinimize2';
-import FiHome from 'svelte-icons-pack/fi/FiHome';
-import FiKey from 'svelte-icons-pack/fi/FiKey';
-import FiCode from 'svelte-icons-pack/fi/FiCode';
-import FiInfo from 'svelte-icons-pack/fi/FiInfo';
+import IconContext from 'phosphor-svelte/lib/IconContext';
+import { iconProps } from "../../js/utils"
+import CornersOut from "phosphor-svelte/lib/CornersOut";
+import ArrowsInSimple from "phosphor-svelte/lib/ArrowsInSimple";
+import ArrowsOutSimple from "phosphor-svelte/lib/ArrowsOutSimple";
+import Article from "phosphor-svelte/lib/Article";
+import MapTrifold from "phosphor-svelte/lib/MapTrifold";
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -172,6 +171,7 @@ let inFullscreen = false;
 <Modal id="modal-map-key">
 	<img src={keyImgUrl} alt={keyImgCaption}>
 </Modal>
+<IconContext values={iconProps}>
 <div id="map-container" class="map-container"  style="display:flex; justify-content: center; height:550px">
 	<div id="map-panel">
 		<div id="map" style="height: 100%;"></div>
@@ -179,16 +179,16 @@ let inFullscreen = false;
 	<div id="layer-panel" style="display: flex;">
 		<div class="layer-section-header" style="border-top-width: 1px;">
 			<button class="control-btn" title="Go to full extent" on:click={setMapExtent}>
-				<Icon src={FiMaximize} />
+				<CornersOut />
 			</button>
 			<button class="control-btn" on:click={() => {getModal('modal-map-key').open()}}>
-				<Icon src={FiKey} />
+				<Article />
 			</button>
 			<button class="control-btn" title={inFullscreen ? "Exit fullscreen" : "Enter fullscreen"} on:click={() => {inFullscreen = toggleFullscreen('map-container')}}>
 				{#if inFullscreen}
-				<Icon src={FiMinimize2} />
+				<ArrowsInSimple />
 				{:else}
-				<Icon src={FiMaximize2} />
+				<ArrowsOutSimple />
 				{/if}
 			</button>
 		</div>
@@ -197,7 +197,7 @@ let inFullscreen = false;
 			<div class="layer-section-header">
 				<span>Basemap</span>
 				<button class="control-btn" title="Toggle basemap" on:click={toggleBasemap}>
-					<Icon src={FiCode} />
+					<MapTrifold />
 				</button>
 			</div>
 			<div class="layer-section-subheader">
@@ -206,7 +206,9 @@ let inFullscreen = false;
 			
 			<div class="layer-section-header">
 				<span>Key Map</span>
-				<i class="transparency-toggle {getClass(kGV)}" on:click={() => {kGV = toggleTransparency(kGV)}}></i>
+				<button class="transparency-toggle" on:click={() => {kGV = toggleTransparency(kGV)}}>
+					<i class="{getClass(kGV)}" />
+				</button>
 			</div>
 			<div class="layer-section-subheader">
 				{#if VOLUME.sorted_layers.key_map.length == 0}
@@ -217,7 +219,9 @@ let inFullscreen = false;
 			</div>
 			<div class="layer-section-header">
 				<span>Main Layers</span>
-				<i class="transparency-toggle {getClass(mGV)}" on:click={() => {mGV = toggleTransparency(mGV)}}></i>
+				<button class="transparency-toggle" on:click={() => {mGV = toggleTransparency(mGV)}}>
+					<i class="{getClass(mGV)}" />
+				</button>
 			</div>
 			<div class="layer-section-subheader">
 				{#if VOLUME.sorted_layers.main.length == 0}
@@ -229,3 +233,4 @@ let inFullscreen = false;
 		</div>
 	</div>
 </div>
+</IconContext>

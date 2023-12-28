@@ -24,48 +24,23 @@
 
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
 
-    <! -- analytics with plausible.io -->
+    <!-- analytics with plausible.io -->
     <script defer data-domain="oldinsurancemaps.net" src="/js/script.js"></script>
 
     {% block head %}
-
-      <link href="{% static "css/base.css" %}" rel="stylesheet"/>
-
-      <link rel="preconnect" href="https://fonts.googleapis.com">
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-      <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
-      
-      <link href="{{ STATIC_URL }}css/site_base.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
-      <link href="{{ STATIC_URL }}css/icons.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
+    
+    <link href="{{ STATIC_URL }}css/site_base.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
+    <link href="{{ STATIC_URL }}css/icons.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
     {% endblock %}
-    <!--[if IE]>
-      <script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-      <style>
-        #ieflag{
-            display: block !important;
-            height: 150px;
-            text-align: center;
-        }
-      </style>
-    <![endif]-->
 
     <script>
         var siteUrl = '{{ SITEURL }}'.replace(/\/?$/, '/');
         var staticUrl = '{% static "" %}';
     </script>
 
-    <!-- RTL styles -->
-    {% get_current_language_bidi as LANGUAGE_BIDI %}
-    {% if LANGUAGE_BIDI %}
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-rtl/3.3.4/css/bootstrap-rtl.min.css">
-        {% if DEBUG_STATIC %}
-          <link rel="stylesheet" type="text/css" href="{% static "geonode/css/geonode-rtl.css" %}">
-        {% else %}
-          <link rel="stylesheet" type="text/css" href="{% static "geonode/css/geonode-rtl.min.css" %}">
-        {% endif %}
-    {% endif %}
-
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
   </head>
 
   <body class="{% block body_class %}{% endblock %}">
@@ -98,20 +73,11 @@
       </div>
     </header> -->
     
-    <div class="alert alert-danger alert-dismissible" role="alert" id="ieflag" style="display:none">
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-      <h1>{% trans "You are using an outdated browser that is not supported." %}</h1>
-      <p>{% trans "Please use a <strong>modern browser</strong> like Mozilla Firefox, Google Chrome or Safari." %}</p>
-    </div>
-    
     {% block middle %}
-    <div class="container background-fg" style="min-height: calc(100vh - 250px);">
-      <!-- <div class="row"> -->
+    <div class="container background-fg" style="min-height:calc(100vh - 250px)" >
         {% include "_status_message.html" %}
         {% include "_announcements.html" %}
         {% include "_messages.html" %}
-      <!-- </div>
-      <div class="row"> -->
         {% block body_outer %}
           <!--content is the block used by the allauth templates -->
           {% block content %}{% endblock %}
@@ -119,7 +85,6 @@
           {% block sidebar %}{% endblock sidebar %}
         {% endblock body_outer %}
         {% block main_content %}{% endblock %}
-      <!-- </div> -->
     </div>
     {% endblock middle %}
 
@@ -128,7 +93,6 @@
 
   {% block monitoring %}
   {% endblock %}
-
 
   {% block footer %}
   {{ navbar_params|json_script:'footer-props'}}

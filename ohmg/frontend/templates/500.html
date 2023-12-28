@@ -9,48 +9,34 @@
     <meta Http-Equiv="Expires" Content="0">
     <meta Http-Equiv="Pragma-directive: no-cache">
     <meta Http-Equiv="Cache-directive: no-cache">
-
-    <title>LaHMG</title>
+    
+    <!-- title is the block used in my own templates (for now) -->
+    <!-- head_title is the block used by the allauth templates -->
+    <title>
+      OldInsuranceMaps.net
+      
+    </title>
     <meta property="og:description" content="A crowdsourcing site for creating and viewing georeferenced mosaics of historical Sanborn fire insurance maps" />
 
     <link rel="shortcut icon" href="/static/favicon.ico" />
-    <link rel="preload" as="style" href="/static/geonode/css/font-awesome.min.css" />
 
-    <! -- analytics with plausible.io -->
+    <!-- analytics with plausible.io -->
     <script defer data-domain="oldinsurancemaps.net" src="/js/script.js"></script>
 
     
-
-      <link href="/static/lib/css/assets.min.css" rel="stylesheet"/>
-      <link href="/static/geonode/css/base.css" rel="stylesheet"/>
-
-      <link rel="preconnect" href="https://fonts.googleapis.com">
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-      <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
-      
-      <link href="/static/css/site_base.css" rel="stylesheet"/>
-      <link href="/static/css/icons.css" rel="stylesheet"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
     
-    <!--[if IE]>
-      <script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-      <style>
-        #ieflag{
-            display: block !important;
-            height: 150px;
-            text-align: center;
-        }
-      </style>
-    <![endif]-->
-    <link rel="search" type="application/opensearchdescription+xml" href="http://localhost:8000/catalogue/opensearch" title="GeoNode Search"/>
+    <link href="/static/css/site_base.css?v=JOF36sA8lB4" rel="stylesheet"/>
+    <link href="/static/css/icons.css?v=JOF36sA8lB4" rel="stylesheet"/>
+    
 
     <script>
-        var siteUrl = 'http://localhost:8000/'.replace(/\/?$/, '/');
+        var siteUrl = ''.replace(/\/?$/, '/');
         var staticUrl = '/static/';
     </script>
 
-    <!-- RTL styles -->
-    
-    
   </head>
 
   <body class="">
@@ -58,58 +44,36 @@
     <div class='lmask'></div>
     <!-- Navbar -->
     
-
+    
+    <script id="navbar-props" type="application/json">{"USER": {"is_authenticated": false}}</script>
     
 
+<link href="/static/Navbar.css?v=JOF36sA8lB4" rel="stylesheet">
+<div id="navbar-target" style="width:100%;"></div>
+<script defer src="/static/Navbar.js?v=JOF36sA8lB4"></script>
 
-
-    
-    <link href="/static/Navbar.css" rel="stylesheet">
-
-
-<div id="navbar-target"></div>
-
-<script id="navbar-props" type="application/json">{"USER": {"is_authenticated": false}}</script>
-<script type="text/javascript" src="/static/Navbar.js"></script>
-
-
-
-    <div class="alert alert-danger alert-dismissible" role="alert" id="ieflag" style="display:none">
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-      <h1>You are using an outdated browser that is not supported.</h1>
-      <p>Please use a <strong>modern browser</strong> like Mozilla Firefox, Google Chrome or Safari.</p>
-    </div>
-
-    
-    <div class="container background-fg" style="min-height: calc(100vh - 250px);">
-      
-<div class="alert alert-warn" id="status-message" hidden="hidden">
-    <a class="close" onclick="$('.alert').hide()">×</a>
-    <strong><p id="status-message-text">Placeholder for status-message</p></strong>
-    <p id="status-message-text-body">Placeholder for status-message-body</p>
-</div>
-
-      
-
-
-
-
-      
-
-      
+    <!-- Initial work on a mini.css-based navbar. needs more work though...-->
+    <!-- <header class="sticky" style="display:flex; justify-content:space-between; align-items:center; overflow-x:auto;">
+      <div>
+        <a href="/" class="logo"><img src="/static/img/colored-full-linework.png" style="height:45px"/></a>
+        <a href="/" class="button">Home</a>
+        <a href="/browse" title="Browse" class="button">Browse</a>
+        <a href="/people" title="People" class="button">People</a>
+        <a href="/#support" title="Support this project" class="button">Support</a>
+        <a href="https://ohmg.dev" title="Browse" class="button">About <i class="fa fa-external-link"></i></a>
+      </div>
+      <div>
         
+			  <a href="/account/login" class="button">Sign in</a>
+  			<a href="/account/signup" class="button">Sign up</a>
+		    
+      </div>
+    </header> -->
+    
+    
   <div id="description"><h3>Server Error</h3></div>
-  
-      
-          Internal server error. Please contact admin if the problem persists.
-      
-  
+  <p>Internal server error. Please contact an admin if the problem persists: <a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a></p>.
 
-        
-      
-      
-    </div>
-    
 
     
     
@@ -117,162 +81,14 @@
   
   
 
-
   
-  
-
-
-
-    
-    <link href="/static/Footer.css" rel="stylesheet">
-
-
-<div id="footer-target"></div>
-
-<script id="footer-props" type="application/json">{"USER": {"is_authenticated": false}}</script>
-<script type="text/javascript" src="/static/Footer.js"></script>
-
+  <script id="footer-props" type="application/json">{"USER": {"is_authenticated": false}}</script>
   
 
+<link href="/static/Footer.css?v=JOF36sA8lB4" rel="stylesheet">
+<div id="footer-target" style="width:100%;"></div>
+<script defer src="/static/Footer.js?v=JOF36sA8lB4"></script>
+  
 
-    <!-- Modal must stay outside the navbar -->
-    
-    <div class="modal fade" id="SigninModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-sm">
-        <div style="background:white; border-radius:5px;">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <h4 class="modal-title" id="myModalLabel">Sign in</h4>
-          </div>
-          <form class="form-signin" role="form" action="/account/login/?next=/" method="post">
-            <div class="modal-body">
-              <input type="hidden" name="csrfmiddlewaretoken" value="tPkIzBlf5BSERi7iastue7l7tvvYPRqYD0iEMupZBmYuCHRGa786WT6A1wGzaEuh">
-              
-              
-              <div class="form-group">
-                <label for="id_username" class="sr-only">Username:</label>
-                <input id="id_username" class="form-control" name="login" placeholder="Username" type="text" />
-              </div>
-              <div class="form-group">
-                <label for="id_password" class="sr-only">Password:</label>
-                <input id="id_password" class="form-control" name="password" placeholder="Password" type="password" autocomplete="off" />
-              </div>
-              <label class="checkbox" style="padding-left:20px;">
-                <input type="checkbox" /> Remember Me
-              </label>
-              <p>
-                <a href="/account/password/reset/">Forgot Password?</a>
-              </p>
-              <hr>
-              <p>
-                <a href="/account/signup/">Sign up!</a><br>
-                You don't need an account to view maps, but you do need one to georeference them. 
-              </p>
-
-            </div>
-            <div class="modal-footer">
-              <button type="submit" class="btn btn-primary btn-block">Sign in</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-    
-    <!-- End of Modal -->
-
-    <!-- quick testing shows that only jquery and bootstrap are needed to 
-    retain the sign in modal functionality. This allows for the removal of
-    assets.js which was originally included below. -->
-    <script src="/static/lib/js/jquery.js"></script>
-    <script src="/static/lib/js/bootstrap.js"></script>
-
-    
-    <!-- <script src="/static/geonode/js/utils/utils.js"></script>
-    <script src="/static/geonode/js/base/base.js"></script> -->
-    <!-- <script type="text/javascript" src="/jsi18n/"></script> -->
-    
-
-
-    <div class="modal fade" style="width: 100%; height: 100%;" id="_resource_uploading" data-backdrop="static" data-keyboard="false" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1>Uploading...</h1>
-                </div>
-                <div class="modal-body">
-                    <div class="progress">
-                      <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:100%">
-                        Upload in progress...
-                      </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" style="width: 100%; height: 100%;" id="_thumbnail_processing" data-backdrop="static" data-keyboard="false" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1>Processing...</h1>
-                </div>
-                <div class="modal-body">
-                    <div class="progress">
-                      <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:100%">
-                        Updating Thumbnail...
-                      </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="_thumbnail_feedbacks" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="exampleModalLabel">Message box</h4>
-          </div>
-          <div class="modal-body">
-            ...
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="confirmMsgBoxModalOK" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <!-- How to use it:
-        $("#confirmMsgBoxModalOK").find('.modal-title').text('Title');
-        $("#confirmMsgBoxModalOK").find('.modal-body').text('Message. Do you want to proceed?');
-        $("#confirmMsgBoxModalOK_control_field").val('your_control_value');
-        $("#confirmMsgBoxModalOK").modal("show");
-
-        $('#confirmMsgBoxModalOK').find('.modal-footer #confirm').on('click', function() {
-          if ($("#control_field").val() == 'your_control_value') {
-            CONFIRMED
-          }
-        });
-      -->
-      <div class="modal-dialog">
-        <input type="hidden" class="form-control" id="confirmMsgBoxModalOK_control_field" />
-        <div class="modal-content panel-success">
-          <div class="modal-header panel-heading">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title">Confirm</h4>
-          </div>
-          <div class="modal-body">
-            <p>Some text in the modal.</p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-danger confirm" id="confirm">OK</button>
-          </div>
-        </div>
-      </div>
-    </div>
   </body>
 </html>

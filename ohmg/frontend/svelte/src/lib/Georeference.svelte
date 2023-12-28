@@ -1,20 +1,17 @@
 <script>
 import IconContext from 'phosphor-svelte/lib/IconContext';
-import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
 import { iconProps } from "../js/utils"
+import X from "phosphor-svelte/lib/X";
+import Check from "phosphor-svelte/lib/Check";
+import ArrowsClockwise from "phosphor-svelte/lib/ArrowsClockwise";
+import ArrowsOutSimple from "phosphor-svelte/lib/ArrowsOutSimple";
+import ArrowsInSimple from "phosphor-svelte/lib/ArrowsInSimple";
+import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
+import Trash from "phosphor-svelte/lib/Trash";
+import Stack from "phosphor-svelte/lib/Stack";
+import GearSix from "phosphor-svelte/lib/GearSix";
 
 import {onMount} from 'svelte';
-
-import Icon from 'svelte-icons-pack/Icon.svelte';
-import FiCheck from 'svelte-icons-pack/fi/FiCheck';
-import FiX from 'svelte-icons-pack/fi/FiX';
-import FiRefreshCcw from 'svelte-icons-pack/fi/FiRefreshCcw';
-import FiMinimize2 from 'svelte-icons-pack/fi/FiMinimize2';
-import FiMaximize2 from 'svelte-icons-pack/fi/FiMaximize2';
-import FiExternalLink from 'svelte-icons-pack/fi/FiExternalLink';
-import FiTrash2 from 'svelte-icons-pack/fi/FiTrash2';
-import FiLayers from 'svelte-icons-pack/fi/FiLayers';
-import FiSettings from 'svelte-icons-pack/fi/FiSettings';
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -92,7 +89,7 @@ $: nextGCP = gcpList.length + 1;
 
 let unchanged = true;
 
-let showLayerPanel = false;
+let showLayerPanel = true;
 let showNotePanel = false;
 let showSettingsPanel = false;
 
@@ -936,7 +933,7 @@ const iconLinks = [
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 <IconContext values={iconProps}>
 <TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks}/>
-<p>Create 3 or more ground control points to georeference this document. To create a ground control point, first click on a location in the left panel, then find and click on the corresponding location in right panel. <a href="https://ohmg.dev/docs/making-the-mosaics/georeferencing" target="_blank">Learn more <Icon src={FiExternalLink} /></a></p>
+<p>Create 3 or more ground control points to georeference this document. To create a ground control point, first click on a location in the left panel, then find and click on the corresponding location in right panel. <a href="https://ohmg.dev/docs/making-the-mosaics/georeferencing" target="_blank">Learn more <ArrowSquareOut /></a></p>
 
 <Modal id="modal-expiration">
   <p>This georeferencing session is expiring, and will be cancelled soon.</p>
@@ -945,12 +942,21 @@ const iconLinks = [
     getModal('modal-expiration').close()}
     }>Give me more time!</button>
 </Modal>
-
 <Modal id="modal-anonymous">
   <p>Feel free to experiment with the interface, but submit your work you must 
     <a href="/account/login">sign in</a> or
     <a href="/account/signup">sign up</a>.
   </p>
+</Modal>
+<Modal id="modal-cancel">
+	<p>Are you sure you want to cancel this session?</p>
+  <button on:click={() => {
+    process("cancel");
+    getModal('modal-cancel').close()
+    }}>Yes</button>
+  <button on:click={() => {
+    getModal('modal-cancel').close()}
+    }>No - keep working</button>
 </Modal>
 
 <div id="map-container" class="svelte-component-main">
@@ -986,19 +992,19 @@ const iconLinks = [
     </div>
     <div class="control-btn-group">
         <button class="control-btn tool-ui" title="Save control points" disabled={!enableSave} on:click={() => { process("submit") }}>
-          <Icon src={FiCheck} />
+          <Check />
         </button>
-        <button class="control-btn tool-ui" title="Cancel georeferencing" disabled={!enableButtons} on:click={() => { process("cancel") }}>
-          <Icon src={FiX} />
+        <button class="control-btn tool-ui" title="Cancel georeferencing" disabled={!enableButtons} on:click={() => { getModal('modal-cancel').open() }}>
+          <X />
         </button>
         <button class="control-btn tool-ui" title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}>
-          <Icon src={FiRefreshCcw} />
+          <ArrowsClockwise />
         </button>
         <button class="control-btn tool-ui" title={inFullscreen ? "Exit fullscreen" : "Enter fullscreen"} on:click={() => {inFullscreen = toggleFullscreen('map-container')}}>
           {#if inFullscreen}
-          <Icon src={FiMinimize2} />
+          <ArrowsInSimple />
           {:else}
-          <Icon src={FiMaximize2} />
+          <ArrowsOutSimple />
           {/if}
         </button>
     </div>
@@ -1044,7 +1050,6 @@ const iconLinks = [
   <nav style="justify-content: end;">
     <label title="Set georeferencing transformation">
       Transformation:
-      <!-- svelte-ignore a11y-no-onchange -->
       <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={() => { process("preview"); }}>
         {#each transformations as trans}
         <option value={trans.id}>{trans.name}</option>
@@ -1077,7 +1082,7 @@ const iconLinks = [
           {/each}
         </select>
         <button class="control-btn tool-ui" title="Remove control point {activeGCP} (d)" on:click={removeActiveGCP}>
-          <Icon src={FiTrash2} />
+          <Trash />
         </button>
         <button class="control-btn" on:click={() => {showNotePanel=!showNotePanel}}>
           Note
@@ -1088,10 +1093,10 @@ const iconLinks = [
     <div style="display:flex; flex-direction:row; text-align:right;">
       <div class="control-btn-group">
         <button class="control-btn tool-ui" on:click={() => {showSettingsPanel=!showSettingsPanel}}>
-          <Icon src={FiSettings} />
+          <GearSix />
         </button>
         <button class="control-btn tool-ui" on:click={() => {showLayerPanel=!showLayerPanel}}>
-          <Icon src={FiLayers} />
+          <Stack />
         </button>
       </div>
       <!--

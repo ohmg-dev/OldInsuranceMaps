@@ -30,7 +30,6 @@ const osmLayer = new TileLayer({ source: new OSM() });
 
 let container;
 let content;
-let closer;
 let overlay;
 
 onMount(async function() {
@@ -39,7 +38,6 @@ onMount(async function() {
 	
 	container = document.getElementById('popup');
 	content = document.getElementById('popup-content');
-	closer = document.getElementById('popup-closer');
 	overlay = new Overlay({
 		element: container,
 		autoPan: {
@@ -59,6 +57,7 @@ onMount(async function() {
 			zoom: 5,
 			// center: fromLonLat([-92.036, 31.16]),
 			center: [ -10728204.02342, 4738596.138147663 ],
+			maxZoom: 15,
 		})
 	});
 	
@@ -133,25 +132,25 @@ onMount(async function() {
 		);
 		if (!hit) {overlay.setPosition(undefined);}
 	});
-
-	closer.onclick = function () {
-		overlay.setPosition(undefined);
-		closer.blur();
-		return false;
-	};
 	targetElement.classList.remove('spinner');
 
 });
 
+function closePopup() {
+	overlay.setPosition(undefined);
+	return false
+}
+
 
 </script>
 {#if EMBEDDED}
-<div id="map-viewer" tabindex="1" class="spinner" style="height:{MAP_HEIGHT}px; width:100%; cursor:{EMBEDDED ? 'pointer' : 'default'};"></div>
+<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+<div id="map-viewer" tabindex="0" class="spinner" style="height:{MAP_HEIGHT}px; width:100%; cursor:{EMBEDDED ? 'pointer' : 'default'};"></div>
 {:else}
 <div id="map-viewer" class="spinner" style="height:{MAP_HEIGHT}px; width:100%"></div>
 {/if}
 <div id="popup" class="ol-popup" style="">
-	<a href="#" title="Close popup" id="popup-closer" class="ol-popup-closer"></a>
+	<button class="close-popup" on:click={closePopup} title="close">x</button>
 	<div id="popup-content"></div>
 </div>
 <style>
@@ -164,6 +163,10 @@ onMount(async function() {
 
 #map-viewer{
 	position: relative;
+}
+
+#map-viewer:focus {
+	outline: #4A74A8 solid 0.15em;
 }
 
 .spinner:after {
@@ -215,14 +218,10 @@ onMount(async function() {
 	left: 48px;
 	margin-left: -11px;
 }
-.ol-popup-closer {
-	text-decoration: none;
-	position: absolute;
-	top: 2px;
-	right: 8px;
-}
-.ol-popup-closer:after {
-	content: "✖";
+button.close-popup {
+	float: right;
+	background: none;
+	border: none;
 }
 
 </style>

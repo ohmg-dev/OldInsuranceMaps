@@ -1,5 +1,5 @@
 {% load static %}
 
 <link href="{% static component_name|add:'.css' %}?v={{ BUILD_NUMBER }}" rel="stylesheet">
-<div id="{{ component_name|lower }}-target"></div>
+<div id="{{ component_name|lower }}-target" style="width:100%;"></div>
 <script defer src="{% static component_name|add:'.js' %}?v={{ BUILD_NUMBER }}"></script>

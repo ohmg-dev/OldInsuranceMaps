@@ -4,8 +4,6 @@ import time
 import logging
 
 from PIL import Image, ImageDraw, ImageFilter
-from osgeo import ogr, gdal
-
 
 from django.db import connection
 from django.conf import settings
@@ -90,10 +88,10 @@ class Splitter(object):
 
         ## process input cutlines
         cut_shapes = []
-        for l in cutlines:
+        for line in cutlines:
             ## this function extends each end of the original line by 10 pixels.
             ## this facilitates a more robust splitting process.
-            ls_extended = self.extend_linestring(LineString(l))
+            ls_extended = self.extend_linestring(LineString(line))
             cut_shapes.append({"geom": ls_extended, "used": False})
 
         ## candidates is a list of polygons that may be the final polygons
@@ -221,28 +219,3 @@ class Splitter(object):
         logger.info(f"{os.path.basename(self.img_file)} split completed | {t} seconds | {len(out_paths)} parts")
 
         return out_paths
-
-    def split_image_to_tif(self):
-        """ WIP attempt to replace PIL in the image split process with GDAL.
-        Not sure this will be pursued, but retained for future reference. """
-
-        drv = ogr.GetDriverByName('GeoJSON')
-        feature_ds = drv.CreateDataSource("/vsimem/feature.geojson")
-
-        feature_layer = feature_ds.CreateLayer("layer", geom_type=ogr.wkbPolygon)
-
-        featureDefnHeaders = feature_layer.GetLayerDefn()
-
-        outFeature = ogr.Feature(featureDefnHeaders)
-
-        geometry = feature.GetGeometryRef() #This feature is a polygon and comes from another dataset 
-
-
-        outFeature.SetGeometry(geometry)
-
-        feature_layer.CreateFeature(outFeature)     
-
-        feature_ds.FlushCache()
-
-        #https://gis.stackexchange.com/questions/328358/gdal-warp-memory-datasource-as-cutline
-        #https://gdal.org/api/python/osgeo.ogr.html

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block title %}{{message.title}} | {{ block.super }}{% endblock %}
+
+{% block body %}
+<h1>{{message.title}}</h1>
+<p><em>{{publish_date}}</em></p>
+<div>
+    {% for article in message.articles.all %}
+    <h2>{{ article.title }}</h2>
+    {{ article.text | safe }}
+    {% endfor %}
+</div>
+<p><a href="{% url 'news' %}">back to News</a></p>
+{% endblock body %}

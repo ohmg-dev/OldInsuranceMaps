@@ -129,8 +129,6 @@ $: updateFilteredList(filterInput)
 /* Could be revisited with other portion of that answer to add animation */
 .box {
   --v:calc( ((18/5) * var(--p) - 90)*1deg);
-  width:20px;
-  height:20px;
   display:inline-block;
   border-radius:50%;
   padding:10px;

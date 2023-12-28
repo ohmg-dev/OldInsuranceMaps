@@ -1,6 +1,7 @@
+import csv
 from datetime import datetime
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
 from ohmg.content.models import Item
@@ -9,8 +10,9 @@ from ohmg.loc_insurancemaps.tasks import (
     generate_mosaic_json_task,
 )
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.places.models import Place as NewPlace
-from ohmg.georeference.models.resources import ItemBase, Layer
+from ohmg.places.models import Place
+from ohmg.places.management.utils import reset_volume_counts
+from ohmg.georeference.models import ItemBase, Layer, DocumentLink
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -20,6 +22,7 @@ class Command(BaseCommand):
             "operation",
             choices=[
                 "import",
+                "remove",
                 "refresh-lookups-old",
                 "refresh-lookups",
                 "make-sheets",
@@ -35,6 +38,16 @@ class Command(BaseCommand):
         parser.add_argument(
             "-i", "--identifier",
             help="the identifier of the LoC resource to add",
+        ),
+        parser.add_argument(
+            "-f", "--csv-file",
+            help="path to file for bulk import",
+        ),
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            default=False,
+            help="perform a dry-run of the operation",
         ),
         parser.add_argument(
             "--load-documents",
@@ -100,20 +113,89 @@ class Command(BaseCommand):
 
         if options['operation'] == "import":
 
-            locale_slug = options['locale']
-            locale = None
-            if locale_slug is not None:
+            def get_locale(locale_slug):
                 try:
                     print(f'locale slug: {locale_slug}')
-                    locale = NewPlace.objects.get(slug=locale_slug)
+                    locale = Place.objects.get(slug=locale_slug)
                     print(f'using locale: {locale}')
-                except NewPlace.DoesNotExist:
+                except Place.DoesNotExist:
+                    locale = None
+                return locale
+
+            to_load = []
+
+            if i:
+                locale = get_locale(options['locale'])
+                if locale is None:
                     confirm = input('no locale matching this slug, locale will be None. continue? y/N ')
                     if not confirm.lower().startswith("y"):
                         exit()
+                to_load.append((i, locale))
 
-            vol = Volume().import_volume(i, locale=locale)
+            elif options['csv_file']:
+
+                with open(options['csv_file'], "r") as o:
+                    reader = csv.DictReader(o)
+                    for row in reader:
+                        if "identifier" not in row or "locale" not in row:
+                            print("missing info in row")
+                            print(row)
+                            continue
+                        locale = get_locale(row['locale'])
+                        if locale is None:
+                            print(f"can't find locale {row['locale']}, skipping.")
+                            continue
+                        to_load.append((row["identifier"], locale))
+
+            for identifier, locale in to_load:
+                vol = Volume().import_volume(
+                    identifier,
+                    locale=locale,
+                    dry_run=options['dry_run']
+                )
+                print(vol)
+
+        if options['operation'] == "remove":
+            vol = Volume.objects.get(pk=i)
+
+            sheets = list(vol.sheets)
+            documents = []
+            layers = []
+            gcp_groups = []
+            all_gcps = []
+            sessions = []
+            doc_links = []
+
+            for s in sheets:
+                if s.doc:
+                    documents.append(s.doc)
+                    sessions += s.doc.get_sessions()
+                    documents += s.doc.children
+                    doc_links += list(DocumentLink.objects.filter(source=s.doc))
+                    layer = s.doc.get_layer()
+                    if layer:
+                        layers.append(layer)
+                        gcp_group = s.doc.gcp_group
+                        gcp_groups.append(gcp_group)
+                        all_gcps += list(gcp_group.gcps)
+
+
             print(vol)
+            print(f"sheets {len(sheets)}")
+            print(f"documents {len(documents)}")
+            print(f"layers {len(layers)}")
+            print(f"gcp groups {len(gcp_groups)}")
+            print(f"gcps {len(all_gcps)}")
+            print(f"sessions {len(sessions)}")
+            print(f"document links: {len(doc_links)}")
+
+            confirm = input("Delete all of these objects? y/N ")
+            if confirm.lower().startswith("y"):
+                for i in sessions + all_gcps + gcp_groups + layers + doc_links + documents + sheets + [vol]:
+                    print(i)
+                    i.delete()
+
+            reset_volume_counts()
 
         if options['operation'] == "make-sheets":
             vol = Volume.objects.get(pk=i)
@@ -137,10 +219,9 @@ class Command(BaseCommand):
                 if options['background']:
                     print('not implemented')
                     return
-                    #generate_mosaic_cog_task.delay(i)
                 else:
                     item = Item(i)
-                    item.export_mosaic_jpg(f"{i}.jpg")
+                    item.generate_mosaic_jpg(f"{i}.jpg")
 
         if options['operation'] == "generate-mosaic-json":
             if i is not None:
@@ -168,8 +249,8 @@ class Command(BaseCommand):
                     print(i)
                     d = ItemBase.objects.get(pk=i)
                     d.set_thumbnail()
-                for l in v.layer_lookup.keys():
-                    s = ItemBase.objects.filter(slug=l)
+                for i in v.layer_lookup.keys():
+                    s = ItemBase.objects.filter(slug=i)
                     for ss in s:
                         print(ss)
                         ss.set_thumbnail()
@@ -187,9 +268,9 @@ class Command(BaseCommand):
                     print(f"skipping excluded: {v.identifier}")
                     continue
                 print(f'{v.identifier} - {v.__str__()}')
-                for l in v.layer_lookup.keys():
-                    print(f'  {l}')
-                    ss = Layer.objects.filter(slug=l)
+                for i in v.layer_lookup.keys():
+                    print(f'  {i}')
+                    ss = Layer.objects.filter(slug=i)
                     for s in ss:
                         latest_sesh = list(s.get_document().georeference_sessions)[-1]
                         print(f"  running session {latest_sesh.pk}")

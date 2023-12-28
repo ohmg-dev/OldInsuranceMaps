@@ -1,12 +1,13 @@
+static_root
+uploaded
 logs
 .ohmg_cache
 .build
 .temp
 
-# allow old directory to remain here locally for uploaded files
-./loc_insurancemaps
-
 .celery_results
+
+.ruff_cache
 
 node_modules
 public
@@ -73,15 +74,5 @@ docs/_build/
 
 # PyBuilder
 target/
-
-# Downstream Project
-downloaded/
-uploaded/
-static_root/
-development.db
-development.db-journal
-local_settings.py
-
-.idea/
 
 .vscode
