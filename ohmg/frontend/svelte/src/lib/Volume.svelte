@@ -200,21 +200,29 @@ let modalLyrExtent = "";
 	{/each}
 </Modal>
 <Modal id="modal-preview-map">
-	<p>The <strong>Mosaic Preview</strong> shows progress toward a full mosaic of this item's content&mdash;as documents are georeferenced, they will automatically appear here. You can also view this mosaic alongside all other mosaics for this locale: <a href={VOLUME.urls.viewer} target="_blank" title={"Open viewer for " + VOLUME.locale.display_name}>{VOLUME.locale.display_name} <ArrowSquareOut /></a></p>
+	<h3>Mosaic Preview</h3>
+	<p>The <strong>Mosaic Preview</strong> shows progress toward a full mosaic of this item's content&mdash;as documents are georeferenced, they will automatically appear here.</p>
+	<p>You can also view this mosaic alongside all other mosaics for this locale: <a href={VOLUME.urls.viewer} target="_blank" title={"Open viewer for " + VOLUME.locale.display_name}>{VOLUME.locale.display_name} <ArrowSquareOut /></a></p>
 </Modal>
 <Modal id="modal-georeference-overview">
-	<p>The <strong>Georeferencing Overview</strong> provides a per-document summary and access point to the entire georeferencing process for this item's content.</p>
+	<h3>Georeferencing Overview</h3>
+	<p>The <strong>Georeferencing Overview</strong> provides a per-document summary and access point to the entire georeferencing process for this item's content. As documents are processed, they will move through the sections from top to bottom.</p>
 </Modal>
 <Modal id="modal-unprepared">
+	<h3>Unprepared</h3>
 	<p>Each document in the <strong>Unprepared</strong> section must be evaluated individually, and, if it contains more than one mapped area, split into separate pieces.</p>
 </Modal>
 <Modal id="modal-prepared">
+	<h3>Prepared</h3>
 	<p>Content in the <strong>Prepared</strong> section is ready to be georeferenced. You can also decide here if a particular document should be moved to the <strong>Non-map Content</strong> section, for example if it is a title page or text index (this designation can be easily reversed).</p>
 </Modal>
 <Modal id="modal-georeferenced">
-	<p>The <strong>Georeferenced</strong> section holds all content that has been spatially rectified, though you can still edit the control points for any layer whose georeferencing should be improved. Use the <strong>Classify Layers</strong> button to sort layers into different categories, if applicable. For example, if a Key Map is present, classify it here so other interfaces will treat it appropriately.</p>
+	<h3>Georeferenced</h3>
+	<p>The <strong>Georeferenced</strong> section holds all content that has been spatially rectified, though you can still edit the control points for any layer whose georeferencing should be improved.</p>
+	<p>Use the <strong>Classify Layers</strong> button to sort layers into different categories, if applicable. For example, if a Key Map is present, classify it here so other interfaces will treat it appropriately.</p>
 </Modal>
 <Modal id="modal-multimask">
+	<h3>MultiMask</h3>
 	<p>The <strong>MultiMask</strong> is a mechanism for trimming the margins from every layer in a way that guarantees a seamless mosaic across this item's content.<p>
 	<h4>How to create a MultiMask</h4>
 	<ul>
@@ -232,6 +240,7 @@ let modalLyrExtent = "";
 	</ul>
 </Modal>
 <Modal id="modal-non-map">
+	<h3>Non-Map Content</h3>
 	<p>The <strong>Non-Map Content</strong> section holds documents (or document fragments) that are not maps, like a title page or text index.</p>
 </Modal>
 <Modal id="modal-download-section">
