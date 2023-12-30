@@ -43,7 +43,7 @@ import Stroke from 'ol/style/Stroke';
 import Styles from '../../js/ol-styles';
 const styles = new Styles();
 
-import {toggleFullscreen, makeTitilerXYZUrl, makeBasemaps} from '../../js/utils';
+import {makeTitilerXYZUrl, makeBasemaps} from '../../js/utils';
 
 export let VOLUME;
 // export let SESSION_LENGTH;
@@ -488,14 +488,6 @@ function handleFfs(elementId) {
 </div>
 </IconContext>
 <style>
-
-:global(.ffs) {
-  position: fixed;
-  width: 100%;
-  top: 60px;
-  height: calc(100vh - 60px);
-  left: 0;
-}
 
 button.layer-entry {
   cursor: pointer;

@@ -20,7 +20,7 @@ import {
 } from 'ol/layer';
 
 import '../../css/map-panel.css';
-import {toggleFullscreen, makeLayerGroupFromVolume} from '../../js/utils';
+import {makeLayerGroupFromVolume} from '../../js/utils';
 
 import Modal, {getModal} from './Modal.svelte';
 
@@ -165,7 +165,12 @@ onMount(() => {
 	initMap();
 });
 
-let inFullscreen = false;
+let ffs = false
+function handleFfs(elementId) {
+  ffs = !ffs
+  document.getElementById(elementId).classList.toggle('ffs');
+  map.updateSize();
+}
 
 </script>
 <Modal id="modal-map-key">
@@ -184,8 +189,8 @@ let inFullscreen = false;
 			<button class="control-btn" on:click={() => {getModal('modal-map-key').open()}}>
 				<Article />
 			</button>
-			<button class="control-btn" title={inFullscreen ? "Exit fullscreen" : "Enter fullscreen"} on:click={() => {inFullscreen = toggleFullscreen('map-container')}}>
-				{#if inFullscreen}
+			<button class="control-btn" title={ffs ? "Reduce" : "Expand"} on:click={() => {handleFfs('map-container')}}>
+				{#if ffs}
 				<ArrowsInSimple />
 				{:else}
 				<ArrowsOutSimple />

@@ -37,7 +37,6 @@ import Snap from 'ol/interaction/Snap';
 import LineString from 'ol/geom/LineString';
 
 import Styles from '../js/ol-styles';
-import {toggleFullscreen} from '../js/utils';
 
 import TitleBar from './components/TitleBar.svelte';
 import Modal, {getModal} from './components/Modal.svelte';
@@ -77,7 +76,6 @@ setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
 let autoRedirect;
 function promptRefresh() {
   if (!leaveOkay) {
-    if (document.fullscreenElement != null) {  document.exitFullscreen(); }
     getModal('modal-expiration').open()
     leaveOkay = true;
     autoRedirect = setTimeout(cancelAndRedirectToDetail, 10000);
@@ -381,7 +379,12 @@ const iconLinks = [
   }
 ]
 
-let inFullscreen = false;
+let ffs = false
+function handleFfs(elementId) {
+  ffs = !ffs
+  document.getElementById(elementId).classList.toggle('ffs');
+  docView.map.updateSize();
+}
 
 </script>
 <svelte:window on:keydown={handleKeydown} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
@@ -466,8 +469,8 @@ let inFullscreen = false;
       <button class="control-btn tool-ui" title="Reset interface" disabled={unchanged} on:click={resetInterface}>
         <ArrowCounterClockwise />
       </button>
-      <button class="control-btn tool-ui" title={inFullscreen ? "Exit fullscreen" : "Enter fullscreen"} on:click={() => {inFullscreen = toggleFullscreen('map-container')}}>
-        {#if inFullscreen}
+      <button class="control-btn tool-ui" title={ffs ? "Reduce" : "Expand"} on:click={() => {handleFfs('map-container')}}>
+        {#if ffs}
         <ArrowsInSimple />
         {:else}
         <ArrowsOutSimple />

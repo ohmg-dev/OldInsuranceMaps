@@ -489,3 +489,11 @@ footer a:hover {
   .alert-danger .alert-link {
 	color: #843534;
   }
+
+  .ffs {
+	position: fixed !important;
+	width: 100%;
+	top: 60px;
+	height: calc(100vh - 60px) !important;
+	left: 0;
+  }

@@ -47,7 +47,6 @@ import Snap from 'ol/interaction/Snap';
 import Styles from '../js/ol-styles';
 const styles = new Styles();
 import {
-  toggleFullscreen,
   makeLayerGroupFromVolume,
   makeTitilerXYZUrl,
   makeBasemaps,
@@ -127,7 +126,6 @@ setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
 let autoRedirect;
 function promptRefresh() {
   if (!leaveOkay) {
-    if (document.fullscreenElement != null) {  document.exitFullscreen(); }
     getModal('modal-expiration').open()
     leaveOkay = true;
     autoRedirect = setTimeout(cancelAndRedirectToDetail, 15000);
@@ -734,9 +732,6 @@ $: {
   }
 }
 
-let inFullscreen = false;
-
-
 const previewLayer = new TileLayer({
   source: new XYZ(),
   zIndex: 20,
@@ -839,7 +834,7 @@ function handleKeydown(e) {
   if (document.activeElement.id == "") {
     switch(e.key) {
       case "Escape":
-        if (document.fullscreenElement != null) {  document.exitFullscreen(); }
+        handleFfs('map-container')
         break;
       case "d": case "D":
         removeActiveGCP();
@@ -928,6 +923,15 @@ const iconLinks = [
     url: VOLUME.urls.summary,
   }
 ]
+
+let ffs = false
+function handleFfs(elementId) {
+  ffs = !ffs
+  document.getElementById(elementId).classList.toggle('ffs');
+  docView.map.updateSize();
+  mapView.map.updateSize();
+}
+
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
@@ -1000,8 +1004,8 @@ const iconLinks = [
         <button class="control-btn tool-ui" title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}>
           <ArrowsClockwise />
         </button>
-        <button class="control-btn tool-ui" title={inFullscreen ? "Exit fullscreen" : "Enter fullscreen"} on:click={() => {inFullscreen = toggleFullscreen('map-container')}}>
-          {#if inFullscreen}
+        <button class="control-btn tool-ui" title={ffs ? "Reduce" : "Expand"} on:click={() => {handleFfs('map-container')}}>
+          {#if ffs}
           <ArrowsInSimple />
           {:else}
           <ArrowsOutSimple />
