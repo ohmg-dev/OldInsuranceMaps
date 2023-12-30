@@ -1,7 +1,8 @@
-<script>
-	import MarkdownPage from './components/MarkdownPage.svelte'
-	
-	const source = `
+---
+page_title: FAQ
+header: FAQ
+---
+
 ### Why ".net"?
 
 Because the idea is to create a collaborative, public place (a network or "commons") rather than a commercial product or non-profit organization.
@@ -45,7 +46,3 @@ If you or your organization would like to a large number of maps, like all your 
 We are using this term somewhat imprecisely, because only Sanborn maps of large cities have proper "volumes" (see New Orleans 1885 vol. 1, 1885 vol. 2, 1887 vol. 3, and 1893 vol. 4). The vast majority of maps in the Sanborn collection may be better called "editions" (see Baton Rouge, 1885).
 
 However, the hierarchy of the LOC collection handles editions and volumes at the same level, they are "items", so we decided "volume" would be a reasonable compromise for the sake of unity. Therefore, a volume is an atomic unit that contains one or more sheets.
-`
-</script>
-
-<MarkdownPage source={source} title={"FAQ"} />

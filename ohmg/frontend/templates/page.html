@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% if params.PAGE_TITLE %}{{ params.PAGE_TITLE }} | {% endif %}{{ block.super }}{% endblock title %}
+
+{% block main_content %}
+{{ params|json_script:'page-props'}}
+{% include '_svelte_component.html' with component_name='Page' %}
+{% endblock %}

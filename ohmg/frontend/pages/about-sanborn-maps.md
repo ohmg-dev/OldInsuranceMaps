@@ -1,7 +1,9 @@
-<script>
-	import MarkdownPage from './components/MarkdownPage.svelte'
-	
-	const source = `### In Brief...
+---
+page_title: About Sanborn maps
+header: A bit about Sanborn maps
+---
+
+### In Brief...
 	
 The Sanborn Map Company surveyed and mapped American cities from the late 1860's through the 1950's, creating city atlases and selling them to insurance companies on a subscription basis. The extensive details they recorded for each building--commercial use, construction materials, and exact locations of heat sources (to name but a few)--provided insurance companies with the information they needed to geographically visualize and balance their risk.
 
@@ -43,7 +45,3 @@ For **much** more, see this Library of Congress [Sanborn Internet Resources](htt
 When the Sanborn Map company originally published these maps, all content for a given city in a given year was released in a single edition. However, in large cities like New Orleans one edition may actually comprise multiple volumes, and in the Library of Congress collection each of these volumes is stored as a separate item.
 
 Thus, on OldInsuranceMaps.net, **volume** is the highest level of grouping of historical maps. Each volume has one or more sheets, and when a user starts ("loads") a volume, its sheets are loaded in to the system to be processed indivitually.
-`
-</script>
-
-<MarkdownPage source={source} title={"A bit about Sanborn maps"} />

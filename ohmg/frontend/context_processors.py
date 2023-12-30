@@ -21,7 +21,8 @@ def loc_info(request):
     return {
         'navbar_params': {
             'USER': user_info
-        }
+        },
+        'footer_params': {},
     }
 
 def general(request):

@@ -1,11 +1,11 @@
 <script>
-    import '../../css/shared.css';
+    import '../css/shared.css';
     import SvelteMarkdown from 'svelte-markdown'
-    import TitleBar from './TitleBar.svelte';
+    import TitleBar from './components/TitleBar.svelte';
 
-    export let source = '*add your markdown here*'
-    export let title = '*add your title here*'
-    export let makeToc = true
+    export let source = '*add your markdown here*';
+    export let HEADER = '*add your h1 here*';
+    export let MAKE_TOC = true
 
     function slugify(str) {
         return str
@@ -28,12 +28,12 @@
 </script>
 
 <main>
-    <TitleBar TITLE={title} SIDE_LINKS={[]} ICON_LINKS={[]}/>
+    <TitleBar TITLE={HEADER} SIDE_LINKS={[]} ICON_LINKS={[]}/>
     <div class="content">
         <div>
             <SvelteMarkdown {source} on:parsed={handleParsed}/>
         </div>
-        {#if makeToc}
+        {#if MAKE_TOC}
         <div id="side-panel">
             <div id="toc">
                 <ul>

@@ -1,7 +1,8 @@
-<script>
-import MarkdownPage from './components/MarkdownPage.svelte'
+---
+page_title: About
+header: About this site...
+---
 
-const source = `
 ### Background
 
 The first iteration of OldInsuranceMaps.net was made publicly available as LaHMG (Louisiana Historical Map Georeferencer) in early 2022 through a four-month pilot project, focusing on maps of Louisiana. This work formed the bulk my master's thesis at Louisiana State University: ["Creating a Public Space for Georeferencing Sanborn Maps: A Louisiana Case Study"](https://digitalcommons.lsu.edu/gradschool_theses/5641/).
@@ -43,8 +44,3 @@ Icons & Logo: [Alex Muravev](https://thenounproject.com/alex2900/) (via Noun Pro
 All maps on this site are in the public domain, pulled from the Library of Congress [Sanborn Map Collection](https://loc.gov/collections/sanborn-maps).
 
 All georeferencing work performed by [our contributors](/profiles). For each volume, a list of contributors appears at the bottom of the summary page.
-`
-
-</script>
-
-<MarkdownPage source={source} title={"About this site..."}/>

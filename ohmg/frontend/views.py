@@ -3,6 +3,9 @@ import re
 import json
 import logging
 from datetime import datetime
+from pathlib import Path
+
+import frontmatter
 
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
@@ -125,26 +128,49 @@ class Browse(View):
             context=context_dict
         )
 
-class BasicPage(View):
+class ActivityView(View):
 
-    def get(self, request, slug, title):
+    def get(self, request):
 
         context_dict = {
             "params": {
-                "PAGE_TITLE": title,
-                "PAGE_NAME": slug,
-                "PARAMS": {}
+                "PAGE_TITLE": "Activity",
+                "PAGE_NAME": 'activity',
+                "PARAMS": {
+                    "SESSION_API_URL": reverse("api-beta:session_list"),
+                    "OHMG_API_KEY": settings.OHMG_API_KEY,
+                }
             }
         }
 
-        if slug == "activity":
-            context_dict['params']['PARAMS'].update({
-                "SESSION_API_URL": reverse("api-beta:session_list"),
-                "OHMG_API_KEY": settings.OHMG_API_KEY,
-            })
         return render(
             request,
             "index.html",
+            context=context_dict
+        )
+    
+class Page(View):
+
+    def get(self, request, slug):
+
+        md_path = Path(settings.PROJECT_DIR, 'frontend', 'pages', f"{slug}.md")
+        if not os.path.isfile(md_path):
+            raise Http404
+
+        post = frontmatter.load(md_path)
+
+        context_dict = {
+            "params": {
+                "PAGE_TITLE": post['page_title'],
+                "HEADER": post['header'],
+                # downstream SvelteMarkdown requires this variable to be `source`
+                "source": post.content,
+            }
+        }
+
+        return render(
+            request,
+            "page.html",
             context=context_dict
         )
 

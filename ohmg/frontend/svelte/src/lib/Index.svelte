@@ -3,15 +3,10 @@
     import '../css/shared.css'
     import Browse from './Browse.svelte'
     import Home from './Home.svelte'
-    import About from './About.svelte'
-    import FAQ from './FAQ.svelte'
-    import Contact from './Contact.svelte'
     import Profile from './Profile.svelte'
     import Participants from './Participants.svelte'
     import Place from './Place.svelte'
-    import GettingStarted from './GettingStarted.svelte'
     import Activity from './Activity.svelte'
-    import FireInsuranceMaps from './FireInsuranceMaps.svelte';
 
     export let PAGE_NAME = '';
     export let PARAMS = {};
@@ -33,16 +28,6 @@
     VIEWER_SHOWCASE={PARAMS.VIEWER_SHOWCASE}
     PLACES_CT={PARAMS.PLACES_CT}
     ITEMS_CT={PARAMS.ITEMS_CT} />
-{:else if PAGE_NAME == 'about'}
-<About />
-{:else if PAGE_NAME == 'about-sanborn-maps'}
-<FireInsuranceMaps />
-{:else if PAGE_NAME == 'faq'}
-<FAQ />
-{:else if PAGE_NAME == 'contact'}
-<Contact />
-{:else if PAGE_NAME == 'getting-started'}
-<GettingStarted />
 {:else if PAGE_NAME == 'profile'}
 <Profile 
     CURRENT_USERNAME={PARAMS.CURRENT_USERNAME}

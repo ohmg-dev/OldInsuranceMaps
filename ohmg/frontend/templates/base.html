@@ -95,7 +95,7 @@
   {% endblock %}
 
   {% block footer %}
-  {{ navbar_params|json_script:'footer-props'}}
+  {{ footer_params|json_script:'footer-props'}}
   {% include '_svelte_component.html' with component_name='Footer' %}
   {% endblock footer %}
 
