@@ -127,4 +127,7 @@ button:disabled {
 	color: #2c689c;
 	cursor: pointer;
 }
+.breadcrumbs-select-row select:disabled {
+	cursor: default;
+}
 </style>
