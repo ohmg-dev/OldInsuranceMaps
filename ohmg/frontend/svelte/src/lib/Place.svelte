@@ -117,6 +117,7 @@ button:disabled {
 .breadcrumbs-select-row {
 	display:flex;
 	flex-direction:row;
+	flex-wrap: wrap;
 	margin-top: 5px;
 }
 .breadcrumbs-select-row select {
