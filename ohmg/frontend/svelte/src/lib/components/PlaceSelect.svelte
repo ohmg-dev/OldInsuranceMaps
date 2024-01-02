@@ -15,7 +15,7 @@ $: {
 			// body: JSON.stringify({"multiMask": multiMask}),
 		}).then(response => response.json())
 			.then(result => {
-				breadCrumbs = result.breadcrumbs
+				breadCrumbs = result.PLACE.breadcrumbs
 		})
 	}
 }
