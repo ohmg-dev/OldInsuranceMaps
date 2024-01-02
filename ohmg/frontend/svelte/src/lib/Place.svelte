@@ -42,25 +42,25 @@ let lvl_5;
 <div class="breadcrumbs-select-row">
 	<select bind:value={LISTS[1].selected} on:change={() => {update(LISTS[1].selected)}}>
 		{#each LISTS[1].options as i}
-		<option value={i.slug}>{i.name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
+		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
 		{/each}
 	</select>
 	<select bind:value={LISTS[2].selected} on:change={() => {update(LISTS[2].selected)}}>
 		<option value="---">---</option>
 		{#each LISTS[2].options as i}
-		<option value={i.slug}>{i.name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
+		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
 		{/each}
 	</select>
 	<select bind:value={LISTS[3].selected} disabled={LISTS[2].selected === "---"} on:change={() => {update(LISTS[3].selected)}}>
 		<option value="---">---</option>
 		{#each LISTS[3].options as i}
-		<option value={i.slug}>{i.name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
+		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
 		{/each}
 	</select>
 	<select bind:value={LISTS[4].selected} disabled={LISTS[2].selected === "---"} on:change={() => {update(LISTS[4].selected)}}>
 		<option value="---">---</option>
 		{#each LISTS[4].options as i}
-		<option value={i.slug}>{i.name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
+		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
 		{/each}
 	</select>
 </div>

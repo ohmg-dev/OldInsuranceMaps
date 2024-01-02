@@ -39,6 +39,7 @@ $: updateFilteredList(filterInput)
 
 </script>
 
+<div>New! <a href="/united-states" title="Place search">Search by place hierarchy &rarr;</a></div>
 <div class="filter-container">
 	<input type="text" id="filterInput" placeholder="Filter by place name..." bind:value={filterInput}>
 </div>
