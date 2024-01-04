@@ -497,3 +497,10 @@ footer a:hover {
 	height: calc(100vh - 60px) !important;
 	left: 0;
   }
+
+  ul.errorlist {
+	color: #db0606;
+	list-style: none;
+	padding: 0;
+	font-style: italic;
+  }

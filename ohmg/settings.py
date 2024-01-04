@@ -291,6 +291,7 @@ ACCOUNT_ADAPTER = "ohmg.accounts.adapter.AccountAdapter"
 
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_SIGNUP_REDIRECT_URL = "/"
+ACCOUNT_USERNAME_VALIDATORS = 'ohmg.accounts.validators.custom_username_validators'
 
 # prep/georef session duration before expiration (seconds)
 GEOREFERENCE_SESSION_LENGTH = int(os.getenv("GEOREFERENCE_SESSION_LENGTH", 600))
