@@ -1,13 +1,12 @@
 <script>
 export let PLACE;
-export let LISTS;
 
 import TitleBar from './components/TitleBar.svelte';
 
 function update(place_slug) {
 	// take a --- selection to mean clear that category, so re-fetch the parent
 	if (place_slug === "---") {
-		for (let [key, value] of Object.entries(LISTS)) {
+		for (let [key, value] of Object.entries(PLACE.select_lists)) {
 			if (value.selected === "---") {break}
 			place_slug = value.selected;
 		}
@@ -16,7 +15,6 @@ function update(place_slug) {
 	}).then(response => response.json())
 		.then(result => {
 			PLACE = result.PLACE;
-			LISTS = result.LISTS;
 			history.replaceState({slug:PLACE.slug}, PLACE.display_name, `/${PLACE.slug}`);
 			document.title = PLACE.display_name;
 	})
@@ -30,36 +28,30 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 		},
 	] : [];
 
-let lvl_1;
-let lvl_2;
-let lvl_3;
-let lvl_4;
-let lvl_5;
-
 </script>
 <TitleBar TITLE={PLACE.display_name} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
 
 <div class="breadcrumbs-select-row">
-	<select bind:value={LISTS[1].selected} on:change={() => {update(LISTS[1].selected)}}>
-		{#each LISTS[1].options as i}
+	<select bind:value={PLACE.select_lists[1].selected} on:change={() => {update(PLACE.select_lists[1].selected)}}>
+		{#each PLACE.select_lists[1].options as i}
 		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
 		{/each}
 	</select>
-	<select bind:value={LISTS[2].selected} on:change={() => {update(LISTS[2].selected)}}>
+	<select bind:value={PLACE.select_lists[2].selected} on:change={() => {update(PLACE.select_lists[2].selected)}}>
 		<option value="---">---</option>
-		{#each LISTS[2].options as i}
+		{#each PLACE.select_lists[2].options as i}
 		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
 		{/each}
 	</select>
-	<select bind:value={LISTS[3].selected} disabled={LISTS[2].selected === "---"} on:change={() => {update(LISTS[3].selected)}}>
+	<select bind:value={PLACE.select_lists[3].selected} disabled={PLACE.select_lists[2].selected === "---"} on:change={() => {update(PLACE.select_lists[3].selected)}}>
 		<option value="---">---</option>
-		{#each LISTS[3].options as i}
+		{#each PLACE.select_lists[3].options as i}
 		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
 		{/each}
 	</select>
-	<select bind:value={LISTS[4].selected} disabled={LISTS[2].selected === "---"} on:change={() => {update(LISTS[4].selected)}}>
+	<select bind:value={PLACE.select_lists[4].selected} disabled={PLACE.select_lists[2].selected === "---"} on:change={() => {update(PLACE.select_lists[4].selected)}}>
 		<option value="---">---</option>
-		{#each LISTS[4].options as i}
+		{#each PLACE.select_lists[4].options as i}
 		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
 		{/each}
 	</select>
@@ -88,11 +80,11 @@ let lvl_5;
 		{/if}
 	</div>
 	<div style="width:50%">
-		<h2>Maps</h2>
+		<h2>Items</h2>
 		{#if PLACE.volumes.length > 0}
 		<ul style="padding-left:20px">
 			{#each PLACE.volumes as v}
-			<li><a href="/loc/{v.identifier}">{v.year}{#if v.volume_no} vol. {v.volume_no}{/if}</a></li>
+			<li><a href="/loc/{v.identifier}">{v.year}{#if v.volume_no}&nbsp;vol. {v.volume_no}{/if}</a></li>
 			{/each}
 		</ul>
 		{:else}

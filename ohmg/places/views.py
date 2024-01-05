@@ -31,65 +31,9 @@ class PlaceView(View):
         p = get_object_or_404(Place, slug=place_slug)
         place = p.serialize()
 
-        lists = {
-            1: {
-                "selected": "---",
-                "options": [],
-            },
-            2: {
-                "selected": "---",
-                "options": [],
-            },
-            3: {
-                "selected": "---",
-                "options": [],
-            },
-            4: {
-                "selected": "---",
-                "options": [],
-            },
-            5: {
-                "selected": "---",
-                "options": [],
-            },
-        }
-
-        for n, i in enumerate(place['breadcrumbs'], start=1):
-            lists[n]['selected'] = i['slug']
-        
-        # at this point, at least a country will be selected, get its pk
-        top_pk = Place.objects.get(slug=lists[1]["selected"]).pk
-
-        # always give all of the country options
-        all_lvl1 = list(Place.objects.filter(direct_parents=None).values("pk", "slug", "display_name", "volume_count_inclusive"))
-        lists[1]["options"] = all_lvl1
-
-        all_lvl2 = list(Place.objects.filter(direct_parents=top_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
-        lists[2]["options"] = all_lvl2
-
-        # if a state is selected, set options to all other states in the same country
-        # also, set county and city options
-        if lists[2]['selected'] != "---":
-            state_pk = Place.objects.get(slug=lists[2]["selected"]).pk
-            all_lvl3 = list(Place.objects.filter(direct_parents=state_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
-            lists[3]["options"] = all_lvl3
-            lvl3_pks = [i['pk'] for i in all_lvl3]
-            all_lvl4 = list(Place.objects.filter(direct_parents__in=lvl3_pks).values("pk", "slug", "display_name", "volume_count_inclusive"))
-            lists[4]["options"] = all_lvl4
-
-        # if a county/parish is selected, narrow cities to only those in the county
-        if lists[3]['selected'] != "---":
-            ce_pk = Place.objects.get(slug=lists[3]["selected"]).pk
-            all_lvl4 = list(Place.objects.filter(direct_parents=ce_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
-            lists[4]["options"] = all_lvl4
-
-        for k, v in lists.items():
-            v['options'].sort(key=lambda k : k['display_name'])
-
         if f == "json":
             return JsonResponse({
                 "PLACE": place,
-                "LISTS": lists,
             })
 
         else:
@@ -98,7 +42,6 @@ class PlaceView(View):
                     "PAGE_NAME": 'place',
                     "PARAMS": {
                         "PLACE": place,
-                        "LISTS": lists,
                     }
                 }
             }
