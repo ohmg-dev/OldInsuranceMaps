@@ -12,6 +12,7 @@ from ohmg.frontend.views import (
     NewsList,
     NewsArticle,
     Page,
+    Viewer,
 )
 
 urlpatterns = [
@@ -32,4 +33,6 @@ urlpatterns = [
     path('mrm/<str:layerid>/', MRMEndpointLayer.as_view(), name="mrm_get_resource"),
     path('news/', NewsList.as_view(), name="news"),
     path('news/<str:slug>/', NewsArticle.as_view(), name="article"),
+    path('viewer/', RedirectView.as_view(pattern_name='browse', permanent=False), name='viewer_base'),
+    path('viewer/<str:place_slug>/', Viewer.as_view(), name='viewer'),
 ]

@@ -14,6 +14,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import View
 from django.middleware import csrf
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from newsletter.models import Submission, Message
 
@@ -394,5 +395,38 @@ class NewsArticle(View):
         return render(
             request,
             "news/article.html",
+            context=context_dict
+        )
+
+class Viewer(View):
+
+    @xframe_options_sameorigin
+    def get(self, request, place_slug):
+
+        place_data = {}
+        volumes = []
+
+        p = Place.objects.filter(slug=place_slug)
+        if p.count() == 1:
+            place = p[0]
+        else:
+            place = Place.objects.get(slug="louisiana")
+
+        place_data = place.serialize()
+        for v in Volume.objects.filter(locales__id__exact=place.id).order_by("year","volume_no").reverse():
+            volumes.append(v.serialize())
+
+        context_dict = {
+            "svelte_params": {
+                "PLACE": place_data,
+                "VOLUMES": volumes,
+                "TITILER_HOST": settings.TITILER_HOST,
+                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+                "ON_MOBILE": mobile(request),
+            }
+        }
+        return render(
+            request,
+            "viewer.html",
             context=context_dict
         )
