@@ -271,27 +271,3 @@ class Item:
 
         logger.info(f"{self.vol.identifier} | mosaic created: {os.path.basename(mosaic_json_path)}")
         return mosaic_json_path
-
-    def generate_mosaic_jpg(self, out_path):
-        ''' Create a non-geo JPEG version of the COG mosaic. Still a work in progress...
-
-        Ultimately, would like for this JPEG to not have internal overviews, but I haven't
-        had any luck removing them during the conversion.
-
-        Tried using PIL instead of gdal, but still getting the overviews. PIL can seek "frames"
-        in the image, and different overviews ARE different frames, but the base data still
-        seems to include all of the upper overviews!
-        '''
-
-        mosaic_vrt = self.generate_mosaic_vrt()
-
-        to = gdal.TranslateOptions(
-            format="GTiff",
-            creationOptions = [
-                "COMPRESS=JPEG",
-                "BIGTIFF=YES",
-                #"INTERNAL_MASK=NO",
-            ],
-        )
-
-        gdal.Translate(out_path, mosaic_vrt, options=to)

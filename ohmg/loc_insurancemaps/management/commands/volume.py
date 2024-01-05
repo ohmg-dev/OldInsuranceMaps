@@ -28,7 +28,6 @@ class Command(BaseCommand):
                 "make-sheets",
                 "generate-mosaic-cog",
                 "generate-mosaic-json",
-                "generate-non-geo-mosaic",
                 "generate-thumbnails",
                 "set-extent",
                 "warp-layers",
@@ -100,15 +99,6 @@ class Command(BaseCommand):
                 vols = Volume.objects.all()
             for v in vols:
                 v.refresh_lookups()
-            print(f"refreshed lookups on {len(vols)} volumes")
-
-        if options['operation'] == "refresh-lookups-old":
-            if i is not None:
-                vols = Volume.objects.filter(pk=i)
-            else:
-                vols = Volume.objects.all()
-            for v in vols:
-                v.populate_lookups()
             print(f"refreshed lookups on {len(vols)} volumes")
 
         if options['operation'] == "import":
@@ -213,15 +203,6 @@ class Command(BaseCommand):
                 else:
                     item = Item(i)
                     item.generate_mosaic_cog()
-
-        if options['operation'] == "generate-non-geo-mosaic":
-            if i is not None:
-                if options['background']:
-                    print('not implemented')
-                    return
-                else:
-                    item = Item(i)
-                    item.generate_mosaic_jpg(f"{i}.jpg")
 
         if options['operation'] == "generate-mosaic-json":
             if i is not None:

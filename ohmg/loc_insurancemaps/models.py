@@ -353,16 +353,6 @@ class Volume(models.Model):
             sheet.lc_iiif_service = parsed.iiif_service
             sheet.save()
 
-    def load_sheet_documents(self):
-
-        self.make_sheets()
-        self.update_status("initializing...")
-        for sheet in self.sheets:
-            if sheet.document is None:
-                sheet.load_document(self.loaded_by)
-        self.update_status("started")
-        self.populate_lookups()
-
     def load_sheet_docs(self, force_reload=False):
 
         self.make_sheets()
