@@ -64,7 +64,7 @@ class Command(BaseCommand):
             self.import_all_places()
 
         elif options['operation'] == "reset-volume-counts":
-            self.reset_volume_counts()
+            self.reset_all_counts()
 
     def create_new_place(self, name, parent_slug, category):
 
