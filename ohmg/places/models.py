@@ -218,7 +218,16 @@ class Place(models.Model):
 
         return lists
 
-        
+    def get_inclusive_pks(self):
+        pks = []
+        descendants = Place.objects.filter(direct_parents__id__exact=self.id)
+        while descendants:
+            pks += [i.pk for i in descendants]
+            new_descendants = []
+            for d in descendants:
+                new_descendants += [i for i in Place.objects.filter(direct_parents__id__exact=d.pk)]
+            descendants = new_descendants
+        return pks
 
     def serialize(self):
         return {

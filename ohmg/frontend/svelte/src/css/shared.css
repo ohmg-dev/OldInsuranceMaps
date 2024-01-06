@@ -20,10 +20,13 @@ h1, h2, h3, h4, h5, h6 {
 
 table.tablesort {
 	width:100%;
+	border: 1px solid grey;
+	border-radius: 4px;
 }
 
 th.sortable, td {
 	padding: 5px;
+	white-space: nowrap;
 }
 
 thead tr {

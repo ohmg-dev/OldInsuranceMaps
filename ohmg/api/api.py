@@ -1,11 +1,11 @@
 import logging
-from typing import List
+from typing import List, Optional
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
-from ninja import NinjaAPI, Query
+from ninja import NinjaAPI, Query, FilterSchema
 from ninja.pagination import paginate
 from ninja.security import APIKeyHeader
 
@@ -65,15 +65,45 @@ def list_users(request):
     queryset = User.objects.all().exclude(username="AnonymousUser").order_by("username")
     return list(queryset)
 
+class ItemFilterSchema(FilterSchema):
+    """not currently used, would need to customize the fields a bit"""
+    loaded_by__username: Optional[str] = None
+
 @api.get('items/', response=List[ItemListSchema], url_name="item_list")
-def list_items(request, sort: str = "default", limit: int = None):
+def list_items(request,
+        # filters: ItemFilterSchema = Query(...),
+        sort: str = "default",
+        limit: int = None,
+        loaded: bool = True,
+        loaded_by: str = None,
+        locale: str = None,
+        locale_inclusive: bool = False,
+    ):
+    # overall, not really optimized. should refactor at some point...
     if sort == "load_date":
-        queryset = Volume.objects.all().exclude(loaded_by=None).order_by('-load_date')
+        items = Volume.objects.all().order_by('-load_date')
     else:
-        queryset = Volume.objects.all().exclude(loaded_by=None).order_by('city', 'year')
+        items = Volume.objects.all().order_by('city', 'year')
+    
+    if locale:
+        place = Place.objects.get(slug=locale)
+        if locale_inclusive:
+            if locale in ['united-states', 'mexico', 'canada', 'cuba']:
+                pass
+            else:
+                pks = place.get_inclusive_pks()
+                items = items.filter(locales__in=pks)
+        else:
+            items = items.filter(locales=place.pk)
+
+    if loaded:
+        items = items.exclude(loaded_by=None)
+    if loaded_by:
+        items = items.filter(loaded_by__username=loaded_by)
+
     if limit:
-        queryset = queryset[:limit]
-    return list(queryset)
+        items = items[:limit]
+    return list(items)
 
 @api.get('places/', response=List[PlaceSchema], url_name="place_list")
 def list_places(request):

@@ -47,7 +47,8 @@
 {:else if PAGE_NAME == 'place'}
 <Place 
     PLACE={PARAMS.PLACE}
-    LISTS={PARAMS.LISTS} />
+    ITEM_API_URL={PARAMS.ITEM_API_URL}
+    OHMG_API_KEY={PARAMS.OHMG_API_KEY} />
 {:else if PAGE_NAME == 'browse'}
 <Browse 
     PLACES_GEOJSON_URL={PARAMS.PLACES_GEOJSON_URL}

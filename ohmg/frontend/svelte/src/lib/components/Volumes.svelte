@@ -3,44 +3,51 @@ import {TableSort} from 'svelte-tablesort'
 
 export let ITEM_API_URL;
 export let OHMG_API_KEY;
+export let ALL_ITEMS = [];
+export let PLACE_SLUG;
+export let PLACE_INCLUSIVE = false;
 
-let all_items = [];
 let filtered_items = [];
 let loading = true
 
-const apiHeaders = {
-	'X-API-Key': OHMG_API_KEY,
+let loadedOnly = true;
+$: url = PLACE_SLUG ? `${ITEM_API_URL}?locale=${PLACE_SLUG}&locale_inclusive=${PLACE_INCLUSIVE}&loaded=${loadedOnly}` : `${ITEM_API_URL}?loaded=${loadedOnly}`
+function handleFetch(url) {
+	const apiHeaders = {
+		'X-API-Key': OHMG_API_KEY,
+	}
+	fetch(url, { headers: apiHeaders })
+		.then(response => response.json())
+		.then(result => {
+			ALL_ITEMS = flatten_response(result);
+			filtered_items = ALL_ITEMS;
+		});
+	
+	function flatten_response(items_json) {
+		const flattened = []
+		items_json.forEach( function(item) {
+			item.load_date = item.loaded_by ? item.load_date : "---";
+			item.loaded_by_name = item.loaded_by ? item.loaded_by.username : "---";
+			item.loaded_by_profile = item.loaded_by ? item.loaded_by.profile_url : "";
+			item.unprepared_ct = item.stats.unprepared_ct;
+			item.prepared_ct = item.stats.prepared_ct;
+			item.georeferenced_ct = item.stats.georeferenced_ct;
+			item.percent = item.stats.percent;
+			item.mm_ct = item.stats.mm_todo;
+			item.mm_display = item.stats.mm_display;
+			item.mm_percent = item.stats.mm_percent;
+			flattened.push(item)
+		})
+		loading = false
+		return flattened
+	}
 }
-
-fetch(ITEM_API_URL, { headers: apiHeaders })
-	.then(response => response.json())
-	.then(result => {
-		all_items = flatten_response(result);
-		filtered_items = all_items;
-	});
-
-function flatten_response(items_json) {
-	const flattened = []
-	items_json.forEach( function(item) {
-		item.loaded_by_name = item.loaded_by.username;
-		item.loaded_by_profile = item.loaded_by.profile_url;
-		item.unprepared_ct = item.stats.unprepared_ct;
-		item.prepared_ct = item.stats.prepared_ct;
-		item.georeferenced_ct = item.stats.georeferenced_ct;
-		item.percent = item.stats.percent;
-		item.mm_ct = item.stats.mm_todo;
-		item.mm_display = item.stats.mm_display;
-		item.mm_percent = item.stats.mm_percent;
-		flattened.push(item)
-	})
-	loading = false
-	return flattened
-}
+$: handleFetch(url)
 
 function updateFilteredList(filterText) {
 	if (filterText && filterText.length > 0) {
 		filtered_items = [];
-		all_items.forEach( function(vol) {
+		ALL_ITEMS.forEach( function(vol) {
 			const volumeName = vol.title.toUpperCase();
 			const filterBy = filterText.toUpperCase();
 			if (volumeName.indexOf(filterBy) > -1) {
@@ -48,7 +55,7 @@ function updateFilteredList(filterText) {
 			}
 		});
 	} else {
-		filtered_items = all_items;
+		filtered_items = ALL_ITEMS;
 	}
 }
 let filterInput;
@@ -56,7 +63,8 @@ $: updateFilteredList(filterInput)
 
 </script>
 <div class="filter-container">
-	<input type="text" id="filterInput" placeholder="Filter by title..." bind:value={filterInput}>
+	<input style="flex-grow: 1;" type="text" id="filterInput" placeholder="Filter by title..." bind:value={filterInput}>
+	<label title="Only show content that has been started/loaded."><input type="checkbox" bind:checked={loadedOnly} />started</label>
 </div>
 <div style="overflow-x:auto;">
 	{#if loading}
@@ -89,7 +97,13 @@ $: updateFilteredList(filterInput)
 			</td>
 			<td>{v.year_vol}</td>
 			<td style="text-align:center;">{v.sheet_ct}</td>
-			<td style="text-align:center;"><a href={v.loaded_by_profile}>{v.loaded_by_name}</a></td>
+			<td style="text-align:center;">
+				{#if v.loaded_by_name != "---" }
+				<a href={v.loaded_by_profile}>{v.loaded_by_name}</a>
+				{:else}
+				{v.loaded_by_name}
+				{/if}
+			</td>
 			<td style="text-align:center;">{v.load_date}</td>
 			<td style="text-align:center; border-left:1px solid gray;">{v.unprepared_ct}</td>
 			<td style="text-align:center;">{v.prepared_ct}</td>
@@ -118,11 +132,8 @@ $: updateFilteredList(filterInput)
 <style>
 
 .filter-container {
-	padding: 0px 10px 10px 10px;
-}
-
-.filter-container > input {
-	width: 100%;
+	display: flex;
+	margin-bottom: 5px;
 }
 
 /* Credit to this SO answer: https://stackoverflow.com/a/52205730/3873885 */

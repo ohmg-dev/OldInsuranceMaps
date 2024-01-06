@@ -1,7 +1,12 @@
 <script>
 export let PLACE;
-console.log(PLACE)
+export let ITEM_API_URL;
+export let OHMG_API_KEY;
+
 import TitleBar from './components/TitleBar.svelte';
+import Volumes from './components/Volumes.svelte';
+
+let reinitList = [{}]
 
 let onlySLMaps = true;
 $: subLocales = PLACE.descendants
@@ -22,6 +27,7 @@ function update(place_slug) {
 			PLACE = result.PLACE;
 			history.pushState({slug:PLACE.slug}, PLACE.display_name, `/${PLACE.slug}`);
 			document.title = PLACE.display_name;
+			reinitList = [{}];
 	})
 }
 
@@ -61,8 +67,8 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 	</select>
 </div>
 <TitleBar TITLE={PLACE.display_name} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
-<div style="display:flex; justify-content: space-between;">
-	<div style="width:30%">
+<div style="display:flex;">
+	<div id="sub-locale-panel" style="margin-right:15px; min-width:250px;">
 		{#if PLACE.parents.length > 0}
 		<h4>Super-locale</h4>
 		<ul class="sub-list">
@@ -75,9 +81,10 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 			{/each}
 		</ul>
 		{/if}
+		{#if PLACE.descendants.length > 0}
 		<h4>Sub-locales</h4>
-		<input style="margin-left: 0px;" type='checkbox' bind:checked={onlySLMaps} /><span><em>only show those with maps</em></span>
-		{#if PLACE.descendants.length > 0 && PLACE.descendants.filter(function (i) {return i.volume_count_inclusive != 0}).length > 0}
+		<label style="font-size:.9em;"><input style="margin-left:0px;" type='checkbox' bind:checked={onlySLMaps} /><em>only sub-locales with content</em></label>
+		{#if localeList.length > 0}
 		<ul class="sub-list">
 			{#each localeList as d}
 			<li>
@@ -90,18 +97,13 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 		{:else}
 		<p><em>---</em></p>
 		{/if}
-	</div>
-	<div style="width:60%">
-		<h3>Maps</h3>
-		{#if PLACE.volumes.length > 0}
-		<ul class="sub-list">
-			{#each PLACE.volumes as v}
-			<li><a href="/loc/{v.identifier}">{v.year}{#if v.volume_no}&nbsp;vol. {v.volume_no}{/if}</a></li>
-			{/each}
-		</ul>
-		{:else}
-		<p><em>---</em></p>
 		{/if}
+	</div>
+	<div id="items-panel" style="flex-grow:1;">
+		<h3>Maps</h3>
+		{#each reinitList as key (key)}
+		<Volumes ITEM_API_URL={ITEM_API_URL} OHMG_API_KEY={OHMG_API_KEY} ALL_ITEMS={[]} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
+		{/each}
 	</div>
 </div>
 <style>
@@ -126,10 +128,7 @@ button:disabled {
 	font-size: .95em;
 }
 .breadcrumbs-select-row select {
-	/* min-width: 35px; */
 	margin-right: 3px;
-	/* background: none; */
-	/* border: none; */
 	color: #2c689c;
 	cursor: pointer;
 }
@@ -154,4 +153,19 @@ button:disabled {
 .sub-list li:nth-child(2n+1) {
   background-color: #ffffff;
 }
+
+@media (max-width: 768px) {
+	#sub-locale-panel {
+	  display: none;
+	}
+	#items-panel {
+		width: 100%;
+	}
+	.breadcrumbs-select-row {
+		flex-direction: column;
+	}
+	.breadcrumbs-select-row select {
+		margin-bottom: 2px;
+	}
+  }
 </style>
