@@ -219,7 +219,7 @@ class Place(models.Model):
         return lists
 
     def get_inclusive_pks(self):
-        pks = []
+        pks = [self.pk]
         descendants = Place.objects.filter(direct_parents__id__exact=self.id)
         while descendants:
             pks += [i.pk for i in descendants]
