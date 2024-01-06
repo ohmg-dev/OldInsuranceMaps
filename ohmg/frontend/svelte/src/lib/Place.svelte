@@ -1,7 +1,12 @@
 <script>
 export let PLACE;
-
+console.log(PLACE)
 import TitleBar from './components/TitleBar.svelte';
+
+let onlySLMaps = true;
+$: subLocales = PLACE.descendants
+$: subLocalesWithMaps = PLACE.descendants.filter(function (i) {return i.volume_count_inclusive != 0})
+$: localeList = onlySLMaps ? subLocalesWithMaps : subLocales
 
 function update(place_slug) {
 	// take a --- selection to mean clear that category, so re-fetch the parent
@@ -15,7 +20,7 @@ function update(place_slug) {
 	}).then(response => response.json())
 		.then(result => {
 			PLACE = result.PLACE;
-			history.replaceState({slug:PLACE.slug}, PLACE.display_name, `/${PLACE.slug}`);
+			history.pushState({slug:PLACE.slug}, PLACE.display_name, `/${PLACE.slug}`);
 			document.title = PLACE.display_name;
 	})
 }
@@ -29,7 +34,6 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 	] : [];
 
 </script>
-<TitleBar TITLE={PLACE.display_name} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
 
 <div class="breadcrumbs-select-row">
 	<select bind:value={PLACE.select_lists[1].selected} on:change={() => {update(PLACE.select_lists[1].selected)}}>
@@ -56,21 +60,29 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 		{/each}
 	</select>
 </div>
-
-<div style="font-style:italic;">
-	{#each PLACE.breadcrumbs as bc, n}
-	<button on:click={() => {update(bc.slug)}}>{bc.name}</button>{#if n != PLACE.breadcrumbs.length-1}&nbsp;&rarr;&nbsp;{/if}
-	{/each}
-</div>
-<div style="display:flex;">
-	<div style="width:50%">
-		<h2>Locales</h2>
-		{#if PLACE.descendants.length > 0}
-		<ul style="padding-left:20px">
-			{#each PLACE.descendants as d}
+<TitleBar TITLE={PLACE.display_name} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
+<div style="display:flex; justify-content: space-between;">
+	<div style="width:30%">
+		{#if PLACE.parents.length > 0}
+		<h4>Super-locale</h4>
+		<ul class="sub-list">
+			{#each PLACE.parents as d}
+			<li>
+				<button on:click={() => {update(d.slug)}}>
+				{d.display_name}
+				</button>
+			</li>
+			{/each}
+		</ul>
+		{/if}
+		<h4>Sub-locales</h4>
+		<input style="margin-left: 0px;" type='checkbox' bind:checked={onlySLMaps} /><span><em>only show those with maps</em></span>
+		{#if PLACE.descendants.length > 0 && PLACE.descendants.filter(function (i) {return i.volume_count_inclusive != 0}).length > 0}
+		<ul class="sub-list">
+			{#each localeList as d}
 			<li>
 				<button on:click={() => {update(d.slug)}} style="{d.volume_count_inclusive == 0 ? 'color:#333333;' : ''}">
-				{d.display_name} {#if d.volume_count_inclusive != 0}({d.volume_count_inclusive}){/if}
+				{d.display_name}{#if d.volume_count_inclusive > 0}&nbsp;({d.volume_count_inclusive}){/if}
 				</button>
 			</li>
 			{/each}
@@ -79,10 +91,10 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 		<p><em>---</em></p>
 		{/if}
 	</div>
-	<div style="width:50%">
-		<h2>Items</h2>
+	<div style="width:60%">
+		<h3>Maps</h3>
 		{#if PLACE.volumes.length > 0}
-		<ul style="padding-left:20px">
+		<ul class="sub-list">
 			{#each PLACE.volumes as v}
 			<li><a href="/loc/{v.identifier}">{v.year}{#if v.volume_no}&nbsp;vol. {v.volume_no}{/if}</a></li>
 			{/each}
@@ -110,7 +122,8 @@ button:disabled {
 	display:flex;
 	flex-direction:row;
 	flex-wrap: wrap;
-	margin-top: 5px;
+	padding: 10px 0px;
+	font-size: .95em;
 }
 .breadcrumbs-select-row select {
 	/* min-width: 35px; */
@@ -122,5 +135,23 @@ button:disabled {
 }
 .breadcrumbs-select-row select:disabled {
 	cursor: default;
+}
+.sub-list {
+	padding: 0;
+	list-style: none;
+	max-height: calc(100vh - 435px);
+	overflow-y: scroll;
+	background: #e9e9ed;
+	border: 1px solid #8f8f9d;
+  	border-radius: 4px;
+}
+.sub-list li {
+	padding: 5px;
+}
+.sub-list li:nth-child(2n) {
+  background-color: #f6f6f6;
+}
+.sub-list li:nth-child(2n+1) {
+  background-color: #ffffff;
 }
 </style>

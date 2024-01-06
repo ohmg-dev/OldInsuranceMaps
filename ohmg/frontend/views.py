@@ -220,26 +220,10 @@ class VolumeDetail(View):
         volume = get_object_or_404(Volume, pk=volumeid)
         volume_json = volume.serialize(include_session_info=True)
 
-        other_vols = []
-        for v in Volume.objects.filter(city=volume.city, state=volume.state):
-            url = reverse("volume_summary", args=(v.pk, ))
-            if v.pk == volume.pk:
-                url = None
-            item = {
-                "alt": v.__str__(),
-                "display": str(v.year),
-                "url": url,
-            }
-            if v.volume_no is not None:
-                item['display'] += f" vol. {v.volume_no}"
-            other_vols.append(item)
-        other_vols.sort(key=lambda i: i['display'])
-
         context_dict = {
             "svelte_params": {
                 "TITILER_HOST": settings.TITILER_HOST,
                 "VOLUME": volume_json,
-                "OTHER_VOLUMES": other_vols,
                 "CSRFTOKEN": csrf.get_token(request),
                 'USER_TYPE': get_user_type(request.user),
                 "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,

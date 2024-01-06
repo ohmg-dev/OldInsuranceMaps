@@ -15,7 +15,6 @@ import Trash from "phosphor-svelte/lib/Trash";
 import {getCenter} from 'ol/extent';
 
 import TitleBar from './components/TitleBar.svelte';
-import PlaceSelect from "./components/PlaceSelect.svelte";
 import VolumePreviewMap from "./components/VolumePreviewMap.svelte";
 import MultiTrim from "./components/MultiTrim.svelte";
 import ConditionalDoubleChevron from './components/ConditionalDoubleChevron.svelte';
@@ -30,11 +29,17 @@ import SingleLayerViewer from './components/SingleLayerViewer.svelte';
 import SingleDocumentViewer from './components/SingleDocumentViewer.svelte';
 
 export let VOLUME;
-export let OTHER_VOLUMES;
 export let CSRFTOKEN;
 export let USER_TYPE;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
+
+console.log(VOLUME.locale)
+
+let current_identifier = VOLUME.identifier
+function goToItem(identifier) {
+	window.location = "/loc/" + current_identifier
+}
 
 $: sheetsLoading = VOLUME.status == "initializing...";
 
@@ -247,16 +252,18 @@ let modalLyrExtent = "";
 	<p></p>
 </Modal>
 <main>
-	<TitleBar TITLE={VOLUME.title} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
-	<section>
-		<p>
-			{#each OTHER_VOLUMES as link, n}
-            {#if n != 0}&nbsp;&bullet;&nbsp;{/if}
-            {#if link.url}<a href={link.url} title={link.alt ? link.alt : link.display}>{link.display}</a>{:else}{link.display}{/if}
+	<section style="padding: 5px 0px; font-size: .95em; border-bottom: none;">
+		{#each VOLUME.locale.breadcrumbs as bc, n}
+		<a href="/{bc.slug}">{bc.name}</a>{#if n != VOLUME.locale.breadcrumbs.length-1}&nbsp;&rarr;&nbsp;{/if}
+		{/each}
+		&nbsp;&rarr;&nbsp;
+		<select class="item-select" bind:value={current_identifier} on:change={goToItem}>
+			{#each VOLUME.locale.volumes as v}
+			<option value={v.identifier}>{v.year}{v.volume_no ? " vol. " + v.volume_no : ''}</option>
 			{/each}
-			<PlaceSelect VOLUME={VOLUME} />
-        </p>
+		</select>
 	</section>
+	<TitleBar TITLE={VOLUME.title} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
 	<section>
 		<div class="section-title-bar">
 			<button class="section-toggle-btn" disabled={VOLUME.items.layers.length == 0} 
@@ -725,6 +732,12 @@ button.thumbnail-btn {
 .document-item ul {
 	list-style-type: none;
 	padding: 0;
+}
+
+select.item-select {
+	margin-right: 3px;
+	color: #2c689c;
+	cursor: pointer;
 }
 
 @media screen and (max-width: 768px){

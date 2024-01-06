@@ -43,7 +43,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding-bottom: 10px;
+        padding: 7px 0px;
         border-bottom: 1px solid rgb(149, 149, 149);
     }
 
@@ -53,8 +53,7 @@
     }
 
     .title-bar div h1 {
-        margin: 10px 0px;
-        font-size: 2em;
+        margin: 0px;
     }
 
     .title-bar div.link-box {
