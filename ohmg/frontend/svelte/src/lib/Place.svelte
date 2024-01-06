@@ -99,7 +99,7 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 		{/if}
 		{/if}
 	</div>
-	<div id="items-panel" style="flex-grow:1;">
+	<div id="items-panel" style="flex-grow:1; overflow-x:auto;">
 		<h3>Maps</h3>
 		{#each reinitList as key (key)}
 		<Volumes ITEM_API_URL={ITEM_API_URL} OHMG_API_KEY={OHMG_API_KEY} ALL_ITEMS={[]} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
