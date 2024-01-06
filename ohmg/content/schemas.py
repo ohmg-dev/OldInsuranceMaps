@@ -100,7 +100,7 @@ class ItemListSchema(Schema):
         if obj.multimask is not None:
             mm_ct = len(obj.multimask)
             mm_todo = main_lyrs_ct - mm_ct
-            if mm_ct > 0:
+            if mm_ct > 0 and main_lyrs_ct > 0:
                 mm_display = f"{mm_ct}/{main_lyrs_ct}"
                 mm_percent = mm_ct / main_lyrs_ct
                 mm_percent += main_lyrs_ct * .000001
