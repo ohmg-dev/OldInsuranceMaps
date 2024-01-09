@@ -3,12 +3,85 @@ import IconContext from 'phosphor-svelte/lib/IconContext';
 import { iconProps } from "../js/utils"
 import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
 import CaretDown from "phosphor-svelte/lib/CaretDown";
+import NavDropdown from './components/buttons/NavDropdown.svelte';
 
 export let USER;
-let showAboutDD = false;
-let showContribDD = false;
+
+let subMenus = {
+	"georef": {
+		"visible": false,
+		"links": [
+			{
+				"title": "Find an item...",
+				"href": "/browse#items",
+				"external": false,
+			},
+			{
+				"title": "All contributors",
+				"href": "/profiles",
+				"external": false,
+			},
+			{
+				"title": "All activity",
+				"href": "/activity",
+				"external": false,
+			},
+			{
+				"title": "Full documentation",
+				"href": "https://ohmg.dev/docs",
+				"external": true,
+			},
+		]
+	},
+	"about": {
+		"visible": false,
+		"links": [
+			{
+				"title": "News",
+				"href": "/news",
+				"external": false,
+			},
+			{
+				"title": "FAQ",
+				"href": "/faq",
+				"external": false,
+			},
+			{
+				"title": "Contact",
+				"href": "/contact",
+				"external": false,
+			},
+			{
+				"title": "About Sanborn maps",
+				"href": "/about-sanborn-maps",
+				"external": false,
+			},
+			{
+				"title": "About this site...",
+				"href": "/about",
+				"external": false,
+			},
+		]
+	},
+	"user": {
+		"visible": false,
+		"links": [
+			{
+				"title": "My Profile",
+				"href": USER.profile,
+				"external": false,
+			},
+			{
+				"title": "Sign Out",
+				"href": "/account/logout",
+				"external": false,
+			},
+		]
+	}
+}
 
 function clickOutside(node, { enabled: initialEnabled, cb }) {
+	console.log(node)
     const handleOutsideClick = ({ target }) => {
       if (!node.contains(target)) {
         cb();
@@ -34,7 +107,7 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 </script>
 
 <IconContext values={iconProps}>
-<nav class="lahmg-nav ">
+<nav>
 	<div>
 		<div>
 			<a href="/" title="LaHMG">
@@ -44,44 +117,37 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 		<div style="padding-left: 8px;">
 			<a href="/browse">Search</a>
 		</div>
-		<div class="dropdown-container {showContribDD ? 'active' : ''}" use:clickOutside={{ enabled: showContribDD, cb: () => showContribDD = false }} >
-			<button on:click={() => {showContribDD = !showContribDD}} title="Georeferencing">Georeferencing <CaretDown /></button>
-			{#if showContribDD}
-			<div class="dropdown">
-				<a href="/browse#items" title="Find an item to work on">Find an item...</a>
-				<!-- <a href="/getting-started" title="Getting started">Getting started</a> -->
-				<a href="/profiles" title="All contributors">All contributors</a>
-				<a href="/activity" title="All activity">All activity</a>
-				<a href="https://ohmg.dev/docs" title="Full documentation on ohmg.dev" target="_blank">Full documentation <ArrowSquareOut /></a>
-			</div>
+		<div class="dropdown-container {subMenus.georef.visible ? 'active' : ''}" use:clickOutside={{ enabled: subMenus.georef.visible, cb: () => subMenus.georef.visible = false }} >
+			<button on:click={() => {subMenus.georef.visible = !subMenus.georef.visible}} title="Georeferencing">Georeferencing <CaretDown /></button>
+			{#if subMenus.georef.visible}
+			<NavDropdown LINKS={subMenus.georef.links} />
 			{/if}
 		</div>
-		<div class="dropdown-container {showAboutDD ? 'active' : ''}" use:clickOutside={{ enabled: showAboutDD, cb: () => showAboutDD = false }} >
-			<button on:click={() => {showAboutDD = !showAboutDD}} title="About">About <CaretDown /></button>
-			{#if showAboutDD}
-			<div class="dropdown">
-				<a href="/news" title="News">News</a>
-				<a href="/faq" title="Frequently Asked Questions">FAQ</a>
-				<a href="/contact" title="Contact">Contact</a>
-				<a href="/about-sanborn-maps" title="About Sanborn maps">About Sanborn maps</a>
-				<a href="/about" title="About this site...">About this site...</a>
-			</div>
+		<div class="dropdown-container {subMenus.about.visible ? 'active' : ''}" use:clickOutside={{ enabled: subMenus.about.visible, cb: () => subMenus.about.visible = false }} >
+			<button on:click={() => {subMenus.about.visible = !subMenus.about.visible}} title="About">About <CaretDown /></button>
+			{#if subMenus.about.visible}
+			<NavDropdown LINKS={subMenus.about.links} />
 			{/if}
 		</div>
 	</div>
 	<div>
-		<div>
-			{#if USER.is_authenticated }
-			<a href={USER.profile}>{USER.name}</a>
-			{:else}
-			<a href="/account/login">Sign in</a>
+		{#if USER.is_authenticated }
+		<div class="dropdown-container {subMenus.user.visible ? 'active' : ''}" use:clickOutside={{ enabled: subMenus.user.visible, cb: () => subMenus.user.visible = false }} >
+			<button on:click={() => {subMenus.user.visible = !subMenus.user.visible}} title="About">{USER.name} <CaretDown /></button>
+			{#if subMenus.user.visible}
+			<NavDropdown LINKS={subMenus.user.links} RIGHT_POS={0}/>
 			{/if}
 		</div>
+		{:else}
+		<div>
+			<a href="/account/login">Sign in</a>
+		</div>
+		{/if}
 	</div>
 </nav>
 </IconContext>
 <style>
-nav.lahmg-nav {
+nav {
 	display: flex;
 	height: 60px;
 	background:#123B4F;
@@ -102,51 +168,38 @@ nav.lahmg-nav {
 	max-width: 100vw;
 }
 
-nav.lahmg-nav a {
+nav a {
 	color:white;
 	text-decoration: none;
 }
 
-nav.lahmg-nav a:hover {
+nav a:hover {
 	color: #cecece;
 	text-decoration: none;
 }
 
-nav.lahmg-nav button {
+nav button {
 	color: white;
 	font-size: inherit;
 }
 
-nav.lahmg-nav button:hover {
+nav button:hover {
 	color: #cecece;
 	cursor: pointer;
 }
 
-nav.lahmg-nav > div {
+nav > div {
 	display: flex;
 	align-items: center;
 }
 
-nav.lahmg-nav > div > div {
+nav > div > div {
 	padding: 4px;
 	white-space: nowrap;
 }
 
-.dropdown {
-	display:flex;
-	flex-direction: column;
-	align-items: baseline;
-	position:fixed;
-	top:50px;
-	background: #123B4F;
-	padding: 10px 15px;
-}
-.dropdown a {
-	margin: 2px 0px;
-}
-
-.active {
-	color: #cecece;
+.active button {
+	color: #cecece !important;
 }
 
 .dropdown-container button {
@@ -158,10 +211,7 @@ nav.lahmg-nav > div > div {
 }
 
 @media (max-width: 760px) {
-	.dropdown {
-		right: 0;
-	}
-	nav.lahmg-nav {
+	nav {
 		padding: 0px 5px;
 	}
 }
