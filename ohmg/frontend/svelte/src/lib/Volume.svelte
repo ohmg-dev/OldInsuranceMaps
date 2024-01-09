@@ -8,6 +8,7 @@ import X from "phosphor-svelte/lib/X";
 import Check from "phosphor-svelte/lib/Check";
 import CropIcon from "phosphor-svelte/lib/Crop";
 import Wrench from "phosphor-svelte/lib/Wrench";
+import ArrowRight from "phosphor-svelte/lib/ArrowRight";
 import ArrowsClockwise from "phosphor-svelte/lib/ArrowsClockwise";
 import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
 import Trash from "phosphor-svelte/lib/Trash";
@@ -252,11 +253,11 @@ let modalLyrExtent = "";
 	<p></p>
 </Modal>
 <main>
-	<section style="padding: 5px 0px; font-size: .95em; border-bottom: none;">
+	<section class="breadcrumbs">
 		{#each VOLUME.locale.breadcrumbs as bc, n}
-		<a href="/{bc.slug}">{bc.name}</a>{#if n != VOLUME.locale.breadcrumbs.length-1}&nbsp;&rarr;&nbsp;{/if}
+		<a href="/{bc.slug}">{bc.name}</a>{#if n != VOLUME.locale.breadcrumbs.length-1}<ArrowRight size={12} />{/if}
 		{/each}
-		&nbsp;&rarr;&nbsp;
+		<ArrowRight size={12} />
 		<select class="item-select" bind:value={current_identifier} on:change={goToItem}>
 			{#each VOLUME.locale.volumes as v}
 			<option value={v.identifier}>{v.year}{v.volume_no ? " vol. " + v.volume_no : ''}</option>
@@ -671,6 +672,18 @@ button.thumbnail-btn {
 	border: none;
 	background: none;
 	cursor: zoom-in;
+}
+
+section.breadcrumbs {
+	display: flex;
+	align-items: center;
+	padding: 5px 0px;
+	font-size: .95em;
+	border-bottom: none;
+}
+
+:global(section.breadcrumbs svg) {
+	margin: 0px 2px;
 }
 
 .section-title-bar {

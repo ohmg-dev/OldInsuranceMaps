@@ -1,10 +1,16 @@
 <script>
+	import TitleBar from './components/TitleBar.svelte';
+	import Volumes from './components/Volumes.svelte';
+
+	import IconContext from 'phosphor-svelte/lib/IconContext';
+	import ArrowRight from "phosphor-svelte/lib/ArrowRight";
+	import { iconProps } from "../js/utils"
+
+
 export let PLACE;
 export let ITEM_API_URL;
 export let OHMG_API_KEY;
 
-import TitleBar from './components/TitleBar.svelte';
-import Volumes from './components/Volumes.svelte';
 
 let reinitList = [{}]
 
@@ -41,24 +47,28 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 
 </script>
 
+<IconContext values={iconProps} >
 <div class="breadcrumbs-select-row">
 	<select bind:value={PLACE.select_lists[1].selected} on:change={() => {update(PLACE.select_lists[1].selected)}}>
 		{#each PLACE.select_lists[1].options as i}
 		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
 		{/each}
 	</select>
+	<ArrowRight size={12} />
 	<select bind:value={PLACE.select_lists[2].selected} on:change={() => {update(PLACE.select_lists[2].selected)}}>
 		<option value="---">---</option>
 		{#each PLACE.select_lists[2].options as i}
 		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
 		{/each}
 	</select>
+	<ArrowRight size={12} />
 	<select bind:value={PLACE.select_lists[3].selected} disabled={PLACE.select_lists[2].selected === "---"} on:change={() => {update(PLACE.select_lists[3].selected)}}>
 		<option value="---">---</option>
 		{#each PLACE.select_lists[3].options as i}
 		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
 		{/each}
 	</select>
+	<ArrowRight size={12} />
 	<select bind:value={PLACE.select_lists[4].selected} disabled={PLACE.select_lists[2].selected === "---"} on:change={() => {update(PLACE.select_lists[4].selected)}}>
 		<option value="---">---</option>
 		{#each PLACE.select_lists[4].options as i}
@@ -106,6 +116,8 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 		{/each}
 	</div>
 </div>
+</IconContext>
+
 <style>
 button {
 	border: none;
@@ -124,16 +136,19 @@ button:disabled {
 	display:flex;
 	flex-direction:row;
 	flex-wrap: wrap;
+	align-items: center;
 	padding: 10px 0px;
 	font-size: .95em;
 }
 .breadcrumbs-select-row select {
-	margin-right: 3px;
 	color: #2c689c;
 	cursor: pointer;
 }
 .breadcrumbs-select-row select:disabled {
 	cursor: default;
+}
+:global(.breadcrumbs-select-row svg) {
+	margin: 0px 2px;
 }
 .sub-list {
 	padding: 0;
@@ -166,6 +181,10 @@ button:disabled {
 	}
 	.breadcrumbs-select-row select {
 		margin-bottom: 2px;
+		width: 100%;
+	}
+	:global(.breadcrumbs-select-row svg) {
+		display: none;
 	}
   }
 </style>
