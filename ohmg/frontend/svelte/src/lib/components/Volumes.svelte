@@ -64,7 +64,7 @@ $: updateFilteredList(filterInput)
 </script>
 <div class="filter-container">
 	<input style="flex-grow: 1;" type="text" id="filterInput" placeholder="Filter by title..." bind:value={filterInput}>
-	<label title="Only show content that has been started/loaded."><input type="checkbox" bind:checked={loadedOnly} />started</label>
+	<label title="Only show maps whose resources have been loaded."><input type="checkbox" bind:checked={loadedOnly} />loaded</label>
 </div>
 <div style="overflow-x:auto;">
 	{#if loading}
@@ -78,7 +78,7 @@ $: updateFilteredList(filterInput)
 	{:else}
 	<TableSort items={filtered_items}>
 		<tr slot="thead">
-			<th data-sort="title" style="max-width:300px;" title="Title">Item Title</th>
+			<th data-sort="title" style="max-width:300px;" title="Title">Title</th>
 			<th data-sort="year_vol" title="Year of publication">Year</th>
 			<th data-sort="sheet_ct" style="width:55px; text-align:center;" title="Number of sheets in publication">Sheets</th>
 			<th data-sort="loaded_by_name" style="text-align:center;" title="Volume originally loaded by this user">Loaded by</th>

@@ -677,6 +677,7 @@ button.thumbnail-btn {
 section.breadcrumbs {
 	display: flex;
 	align-items: center;
+	flex-wrap: wrap;
 	padding: 5px 0px;
 	font-size: .95em;
 	border-bottom: none;
