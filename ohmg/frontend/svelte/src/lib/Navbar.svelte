@@ -68,7 +68,7 @@ let subMenus = {
 		"links": [
 			{
 				"title": "My Profile",
-				"href": USER.profile,
+				"href": USER.profile_url,
 				"external": false,
 			},
 			{
@@ -110,8 +110,8 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 <nav>
 	<div>
 		<div>
-			<a href="/" title="LaHMG">
-				<img style="height:45px; width:45px;" src="/static/img/colored-full-linework.png" alt="LaHMG" class="navbar-brand-new">
+			<a href="/" title="Home">
+				<img style="height:45px; width:45px;" src="/static/img/colored-full-linework.png" alt="OldInsuranceMaps.net Home" class="navbar-brand-new">
 			</a>
 		</div>
 		<div style="padding-left: 8px;">
@@ -133,7 +133,9 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 	<div>
 		{#if USER.is_authenticated }
 		<div class="dropdown-container {subMenus.user.visible ? 'active' : ''}" use:clickOutside={{ enabled: subMenus.user.visible, cb: () => subMenus.user.visible = false }} >
-			<button on:click={() => {subMenus.user.visible = !subMenus.user.visible}} title="About">{USER.name} <CaretDown /></button>
+			<button on:click={() => {subMenus.user.visible = !subMenus.user.visible}} title={USER.username}>
+				<img style="height:45px; width:45px;" src={USER.image_url} class="navbar-brand-new" alt={USER.username} /><CaretDown />
+			</button>
 			{#if subMenus.user.visible}
 			<NavDropdown LINKS={subMenus.user.links} RIGHT_POS={0}/>
 			{/if}

@@ -2,6 +2,8 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from ohmg.utils import full_reverse
 
+from ohmg.accounts.schemas import UserSchema
+
 def loc_info(request):
 
     try:
@@ -9,11 +11,8 @@ def loc_info(request):
     except AttributeError:
         user = None
     if user and user.is_authenticated:
-        user_info = {
-            'is_authenticated': True,
-            'name': user.username,
-            'profile': full_reverse("profile_detail", args=(user.username, )),
-        }
+        user_info = UserSchema.from_orm(user).dict()
+        user_info['is_authenticated'] = True
     else:
         user_info = {
             'is_authenticated': False
