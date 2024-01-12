@@ -9,6 +9,7 @@ from ohmg.api.api import api
 urlpatterns = [
     path('', include('ohmg.frontend.urls')),
     path('', include('ohmg.accounts.urls')),
+    path('', include('ohmg.content.urls')),
     path('', include('ohmg.georeference.urls')),
     path('admin/', admin.site.urls, name="admin"),
     path('account/', include("allauth.urls")),
