@@ -1,9 +1,11 @@
 from django.urls import path
 
 from .views import (
-    ResourceView,
+    ItemView,
+    VirtualResourceView,
 )
 
 urlpatterns = [
-    path('resource/<int:pk>', ResourceView.as_view(), name="resource_detail"),
+    path('item/<str:identifier>', ItemView.as_view(), name="resource_detail"),
+    path('resource/<int:pk>', VirtualResourceView.as_view(), name="resource_detail"),
 ]

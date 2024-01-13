@@ -26,8 +26,7 @@ import {
 } from '../js/utils';
 
 export let CSRFTOKEN;
-export let USER_AUTHENTICATED;
-export let USER_STAFF;
+export let USER;
 export let RESOURCE;
 export let VOLUME;
 export let REFRESH_URL;
@@ -105,7 +104,7 @@ $: {
   switch(RESOURCE.status) {
     case "unprepared":
       showPrep = true;
-      if (USER_AUTHENTICATED) {
+      if (USER.is_authenticated) {
         splitBtnEnabled = true;
         noSplitBtnEnabled = true;
       }
@@ -254,7 +253,7 @@ let reinitMap = [{}]
               class="control-btn{splitNeeded == false ? ' btn-chosen': ''}">
               <CheckSquareOffset />
             </button>
-            {#if USER_AUTHENTICATED}
+            {#if USER.is_authenticated}
             <button 
               class="control-btn"
               title={undoBtnTitle}
@@ -319,7 +318,7 @@ let reinitMap = [{}]
               onclick="window.location.href='{RESOURCE.urls.georeference}'">
               <MapPin />{georeferenceBtnTitle}
             </button>
-            {#if USER_STAFF}
+            {#if USER.is_authenticated && USER.is_staff}
             <button
               class="control-btn"
               title="Remove all georeferencing for this resource"

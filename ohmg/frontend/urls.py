@@ -1,8 +1,9 @@
 from django.views.generic import TemplateView, RedirectView
 from django.urls import path
 
+# temporary overlap here, ultimately will remove the /loc/ url
+from ohmg.content.views import ItemView
 from ohmg.frontend.views import (
-    VolumeDetail,
     VolumeTrim,
     HomePage,
     MRMEndpointList,
@@ -27,7 +28,8 @@ urlpatterns = [
     path('search/', Browse.as_view(), name='search'),
     path('browse/', RedirectView.as_view(pattern_name='search'), name='browse'),
     path('loc/volumes/', RedirectView.as_view(pattern_name='search', permanent=True), name='volumes_list'),
-    path('loc/<str:volumeid>/', VolumeDetail.as_view(), name="volume_summary"),
+    # temporary overlap here, ultimately will remove the /loc/ url
+    path('loc/<str:volumeid>/', ItemView.as_view(), name="volume_summary"),
     path('loc/trim/<str:volumeid>/', VolumeTrim.as_view(), name="volume_trim"),
     path('mrm/', MRMEndpointList.as_view(), name="mrm_layer_list"),
     path('mrm/<str:layerid>/', MRMEndpointLayer.as_view(), name="mrm_get_resource"),

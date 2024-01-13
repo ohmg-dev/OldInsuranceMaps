@@ -2,7 +2,6 @@ import os
 import re
 import json
 import logging
-from datetime import datetime
 from pathlib import Path
 
 import frontmatter
@@ -22,7 +21,6 @@ from ohmg.utils import full_reverse
 from ohmg.georeference.models import Layer
 
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.loc_insurancemaps.tasks import load_docs_as_task
 
 from ohmg.places.models import Place
 
@@ -211,70 +209,6 @@ class VolumeTrim(View):
             }
 
         return JsonResponse(response)
-
-
-class VolumeDetail(View):
-
-    def get(self, request, volumeid):
-
-        volume = get_object_or_404(Volume, pk=volumeid)
-        volume_json = volume.serialize(include_session_info=True)
-
-        context_dict = {
-            "svelte_params": {
-                "TITILER_HOST": settings.TITILER_HOST,
-                "VOLUME": volume_json,
-                "CSRFTOKEN": csrf.get_token(request),
-                'USER_TYPE': get_user_type(request.user),
-                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-            }
-        }
-        return render(
-            request,
-            "content/item.html",
-            context=context_dict
-        )
-
-    def post(self, request, volumeid):
-
-        body = json.loads(request.body)
-        operation = body.get("operation", None)
-
-        if operation == "initialize":
-            volume = Volume.objects.get(pk=volumeid)
-            if volume.loaded_by is None:
-                volume.loaded_by = request.user
-                volume.load_date = datetime.now()
-                volume.save(update_fields=["loaded_by", "load_date"])
-            load_docs_as_task.delay(volumeid)
-            volume_json = volume.serialize(include_session_info=True)
-            volume_json["status"] = "initializing..."
-
-            return JsonResponse(volume_json)
-
-        elif operation == "set-index-layers":
-
-            volume = Volume.objects.get(pk=volumeid)
-
-            lcat_lookup = body.get("layerCategoryLookup", {})
-
-            for cat in volume.sorted_layers:
-                volume.sorted_layers[cat] = [k for k, v in lcat_lookup.items() if v == cat]
-
-            volume.save(update_fields=["sorted_layers"])
-            volume_json = volume.serialize(include_session_info=True)
-            return JsonResponse(volume_json)
-
-        elif operation == "refresh":
-            volume = Volume.objects.get(pk=volumeid)
-            volume_json = volume.serialize(include_session_info=True)
-            return JsonResponse(volume_json)
-
-        elif operation == "refresh-lookups":
-            volume = Volume.objects.get(pk=volumeid)
-            volume.refresh_lookups()
-            volume_json = volume.serialize(include_session_info=True)
-            return JsonResponse(volume_json)
 
 def get_layer_mrm_urls(layerid):
 

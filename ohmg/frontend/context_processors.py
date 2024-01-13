@@ -13,9 +13,11 @@ def user_info_from_request(request):
     if user and user.is_authenticated:
         user_info = UserSchema.from_orm(user).dict()
         user_info['is_authenticated'] = True
+        user_info['is_staff'] = user.is_staff
     else:
         user_info = {
-            'is_authenticated': False
+            'is_authenticated': False,
+            'is_staff': False,
         }
     return user_info
 
