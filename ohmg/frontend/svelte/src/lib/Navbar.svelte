@@ -81,7 +81,6 @@ let subMenus = {
 }
 
 function clickOutside(node, { enabled: initialEnabled, cb }) {
-	console.log(node)
     const handleOutsideClick = ({ target }) => {
       if (!node.contains(target)) {
         cb();

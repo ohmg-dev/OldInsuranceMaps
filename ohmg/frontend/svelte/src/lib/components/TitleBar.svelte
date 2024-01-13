@@ -3,8 +3,8 @@
     import { iconProps } from "../../js/utils"
     import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
 
-    export let IMG_URL;
     export let TITLE;
+    export let IMG_URL = null;
     export let SIDE_LINKS = [];
     export let ICON_LINKS = [];
 </script>

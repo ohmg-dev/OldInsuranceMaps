@@ -1,10 +1,10 @@
 from django.conf import settings
 from django.contrib.sites.models import Site
-from ohmg.utils import full_reverse
 
 from ohmg.accounts.schemas import UserSchema
 
-def loc_info(request):
+def user_info_from_request(request):
+    """ Return a set of info for the current user in the request. """
 
     try:
         user = request.user
@@ -17,15 +17,21 @@ def loc_info(request):
         user_info = {
             'is_authenticated': False
         }
+    return user_info
+
+def navbar_footer_params(request):
+    """ Build the params passed to the Navbar and Footer Svelte components."""
+
     return {
         'navbar_params': {
-            'USER': user_info
+            'USER': user_info_from_request(request)
         },
         'footer_params': {},
     }
 
-def general(request):
-    """ neifnef """
+def site_info(request):
+    """ Return site name, build number, etc. """
+
     site = Site.objects.get_current()
     return {
         'SITE_NAME': site.name,
