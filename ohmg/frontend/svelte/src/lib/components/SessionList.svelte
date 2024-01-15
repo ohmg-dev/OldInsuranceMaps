@@ -8,9 +8,8 @@ import CaretDoubleLeft from 'phosphor-svelte/lib/CaretDoubleLeft'
 import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight'
 import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise'
 
-import Modal, {getModal} from './Modal.svelte';
-
-import InfoButton from './buttons/InfoButton.svelte';
+import OpenModal from './buttons/OpenModal.svelte';
+import SessionListModal from './modals/SessionListModal.svelte';
 
 export let SESSION_API_URL;
 export let FILTER_PARAM = '';
@@ -50,13 +49,8 @@ $: {
 		});
 }
 
-let modalContent = `When contributors complete a step in the georeferencing process, it is stored as a session, either a "preparation" session (P) or "georeference" sessions (G). (MultiMask trimming is not stored in sessions, for now.)
-
-If you are looking for a list of the most recently added items (volumes), go to the [items page](/search#items)</a> and sort the table by **Load date**.
-
-*More sophisticated filter and sort capabilities for this list are in the works. This data is also accessible via the [beta API](/api/beta/docs). Please [get in touch](/contact) if you would like a key for the API.*`
 </script>
-<Modal id="modal-preview-map" mdContent={modalContent} />
+<SessionListModal id={"modal-session-list"} />
 <IconContext values={iconProps} >
 <div>
 	{#if allowPagination}
@@ -91,7 +85,7 @@ If you are looking for a list of the most recently added items (volumes), go to 
 				</button>
 			</div>
 			<div>
-				<InfoButton modalName="modal-preview-map" />
+				<OpenModal modalName="modal-session-list" />
 			</div>
 		</div>
 	</div>

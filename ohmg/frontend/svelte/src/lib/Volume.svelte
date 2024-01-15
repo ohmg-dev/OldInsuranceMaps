@@ -4,14 +4,10 @@ import { slide } from 'svelte/transition';
 import IconContext from 'phosphor-svelte/lib/IconContext';
 import { iconProps } from "../js/utils"
 
-import X from "phosphor-svelte/lib/X";
-import Check from "phosphor-svelte/lib/Check";
-import CropIcon from "phosphor-svelte/lib/Crop";
 import Wrench from "phosphor-svelte/lib/Wrench";
 import ArrowRight from "phosphor-svelte/lib/ArrowRight";
 import ArrowsClockwise from "phosphor-svelte/lib/ArrowsClockwise";
 import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
-import Trash from "phosphor-svelte/lib/Trash";
 
 import {getCenter} from 'ol/extent';
 
@@ -20,9 +16,19 @@ import VolumePreviewMap from "./components/VolumePreviewMap.svelte";
 import MultiTrim from "./components/MultiTrim.svelte";
 import ConditionalDoubleChevron from './components/ConditionalDoubleChevron.svelte';
 
-import Modal, {getModal} from './components/Modal.svelte';
+import ItemPreviewMapModal from './components/modals/ItemPreviewMapModal.svelte'
+import GeoreferenceOverviewModal from './components/modals/GeoreferenceOverviewModal.svelte'
+import UnpreparedSectionModal from './components/modals/UnpreparedSectionModal.svelte'
+import PreparedSectionModal from './components/modals/PreparedSectionModal.svelte'
+import GeoreferencedSectionModal from './components/modals/GeoreferencedSectionModal.svelte'
+import MultiMaskModal from './components/modals/MultiMaskModal.svelte'
+import NonMapContentModal from './components/modals/NonMapContentModal.svelte'
+import DocumentViewerModal from './components/modals/DocumentViewerModal.svelte'
+import LayerViewerModal from './components/modals/LayerViewerModal.svelte'
 
-import InfoButton from './components/buttons/InfoButton.svelte';
+import Modal, {getModal} from './components/modals/Base.svelte';
+
+import OpenModal from './components/buttons/OpenModal.svelte';
 
 import {makeTitilerXYZUrl} from '../js/utils';
 
@@ -34,8 +40,6 @@ export let CSRFTOKEN;
 export let USER_TYPE;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
-
-console.log(VOLUME.locale)
 
 let current_identifier = VOLUME.identifier
 function goToItem(identifier) {
@@ -195,62 +199,22 @@ let modalLyrExtent = "";
 
 </script>
 <IconContext values={iconProps}>
-<Modal id="modal-doc-view" full={true}>
-	{#each reinitMap2 as key (key)}
+<ItemPreviewMapModal id={"modal-preview-map"} placeName={VOLUME.locale.display_name} viewerUrl={VOLUME.urls.viewer}/>
+<GeoreferenceOverviewModal id={"modal-georeference-overview"} />
+<UnpreparedSectionModal id={'modal-unprepared'} />
+<PreparedSectionModal id={"modal-prepared"} />
+<GeoreferencedSectionModal id={"modal-georeferenced"} />
+<MultiMaskModal id={"modal-multimask"} />
+<NonMapContentModal id={"modal-non-map"} />
+<Modal id={"modal-doc-view"} full={true}>
+{#each reinitMap2 as key (key)}
 	<SingleDocumentViewer LAYER_URL={modalDocUrl} IMAGE_SIZE={modalDocImageSize} />
 	{/each}
 </Modal>
-<Modal id="modal-lyr-view" full={true}>
-	{#each reinitMap3 as key (key)}
+<Modal id={"modal-lyr-view"} full={true}>
+{#each reinitMap3 as key (key)}
 	<SingleLayerViewer LAYER_URL={modalLyrUrl} EXTENT={modalLyrExtent} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
-	{/each}
-</Modal>
-<Modal id="modal-preview-map">
-	<h3>Mosaic Preview</h3>
-	<p>The <strong>Mosaic Preview</strong> shows progress toward a full mosaic of this item's content&mdash;as documents are georeferenced, they will automatically appear here.</p>
-	<p>You can also view this mosaic alongside all other mosaics for this locale: <a href={VOLUME.urls.viewer} target="_blank" title={"Open viewer for " + VOLUME.locale.display_name}>{VOLUME.locale.display_name} <ArrowSquareOut /></a></p>
-</Modal>
-<Modal id="modal-georeference-overview">
-	<h3>Georeferencing Overview</h3>
-	<p>The <strong>Georeferencing Overview</strong> provides a per-document summary and access point to the entire georeferencing process for this item's content. As documents are processed, they will move through the sections from top to bottom.</p>
-</Modal>
-<Modal id="modal-unprepared">
-	<h3>Unprepared</h3>
-	<p>Each document in the <strong>Unprepared</strong> section must be evaluated individually, and, if it contains more than one mapped area, split into separate pieces.</p>
-</Modal>
-<Modal id="modal-prepared">
-	<h3>Prepared</h3>
-	<p>Content in the <strong>Prepared</strong> section is ready to be georeferenced. You can also decide here if a particular document should be moved to the <strong>Non-map Content</strong> section, for example if it is a title page or text index (this designation can be easily reversed).</p>
-</Modal>
-<Modal id="modal-georeferenced">
-	<h3>Georeferenced</h3>
-	<p>The <strong>Georeferenced</strong> section holds all content that has been spatially rectified, though you can still edit the control points for any layer whose georeferencing should be improved.</p>
-	<p>Use the <strong>Classify Layers</strong> button to sort layers into different categories, if applicable. For example, if a Key Map is present, classify it here so other interfaces will treat it appropriately.</p>
-</Modal>
-<Modal id="modal-multimask">
-	<h3>MultiMask</h3>
-	<p>The <strong>MultiMask</strong> is a mechanism for trimming the margins from every layer in a way that guarantees a seamless mosaic across this item's content.<p>
-	<h4>How to create a MultiMask</h4>
-	<ul>
-		<li>Use <CropIcon /> to start a mask for a particular layer.</li>
-		<li>Use <Trash /> to delete an existing mask.</li>
-		<li>Use <Check /> to save your work (do this often!).</li>
-		<li>Use <X /> to discard all changes since the last save.</li>
-	</ul>
-	<h4>Important Notes</h4>
-	<ul>
-		<li>You must be signed in to save your work, so don't get started before you are signed in!</li>
-		<li>The vertices of every adjacent mask should be snapped together</li>
-		<li>You can drag existing vertices to snap them to others, but this is sometimes "sticky" and takes a couple of tries.</li>
-		<li>If a mosaic is generated for this item, only layers that have been masked will be included in the mosaic.</li>
-	</ul>
-</Modal>
-<Modal id="modal-non-map">
-	<h3>Non-Map Content</h3>
-	<p>The <strong>Non-Map Content</strong> section holds documents (or document fragments) that are not maps, like a title page or text index.</p>
-</Modal>
-<Modal id="modal-download-section">
-	<p></p>
+{/each}
 </Modal>
 <main>
 	<section class="breadcrumbs">
@@ -264,7 +228,7 @@ let modalLyrExtent = "";
 			{/each}
 		</select>
 	</section>
-	<TitleBar TITLE={VOLUME.title} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
+	<TitleBar LOCK_BUTTON={VOLUME.status == "locked"} TITLE={VOLUME.title} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
 	<section>
 		<div class="section-title-bar">
 			<button class="section-toggle-btn" disabled={VOLUME.items.layers.length == 0} 
@@ -272,7 +236,7 @@ let modalLyrExtent = "";
 				<ConditionalDoubleChevron down={showMap} size="md"/>
 				<a id="preview"><h2>Mosaic Preview ({VOLUME.items.layers.length} layers)</h2></a>
 			</button>
-			<InfoButton modalName="modal-preview-map" />
+			<OpenModal modalName="modal-preview-map" />
 		</div>
 		{#if showMap}
 		<div class="section-content" transition:slide>
@@ -294,7 +258,7 @@ let modalLyrExtent = "";
 			{#if refreshingLookups}
 				<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
 			{/if}
-			<InfoButton modalName="modal-georeference-overview" />
+			<OpenModal modalName="modal-georeference-overview" />
 		</div>
 		<div>
 			<div style="display:flex; justify-content:space-between; align-items:center;">
@@ -346,7 +310,7 @@ let modalLyrExtent = "";
 							</h3>
 						</a>
 					</button>
-					<InfoButton modalName="modal-unprepared" />
+					<OpenModal modalName="modal-unprepared" />
 				</div>
 				{#if showUnprepared}
 				<div transition:slide>
@@ -393,7 +357,7 @@ let modalLyrExtent = "";
 							{/if}
 						</h3></a>
 					</button>
-					<InfoButton modalName="modal-prepared" />
+					<OpenModal modalName="modal-prepared" />
 				</div>
 				{#if showPrepared}
 				<div transition:slide>
@@ -436,7 +400,7 @@ let modalLyrExtent = "";
 						<ConditionalDoubleChevron down={showGeoreferenced} size="md" />
 						<a id="georeferenced"><h3>Georeferenced ({VOLUME.items.layers.length})</h3></a>
 					</button>
-					<InfoButton modalName="modal-georeferenced" />
+					<OpenModal modalName="modal-georeferenced" />
 				</div>
 				{#if showGeoreferenced}
 				<div transition:slide>
@@ -511,7 +475,7 @@ let modalLyrExtent = "";
 						<ConditionalDoubleChevron down={showMultimask} size="md" />
 						<a id="multimask"><h3>MultiMask ({mmLbl})</h3></a>
 					</button>
-					<InfoButton modalName="modal-multimask" />
+					<OpenModal modalName="modal-multimask" />
 				</div>
 				{#if showMultimask}
 				<div transition:slide>
@@ -529,7 +493,7 @@ let modalLyrExtent = "";
 						<ConditionalDoubleChevron down={showNonmaps} size="md" />
 						<a id="georeferenced"><h3>Non-Map Content ({VOLUME.items.nonmaps.length})</h3></a>
 					</button>
-					<InfoButton modalName="modal-non-map" />
+					<OpenModal modalName="modal-non-map" />
 				</div>
 				{#if showNonmaps}
 				<div transition:slide>
