@@ -46,9 +46,8 @@ const styles = new Styles();
 import {makeTitilerXYZUrl, makeBasemaps} from '../../js/utils';
 
 export let VOLUME;
-// export let SESSION_LENGTH;
 export let CSRFTOKEN;
-export let USER_TYPE;
+export let DISABLED;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
 
@@ -283,8 +282,8 @@ $: {
 }
 
 function submitMultiMask() {
-  if (USER_TYPE == "anonymous") {
-    window.alert("You must be signed to save");
+  if (DISABLED) {
+    window.alert("You do not edit permissions for this multimask.");
     return
   }
   let multiMask = {}
@@ -418,7 +417,7 @@ function handleFfs(elementId) {
 </script>
 
 <IconContext values={iconProps} >
-{#if USER_TYPE == "anonymous"}<div><p>Feel free to mess around; you can't save changes unless you are logged in.</p></div>{/if}
+{#if DISABLED}<div><p>Feel free to mess around; you can't save changes unless you are logged in.</p></div>{/if}
 <div id='mm-container' class="svelte-component-main">
   <div id="map-container" class="map-container" style="height: calc(100%-35px);">
     <div id="map-viewer" class="map-item rounded-bottom">
@@ -476,10 +475,10 @@ function handleFfs(elementId) {
         </div>
       </div>
       <div class="layer-section-header">
-          <button class="control-btn" title="Cancel (reset)" on:click={resetInterface} disabled={unchanged}>
+          <button class="control-btn" title="Cancel (reset)" on:click={resetInterface} disabled={unchanged || DISABLED}>
             <X />
           </button>
-          <button class="control-btn" title="Submit" on:click={submitMultiMask} disabled={unchanged}>
+          <button class="control-btn" title="Submit" on:click={submitMultiMask} disabled={unchanged || DISABLED}>
             <Check />
           </button>
       </div>

@@ -10,7 +10,11 @@
 <IconContext values={iconProps}>
 <div class="dropdown" style={RIGHT_POS != null ? "right:"+RIGHT_POS : ""}>
     {#each LINKS as link}
+	{#if link.href}
     <a href={link.href} target={link.external ? "_blank" : ""}>{link.title}{#if link.external} <ArrowSquareOut />{/if}</a>
+	{:else}
+    <span>{link.title}</span>
+	{/if}
     {/each}
 </div>
 </IconContext>

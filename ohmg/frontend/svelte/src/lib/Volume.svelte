@@ -37,9 +37,11 @@ import SingleDocumentViewer from './components/SingleDocumentViewer.svelte';
 
 export let VOLUME;
 export let CSRFTOKEN;
-export let USER_TYPE;
+export let USER;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
+
+let userCanAccess = USER.is_staff || VOLUME.access == "any" || (VOLUME.access == "sponsor" && VOLUME.sponsor == USER.username)
 
 let current_identifier = VOLUME.identifier
 function goToItem(identifier) {
@@ -263,7 +265,7 @@ let modalLyrExtent = "";
 		<div>
 			<div style="display:flex; justify-content:space-between; align-items:center;">
 				<div>
-					{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && USER_TYPE != 'anonymous' && !sheetsLoading}
+					{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && userCanAccess && !sheetsLoading}
 						<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
 					{/if}
 					<em><span>
@@ -279,7 +281,7 @@ let modalLyrExtent = "";
 					</span></em>
 				</div>
 				<div class="control-btn-group">
-					{#if USER_TYPE != "anonymous"}
+					{#if USER.is_authenticated}
 					<button class="control-btn" title="Repair Summary (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
 						<Wrench />
 					</button>
@@ -289,7 +291,7 @@ let modalLyrExtent = "";
 					</button>
 				</div>
 			</div>
-			{#if USER_TYPE == 'anonymous' }
+			{#if !USER.is_authenticated}
 			<div class="signin-reminder">
 			<p><em>
 				<a href="/account/login">sign in</a> or
@@ -334,7 +336,7 @@ let modalLyrExtent = "";
 									<li><em>preparation in progress.</em></li>
 									<li><em>user: {document.lock_details.user.name}</em></li>
 								</ul>
-								{:else}
+								{:else if userCanAccess}
 								<ul>
 									<li><a href={document.urls.split} title="Prepare this document">prepare &rarr;</a></li>
 								</ul>
@@ -381,7 +383,7 @@ let modalLyrExtent = "";
 									<li><em>georeferencing in progress...</em></li>
 									<li>{document.lock_details.user.name}</li>
 								</ul>
-								{:else}
+								{:else if userCanAccess}
 								<ul>
 									<li><a href={document.urls.georeference} title="georeference this document">georeference &rarr;</a></li>
 									<li><button class="btn-link" on:click={() => {postGeoref(document.urls.georeference, "set-status", "nonmap")}}><em>set as non-map</em></button></li>
@@ -407,8 +409,8 @@ let modalLyrExtent = "";
 					<div style="margin: 10px 0px;">
 						{#if VOLUME.items.layers.length > 0 && !settingKeyMapLayer}
 						<button on:click={() => settingKeyMapLayer = !settingKeyMapLayer}
-							disabled={USER_TYPE == 'anonymous'}
-							title={USER_TYPE == 'anonymous' ? 'You must be signed in to classify layers' : 'Click to enable layer classification'}
+							disabled={!USER.is_authenticated}
+							title={!USER.is_authenticated ? 'You must be signed in to classify layers' : 'Click to enable layer classification'}
 							>Classify Layers</button>
 						{/if}
 						{#if settingKeyMapLayer}
@@ -440,7 +442,7 @@ let modalLyrExtent = "";
 									<li><em>session in progress...</em></li>
 									<li>{layer.lock.username}</li>
 								</ul>
-								{:else}
+								{:else if userCanAccess}
 								<ul>
 									<li><a href={layer.urls.georeference} title="edit georeferencing">edit georeferencing &rarr;</a></li>
 									<li><a href={layer.urls.resource} title="edit georeferencing">downloads & web services &rarr;</a></li>
@@ -481,7 +483,7 @@ let modalLyrExtent = "";
 				<div transition:slide>
 					<MultiTrim VOLUME={VOLUME}
 						CSRFTOKEN={CSRFTOKEN}
-						USER_TYPE={USER_TYPE}
+						DISABLED={!userCanAccess}
 						MAPBOX_API_KEY={MAPBOX_API_KEY}
 						TITILER_HOST={TITILER_HOST} />
 				</div>
@@ -504,11 +506,13 @@ let modalLyrExtent = "";
 							<a href={nonmap.urls.resource} target="_blank" title="go to detail page for this document" style="cursor:zoom-in">
 								<img src={nonmap.urls.thumbnail} alt={nonmap.title}>
 							</a>
+							{#if userCanAccess}
 							<div>
 								<ul>
 									<li><button class="btn-link" on:click={() => {postGeoref(nonmap.urls.georeference, "set-status", "prepared")}} title="set this document back to 'prepared' so it can be georeferenced">this <em>is</em> a map</button></li>
 								</ul>
 							</div>
+							{/if}
 						</div>
 						{/each}
 					</div>

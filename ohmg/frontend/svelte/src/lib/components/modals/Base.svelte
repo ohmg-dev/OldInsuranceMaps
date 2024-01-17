@@ -57,8 +57,6 @@ function close(retVal){
 	
 //expose the API
 modals[id]={open,close}
-
-console.log(modals)
 	
 onDestroy(()=>{
 	delete modals[id]

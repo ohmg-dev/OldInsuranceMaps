@@ -73,6 +73,15 @@ class Command(BaseCommand):
             help="slug for the Place to attach to this volume"
         )
         parser.add_argument(
+            "--sponsor",
+            help="username of sponsor for this volume"
+        )
+        parser.add_argument(
+            "--access",
+            default="any",
+            help="username of sponsor for this volume"
+        )
+        parser.add_argument(
             "--all",
             help="apply to all volumes",
             action="store_true",
@@ -90,6 +99,10 @@ class Command(BaseCommand):
         else:
             username = "admin"
         user = get_user_model().objects.get(username=username)
+
+        sponsor = None
+        if options['sponsor']:
+            sponsor = get_user_model().objects.get(username=options['sponsor'])
 
         i = options['identifier']
         if options['operation'] == "refresh-lookups":
@@ -143,6 +156,10 @@ class Command(BaseCommand):
                     locale=locale,
                     dry_run=options['dry_run']
                 )
+                if vol:
+                    vol.access = options['access']
+                    vol.sponsor = sponsor
+                    vol.save()
                 print(vol)
 
         if options['operation'] == "remove":

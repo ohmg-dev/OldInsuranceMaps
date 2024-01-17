@@ -67,6 +67,11 @@ let subMenus = {
 		"visible": false,
 		"links": [
 			{
+				"title": USER.username,
+				"href": "",
+				"external": false,
+			},
+			{
 				"title": "My Profile",
 				"href": USER.profile_url,
 				"external": false,
