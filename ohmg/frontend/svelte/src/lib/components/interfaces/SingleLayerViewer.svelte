@@ -2,24 +2,24 @@
     import {onMount} from 'svelte';
 
     import IconContext from 'phosphor-svelte/lib/IconContext';
-    import { iconProps } from "../../js/utils"
     import CornersOut from "phosphor-svelte/lib/CornersOut";
 
     import 'ol/ol.css';
-    import '../../css/ol-overrides.css';
-
+    
     import Map from 'ol/Map';
     import {ZoomToExtent, defaults as defaultControls} from 'ol/control.js';
-
+    
     import {transformExtent} from 'ol/proj';
-
+    
     import {XYZ} from 'ol/source';
     import {Tile as TileLayer} from 'ol/layer';
-
+    
+    import '@src/css/ol-overrides.css';
     import {
+        iconProps,
         makeTitilerXYZUrl,
         makeBasemaps,
-    } from '../../js/utils';
+    } from '@helpers/utils';
 
     export let EXTENT;
     export let MAPBOX_API_KEY;

@@ -1,13 +1,14 @@
 <script>
-    import Question from 'phosphor-svelte/lib/Question';
+    import Wrench from 'phosphor-svelte/lib/Wrench';
 
     import {getModal} from '../modals/Base.svelte';
 
-    export let modalName;
+    export let action;
+    export let title;
 </script>
 
-<button on:click={()=>getModal(modalName).open()} title="More info">
-    <Question weight={'regular'}/>
+<button on:click={action} title={title}>
+    <Wrench weight={'regular'}/>
 </button>
 
 <style>

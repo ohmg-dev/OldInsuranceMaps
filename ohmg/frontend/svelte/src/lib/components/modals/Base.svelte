@@ -13,8 +13,8 @@ import {onDestroy} from 'svelte'
 
 import SvelteMarkdown from 'svelte-markdown';
 
-import '../../../css/modal.css';
-import '../../../css/ol-overrides.css';
+import '@src/css/modal.css';
+import '@src/css/ol-overrides.css';
 	
 let topDiv
 let visible=false

@@ -16,7 +16,7 @@ import VectorSource from 'ol/source/Vector';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 
-import Styles from '../../js/ol-styles';
+import Styles from '@helpers/ol-styles';
 const styles = new Styles();
 
 export let PLACES_GEOJSON_URL;

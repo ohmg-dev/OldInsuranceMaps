@@ -1,6 +1,6 @@
 <script>
     import IconContext from 'phosphor-svelte/lib/IconContext';
-    import '../css/shared.css'
+    import '@src/css/shared.css'
     import Browse from './Browse.svelte'
     import Home from './Home.svelte'
     import Profile from './Profile.svelte'

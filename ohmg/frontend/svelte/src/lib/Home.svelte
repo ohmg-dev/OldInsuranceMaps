@@ -2,13 +2,13 @@
 import SvelteMarkdown from 'svelte-markdown'
 
 import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps } from "../js/utils"
+import { iconProps } from "@helpers/utils"
 import ArrowSquareOut from 'phosphor-svelte/lib/ArrowSquareOut'
 
-import MapBrowse from './components/MapBrowse.svelte';
-import LatestAdditions from './components/LatestAdditions.svelte';
+import MapBrowse from '@components/search/MapBrowse.svelte';
+import LatestAdditions from '@components/LatestAdditions.svelte';
 
-import SessionList from './components/SessionList.svelte'
+import SessionList from '@components/SessionList.svelte'
 
 export let ITEM_API_URL;
 export let SESSION_API_URL;

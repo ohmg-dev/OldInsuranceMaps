@@ -1,6 +1,6 @@
 <script>
-import SessionList from './components/SessionList.svelte'
-import TitleBar from './components/TitleBar.svelte';
+import SessionList from '@components/SessionList.svelte'
+import TitleBar from '@components/shared/TitleBar.svelte';
 
 
 export let SESSION_API_URL;

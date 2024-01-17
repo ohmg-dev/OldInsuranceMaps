@@ -1,10 +1,10 @@
 <script>
-	import TitleBar from './components/TitleBar.svelte';
-	import Volumes from './components/Volumes.svelte';
+	import TitleBar from '@components/shared/TitleBar.svelte';
+	import Items from '@components/search/Items.svelte';
 
 	import IconContext from 'phosphor-svelte/lib/IconContext';
 	import ArrowRight from "phosphor-svelte/lib/ArrowRight";
-	import { iconProps } from "../js/utils"
+	import { iconProps } from "@helpers/utils"
 
 
 export let PLACE;
@@ -112,7 +112,7 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 	<div id="items-panel" style="flex-grow:1; overflow-x:auto;">
 		<h3>Maps</h3>
 		{#each reinitList as key (key)}
-		<Volumes ITEM_API_URL={ITEM_API_URL} OHMG_API_KEY={OHMG_API_KEY} ALL_ITEMS={[]} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
+		<Items ITEM_API_URL={ITEM_API_URL} OHMG_API_KEY={OHMG_API_KEY} ALL_ITEMS={[]} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
 		{/each}
 	</div>
 </div>

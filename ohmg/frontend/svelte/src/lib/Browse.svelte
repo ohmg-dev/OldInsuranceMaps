@@ -1,8 +1,8 @@
 <script>
-import '../css/shared.css';
-import Volumes from './components/Volumes.svelte';
-import Places from './components/Places.svelte';
-import MapBrowse from './components/MapBrowse.svelte';
+import '@src/css/shared.css';
+import Items from '@components/search/Items.svelte';
+import Places from '@components/search/Places.svelte';
+import MapBrowse from '@components/search/MapBrowse.svelte';
 
 export let PLACES_GEOJSON_URL;
 export let PLACES_CT;
@@ -42,7 +42,7 @@ $: { history.replaceState(null, document.title, `#${currentTab}`); }
 			<Places PLACES_API_URL={PLACES_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
 		</div>
 		<div style="display: {currentTab === 'items' ? 'block' : 'none'}">
-			<Volumes ITEM_API_URL={ITEM_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
+			<Items ITEM_API_URL={ITEM_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
 		</div>
 	</div>
 </main>

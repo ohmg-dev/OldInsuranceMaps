@@ -1,6 +1,6 @@
-import '../css/interface.css';
-import Split from '../lib/Split.svelte';
-import '../css/ol-overrides.css'
+import '@src/css/interface.css';
+import Split from '@src/lib/Split.svelte';
+import '@src/css/ol-overrides.css'
 
 const app = new Split({
 	target: document.getElementById("split-target"),

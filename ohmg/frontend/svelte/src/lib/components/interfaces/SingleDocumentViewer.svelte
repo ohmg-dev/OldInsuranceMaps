@@ -2,21 +2,22 @@
     import {onMount} from 'svelte';
 
     import IconContext from 'phosphor-svelte/lib/IconContext';
-    import { iconProps } from "../../js/utils"
+    import { iconProps } from "@helpers/utils"
     import CornersOut from "phosphor-svelte/lib/CornersOut";
 
     import 'ol/ol.css';
-    import '../../css/ol-overrides.css';
-
+    
     import Map from 'ol/Map';
     import View from 'ol/View';
     import {ZoomToExtent, defaults as defaultControls} from 'ol/control.js';
-
+    
     import {Projection} from 'ol/proj';
-
+    
     import {ImageStatic} from 'ol/source';
     import {Image as ImageLayer} from 'ol/layer';
 
+    import '@src/css/ol-overrides.css';
+    
     export let IMAGE_SIZE;
     export let LAYER_URL;
 

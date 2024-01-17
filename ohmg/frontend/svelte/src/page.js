@@ -1,4 +1,4 @@
-import Page from '../lib/Page.svelte';
+import Page from '@src/lib/Page.svelte';
 
 export default new Page({
 	target: document.getElementById("page-target"),

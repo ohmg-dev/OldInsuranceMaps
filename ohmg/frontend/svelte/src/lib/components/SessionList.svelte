@@ -2,7 +2,7 @@
 import {TableSort} from 'svelte-tablesort';
 
 import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps } from "../../js/utils"
+import { iconProps } from "@helpers/utils"
 
 import CaretDoubleLeft from 'phosphor-svelte/lib/CaretDoubleLeft'
 import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight'

@@ -1,6 +1,6 @@
 <script>
     import Modal from "./Base.svelte";
-    import SingleDocumentViewer from "../SingleDocumentViewer.svelte";
+    import SingleDocumentViewer from "../interfaces/SingleDocumentViewer.svelte";
 
     export let id;
     export let LAYER_URL;

@@ -1,7 +1,7 @@
 <script>
 	import IconContext from 'phosphor-svelte/lib/IconContext';
 	import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
-	import { iconProps } from "../js/utils"
+	import { iconProps } from "@helpers/utils"
 </script>
 
 <IconContext values={iconProps} >

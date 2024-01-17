@@ -1,6 +1,6 @@
 <script>
 	import IconContext from 'phosphor-svelte/lib/IconContext';
-    import { iconProps } from "../../../js/utils"
+    import { iconProps } from "@helpers/utils"
     import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
 
     export let LINKS;

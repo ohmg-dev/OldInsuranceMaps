@@ -5,11 +5,7 @@ import CropIcon from "phosphor-svelte/lib/Crop";
 import Trash from "phosphor-svelte/lib/Trash";
 import Check from "phosphor-svelte/lib/Check";
 import X from "phosphor-svelte/lib/X";
-import ArrowsInSimple from "phosphor-svelte/lib/ArrowsInSimple";
-import ArrowsOutSimple from "phosphor-svelte/lib/ArrowsOutSimple";
-import CornersOut from "phosphor-svelte/lib/CornersOut";
 import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps } from "../../js/utils"
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -40,10 +36,14 @@ import {Draw, Modify, Snap} from 'ol/interaction';
 import Style from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
 
-import Styles from '../../js/ol-styles';
+import FullExtentButton from './buttons/FullExtentButton.svelte';
+import ExpandElement from './buttons/ExpandElement.svelte';
+
+import { iconProps, makeTitilerXYZUrl, makeBasemaps } from "@helpers/utils"
+import Styles from '@helpers/ol-styles';
+
 const styles = new Styles();
 
-import {makeTitilerXYZUrl, makeBasemaps} from '../../js/utils';
 
 export let VOLUME;
 export let CSRFTOKEN;
@@ -199,12 +199,13 @@ function makeModifyInteraction(hitDetection, source, targetElement) {
   return modify
 }
 
+let map;
 function MapViewer (elementId) {
 
   const targetElement = document.getElementById(elementId);
 
   // create map
-  const map = new Map({
+  map = new Map({
     target: targetElement,
     layers: [osmBasemap.layer],
     view: new View({
@@ -407,13 +408,6 @@ function layerRemoveMask(layer, confirm) {
 
 }
 
-let ffs = false
-function handleFfs(elementId) {
-  ffs = !ffs
-  document.getElementById(elementId).classList.toggle('ffs');
-  mapView.map.updateSize();
-}
-
 </script>
 
 <IconContext values={iconProps} >
@@ -425,16 +419,8 @@ function handleFfs(elementId) {
     </div>
     <div id="layer-panel" style="display: flex;">
       <div class="layer-section-header" style="border-top:none;">
-        <button class="control-btn tool-ui" title="Reset extent" on:click={setMapExtent}>
-          <CornersOut />
-        </button>
-        <button class="control-btn tool-ui" title={ffs ? "Reduce" : "Expand"} on:click={() => handleFfs('mm-container')}>
-          {#if ffs}
-          <ArrowsInSimple />
-          {:else}
-          <ArrowsOutSimple />
-          {/if}
-        </button>
+        <FullExtentButton action={setMapExtent} />
+        <ExpandElement elementId={'mm-container'} map={map} />
       </div>
       <div id="layer-list" style="flex:2;">
         <div class="layer-section-header">
@@ -443,7 +429,7 @@ function handleFfs(elementId) {
         <div class="layer-section-subheader" style="overflow-y:auto">
           {#each layerLookupUnmaskedArr as layer}		
             <div style="display:flex;">
-              <button class="control-btn" title="add mask" on:click={() => addMask(layer)} style="display: inline-block;">
+              <button class="control-btn" title="add mask" on:click={() => addMask(layer)}>
                   <CropIcon />
               </button>
               &nbsp;
@@ -461,7 +447,7 @@ function handleFfs(elementId) {
         <div class="layer-section-subheader" style="overflow-y:auto">
           {#each layerLookupMaskedArr as layer}		
             <div style="display:flex;">
-              <button class="control-btn" title="remove mask" on:click={() => layerRemoveMask(layer)} style="display: inline-block;">
+              <button class="control-btn" title="remove mask" on:click={() => layerRemoveMask(layer)}>
                 <Trash />
               </button>
               &nbsp;

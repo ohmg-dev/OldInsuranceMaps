@@ -3,7 +3,7 @@ import {onMount} from 'svelte';
 import { slide } from 'svelte/transition';
 
 import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps } from "../js/utils"
+import { iconProps } from "@helpers/utils"
 
 import CrosshairSimple from "phosphor-svelte/lib/CrosshairSimple";
 import MapTrifold from "phosphor-svelte/lib/MapTrifold";
@@ -21,7 +21,7 @@ import {fromLonLat} from 'ol/proj';
 import {createXYZ} from 'ol/tilegrid';
 
 import 'ol/ol.css';
-import '../css/ol-overrides.css';
+import '@src/css/ol-overrides.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
 
@@ -44,8 +44,8 @@ import VectorLayer from 'ol/layer/Vector';
 
 import {MouseWheelZoom, defaults} from 'ol/interaction';
 
-import {makeTitilerXYZUrl, makeLayerGroupFromVolume, makeBasemaps} from '../js/utils';
-import Modal, {getModal} from './components/Modal.svelte'
+import {makeTitilerXYZUrl, makeLayerGroupFromVolume, makeBasemaps} from '@helpers/utils';
+import Modal, {getModal} from '@components/modals/Base.svelte'
 
 export let PLACE;
 export let MAPBOX_API_KEY;

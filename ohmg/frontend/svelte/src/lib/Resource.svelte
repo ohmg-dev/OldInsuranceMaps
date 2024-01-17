@@ -2,7 +2,7 @@
 import { slide } from 'svelte/transition';
 
 import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps } from "../js/utils"
+import { iconProps } from "@helpers/utils"
 
 import Scissors from "phosphor-svelte/lib/Scissors";
 import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
@@ -15,15 +15,15 @@ import 'ol/ol.css';
 
 import {getCenter} from 'ol/extent';
 
-import TitleBar from './components/TitleBar.svelte';
-import ConditionalDoubleChevron from './components/ConditionalDoubleChevron.svelte';
-import SessionList from './components/SessionList.svelte'
-import SingleLayerViewer from './components/SingleLayerViewer.svelte';
-import SingleDocumentViewer from './components/SingleDocumentViewer.svelte';
+import TitleBar from '@components/shared/TitleBar.svelte';
+import ConditionalDoubleChevron from '@components/shared/ConditionalDoubleChevron.svelte';
+import SessionList from '@components/SessionList.svelte'
+import SingleLayerViewer from '@components/viewers/SingleLayerViewer.svelte';
+import SingleDocumentViewer from '@components/viewers/SingleDocumentViewer.svelte';
 
 import {
   makeTitilerXYZUrl,
-} from '../js/utils';
+} from '@helpers/utils';
 
 export let CSRFTOKEN;
 export let USER;

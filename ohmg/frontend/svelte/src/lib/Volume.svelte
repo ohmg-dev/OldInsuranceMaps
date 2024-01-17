@@ -2,7 +2,7 @@
 import { slide } from 'svelte/transition';
 
 import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps } from "../js/utils"
+import { iconProps, makeTitilerXYZUrl } from "@helpers/utils"
 
 import Wrench from "phosphor-svelte/lib/Wrench";
 import ArrowRight from "phosphor-svelte/lib/ArrowRight";
@@ -11,29 +11,26 @@ import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
 
 import {getCenter} from 'ol/extent';
 
-import TitleBar from './components/TitleBar.svelte';
-import VolumePreviewMap from "./components/VolumePreviewMap.svelte";
-import MultiTrim from "./components/MultiTrim.svelte";
-import ConditionalDoubleChevron from './components/ConditionalDoubleChevron.svelte';
+import TitleBar from '@components/shared/TitleBar.svelte';
+import MultiMask from "@components/interfaces/MultiMask.svelte";
+import ConditionalDoubleChevron from '@components/shared/ConditionalDoubleChevron.svelte';
 
-import ItemPreviewMapModal from './components/modals/ItemPreviewMapModal.svelte'
-import GeoreferenceOverviewModal from './components/modals/GeoreferenceOverviewModal.svelte'
-import UnpreparedSectionModal from './components/modals/UnpreparedSectionModal.svelte'
-import PreparedSectionModal from './components/modals/PreparedSectionModal.svelte'
-import GeoreferencedSectionModal from './components/modals/GeoreferencedSectionModal.svelte'
-import MultiMaskModal from './components/modals/MultiMaskModal.svelte'
-import NonMapContentModal from './components/modals/NonMapContentModal.svelte'
-import DocumentViewerModal from './components/modals/DocumentViewerModal.svelte'
-import LayerViewerModal from './components/modals/LayerViewerModal.svelte'
+import ItemPreviewMapModal from '@components/modals/ItemPreviewMapModal.svelte'
+import GeoreferenceOverviewModal from '@components/modals/GeoreferenceOverviewModal.svelte'
+import UnpreparedSectionModal from '@components/modals/UnpreparedSectionModal.svelte'
+import PreparedSectionModal from '@components/modals/PreparedSectionModal.svelte'
+import GeoreferencedSectionModal from '@components/modals/GeoreferencedSectionModal.svelte'
+import MultiMaskModal from '@components/modals/MultiMaskModal.svelte'
+import NonMapContentModal from '@components/modals/NonMapContentModal.svelte'
 
-import Modal, {getModal} from './components/modals/Base.svelte';
+import Modal, {getModal} from '@components/modals/Base.svelte';
 
-import OpenModal from './components/buttons/OpenModal.svelte';
+import OpenModal from '@components/buttons/OpenModal.svelte';
 
-import {makeTitilerXYZUrl} from '../js/utils';
-
-import SingleLayerViewer from './components/SingleLayerViewer.svelte';
-import SingleDocumentViewer from './components/SingleDocumentViewer.svelte';
+import ItemPreviewMap from "@components/interfaces/ItemPreviewMap.svelte";
+import SingleLayerViewer from '@components/interfaces/SingleLayerViewer.svelte';
+import SingleDocumentViewer from '@components/interfaces/SingleDocumentViewer.svelte';
+    import LiteButton from './components/buttons/LiteButton.svelte';
 
 export let VOLUME;
 export let CSRFTOKEN;
@@ -50,7 +47,7 @@ function goToItem(identifier) {
 
 $: sheetsLoading = VOLUME.status == "initializing...";
 
-// This variable is used to trigger a reinit of the VolumePreviewMap component.
+// This variable is used to trigger a reinit of the ItemPreviewMap component.
 // See https://svelte.dev/repl/65c80083b515477784d8128c3655edac?version=3.24.1
 let reinitMap = [{}]
 
@@ -117,7 +114,7 @@ function postOperation(operation) {
 	})
 	.then(response => response.json())
 	.then(result => {
-		// trigger a reinit of the VolumePreviewMap component
+		// trigger a reinit of the ItemPreviewMap component
 		if (operation == "set-index-layers" || VOLUME.items.layers.length != result.items.layers.length) {
 			reinitMap = [{}];
 		}
@@ -230,7 +227,7 @@ let modalLyrExtent = "";
 			{/each}
 		</select>
 	</section>
-	<TitleBar LOCK_BUTTON={VOLUME.status == "locked"} TITLE={VOLUME.title} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
+	<TitleBar TITLE={VOLUME.title} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
 	<section>
 		<div class="section-title-bar">
 			<button class="section-toggle-btn" disabled={VOLUME.items.layers.length == 0} 
@@ -244,7 +241,7 @@ let modalLyrExtent = "";
 		<div class="section-content" transition:slide>
 		<!-- <div class="section-content" style="display:{showMap == true ? 'block' : 'none'};"> -->
 			{#each reinitMap as key (key)}
-				<VolumePreviewMap VOLUME={VOLUME} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
+				<ItemPreviewMap VOLUME={VOLUME} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
 			{/each}
 		</div>
 		{/if}
@@ -260,7 +257,12 @@ let modalLyrExtent = "";
 			{#if refreshingLookups}
 				<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
 			{/if}
-			<OpenModal modalName="modal-georeference-overview" />
+			<div style="display:flex; align-items:center;">
+				{#if USER.is_authenticated}
+				<LiteButton action={() => {postOperation("refresh-lookups")}} title="Regenerate summary (may take a moment)"/>
+				{/if}
+				<OpenModal modalName="modal-georeference-overview" />
+			</div>
 		</div>
 		<div>
 			<div style="display:flex; justify-content:space-between; align-items:center;">
@@ -279,16 +281,6 @@ let modalLyrExtent = "";
 						{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}
 						{/if}
 					</span></em>
-				</div>
-				<div class="control-btn-group">
-					{#if USER.is_authenticated}
-					<button class="control-btn" title="Repair Summary (may take a moment)" on:click={() => {postOperation("refresh-lookups")}}>
-						<Wrench />
-					</button>
-					{/if}
-					<button class="control-btn" title="Refresh Summary" on:click={() => { postOperation("refresh") }}>
-						<ArrowsClockwise />
-					</button>
 				</div>
 			</div>
 			{#if !USER.is_authenticated}
@@ -481,7 +473,7 @@ let modalLyrExtent = "";
 				</div>
 				{#if showMultimask}
 				<div transition:slide>
-					<MultiTrim VOLUME={VOLUME}
+					<MultiMask VOLUME={VOLUME}
 						CSRFTOKEN={CSRFTOKEN}
 						DISABLED={!userCanAccess}
 						MAPBOX_API_KEY={MAPBOX_API_KEY}

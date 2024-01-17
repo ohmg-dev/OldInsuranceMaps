@@ -1,8 +1,8 @@
 <script>
-import TitleBar from './components/TitleBar.svelte';
-import ConditionalDoubleChevron from './components/ConditionalDoubleChevron.svelte';
+import TitleBar from '@components/shared/TitleBar.svelte';
+import ConditionalDoubleChevron from '@components/shared/ConditionalDoubleChevron.svelte';
 
-import SessionList from './components/SessionList.svelte'
+import SessionList from '@components/SessionList.svelte'
 
 export let CURRENT_USERNAME;
 export let PROFILE_USER;

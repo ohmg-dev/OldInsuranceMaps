@@ -1,7 +1,7 @@
 <script>
-    import '../css/shared.css';
+    import '@src/css/shared.css';
     import SvelteMarkdown from 'svelte-markdown'
-    import TitleBar from './components/TitleBar.svelte';
+    import TitleBar from '@components/shared/TitleBar.svelte';
 
     export let source = '*add your markdown here*';
     export let HEADER = '*add your h1 here*';

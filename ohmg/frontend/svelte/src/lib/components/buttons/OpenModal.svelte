@@ -1,6 +1,7 @@
 <script>
     import Question from 'phosphor-svelte/lib/Question';
     import Lock from 'phosphor-svelte/lib/Lock';
+    import Wrench from 'phosphor-svelte/lib/Wrench'
 
     import {getModal} from '../modals/Base.svelte';
 
@@ -13,6 +14,8 @@
     <Question weight={'regular'}/>
     {:else if icon == "lock"}
     <Lock weight={'regular'}/>
+    {:else if icon == "wrench"}
+    <Wrench weight={'regular'}/>
     {/if}
 </button>
 

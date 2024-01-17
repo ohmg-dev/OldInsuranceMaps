@@ -1,9 +1,8 @@
 <script>
 import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps } from "../js/utils"
-import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
 import CaretDown from "phosphor-svelte/lib/CaretDown";
-import NavDropdown from './components/buttons/NavDropdown.svelte';
+import { iconProps } from "@helpers/utils"
+import NavDropdown from '@components/buttons/NavDropdown.svelte';
 
 export let USER;
 

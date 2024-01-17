@@ -1,6 +1,6 @@
-import '../css/interface.css';
-import Georeference from '../lib/Georeference.svelte';
-import '../css/ol-overrides.css'
+import '@src/css/interface.css';
+import Georeference from '@src/lib/Georeference.svelte';
+import '@src/css/ol-overrides.css'
 
 const app = new Georeference({
 	target: document.getElementById("georeference-target"),
