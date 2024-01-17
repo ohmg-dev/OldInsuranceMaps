@@ -4,6 +4,8 @@ import resolve from '@rollup/plugin-node-resolve';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import css from 'rollup-plugin-css-only';
+import alias from '@rollup/plugin-alias';
+import path from "path";
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -30,7 +32,7 @@ function serve() {
 
 function componentExportDetails(componentName) {
 	return {
-    input: `src/entry/${componentName.toLowerCase()}.js`,
+    input: `src/${componentName.toLowerCase()}.js`,
 		output: {
 			sourcemap: true,
 			format: 'iife',
@@ -39,6 +41,28 @@ function componentExportDetails(componentName) {
 			inlineDynamicImports: true,
 		},
 		plugins: [
+			alias({
+				/**
+				 * For custom files extension you might want to add "customerResolver"
+				 * https://github.com/rollup/plugins/tree/master/packages/alias#custom-resolvers
+				 *
+				 * By doing that this plugin can read different kind of files.
+				 */
+				entries: [{
+						find: "@src",
+						replacement: path.resolve(__dirname, "src"),
+					},
+					{
+						find: "@helpers",
+						replacement: path.resolve(__dirname, "src/helpers"),
+					},
+					{
+						find: "@components",
+						replacement: path.resolve(__dirname, "src/lib/components"),
+					},
+				],
+			}),
+
 			svelte({
 				compilerOptions: {
 					// enable run-time checks when not in production
