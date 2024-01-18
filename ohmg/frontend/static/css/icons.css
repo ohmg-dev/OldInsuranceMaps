@@ -6,12 +6,69 @@
     --webmap-svg: url(../icons/noun_FoldedMap_2592599.svg);
     --pinmap-svg: url(../icons/noun_pinmap_1832932.svg);
     --user-svg: url(../icons/noun_User_1236015.svg);
+    --magnifier-svg: url(../icons/noun-magnifier-858462.svg);
+    --pin-svg: url(../icons/noun-map-pin-858464.svg);
+    --compass-svg: url(../icons/noun-compass-867471.svg);
     --volume-size: 65px;
     --document-size: 70px;
     --layer-size: 75px;
     --webmap-size: 70px;
     --pinmap-size: 70px;
     --user-size: 50px;
+    --magnifier-size: 55px;
+    --pin-size: 55px;
+    --compass-size: 55px;
+}
+
+.i-magnifier {
+    mask-image: var(--magnifier-svg);
+    -webkit-mask-image: var(--magnifier-svg);
+    display: inline-block;
+    background: black;
+    mask-size: cover;
+    -webkit-mask-size: cover;
+}
+.i-magnifier-lg{
+    width: var(--magnifier-size);
+    height: var(--magnifier-size);
+}
+.i-magnifier-sm {
+    width: calc(var(--pin-size)*.55);
+    height: calc(var(--pin-size)*.55);
+}
+
+.i-pin {
+    mask-image: var(--pin-svg);
+    -webkit-mask-image: var(--pin-svg);
+    display: inline-block;
+    background: black;
+    mask-size: cover;
+    -webkit-mask-size: cover;
+}
+.i-pin-lg{
+    width: var(--pin-size);
+    height: var(--pin-size);
+}
+.i-pin-sm {
+    width: calc(var(--pin-size)*.55);
+    height: calc(var(--pin-size)*.55);
+}
+
+.i-compass {
+    mask-image: var(--compass-svg);
+    -webkit-mask-image: var(--compass-svg);
+    display: inline-block;
+    background: black;
+    mask-size: cover;
+    -webkit-mask-size: cover;
+}
+.i-compass-lg{
+    width: var(--compass-size);
+    height: var(--compass-size);
+}
+.i-compass-sm {
+    width: calc(var(--compass-size)*.55);
+    height: calc(var(--compass-size)*.55);
 }
 
 .i-volume {
