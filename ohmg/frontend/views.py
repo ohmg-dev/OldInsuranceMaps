@@ -148,7 +148,7 @@ class ActivityView(View):
             context=context_dict
         )
     
-class Page(View):
+class MarkdownPage(View):
 
     def get(self, request, slug):
 
@@ -161,15 +161,18 @@ class Page(View):
         context_dict = {
             "params": {
                 "PAGE_TITLE": post['page_title'],
-                "HEADER": post['header'],
-                # downstream SvelteMarkdown requires this variable to be `source`
-                "source": post.content,
+                "PAGE_NAME": 'markdown-page',
+                "PARAMS": {
+                    "HEADER": post['header'],
+                    # downstream SvelteMarkdown requires this variable to be `source`
+                    "source": post.content,
+                }
             }
         }
 
         return render(
             request,
-            "page.html",
+            "index.html",
             context=context_dict
         )
 

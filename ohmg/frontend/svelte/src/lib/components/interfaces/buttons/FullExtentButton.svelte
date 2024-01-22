@@ -1,11 +1,11 @@
 <script>
-    import '@src/css/map-panel.css';
+    import IconButton from '@components/base/IconButton.svelte';
 
     import CornersOut from "phosphor-svelte/lib/CornersOut";
 
     export let action;
 </script>
 
-<button class="control-btn tool-ui" title="Go to full extent" on:click={action}>
+<IconButton style="tool-ui" title="Go to full extent" action={action}>
     <CornersOut />
-</button>
+</IconButton>

@@ -36,6 +36,7 @@ import {Draw, Modify, Snap} from 'ol/interaction';
 import Style from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
 
+import IconButton from '@components/base/IconButton.svelte';
 import FullExtentButton from './buttons/FullExtentButton.svelte';
 import ExpandElement from './buttons/ExpandElement.svelte';
 
@@ -429,9 +430,7 @@ function layerRemoveMask(layer, confirm) {
         <div class="layer-section-subheader" style="overflow-y:auto">
           {#each layerLookupUnmaskedArr as layer}		
             <div style="display:flex;">
-              <button class="control-btn" title="add mask" on:click={() => addMask(layer)}>
-                  <CropIcon />
-              </button>
+              <IconButton style="tool-ui-secondary" icon="crop" title="add mask" action={() => addMask(layer)} />
               &nbsp;
               <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
                 <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.page_str}</span>
@@ -447,9 +446,7 @@ function layerRemoveMask(layer, confirm) {
         <div class="layer-section-subheader" style="overflow-y:auto">
           {#each layerLookupMaskedArr as layer}		
             <div style="display:flex;">
-              <button class="control-btn" title="remove mask" on:click={() => layerRemoveMask(layer)}>
-                <Trash />
-              </button>
+              <IconButton style="tool-ui-secondary" icon="trash" title="remove mask" action={() => layerRemoveMask(layer)} />
               &nbsp;
               <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
                 <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.page_str}</span>
@@ -461,12 +458,8 @@ function layerRemoveMask(layer, confirm) {
         </div>
       </div>
       <div class="layer-section-header">
-          <button class="control-btn" title="Cancel (reset)" on:click={resetInterface} disabled={unchanged || DISABLED}>
-            <X />
-          </button>
-          <button class="control-btn" title="Submit" on:click={submitMultiMask} disabled={unchanged || DISABLED}>
-            <Check />
-          </button>
+          <IconButton style="tool-ui-secondary" icon="x" title="Cancel (reset)" action={resetInterface} disabled={unchanged || DISABLED} />
+          <IconButton style="tool-ui-secondary" icon="check" title="Submit" action={submitMultiMask} disabled={unchanged || DISABLED} />
       </div>
     </div>
   </div>

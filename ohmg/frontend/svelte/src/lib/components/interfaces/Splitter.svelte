@@ -38,8 +38,8 @@ import LineString from 'ol/geom/LineString';
 
 import Styles from '@helpers/ol-styles';
 
-import TitleBar from '@components/shared/TitleBar.svelte';
-import Modal, {getModal} from '@components/modals/Base.svelte';
+import TitleBar from '@components/layout/TitleBar.svelte';
+import Modal, {getModal} from '@components/base/Modal.svelte';
 
 const styles = new Styles();
 

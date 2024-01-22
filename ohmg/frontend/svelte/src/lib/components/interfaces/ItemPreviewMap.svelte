@@ -3,10 +3,10 @@ import {onMount} from 'svelte';
 
 import IconContext from 'phosphor-svelte/lib/IconContext';
 
+import OpenModalButton from "@components/base/OpenModalButton.svelte"
 import BasemapToggleButton from "./buttons/BasemapToggleButton.svelte"
 import ExpandElement from "./buttons/ExpandElement.svelte"
 import FullExtentButton from "./buttons/FullExtentButton.svelte"
-import OpenModalButton from "./buttons/OpenModalButton.svelte"
 
 import LegendModal from "./modals/LegendModal.svelte"
 
@@ -165,7 +165,7 @@ onMount(() => {
 	<div id="layer-panel" style="display: flex;">
 		<div class="layer-section-header" style="border-top-width: 1px;">
 			<FullExtentButton action={() => {setMapExtent(map, VOLUME.extent)}} />
-			<OpenModalButton id={"modal-legend"} />
+			<OpenModalButton style="tool-ui" icon="article" modalId={"modal-legend"} />
 			<ExpandElement elementId={'map-container'} map={map} />
 		</div>
 		<div id="layer-list" style="flex:2;">

@@ -1,5 +1,5 @@
 import '@src/css/interface.css';
-import Resource from '@src/lib/Resource.svelte';
+import Resource from '@components/overviews/Resource.svelte';
 
 const app = new Resource({
 	target: document.getElementById("resource-target"),

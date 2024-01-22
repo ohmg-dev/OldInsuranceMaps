@@ -1,7 +1,7 @@
 <script>
     import '@src/css/map-panel.css';
 
-    import Modal, {getModal}  from "@components/modals/Base.svelte";
+    import Modal, {getModal}  from "@components/base/Modal.svelte";
     import Article from "phosphor-svelte/lib/Article";
 
     export let id;

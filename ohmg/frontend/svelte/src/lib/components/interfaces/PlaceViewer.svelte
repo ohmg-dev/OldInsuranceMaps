@@ -45,7 +45,7 @@ import VectorLayer from 'ol/layer/Vector';
 import {MouseWheelZoom, defaults} from 'ol/interaction';
 
 import {makeTitilerXYZUrl, makeLayerGroupFromVolume, makeBasemaps} from '@helpers/utils';
-import Modal, {getModal} from '@components/modals/Base.svelte'
+import Modal, {getModal} from '@components/base/Modal.svelte'
 
 export let PLACE;
 export let MAPBOX_API_KEY;

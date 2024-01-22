@@ -56,7 +56,7 @@ import {
   removeRotateCenter,
 } from '@helpers/utils';
 
-import Modal, {getModal} from '@components/modals/Base.svelte';
+import Modal, {getModal} from '@components/base/Modal.svelte';
 
 export let USER;
 export let SESSION_LENGTH;

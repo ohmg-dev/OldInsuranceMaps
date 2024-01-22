@@ -1,5 +1,5 @@
 import '@src/css/interface.css';
-import Georeference from '@src/lib/Georeference.svelte';
+import Georeference from '@src/lib/pages/Georeference.svelte';
 import '@src/css/ol-overrides.css'
 
 const app = new Georeference({

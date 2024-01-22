@@ -1,4 +1,4 @@
-import Navbar from '@components/shared/Navbar.svelte';
+import Navbar from '@components/layout/Navbar.svelte';
 
 const navbar = new Navbar({
 	target: document.getElementById("navbar-target"),

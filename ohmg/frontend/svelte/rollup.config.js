@@ -114,8 +114,8 @@ function componentExportDetails(componentName) {
 
 let exportable = [];
 
-// Add exportables here. These must match a lowercase file in ./entry
-// e.g. ./entry/main.js
+// Add exportables here. These must match a lowercase file in ./src
+// e.g. ./src/main.js
 [
 	"Index",
 	"Footer",
@@ -124,8 +124,7 @@ let exportable = [];
 	"Resource",
 	"Split",
 	"Viewer",
-	"Volume",
-	"Page",
+	"Item",
 ].forEach((d) => exportable.push(componentExportDetails(d)));
 
 export default exportable;

@@ -1,5 +1,7 @@
 <script>
-    import '@src/css/map-panel.css';
+    // import '@src/css/map-panel.css';
+
+    import IconButton from "@components/base/IconButton.svelte"
 
     import ArrowsInSimple from "phosphor-svelte/lib/ArrowsInSimple";
     import ArrowsOutSimple from "phosphor-svelte/lib/ArrowsOutSimple";
@@ -15,13 +17,13 @@
     }
 </script>
 
-<button class="control-btn tool-ui" title={ffs ? "Reduce" : "Expand"} on:click={() => {handleFfs(elementId)}}>
+<IconButton style="tool-ui" title={ffs ? "Reduce" : "Expand"} action={() => {handleFfs(elementId)}}>
     {#if ffs}
     <ArrowsInSimple />
     {:else}
     <ArrowsOutSimple />
     {/if}
-</button>
+</IconButton>
 
 <style>
 :global(.ffs) {
