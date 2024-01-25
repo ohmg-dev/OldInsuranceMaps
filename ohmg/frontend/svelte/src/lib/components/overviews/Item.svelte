@@ -29,6 +29,7 @@ import Modal, {getModal} from '@components/base/Modal.svelte';
 import ItemPreviewMap from "@components/interfaces/ItemPreviewMap.svelte";
 import SingleLayerViewer from '@components/interfaces/SingleLayerViewer.svelte';
 import SingleDocumentViewer from '@components/interfaces/SingleDocumentViewer.svelte';
+import DownloadSectionModal from './modals/DownloadSectionModal.svelte';
 
 export let VOLUME;
 export let CSRFTOKEN;
@@ -205,6 +206,7 @@ let modalLyrExtent = "";
 <MultiMaskModal id={"modal-multimask"} />
 <NonMapContentModal id={"modal-non-map"} />
 <GeoreferencePermissionsModal id={"modal-permissions"} user={USER} userCanEdit={userCanEdit} item={VOLUME} />
+<DownloadSectionModal id={"download-section-modal"} />
 <Modal id={"modal-doc-view"} full={true}>
 {#each reinitMap2 as key (key)}
 	<SingleDocumentViewer LAYER_URL={modalDocUrl} IMAGE_SIZE={modalDocImageSize} />
@@ -522,18 +524,23 @@ let modalLyrExtent = "";
 	
 	<section>
 		<div class="section-title-bar">
-			<button class="section-toggle-btn" on:click={() => setHash("download")}>
-				<ConditionalDoubleChevron down={showDownload} size="md"/>
-				<a id="download">
-					<h2 style="margin-right:10px; display: inline-block;">Download & Web Services</h2>
-				</a>
-			</button>
+			<div>
+				<button class="section-toggle-btn" on:click={() => setHash("download")}>
+					<ConditionalDoubleChevron down={showDownload} size="md"/>
+					<a id="download">
+						<h2 style="margin-right:10px; display: inline-block;">Mosaic Download & Web Services</h2>
+					</a>
+				</button>
+			</div>
+			<div style="display:flex; align-items:center;">
+				<OpenModalButton modalId="download-section-modal" />
+			</div>
 		</div>
 		{#if showDownload}
 		<div transition:slide class="section-content">
 			<section class="subsection">
 				<p style="font-size:.9em;"><em>
-					Only layers that have been trimmed in the <a href="#multimask">Multimask</a> will appear in the mosaic. You can access untrimmed layers individually through the <a href="#georeferenced">Georeferenced</a> section above. If you appreciate these resources, please consider <a href="/#support">supporting this project</a>.
+					Only layers that have been trimmed in the <a href="#multimask">MultiMask</a> will appear in the mosaic. You can access untrimmed layers individually through the <a href="#georeferenced">Georeferenced</a> section above. If you appreciate these resources, please consider <a href="/#support">supporting this project</a>.
 				</em></p>
 			</section>
 			<section class="subsection" style="padding-top:15px;">

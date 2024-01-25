@@ -137,7 +137,9 @@ if (urlSegs[urlSegs.length - 2] == 'about') {
 		<div>
 			<SvelteMarkdown source={`OldInsuranceMaps.net is funded in part by the National Institutes of Health (National Institute on Aging: [R01AG080401](https://reporter.nih.gov/search/bCrnkRo-rkWJJXyXqsj44g/project-details/10582012)) through a partnership with University of Michigan [Institute for Social Research](https://isr.umich.edu/), University of Richmond [Digital Scholarship Lab](https://dsl.richmond.edu/), and the [National Community Reinvestment Coalition](https://ncrc.org). Read more in the [ISR press release](https://isr.umich.edu/news-events/news-releases/grant-to-enable-creation-of-new-data-resources-for-studying-structural-racism/).
 
-Many thanks also to our individual sponsors: Kevin H., Andrew M., and Peter M. To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
+Many thanks also to our individual sponsors: Kevin H., Andrew M., Peter M., and Pete Z.
+
+To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
 `} />
 		</div>
 	</div>
