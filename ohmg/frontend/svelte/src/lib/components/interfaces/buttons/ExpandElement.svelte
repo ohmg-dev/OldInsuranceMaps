@@ -7,16 +7,29 @@
     import ArrowsOutSimple from "phosphor-svelte/lib/ArrowsOutSimple";
 
     export let elementId;
-    export let map = null;
+    export let maps = [];
 
     let ffs = false;
     function handleFfs(elementId) {
         ffs = !ffs
         document.getElementById(elementId).classList.toggle('ffs');
-        map && map.updateSize();
+        maps.forEach((map) => map && map.updateSize());
+    }
+
+    function handleKeydown(e) {
+        // only allow these shortcuts if the maps have focus,
+        // so shortcuts aren't activated while typing a note.
+        if (document.activeElement.id == "") {
+            switch(e.key) {
+            case "Escape":
+                handleFfs('map-container')
+                break;
+            }
+        }
     }
 </script>
 
+<svelte:window on:keydown={handleKeydown} />
 <IconButton style="tool-ui" title={ffs ? "Reduce" : "Expand"} action={() => {handleFfs(elementId)}}>
     {#if ffs}
     <ArrowsInSimple />

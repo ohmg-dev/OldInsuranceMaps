@@ -1,50 +1,50 @@
 <script>
-import SvelteMarkdown from 'svelte-markdown'
+	import SvelteMarkdown from 'svelte-markdown'
 
-import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps } from "@helpers/utils"
-import ArrowSquareOut from 'phosphor-svelte/lib/ArrowSquareOut'
+	import IconContext from 'phosphor-svelte/lib/IconContext';
+	import { iconProps } from "@helpers/utils";
 
-import MapBrowse from '@components/interfaces/MapBrowse.svelte';
+	import Link from '@components/base/Link.svelte';
+	import MapBrowse from '@components/interfaces/MapBrowse.svelte';
 
-import LatestAdditions from '@components/lists/LatestAdditions.svelte';
-import SessionList from '@components/lists/SessionList.svelte'
+	import LatestAdditions from '@components/lists/LatestAdditions.svelte';
+	import SessionList from '@components/lists/SessionList.svelte'
 
-export let ITEM_API_URL;
-export let SESSION_API_URL;
-export let PLACES_GEOJSON_URL;
-export let IS_MOBILE;
-export let CSRFTOKEN;
-export let OHMG_API_KEY;
-export let NEWSLETTER_SLUG;
-export let USER_SUBSCRIBED;
-export let USER_EMAIL;
-export let PLACES_CT;
-export let ITEMS_CT;
+	export let ITEM_API_URL;
+	export let SESSION_API_URL;
+	export let PLACES_GEOJSON_URL;
+	export let IS_MOBILE;
+	export let CSRFTOKEN;
+	export let OHMG_API_KEY;
+	export let NEWSLETTER_SLUG;
+	export let USER_SUBSCRIBED;
+	export let USER_EMAIL;
+	export let PLACES_CT;
+	export let ITEMS_CT;
 
-let showBrowseMap = !IS_MOBILE;
-$: showBrowseMapBtnLabel = showBrowseMap ? "Hide map finder" : "Show map finder";
-let showBRMap = !IS_MOBILE;
+	let showBrowseMap = !IS_MOBILE;
+	$: showBrowseMapBtnLabel = showBrowseMap ? "Hide map finder" : "Show map finder";
+	let showBRMap = !IS_MOBILE;
 
-const urlSegs = window.location.href.split('/')
+	const urlSegs = window.location.href.split('/')
 
-if (urlSegs[urlSegs.length - 2] == 'about') {
-	page = 'about'
-}
+	if (urlSegs[urlSegs.length - 2] == 'about') {
+		page = 'about'
+	}
 
 </script>
 <IconContext values={iconProps}>
 <main>
 	<div>
 		<h1>OldInsuranceMaps.net</h1>
-		<p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. See <a href="/#how-it-works">how it works</a> or visit the <a href="/faq?utm_source=hero" target="_blank">about</a> or <a href="/faq?utm_source=hero" target="_blank">FAQ</a> pages to learn more.</p>
+		<p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. See <Link href="/#how-it-works">how it works</Link> or visit the <Link href="/about?utm_source=hero" target="_blank">about</Link> or <Link href="/faq?utm_source=hero">FAQ</Link> pages to learn more.</p>
 	</div>
 
 	<div class="hero-banner2 img-bg-3">
 		<div style="padding:0;">
 			<div style="padding:5px;">
 				<h3>Explore georeferenced maps from {PLACES_CT} locations...</h3>
-				<p>Click a point to access the viewer for that locale, or <a href="/search/#places">search by place name</a>.
+				<p>Click a point to access the viewer for that locale, or <Link href="/search/#places">search by place name</Link>.
 			</div>
 			{#if IS_MOBILE}<span><button class="link-btn" on:click="{() => {showBrowseMap = !showBrowseMap}}">{ showBrowseMapBtnLabel }</button></span>{/if}
 			{#if showBrowseMap}
@@ -58,16 +58,16 @@ if (urlSegs[urlSegs.length - 2] == 'about') {
 			<div>
 			<h3>Recently Added Maps</h3>
 			<LatestAdditions ITEM_API_URL={ITEM_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
-			<span><em>Want to see more? View <a href="/search/#items">all items</a> and sort by <strong>Load date</strong>.</em></span>
+			<span><em>Want to see more? View <Link href="/search/#items">all items</Link> and sort by <strong>Load date</strong>.</em></span>
 		</div>
 			<div id="link-list">
 				<h3>Search All Maps</h3>
 				<ul>
-					<li><a href="/search/#map">By location ({PLACES_CT})</a></li>
-					<li><a href="/search/#places">By place name ({PLACES_CT})</a></li>
-					<li><a href="/search/#places">By item ({ITEMS_CT})</a></li>
+					<li><Link href="/search/#map">By location ({PLACES_CT})</Link></li>
+					<li><Link href="/search/#places">By place name ({PLACES_CT})</Link></li>
+					<li><Link href="/search/#places">By item ({ITEMS_CT})</Link></li>
 				</ul>
-				<span><em>To request more maps, <a href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link">fill out this form</a> or <a href="https://ohmg.dev/contact">get in touch</a>.</em></span>
+				<span><em>To request more maps, <Link href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link" external={true}>fill out this form</Link> or <Link href="/contact">get in touch</Link>.</em></span>
 			</div>
 		</div>
 		{#if NEWSLETTER_SLUG}
@@ -76,12 +76,12 @@ if (urlSegs[urlSegs.length - 2] == 'about') {
 				<input type="hidden" name="csrfmiddlewaretoken" value={CSRFTOKEN}>
 				<label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe to the newsletter:</label> <input type="email" name="email_field" required="" id="id_email_field" value="{USER_EMAIL}" disabled={USER_SUBSCRIBED}>
 				{#if USER_SUBSCRIBED}
-				<a href="/newsletter/{NEWSLETTER_SLUG}?utm_source=index">manage subscription</a>
+				<Link href="/newsletter/{NEWSLETTER_SLUG}?utm_source=index">manage subscription</Link>
 				{:else}
 				<button id="id_submit" name="submit" value="Subscribe" type="submit">Subscribe</button>
 				{/if}
 			</form>
-			<a href="/newsletter/{NEWSLETTER_SLUG}/archive/">newsletter archive</a>
+			<Link href="/newsletter/{NEWSLETTER_SLUG}/archive/">newsletter archive</Link>
 		</div>
 		{/if}
 	</div>
@@ -93,34 +93,34 @@ if (urlSegs[urlSegs.length - 2] == 'about') {
 				<div>
 					<div><i class="i-magnifier i-magnifier-lg"></i></div>
 					<p>
-						Digital scans of Sanborn maps are available through the <a href="https://loc.gov/collections/sanborn-maps">Library of Congress</a> and are pulled into this site through the LOC <a href="https://www.loc.gov/apis/json-and-yaml/requests/">JSON API</a>, generating a "Volume Summary" page (<a href="/loc/sanborn03275_001/?utm_source=index">Baton Rouge, 1885</a>).
+						Digital scans of Sanborn maps are available through the <Link href="https://loc.gov/collections/sanborn-maps" external={true}>Library of Congress</Link> and are pulled into this site through the LOC <Link href="https://www.loc.gov/apis/json-and-yaml/requests/" external={true}>JSON API</Link>, generating a "Volume Summary" page (<Link href="/loc/sanborn03275_001/?utm_source=index">Baton Rouge, 1885</Link>).
 					</p>
 				</div>
 				<div>
 					<div><i class="i-pin i-pin-lg"></i></div>
 					<p>
-						Contributors <a href="/split/244/">prepare each sheet</a> in the volume, sometimes splitting it into multiple documents, each to be georeferenced individually (<a href="/resource/244?utm_source=index">Baton Rouge, 1885, page 1</a>).
+						Contributors <Link href="/split/244/">prepare each sheet</Link> in the volume, sometimes splitting it into multiple documents, each to be georeferenced individually (<Link href="/resource/244?utm_source=index">Baton Rouge, 1885, page 1</Link>).
 					</p>
 				</div>
 				<div>
 					<div><i class="i-compass i-compass-lg"></i></div>
 					<p>
-						Next, each document must be georeferenced by <a href="/georeference/387?utm_source=index">creating ground control points</a>, linking features on the old map with latitude/longitude coordinates to create a geospatial layer (<a href="/resource/389?utm_source=index">Baton Rouge, 1885, page 1, part 3</a>).
+						Next, each document must be georeferenced by <Link href="/georeference/387?utm_source=index">creating ground control points</Link>, linking features on the old map with latitude/longitude coordinates to create a geospatial layer (<Link href="/resource/389?utm_source=index">Baton Rouge, 1885, page 1, part 3</Link>).
 					</p>
 				</div>
 				<div>
 					<div><i class="i-webmap i-webmap-lg"></i></div>
 					<p>
-						As they are georeferenced, layers slowly build a collage of all the content from a given volume, and their overlapping margins <a href="/loc/sanborn03275_001?utm_source=index#multimask">must be trimmed</a> to create a seamless mosaic.
+						As they are georeferenced, layers slowly build a collage of all the content from a given volume, and their overlapping margins <Link href="/loc/sanborn03275_001?utm_source=index#multimask">must be trimmed</Link> to create a seamless mosaic.
 					</p>
 				</div>
 				<div>
 					<div><i class="i-pinmap i-pinmap-lg"></i></div>
 					<p>
-						Finally, all volume mosaics for a given locale are automatically aggregated into a simple web viewer so you can easily compare different years and current maps (<a href="/viewer/baton-rouge-la?utm_source=index">Baton Rouge viewer</a>).
+						Finally, all volume mosaics for a given locale are automatically aggregated into a simple web viewer so you can easily compare different years and current maps (<Link href="/viewer/baton-rouge-la?utm_source=index">Baton Rouge viewer</Link>).
 					</p>
 				</div>
-				<h4>Want to learn more? Visit the <a href="https://ohmg.dev/docs?utm_source=index" target="_blank">documentation site <ArrowSquareOut /></a>.</h4>
+				<h4>Want to learn more? Visit the <Link href="https://ohmg.dev/docs?utm_source=index" external={true}>documentation site</Link>.</h4>
 			</div>
 		</div>
 	</div>
@@ -128,7 +128,7 @@ if (urlSegs[urlSegs.length - 2] == 'about') {
 	<div class="hero-banner2 img-bg-3">
 		<div>
 			<h3>Latest activity</h3>
-			<p><a href="/activity">all activity</a></p>
+			<p><Link href="/activity">all activity</Link></p>
 			<SessionList SESSION_API_URL={SESSION_API_URL} OHMG_API_KEY={OHMG_API_KEY} limit={"10"} showThumbs={true} allowPagination={false} />
 		</div>
 	</div>

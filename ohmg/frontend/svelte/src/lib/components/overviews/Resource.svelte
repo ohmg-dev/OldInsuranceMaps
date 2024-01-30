@@ -7,7 +7,7 @@ import { iconProps } from "@helpers/utils"
 import Scissors from "phosphor-svelte/lib/Scissors";
 import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
 import ArrowCounterClockwise from "phosphor-svelte/lib/ArrowCounterClockwise";
-import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
+import ArrowRight from "phosphor-svelte/lib/ArrowRight";
 import MapPin from "phosphor-svelte/lib/MapPin";
 import Trash from "phosphor-svelte/lib/Trash";
 
@@ -15,21 +15,19 @@ import 'ol/ol.css';
 
 import {getCenter} from 'ol/extent';
 
+import Link from '@components/base/Link.svelte';
 import TitleBar from '@components/layout/TitleBar.svelte';
 import SessionList from '@components/lists/SessionList.svelte'
 import SingleLayerViewer from '@components/interfaces/SingleLayerViewer.svelte';
 import SingleDocumentViewer from '@components/interfaces/SingleDocumentViewer.svelte';
 import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
 
-import {
-  makeTitilerXYZUrl,
-} from '@helpers/utils';
+import { makeTitilerXYZUrl } from '@helpers/utils';
 
 export let CSRFTOKEN;
 export let USER;
 export let RESOURCE;
 export let VOLUME;
-export let REFRESH_URL;
 export let SPLIT_SUMMARY;
 export let GEOREFERENCE_SUMMARY;
 export let MAPBOX_API_KEY;
@@ -69,9 +67,16 @@ if (doubleEncodedXYZUrl && ll) {
   ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${doubleEncodedXYZUrl}`
 }
 
-let showPrep = false;
-let showGeoreference = false;
-let showDownloads = false;
+const sectionVis = {
+	"prep": true,
+	"georef": true,
+	"download": true,
+	"history": true,
+}
+
+function toggleSection(sectionId) {
+	sectionVis[sectionId] = !sectionVis[sectionId];
+}
 
 let splitBtnEnabled = false;
 let noSplitBtnEnabled = false;
@@ -103,44 +108,28 @@ $: {
   undoBtnEnabled = SPLIT_SUMMARY ? SPLIT_SUMMARY.allow_reset : false;
   switch(RESOURCE.status) {
     case "unprepared":
-      showPrep = true;
       if (USER.is_authenticated) {
         splitBtnEnabled = true;
         noSplitBtnEnabled = true;
       }
-      showGeoreference = false;
+      sectionVis['georef'] = false;
+      sectionVis['download'] = false;
       georeferenceBtnEnable = false;
       break
     case "splitting":
       undoBtnEnabled = false;
       break;
-    case "split":
-      showPrep = true;
-      break;
     case "prepared":
       splitBtnEnabled = false;
       noSplitBtnEnabled = false;
-      showGeoreference = true;
       georeferenceBtnEnable = true;
       break;
     case "georeferenced":
-      showGeoreference = false;
-      showDownloads = true;
+      sectionVis['georef'] = false;
       georeferenceBtnEnable = true;
       georeferenceBtnTitle = "Edit Control Points";
       break;
   }
-}
-
-// needs to be reimplented via API
-function refresh() {
-  fetch(REFRESH_URL)
-  .then(response => response.json())
-  .then(result => {
-    RESOURCE = result.RESOURCE;
-    SPLIT_SUMMARY = result.SPLIT_SUMMARY;
-    GEOREFERENCE_SUMMARY = result.GEOREFERENCE_SUMMARY;
-  });
 }
 
 function setSplit(operation) {
@@ -211,12 +200,41 @@ const iconLinks = [
   }
 ]
 let reinitMap = [{}]
+
+let currentIdentifier = VOLUME.identifier
+function goToItem() {
+	window.location = "/loc/" + currentIdentifier
+}
+let currentDoc = RESOURCE.id;
+function goToDocument() {
+	window.location = "/resource/" + currentDoc
+}
+console.log(RESOURCE)
 </script>
 
 <IconContext values={iconProps}>
 <main>
-  <TitleBar TITLE={RESOURCE.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks} />
-  <div class="content" style="display:flex;">
+  <section class="breadcrumbs">
+		{#each VOLUME.locale.breadcrumbs as bc, n}
+		<Link href="/{bc.slug}">{bc.name}</Link>{#if n != VOLUME.locale.breadcrumbs.length-1}<ArrowRight size={12} />{/if}
+		{/each}
+		<ArrowRight size={12} />
+    <Link href={VOLUME.urls.summary}>{VOLUME.year}</Link>
+    <!--
+		<ArrowRight size={12} />
+		<select class="item-select" bind:value={currentDoc} on:change={goToDocument}>
+			<option value="---" disabled>go to...</option>
+			{#each VOLUME.sheets as s}
+			<option value={s.doc_id}>page {s.sheet_no}</option>
+			{/each}
+		</select>-->
+	</section>
+  <TitleBar TITLE={RESOURCE.title} ICON_LINKS={iconLinks} />
+  <section >
+    <p><strong>Status:</strong> {RESOURCE.status}{processing ? " in progress..." : ""}
+    </p>
+  </section>
+  <section>
     <div id="map-panel">
       {#each reinitMap as key (key)}
       {#if RESOURCE.type == "document"}
@@ -226,206 +244,182 @@ let reinitMap = [{}]
       {/if}
       {/each}
     </div>
-    <div id="sidebar">
-      <section >
-        <p><strong>Status:</strong> {RESOURCE.status}{processing ? " in progress..." : ""}
-        </p>
-      </section>
-      <section>
-        <button class="expandable" on:click={() => showPrep = !showPrep}>
-          <span><ConditionalDoubleChevron down={showPrep} /></span>
-          <h4>Preparation</h4>
+  </section>
+  <section>
+    <button class="section-toggle-btn" on:click={() => toggleSection('prep')} disabled={false}>
+      <ConditionalDoubleChevron down={sectionVis['prep']} size="md" />
+        <h3>Preparation</h3>
+    </button>
+    {#if sectionVis['prep']}
+    <div transition:slide>
+      <div class="control-btn-group">
+        <button
+          title="Split this document"
+          disabled={!splitBtnEnabled}
+          onclick="window.location.href='{RESOURCE.urls.split}'"
+          class="control-btn{splitNeeded == true ? ' btn-chosen': ''}">
+          <Scissors /> Split
         </button>
-        {#if showPrep}
-        <div transition:slide>
-          <div class="control-btn-group">
-            <button
-              title="Split this document"
-              disabled={!splitBtnEnabled}
-              onclick="window.location.href='{RESOURCE.urls.split}'"
-              class="control-btn{splitNeeded == true ? ' btn-chosen': ''}">
-              <Scissors />
-            </button>
-            <button
-              title="This document does not need to be split"
-              disabled={!noSplitBtnEnabled}
-              on:click={() => {setSplit("no_split")}}
-              class="control-btn{splitNeeded == false ? ' btn-chosen': ''}">
-              <CheckSquareOffset />
-            </button>
-            {#if USER.is_authenticated}
-            <button 
-              class="control-btn"
-              title={undoBtnTitle}
-              disabled={!undoBtnEnabled}
-              on:click={() => {setSplit("undo")}}>
-              <ArrowCounterClockwise />
-            </button>
-            {/if}
-          </div>
-          <div class="section-body">
-            {#if SPLIT_SUMMARY}
-              <p>{SPLIT_SUMMARY.date_str} by 
-                <a href={SPLIT_SUMMARY.user.profile}>{SPLIT_SUMMARY.user.name}</a>:
-                {#if !SPLIT_SUMMARY.split_needed}
-                No split needed.
-                {:else if SPLIT_SUMMARY.child_docs.length > 0}
-                Split into {SPLIT_SUMMARY.child_docs.length} new document{#if SPLIT_SUMMARY.child_docs.length != 1}s{/if},
-                each must be georeferenced individually.
-                {:else if SPLIT_SUMMARY.parent_doc}
-                Split from <a href={SPLIT_SUMMARY.parent_doc.urls.resource}>{SPLIT_SUMMARY.parent_doc.title}</a>.
-                {/if}
-              </p>
-              {#if SPLIT_SUMMARY.child_docs.length > 0}
-              <div class="documents-column">
-                {#each SPLIT_SUMMARY.child_docs as child}
-                <div class="document-item">
-                  <div>
-                    <a href={child.urls.resource} title="{child.title}">{child.title.split(" | ")[1]}</a>
-                  </div>
-                  <img src={child.urls.thumbnail} alt={child.title} title={child.title}>
-                  <div>
-                    <ul>
-                      <li><strong>Status:</strong> {child.status}</li>
-                      <li><a href={child.urls.georeference} title="Document detail">
-                        {#if child.status == "georeferenced"}edit georeferencing &rarr;
-                        {:else}georeference &rarr;
-                        {/if}
-                      </a></li>
-                    </ul>
-                  </div>
-                </div>
-                {/each}
-              </div>
-              {/if}
-            {/if}
-          </div>
-        </div>
+        <button
+          title="This document does not need to be split"
+          disabled={!noSplitBtnEnabled}
+          on:click={() => {setSplit("no_split")}}
+          class="control-btn{splitNeeded == false ? ' btn-chosen': ''}">
+          <CheckSquareOffset /> No split needed
+        </button>
+        {#if USER.is_authenticated}
+        <button 
+          class="control-btn"
+          title={undoBtnTitle}
+          disabled={!undoBtnEnabled}
+          on:click={() => {setSplit("undo")}}>
+          <ArrowCounterClockwise />
+        </button>
         {/if}
-      </section>
-      <section>
-        <button class="expandable" on:click={() => showGeoreference = !showGeoreference}>
-          <span><ConditionalDoubleChevron down={showGeoreference} /></span>
-          <h4>Georeferencing</h4>
-        </button>
-        {#if showGeoreference}
-        <div transition:slide>
-          <div class="control-btn-group">
-            <button 
-              class="control-btn"
-              title={georeferenceBtnTitle}
-              disabled={!georeferenceBtnEnable}
-              onclick="window.location.href='{RESOURCE.urls.georeference}'">
-              <MapPin />{georeferenceBtnTitle}
-            </button>
-            {#if USER.is_authenticated && USER.is_staff}
-            <button
-              class="control-btn"
-              title="Remove all georeferencing for this resource"
-              disabled={RESOURCE.status != "georeferenced"}
-              on:click={unGeoreference}>
-              <Trash />
-            </button>
+      </div>
+      <div class="section-body">
+        {#if SPLIT_SUMMARY}
+          <p>{SPLIT_SUMMARY.date_str} by 
+            <Link href={SPLIT_SUMMARY.user.profile}>{SPLIT_SUMMARY.user.name}</Link>:
+            {#if !SPLIT_SUMMARY.split_needed}
+            No split needed.
+            {:else if SPLIT_SUMMARY.child_docs.length > 0}
+            Split into {SPLIT_SUMMARY.child_docs.length} new document{#if SPLIT_SUMMARY.child_docs.length != 1}s{/if},
+            each must be georeferenced individually.
+            {:else if SPLIT_SUMMARY.parent_doc}
+            Split from <Link href={SPLIT_SUMMARY.parent_doc.urls.resource}>{SPLIT_SUMMARY.parent_doc.title}</Link>.
             {/if}
-          </div>
-          <div class="section-body">
-            {#if GEOREFERENCE_SUMMARY.gcp_geojson}
-            <table>
-              <caption>{GEOREFERENCE_SUMMARY.gcp_geojson.features.length} Control Points</caption>
-              <tr>
-                <th>X</th>
-                <th>Y</th>
-                <th>Lng</th>
-                <th>Lat</th>
-                <th>User</th>
-                <th>Note</th>
-              </tr>
-              {#each GEOREFERENCE_SUMMARY.gcp_geojson.features as feat}
-              <tr>
-                <td class="coord-digit">{feat.properties.image[0]}</td>
-                <td class="coord-digit">{feat.properties.image[1]}</td>
-                <td class="coord-digit">{Math.round(feat.geometry.coordinates[0]*1000000)/1000000}</td>
-                <td class="coord-digit">{Math.round(feat.geometry.coordinates[1]*1000000)/1000000}</td>
-                <td>{feat.properties.username}</td>
-                <td>{feat.properties.note != null ? feat.properties.note : "--"}</td>
-              </tr>
-              {/each}
-            </table>
-            {/if}
-            <!--
-            {#if GEOREFERENCE_SUMMARY.sessions.length > 0}
-            <table>
-              <caption>Sessions</caption>
-              <tr>
-                <th>Timestamp</th>
-                <th>User</th>
-                <th>Stage</th>
-                <th>Status</th>
-                <th>GCPs</th>
-              </tr>
-              {#each GEOREFERENCE_SUMMARY.sessions as sesh, n}
-              <tr>
-                <td>{sesh.date_run != null ? sesh.date_run : "--"}</td>
-                <td><a href={sesh.user.profile}>{sesh.user.name}</a></td>
-                <td>{sesh.stage}</td>
-                <td>{sesh.status}</td>
-                <td>{sesh.data ? sesh.data.gcps.features.length : "--"}</td>
-              </tr>
-              {/each}
-            </table>
-            {/if}
-            -->
-          </div>
-        </div>
-        {/if}
-        
-      </section>
-      <section style="border-bottom:none;">
-        <button class="expandable" on:click={() => showDownloads = !showDownloads}>
-          <span><ConditionalDoubleChevron down={showDownloads} /></span>
-          <h4>Downloads & Web Services</h4>
-        </button>
-        {#if showDownloads}
-        <div transition:slide>
-          <!-- super duper messy for now...-->
-          {#if RESOURCE.type == "document"}
-            <p>Image: <a href="{RESOURCE.urls.image}" title="Download JPEG">JPEG</a>
-              {#if RESOURCE.layer}
-              &bullet;&nbsp;<a href="{RESOURCE.layer.urls.cog}" title="Download GeoTIFF">GeoTIFF</a>
-              {/if}
-            </p>
-            {#if RESOURCE.layer}
-            <p>GCPs: <a href="/mrm/{RESOURCE.layer.slug}?resource=gcps-geojson" title="Download GCPs as GeoJSON">GeoJSON</a>
-              &bullet;&nbsp;<a href="/mrm/{RESOURCE.layer.slug}?resource=points" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</a></p>
-              
-            {/if}
-          {:else if RESOURCE.type == "layer"}
-          <p>Image: <a href="{RESOURCE.urls.document}" title="Download JPEG">JPEG</a>
-            &bullet;&nbsp;<a href="{RESOURCE.urls.cog}" title="Download GeoTIFF">GeoTIFF</a>
           </p>
-          <p>GCPs: <a href="/mrm/{RESOURCE.slug}?resource=gcps-geojson" title="Download GCPs as GeoJSON">GeoJSON</a>
-            &bullet;&nbsp;<a href="/mrm/{RESOURCE.slug}?resource=points" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</a></p>
-          XYZ URL: <pre>{xyzUrl}</pre>
-            <p>Use this URL in:
-              <a href="https://leafletjs.com/reference.html#tilelayer">Leaflet</a>,
-              <a href="https://openlayers.org/en/latest/examples/xyz.html">OpenLayers</a>,
-              <a href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/">Mapbox/MapLibre GL JS</a>,
-              <a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
-              <a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
-              {#if ohmUrl}
-              <br><a href="{ohmUrl}" alt="View in OHM iD editor" target="_blank">View in Open Historical Map iD editor<ArrowSquareOut /></a> (direct link).
-              {/if}
-            </p>
+          {#if SPLIT_SUMMARY.child_docs.length > 0}
+          <div class="documents-column">
+            {#each SPLIT_SUMMARY.child_docs as child}
+            <div class="document-item">
+              <div>
+                <Link href={child.urls.resource} title="{child.title}">{child.title.split(" | ")[1]}</Link>
+              </div>
+              <img src={child.urls.thumbnail} alt={child.title} title={child.title}>
+              <div>
+                <ul>
+                  <li><strong>Status:</strong> {child.status}</li>
+                  <li><Link href={child.urls.georeference} title="Document detail">
+                    {#if child.status == "georeferenced"}edit georeferencing &rarr;
+                    {:else}georeference &rarr;
+                    {/if}
+                  </Link></li>
+                </ul>
+              </div>
+            </div>
+            {/each}
+          </div>
           {/if}
-        </div>
         {/if}
-      </section>
+      </div>
     </div>
-  </div>
-  <div>
-    <h3>Session History</h3>
-    <SessionList OHMG_API_KEY={OHMG_API_KEY} SESSION_API_URL={SESSION_API_URL} FILTER_PARAM={filterParam} showResource={false}/>
-  </div>
+    {/if}
+  </section>
+  <section>
+    <button class="section-toggle-btn" on:click={() => toggleSection('georef')} disabled={false}>
+      <ConditionalDoubleChevron down={sectionVis['georef']} size="md" />
+        <h3>Georeferencing</h3>
+    </button>
+    {#if sectionVis['georef']}
+    <div transition:slide>
+      <div class="control-btn-group">
+        <button 
+          class="control-btn"
+          title={georeferenceBtnTitle}
+          disabled={!georeferenceBtnEnable}
+          onclick="window.location.href='{RESOURCE.urls.georeference}'">
+          <MapPin />{georeferenceBtnTitle}
+        </button>
+        {#if USER.is_authenticated && USER.is_staff}
+        <button
+          class="control-btn"
+          title="Remove all georeferencing for this resource"
+          disabled={RESOURCE.status != "georeferenced"}
+          on:click={unGeoreference}>
+          <Trash />
+        </button>
+        {/if}
+      </div>
+      <div class="section-body">
+        {#if GEOREFERENCE_SUMMARY.gcp_geojson}
+        <table>
+          <caption>{GEOREFERENCE_SUMMARY.gcp_geojson.features.length} Control Points</caption>
+          <tr>
+            <th>X</th>
+            <th>Y</th>
+            <th>Lng</th>
+            <th>Lat</th>
+            <th>User</th>
+            <th>Note</th>
+          </tr>
+          {#each GEOREFERENCE_SUMMARY.gcp_geojson.features as feat}
+          <tr>
+            <td class="coord-digit">{feat.properties.image[0]}</td>
+            <td class="coord-digit">{feat.properties.image[1]}</td>
+            <td class="coord-digit">{Math.round(feat.geometry.coordinates[0]*1000000)/1000000}</td>
+            <td class="coord-digit">{Math.round(feat.geometry.coordinates[1]*1000000)/1000000}</td>
+            <td>{feat.properties.username}</td>
+            <td>{feat.properties.note != null ? feat.properties.note : "--"}</td>
+          </tr>
+          {/each}
+        </table>
+        {/if}
+      </div>
+    </div>
+    {/if}
+    
+  </section>
+  <section>
+    <button class="section-toggle-btn" on:click={() => toggleSection('download')} disabled={false}>
+      <ConditionalDoubleChevron down={sectionVis['download']} size="md" />
+        <h3>Downloads & Web Services</h3>
+    </button>
+    {#if sectionVis['download']}
+    <div transition:slide>
+      <!-- super duper messy for now...-->
+      {#if RESOURCE.type == "document"}
+        <p>Image: <Link href="{RESOURCE.urls.image}" title="Download JPEG">JPEG</Link>
+          {#if RESOURCE.layer}
+          &bullet;&nbsp;<Link href="{RESOURCE.layer.urls.cog}" title="Download GeoTIFF">GeoTIFF</Link>
+          {/if}
+        </p>
+        {#if RESOURCE.layer}
+        <p>GCPs: <Link href="/mrm/{RESOURCE.layer.slug}?resource=gcps-geojson" title="Download GCPs as GeoJSON">GeoJSON</Link>
+          &bullet;&nbsp;<Link href="/mrm/{RESOURCE.layer.slug}?resource=points" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</Link></p>
+          
+        {/if}
+      {:else if RESOURCE.type == "layer"}
+      <p>Image: <Link href="{RESOURCE.urls.document}" title="Download JPEG">JPEG</Link>
+        &bullet;&nbsp;<Link href="{RESOURCE.urls.cog}" title="Download GeoTIFF">GeoTIFF</Link>
+      </p>
+      <p>GCPs: <Link href="/mrm/{RESOURCE.slug}?resource=gcps-geojson" title="Download GCPs as GeoJSON">GeoJSON</Link>
+        &bullet;&nbsp;<Link href="/mrm/{RESOURCE.slug}?resource=points" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</Link></p>
+      XYZ URL: <pre>{xyzUrl}</pre>
+        <p>Use this URL in:
+          <Link href="https://leafletjs.com/reference.html#tilelayer" external={true}>Leaflet</Link>,
+          <Link href="https://openlayers.org/en/latest/examples/xyz.html" external={true}>OpenLayers</Link>,
+          <Link href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/" external={true}>Mapbox/MapLibre GL JS</Link>,
+          <Link href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services" external={true}>QGIS</Link>, and
+          <Link href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/" external={true}>ArcGIS</Link>.
+          {#if ohmUrl}
+          <br><Link href="{ohmUrl}" title="View in OHM iD editor" external={true}>View in Open Historical Map iD editor</Link> (direct link).
+          {/if}
+        </p>
+      {/if}
+    </div>
+    {/if}
+  </section>
+  <section style="border-bottom:none;">
+    <button class="section-toggle-btn" on:click={() => toggleSection('history')} disabled={false}>
+      <ConditionalDoubleChevron down={sectionVis['history']} size="md" />
+        <h3>Session History</h3>
+    </button>
+    {#if sectionVis['history']}
+    <SessionList OHMG_API_KEY={OHMG_API_KEY} SESSION_API_URL={SESSION_API_URL} FILTER_PARAM={filterParam} showResource={false} limit={"0"}/>
+    {/if}
+  </section>
 </main>
 </IconContext>
 
@@ -436,20 +430,6 @@ main {
   flex-direction: column;
   padding: 0px 20px;
   margin-bottom: 10px;
-}
-
-.content {
-  display: flex;
-  flex-direction: row;
-}
-
-#sidebar {
-  width: 40%;
-  background: white;
-  border: 1px solid lightgrey;
-  border-radius: 4px;
-  margin-left: 10px;
-  padding: 10px;
 }
 
 #map-panel {
@@ -476,23 +456,29 @@ main {
 }
 
 section {
-  border-bottom: 1px dashed rgb(149,149,149);;
+	border-bottom: 1px solid rgb(149, 149, 149);
 }
 
-button.expandable {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  border: none;
-  background: none;
-  color: #2c689c;
-  cursor: pointer;
+button.section-toggle-btn {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	background: none;
+	border: none;
+	color: #2c689c;
+	padding: 0;
 }
 
-button.expandable > span {
-  font-size: 1.2em;
-  margin-right: 4px;
-  line-height: 1;
+button.section-toggle-btn, a {
+	text-decoration: none;
+}
+
+button.section-toggle-btn:hover {
+	color: #1b4060;
+}
+
+button.section-toggle-btn:disabled, button.section-toggle-btn:disabled > a {
+	color: grey;
 }
 
 .section-body {
@@ -569,6 +555,25 @@ tr:nth-child(odd) {
 .document-item ul {
   list-style-type: none;
   padding: 0;
+}
+
+section.breadcrumbs {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	padding: 5px 0px;
+	font-size: .95em;
+	border-bottom: none;
+}
+
+select.item-select {
+	margin-right: 3px;
+	color: #2c689c;
+	cursor: pointer;
+}
+
+:global(section.breadcrumbs svg) {
+	margin: 0px 2px;
 }
 
 </style>

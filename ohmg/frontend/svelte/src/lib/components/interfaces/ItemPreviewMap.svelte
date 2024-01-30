@@ -166,7 +166,7 @@ onMount(() => {
 		<div class="layer-section-header" style="border-top-width: 1px;">
 			<FullExtentButton action={() => {setMapExtent(map, VOLUME.extent)}} />
 			<OpenModalButton style="tool-ui" icon="article" modalId={"modal-legend"} />
-			<ExpandElement elementId={'map-container'} map={map} />
+			<ExpandElement elementId={'map-container'} maps={[map]} />
 		</div>
 		<div id="layer-list" style="flex:2;">
 			<div class="layer-section-header">

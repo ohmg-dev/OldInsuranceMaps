@@ -1,6 +1,7 @@
 <script>
     import Article from "phosphor-svelte/lib/Article";
     import Crop from "phosphor-svelte/lib/Crop";
+    import Link from "phosphor-svelte/lib/Link";
     import Lock from "phosphor-svelte/lib/Lock";
     import LockOpen from "phosphor-svelte/lib/LockOpen";
     import Question from "phosphor-svelte/lib/Question";
@@ -31,6 +32,8 @@
         <Trash />
         {:else if icon === "crop"}
         <Crop />
+        {:else if icon === "link"}
+        <Link />
         {:else if icon === "lock"}
         <Lock />
         {:else if icon === "lock-open"}

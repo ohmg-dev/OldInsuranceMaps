@@ -1,6 +1,4 @@
 <script>
-    import IconContext from 'phosphor-svelte/lib/IconContext';
-    import { iconProps } from "@helpers/utils"
     import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
 
     export let TITLE;
@@ -9,7 +7,6 @@
     export let ICON_LINKS = [];
 </script>
 
-<IconContext values={iconProps}>
 <div class="title-bar">
     <div style="display:flex; flex-direction:row; justify-content:left; align-items:center;">
         {#if IMG_URL}
@@ -36,7 +33,6 @@
     </div>
     {/if}
 </div>
-</IconContext>
 
 <style>
     .title-bar {

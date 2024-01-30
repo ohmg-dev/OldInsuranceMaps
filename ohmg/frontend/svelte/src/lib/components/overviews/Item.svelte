@@ -5,10 +5,10 @@ import IconContext from 'phosphor-svelte/lib/IconContext';
 import { iconProps, makeTitilerXYZUrl } from "@helpers/utils"
 
 import ArrowRight from "phosphor-svelte/lib/ArrowRight";
-import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
 
 import {getCenter} from 'ol/extent';
 
+import Link from '@components/base/Link.svelte';
 import TitleBar from '@components/layout/TitleBar.svelte';
 import MultiMask from "@components/interfaces/MultiMask.svelte";
 import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
@@ -30,6 +30,7 @@ import ItemPreviewMap from "@components/interfaces/ItemPreviewMap.svelte";
 import SingleLayerViewer from '@components/interfaces/SingleLayerViewer.svelte';
 import SingleDocumentViewer from '@components/interfaces/SingleDocumentViewer.svelte';
 import DownloadSectionModal from './modals/DownloadSectionModal.svelte';
+import ItemDetails from './sections/ItemDetails.svelte';
 
 export let VOLUME;
 export let CSRFTOKEN;
@@ -37,32 +38,43 @@ export let USER;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
 
+console.log(VOLUME)
+
 let userCanEdit = false;
 userCanEdit = USER.is_staff || VOLUME.access == "any" || (VOLUME.access == "sponsor" && VOLUME.sponsor == USER.username)
 
-let current_identifier = VOLUME.identifier
-function goToItem(identifier) {
-	window.location = "/loc/" + current_identifier
+let currentIdentifier = VOLUME.identifier
+function goToItem() {
+	window.location = "/loc/" + currentIdentifier
+}
+let currentDoc = "---";
+function goToDocument() {
+	window.location = "/resource/" + currentDoc
 }
 
 $: sheetsLoading = VOLUME.status == "initializing...";
 
-// This variable is used to trigger a reinit of the ItemPreviewMap component.
-// See https://svelte.dev/repl/65c80083b515477784d8128c3655edac?version=3.24.1
-let reinitMap = [{}]
-
 let hash = window.location.hash.substr(1);
-if (VOLUME.items.layers.length > 0 && hash === "") {
-	setHash("preview")
+
+console.log(!hash)
+const sectionVis = {
+	"summary": (!hash && VOLUME.items.layers.length == 0) || hash == "summary",
+	"preview": (!hash && VOLUME.items.layers.length > 0) || hash == "preview",
+	"unprepared": hash == "unprepared",
+	"prepared": hash == "prepared",
+	"georeferenced": hash == "georeferenced",
+	"nonmaps": hash == "nonmaps",
+	"multimask": hash == "multimask",
+	"download": hash == "download",
 }
 
-$: showMap = hash == 'preview';
-$: showUnprepared = hash == 'unprepared';
-$: showPrepared = hash == 'prepared';
-$: showGeoreferenced = hash == 'georeferenced';
-$: showNonmaps = hash == 'nonmaps';
-$: showMultimask = hash == 'multimask';
-$: showDownload = hash == 'download';
+function toggleSection(sectionId) {
+	sectionVis[sectionId] = !sectionVis[sectionId];
+}
+
+function setHash(hash){
+	history.replaceState(null, document.title, `#${hash}`);
+}
 
 let refreshingLookups = false;
 
@@ -165,6 +177,21 @@ if (VOLUME.urls.mosaic_json) {
 	const ll = getCenter(VOLUME.extent);
 	ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
 }
+if (VOLUME.urls.mosaic_geotiff) {
+	mosaicUrl = makeTitilerXYZUrl({
+		host: TITILER_HOST,
+		url: VOLUME.urls.mosaic_geotiff
+	})
+	// make the OHM url here
+	const mosaicUrlEncoded = makeTitilerXYZUrl({
+		host: TITILER_HOST,
+		url: VOLUME.urls.mosaic_geotiff,
+		doubleEncode: true
+	})
+	const ll = getCenter(VOLUME.extent);
+	ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
+}
+console.log(ohmUrl, mosaicUrl)
 
 let settingKeyMapLayer = false;
 
@@ -176,18 +203,10 @@ const sideLinks = [
 	},
 ]
 
-function setHash(newHash) {
-	// override the exception that allows the preview map to be shown on initial load
-	// showPreviewOnLoad = false;
-	if (hash == newHash) { 
-		history.replaceState(null, document.title, window.location.pathname + window.location.search);
-		hash = null
-	} else {
-		history.replaceState(null, document.title, `#${newHash}`);
-		hash = newHash
-	}
-}
-
+// These variable are used to trigger a reinit of map interfaces.
+// See https://svelte.dev/repl/65c80083b515477784d8128c3655edac?version=3.24.1
+let reinitMap = [{}]
+"download-section-modal"
 let reinitMap2 = [{}]
 let modalDocUrl = "";
 let modalDocImageSize = "";
@@ -220,28 +239,49 @@ let modalLyrExtent = "";
 <main>
 	<section class="breadcrumbs">
 		{#each VOLUME.locale.breadcrumbs as bc, n}
-		<a href="/{bc.slug}">{bc.name}</a>{#if n != VOLUME.locale.breadcrumbs.length-1}<ArrowRight size={12} />{/if}
+		<Link href="/{bc.slug}">{bc.name}</Link>{#if n != VOLUME.locale.breadcrumbs.length-1}<ArrowRight size={12} />{/if}
 		{/each}
 		<ArrowRight size={12} />
-		<select class="item-select" bind:value={current_identifier} on:change={goToItem}>
+		<select class="item-select" bind:value={currentIdentifier} on:change={goToItem}>
 			{#each VOLUME.locale.volumes as v}
 			<option value={v.identifier}>{v.year}{v.volume_no ? " vol. " + v.volume_no : ''}</option>
 			{/each}
 		</select>
+		<!--
+		<ArrowRight size={12} />
+		<select class="item-select" bind:value={currentDoc} on:change={goToDocument}>
+			<option value="---" disabled>go to...</option>
+			{#each VOLUME.sheets as s}
+			<option value={s.doc_id}>page {s.sheet_no}</option>
+			{/each}
+		</select>
+		-->
 	</section>
-	<TitleBar TITLE={VOLUME.title} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
+	<TitleBar TITLE={VOLUME.title} SIDE_LINKS={sideLinks}/>
 	<section>
 		<div class="section-title-bar">
-			<button class="section-toggle-btn" disabled={VOLUME.items.layers.length == 0} 
-				on:click={() => {setHash('preview')}}>
-				<ConditionalDoubleChevron down={showMap} size="md"/>
+			<button class="section-toggle-btn" on:click={() => {toggleSection('summary')}} title={sectionVis['summary'] ? 'Collapse section' : 'Expand section'}>
+				<ConditionalDoubleChevron down={sectionVis['summary']} size="md"/>
+				<a id="summary"><h2>Summary</h2></a>
+			</button>
+		</div>
+		{#if sectionVis['summary']}
+		<div style="margin-bottom:10px;" transition:slide>
+			<ItemDetails ITEM={VOLUME} {mosaicUrl} {ohmUrl}/>
+		</div>
+		{/if}
+	</section>
+	<section>
+		<div class="section-title-bar">
+			<button class="section-toggle-btn" disabled={VOLUME.items.layers.length == 0}
+				on:click={() => {toggleSection('preview')}} title={sectionVis['preview'] ? 'Collapse section' : 'Expand section'}>
+				<ConditionalDoubleChevron down={sectionVis['preview']} size="md"/>
 				<a id="preview"><h2>Mosaic Preview ({VOLUME.items.layers.length} layers)</h2></a>
 			</button>
 			<OpenModalButton modalId="modal-preview-map" />
 		</div>
-		{#if showMap}
+		{#if sectionVis['preview']}
 		<div class="section-content" transition:slide>
-		<!-- <div class="section-content" style="display:{showMap == true ? 'block' : 'none'};"> -->
 			{#each reinitMap as key (key)}
 				<ItemPreviewMap VOLUME={VOLUME} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
 			{/each}
@@ -264,11 +304,11 @@ let modalLyrExtent = "";
 				<IconButton style="lite" icon="wrench" action={() => {postOperation("refresh-lookups")}} title="Regenerate summary (may take a moment)" />
 				{/if}
 				
-				{#if userCanEdit}
+				<!-- {#if userCanEdit}
 				<OpenModalButton icon="lock-open" modalId="modal-permissions" />
 				{:else}
 				<OpenModalButton icon="lock" modalId="modal-permissions" />
-				{/if}
+				{/if} -->
 				<OpenModalButton modalId="modal-georeference-overview" />
 			</div>
 		</div>
@@ -285,8 +325,6 @@ let modalLyrExtent = "";
 						No sheets loaded yet...
 						{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
 						{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
-						{:else}
-						{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded by <a href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</a> - {VOLUME.loaded_by.date}
 						{/if}
 					</span></em>
 				</div>
@@ -294,17 +332,18 @@ let modalLyrExtent = "";
 			{#if !USER.is_authenticated}
 			<div class="signin-reminder">
 			<p><em>
-				<a href="/account/login">sign in</a> or
-				<a href="/account/signup">sign up</a> to work on this content
+				<Link href="/account/login">sign in</Link> or
+				<Link href="/account/signup">sign up</Link> to work on this content
 			</em></p>
 			</div>
 			{/if}
 			<section class="subsection">
 				<div class="subsection-title-bar">
-					<button class="section-toggle-btn" on:click={() => setHash("unprepared")}>
-						<ConditionalDoubleChevron down={showUnprepared} size="md" />
+					<button class="section-toggle-btn" on:click={() => toggleSection('unprepared')} disabled={VOLUME.items.unprepared.length == 0}
+						title={sectionVis['unprepared'] ? 'Collapse section' : 'Expand section'}>
+						<ConditionalDoubleChevron down={sectionVis['unprepared']} size="md" />
 						<a id="unprepared">
-							<h3>
+							<h3 style="margin-top:5px;">
 								Unprepared ({VOLUME.items.unprepared.length})
 								{#if VOLUME.items.processing.unprep != 0}
 								&mdash; {VOLUME.items.processing.unprep} in progress...
@@ -312,14 +351,17 @@ let modalLyrExtent = "";
 							</h3>
 						</a>
 					</button>
-					<OpenModalButton modalId="modal-unprepared" />
+					<div class="button-list">
+						<OpenModalButton modalId="modal-unprepared" />
+						<!-- <IconButton style="lite" icon="link" action={() => {setHash("unprepared")}} title="Link to this section" /> -->
+					</div>
 				</div>
-				{#if showUnprepared}
+				{#if sectionVis['unprepared']}
 				<div transition:slide>
 					<div class="documents-column">
 						{#each VOLUME.items.unprepared as document}
 						<div class="document-item">
-							<div><p><a href={document.urls.resource} title={document.title}>Sheet {document.page_str}</a></p></div>
+							<div><p><Link href={document.urls.resource} title={document.title}>Sheet {document.page_str}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
 								modalDocUrl=document.urls.image;
 								modalDocImageSize=document.image_size;
@@ -338,7 +380,7 @@ let modalLyrExtent = "";
 								</ul>
 								{:else if userCanEdit}
 								<ul>
-									<li><a href={document.urls.split} title="Prepare this document">prepare &rarr;</a></li>
+									<li><Link href={document.urls.split} title="Prepare this document">prepare &rarr;</Link></li>
 								</ul>
 								{/if}
 							</div>
@@ -350,8 +392,9 @@ let modalLyrExtent = "";
 			</section>
 			<section class="subsection">
 				<div class="subsection-title-bar">
-					<button class="section-toggle-btn" on:click={() => setHash("prepared")}>
-						<ConditionalDoubleChevron down={showPrepared} size="md" />
+					<button class="section-toggle-btn" on:click={() => toggleSection("prepared")} disabled={VOLUME.items.prepared.length === 0} 
+						title={sectionVis['prepared'] ? 'Collapse section' : 'Expand section'}>
+						<ConditionalDoubleChevron down={sectionVis['prepared']} size="md" />
 						<a id="prepared"><h3>
 							Prepared ({VOLUME.items.prepared.length})
 							{#if VOLUME.items.processing.prep != 0}
@@ -361,12 +404,12 @@ let modalLyrExtent = "";
 					</button>
 					<OpenModalButton modalId="modal-prepared" />
 				</div>
-				{#if showPrepared}
+				{#if sectionVis['prepared']}
 				<div transition:slide>
 					<div class="documents-column">
 						{#each VOLUME.items.prepared as document}
 						<div class="document-item">
-							<div><p><a href={document.urls.resource} title={document.title}>{document.title}</a></p></div>
+							<div><p><Link href={document.urls.resource} title={document.title}>{document.title}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
 								modalDocUrl=document.urls.image;
 								modalDocImageSize=document.image_size;
@@ -385,7 +428,7 @@ let modalLyrExtent = "";
 								</ul>
 								{:else if userCanEdit}
 								<ul>
-									<li><a href={document.urls.georeference} title="georeference this document">georeference &rarr;</a></li>
+									<li><Link href={document.urls.georeference} title="georeference this document">georeference &rarr;</Link></li>
 									<li><button class="btn-link" on:click={() => {postGeoref(document.urls.georeference, "set-status", "nonmap")}}><em>set as non-map</em></button></li>
 								</ul>
 								{/if}
@@ -398,13 +441,14 @@ let modalLyrExtent = "";
 			</section>
 			<section class="subsection">
 				<div class="subsection-title-bar">
-					<button class="section-toggle-btn" on:click={() => setHash("georeferenced")}>
-						<ConditionalDoubleChevron down={showGeoreferenced} size="md" />
+					<button class="section-toggle-btn" on:click={() => toggleSection("georeferenced")} disabled={VOLUME.items.layers.length == 0}
+						title={sectionVis['georeferenced'] ? 'Collapse section' : 'Expand section'}>
+						<ConditionalDoubleChevron down={sectionVis['georeferenced']} size="md" />
 						<a id="georeferenced"><h3>Georeferenced ({VOLUME.items.layers.length})</h3></a>
 					</button>
 					<OpenModalButton modalId="modal-georeferenced" />
 				</div>
-				{#if showGeoreferenced}
+				{#if sectionVis['georeferenced']}
 				<div transition:slide>
 					<div style="margin: 10px 0px;">
 						{#if VOLUME.items.layers.length > 0 && !settingKeyMapLayer}
@@ -421,11 +465,7 @@ let modalLyrExtent = "";
 					<div class="documents-column">
 						{#each VOLUME.items.layers as layer}
 						<div class="document-item">
-							<div><p><a href={layer.urls.resource} title={layer.title}>{layer.title}</a></p></div>
-							<!-- <a href={layer.urls.view} target="_blank" title="inspect layer in standalone map" style="cursor:zoom-in">
-								<img src={layer.urls.thumbnail} alt={document.title}>
-							</a> -->
-							<!-- <a  /> -->
+							<div><p><Link href={layer.urls.resource} title={layer.title}>{layer.title}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
 								modalLyrUrl=layer.urls.cog;
 								modalLyrExtent=layer.extent;
@@ -444,16 +484,8 @@ let modalLyrExtent = "";
 								</ul>
 								{:else if userCanEdit}
 								<ul>
-									<li><a href={layer.urls.georeference} title="edit georeferencing">edit georeferencing &rarr;</a></li>
-									<li><a href={layer.urls.resource} title="edit georeferencing">downloads & web services &rarr;</a></li>
-									<!--
-										<li><strong>Downloads</strong></li>
-										<li>Image: <a href="{layer.urls.document}" title="Download JPEG">JPEG</a>
-											&bullet;&nbsp;<a href="{layer.urls.cog}" title="Download GeoTIFF">GeoTIFF</a>
-										</li>
-										<li>GCPs: <a href="/mrm/{layer.slug}?resource=gcps-geojson" title="Download GCPs as GeoJSON">GeoJSON</a>
-											&bullet;&nbsp;<a href="/mrm/{layer.slug}?resource=points" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</a></li>
-										-->
+									<li><Link href={layer.urls.georeference} title="edit georeferencing">edit georeferencing &rarr;</Link></li>
+									<li><Link href={layer.urls.resource} title="edit georeferencing">downloads & web services &rarr;</Link></li>
 								</ul>
 								{/if}
 								{#if settingKeyMapLayer}
@@ -467,45 +499,27 @@ let modalLyrExtent = "";
 						</div>
 						{/each}
 					</div>
-					<!-- {/if} -->
-				</div>
-				{/if}
-			</section>
-			<section class="subsection">
-				<div class="subsection-title-bar">
-					<button class="section-toggle-btn" on:click={() => setHash('multimask')}>
-						<ConditionalDoubleChevron down={showMultimask} size="md" />
-						<a id="multimask"><h3>MultiMask ({mmLbl})</h3></a>
-					</button>
-					<OpenModalButton modalId="modal-multimask" />
-				</div>
-				{#if showMultimask}
-				<div transition:slide>
-					<MultiMask VOLUME={VOLUME}
-						CSRFTOKEN={CSRFTOKEN}
-						DISABLED={!userCanEdit}
-						MAPBOX_API_KEY={MAPBOX_API_KEY}
-						TITILER_HOST={TITILER_HOST} />
 				</div>
 				{/if}
 			</section>
 			<section class="subsection" style="border-bottom:none;">
 				<div class="subsection-title-bar">
-					<button class="section-toggle-btn" on:click={() => setHash("nonmaps")}>
-						<ConditionalDoubleChevron down={showNonmaps} size="md" />
+					<button class="section-toggle-btn" on:click={() => toggleSection("nonmaps")} disabled={VOLUME.items.nonmaps.length == 0}
+						title={sectionVis['nonmaps'] ? 'Collapse section' : 'Expand section'}>
+						<ConditionalDoubleChevron down={sectionVis['nonmaps']} size="md" />
 						<a id="georeferenced"><h3>Non-Map Content ({VOLUME.items.nonmaps.length})</h3></a>
 					</button>
 					<OpenModalButton modalId="modal-non-map" />
 				</div>
-				{#if showNonmaps}
+				{#if sectionVis['nonmaps']}
 				<div transition:slide>
 					<div class="documents-column">
 						{#each VOLUME.items.nonmaps as nonmap}
 						<div class="document-item">
-							<div><p><a href={nonmap.urls.resource} title={nonmap.title}>{nonmap.title}</a></p></div>
-							<a href={nonmap.urls.resource} target="_blank" title="go to detail page for this document" style="cursor:zoom-in">
+							<div><p><Link href={nonmap.urls.resource} title={nonmap.title}>{nonmap.title}</Link></p></div>
+							<Link href={nonmap.urls.resource} external={true} title="go to detail page for this document" classes={["zoom-in"]}>
 								<img src={nonmap.urls.thumbnail} alt={nonmap.title}>
-							</a>
+							</Link>
 							{#if userCanEdit}
 							<div>
 								<ul>
@@ -521,79 +535,31 @@ let modalLyrExtent = "";
 			</section>
 		</div>
 	</section>
-	
 	<section>
 		<div class="section-title-bar">
-			<div>
-				<button class="section-toggle-btn" on:click={() => setHash("download")}>
-					<ConditionalDoubleChevron down={showDownload} size="md"/>
-					<a id="download">
-						<h2 style="margin-right:10px; display: inline-block;">Mosaic Download & Web Services</h2>
-					</a>
-				</button>
-			</div>
-			<div style="display:flex; align-items:center;">
-				<OpenModalButton modalId="download-section-modal" />
-			</div>
+			<button class="section-toggle-btn" on:click={() => toggleSection('multimask')} disabled={VOLUME.items.layers.length == 0}
+				title={sectionVis['multimask'] ? 'Collapse section' : 'Expand section'}>
+				<ConditionalDoubleChevron down={sectionVis['multimask']} size="md" />
+				<a id="multimask"><h2>MultiMask ({mmLbl})</h2></a>
+			</button>
+			<OpenModalButton modalId="modal-multimask" />
 		</div>
-		{#if showDownload}
-		<div transition:slide class="section-content">
-			<section class="subsection">
-				<p style="font-size:.9em;"><em>
-					Only layers that have been trimmed in the <a href="#multimask">MultiMask</a> will appear in the mosaic. You can access untrimmed layers individually through the <a href="#georeferenced">Georeferenced</a> section above. If you appreciate these resources, please consider <a href="/#support">supporting this project</a>.
-				</em></p>
-			</section>
-			<section class="subsection" style="padding-top:15px;">
-				<p><strong>XYZ Tiles URL</strong></p>
-				{#if !VOLUME.urls.mosaic_json}
-				<p style="font-size:.9em; color:red;"><em>
-					A mosaic endpoint has not yet been generated for this volume.
-				</em></p>
-				{:else}
-				<pre>{mosaicUrl}</pre>
-				<p>Use this URL in:
-					<a href="https://leafletjs.com/reference.html#tilelayer">Leaflet</a>,
-					<a href="https://openlayers.org/en/latest/examples/xyz.html">OpenLayers</a>,
-					<a href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/">Mapbox/MapLibre GL JS</a>,
-					<a href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services">QGIS</a>, and
-					<a href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/">ArcGIS</a>.
-					<br>Open in the <a href="{ohmUrl}" alt="Open mosaic in OHM Editor" target="_blank">Open Historical Map editor <ArrowSquareOut /></a>.
-				</p>
-				{/if}
-			</section>
-			<section class="subsection" style="padding-top:15px; border-bottom:none;">
-				<p><strong>GeoTIFF</strong> mosaic downloads of this entire volume are available <a href="mailto:hello@oldinsurancemaps.net">upon request</a>.</p>
-			</section>
+		{#if sectionVis['multimask']}
+		<div transition:slide>
+			<MultiMask VOLUME={VOLUME}
+				CSRFTOKEN={CSRFTOKEN}
+				DISABLED={!userCanEdit}
+				MAPBOX_API_KEY={MAPBOX_API_KEY}
+				TITILER_HOST={TITILER_HOST} />
 		</div>
 		{/if}
 	</section>
-	<section style="border-bottom:none;">
-		<div class="section-title-bar">
-			<div>
-				<ConditionalDoubleChevron down={true} size="md"/>
-				<a id="contributors" class="no-link">
-					<h2 style="margin-right:10px; display: inline-block;">Contributors & Attribution</h2>
-				</a>
-			</div>
-			<div></div>
-		</div>
-		<div class="section-content" style="display:flex'; flex-direction:column;">
-			<p>
-				{VOLUME.sessions.prep_ct} sheet{#if VOLUME.sessions.prep_ct != 1}s{/if} prepared{#if VOLUME.sessions.prep_ct > 0}&nbsp;by 
-				{#each VOLUME.sessions.prep_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.prep_contributors.length-1}, {/if}{/each}{/if}
-				<br>
-				{VOLUME.sessions.georef_ct} georeferencing session{#if VOLUME.sessions.georef_ct != 1}s{/if}{#if VOLUME.sessions.georef_ct > 0}&nbsp;by 
-				{#each VOLUME.sessions.georef_contributors as c, n}<a href="{c.profile}">{c.name}</a> ({c.ct}){#if n != VOLUME.sessions.georef_contributors.length-1}, {/if}{/each}{/if}
-			</p>
-			<p><strong>Credit Line: Library of Congress, Geography and Map Division, Sanborn Maps Collection.</strong>
-			<a href="{VOLUME.urls.loc_resource}" target="_blank">View item on loc.gov<ArrowSquareOut /></a></p>
-		</div>
-	</section>
 </main>
 </IconContext>
+
 <style>
 
-#preview, #unprepared, #prepared, #georeferenced, #multimask, #download, #contributors {
+#summary, #preview, #unprepared, #prepared, #georeferenced, #multimask, #download, #contributors {
   scroll-margin-top: 50px;
 }
 
@@ -602,14 +568,14 @@ a.no-link {
 	text-decoration:unset;
 }
 
-h2 {
+/* h2 {
 	font-size: 1.6em;
 }
 
 h3 {
 	font-size: 1.3em;
 	margin-top: 15px;
-}
+} */
 
 section {
 	border-bottom: 1px solid rgb(149, 149, 149);
@@ -617,6 +583,18 @@ section {
 
 section.subsection {
 	border-bottom: 1px dashed rgb(149, 149, 149);
+}
+
+.subsection-inline-header {
+	border-bottom: 1px dashed rgb(149, 149, 149);
+	height: 12px;
+	margin-bottom: 25px;
+}
+
+.subsection-inline-header > h3 {
+	display: inline;
+	background: rgb(234, 224, 193);
+	padding-right: 5px;
 }
 
 button.section-toggle-btn {
@@ -656,6 +634,10 @@ section.breadcrumbs {
 	border-bottom: none;
 }
 
+button:disabled {
+	cursor: default;
+}
+
 :global(section.breadcrumbs svg) {
 	margin: 0px 2px;
 }
@@ -672,6 +654,11 @@ section.breadcrumbs {
 	flex-direction:row;
 	justify-content:space-between;
 	align-items:center;
+}
+
+.button-list {
+	display:flex;
+	flex-direction:row;
 }
 
 .documents-column {

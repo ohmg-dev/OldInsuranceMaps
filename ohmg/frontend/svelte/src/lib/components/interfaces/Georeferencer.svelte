@@ -4,9 +4,6 @@ import { iconProps } from "@helpers/utils"
 import X from "phosphor-svelte/lib/X";
 import Check from "phosphor-svelte/lib/Check";
 import ArrowsClockwise from "phosphor-svelte/lib/ArrowsClockwise";
-import ArrowsOutSimple from "phosphor-svelte/lib/ArrowsOutSimple";
-import ArrowsInSimple from "phosphor-svelte/lib/ArrowsInSimple";
-import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
 import Trash from "phosphor-svelte/lib/Trash";
 import Stack from "phosphor-svelte/lib/Stack";
 import GearSix from "phosphor-svelte/lib/GearSix";
@@ -57,6 +54,9 @@ import {
 } from '@helpers/utils';
 
 import Modal, {getModal} from '@components/base/Modal.svelte';
+import Link from '@components/base/Link.svelte';
+
+import ExpandElement from "./buttons/ExpandElement.svelte";
 
 export let USER;
 export let SESSION_LENGTH;
@@ -77,6 +77,10 @@ let syncPanelWidth = false;
 
 let docView;
 let mapView;
+
+let mapViewMap;
+let docViewMap;
+
 let gcpList = [];
 
 let activeGCP = null;
@@ -398,6 +402,8 @@ function DocumentViewer (elementId) {
   this.drawInteraction = draw;
   this.modifyInteraction = modify;
 
+  docViewMap = map;
+
   this.resetExtent = function () {
     map.getView().setRotation(0);
     map.getView().fit(docExtent, {padding: [10, 10, 10, 10]});
@@ -474,6 +480,7 @@ function MapViewer (elementId) {
 
     // expose properties as necessary
     this.map = map;
+    mapViewMap = map;
     this.element = targetElement;
     this.drawInteraction = draw;
     this.modifyInteraction = modify;
@@ -829,9 +836,6 @@ function handleKeydown(e) {
   // so shortcuts aren't activated while typing a note.
   if (document.activeElement.id == "") {
     switch(e.key) {
-      case "Escape":
-        handleFfs('map-container')
-        break;
       case "d": case "D":
         removeActiveGCP();
         break;
@@ -896,19 +900,11 @@ function cleanup () {
   process('cancel')
 }
 
-let ffs = false
-function handleFfs(elementId) {
-  ffs = !ffs
-  document.getElementById(elementId).classList.toggle('ffs');
-  docView.map.updateSize();
-  mapView.map.updateSize();
-}
-
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 <IconContext values={iconProps}>
-<p>Create 3 or more ground control points to georeference this document. To create a ground control point, first click on a location in the left panel, then find and click on the corresponding location in right panel. <a href="https://ohmg.dev/docs/making-the-mosaics/georeferencing" target="_blank">Learn more <ArrowSquareOut /></a></p>
+<p>Create 3 or more ground control points to georeference this document. To create a ground control point, first click on a location in the left panel, then find and click on the corresponding location in right panel. <Link href="https://ohmg.dev/docs/making-the-mosaics/georeferencing" external={true}>Learn more</Link></p>
 
 <Modal id="modal-expiration">
   <p>This georeferencing session is expiring, and will be cancelled soon.</p>
@@ -919,8 +915,8 @@ function handleFfs(elementId) {
 </Modal>
 <Modal id="modal-anonymous">
   <p>Feel free to experiment with the interface, but submit your work you must 
-    <a href="/account/login">sign in</a> or
-    <a href="/account/signup">sign up</a>.
+    <Link href="/account/login">sign in</Link> or
+    <Link href="/account/signup">sign up</Link>.
   </p>
 </Modal>
 <Modal id="modal-cancel">
@@ -940,12 +936,12 @@ function handleFfs(elementId) {
     <div class="signin-reminder">
       {#if disableReason == "unauthenticated"}
       <p><em>
-        <a href="/account/login">Sign in</a> or
-        <a href="/account/signup">sign up</a> to proceed.
+        <Link href="/account/login">Sign in</Link> or
+        <Link href="/account/signup">sign up</Link> to proceed.
       </em></p>
       {:else if disableReason == "input" || disableReason == "processing"}
       <!-- svelte-ignore a11y-invalid-attribute -->
-      <p>Someone is already georeferencing this document (<a href="javascript:window.location.reload(true)">refresh</a>).</p>
+      <p>Someone is already georeferencing this document (<Link href="javascript:window.location.reload(true)">refresh</Link>).</p>
       {:else if disableReason == "submit"}
       <p>Saving control points and georeferencing document... redirecting to document detail page.</p>
       <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
@@ -975,13 +971,7 @@ function handleFfs(elementId) {
         <button class="control-btn tool-ui" title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}>
           <ArrowsClockwise />
         </button>
-        <button class="control-btn tool-ui" title={ffs ? "Reduce" : "Expand"} on:click={() => {handleFfs('map-container')}}>
-          {#if ffs}
-          <ArrowsInSimple />
-          {:else}
-          <ArrowsOutSimple />
-          {/if}
-        </button>
+        <ExpandElement elementId={'map-container'} maps={[docViewMap, mapViewMap]} />
     </div>
   </nav>
   <div class="map-container">

@@ -37,7 +37,7 @@ table {
 
 pre {
 	display: block;
-	padding: 10.5px;
+	padding: 5px;
 	margin: 0 0 11px;
 	font-size: 15px;
 	line-height: 1.42857143;
@@ -62,29 +62,29 @@ code, kbd, pre, samp {
 }
 
 h1 {
-	font-size: 2.25em;
-}
-h2 {
 	font-size: 2em;
 }
+h2 {
+	font-size: 1.6em;
+}
 h3 {
-  font-size: 1.6em;
+  font-size: 1.4em;
 }
 h4 {
-  font-size: 1.25em;
-}
-h5 {
   font-size: 1.15em;
 }
+h5 {
+  font-size: 1.1em;
+}
 h6 {
-	font-size: 1.1em;
+	font-size: 1.05em;
 }
 h1, h2, h3, h4, h5, h6 {
 	font-weight: 400;
 	line-height: 1.1;
 }
 h1, h2, h3 {
-	margin-top: 22px;
+	margin-top: 18px;
   	margin-bottom: 11px;
 }
 h4, h5, h6 {
@@ -129,8 +129,18 @@ a {
 	color: #2c689c;
 	text-decoration: none;
 }
+a.white {
+	color: white;
+}
+a.zoom-in {
+	cursor: zoom-in;
+}
 
 a:hover {
+	text-decoration: underline;
+}
+
+a:focus {
 	text-decoration: underline;
 }
 

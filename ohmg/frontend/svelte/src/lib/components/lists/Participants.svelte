@@ -1,48 +1,49 @@
 <script>
-import {TableSort} from 'svelte-tablesort';
+	import {TableSort} from 'svelte-tablesort';
+	import Link from '@components/base/Link.svelte';
 
-export let USER_API_URL;
-export let OHMG_API_KEY;
+	export let USER_API_URL;
+	export let OHMG_API_KEY;
 
-let all_participants = [];
-let filtered_participants = []
+	let all_participants = [];
+	let filtered_participants = []
 
-const apiHeaders = {
-	"X-API-Key": OHMG_API_KEY,
-}
-
-fetch(USER_API_URL, { headers: apiHeaders })
-	.then(response => response.json())
-    .then(result => {
-		all_participants = result;
-		filtered_participants = result;
-	});
-
-function updateFilteredList(filterText) {
-	if (filterText && filterText.length > 0) {
-		filtered_participants = [];
-		all_participants.forEach( function(p) {
-			const name = p.username.toUpperCase();
-			const filterBy = filterText.toUpperCase();
-			if (name.indexOf(filterBy) > -1) {
-				filtered_participants.push(p);
-			}
-		});
-	} else {
-		filtered_participants = all_participants;
+	const apiHeaders = {
+		"X-API-Key": OHMG_API_KEY,
 	}
-}
-let filterInput;
-$: updateFilteredList(filterInput)
 
-function toggleList(userId) {
-	const listEl = document.getElementById(userId);
-	listEl.style.display = listEl.style.display == "flex" ? "none" : "flex";
-	const listBtnEl = document.getElementById(userId+"-btn");
-	listBtnEl.innerText = listBtnEl.innerText == "show all" ? "hide all" : "show all";
-}
+	fetch(USER_API_URL, { headers: apiHeaders })
+		.then(response => response.json())
+		.then(result => {
+			all_participants = result;
+			filtered_participants = result;
+		});
 
+	function updateFilteredList(filterText) {
+		if (filterText && filterText.length > 0) {
+			filtered_participants = [];
+			all_participants.forEach( function(p) {
+				const name = p.username.toUpperCase();
+				const filterBy = filterText.toUpperCase();
+				if (name.indexOf(filterBy) > -1) {
+					filtered_participants.push(p);
+				}
+			});
+		} else {
+			filtered_participants = all_participants;
+		}
+	}
+	let filterInput;
+	$: updateFilteredList(filterInput)
+
+	function toggleList(userId) {
+		const listEl = document.getElementById(userId);
+		listEl.style.display = listEl.style.display == "flex" ? "none" : "flex";
+		const listBtnEl = document.getElementById(userId+"-btn");
+		listBtnEl.innerText = listBtnEl.innerText == "show all" ? "hide all" : "show all";
+	}
 </script>
+
 <input type="text" id="filterInput" placeholder="Filter by username..." bind:value={filterInput}>
 <div style="overflow-x:auto;">
 	<TableSort items={filtered_participants}>
@@ -60,16 +61,16 @@ function toggleList(userId) {
 				<img style="height:30px; width:30px; border-radius:5px;" src={p.image_url} alt={p.username} />
 			</td>
 			<td>
-				<a href={p.profile_url} alt="Profile for {p.username}" title="Profile for {p.username}">
+				<Link href={p.profile_url} title="Profile for {p.username}">
 					{p.username}
-				</a>
+				</Link>
 			</td>
 			<td style="">
 				<div>
 				{p.load_ct}{#if p.volumes.length > 0}&nbsp;&mdash;{/if}
 				{#each p.volumes as v, n}
 					{#if n <= 2}
-					<a href={v.url}>{v.title}</a>{#if n != p.volumes.length - 1},&nbsp;{/if}
+					<Link href={v.url}>{v.title}</Link>{#if n != p.volumes.length - 1},&nbsp;{/if}
 					{/if}
 				{/each}
 				{#if p.volumes.length > 3}
@@ -80,7 +81,7 @@ function toggleList(userId) {
 				<div id="{p.username}" class="full-volume-list">
 					<ul>
 					{#each p.volumes as v}
-					<li><a href={v.url}>{v.title}</a></li>
+					<li><Link href={v.url}>{v.title}</Link></li>
 					{/each}
 					</ul>
 				</div>

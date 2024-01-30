@@ -1,39 +1,88 @@
 <script>
 	import IconContext from 'phosphor-svelte/lib/IconContext';
-	import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
+	import Link from "@components/base/Link.svelte";
 	import { iconProps } from "@helpers/utils"
+
+	const linkSets =[
+		{
+			"header": "Content",
+			"links": [
+				{
+					"title": "Search Maps",
+					"href": "/browse",
+					"external": false,
+				},
+				{
+					"title": "Contributors",
+					"href": "/profiles",
+					"external": false,
+				},
+				{
+					"title": "GitHub",
+					"href": "https://github.com/mradamcox/ohmg",
+					"external": true,
+				},
+			]
+		},
+		{
+			"header": "Learn More",
+			"links": [
+				{
+					"title": "FAQ",
+					"href": "/faq",
+					"external": false,
+				},
+				{
+					"title": "About Sanborn Maps",
+					"href": "/about-sanborn-maps",
+					"external": false,
+				},
+				{
+					"title": "Documentation",
+					"href": "https://ohmg.dev/docs",
+					"external": true,
+				},
+			]
+		},
+		{
+			"header": "News & Updates",
+			"links": [
+				{
+					"title": "FAQ",
+					"href": "/faq",
+					"external": false,
+				},
+				{
+					"title": "Contact",
+					"href": "/contact",
+					"external": false,
+				},
+				{
+					"title": "Blog",
+					"href": "https://ohmg.dev/blog",
+					"external": true,
+				},
+			]
+		},
+	]
 </script>
 
 <IconContext values={iconProps} >
 <footer class="lahmg-footer">
 	<div class="main-row">
+		{#each linkSets as set}
 		<div>
-			<h4>Content</h4>
+			<h4>{set.header}</h4>
 			<ul>
-				<li><a href="/browse">Search Maps</a></li>
-				<li><a href="/profiles">Contributors</a></li>
-				<li><a href="https://github.com/mradamcox/ohmg">GitHub <ArrowSquareOut /></a></li>
+				{#each set.links as link}
+				<li><Link href={link.href} classes={["white"]} title={link.title} external={link.external}>{link.title}</Link></li>
+				{/each}
 			</ul>
 		</div>
-		<div>
-			<h4>Learn More</h4>
-			<ul>
-				<li><a href="/faq">FAQ</a></li>
-				<li><a href="/about-sanborn-maps">About Sanborn Maps</a></li>
-				<li><a href="https://ohmg.dev/docs">Documentation <ArrowSquareOut /></a></li>
-			</ul>
-		</div>
-		<div>
-			<h4>News & Updates</h4>
-			<ul>
-				<li><a href="/newsletter/lahmg-news/archive" >Newsletter Archive</a></li>
-				<li><a href="/contact" >Contact</a></li>
-				<li><a href="https://ohmg.dev/blog" >Blog <ArrowSquareOut /></a></li>
-			</ul>
-		</div>
+		{/each}
 	</div>
 	<div style="color:lightgrey; text-align:right;">
-		<p>Copyright © 2023</p>
+		Copyright © 2024
 	</div>
 </footer>
 </IconContext>
@@ -51,12 +100,7 @@
 		display: flex;
 		flex-direction: row;
 		justify-content: space-around;
-	}
-	footer a {
-		color: white;
-		text-decoration: none;
-	}
-	
+	}	
 	footer > div {
 		margin: 0px 10px;
 	}

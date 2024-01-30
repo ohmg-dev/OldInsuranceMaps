@@ -5,12 +5,13 @@ import IconContext from 'phosphor-svelte/lib/IconContext';
 import { iconProps } from "@helpers/utils"
 
 import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
-import ArrowsOutSimple from "phosphor-svelte/lib/ArrowsOutSimple";
-import ArrowsInSimple from "phosphor-svelte/lib/ArrowsInSimple";
 import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
 import Scissors from "phosphor-svelte/lib/Scissors";
 import ArrowCounterClockwise from "phosphor-svelte/lib/ArrowCounterClockwise";
 import X from "phosphor-svelte/lib/X";
+
+import Link from "@components/base/Link.svelte";
+import ExpandElement from "./buttons/ExpandElement.svelte"
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -38,7 +39,6 @@ import LineString from 'ol/geom/LineString';
 
 import Styles from '@helpers/ol-styles';
 
-import TitleBar from '@components/layout/TitleBar.svelte';
 import Modal, {getModal} from '@components/base/Modal.svelte';
 
 const styles = new Styles();
@@ -50,6 +50,7 @@ export let CSRFTOKEN;
 export let VOLUME;
 
 let docView;
+let docViewMap;
 let showPreview = true;
 
 let cutLines = [];
@@ -244,6 +245,8 @@ function DocViewer(elementId) {
   this.previewLayerSource = previewLayer.getSource();
   this.previewLayer = previewLayer;
   this.map = map;
+
+  docViewMap = map;
 }
 
 $: {
@@ -355,13 +358,6 @@ function cleanup () {
   }
 }
 
-let ffs = false
-function handleFfs(elementId) {
-  ffs = !ffs
-  document.getElementById(elementId).classList.toggle('ffs');
-  docView.map.updateSize();
-}
-
 </script>
 <svelte:window on:keydown={handleKeydown} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 <IconContext values={iconProps}>
@@ -374,9 +370,9 @@ function handleFfs(elementId) {
 </Modal>
 
 <Modal id="modal-anonymous">
-  <p>Feel free to experiment with the interface, but submit your work you must 
-    <a href="/account/login">sign in</a> or
-    <a href="/account/signup">sign up</a>.
+  <p>Feel free to experiment with the interface, but to submit your work you must 
+    <Link href={"/account/login"}>sign in</Link> or
+    <Link href={"/account/signup"}>sign up</Link>.
   </p>
 </Modal>
 
@@ -394,7 +390,7 @@ function handleFfs(elementId) {
     }>No - keep working</button>
 </Modal>
 
-<p>{currentTxt} <a href="https://ohmg.dev/docs/making-the-mosaics/preparation" target="_blank">Learn more<ArrowSquareOut /></a></p>
+<p>{currentTxt} <Link href="https://ohmg.dev/docs/making-the-mosaics/preparation" external={true}>Learn more</Link></p>
 <div id="map-container" class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
@@ -444,14 +440,7 @@ function handleFfs(elementId) {
       <button class="control-btn tool-ui" title="Reset interface" disabled={unchanged} on:click={resetInterface}>
         <ArrowCounterClockwise />
       </button>
-      <button class="control-btn tool-ui" title={ffs ? "Reduce" : "Expand"} on:click={() => {handleFfs('map-container')}}>
-        {#if ffs}
-        <ArrowsInSimple />
-        {:else}
-        <ArrowsOutSimple />
-        {/if}
-      </button>
-    
+      <ExpandElement elementId="map-container" maps={[docViewMap]} />
     </div>
   </nav>
   <div class="map-container" style="border-top: 1.5px solid rgb(150, 150, 150)">

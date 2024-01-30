@@ -1,6 +1,8 @@
 <script>
     import '@src/css/shared.css';
     import SvelteMarkdown from 'svelte-markdown'
+
+    import Link from '@components/base/Link.svelte'
     import TitleBar from '@components/layout/TitleBar.svelte';
 
     export let source = '*add your markdown here*';
@@ -38,7 +40,7 @@
             <div id="toc">
                 <ul>
                     {#each headings as heading}
-                        <li><a href="#{slugify(heading.text)}">{heading.text}</a></li>
+                        <li><Link href="#{slugify(heading.text)}">{heading.text}</Link></li>
                     {/each}
                 </ul>
             </div>

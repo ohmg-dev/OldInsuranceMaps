@@ -1,5 +1,6 @@
 <script>
-import {TableSort} from 'svelte-tablesort'
+import {TableSort} from 'svelte-tablesort';
+import Link from '@components/base/Link.svelte';
 
 export let ITEM_API_URL;
 export let OHMG_API_KEY;
@@ -93,13 +94,13 @@ $: updateFilteredList(filterInput)
 		</tr>
 		<tr slot="tbody" let:item={v} style="height:38px;">
 			<td>
-				<a href={v.urls.summary} alt="Go to item summary" title="Go to summary">{v.title}</a>
+				<Link href={v.urls.summary} title="Go to summary">{v.title}</Link>
 			</td>
 			<td>{v.year_vol}</td>
 			<td style="text-align:center;">{v.sheet_ct}</td>
 			<td style="text-align:center;">
 				{#if v.loaded_by_name != "---" }
-				<a href={v.loaded_by_profile}>{v.loaded_by_name}</a>
+				<Link href={v.loaded_by_profile}>{v.loaded_by_name}</Link>
 				{:else}
 				{v.loaded_by_name}
 				{/if}

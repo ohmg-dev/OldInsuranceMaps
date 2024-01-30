@@ -421,7 +421,7 @@ function layerRemoveMask(layer, confirm) {
     <div id="layer-panel" style="display: flex;">
       <div class="layer-section-header" style="border-top:none;">
         <FullExtentButton action={setMapExtent} />
-        <ExpandElement elementId={'mm-container'} map={map} />
+        <ExpandElement elementId={'mm-container'} maps={[map]} />
       </div>
       <div id="layer-list" style="flex:2;">
         <div class="layer-section-header">

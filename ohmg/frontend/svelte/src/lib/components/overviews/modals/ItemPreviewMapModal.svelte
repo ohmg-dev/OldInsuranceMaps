@@ -1,6 +1,6 @@
 <script>
     import Modal from "@components/base/Modal.svelte";
-    import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
+    import Link from "@components/base/Link.svelte";
 
     export let viewerUrl = "";
     export let placeName = "";
@@ -10,5 +10,5 @@
 <Modal id={id}>
     <h3>Mosaic Preview</h3>
 	<p>The <strong>Mosaic Preview</strong> shows progress toward a full mosaic of this item's content&mdash;as documents are georeferenced, they will automatically appear here.</p>
-	<p>You can also view this mosaic alongside all other mosaics for this locale: <a href={viewerUrl} target="_blank" title={"Open viewer for " + placeName}>{placeName} <ArrowSquareOut /></a></p>
+	<p>You can also view this mosaic alongside all other mosaics for this locale: <Link href={viewerUrl} external={true} title={"Open viewer for " + placeName}>{placeName}</Link></p>
 </Modal>

@@ -76,7 +76,7 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 		{/each}
 	</select>
 </div>
-<TitleBar TITLE={PLACE.display_name} SIDE_LINKS={sideLinks} ICON_LINKS={[]}/>
+<TitleBar TITLE={PLACE.display_name} SIDE_LINKS={sideLinks}/>
 <div style="display:flex;">
 	<div id="sub-locale-panel" style="margin-right:15px; min-width:250px;">
 		{#if PLACE.parents.length > 0}

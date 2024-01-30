@@ -1,34 +1,36 @@
 <script>
-export let ITEM_API_URL;
-export let OHMG_API_KEY;
+	import Link from '@components/base/Link.svelte';
 
-let loadingItems = false;
-let latestItems = [];
+	export let ITEM_API_URL;
+	export let OHMG_API_KEY;
 
-function getInitialResults() {
-	loadingItems = true;
-	fetch(ITEM_API_URL+"?limit=6&sort=load_date", {
-		headers: {
-			'X-API-Key': OHMG_API_KEY,
-		}
-	})
-	.then(response => response.json())
-	.then(result => {
-		latestItems = result;
-		loadingItems = false;
-	});
-}
-getInitialResults()
+	let loadingItems = false;
+	let latestItems = [];
 
+	function getInitialResults() {
+		loadingItems = true;
+		fetch(ITEM_API_URL+"?limit=6&sort=load_date", {
+			headers: {
+				'X-API-Key': OHMG_API_KEY,
+			}
+		})
+		.then(response => response.json())
+		.then(result => {
+			latestItems = result;
+			loadingItems = false;
+		});
+	}
+	getInitialResults()
 </script>
+
 <div>
 	{#if loadingItems}
 	<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
 	{:else}
 	{#each latestItems as v}
 	<div class="list-item-container">
-		<a href={v.urls.summary} title="{v.title} summary">{v.title} ({v.sheet_ct})</a> &mdash; 
-		<a href="{v.loaded_by.profile_url}">{v.loaded_by.username}</a> &mdash; 
+		<Link href={v.urls.summary} title="{v.title} summary">{v.title} ({v.sheet_ct})</Link> &mdash; 
+		<Link href="{v.loaded_by.profile_url}">{v.loaded_by.username}</Link> &mdash; 
 		{v.load_date}
 	</div>
 	{/each}

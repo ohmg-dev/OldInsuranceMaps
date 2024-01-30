@@ -8,6 +8,7 @@ import CaretDoubleLeft from 'phosphor-svelte/lib/CaretDoubleLeft'
 import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight'
 import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise'
 
+import Link from '@components/base/Link.svelte';
 import OpenModalButton from '@components/base/OpenModalButton.svelte';
 import SessionListModal from './modals/SessionListModal.svelte';
 
@@ -32,7 +33,10 @@ let baseUrl = SESSION_API_URL
 
 $: {
 	loading = true;
-	let fetchUrl = `${baseUrl}?limit=${limitInt}&offset=${offset}`
+	let fetchUrl = `${baseUrl}?offset=${offset}`
+	if (limitInt > 0) {
+		fetchUrl = `${fetchUrl}&limit=${limitInt}`
+	}
 	if (FILTER_PARAM) {
 		fetchUrl += `&${FILTER_PARAM}`
 	}
@@ -70,6 +74,7 @@ $: {
 				<input type='checkbox' bind:checked={showThumbs} title="Show thumbnails"/>
 			</div>
 			{/if}
+			{#if limitInt != 0}
 			<div>
 				<!-- <label for="limit-select">Show:</label> -->
 				<select id="limit-select" type='radio' bind:value={limit} title="Number of results per page">
@@ -79,6 +84,7 @@ $: {
 					<option value="100">100</option>
 				</select>
 			</div>
+			{/if}
 			<div>
 				<button on:click={() => {offset = 1000; offset=0}}>
 					<ArrowsClockwise />
@@ -126,22 +132,22 @@ $: {
 					</td>
 					{#if showUser}
 					<td>
-						<a href="{s.user.profile_url}" title="View profile">{s.user.username}</a>
+						<Link href="{s.user.profile_url}" title="View profile">{s.user.username}</Link>
 					</td>
 					{/if}
 					{#if showResource}
 					<td>
 						{#if s.type === "p"}
 						{#if showThumbs}<img style="max-height:50px;" src={s.doc.thumb_url} alt="{s.doc.title}"/>{/if}
-						<a href="{s.doc.detail_url}" title="{s.doc.title}">
+						<Link href="{s.doc.detail_url}" title="{s.doc.title}">
 							{s.doc.title}
-						</a>
+						</Link>
 						{:else if s.type === "g" || s.type === "t"}
 							{#if s.lyr}
 							{#if showThumbs}<img style="max-height:50px;" src={s.lyr.thumb_url} alt="{s.doc.title}"/>{/if}
-							<a href="{s.lyr.detail_url}" title="{s.lyr.title}">
+							<Link href="{s.lyr.detail_url}" title="{s.lyr.title}">
 								{s.lyr.title}
-							</a>
+							</Link>
 							{/if}
 						{/if}
 					</td>

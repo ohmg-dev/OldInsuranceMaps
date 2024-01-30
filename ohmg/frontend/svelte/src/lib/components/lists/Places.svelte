@@ -1,45 +1,46 @@
 <script>
-import {TableSort} from 'svelte-tablesort'
+	import {TableSort} from 'svelte-tablesort';
+	import Link from '@components/base/Link.svelte';
 
-export let PLACES_API_URL;
-export let OHMG_API_KEY;
+	export let PLACES_API_URL;
+	export let OHMG_API_KEY;
 
-let all_places = [];
-let filtered_places = []
-let loading = true
+	let all_places = [];
+	let filtered_places = []
+	let loading = true
 
-const apiHeaders = {
-	'X-API-Key': OHMG_API_KEY,
-}
-
-fetch(PLACES_API_URL, { headers: apiHeaders })
-	.then(response => response.json())
-    .then(result => {
-		all_places = result;
-		filtered_places = result;
-		loading = false;
-	});
-
-function updateFilteredList(filterText) {
-	if (filterText && filterText.length > 0) {
-		filtered_places = [];
-		all_places.forEach( function(place) {
-			const placeName = place.name.toUpperCase();
-			const filterBy = filterText.toUpperCase();
-			if (placeName.indexOf(filterBy) > -1) {
-				filtered_places.push(place);
-			}
-		});
-	} else {
-		filtered_places = all_places;
+	const apiHeaders = {
+		'X-API-Key': OHMG_API_KEY,
 	}
-}
-let filterInput;
-$: updateFilteredList(filterInput)
+
+	fetch(PLACES_API_URL, { headers: apiHeaders })
+		.then(response => response.json())
+		.then(result => {
+			all_places = result;
+			filtered_places = result;
+			loading = false;
+		});
+
+	function updateFilteredList(filterText) {
+		if (filterText && filterText.length > 0) {
+			filtered_places = [];
+			all_places.forEach( function(place) {
+				const placeName = place.name.toUpperCase();
+				const filterBy = filterText.toUpperCase();
+				if (placeName.indexOf(filterBy) > -1) {
+					filtered_places.push(place);
+				}
+			});
+		} else {
+			filtered_places = all_places;
+		}
+	}
+	let filterInput;
+	$: updateFilteredList(filterInput)
 
 </script>
 
-<div>New! <a href="/united-states" title="Place search">Search by place hierarchy &rarr;</a></div>
+<div>New! <Link href="/united-states" title="Place search">Search by place hierarchy &rarr;</Link></div>
 <div class="filter-container">
 	<input type="text" id="filterInput" placeholder="Filter by place name..." bind:value={filterInput}>
 </div>
@@ -57,8 +58,8 @@ $: updateFilteredList(filterInput)
 			<th data-sort="sort_years" style="max-width:300px;" title="Volumes available">Volumes available</th>
 		</tr>
 		<tr slot="tbody" let:item={p} style="height:38px;">
-			<td><a title="View all {p.name} mosaics in viewer" href="{p.url}">{p.name}</a></td>
-			<td>{#each p.items as v, i}<a href="{v.url}">{v.year}</a>{#if i < p.items.length-1}, {/if}{/each}</td>
+			<td><Link title="View all {p.name} mosaics in viewer" href="{p.url}">{p.name}</Link></td>
+			<td>{#each p.items as v, i}<Link href="{v.url}">{v.year}</Link>{#if i < p.items.length-1}, {/if}{/each}</td>
 		</tr>
 	</TableSort>
 	{/if}

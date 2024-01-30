@@ -2,7 +2,9 @@
 import IconContext from 'phosphor-svelte/lib/IconContext';
 import CaretDown from "phosphor-svelte/lib/CaretDown";
 import { iconProps } from "@helpers/utils"
+
 import NavDropdown from './NavDropdown.svelte';
+import Link from '@components/base/Link.svelte';
 
 export let USER;
 
@@ -113,12 +115,12 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 <nav>
 	<div>
 		<div>
-			<a href="/" title="Home">
+			<Link href="/" title="Home">
 				<img style="height:45px; width:45px;" src="/static/img/colored-full-linework.png" alt="OldInsuranceMaps.net Home" class="navbar-brand-new">
-			</a>
+			</Link>
 		</div>
 		<div style="padding-left: 8px;">
-			<a href="/browse">Search</a>
+			<Link href="/browse" classes={["white"]}>Search</Link>
 		</div>
 		<div class="dropdown-container {subMenus.georef.visible ? 'active' : ''}" use:clickOutside={{ enabled: subMenus.georef.visible, cb: () => subMenus.georef.visible = false }} >
 			<button on:click={() => {subMenus.georef.visible = !subMenus.georef.visible}} title="Georeferencing">Georeferencing <CaretDown /></button>
@@ -145,7 +147,7 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 		</div>
 		{:else}
 		<div>
-			<a href="/account/login">Sign in</a>
+			<Link href="/account/login" classes={["white"]}>Sign in</Link>
 		</div>
 		{/if}
 	</div>
@@ -171,16 +173,6 @@ nav {
 	overflow-x: auto;
 	border: none;
 	max-width: 100vw;
-}
-
-nav a {
-	color:white;
-	text-decoration: none;
-}
-
-nav a:hover {
-	color: #cecece;
-	text-decoration: none;
 }
 
 nav button {

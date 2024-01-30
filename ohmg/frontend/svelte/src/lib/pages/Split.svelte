@@ -33,7 +33,7 @@
   ]
 </script>
 
-<TitleBar TITLE={DOCUMENT.title} SIDE_LINKS={[]} ICON_LINKS={iconLinks}/>
+<TitleBar TITLE={DOCUMENT.title} ICON_LINKS={iconLinks}/>
 <Splitter USER={USER}
   SESSION_LENGTH={SESSION_LENGTH}
   DOCUMENT={DOCUMENT}
