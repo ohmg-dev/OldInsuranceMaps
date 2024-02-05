@@ -5,6 +5,7 @@
 	import { iconProps } from "@helpers/utils";
 
 	import Link from '@components/base/Link.svelte';
+	import SVGIcon from '@components/base/SVGIcon.svelte';
 	import MapBrowse from '@components/interfaces/MapBrowse.svelte';
 
 	import LatestAdditions from '@components/lists/LatestAdditions.svelte';
@@ -91,31 +92,41 @@
 			<h3>How it Works</h3>
 			<div id="step-list">
 				<div>
-					<div><i class="i-magnifier i-magnifier-lg"></i></div>
+					<div>
+						<SVGIcon icon="volume" size="lg" />
+					</div>
 					<p>
 						Digital scans of Sanborn maps are available through the <Link href="https://loc.gov/collections/sanborn-maps" external={true}>Library of Congress</Link> and are pulled into this site through the LOC <Link href="https://www.loc.gov/apis/json-and-yaml/requests/" external={true}>JSON API</Link>, generating a "Volume Summary" page (<Link href="/loc/sanborn03275_001/?utm_source=index">Baton Rouge, 1885</Link>).
 					</p>
 				</div>
 				<div>
-					<div><i class="i-pin i-pin-lg"></i></div>
+					<div>
+						<SVGIcon icon="document" size="lg" />
+					</div>
 					<p>
 						Contributors <Link href="/split/244/">prepare each sheet</Link> in the volume, sometimes splitting it into multiple documents, each to be georeferenced individually (<Link href="/resource/244?utm_source=index">Baton Rouge, 1885, page 1</Link>).
 					</p>
 				</div>
 				<div>
-					<div><i class="i-compass i-compass-lg"></i></div>
+					<div>
+						<SVGIcon icon="layer" size="lg" />
+					</div>
 					<p>
 						Next, each document must be georeferenced by <Link href="/georeference/387?utm_source=index">creating ground control points</Link>, linking features on the old map with latitude/longitude coordinates to create a geospatial layer (<Link href="/resource/389?utm_source=index">Baton Rouge, 1885, page 1, part 3</Link>).
 					</p>
 				</div>
 				<div>
-					<div><i class="i-webmap i-webmap-lg"></i></div>
+					<div>
+						<SVGIcon icon="webmap" size="lg" />
+					</div>
 					<p>
 						As they are georeferenced, layers slowly build a collage of all the content from a given volume, and their overlapping margins <Link href="/loc/sanborn03275_001?utm_source=index#multimask">must be trimmed</Link> to create a seamless mosaic.
 					</p>
 				</div>
 				<div>
-					<div><i class="i-pinmap i-pinmap-lg"></i></div>
+					<div>
+						<SVGIcon icon="pinmap" size="lg" />
+					</div>
 					<p>
 						Finally, all volume mosaics for a given locale are automatically aggregated into a simple web viewer so you can easily compare different years and current maps (<Link href="/viewer/baton-rouge-la?utm_source=index">Baton Rouge viewer</Link>).
 					</p>
