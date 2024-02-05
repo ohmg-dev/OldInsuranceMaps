@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.middleware import csrf
 
 from ohmg.accounts.schemas import UserSchema
 
@@ -26,7 +27,8 @@ def navbar_footer_params(request):
 
     return {
         'navbar_params': {
-            'USER': user_info_from_request(request)
+            'USER': user_info_from_request(request),
+            'CSRFTOKEN': csrf.get_token(request)
         },
         'footer_params': {},
     }

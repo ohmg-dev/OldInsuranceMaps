@@ -29,8 +29,9 @@ import Modal, {getModal} from '@components/base/Modal.svelte';
 import ItemPreviewMap from "@components/interfaces/ItemPreviewMap.svelte";
 import SingleLayerViewer from '@components/interfaces/SingleLayerViewer.svelte';
 import SingleDocumentViewer from '@components/interfaces/SingleDocumentViewer.svelte';
-import DownloadSectionModal from './modals/DownloadSectionModal.svelte';
+import DownloadSectionModal from './modals/ItemDownloadSectionModal.svelte';
 import ItemDetails from './sections/ItemDetails.svelte';
+    import SigninReminder from '../layout/SigninReminder.svelte';
 
 export let VOLUME;
 export let CSRFTOKEN;
@@ -195,14 +196,6 @@ console.log(ohmUrl, mosaicUrl)
 
 let settingKeyMapLayer = false;
 
-const sideLinks = [
-	{
-		display: `View all ${VOLUME.locale.display_name} mosaics`,
-		url: VOLUME.urls.viewer,
-		external: true,
-	},
-]
-
 // These variable are used to trigger a reinit of map interfaces.
 // See https://svelte.dev/repl/65c80083b515477784d8128c3655edac?version=3.24.1
 let reinitMap = [{}]
@@ -225,11 +218,10 @@ let modalLyrExtent = "";
 <MultiMaskModal id={"modal-multimask"} />
 <NonMapContentModal id={"modal-non-map"} />
 <GeoreferencePermissionsModal id={"modal-permissions"} user={USER} userCanEdit={userCanEdit} item={VOLUME} />
-<DownloadSectionModal id={"download-section-modal"} />
 <Modal id={"modal-doc-view"} full={true}>
 {#each reinitMap2 as key (key)}
 	<SingleDocumentViewer LAYER_URL={modalDocUrl} IMAGE_SIZE={modalDocImageSize} />
-	{/each}
+{/each}
 </Modal>
 <Modal id={"modal-lyr-view"} full={true}>
 {#each reinitMap3 as key (key)}
@@ -257,7 +249,7 @@ let modalLyrExtent = "";
 		</select>
 		-->
 	</section>
-	<TitleBar TITLE={VOLUME.title} SIDE_LINKS={sideLinks}/>
+	<TitleBar TITLE={VOLUME.title} VIEWER_LINK={VOLUME.urls.viewer}/>
 	<section>
 		<div class="section-title-bar">
 			<button class="section-toggle-btn" on:click={() => {toggleSection('summary')}} title={sectionVis['summary'] ? 'Collapse section' : 'Expand section'}>
@@ -330,12 +322,7 @@ let modalLyrExtent = "";
 				</div>
 			</div>
 			{#if !USER.is_authenticated}
-			<div class="signin-reminder">
-			<p><em>
-				<Link href="/account/login">sign in</Link> or
-				<Link href="/account/signup">sign up</Link> to work on this content
-			</em></p>
-			</div>
+			<SigninReminder />
 			{/if}
 			<section class="subsection">
 				<div class="subsection-title-bar">
@@ -546,6 +533,9 @@ let modalLyrExtent = "";
 		</div>
 		{#if sectionVis['multimask']}
 		<div transition:slide>
+			{#if !USER.is_authenticated}
+				<SigninReminder />
+			{/if}
 			<MultiMask VOLUME={VOLUME}
 				CSRFTOKEN={CSRFTOKEN}
 				DISABLED={!userCanEdit}
@@ -559,7 +549,7 @@ let modalLyrExtent = "";
 
 <style>
 
-#summary, #preview, #unprepared, #prepared, #georeferenced, #multimask, #download, #contributors {
+#summary, #preview, #unprepared, #prepared, #georeferenced, #multimask {
   scroll-margin-top: 50px;
 }
 

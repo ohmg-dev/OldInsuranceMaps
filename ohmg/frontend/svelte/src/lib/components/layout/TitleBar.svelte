@@ -1,10 +1,11 @@
 <script>
+    import SVGButton from "@components/base/SVGButton.svelte";
     import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
 
     export let TITLE;
     export let IMG_URL = null;
-    export let SIDE_LINKS = [];
     export let ICON_LINKS = [];
+    export let VIEWER_LINK = null;
 </script>
 
 <div class="title-bar">
@@ -17,19 +18,15 @@
     {#if ICON_LINKS.length > 0}
     <div class="icon-box">
         {#each ICON_LINKS as link}
-        {#if link.visible}
-        <a href="{link.url}" title={link.alt} name={link.alt} style="{link.enabled ? '' : 'cursor:default; pointer-events:none;'}">
-            <i class="i-{link.iconClass} i-{link.iconClass}-sm" style="display:block; {link.enabled ? '' : 'background:grey;'}"></i>
-        </a>
-        {/if}
+            {#if link.visible}
+            <SVGButton icon={link.iconClass} title={link.alt} size="md" action={() => {location.href = link.url}} disabled={!link.enabled} />
+            {/if}
         {/each}
     </div>
     {/if}
-    {#if SIDE_LINKS.length > 0}
-    <div class="link-box">
-        {#each SIDE_LINKS as link}
-            <a href={link.url} title={link.alt ? link.alt : link.display} target={link.external ? "_blank" : "_self"}>{link.display} {#if link.external}<ArrowSquareOut />{:else}&rarr;{/if}</a>
-        {/each}
+    {#if VIEWER_LINK}
+    <div class="icon-box">
+        <SVGButton icon="camera" title="Open in main viewer" size="md" action={() => {window.open(VIEWER_LINK,'_blank');}}></SVGButton>
     </div>
     {/if}
 </div>
@@ -52,16 +49,6 @@
         margin: 0px;
     }
 
-    .title-bar div.link-box {
-        display: flex;
-        flex-direction: column;
-        align-items: end;
-        background: #e6e6e6;
-        padding: 10px;
-        box-shadow: gray 0px 0px 5px;
-        border-radius: 4px;
-    }
-
     .title-bar div.icon-box {
         display: flex;
         flex-direction: row;
@@ -70,12 +57,5 @@
         padding: 2px;
         box-shadow: gray 0px 0px 5px;
         border-radius: 4px;
-    }
-    .title-bar div.icon-box i {
-        display: block;
-        background: #2c689c;
-    }
-    .title-bar div.icon-box i:hover {
-        background: #1b4060;
     }
 </style>

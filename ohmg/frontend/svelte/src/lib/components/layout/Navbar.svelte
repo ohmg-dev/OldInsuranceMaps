@@ -3,10 +3,13 @@ import IconContext from 'phosphor-svelte/lib/IconContext';
 import CaretDown from "phosphor-svelte/lib/CaretDown";
 import { iconProps } from "@helpers/utils"
 
+import OpenModalButton from '@components/base/OpenModalButton.svelte';
 import NavDropdown from './NavDropdown.svelte';
+import SigninModal from './SigninModal.svelte';
 import Link from '@components/base/Link.svelte';
 
 export let USER;
+export let CSRFTOKEN;
 
 let subMenus = {
 	"georef": {
@@ -112,6 +115,7 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 </script>
 
 <IconContext values={iconProps}>
+<SigninModal CSRFTOKEN={CSRFTOKEN} />
 <nav>
 	<div>
 		<div>
@@ -146,9 +150,7 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 			{/if}
 		</div>
 		{:else}
-		<div>
-			<Link href="/account/login" classes={["white"]}>Sign in</Link>
-		</div>
+		<OpenModalButton modalId="signin-modal" style="nav-link" icon="none">Sign in</OpenModalButton>
 		{/if}
 	</div>
 </nav>

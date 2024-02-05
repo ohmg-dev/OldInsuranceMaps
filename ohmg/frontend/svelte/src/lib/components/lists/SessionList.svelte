@@ -4,6 +4,8 @@ import {TableSort} from 'svelte-tablesort';
 import IconContext from 'phosphor-svelte/lib/IconContext';
 import { iconProps } from "@helpers/utils"
 
+import IconButton from '../base/IconButton.svelte';
+
 import CaretDoubleLeft from 'phosphor-svelte/lib/CaretDoubleLeft'
 import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight'
 import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise'
@@ -19,7 +21,7 @@ export let limit = "10";
 export let showThumbs = false;
 export let showUser = true;
 export let showResource = true;
-export let allowPagination = true;
+export let paginate = true;
 
 
 let loading = false;
@@ -57,17 +59,16 @@ $: {
 <SessionListModal id={"modal-session-list"} />
 <IconContext values={iconProps} >
 <div>
-	{#if allowPagination}
 	<div class="btn-row">
+		{#if paginate}
 		<div class="btn-container">
-			<button disabled={offset < limitInt || loading} on:click={() => {offset = offset - limitInt}}>
-				<CaretDoubleLeft />
-			</button>
-			<span>{offset} - {offset + limitInt < total ? offset + limitInt : total} ({total})</span>
-			<button disabled={offset + limitInt >= total || loading} on:click={() => {offset = offset + limitInt}}>
-				<CaretDoubleRight />
-			</button>
+			<IconButton disabled={offset < limitInt || loading || offset == 0} action={() => {offset = offset - limitInt}} style="lite" icon="caret-double-left" />
+			<span style="font-size:1.25em">{offset} - {offset + limitInt < total ? offset + limitInt : total} ({total})</span>
+			<IconButton disabled={offset + limitInt >= total || loading} action={() => {offset = offset + limitInt}} style="lite" icon="caret-double-right" />
 		</div>
+		{:else}
+		<div></div>
+		{/if}
 		<div class="btn-container">
 			{#if showResource}
 			<div>
@@ -85,17 +86,10 @@ $: {
 				</select>
 			</div>
 			{/if}
-			<div>
-				<button on:click={() => {offset = 1000; offset=0}}>
-					<ArrowsClockwise />
-				</button>
-			</div>
-			<div>
+			<IconButton action={() => {offset = 1000; offset=0}} style="lite" icon="refresh" />
 				<OpenModalButton modalId="modal-session-list" />
 			</div>
 		</div>
-	</div>
-	{/if}
 	<div style="height: 100%; overflow-y:auto; border:1px solid grey; border-radius:4px; background:white;">
 		{#if loading}
 			<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
@@ -163,10 +157,6 @@ $: {
 </div>
 </IconContext>
 <style>
-    button {
-        display:flex;
-        align-items:center;
-    }
 	.btn-row {
 		display: flex;
 		justify-content: space-between;

@@ -22,6 +22,8 @@ import SingleLayerViewer from '@components/interfaces/SingleLayerViewer.svelte';
 import SingleDocumentViewer from '@components/interfaces/SingleDocumentViewer.svelte';
 import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
 
+import ResourceDetails from './sections/ResourceDetails.svelte';
+
 import { makeTitilerXYZUrl } from '@helpers/utils';
 
 export let CSRFTOKEN;
@@ -39,6 +41,7 @@ let xyzUrl;
 let ohmUrl;
 let ll;
 let doubleEncodedXYZUrl;
+let viewerUrl;
 if (RESOURCE.type == "layer") {
   xyzUrl = makeTitilerXYZUrl({
     host: TITILER_HOST,
@@ -50,6 +53,7 @@ if (RESOURCE.type == "layer") {
     doubleEncode: true,
   });
   ll = getCenter(RESOURCE.extent);
+  viewerUrl = `/viewer/${VOLUME.locale.slug}/?${VOLUME.identifier}=100#/center/${ll[0]},${ll[1]}/zoom/18`;
 } else if (RESOURCE.layer){
   xyzUrl = makeTitilerXYZUrl({
     host: TITILER_HOST,
@@ -68,9 +72,10 @@ if (doubleEncodedXYZUrl && ll) {
 }
 
 const sectionVis = {
+  "summary": true,
+  "preview": true,
 	"prep": true,
 	"georef": true,
-	"download": true,
 	"history": true,
 }
 
@@ -197,6 +202,13 @@ const iconLinks = [
     iconClass: 'volume',
     alt: 'Go to volume: ' + VOLUME.title,
     url: VOLUME.urls.summary,
+  },
+  {
+    visible: true,
+    enabled: RESOURCE.type == "layer",
+    iconClass: 'camera',
+    alt: 'Open in main viewer',
+    url: viewerUrl,
   }
 ]
 let reinitMap = [{}]
@@ -230,25 +242,40 @@ console.log(RESOURCE)
 		</select>-->
 	</section>
   <TitleBar TITLE={RESOURCE.title} ICON_LINKS={iconLinks} />
-  <section >
-    <p><strong>Status:</strong> {RESOURCE.status}{processing ? " in progress..." : ""}
-    </p>
+  <section>
+    <button class="section-toggle-btn" on:click={() => toggleSection('summary')} disabled={false}>
+      <ConditionalDoubleChevron down={sectionVis['summary']} size="md" />
+        <h2>Summary</h2>
+    </button>
+    {#if sectionVis['summary']}
+    <div transition:slide>
+      <ResourceDetails {RESOURCE} {TITILER_HOST}/>
+    </div>
+    {/if}
   </section>
   <section>
-    <div id="map-panel">
-      {#each reinitMap as key (key)}
-      {#if RESOURCE.type == "document"}
-        <SingleDocumentViewer  LAYER_URL={RESOURCE.urls.image} IMAGE_SIZE={RESOURCE.image_size} />
-      {:else}
-        <SingleLayerViewer  LAYER_URL={RESOURCE.urls.cog} EXTENT={RESOURCE.extent} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
-      {/if}
-      {/each}
+    <button class="section-toggle-btn" on:click={() => toggleSection('preview')} disabled={false}>
+      <ConditionalDoubleChevron down={sectionVis['preview']} size="md" />
+        <h2>{RESOURCE.type == "document" ? "Document" : "Layer"} Preview</h2>
+    </button>
+    {#if sectionVis['preview']}
+    <div transition:slide>
+      <div id="map-panel">
+        {#each reinitMap as key (key)}
+        {#if RESOURCE.type == "document"}
+          <SingleDocumentViewer  LAYER_URL={RESOURCE.urls.image} IMAGE_SIZE={RESOURCE.image_size} />
+        {:else}
+          <SingleLayerViewer  LAYER_URL={RESOURCE.urls.cog} EXTENT={RESOURCE.extent} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
+        {/if}
+        {/each}
+      </div>
     </div>
+    {/if}
   </section>
   <section>
     <button class="section-toggle-btn" on:click={() => toggleSection('prep')} disabled={false}>
       <ConditionalDoubleChevron down={sectionVis['prep']} size="md" />
-        <h3>Preparation</h3>
+        <h2>Preparation</h2>
     </button>
     {#if sectionVis['prep']}
     <div transition:slide>
@@ -320,7 +347,7 @@ console.log(RESOURCE)
   <section>
     <button class="section-toggle-btn" on:click={() => toggleSection('georef')} disabled={false}>
       <ConditionalDoubleChevron down={sectionVis['georef']} size="md" />
-        <h3>Georeferencing</h3>
+        <h2>Georeferencing</h2>
     </button>
     {#if sectionVis['georef']}
     <div transition:slide>
@@ -369,55 +396,16 @@ console.log(RESOURCE)
       </div>
     </div>
     {/if}
-    
-  </section>
-  <section>
-    <button class="section-toggle-btn" on:click={() => toggleSection('download')} disabled={false}>
-      <ConditionalDoubleChevron down={sectionVis['download']} size="md" />
-        <h3>Downloads & Web Services</h3>
-    </button>
-    {#if sectionVis['download']}
-    <div transition:slide>
-      <!-- super duper messy for now...-->
-      {#if RESOURCE.type == "document"}
-        <p>Image: <Link href="{RESOURCE.urls.image}" title="Download JPEG">JPEG</Link>
-          {#if RESOURCE.layer}
-          &bullet;&nbsp;<Link href="{RESOURCE.layer.urls.cog}" title="Download GeoTIFF">GeoTIFF</Link>
-          {/if}
-        </p>
-        {#if RESOURCE.layer}
-        <p>GCPs: <Link href="/mrm/{RESOURCE.layer.slug}?resource=gcps-geojson" title="Download GCPs as GeoJSON">GeoJSON</Link>
-          &bullet;&nbsp;<Link href="/mrm/{RESOURCE.layer.slug}?resource=points" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</Link></p>
-          
-        {/if}
-      {:else if RESOURCE.type == "layer"}
-      <p>Image: <Link href="{RESOURCE.urls.document}" title="Download JPEG">JPEG</Link>
-        &bullet;&nbsp;<Link href="{RESOURCE.urls.cog}" title="Download GeoTIFF">GeoTIFF</Link>
-      </p>
-      <p>GCPs: <Link href="/mrm/{RESOURCE.slug}?resource=gcps-geojson" title="Download GCPs as GeoJSON">GeoJSON</Link>
-        &bullet;&nbsp;<Link href="/mrm/{RESOURCE.slug}?resource=points" title="Download GCPs as QGIS .points file (EPSG:3857)">.points</Link></p>
-      XYZ URL: <pre>{xyzUrl}</pre>
-        <p>Use this URL in:
-          <Link href="https://leafletjs.com/reference.html#tilelayer" external={true}>Leaflet</Link>,
-          <Link href="https://openlayers.org/en/latest/examples/xyz.html" external={true}>OpenLayers</Link>,
-          <Link href="https://maplibre.org/maplibre-gl-js-docs/example/map-tiles/" external={true}>Mapbox/MapLibre GL JS</Link>,
-          <Link href="https://docs.qgis.org/3.22/en/docs/user_manual/managing_data_source/opening_data.html#using-xyz-tile-services" external={true}>QGIS</Link>, and
-          <Link href="https://esribelux.com/2021/04/16/xyz-tile-layers-in-arcgis-platform/" external={true}>ArcGIS</Link>.
-          {#if ohmUrl}
-          <br><Link href="{ohmUrl}" title="View in OHM iD editor" external={true}>View in Open Historical Map iD editor</Link> (direct link).
-          {/if}
-        </p>
-      {/if}
-    </div>
-    {/if}
   </section>
   <section style="border-bottom:none;">
     <button class="section-toggle-btn" on:click={() => toggleSection('history')} disabled={false}>
       <ConditionalDoubleChevron down={sectionVis['history']} size="md" />
-        <h3>Session History</h3>
+        <h2>Session History</h2>
     </button>
     {#if sectionVis['history']}
-    <SessionList OHMG_API_KEY={OHMG_API_KEY} SESSION_API_URL={SESSION_API_URL} FILTER_PARAM={filterParam} showResource={false} limit={"0"}/>
+    <div transition:slide>
+      <SessionList OHMG_API_KEY={OHMG_API_KEY} SESSION_API_URL={SESSION_API_URL} FILTER_PARAM={filterParam} showResource={false} paginate={false} limit={"0"}/>
+    </div>
     {/if}
   </section>
 </main>
@@ -425,29 +413,9 @@ console.log(RESOURCE)
 
 <style>
 
-main {
-  display: flex;
-  flex-direction: column;
-  padding: 0px 20px;
-  margin-bottom: 10px;
-}
-
 #map-panel {
   width: 100%;
   height: 500px;
-}
-
-@media screen and (max-width: 768px){
-  .content {
-    flex-direction: column;
-  }
-  main {
-    padding: 0;
-  }
-  #sidebar {
-    width: 100%;
-    margin-left: 0px;
-  }
 }
 
 .btn-chosen {
@@ -574,6 +542,15 @@ select.item-select {
 
 :global(section.breadcrumbs svg) {
 	margin: 0px 2px;
+}
+
+@media screen and (max-width: 768px){
+	main {
+		max-width: none;
+	}
+	.documents-column {
+		flex-direction: column;
+	}
 }
 
 </style>

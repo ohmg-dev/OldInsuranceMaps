@@ -11,8 +11,8 @@ export let PLACE_INCLUSIVE = false;
 let filtered_items = [];
 let loading = true
 
-let loadedOnly = true;
-$: url = PLACE_SLUG ? `${ITEM_API_URL}?locale=${PLACE_SLUG}&locale_inclusive=${PLACE_INCLUSIVE}&loaded=${loadedOnly}` : `${ITEM_API_URL}?loaded=${loadedOnly}`
+let showAll = false;
+$: url = PLACE_SLUG ? `${ITEM_API_URL}?locale=${PLACE_SLUG}&locale_inclusive=${PLACE_INCLUSIVE}&loaded=${!showAll}` : `${ITEM_API_URL}?loaded=${!showAll}`
 function handleFetch(url) {
 	const apiHeaders = {
 		'X-API-Key': OHMG_API_KEY,
@@ -65,7 +65,7 @@ $: updateFilteredList(filterInput)
 </script>
 <div class="filter-container">
 	<input style="flex-grow: 1;" type="text" id="filterInput" placeholder="Filter by title..." bind:value={filterInput}>
-	<label title="Only show maps whose resources have been loaded."><input type="checkbox" bind:checked={loadedOnly} />loaded</label>
+	<label title="Show maps that haven't yet been loaded." style="margin-left:5px;">show all<input type="checkbox" bind:checked={showAll} /></label>
 </div>
 <div style="overflow-x:auto;">
 	{#if loading}
@@ -135,6 +135,7 @@ $: updateFilteredList(filterInput)
 .filter-container {
 	display: flex;
 	margin-bottom: 5px;
+	align-items: center;
 }
 
 /* Credit to this SO answer: https://stackoverflow.com/a/52205730/3873885 */

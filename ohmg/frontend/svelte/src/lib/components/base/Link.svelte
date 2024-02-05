@@ -6,6 +6,7 @@
     export let title = "";
     export let classes = [];
     export let download = null;
+    export let filename = null;
 
     const classStr = classes.join(" ")
 
@@ -19,7 +20,7 @@
     </a>
 </span>
 {:else}
-<a href={href} class={classStr} title={title} {download}>
+<a href={href} class={classStr} title={title} {download} {filename}>
     <slot></slot>
 </a>
 {/if}

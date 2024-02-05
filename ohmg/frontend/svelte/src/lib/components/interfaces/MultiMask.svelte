@@ -1,10 +1,6 @@
 <script>
 import {onMount} from 'svelte';
 
-import CropIcon from "phosphor-svelte/lib/Crop";
-import Trash from "phosphor-svelte/lib/Trash";
-import Check from "phosphor-svelte/lib/Check";
-import X from "phosphor-svelte/lib/X";
 import IconContext from 'phosphor-svelte/lib/IconContext';
 
 import 'ol/ol.css';
@@ -412,7 +408,6 @@ function layerRemoveMask(layer, confirm) {
 </script>
 
 <IconContext values={iconProps} >
-{#if DISABLED}<div><p>Feel free to mess around; you can't save changes unless you are logged in.</p></div>{/if}
 <div id='mm-container' class="svelte-component-main">
   <div id="map-container" class="map-container" style="height: calc(100%-35px);">
     <div id="map-viewer" class="map-item rounded-bottom">

@@ -14,10 +14,10 @@ export let OHMG_API_KEY;
 
 let reinitList = [{}]
 
-let onlySLMaps = true;
+let showAllSublocales = false;
 $: subLocales = PLACE.descendants
 $: subLocalesWithMaps = PLACE.descendants.filter(function (i) {return i.volume_count_inclusive != 0})
-$: localeList = onlySLMaps ? subLocalesWithMaps : subLocales
+$: localeList = showAllSublocales ? subLocales : subLocalesWithMaps
 
 function update(place_slug) {
 	// take a --- selection to mean clear that category, so re-fetch the parent
@@ -44,6 +44,8 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 			external: true,
 		},
 	] : [];
+
+$: VIEWER_LINK = PLACE.volumes.length > 0 ? `/viewer/${PLACE.slug}/` : '';
 
 </script>
 
@@ -76,7 +78,7 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 		{/each}
 	</select>
 </div>
-<TitleBar TITLE={PLACE.display_name} SIDE_LINKS={sideLinks}/>
+<TitleBar TITLE={PLACE.display_name} {VIEWER_LINK}/>
 <div style="display:flex;">
 	<div id="sub-locale-panel" style="margin-right:15px; min-width:250px;">
 		{#if PLACE.parents.length > 0}
@@ -93,7 +95,9 @@ $: sideLinks = PLACE.volumes.length > 0 ? [
 		{/if}
 		{#if PLACE.descendants.length > 0}
 		<h4>Sub-locales</h4>
-		<label style="font-size:.9em;"><input style="margin-left:0px;" type='checkbox' bind:checked={onlySLMaps} /><em>only sub-locales with content</em></label>
+		<div style="display:flex; justify-content:end;">
+			<label title="Show all sub-locales, even those without maps">show all sub-locales<input type='checkbox' bind:checked={showAllSublocales} /></label>
+		</div>
 		{#if localeList.length > 0}
 		<ul class="sub-list">
 			{#each localeList as d}
@@ -152,6 +156,7 @@ button:disabled {
 }
 .sub-list {
 	padding: 0;
+	margin: 0;
 	list-style: none;
 	max-height: calc(100vh - 435px);
 	overflow-y: scroll;

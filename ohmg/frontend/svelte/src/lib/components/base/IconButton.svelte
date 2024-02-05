@@ -1,4 +1,5 @@
 <script>
+    import ArrowsClockwise from "phosphor-svelte/lib/ArrowsClockwise";
     import Article from "phosphor-svelte/lib/Article";
     import Crop from "phosphor-svelte/lib/Crop";
     import Link from "phosphor-svelte/lib/Link";
@@ -9,6 +10,10 @@
     import Wrench from "phosphor-svelte/lib/Wrench";
     import X from "phosphor-svelte/lib/X";
     import Check from "phosphor-svelte/lib/Check";
+    import CaretDoubleRight from "phosphor-svelte/lib/CaretDoubleRight";
+    import CaretDoubleLeft from "phosphor-svelte/lib/CaretDoubleLeft";
+
+    import SvgIcon from "./SVGIcon.svelte";
 
     import IconContext from "phosphor-svelte/lib/IconContext";
     import { iconProps } from "@helpers/utils"
@@ -18,6 +23,7 @@
     export let style;
     export let icon = null;
     export let disabled = false;
+    export let size = "";
 
     if (style === "lite") {
         iconProps.weight = 'regular'
@@ -25,9 +31,11 @@
 </script>
 
 <IconContext values={iconProps}>
-    <button class={style} on:click={action} title={title} disabled={disabled}>
+    <button class={style} on:click={action} {title} {disabled}>
         {#if icon === "article"}
         <Article />
+        {:else if icon === "refresh"}
+        <ArrowsClockwise />
         {:else if icon === "trash"}
         <Trash />
         {:else if icon === "crop"}
@@ -44,8 +52,14 @@
         <Wrench />
         {:else if icon === "check"}
         <Check />
+        {:else if icon === "caret-double-left"}
+        <CaretDoubleLeft />
+        {:else if icon === "caret-double-right"}
+        <CaretDoubleRight />
         {:else if icon === "x"}
         <X />
+        {:else if icon === "magnifier"}
+        <SvgIcon icon="magnifier" {size}/>
         {/if}
         <slot></slot>
     </button>
@@ -58,6 +72,10 @@
         vertical-align: middle;
     }
 
+    button:disabled {
+        cursor: default;
+    }
+    
     button.lite {
         background: none;
         border: none;
@@ -67,14 +85,16 @@
     button.lite:hover {
         color:#123B4F;
     }
-
-    button.lite {
+    button.lite:disabled {
+        color: grey;
+    }
+    
+    button.lite-sm {
         background: none;
         border: none;
         color:#2c689c;
-        font-size: 1.7em;
     }
-    button.lite:hover {
+    button.lite-sm:hover {
         color:#123B4F;
     }
 
@@ -104,4 +124,30 @@
         background: lightgrey;
         cursor: default;
     }
+
+    button.link {
+        color: #2c689c;
+        background: none;
+        border: none;
+        display: inline;
+        vertical-align: unset;
+        padding: 0;
+    }
+
+    button.link:hover {
+        text-decoration: underline;
+    }
+
+    button.nav-link {
+        color: white;
+        background: none;
+        border: none;
+        display: inline;
+        padding: 0;
+    }
+
+    button.nav-link:hover {
+        text-decoration: underline;
+    }
+
 </style>

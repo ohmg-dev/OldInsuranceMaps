@@ -38,7 +38,7 @@
 <main>
 	<div>
 		<h1>OldInsuranceMaps.net</h1>
-		<p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. See <Link href="/#how-it-works">how it works</Link> or visit the <Link href="/about?utm_source=hero" target="_blank">about</Link> or <Link href="/faq?utm_source=hero">FAQ</Link> pages to learn more.</p>
+		<p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. See <Link href="/#how-it-works">how it works</Link> or visit the <Link href="/about?utm_source=hero" external={true}>about</Link> or <Link href="/faq?utm_source=hero">FAQ</Link> pages to learn more.</p>
 	</div>
 
 	<div class="hero-banner2 img-bg-3">
@@ -140,7 +140,7 @@
 		<div>
 			<h3>Latest activity</h3>
 			<p><Link href="/activity">all activity</Link></p>
-			<SessionList SESSION_API_URL={SESSION_API_URL} OHMG_API_KEY={OHMG_API_KEY} limit={"10"} showThumbs={true} allowPagination={false} />
+			<SessionList SESSION_API_URL={SESSION_API_URL} OHMG_API_KEY={OHMG_API_KEY} limit={"10"} showThumbs={true} paginate={false} />
 		</div>
 	</div>
 

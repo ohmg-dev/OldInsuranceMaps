@@ -8,6 +8,6 @@
     export let icon = "question";
 </script>
 
-<IconButton style={style} icon={icon} action={() => {getModal(modalId).open()}} title={title}>
+<IconButton {style} {icon} action={() => {getModal(modalId).open()}} title={title}>
     <slot></slot>
 </IconButton>
