@@ -305,7 +305,9 @@ IIIF_SERVER_LOCATION = "http://localhost:8182"
 # To allow other sites to read IIIF resources set CORS_ORIGIN_ALLOW_ALL to True
 CORS_ORIGIN_ALLOW_ALL = False
 
-DEFAULT_THUMBNAIL_SIZE = (240, 200)
+# Doubling this to 480, 400 (2/1/24) to present higher fidelity cover pages.
+DEFAULT_MAX_THUMBNAIL_DIMENSION = 400
+DEFAULT_THUMBNAIL_SIZE = (480, 400)
 
 # Location of locale files
 LOCALE_PATHS = (
