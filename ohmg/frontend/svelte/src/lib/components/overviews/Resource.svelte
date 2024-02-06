@@ -437,7 +437,7 @@ button.section-toggle-btn {
 	padding: 0;
 }
 
-button.section-toggle-btn, a {
+button.section-toggle-btn {
 	text-decoration: none;
 }
 
@@ -445,9 +445,13 @@ button.section-toggle-btn:hover {
 	color: #1b4060;
 }
 
-button.section-toggle-btn:disabled, button.section-toggle-btn:disabled > a {
+button.section-toggle-btn:disabled {
 	color: grey;
 }
+
+/* button.section-toggle-btn:disabled > a {
+	color: grey;
+} */
 
 .section-body {
   margin: 10px 0px;
@@ -534,11 +538,11 @@ section.breadcrumbs {
 	border-bottom: none;
 }
 
-select.item-select {
+/* select.item-select {
 	margin-right: 3px;
 	color: #2c689c;
 	cursor: pointer;
-}
+} */
 
 :global(section.breadcrumbs svg) {
 	margin: 0px 2px;

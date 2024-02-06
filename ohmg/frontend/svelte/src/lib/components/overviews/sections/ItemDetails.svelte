@@ -72,7 +72,7 @@
             <td>GeoTIFF</td>
             <td>
                 {#if ITEM.urls.mosaic_geotiff}
-                <Link href={ITEM.urls.mosaic_geotiff} title="Download mosaic geotiff file" download={true}>Download GeoTIFF (direct download)</Link>
+                <Link href={ITEM.urls.mosaic_geotiff} title="Download mosaic geotiff file">Download GeoTIFF (direct download)</Link>
                 {:else}
                 n/a
                 {/if}
@@ -103,7 +103,7 @@
         padding: 4px;
     }
 
-    caption {
+    /* caption {
         width: 100%;
         font-size: .9em;
     }
@@ -111,16 +111,17 @@
     table caption {
         color: #333;
         text-align: left;
-    }
+    } */
 
-    th, td {
+    td {
         padding: 4px;
     }
 
-    th {
+    /* th {
         font-variant: small-caps;
         font-size: .85em;
-    }
+        padding: 4px;
+    } */
 
     /* tr:nth-child(even) {
         background-color: #f6f6f6;
@@ -139,9 +140,9 @@
         width: 150px;
     }
 
-    button.thumbnail-btn {
+    /* button.thumbnail-btn {
         border: none;
         background: none;
         cursor: zoom-in;
-    }
+    } */
 </style>

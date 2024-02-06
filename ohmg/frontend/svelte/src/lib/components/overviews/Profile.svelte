@@ -79,7 +79,7 @@ button.section-toggle-btn {
 	padding: 0;
 }
 
-button.section-toggle-btn, a {
+button.section-toggle-btn {
 	text-decoration: none;
 }
 
@@ -87,7 +87,7 @@ button.section-toggle-btn:hover {
 	color: #1b4060;
 }
 
-button.section-toggle-btn:disabled, button.section-toggle-btn:disabled > a {
+button.section-toggle-btn:disabled {
 	color: grey;
 }
 

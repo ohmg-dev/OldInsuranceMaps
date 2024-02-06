@@ -81,11 +81,11 @@
         <td>Image</td>
         <td>
             {#if jpegUrl}
-            <Link href="{jpegUrl}" title="Download original JPEG" download={true}>JPEG</Link>
+            <Link href="{jpegUrl}" title="Download original JPEG">JPEG</Link>
             {/if}
             {#if cogUrl}
             &bullet;
-            <Link href={cogUrl} title="Download georeferenced layer as GeoTIFF" download={true}>GeoTIFF</Link>
+            <Link href={cogUrl} title="Download georeferenced layer as GeoTIFF">GeoTIFF</Link>
             {/if}
         </td>
     </tr>
@@ -137,7 +137,7 @@
         justify-content:space-between;
     }
 
-    .non-table-section {
+    /* .non-table-section {
         background-color: #ffffff;
         border: 1px solid #ddd;
         border-radius: 4px;
@@ -147,15 +147,10 @@
     table caption {
         color: #333;
         text-align: left;
-    }
+    } */
 
-    th, td {
+    td {
         padding: 4px;
-    }
-
-    th {
-        font-variant: small-caps;
-        font-size: .85em;
     }
 
     /* tr:nth-child(even) {

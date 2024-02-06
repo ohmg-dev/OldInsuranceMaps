@@ -558,33 +558,12 @@ a.no-link {
 	text-decoration:unset;
 }
 
-/* h2 {
-	font-size: 1.6em;
-}
-
-h3 {
-	font-size: 1.3em;
-	margin-top: 15px;
-} */
-
 section {
 	border-bottom: 1px solid rgb(149, 149, 149);
 }
 
 section.subsection {
 	border-bottom: 1px dashed rgb(149, 149, 149);
-}
-
-.subsection-inline-header {
-	border-bottom: 1px dashed rgb(149, 149, 149);
-	height: 12px;
-	margin-bottom: 25px;
-}
-
-.subsection-inline-header > h3 {
-	display: inline;
-	background: rgb(234, 224, 193);
-	padding-right: 5px;
 }
 
 button.section-toggle-btn {
