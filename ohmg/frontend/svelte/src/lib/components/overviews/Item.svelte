@@ -42,7 +42,7 @@ export let TITILER_HOST;
 console.log(VOLUME)
 
 let userCanEdit = false;
-userCanEdit = USER.is_staff || VOLUME.access == "any" || (VOLUME.access == "sponsor" && VOLUME.sponsor == USER.username)
+userCanEdit = USER.is_staff || (VOLUME.access == "any" && USER.is_authenticated) || (VOLUME.access == "sponsor" && VOLUME.sponsor == USER.username)
 
 let currentIdentifier = VOLUME.identifier
 function goToItem() {
@@ -57,7 +57,6 @@ $: sheetsLoading = VOLUME.status == "initializing...";
 
 let hash = window.location.hash.substr(1);
 
-console.log(!hash)
 const sectionVis = {
 	"summary": (!hash && VOLUME.items.layers.length == 0) || hash == "summary",
 	"preview": (!hash && VOLUME.items.layers.length > 0) || hash == "preview",
@@ -192,7 +191,6 @@ if (VOLUME.urls.mosaic_geotiff) {
 	const ll = getCenter(VOLUME.extent);
 	ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
 }
-console.log(ohmUrl, mosaicUrl)
 
 let settingKeyMapLayer = false;
 
