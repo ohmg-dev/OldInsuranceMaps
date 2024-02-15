@@ -1,13 +1,11 @@
 import os
 import re
-import json
 import logging
 from pathlib import Path
 
 import frontmatter
 
 from django.conf import settings
-from django.contrib.gis.geos import GEOSGeometry
 from django.http import JsonResponse, Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
@@ -175,43 +173,6 @@ class MarkdownPage(View):
             "index.html",
             context=context_dict
         )
-
-class VolumeTrim(View):
-
-    def post(self, request, volumeid):
-
-        volume = get_object_or_404(Volume, pk=volumeid)
-
-        body = json.loads(request.body)
-        multimask = body.get('multiMask')
-
-        # data validation
-        errors = []
-        if multimask is not None and isinstance(multimask, dict):
-            for k, v in multimask.items():
-                try:
-                    geom_str = json.dumps(v['geometry'])
-                    g = GEOSGeometry(geom_str)
-                    if not g.valid:
-                        logger.error(f"{volumeid} | invalid mask: {k} - {g.valid_reason}")
-                        errors.append((k, g.valid_reason))
-                except Exception as e:
-                    logger.error(f"{volumeid} | improper GeoJSON in multimask: {k}")
-                    errors.append((k, e))
-        if errors:
-            response = {
-                "status": "error",
-                "errors": errors,
-            }
-        else:
-            volume.multimask = multimask
-            volume.save()
-            response = {
-                "status": "ok",
-                "volume_json": volume.serialize()
-            }
-
-        return JsonResponse(response)
 
 def get_layer_mrm_urls(layerid):
 

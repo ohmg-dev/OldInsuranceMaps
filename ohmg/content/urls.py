@@ -13,5 +13,4 @@ urlpatterns = [
     path('item/<str:identifier>', RedirectView.as_view(pattern_name='map_summary', permanent=True), name="volume_summary"),
     path('loc/volumes/', RedirectView.as_view(pattern_name='search', permanent=True), name='volumes_list'),
     path('loc/<str:identifier>/', RedirectView.as_view(pattern_name='map_summary', permanent=True), name="volume_summary"),
-    path('loc/trim/<str:identifier>/', RedirectView.as_view(pattern_name='map_summary', permanent=True), name="volume_trim"),
 ]

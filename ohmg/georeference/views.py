@@ -4,6 +4,7 @@ from datetime import datetime
 import logging
 
 from django.conf import settings
+from django.contrib.gis.geos import GEOSGeometry
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.http import JsonResponse, HttpResponseBadRequest
@@ -23,7 +24,7 @@ from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.georeference.tasks import delete_preview_vrt
 
-from ohmg.loc_insurancemaps.models import find_volume
+from ohmg.loc_insurancemaps.models import find_volume, Volume
 
 logger = logging.getLogger(__name__)
 
@@ -385,3 +386,41 @@ class GeoreferenceView(View):
 
         else:
             return BadPostRequest
+
+
+class MultiMaskView(View):
+
+    def post(self, request, volumeid):
+
+        volume = get_object_or_404(Volume, pk=volumeid)
+
+        body = json.loads(request.body)
+        multimask = body.get('multiMask')
+
+        # data validation
+        errors = []
+        if multimask is not None and isinstance(multimask, dict):
+            for k, v in multimask.items():
+                try:
+                    geom_str = json.dumps(v['geometry'])
+                    g = GEOSGeometry(geom_str)
+                    if not g.valid:
+                        logger.error(f"{volumeid} | invalid mask: {k} - {g.valid_reason}")
+                        errors.append((k, g.valid_reason))
+                except Exception as e:
+                    logger.error(f"{volumeid} | improper GeoJSON in multimask: {k}")
+                    errors.append((k, e))
+        if errors:
+            response = {
+                "status": "error",
+                "errors": errors,
+            }
+        else:
+            volume.multimask = multimask
+            volume.save()
+            response = {
+                "status": "ok",
+                "volume_json": volume.serialize()
+            }
+
+        return JsonResponse(response)
