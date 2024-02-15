@@ -16,7 +16,7 @@ class UserSchema(Schema):
         return reverse('profile_detail', args=(obj.username, ))
 
 
-class ItemFullSchema(Schema):
+class MapFullSchema(Schema):
 
     identifier: str
     title: str = Field(..., alias="__str__")
@@ -48,7 +48,7 @@ class ItemFullSchema(Schema):
         }
 
 
-class ItemListSchema(Schema):
+class MapListSchema(Schema):
     identifier: str
     title: str = Field(..., alias="__str__")
     city: str = None
@@ -126,7 +126,7 @@ class ItemListSchema(Schema):
     @staticmethod
     def resolve_urls(obj):
         return {
-            "summary": reverse('volume_summary', args=(obj.identifier, )),
-            "viewer": reverse('volume_summary', args=(obj.identifier, )),
+            "summary": reverse('map_summary', args=(obj.identifier, )),
+            "viewer": reverse('map_summary', args=(obj.identifier, )),
         }
 

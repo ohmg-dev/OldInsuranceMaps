@@ -15,7 +15,7 @@ Please don't hesitate to [open a ticket](https://github.com/mradamcox/loc-insura
 
 ## Site Overview
 
-You can browse content in the platform by map, by place name, or by item name.
+You can browse content in the platform by map, by place name, or by map name.
 
 ![Homepage](./ohmg/frontend/static/img/browse.jpg)
 

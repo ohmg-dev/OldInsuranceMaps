@@ -11,7 +11,7 @@
 	import LatestAdditions from '@components/lists/LatestAdditions.svelte';
 	import SessionList from '@components/lists/SessionList.svelte'
 
-	export let ITEM_API_URL;
+	export let MAP_API_URL;
 	export let SESSION_API_URL;
 	export let PLACES_GEOJSON_URL;
 	export let IS_MOBILE;
@@ -21,7 +21,7 @@
 	export let USER_SUBSCRIBED;
 	export let USER_EMAIL;
 	export let PLACES_CT;
-	export let ITEMS_CT;
+	export let MAP_CT;
 
 	let showBrowseMap = !IS_MOBILE;
 	$: showBrowseMapBtnLabel = showBrowseMap ? "Hide map finder" : "Show map finder";
@@ -58,7 +58,7 @@
 		<div class="hero-banner-inner">
 			<div>
 			<h3>Recently Added Maps</h3>
-			<LatestAdditions ITEM_API_URL={ITEM_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
+			<LatestAdditions {MAP_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
 			<span><em>Want to see more? View <Link href="/search/#items">all items</Link> and sort by <strong>Load date</strong>.</em></span>
 		</div>
 			<div id="link-list">
@@ -66,7 +66,7 @@
 				<ul>
 					<li><Link href="/search/#map">By location ({PLACES_CT})</Link></li>
 					<li><Link href="/search/#places">By place name ({PLACES_CT})</Link></li>
-					<li><Link href="/search/#places">By item ({ITEMS_CT})</Link></li>
+					<li><Link href="/search/#places">By item ({MAP_CT})</Link></li>
 				</ul>
 				<span><em>To request more maps, <Link href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link" external={true}>fill out this form</Link> or <Link href="/contact">get in touch</Link>.</em></span>
 			</div>
@@ -96,7 +96,7 @@
 						<SVGIcon icon="volume" size="lg" />
 					</div>
 					<p>
-						Digital scans of Sanborn maps are available through the <Link href="https://loc.gov/collections/sanborn-maps" external={true}>Library of Congress</Link> and are pulled into this site through the LOC <Link href="https://www.loc.gov/apis/json-and-yaml/requests/" external={true}>JSON API</Link>, generating a "Volume Summary" page (<Link href="/loc/sanborn03275_001/?utm_source=index">Baton Rouge, 1885</Link>).
+						Digital scans of Sanborn maps are available through the <Link href="https://loc.gov/collections/sanborn-maps" external={true}>Library of Congress</Link> and are pulled into this site through the LOC <Link href="https://www.loc.gov/apis/json-and-yaml/requests/" external={true}>JSON API</Link>, generating a "Volume Summary" page (<Link href="/map/sanborn03275_001/?utm_source=index">Baton Rouge, 1885</Link>).
 					</p>
 				</div>
 				<div>
@@ -120,7 +120,7 @@
 						<SVGIcon icon="webmap" size="lg" />
 					</div>
 					<p>
-						As they are georeferenced, layers slowly build a collage of all the content from a given volume, and their overlapping margins <Link href="/loc/sanborn03275_001?utm_source=index#multimask">must be trimmed</Link> to create a seamless mosaic.
+						As they are georeferenced, layers slowly build a collage of all the content from a given volume, and their overlapping margins <Link href="/map/sanborn03275_001?utm_source=index#multimask">must be trimmed</Link> to create a seamless mosaic.
 					</p>
 				</div>
 				<div>

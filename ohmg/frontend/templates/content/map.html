@@ -4,6 +4,6 @@
 {% block title %}{{ svelte_params.VOLUME.title }}{% endblock title %}
 
 {% block main_content %}
-{{ svelte_params|json_script:'item-props'}}
-{% include '_svelte_component.html' with component_name='Item' %}
+{{ svelte_params|json_script:'map-props'}}
+{% include '_svelte_component.html' with component_name='Map' %}
 {% endblock %}

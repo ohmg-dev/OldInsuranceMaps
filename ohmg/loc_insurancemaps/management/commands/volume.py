@@ -4,7 +4,7 @@ from datetime import datetime
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
-from ohmg.content.models import Item
+from ohmg.content.models import Map
 from ohmg.loc_insurancemaps.tasks import (
     generate_mosaic_cog_task,
     generate_mosaic_json_task,
@@ -218,16 +218,16 @@ class Command(BaseCommand):
                 if options['background']:
                     generate_mosaic_cog_task.delay(i)
                 else:
-                    item = Item(i)
-                    item.generate_mosaic_cog()
+                    map = Map(i)
+                    map.generate_mosaic_cog()
 
         if options['operation'] == "generate-mosaic-json":
             if i is not None:
                 if options['background']:
                     generate_mosaic_json_task.delay(i, trim_all=options['trim_all'])
                 else:
-                    item = Item(i)
-                    item.generate_mosaic_json(trim_all=options['trim_all'])
+                    map = Map(i)
+                    map.generate_mosaic_json(trim_all=options['trim_all'])
 
         if options['operation'] == "set-extent":
             if i is not None:

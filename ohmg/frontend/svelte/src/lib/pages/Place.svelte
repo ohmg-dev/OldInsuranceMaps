@@ -1,6 +1,6 @@
 <script>
 	import TitleBar from '@components/layout/TitleBar.svelte';
-	import Items from '@components/lists/Items.svelte';
+	import Maps from '@components/lists/Maps.svelte';
 
 	import IconContext from 'phosphor-svelte/lib/IconContext';
 	import ArrowRight from "phosphor-svelte/lib/ArrowRight";
@@ -8,7 +8,7 @@
 
 
 export let PLACE;
-export let ITEM_API_URL;
+export let MAP_API_URL;
 export let OHMG_API_KEY;
 
 
@@ -116,7 +116,7 @@ $: VIEWER_LINK = PLACE.volumes.length > 0 ? `/viewer/${PLACE.slug}/` : '';
 	<div id="items-panel" style="flex-grow:1; overflow-x:auto;">
 		<h3>Maps</h3>
 		{#each reinitList as key (key)}
-		<Items ITEM_API_URL={ITEM_API_URL} OHMG_API_KEY={OHMG_API_KEY} ALL_ITEMS={[]} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
+		<Maps {MAP_API_URL} OHMG_API_KEY={OHMG_API_KEY} ALL_ITEMS={[]} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
 		{/each}
 	</div>
 </div>

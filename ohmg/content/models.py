@@ -7,7 +7,7 @@ database content and running migrations.
 
 The eventual migration plan is this:
 
-ohmg.loc_insurancemaps.models.Volume        --> content.models.Item
+ohmg.loc_insurancemaps.models.Volume        --> content.models.Map
 ohmg.loc_insurancemaps.models.Sheet         --> content.models.Resource
 ohmg.georeference.models.resources.Document --> content.models.VirtualResource
 ohmg.georeference.models.resources.Layer    --> content.models.VirtualResource
@@ -46,7 +46,7 @@ def read_trim_feature_cache(file_path):
         feature = json.load(f)
     return feature
 
-class Item:
+class Map:
 
     def __init__(self, volume_pk):
 

@@ -13,7 +13,7 @@ from ohmg.accounts.models import User
 from ohmg.accounts.schemas import UserSchema
 from ohmg.api.models import Key
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.content.schemas import ItemListSchema
+from ohmg.content.schemas import MapListSchema
 from ohmg.georeference.models import SessionBase
 from ohmg.georeference.schemas import (
     FilterSessionSchema,
@@ -65,13 +65,13 @@ def list_users(request):
     queryset = User.objects.all().exclude(username="AnonymousUser").order_by("username")
     return list(queryset)
 
-class ItemFilterSchema(FilterSchema):
+class MapFilterSchema(FilterSchema):
     """not currently used, would need to customize the fields a bit"""
     loaded_by__username: Optional[str] = None
 
-@api.get('items/', response=List[ItemListSchema], url_name="item_list")
-def list_items(request,
-        # filters: ItemFilterSchema = Query(...),
+@api.get('maps/', response=List[MapListSchema], url_name="map_list")
+def list_maps(request,
+        # filters: MapFilterSchema = Query(...),
         sort: str = "default",
         limit: int = None,
         loaded: bool = True,
@@ -81,9 +81,9 @@ def list_items(request,
     ):
     # overall, not really optimized. should refactor at some point...
     if sort == "load_date":
-        items = Volume.objects.all().order_by('-load_date')
+        maps = Volume.objects.all().order_by('-load_date')
     else:
-        items = Volume.objects.all().order_by('city', 'year')
+        maps = Volume.objects.all().order_by('city', 'year')
     
     if locale:
         place = Place.objects.get(slug=locale)
@@ -92,18 +92,18 @@ def list_items(request,
                 pass
             else:
                 pks = place.get_inclusive_pks()
-                items = items.filter(locales__in=pks)
+                maps = maps.filter(locales__in=pks)
         else:
-            items = items.filter(locales=place.pk)
+            maps = maps.filter(locales=place.pk)
 
     if loaded:
-        items = items.exclude(loaded_by=None)
+        maps = maps.exclude(loaded_by=None)
     if loaded_by:
-        items = items.filter(loaded_by__username=loaded_by)
+        maps = maps.filter(loaded_by__username=loaded_by)
 
     if limit:
-        items = items[:limit]
-    return list(items)
+        maps = maps[:limit]
+    return list(maps)
 
 @api.get('places/', response=List[PlaceSchema], url_name="place_list")
 def list_places(request):
@@ -149,7 +149,7 @@ def get_places_geojson(request):
                 feature['properties']['volumes'].append({
                     # 'title': str(volume),
                     'year': year_vol,
-                    'url': reverse("volume_summary", args=(volume['identifier'],)),
+                    'url': reverse("map_summary", args=(volume['identifier'],)),
                 })
                 feature['properties']['place'] = {
                     "name": str(place),

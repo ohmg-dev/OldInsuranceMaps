@@ -46,7 +46,7 @@ userCanEdit = USER.is_staff || (VOLUME.access == "any" && USER.is_authenticated)
 
 let currentIdentifier = VOLUME.identifier
 function goToItem() {
-	window.location = "/loc/" + currentIdentifier
+	window.location = "/map/" + currentIdentifier
 }
 let currentDoc = "---";
 function goToDocument() {

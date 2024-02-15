@@ -297,7 +297,7 @@ class LOCParser(object):
             "title": self.title,
             "status": status,
             "urls": {
-                "summary": reverse("volume_summary", args=(self.identifier,)),
+                "summary": reverse("map_summary", args=(self.identifier,)),
             },
         }
 
@@ -365,7 +365,7 @@ class LOCConnection(object):
             # set returned attributes
             self.query_url += "?at=search,results,pagination"
         elif identifier:
-            self.query_url = f"{self.baseurl}/item/{identifier}"
+            self.query_url = f"{self.baseurl}/map/{identifier}"
             # set returned attributes
             self.query_url += "?at=item,resources"
         else:

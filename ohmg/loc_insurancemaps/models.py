@@ -437,8 +437,7 @@ class Volume(models.Model):
         return {
             "loc_item": loc_item,
             "loc_resource": resource_url,
-            "summary": reverse("volume_summary", args=(self.identifier,)),
-            "trim": reverse("volume_trim", args=(self.identifier,)),
+            "summary": reverse("map_summary", args=(self.identifier,)),
             "viewer": viewer_url,
             "mosaic_geotiff": mosaic_gt_url,
             "mosaic_json": mosaic_json_url,

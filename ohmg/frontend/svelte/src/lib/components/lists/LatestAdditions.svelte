@@ -1,7 +1,7 @@
 <script>
 	import Link from '@components/base/Link.svelte';
 
-	export let ITEM_API_URL;
+	export let MAP_API_URL;
 	export let OHMG_API_KEY;
 
 	let loadingItems = false;
@@ -9,7 +9,7 @@
 
 	function getInitialResults() {
 		loadingItems = true;
-		fetch(ITEM_API_URL+"?limit=6&sort=load_date", {
+		fetch(MAP_API_URL+"?limit=6&sort=load_date", {
 			headers: {
 				'X-API-Key': OHMG_API_KEY,
 			}

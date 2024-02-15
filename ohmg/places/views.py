@@ -30,7 +30,7 @@ class PlaceView(View):
                     "PAGE_NAME": 'place',
                     "PARAMS": {
                         "PLACE": place,
-                        "ITEM_API_URL": reverse("api-beta:item_list"),
+                        "MAP_API_URL": reverse("api-beta:map_list"),
                         "OHMG_API_KEY": settings.OHMG_API_KEY,
                     }
                 }

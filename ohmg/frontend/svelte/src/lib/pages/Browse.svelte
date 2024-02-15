@@ -1,14 +1,14 @@
 <script>
 import '@src/css/shared.css';
-import Items from '@components/lists/Items.svelte';
+import Maps from '@components/lists/Maps.svelte';
 import Places from '@components/lists/Places.svelte';
 import MapBrowse from '@components/interfaces/MapBrowse.svelte';
 
 export let PLACES_GEOJSON_URL;
 export let PLACES_CT;
 export let PLACES_API_URL;
-export let ITEM_CT;
-export let ITEM_API_URL;
+export let MAP_CT;
+export let MAP_API_URL;
 export let OHMG_API_KEY;
 
 let reinitMap = [{}]
@@ -29,7 +29,7 @@ $: { history.replaceState(null, document.title, `#${currentTab}`); }
 			Browse Places ({PLACES_CT})
 		</button>
 		<button class="{currentTab == 'items' ? 'active' : ''}" on:click={() => {currentTab = "items"}}>
-			Browse Items ({ITEM_CT})
+			Browse Items ({MAP_CT})
 		</button>
 	</div>
 	<div>
@@ -42,7 +42,7 @@ $: { history.replaceState(null, document.title, `#${currentTab}`); }
 			<Places PLACES_API_URL={PLACES_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
 		</div>
 		<div style="display: {currentTab === 'items' ? 'block' : 'none'}">
-			<Items ITEM_API_URL={ITEM_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
+			<Maps {MAP_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
 		</div>
 	</div>
 </main>

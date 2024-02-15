@@ -9,7 +9,7 @@ There are a few different ways to interact with this platform, and this page wil
 
 **Search by Place** - Each fire insurance map atlas is attached to a locale, generally a city or town. Find your locale of interest by [searching the map](/browse/#map), and then go to the Viewer for that locale. You can also [search by place name](browse/#places), or [explore places as a hierarchy](/united-states) (this latter option works but is still in development).
 
-**Search by Item** - You can also [search all items](/browse/#items) individually, which is the quickest way to access the summary page for each one, showing its georeferencing progress.
+**Search by Map** - You can also [search all maps](/browse/#items) individually, which is the quickest way to access the summary page for each one, showing its georeferencing progress.
 
 ## Contributing Work
 

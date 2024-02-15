@@ -215,7 +215,7 @@ let reinitMap = [{}]
 
 let currentIdentifier = VOLUME.identifier
 function goToItem() {
-	window.location = "/loc/" + currentIdentifier
+	window.location = "/map/" + currentIdentifier
 }
 let currentDoc = RESOURCE.id;
 function goToDocument() {

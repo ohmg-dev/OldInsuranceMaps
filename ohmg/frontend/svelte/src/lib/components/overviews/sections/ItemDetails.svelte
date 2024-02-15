@@ -10,8 +10,8 @@
 
 <DownloadSectionModal id={"download-section-modal"} />
 <section>
-    <h3 style="margin-top:5px;">Item Details</h3>
-    <Link href="https://loc.gov/item/{ITEM.identifier}" external={true}>View item in LOC collection</Link>
+    <h3 style="margin-top:5px;">Map Details</h3>
+    <Link href="https://loc.gov/map/{ITEM.identifier}" external={true}>View item in LOC collection</Link>
     <table>
         <tr>
             <td>Title</td>

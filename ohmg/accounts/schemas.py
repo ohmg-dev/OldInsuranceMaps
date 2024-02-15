@@ -28,7 +28,7 @@ class UserSchema(Schema):
             .order_by('city', 'year') \
             .values('identifier', 'city', 'year', 'volume_no')
         for i in values:
-            i['url'] = reverse('volume_summary', args=(i['identifier'], ))
+            i['url'] = reverse('map_summary', args=(i['identifier'], ))
             i['title'] = f"{i['city']} {i['year']}{' vol. ' + i['volume_no'] if i['volume_no'] else ''}"
         return values
 

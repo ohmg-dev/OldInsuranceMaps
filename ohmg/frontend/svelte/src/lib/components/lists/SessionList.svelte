@@ -25,7 +25,7 @@ export let paginate = true;
 
 
 let loading = false;
-let sessions = [];
+let items = [];
 
 let offset = 0;
 let total = 0
@@ -49,7 +49,7 @@ $: {
 		})
 		.then(response => response.json())
 		.then(result => {
-			sessions = result.items;
+			items = result.items;
 			total = result.count;
 			loading = false;   
 		});
@@ -94,7 +94,7 @@ $: {
 		{#if loading}
 			<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
 			{:else}
-			<TableSort items={sessions}>
+			<TableSort {items}>
 				<tr slot="thead">
 					<!-- <th data-sort="username" style="max-width:300px;" title="Name of mapped location"></th> -->
 					<th title="Session Id">Id</th>

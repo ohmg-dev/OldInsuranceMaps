@@ -2,17 +2,17 @@
 import {TableSort} from 'svelte-tablesort';
 import Link from '@components/base/Link.svelte';
 
-export let ITEM_API_URL;
+export let MAP_API_URL;
 export let OHMG_API_KEY;
 export let ALL_ITEMS = [];
 export let PLACE_SLUG;
 export let PLACE_INCLUSIVE = false;
 
-let filtered_items = [];
+let items = [];
 let loading = true
 
 let showAll = false;
-$: url = PLACE_SLUG ? `${ITEM_API_URL}?locale=${PLACE_SLUG}&locale_inclusive=${PLACE_INCLUSIVE}&loaded=${!showAll}` : `${ITEM_API_URL}?loaded=${!showAll}`
+$: url = PLACE_SLUG ? `${MAP_API_URL}?locale=${PLACE_SLUG}&locale_inclusive=${PLACE_INCLUSIVE}&loaded=${!showAll}` : `${MAP_API_URL}?loaded=${!showAll}`
 function handleFetch(url) {
 	const apiHeaders = {
 		'X-API-Key': OHMG_API_KEY,
@@ -20,8 +20,7 @@ function handleFetch(url) {
 	fetch(url, { headers: apiHeaders })
 		.then(response => response.json())
 		.then(result => {
-			ALL_ITEMS = flatten_response(result);
-			filtered_items = ALL_ITEMS;
+			items = flatten_response(result);
 		});
 	
 	function flatten_response(items_json) {
@@ -47,16 +46,16 @@ $: handleFetch(url)
 
 function updateFilteredList(filterText) {
 	if (filterText && filterText.length > 0) {
-		filtered_items = [];
+		items = [];
 		ALL_ITEMS.forEach( function(vol) {
 			const volumeName = vol.title.toUpperCase();
 			const filterBy = filterText.toUpperCase();
 			if (volumeName.indexOf(filterBy) > -1) {
-				filtered_items.push(vol);
+				items.push(vol);
 			}
 		});
 	} else {
-		filtered_items = ALL_ITEMS;
+		items = ALL_ITEMS;
 	}
 }
 let filterInput;
@@ -72,12 +71,12 @@ $: updateFilteredList(filterInput)
 	<div style="text-align:center;">
 		<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
 	</div>
-	{:else if filtered_items.length == 0}
+	{:else if items.length == 0}
 	<div style="text-align:center;">
-		<p><em>No items found...</em></p>
+		<p><em>No maps found...</em></p>
 	</div>
 	{:else}
-	<TableSort items={filtered_items}>
+	<TableSort {items}>
 		<tr slot="thead">
 			<th data-sort="title" style="max-width:300px;" title="Title">Title</th>
 			<th data-sort="year_vol" title="Year of publication">Year</th>

@@ -124,7 +124,7 @@ let exportable = [];
 	"Resource",
 	"Split",
 	"Viewer",
-	"Item",
+	"Map",
 ].forEach((d) => exportable.push(componentExportDetails(d)));
 
 export default exportable;

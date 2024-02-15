@@ -6,7 +6,7 @@
 	export let OHMG_API_KEY;
 
 	let all_participants = [];
-	let filtered_participants = []
+	let items = []
 
 	const apiHeaders = {
 		"X-API-Key": OHMG_API_KEY,
@@ -16,21 +16,21 @@
 		.then(response => response.json())
 		.then(result => {
 			all_participants = result;
-			filtered_participants = result;
+			items = result;
 		});
 
 	function updateFilteredList(filterText) {
 		if (filterText && filterText.length > 0) {
-			filtered_participants = [];
+			items = [];
 			all_participants.forEach( function(p) {
 				const name = p.username.toUpperCase();
 				const filterBy = filterText.toUpperCase();
 				if (name.indexOf(filterBy) > -1) {
-					filtered_participants.push(p);
+					items.push(p);
 				}
 			});
 		} else {
-			filtered_participants = all_participants;
+			items = all_participants;
 		}
 	}
 	let filterInput;
@@ -46,7 +46,7 @@
 
 <input type="text" id="filterInput" placeholder="Filter by username..." bind:value={filterInput}>
 <div style="overflow-x:auto;">
-	<TableSort items={filtered_participants}>
+	<TableSort {items}>
 		<tr slot="thead">
 			<th data-sort="username" style="max-width:300px;"></th>
 			<th data-sort="username" style="max-width:300px;" title="Name of mapped location">Username</th>

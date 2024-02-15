@@ -21,11 +21,11 @@ from ohmg.frontend.context_processors import user_info_from_request
 logger = logging.getLogger(__name__)
 
 
-class ItemView(View):
+class MapSummary(View):
 
-    def get(self, request, volumeid):
+    def get(self, request, identifier):
 
-        volume = get_object_or_404(Volume, pk=volumeid)
+        volume = get_object_or_404(Volume, pk=identifier)
         volume_json = volume.serialize(include_session_info=True)
 
         context_dict = {
@@ -39,7 +39,7 @@ class ItemView(View):
         }
         return render(
             request,
-            "content/item.html",
+            "content/map.html",
             context=context_dict
         )
 

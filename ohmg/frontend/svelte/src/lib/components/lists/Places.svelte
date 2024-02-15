@@ -6,7 +6,7 @@
 	export let OHMG_API_KEY;
 
 	let all_places = [];
-	let filtered_places = []
+	let items = []
 	let loading = true
 
 	const apiHeaders = {
@@ -17,22 +17,23 @@
 		.then(response => response.json())
 		.then(result => {
 			all_places = result;
-			filtered_places = result;
+			items = result;
 			loading = false;
+			console.log(all_places)
 		});
 
 	function updateFilteredList(filterText) {
 		if (filterText && filterText.length > 0) {
-			filtered_places = [];
+			items = [];
 			all_places.forEach( function(place) {
 				const placeName = place.name.toUpperCase();
 				const filterBy = filterText.toUpperCase();
 				if (placeName.indexOf(filterBy) > -1) {
-					filtered_places.push(place);
+					items.push(place);
 				}
 			});
 		} else {
-			filtered_places = all_places;
+			items = all_places;
 		}
 	}
 	let filterInput;
@@ -49,17 +50,17 @@
 	<div style="text-align:center;">
 		<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
 	</div>
-	{:else if filtered_places.length === 0}
+	{:else if items.length === 0}
 	<p><em>No places found...</em></p>
 	{:else}
-	<TableSort items={filtered_places}>
+	<TableSort {items}>
 		<tr slot="thead">
 			<th data-sort="name" style="max-width:300px;" title="Name of mapped location">Place</th>
 			<th data-sort="sort_years" style="max-width:300px;" title="Volumes available">Volumes available</th>
 		</tr>
 		<tr slot="tbody" let:item={p} style="height:38px;">
 			<td><Link title="View all {p.name} mosaics in viewer" href="{p.url}">{p.name}</Link></td>
-			<td>{#each p.items as v, i}<Link href="{v.url}">{v.year}</Link>{#if i < p.items.length-1}, {/if}{/each}</td>
+			<td>{#each p.maps as v, i}<Link href="{v.url}">{v.year}</Link>{#if i < p.maps.length-1}, {/if}{/each}</td>
 		</tr>
 	</TableSort>
 	{/if}

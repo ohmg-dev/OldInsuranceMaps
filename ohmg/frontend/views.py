@@ -82,7 +82,7 @@ class HomePage(View):
             "params": {
                 "PAGE_NAME": 'home',
                 'PARAMS': {
-                    "ITEM_API_URL": reverse("api-beta:item_list"),
+                    "MAP_API_URL": reverse("api-beta:map_list"),
                     "SESSION_API_URL": reverse("api-beta:session_list"),
                     "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
                     "IS_MOBILE": mobile(request),
@@ -93,7 +93,7 @@ class HomePage(View):
                     "USER_EMAIL": user_email,
                     "VIEWER_SHOWCASE": viewer_showcase,
                     "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
-                    "ITEMS_CT": Volume.objects.all().exclude(loaded_by=None).count(),
+                    "MAP_CT": Volume.objects.all().exclude(loaded_by=None).count(),
                 }
             },
         }
@@ -115,8 +115,8 @@ class Browse(View):
                     "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
                     "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
                     "PLACES_API_URL": reverse("api-beta:place_list"),
-                    "ITEM_CT": Volume.objects.all().exclude(loaded_by=None).count(),
-                    "ITEM_API_URL": reverse("api-beta:item_list"),
+                    "MAP_CT": Volume.objects.all().exclude(loaded_by=None).count(),
+                    "MAP_API_URL": reverse("api-beta:map_list"),
                     "OHMG_API_KEY": settings.OHMG_API_KEY,
                 }
             }
