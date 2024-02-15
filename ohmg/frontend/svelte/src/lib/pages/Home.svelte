@@ -45,7 +45,7 @@
 		<div style="padding:0;">
 			<div style="padding:5px;">
 				<h3>Explore georeferenced maps from {PLACES_CT} locations...</h3>
-				<p>Click a point to access the viewer for that locale, or <Link href="/search/#places">search by place name</Link>.
+				<p>Click a point to access maps of that locale, or <Link href="/united-states">search by place name</Link>.
 			</div>
 			{#if IS_MOBILE}<span><button class="link-btn" on:click="{() => {showBrowseMap = !showBrowseMap}}">{ showBrowseMapBtnLabel }</button></span>{/if}
 			{#if showBrowseMap}

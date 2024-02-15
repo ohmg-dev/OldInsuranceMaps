@@ -94,9 +94,9 @@ $: VIEWER_LINK = PLACE.volumes.length > 0 ? `/viewer/${PLACE.slug}/` : '';
 		</ul>
 		{/if}
 		{#if PLACE.descendants.length > 0}
-		<h4>Sub-locales</h4>
-		<div style="display:flex; justify-content:end;">
-			<label title="Show all sub-locales, even those without maps">show all sub-locales<input type='checkbox' bind:checked={showAllSublocales} /></label>
+		<div style="display:flex; justify-content:space-between; align-items:center;">
+			<h4>Sub-locales</h4>
+			<label title="Show all sub-locales, even those without maps">show all<input type='checkbox' bind:checked={showAllSublocales} /></label>
 		</div>
 		{#if localeList.length > 0}
 		<ul class="sub-list">
