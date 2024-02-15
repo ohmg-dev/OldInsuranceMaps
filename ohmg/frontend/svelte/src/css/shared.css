@@ -7,23 +7,15 @@ h1, h2, h3, h4, h5, h6 {
 	scroll-margin-top: 65px
 }
 
-.signin-reminder {
-	background: #e6e6e6;
-	text-align: center;
-	padding: 5px;
-	margin: 5px;
-}
-
-.signin-reminder p {
-	margin: 0px;
-}
-
 table.tablesort {
 	width:100%;
+	border: 1px solid grey;
+	border-radius: 4px;
 }
 
 th.sortable, td {
 	padding: 5px;
+	white-space: nowrap;
 }
 
 thead tr {

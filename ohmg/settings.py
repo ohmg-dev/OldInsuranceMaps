@@ -111,8 +111,8 @@ TEMPLATES = [
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
         "django.contrib.auth.context_processors.auth",
-        "ohmg.frontend.context_processors.loc_info",
-        "ohmg.frontend.context_processors.general",
+        "ohmg.frontend.context_processors.navbar_footer_params",
+        "ohmg.frontend.context_processors.site_info",
         "pinax_theme_bootstrap.context_processors.theme",
       ],
       "debug": DEBUG,
@@ -291,6 +291,7 @@ ACCOUNT_ADAPTER = "ohmg.accounts.adapter.AccountAdapter"
 
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_SIGNUP_REDIRECT_URL = "/"
+ACCOUNT_USERNAME_VALIDATORS = 'ohmg.accounts.validators.custom_username_validators'
 
 # prep/georef session duration before expiration (seconds)
 GEOREFERENCE_SESSION_LENGTH = int(os.getenv("GEOREFERENCE_SESSION_LENGTH", 600))
@@ -304,7 +305,9 @@ IIIF_SERVER_LOCATION = "http://localhost:8182"
 # To allow other sites to read IIIF resources set CORS_ORIGIN_ALLOW_ALL to True
 CORS_ORIGIN_ALLOW_ALL = False
 
-DEFAULT_THUMBNAIL_SIZE = (240, 200)
+# Doubling this to 480, 400 (2/1/24) to present higher fidelity cover pages.
+DEFAULT_MAX_THUMBNAIL_DIMENSION = 400
+DEFAULT_THUMBNAIL_SIZE = (480, 400)
 
 # Location of locale files
 LOCALE_PATHS = (

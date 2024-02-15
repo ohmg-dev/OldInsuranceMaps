@@ -2,7 +2,9 @@ import os
 import re
 import json
 import logging
-from datetime import datetime
+from pathlib import Path
+
+import frontmatter
 
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
@@ -11,6 +13,7 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import View
 from django.middleware import csrf
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from newsletter.models import Submission, Message
 
@@ -18,7 +21,6 @@ from ohmg.utils import full_reverse
 from ohmg.georeference.models import Layer
 
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.loc_insurancemaps.tasks import load_docs_as_task
 
 from ohmg.places.models import Place
 
@@ -125,23 +127,49 @@ class Browse(View):
             context=context_dict
         )
 
-class BasicPage(View):
+class ActivityView(View):
 
-    def get(self, request, slug, title):
+    def get(self, request):
 
         context_dict = {
             "params": {
-                "PAGE_TITLE": title,
-                "PAGE_NAME": slug,
-                "PARAMS": {}
+                "PAGE_TITLE": "Activity",
+                "PAGE_NAME": 'activity',
+                "PARAMS": {
+                    "SESSION_API_URL": reverse("api-beta:session_list"),
+                    "OHMG_API_KEY": settings.OHMG_API_KEY,
+                }
             }
         }
 
-        if slug == "activity":
-            context_dict['params']['PARAMS'].update({
-                "SESSION_API_URL": reverse("api-beta:session_list"),
-                "OHMG_API_KEY": settings.OHMG_API_KEY,
-            })
+        return render(
+            request,
+            "index.html",
+            context=context_dict
+        )
+    
+class MarkdownPage(View):
+
+    def get(self, request, slug):
+
+        md_path = Path(settings.PROJECT_DIR, 'frontend', 'pages', f"{slug}.md")
+        if not os.path.isfile(md_path):
+            raise Http404
+
+        post = frontmatter.load(md_path)
+
+        context_dict = {
+            "params": {
+                "PAGE_TITLE": post['page_title'],
+                "PAGE_NAME": 'markdown-page',
+                "PARAMS": {
+                    "HEADER": post['header'],
+                    # downstream SvelteMarkdown requires this variable to be `source`
+                    "source": post.content,
+                }
+            }
+        }
+
         return render(
             request,
             "index.html",
@@ -184,86 +212,6 @@ class VolumeTrim(View):
             }
 
         return JsonResponse(response)
-
-
-class VolumeDetail(View):
-
-    def get(self, request, volumeid):
-
-        volume = get_object_or_404(Volume, pk=volumeid)
-        volume_json = volume.serialize(include_session_info=True)
-
-        other_vols = []
-        for v in Volume.objects.filter(city=volume.city, state=volume.state):
-            url = reverse("volume_summary", args=(v.pk, ))
-            if v.pk == volume.pk:
-                url = None
-            item = {
-                "alt": v.__str__(),
-                "display": str(v.year),
-                "url": url,
-            }
-            if v.volume_no is not None:
-                item['display'] += f" vol. {v.volume_no}"
-            other_vols.append(item)
-        other_vols.sort(key=lambda i: i['display'])
-
-        context_dict = {
-            "svelte_params": {
-                "TITILER_HOST": settings.TITILER_HOST,
-                "VOLUME": volume_json,
-                "OTHER_VOLUMES": other_vols,
-                "CSRFTOKEN": csrf.get_token(request),
-                'USER_TYPE': get_user_type(request.user),
-                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-            }
-        }
-        return render(
-            request,
-            "content/item.html",
-            context=context_dict
-        )
-
-    def post(self, request, volumeid):
-
-        body = json.loads(request.body)
-        operation = body.get("operation", None)
-
-        if operation == "initialize":
-            volume = Volume.objects.get(pk=volumeid)
-            if volume.loaded_by is None:
-                volume.loaded_by = request.user
-                volume.load_date = datetime.now()
-                volume.save(update_fields=["loaded_by", "load_date"])
-            load_docs_as_task.delay(volumeid)
-            volume_json = volume.serialize(include_session_info=True)
-            volume_json["status"] = "initializing..."
-
-            return JsonResponse(volume_json)
-
-        elif operation == "set-index-layers":
-
-            volume = Volume.objects.get(pk=volumeid)
-
-            lcat_lookup = body.get("layerCategoryLookup", {})
-
-            for cat in volume.sorted_layers:
-                volume.sorted_layers[cat] = [k for k, v in lcat_lookup.items() if v == cat]
-
-            volume.save(update_fields=["sorted_layers"])
-            volume_json = volume.serialize(include_session_info=True)
-            return JsonResponse(volume_json)
-
-        elif operation == "refresh":
-            volume = Volume.objects.get(pk=volumeid)
-            volume_json = volume.serialize(include_session_info=True)
-            return JsonResponse(volume_json)
-
-        elif operation == "refresh-lookups":
-            volume = Volume.objects.get(pk=volumeid)
-            volume.refresh_lookups()
-            volume_json = volume.serialize(include_session_info=True)
-            return JsonResponse(volume_json)
 
 def get_layer_mrm_urls(layerid):
 
@@ -368,5 +316,38 @@ class NewsArticle(View):
         return render(
             request,
             "news/article.html",
+            context=context_dict
+        )
+
+class Viewer(View):
+
+    @xframe_options_sameorigin
+    def get(self, request, place_slug):
+
+        place_data = {}
+        volumes = []
+
+        p = Place.objects.filter(slug=place_slug)
+        if p.count() == 1:
+            place = p[0]
+        else:
+            place = Place.objects.get(slug="louisiana")
+
+        place_data = place.serialize()
+        for v in Volume.objects.filter(locales__id__exact=place.id).order_by("year","volume_no").reverse():
+            volumes.append(v.serialize())
+
+        context_dict = {
+            "svelte_params": {
+                "PLACE": place_data,
+                "VOLUMES": volumes,
+                "TITILER_HOST": settings.TITILER_HOST,
+                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+                "ON_MOBILE": mobile(request),
+            }
+        }
+        return render(
+            request,
+            "viewer.html",
             context=context_dict
         )

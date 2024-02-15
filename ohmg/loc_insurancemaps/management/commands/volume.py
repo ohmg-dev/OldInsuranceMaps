@@ -28,7 +28,6 @@ class Command(BaseCommand):
                 "make-sheets",
                 "generate-mosaic-cog",
                 "generate-mosaic-json",
-                "generate-non-geo-mosaic",
                 "generate-thumbnails",
                 "set-extent",
                 "warp-layers",
@@ -74,6 +73,15 @@ class Command(BaseCommand):
             help="slug for the Place to attach to this volume"
         )
         parser.add_argument(
+            "--sponsor",
+            help="username of sponsor for this volume"
+        )
+        parser.add_argument(
+            "--access",
+            default="any",
+            help="username of sponsor for this volume"
+        )
+        parser.add_argument(
             "--all",
             help="apply to all volumes",
             action="store_true",
@@ -92,6 +100,10 @@ class Command(BaseCommand):
             username = "admin"
         user = get_user_model().objects.get(username=username)
 
+        sponsor = None
+        if options['sponsor']:
+            sponsor = get_user_model().objects.get(username=options['sponsor'])
+
         i = options['identifier']
         if options['operation'] == "refresh-lookups":
             if i is not None:
@@ -100,15 +112,6 @@ class Command(BaseCommand):
                 vols = Volume.objects.all()
             for v in vols:
                 v.refresh_lookups()
-            print(f"refreshed lookups on {len(vols)} volumes")
-
-        if options['operation'] == "refresh-lookups-old":
-            if i is not None:
-                vols = Volume.objects.filter(pk=i)
-            else:
-                vols = Volume.objects.all()
-            for v in vols:
-                v.populate_lookups()
             print(f"refreshed lookups on {len(vols)} volumes")
 
         if options['operation'] == "import":
@@ -153,6 +156,10 @@ class Command(BaseCommand):
                     locale=locale,
                     dry_run=options['dry_run']
                 )
+                if vol:
+                    vol.access = options['access']
+                    vol.sponsor = sponsor
+                    vol.save()
                 print(vol)
 
         if options['operation'] == "remove":
@@ -213,15 +220,6 @@ class Command(BaseCommand):
                 else:
                     item = Item(i)
                     item.generate_mosaic_cog()
-
-        if options['operation'] == "generate-non-geo-mosaic":
-            if i is not None:
-                if options['background']:
-                    print('not implemented')
-                    return
-                else:
-                    item = Item(i)
-                    item.generate_mosaic_jpg(f"{i}.jpg")
 
         if options['operation'] == "generate-mosaic-json":
             if i is not None:

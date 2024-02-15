@@ -39,18 +39,6 @@
   color: grey;
 }
 
-.signin-reminder {
-  background: #e6e6e6;
-  text-align: center;
-  padding: 5px;
-  margin: 5px;
-  border-radius: 4px;
-}
-
-.signin-reminder p {
-  margin: 0px;
-}
-
 .interface-mask {
   height: 597px; /* 600 - 2 * 1.5px borders on the main component */
   width: 100%;
@@ -175,7 +163,7 @@
 }
 
 table.tablesort {
-	width:100%;
+	width: 100%;
 }
 
 th.sortable, td {

@@ -1,9 +1,0 @@
-{% extends 'base.html' %}
-{% load i18n %}
-
-{% block title %}About{% endblock title %}
-
-{% block main_content %}
-{{ browse_params|json_script:'about-props'}}
-{% include '_svelte_component.html' with component_name='About' %}
-{% endblock %}

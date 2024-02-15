@@ -194,8 +194,12 @@ class Volume(models.Model):
     STATUS_CHOICES = (
         ("not started", "not started"),
         ("initializing...", "initializing..."),
-        ("started", "started"),
-        ("all georeferenced", "all georeferenced"),
+        ("ready", "ready"),
+    )
+    ACCESS_CHOICES = (
+        ("none", "none"),
+        ("sponsor", "sponsor"),
+        ("any", "any"),
     )
 
     identifier = models.CharField(max_length=100, primary_key=True)
@@ -217,7 +221,9 @@ class Volume(models.Model):
         settings.AUTH_USER_MODEL,
         blank=True,
         null=True,
-        on_delete=models.CASCADE)
+        on_delete=models.CASCADE,
+        related_name="loaded_by"
+    )
     load_date = models.DateTimeField(null=True, blank=True)
     # DEPRECATE: marking this field for removal
     ordered_layers = models.JSONField(
@@ -266,6 +272,18 @@ class Volume(models.Model):
         null=True,
         blank=True,
         srid=4326,
+    )
+    access = models.CharField(
+        max_length=50,
+        choices=ACCESS_CHOICES,
+        default="any"
+    )
+    sponsor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name="sponsor",
     )
 
     def __str__(self):
@@ -353,16 +371,6 @@ class Volume(models.Model):
             sheet.lc_iiif_service = parsed.iiif_service
             sheet.save()
 
-    def load_sheet_documents(self):
-
-        self.make_sheets()
-        self.update_status("initializing...")
-        for sheet in self.sheets:
-            if sheet.document is None:
-                sheet.load_document(self.loaded_by)
-        self.update_status("started")
-        self.populate_lookups()
-
     def load_sheet_docs(self, force_reload=False):
 
         self.make_sheets()
@@ -370,7 +378,7 @@ class Volume(models.Model):
         for sheet in self.sheets:
             if sheet.doc is None or sheet.doc.file is None or force_reload:
                 sheet.load_doc(self.loaded_by)
-        self.update_status("started")
+        self.update_status("ready")
         self.refresh_lookups()
 
     def remove_sheets(self):
@@ -673,6 +681,8 @@ class Volume(models.Model):
             "extent": self.extent.extent if self.extent else None,
             "locale": self.get_locale(serialized=True),
             "mosaic_preference": self.mosaic_preference,
+            "sponsor": self.sponsor.username if self.sponsor else None,
+            "access": self.access,
         }
 
         if include_session_info:

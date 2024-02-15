@@ -118,6 +118,116 @@ class Place(models.Model):
             name += f" {self.get_category_display()}"
         breadcrumbs.append({"name": name, "slug": self.slug})
         return breadcrumbs
+    
+    def get_select_lists(self):
+        """
+        Returns a dictionary with 4 levels of lists, these are used to populate
+        select dropdowns. Each list has both a list of options and also a current
+        selection. For example, if this Place object is Madison, WI, the returned
+        dictionary would look like this:
+
+        {
+            1: {
+                "selected": "united-states",
+                "options": [
+                    <all countries>,
+                ],
+            },
+            2: {
+                "selected": "wisconsin",
+                "options": [
+                    <all US states>
+                ],
+            },
+            3: {
+                "selected": "dane-county-wi",
+                "options": [
+                    <all counties in WI>
+                ],
+            },
+            4: {
+                "selected": "madison-wi",
+                "options": [
+                    <all cities in Dane County>
+                ],
+            },
+        }
+
+        The value --- is used to signify a non-selection in a given category,
+        so for the Wisconsin Place instance, the 3rd and 4th entry above would
+        have selection: "---".
+        
+        Note that the selected value will be a slug, while the options
+        list contains dictionaries with the following key/values:
+        
+        "pk", "slug", "display_name", "volume_count_inclusive"
+        """
+
+        lists = {
+            1: {
+                "selected": "---",
+                "options": [],
+            },
+            2: {
+                "selected": "---",
+                "options": [],
+            },
+            3: {
+                "selected": "---",
+                "options": [],
+            },
+            4: {
+                "selected": "---",
+                "options": [],
+            },
+        }
+
+        # take the requested place, and prefill list selections based on its breadcrumbs
+        for n, i in enumerate(self.get_breadcrumbs(), start=1):
+            lists[n]['selected'] = i['slug']
+        
+        # at this point, at least a country will be selected, get its pk
+        top_pk = Place.objects.get(slug=lists[1]["selected"]).pk
+
+        # always give all of the country options
+        all_lvl1 = list(Place.objects.filter(direct_parents=None).values("pk", "slug", "display_name", "volume_count_inclusive"))
+        lists[1]["options"] = all_lvl1
+
+        # set level 2 (state) options to only those in this country
+        all_lvl2 = list(Place.objects.filter(direct_parents=top_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
+        lists[2]["options"] = all_lvl2
+
+        # if a state is selected, set options to all other states in the same country
+        # also, set county/parish and city options for everything within the state
+        if lists[2]['selected'] != "---":
+            state_pk = Place.objects.get(slug=lists[2]["selected"]).pk
+            all_lvl3 = list(Place.objects.filter(direct_parents=state_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
+            lists[3]["options"] = all_lvl3
+            lvl3_pks = [i['pk'] for i in all_lvl3]
+            all_lvl4 = list(Place.objects.filter(direct_parents__in=lvl3_pks).values("pk", "slug", "display_name", "volume_count_inclusive"))
+            lists[4]["options"] = all_lvl4
+
+        # if a county/parish is selected, narrow cities to only those in the county
+        if lists[3]['selected'] != "---":
+            ce_pk = Place.objects.get(slug=lists[3]["selected"]).pk
+            all_lvl4 = list(Place.objects.filter(direct_parents=ce_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
+            lists[4]["options"] = all_lvl4
+
+        for k, v in lists.items():
+            v['options'].sort(key=lambda k : k['display_name'])
+
+        return lists
+
+    def get_inclusive_pks(self):
+        pks = [self.pk]
+        descendants = Place.objects.filter(direct_parents__id__exact=self.id)
+        while descendants:
+            pks += [i.pk for i in descendants]
+            new_descendants = []
+            for d in descendants:
+                new_descendants += [i for i in Place.objects.filter(direct_parents__id__exact=d.pk)]
+            descendants = new_descendants
+        return pks
 
     def serialize(self):
         return {
@@ -142,6 +252,7 @@ class Place(models.Model):
             } for i in self.states],
             "slug": self.slug,
             "breadcrumbs": self.get_breadcrumbs(),
+            "select_lists": self.get_select_lists(),
             "volume_count": self.volume_count,
             "volume_count_inclusive": self.volume_count_inclusive,
             "volumes": [{

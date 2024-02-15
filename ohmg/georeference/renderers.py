@@ -10,9 +10,9 @@ def generate_document_thumbnail_content(image_file_path):
     full_image = Image.open(image_file_path)
     width, height = full_image.size
     # only resize if one of the dimensions is larger than 200
-    if width > 200 or height > 200:
+    if width > settings.DEFAULT_MAX_THUMBNAIL_DIMENSION or height > settings.DEFAULT_MAX_THUMBNAIL_DIMENSION:
         biggest_dim = max([width, height])
-        ratio = 200/biggest_dim
+        ratio = settings.DEFAULT_MAX_THUMBNAIL_DIMENSION/biggest_dim
         new_width, new_height = int(ratio*width), int(ratio*height)
         new_size = (new_width, new_height)
         if 0 in new_size:
