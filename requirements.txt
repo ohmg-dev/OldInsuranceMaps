@@ -8,6 +8,7 @@ django_guardian==2.4.0
 django_extensions==3.2.1
 django-oauth2-provider==0.2.6.1
 django-allauth==0.55.2
+django-markdownx==4.0.7
 
 django-newsletter==0.9.1
 django-tinymce==3.6.1

@@ -75,8 +75,10 @@ INSTALLED_APPS = [
     'invitations',
 
     'ninja',
+    'markdownx',
 
     'ohmg.api',
+    'ohmg.content',
     'ohmg.frontend',
     'ohmg.georeference',
     'ohmg.loc_insurancemaps',
