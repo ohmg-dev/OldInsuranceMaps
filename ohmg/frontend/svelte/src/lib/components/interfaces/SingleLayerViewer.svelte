@@ -10,7 +10,10 @@
     import {ZoomToExtent, defaults as defaultControls} from 'ol/control.js';
     
     import {transformExtent} from 'ol/proj';
-    
+
+    import MousePosition from 'ol/control/MousePosition';
+    import {createStringXY} from 'ol/coordinate';
+
     import {XYZ} from 'ol/source';
     import {Tile as TileLayer} from 'ol/layer';
     
@@ -21,52 +24,100 @@
         makeBasemaps,
     } from '@helpers/utils';
 
+    import { LyrMousePosition } from '@helpers/controls';
+
     export let EXTENT;
     export let MAPBOX_API_KEY;
     export let TITILER_HOST;
     export let LAYER_URL;
 
-    function LayerViewer () {
+    let currentZoom = '';
 
-        const targetElement = document.getElementById('lyr-viewer');
+    class Viewer {
+        constructor(elementId) {
 
-        const basemaps = makeBasemaps(MAPBOX_API_KEY);
-        const extent = transformExtent(EXTENT, "EPSG:4326", "EPSG:3857");
+            const targetElement = document.getElementById(elementId);
 
-        const resLayer = new TileLayer({
-            source: new XYZ({
-                url: makeTitilerXYZUrl({
-                    host: TITILER_HOST,
-                    url: LAYER_URL,
+            const basemaps = makeBasemaps(MAPBOX_API_KEY);
+            const extent = transformExtent(EXTENT, "EPSG:4326", "EPSG:3857");
+
+            const resLayer = new TileLayer({
+                source: new XYZ({
+                    url: makeTitilerXYZUrl({
+                        host: TITILER_HOST,
+                        url: LAYER_URL,
+                    }),
                 }),
-            }),
-            extent: extent
-        });
+                extent: extent
+            });
 
-        const extentIconEl = document.getElementById('lyr-extent-icon')
+            const map = new Map({
+                target: targetElement,
+                layers: [basemaps[0].layer, resLayer],
+                controls: defaultControls().extend([
+                    new ZoomToExtent({
+                        extent: extent,
+                        label: document.getElementById('extent-icon-lyr'),
+                    }),
+                    new LyrMousePosition('pointer-coords-lyr'),
+                ]),
+            });
 
-        const map = new Map({
-            target: targetElement,
-            layers: [basemaps[0].layer, resLayer],
-            controls: defaultControls().extend([
-                new ZoomToExtent({
-                    extent: extent,
-                    label: extentIconEl,
-                }),
-            ]),
-        });
+            function roundedZoom() {
+                return Math.round(map.getView().getZoom() * 10) / 10
+            }
+            currentZoom = roundedZoom()
 
-        map.getView().fit(extent);
+            map.getView().on('change:resolution', () => {
+                currentZoom = roundedZoom()
+            })
 
-        this.map = map;
+            map.getView().fit(extent);
+
+            this.map = map;
+        }
     }
 
     let viewer;
     onMount(() => {
-        viewer = new LayerViewer();
+        viewer = new Viewer('lyr-viewer');
     })
 </script>
 <IconContext values={iconProps}>
-    <i id='lyr-extent-icon'><CornersOut size={'20px'} /></i>
-    <div id="lyr-viewer" style="height:100%; width:100%;"></div>
+<div style="height:100%;">
+    <div id="lyr-viewer">
+        <i id='extent-icon-lyr'><CornersOut size={'20px'} /></i>
+    </div>
+    <div id="info-row">
+        <div id="info-box">
+            <span>z: {currentZoom} |&nbsp;</span>
+            <span id="pointer-coords-lyr"></span>
+        </div>
+    </div>
+</div>
 </IconContext>
+
+<style>
+    #lyr-viewer {
+        background: url('../../static/img/sandpaper-bg-vlite.jpg');
+        height: 100%;
+        width: 100%;
+    }
+    #info-row {
+        position: relative;
+        display: flex;
+        justify-content: start;
+        max-width: 200px;
+        margin-top: -25px;
+        height: 25px;
+    }
+    #info-box {
+        display: flex;
+        justify-content: start;
+        background-color: rgba(255,255,255,.6);
+        align-items: center;
+        align-items: center;
+        padding: 0 10px;
+        font-size: .8em;
+    }
+</style>

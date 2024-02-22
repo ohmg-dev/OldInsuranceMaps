@@ -17,9 +17,8 @@ import {getCenter} from 'ol/extent';
 
 import Link from '@components/base/Link.svelte';
 import TitleBar from '@components/layout/TitleBar.svelte';
-import SessionList from '@components/lists/SessionList.svelte'
-import SingleLayerViewer from '@components/interfaces/SingleLayerViewer.svelte';
-import SingleDocumentViewer from '@components/interfaces/SingleDocumentViewer.svelte';
+import SessionList from '@components/lists/SessionList.svelte';
+import SimpleViewer from '@components/interfaces/SimpleViewer.svelte';
 import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
 
 import ResourceDetails from './sections/ResourceDetails.svelte';
@@ -35,7 +34,10 @@ export let GEOREFERENCE_SUMMARY;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
 export let OHMG_API_KEY;
-export let SESSION_API_URL; 
+export let SESSION_API_URL;
+
+const EXTENT = RESOURCE.type == "layer" ? RESOURCE.extent : [0, -RESOURCE.image_size[1], RESOURCE.image_size[0], 0]
+const LAYER_URL = RESOURCE.type == "layer" ? RESOURCE.urls.cog : RESOURCE.urls.image
 
 let xyzUrl;
 let ohmUrl;
@@ -262,11 +264,11 @@ console.log(RESOURCE)
     <div transition:slide>
       <div id="map-panel">
         {#each reinitMap as key (key)}
-        {#if RESOURCE.type == "document"}
-          <SingleDocumentViewer  LAYER_URL={RESOURCE.urls.image} IMAGE_SIZE={RESOURCE.image_size} />
+        <SimpleViewer  {LAYER_URL} {EXTENT} {MAPBOX_API_KEY} {TITILER_HOST} GEOSPATIAL={RESOURCE.type == "layer"} />
+        <!-- {#if RESOURCE.type == "document"}
         {:else}
-          <SingleLayerViewer  LAYER_URL={RESOURCE.urls.cog} EXTENT={RESOURCE.extent} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
-        {/if}
+          <SingleLayerViewer  LAYER_URL={RESOURCE.urls.cog} EXTENT={}  />
+        {/if} -->
         {/each}
       </div>
     </div>
