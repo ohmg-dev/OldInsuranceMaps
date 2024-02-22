@@ -1,0 +1,34 @@
+[
+{
+  "model": "content.virtualresourcesettype",
+  "pk": "cbd",
+  "fields": {
+    "name": "Congested Area",
+    "geospatial": true
+  }
+},
+{
+  "model": "content.virtualresourcesettype",
+  "pk": "key-map",
+  "fields": {
+    "name": "Key Map",
+    "geospatial": true
+  }
+},
+{
+  "model": "content.virtualresourcesettype",
+  "pk": "key-map-vol",
+  "fields": {
+    "name": "Volume Key Map",
+    "geospatial": true
+  }
+},
+{
+  "model": "content.virtualresourcesettype",
+  "pk": "main",
+  "fields": {
+    "name": "Main Content",
+    "geospatial": true
+  }
+}
+]

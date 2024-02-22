@@ -8,7 +8,19 @@ from ohmg.georeference.models import (
     DocumentLink,
     PrepSession,
     GeorefSession,
+    # ItemBase,
+    # VirtualResourceSet,
+    # VirtualResourceSetType,
 )
+
+# class VRSAdmin(admin.ModelAdmin):
+#     readonly_fields = (
+#         'vres_list',
+#     )
+
+# admin.site.register(VirtualResourceSet, VRSAdmin)
+# admin.site.register(VirtualResourceSetType)
+# admin.site.register(ItemBase)
 
 class GCPAdmin(admin.ModelAdmin):
     readonly_fields = ('last_modified',)

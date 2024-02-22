@@ -16,6 +16,7 @@ from django.contrib.gis.db import models
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django.utils.safestring import mark_safe
 
 from ohmg.utils import (
     full_reverse,
@@ -346,6 +347,12 @@ class ItemBase(models.Model):
     lock_details = models.JSONField(
         null=True,
         blank=True,
+    )
+    vrs = models.ForeignKey(
+        "georeference.VirtualResourceSet",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
     )
 
     def __str__(self):
@@ -775,3 +782,45 @@ class DocumentLink(models.Model):
 
     def __str__(self):
         return f"{self.source} --> {self.target}"
+
+
+
+class VirtualResourceSetType(models.Model):
+
+    code = models.CharField(primary_key=True, max_length=50)
+    name = models.CharField(max_length=50)
+    geospatial = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name if self.name else self.code
+
+
+class VirtualResourceSet(models.Model):
+
+    volume = models.ForeignKey(
+        "loc_insurancemaps.Volume",
+        on_delete=models.CASCADE,
+    )
+    category = models.ForeignKey(
+        VirtualResourceSetType,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
+    multimask = models.JSONField(
+        null=True,
+        blank=True
+    )
+
+    def __str__(self):
+        return f"{self.volume} - {self.category}"
+
+    @property
+    def vres(self):
+        return ItemBase.objects.filter(vrs=self)
+    
+    def vres_list(self):
+        li = [f"<li><a href='/admin/georeference/itembase/{i.pk}/change'>{i.slug}</a></li>" for i in self.vres]
+        return mark_safe("<ul>"+"".join(li)+"</ul>")
+
+    vres_list.short_description = 'Virtual resources in this set'
