@@ -13,6 +13,8 @@ import LegendModal from "./modals/LegendModal.svelte"
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import {transformExtent} from 'ol/proj';
+import MousePosition from 'ol/control/MousePosition';
+    import {createStringXY} from 'ol/coordinate';
 import {OSM, XYZ} from 'ol/source';
 
 import {

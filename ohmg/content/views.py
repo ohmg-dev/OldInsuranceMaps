@@ -43,18 +43,18 @@ class MapSummary(View):
             context=context_dict
         )
 
-    def post(self, request, volumeid):
+    def post(self, request, identifier):
 
         body = json.loads(request.body)
         operation = body.get("operation", None)
 
         if operation == "initialize":
-            volume = Volume.objects.get(pk=volumeid)
+            volume = Volume.objects.get(pk=identifier)
             if volume.loaded_by is None:
                 volume.loaded_by = request.user
                 volume.load_date = datetime.now()
                 volume.save(update_fields=["loaded_by", "load_date"])
-            load_docs_as_task.delay(volumeid)
+            load_docs_as_task.delay(identifier)
             volume_json = volume.serialize(include_session_info=True)
             volume_json["status"] = "initializing..."
 
@@ -62,7 +62,7 @@ class MapSummary(View):
 
         elif operation == "set-index-layers":
 
-            volume = Volume.objects.get(pk=volumeid)
+            volume = Volume.objects.get(pk=identifier)
 
             lcat_lookup = body.get("layerCategoryLookup", {})
 
@@ -74,12 +74,12 @@ class MapSummary(View):
             return JsonResponse(volume_json)
 
         elif operation == "refresh":
-            volume = Volume.objects.get(pk=volumeid)
+            volume = Volume.objects.get(pk=identifier)
             volume_json = volume.serialize(include_session_info=True)
             return JsonResponse(volume_json)
 
         elif operation == "refresh-lookups":
-            volume = Volume.objects.get(pk=volumeid)
+            volume = Volume.objects.get(pk=identifier)
             volume.refresh_lookups()
             volume_json = volume.serialize(include_session_info=True)
             return JsonResponse(volume_json)
