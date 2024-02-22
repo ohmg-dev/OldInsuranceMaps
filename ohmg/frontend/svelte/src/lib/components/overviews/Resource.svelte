@@ -34,7 +34,10 @@ export let GEOREFERENCE_SUMMARY;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
 export let OHMG_API_KEY;
-export let SESSION_API_URL; 
+export let SESSION_API_URL;
+
+const EXTENT = RESOURCE.type == "layer" ? RESOURCE.extent : [0, -RESOURCE.image_size[1], RESOURCE.image_size[0], 0]
+const LAYER_URL = RESOURCE.type == "layer" ? RESOURCE.urls.cog : RESOURCE.urls.image
 
 let xyzUrl;
 let ohmUrl;
@@ -261,7 +264,11 @@ console.log(RESOURCE)
     <div transition:slide>
       <div id="map-panel">
         {#each reinitMap as key (key)}
-        <SimpleViewer  LAYER_URL={RESOURCE.urls.image} EXTENT={[0, -RESOURCE.image_size[1], RESOURCE.image_size[0], 0]} {MAPBOX_API_KEY} {TITILER_HOST} GEOSPATIAL={RESOURCE.type == "layer"} />
+        <SimpleViewer  {LAYER_URL} {EXTENT} {MAPBOX_API_KEY} {TITILER_HOST} GEOSPATIAL={RESOURCE.type == "layer"} />
+        <!-- {#if RESOURCE.type == "document"}
+        {:else}
+          <SingleLayerViewer  LAYER_URL={RESOURCE.urls.cog} EXTENT={}  />
+        {/if} -->
         {/each}
       </div>
     </div>
