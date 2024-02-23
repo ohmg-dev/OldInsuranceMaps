@@ -1,34 +1,42 @@
 [
 {
-  "model": "content.virtualresourcesettype",
+  "model": "georeference.virtualresourcesettype",
   "pk": "cbd",
   "fields": {
-    "name": "Congested Area",
+    "display_name": "Congested Area Map",
     "geospatial": true
   }
 },
 {
-  "model": "content.virtualresourcesettype",
+  "model": "georeference.virtualresourcesettype",
   "pk": "key-map",
   "fields": {
-    "name": "Key Map",
+    "display_name": "Key Map",
     "geospatial": true
   }
 },
 {
-  "model": "content.virtualresourcesettype",
-  "pk": "key-map-vol",
+  "model": "georeference.virtualresourcesettype",
+  "pk": "volume-key-map",
   "fields": {
-    "name": "Volume Key Map",
+    "display_name": "Volume Key Map",
     "geospatial": true
   }
 },
 {
-  "model": "content.virtualresourcesettype",
+  "model": "georeference.virtualresourcesettype",
   "pk": "main",
   "fields": {
-    "name": "Main Content",
+    "display_name": "Main Content",
     "geospatial": true
+  }
+},
+{
+  "model": "georeference.virtualresourcesettype",
+  "pk": "nonmap",
+  "fields": {
+    "display_name": "Non-Map Content",
+    "geospatial": false
   }
 }
 ]

@@ -11,8 +11,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.contrib.gis.db import models
+from django.core.files import File
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -21,10 +22,10 @@ from django.utils.safestring import mark_safe
 from ohmg.utils import (
     full_reverse,
     slugify,
+    random_alnum,
 )
 from ohmg.georeference.renderers import generate_document_thumbnail_content, generate_layer_thumbnail_content
 from ohmg.georeference.storage import OverwriteStorage
-
 
 logger = logging.getLogger(__name__)
 
@@ -784,15 +785,14 @@ class DocumentLink(models.Model):
         return f"{self.source} --> {self.target}"
 
 
-
 class VirtualResourceSetType(models.Model):
 
     code = models.CharField(primary_key=True, max_length=50)
-    name = models.CharField(max_length=50)
+    display_name = models.CharField(max_length=50)
     geospatial = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.name if self.name else self.code
+        return self.display_name if self.display_name else self.code
 
 
 class VirtualResourceSet(models.Model):
@@ -811,16 +811,146 @@ class VirtualResourceSet(models.Model):
         null=True,
         blank=True
     )
+    mosaic_geotiff = models.FileField(
+        upload_to='mosaics',
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
+    )
+    mosaic_json = models.FileField(
+        upload_to='mosaics',
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
+    )
 
     def __str__(self):
         return f"{self.volume} - {self.category}"
 
     @property
-    def vres(self):
+    def virtual_resources(self):
         return ItemBase.objects.filter(vrs=self)
     
     def vres_list(self):
-        li = [f"<li><a href='/admin/georeference/itembase/{i.pk}/change'>{i.slug}</a></li>" for i in self.vres]
+        """For display in the admin interface only."""
+        li = [f"<li><a href='/admin/georeference/itembase/{i.pk}/change'>{i.slug}</a></li>" for i in self.virtual_resources]
         return mark_safe("<ul>"+"".join(li)+"</ul>")
 
     vres_list.short_description = 'Virtual resources in this set'
+
+    def get_multimask_geojson(self):
+        multimask_geojson = {"type": "FeatureCollection", "features": []}
+        for layer, geojson in self.multimask.items():
+            geojson["properties"] = {"layer": layer}
+            multimask_geojson['features'].append(geojson)
+
+        return multimask_geojson
+
+    def generate_mosaic_vrt(self):
+        """ A helpful reference from the BPLv used during the creation of this method:
+        https://github.com/bplmaps/atlascope-utilities/blob/master/new-workflow/atlas-tools.py
+        """
+
+        gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
+        gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")
+
+        multimask_geojson = self.get_multimask_geojson()
+        multimask_file_name = f"multimask-{self.category.code}-{self.volume.identifier}"
+        multimask_file = os.path.join(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
+        with open(multimask_file, "w") as out:
+            json.dump(multimask_geojson, out, indent=1)
+
+        trim_list = []
+        layer_extent_polygons = []
+        for feature in multimask_geojson['features']:
+
+            layer_name = feature['properties']['layer']
+
+            layer = Layer.objects.get(slug=layer_name)
+            if not layer.file:
+                raise Exception(f"no layer file for this layer {layer_name}")
+
+            if layer.extent:
+                extent_poly = Polygon.from_bbox(layer.extent)
+                layer_extent_polygons.append(extent_poly)
+
+            latest_sesh = list(layer.get_document().georeference_sessions)[-1]
+            in_path = latest_sesh.run(return_vrt=True)
+            trim_name = os.path.basename(in_path).replace(".vrt", "_trim.vrt")
+            out_path = os.path.join(settings.TEMP_DIR, trim_name)
+
+            wo = gdal.WarpOptions(
+                format="VRT",
+                dstSRS = "EPSG:3857",
+                cutlineDSName = multimask_file,
+                cutlineLayer = multimask_file_name,
+                cutlineWhere = f"layer='{layer_name}'",
+                cropToCutline = True,
+                # srcAlpha = True,
+                # dstAlpha = True,
+                # creationOptions= [
+                #     'COMPRESS=JPEG',
+                # ]
+                # creationOptions= [
+                #     'COMPRESS=DEFLATE',
+                #     'PREDICTOR=2',
+                # ]
+            )
+            gdal.Warp(out_path, in_path, options=wo)
+            print("warped")
+
+            trim_list.append(out_path)
+
+        if len(layer_extent_polygons) > 0:
+            multi = MultiPolygon(layer_extent_polygons, srid=4326)
+
+        bounds = multi.transform(3857, True).extent
+        vo = gdal.BuildVRTOptions(
+            resolution = 'highest',
+            outputSRS="EPSG:3857",
+            outputBounds=bounds,
+            separate = False,
+        )
+        print("building vrt")
+
+        mosaic_vrt = os.path.join(settings.TEMP_DIR, f"{self.volume.identifier}-{self.category.code}.vrt")
+        gdal.BuildVRT(mosaic_vrt, trim_list, options=vo)
+
+        return mosaic_vrt
+
+    def generate_mosaic_cog(self):
+
+        start = datetime.now()
+
+        mosaic_vrt = self.generate_mosaic_vrt()
+
+        print("building final geotiff")
+
+        to = gdal.TranslateOptions(
+            format="COG",
+            creationOptions = [
+                "BIGTIFF=YES",
+                "COMPRESS=JPEG",
+                "TILING_SCHEME=GoogleMapsCompatible",
+            ],
+        )
+
+        mosaic_tif = mosaic_vrt.replace(".vrt", ".tif")
+        gdal.Translate(mosaic_tif, mosaic_vrt, options=to)
+
+        existing_file_path = None
+        if self.mosaic_geotiff:
+            existing_file_path = self.mosaic_geotiff.path
+
+        file_name = f"{self.volume.identifier}-{self.category.code}__{datetime.now().strftime('%Y-%m-%d')}__{random_alnum(6)}.tif"
+
+        with open(mosaic_tif, 'rb') as f:
+            self.mosaic_geotiff.save(file_name, File(f))
+
+        os.remove(mosaic_tif)
+        if existing_file_path:
+            os.remove(existing_file_path)
+
+        print(f"completed - elapsed time: {datetime.now() - start}")
