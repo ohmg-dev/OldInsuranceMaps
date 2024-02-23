@@ -145,34 +145,6 @@ class ActivityView(View):
             "index.html",
             context=context_dict
         )
-    
-class MarkdownPage(View):
-
-    def get(self, request, slug):
-
-        md_path = Path(settings.PROJECT_DIR, 'frontend', 'pages', f"{slug}.md")
-        if not os.path.isfile(md_path):
-            raise Http404
-
-        post = frontmatter.load(md_path)
-
-        context_dict = {
-            "params": {
-                "PAGE_TITLE": post['page_title'],
-                "PAGE_NAME": 'markdown-page',
-                "PARAMS": {
-                    "HEADER": post['header'],
-                    # downstream SvelteMarkdown requires this variable to be `source`
-                    "source": post.content,
-                }
-            }
-        }
-
-        return render(
-            request,
-            "index.html",
-            context=context_dict
-        )
 
 def get_layer_mrm_urls(layerid):
 

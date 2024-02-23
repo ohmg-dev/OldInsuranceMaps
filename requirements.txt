@@ -17,7 +17,6 @@ django-ninja==0.21.0
 
 psycopg2==2.9.5
 pygments==2.14.0
-python-frontmatter==1.0.1
 python-dotenv==1.0.0
 kombu==5.2.4
 dj_database_url==1.2.0

@@ -55,7 +55,7 @@ class Page(models.Model):
     title = models.CharField(
         max_length=200,
         help_text="Title will be slugified and must not conflict with other Pages or Places."\
-            "Three examples of how Place slugs are formatted: 'united-states', 'orleans-parish-la', and 'new-orleans-la'."
+            "Place slugs are formatted as follows: 'united-states', 'orleans-parish-la', and 'new-orleans-la'."
     )
     slug = models.CharField(
         max_length=200,
