@@ -85,6 +85,8 @@ INSTALLED_APPS = [
     'ohmg.places',
 ]
 
+MARKDOWNX_IMAGE_MAX_SIZE = { 'size': (800,0), 'quality': 90 }
+
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.SHA1PasswordHasher',
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
