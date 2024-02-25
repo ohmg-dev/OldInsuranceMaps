@@ -25,6 +25,9 @@ class PageConverter(StringConverter):
 register_converter(PageConverter, 'page-slug')
 
 urlpatterns = [
+    # APPEND_SLASH would handle this, but I believe it is applied AFTER url matching
+    # (without this redirect bare page urls were returning 404)
+    path('<page-slug:page>', RedirectView.as_view(pattern_name="page-view", permanent=True)),
     path('<page-slug:page>/', PageView.as_view(), name="page-view"),
     path('map/<str:identifier>', MapSummary.as_view(), name="map_summary"),
     path('resource/<int:pk>', VirtualResourceView.as_view(), name="resource_detail"),
