@@ -27,6 +27,8 @@ from ohmg.georeference.models import (
     GeorefSession,
     LayerSet,
     DocumentSet,
+    SetCategory,
+    VirtualResourceSet,
 )
 from ohmg.georeference.storage import OverwriteStorage
 from ohmg.places.models import Place
@@ -379,6 +381,27 @@ class Volume(models.Model):
             return DocumentSet.objects.get(volume=self, category__slug=category)
         except DocumentSet.DoesNotExist:
             return None
+        
+    def get_annotation_set(self, cat_slug:str, create:bool=False):
+
+        annoset = None
+        try:
+            annoset = DocumentSet.objects.get(volume=self, category__slug=cat_slug)
+        except DocumentSet.DoesNotExist:
+            try:
+                annoset = LayerSet.objects.get(volume=self, category__slug=cat_slug)
+            except LayerSet.DoesNotExist:
+                pass
+        if not annoset:
+            if create:
+                category = SetCategory.objects.get(slug=cat_slug)
+                annoset, created = VirtualResourceSet.objects.create(
+                    volume=self,
+                    category=category
+                )
+                if created:
+                    logger.debug(f"created new AnnotationSet: {self.pk} - {cat_slug}")
+        return annoset
 
     def make_sheets(self):
 
@@ -743,6 +766,12 @@ class Volume(models.Model):
             volume = Volume.objects.get(pk=identifier)
             volume.locales.set([locale])
             volume.update_place_counts()
+
+            # make sure a main-content layerset exists for this volume
+            main_ls, _ = LayerSet.objects.get_or_create(
+                category=SetCategory.objects.get(slug="main-content"),
+                volume=volume,
+            )
             return volume
         except Volume.DoesNotExist:
             pass
@@ -764,6 +793,11 @@ class Volume(models.Model):
             volume = Volume.objects.create(**volume_kwargs)
             volume.locales.add(locale)
             volume.update_place_counts()
+            # make sure a main-content layerset exists for this volume
+            main_ls, _ = LayerSet.objects.get_or_create(
+                category=SetCategory.objects.get(slug="main-content"),
+                volume=volume,
+            )
             return volume
 
 ## This seems to be where the signals need to be connected. See

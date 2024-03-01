@@ -17,6 +17,7 @@ class LayerSetAdmin(admin.ModelAdmin):
     readonly_fields = (
         'vres_list',
     )
+    search_fields = ('volume__city',)
 
 admin.site.register(LayerSet, LayerSetAdmin)
 
@@ -24,6 +25,8 @@ class DocumentSetAdmin(admin.ModelAdmin):
     readonly_fields = (
         'vres_list',
     )
+    search_fields = ('volume__city',)
+
 admin.site.register(DocumentSet, DocumentSetAdmin)
 admin.site.register(ItemBase)
 

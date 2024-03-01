@@ -577,6 +577,18 @@ class GeorefSession(SessionBase):
         layer.save(set_thumbnail=True, set_extent=True)
         self.lyr = layer
 
+        # hack around to add the layer to the main-content LayerSet
+        pdoc = self.doc
+        if pdoc.parent:
+            pdoc = pdoc.parent
+        try:
+            from ohmg.loc_insurancemaps.models import Sheet
+            volume = Sheet.objects.get(doc=pdoc).volume
+            layer.vrs = volume.get_layer_set("main-content")
+            layer.save()
+        except Sheet.DoesNotExist:
+            logger.warn(f"error getting Sheet for document {pdoc.pk}")
+
         self.update_status("saving control points")
 
         # save the successful gcps to the canonical GCPGroup for the document

@@ -19,6 +19,8 @@ from ohmg.georeference.models import (
     GCPGroup,
     PrepSession,
     GeorefSession,
+    VirtualResourceSet,
+    ItemBase,
 )
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
@@ -424,3 +426,43 @@ class MultiMaskView(View):
             }
 
         return JsonResponse(response)
+
+
+class AnnotationSetView(View):
+
+    def post(self, request):
+
+        if not request.body:
+            return BadPostRequest
+
+        body = json.loads(request.body)
+        operation = body.get("operation")
+        resource_id = body.get("resourceId")
+        volume_id = body.get("volumeId")
+        category = body.get("categorySlug")
+
+        v = get_object_or_404(Volume, pk=volume_id)
+        r = get_object_or_404(ItemBase, pk=resource_id)
+
+        response = {
+            "status": "",
+            "message": ""
+        }
+
+        if operation == "update":
+
+            try:
+                annoset = v.get_annotation_set(category, create=True)
+                r.update_vrs(annoset)
+                response['status'] = "success"
+                response['message'] = f"{resource_id} added to {category} annotation set"
+
+            except Exception as e:
+                logger.error(e)
+                response['status'] = "fail"
+                response['message'] = str(e)
+
+        return JsonResponse(response)
+        
+        # else:
+        #     return BadPostRequest

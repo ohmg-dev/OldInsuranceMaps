@@ -19,6 +19,11 @@ class Command(BaseCommand):
         }
 
         for vol in Volume.objects.all():
+            # make sure there is a main-content layerset for every volume
+            main_ls, _ = LayerSet.objects.get_or_create(
+                category=SetCategory.objects.get(slug="main-content"),
+                volume=vol,
+            )
             for k, v in vol.sorted_layers.items():
                 if len(v) > 0:
                     vrscat = cat_lookup[k]

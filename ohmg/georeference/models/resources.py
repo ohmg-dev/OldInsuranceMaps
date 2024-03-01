@@ -463,6 +463,23 @@ class ItemBase(models.Model):
         if save is True:
             self.save(update_fields=["status"])
 
+    def update_vrs(self, vrs):
+
+        # if it's the same vrs then do nothing
+        if self.vrs == vrs:
+            logger.debug(f"{self.pk} same as existing vrs, no action")
+            return
+
+        # make sure to clean up the existing multimask in the current vrs if necessary
+        if self.vrs:
+            if self.vrs.multimask and self.pk in self.vrs.multimask:
+                del self.vrs.multimask[self.pk]
+                self.vrs.save(update_fields=["multimask"])
+                logger.warn(f"{self.pk} removed layer from existing multimask in vrs {self.vrs.pk}")
+        self.vrs = vrs
+        self.save(update_fields=["vrs"])
+        logger.info(f"{self.pk} added to vrs {self.vrs.pk}")
+
     def save(self, set_slug=False, set_thumbnail=False, set_extent=False, *args, **kwargs):
 
         if set_slug or not self.slug:

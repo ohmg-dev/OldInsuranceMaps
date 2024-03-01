@@ -57,6 +57,38 @@ $: sheetsLoading = VOLUME.status == "initializing...";
 
 let hash = window.location.hash.substr(1);
 
+function updateVrs(e, layerId) {
+
+	// a little bit of translation needed here during transition
+	const category = e.target.options[e.target.selectedIndex].value
+	const categorySlugLookup = {
+		"main": "main-content",
+		"key_map": "key-map",
+		"congest_district": "congested-district-map",
+		"graphic_map_of_volumes": "graphic-map-of-volumes",
+	}
+
+	const postData = JSON.stringify({
+		operation: "update",
+        resourceId: layerId,
+        volumeId: VOLUME.identifier,
+        categorySlug: categorySlugLookup[category]
+	})
+
+	fetch("/annotation-set/", {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json;charset=utf-8',
+			'X-CSRFToken': CSRFTOKEN,
+		},
+		body: postData,
+	})
+	.then(response => response.json())
+	.then(result => {
+		console.log(result)
+	});
+}
+
 const sectionVis = {
 	"summary": (!hash && VOLUME.items.layers.length == 0) || hash == "summary",
 	"preview": (!hash && VOLUME.items.layers.length > 0) || hash == "preview",
@@ -474,7 +506,7 @@ let modalLyrExtent = "";
 								</ul>
 								{/if}
 								{#if settingKeyMapLayer}
-								<select bind:value={layerCategoryLookup[layer.slug]}>
+								<select bind:value={layerCategoryLookup[layer.slug]} on:change={(e) => {updateVrs(e, layer.id)}}>
 									{#each layerCategories as layerCat}
 									<option value={layerCat.value}>{layerCat.label}</option>
 									{/each}
