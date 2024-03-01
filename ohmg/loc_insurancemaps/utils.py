@@ -365,7 +365,7 @@ class LOCConnection(object):
             # set returned attributes
             self.query_url += "?at=search,results,pagination"
         elif identifier:
-            self.query_url = f"{self.baseurl}/map/{identifier}"
+            self.query_url = f"{self.baseurl}/item/{identifier}"
             # set returned attributes
             self.query_url += "?at=item,resources"
         else:
