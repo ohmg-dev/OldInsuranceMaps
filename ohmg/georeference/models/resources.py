@@ -508,7 +508,7 @@ class Document(ItemBase):
         urls = self._base_urls
         urls.update({
             "resource": full_reverse("resource_detail", args=(self.pk, )),
-            # # remove detail and progress_page urls once InfoPanel has been fully 
+            # # remove detail and progress_page urls once InfoPanel has been fully
             # # deprecated and volume summary has been updated.
             # "detail": f"/documents/{self.pk}",
             # "progress_page": f"/documents/{self.pk}#georeference",
@@ -697,7 +697,7 @@ class Layer(ItemBase):
         doc = self.get_document()
         urls.update({
             "resource": full_reverse("resource_detail", args=(self.pk, )),
-            # remove detail and progress_page urls once InfoPanel has been fully 
+            # remove detail and progress_page urls once InfoPanel has been fully
             # deprecated and volume summary has been updated.
             # note the geonode: prefix is still necessary until non-geonode
             # layer and document detail pages are created.
@@ -785,15 +785,15 @@ class DocumentLink(models.Model):
         return f"{self.source} --> {self.target}"
 
 
-class VirtualResourceSetType(models.Model):
+class SetCategory(models.Model):
 
-    code = models.CharField(primary_key=True, max_length=50)
+    slug = models.CharField(max_length=50)
+    description = models.CharField(max_length=200, null=True, blank=True)
     display_name = models.CharField(max_length=50)
-    geospatial = models.BooleanField(default=False)
+    is_geospatial = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.display_name if self.display_name else self.code
-
+        return self.display_name if self.display_name else self.slug
 
 class VirtualResourceSet(models.Model):
 
@@ -802,8 +802,8 @@ class VirtualResourceSet(models.Model):
         on_delete=models.CASCADE,
     )
     category = models.ForeignKey(
-        VirtualResourceSetType,
-        on_delete=models.CASCADE,
+        SetCategory,
+        on_delete=models.PROTECT,
         blank=True,
         null=True,
     )
@@ -832,7 +832,7 @@ class VirtualResourceSet(models.Model):
     @property
     def virtual_resources(self):
         return ItemBase.objects.filter(vrs=self)
-    
+
     def vres_list(self):
         """For display in the admin interface only."""
         li = [f"<li><a href='/admin/georeference/itembase/{i.pk}/change'>{i.slug}</a></li>" for i in self.virtual_resources]
@@ -840,13 +840,61 @@ class VirtualResourceSet(models.Model):
 
     vres_list.short_description = 'Virtual resources in this set'
 
-    def get_multimask_geojson(self):
-        multimask_geojson = {"type": "FeatureCollection", "features": []}
-        for layer, geojson in self.multimask.items():
-            geojson["properties"] = {"layer": layer}
-            multimask_geojson['features'].append(geojson)
 
-        return multimask_geojson
+class DocumentSetManager(models.Manager):
+
+    def get_queryset(self):
+        return super(DocumentSetManager, self).get_queryset().filter(category__is_geospatial=False)
+
+    def create(self, **kwargs):
+        kwargs.update({ 'category': 1 })
+        return super(DocumentSetManager, self).create(**kwargs)
+
+
+class LayerSetManager(models.Manager):
+
+    def get_queryset(self):
+        return super(LayerSetManager, self).get_queryset().filter(category__is_geospatial=True)
+
+    def create(self, **kwargs):
+        kwargs.update({ 'category': 0 })
+        return super(LayerSetManager, self).create(**kwargs)
+
+
+class DocumentSet(VirtualResourceSet):
+
+    objects = DocumentSetManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = "DocumentSet"
+        verbose_name_plural = "DocumentSets"
+
+    def __str__(self):
+        return f"{self.volume} - {self.category}"
+
+
+class LayerSet(VirtualResourceSet):
+
+    objects = LayerSetManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = "LayerSet"
+        verbose_name_plural = "LayerSets"
+
+    def __str__(self):
+        return f"{self.volume} - {self.category}"
+
+    def get_multimask_geojson(self):
+        if self.multimask:
+            multimask_geojson = {"type": "FeatureCollection", "features": []}
+            for layer, geojson in self.multimask.items():
+                geojson["properties"] = {"layer": layer}
+                multimask_geojson['features'].append(geojson)
+            return multimask_geojson
+        else:
+            return None
 
     def generate_mosaic_vrt(self):
         """ A helpful reference from the BPLv used during the creation of this method:

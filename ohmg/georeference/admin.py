@@ -9,17 +9,22 @@ from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,
     ItemBase,
-    VirtualResourceSet,
-    VirtualResourceSetType,
+    LayerSet,
+    DocumentSet,
 )
 
-class VRSAdmin(admin.ModelAdmin):
+class LayerSetAdmin(admin.ModelAdmin):
     readonly_fields = (
         'vres_list',
     )
 
-admin.site.register(VirtualResourceSet, VRSAdmin)
-admin.site.register(VirtualResourceSetType)
+admin.site.register(LayerSet, LayerSetAdmin)
+
+class DocumentSetAdmin(admin.ModelAdmin):
+    readonly_fields = (
+        'vres_list',
+    )
+admin.site.register(DocumentSet, DocumentSetAdmin)
 admin.site.register(ItemBase)
 
 class GCPAdmin(admin.ModelAdmin):

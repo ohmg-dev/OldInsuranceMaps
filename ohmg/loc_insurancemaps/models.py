@@ -25,7 +25,8 @@ from ohmg.georeference.models import (
     Layer,
     PrepSession,
     GeorefSession,
-    VirtualResourceSet,
+    LayerSet,
+    DocumentSet,
 )
 from ohmg.georeference.storage import OverwriteStorage
 from ohmg.places.models import Place
@@ -360,13 +361,23 @@ class Volume(models.Model):
     sorted_layers_formatted.short_description = 'Sorted Layers'
 
     @property
-    def virtual_resource_sets(self):
-        return VirtualResourceSet.objects.filter(volume=self)
+    def layer_sets(self):
+        return LayerSet.objects.filter(volume=self)
 
-    def get_virtual_resource_set(self, category):
+    def get_layer_set(self, category):
         try:
-            return VirtualResourceSet.objects.get(volume=self, category=category)
-        except VirtualResourceSet.DoesNotExist:
+            return LayerSet.objects.get(volume=self, category__slug=category)
+        except LayerSet.DoesNotExist:
+            return None
+        
+    @property
+    def document_sets(self):
+        return LayerSet.objects.filter(volume=self)
+
+    def get_document_sets(self, category):
+        try:
+            return DocumentSet.objects.get(volume=self, category__slug=category)
+        except DocumentSet.DoesNotExist:
             return None
 
     def make_sheets(self):
