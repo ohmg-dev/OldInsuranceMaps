@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError # noqa: F401
 
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.georeference.models import ItemBase, LayerSet, DocumentSet, SetCategory
+from ohmg.georeference.models import ItemBase, AnnotationSet, SetCategory
 
 
 class Command(BaseCommand):
@@ -19,15 +19,15 @@ class Command(BaseCommand):
         }
 
         for vol in Volume.objects.all():
-            # make sure there is a main-content layerset for every volume
-            main_ls, _ = LayerSet.objects.get_or_create(
+            # make sure there is a main-content annotationset for every volume
+            main_ls, _ = AnnotationSet.objects.get_or_create(
                 category=SetCategory.objects.get(slug="main-content"),
                 volume=vol,
             )
             for k, v in vol.sorted_layers.items():
                 if len(v) > 0:
                     vrscat = cat_lookup[k]
-                    ls, _ = LayerSet.objects.get_or_create(
+                    ls, _ = AnnotationSet.objects.get_or_create(
                         category=SetCategory.objects.get(slug=vrscat),
                         volume=vol,
                     )
@@ -43,7 +43,7 @@ class Command(BaseCommand):
             # handle the nonmaps a little differently because this is marked as a status
             nonmaps = [k for k, v in vol.document_lookup.items() if v['status'] == 'nonmap']
             if len(nonmaps) > 0:
-                vrs, _ = DocumentSet.objects.get_or_create(
+                vrs, _ = AnnotationSet.objects.get_or_create(
                     category__slug='non-map-content',
                     volume=vol,
                 )

@@ -25,10 +25,8 @@ from ohmg.georeference.models import (
     Layer,
     PrepSession,
     GeorefSession,
-    LayerSet,
-    DocumentSet,
     SetCategory,
-    VirtualResourceSet,
+    AnnotationSet,
 )
 from ohmg.georeference.storage import OverwriteStorage
 from ohmg.places.models import Place
@@ -361,47 +359,24 @@ class Volume(models.Model):
     def sorted_layers_formatted(self):
         return format_json_display(self.sorted_layers)
     sorted_layers_formatted.short_description = 'Sorted Layers'
-
-    @property
-    def layer_sets(self):
-        return LayerSet.objects.filter(volume=self)
-
-    def get_layer_set(self, category):
-        try:
-            return LayerSet.objects.get(volume=self, category__slug=category)
-        except LayerSet.DoesNotExist:
-            return None
-        
-    @property
-    def document_sets(self):
-        return LayerSet.objects.filter(volume=self)
-
-    def get_document_sets(self, category):
-        try:
-            return DocumentSet.objects.get(volume=self, category__slug=category)
-        except DocumentSet.DoesNotExist:
-            return None
         
     def get_annotation_set(self, cat_slug:str, create:bool=False):
-
-        annoset = None
         try:
-            annoset = DocumentSet.objects.get(volume=self, category__slug=cat_slug)
-        except DocumentSet.DoesNotExist:
-            try:
-                annoset = LayerSet.objects.get(volume=self, category__slug=cat_slug)
-            except LayerSet.DoesNotExist:
-                pass
-        if not annoset:
+            annoset = AnnotationSet.objects.get(volume=self, category__slug=cat_slug)
+        except AnnotationSet.DoesNotExist:
             if create:
                 category = SetCategory.objects.get(slug=cat_slug)
-                annoset, created = VirtualResourceSet.objects.create(
+                annoset = AnnotationSet.objects.create(
                     volume=self,
                     category=category
                 )
-                if created:
-                    logger.debug(f"created new AnnotationSet: {self.pk} - {cat_slug}")
+                logger.debug(f"created new AnnotationSet: {self.pk} - {cat_slug}")
+            else:
+                annoset = None
         return annoset
+
+    def get_annotation_sets(self, geopatial:bool=False):
+        return AnnotationSet.objects.filter(volume=self)
 
     def make_sheets(self):
 
@@ -768,7 +743,7 @@ class Volume(models.Model):
             volume.update_place_counts()
 
             # make sure a main-content layerset exists for this volume
-            main_ls, _ = LayerSet.objects.get_or_create(
+            main_ls, _ = AnnotationSet.objects.get_or_create(
                 category=SetCategory.objects.get(slug="main-content"),
                 volume=volume,
             )
@@ -794,7 +769,7 @@ class Volume(models.Model):
             volume.locales.add(locale)
             volume.update_place_counts()
             # make sure a main-content layerset exists for this volume
-            main_ls, _ = LayerSet.objects.get_or_create(
+            main_ls, _ = AnnotationSet.objects.get_or_create(
                 category=SetCategory.objects.get(slug="main-content"),
                 volume=volume,
             )

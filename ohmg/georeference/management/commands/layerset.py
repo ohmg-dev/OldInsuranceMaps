@@ -3,7 +3,7 @@ from ohmg.loc_insurancemaps.tasks import (
     generate_mosaic_cog_task,
     generate_mosaic_json_task,
 )
-from ohmg.georeference.models import VirtualResourceSet
+from ohmg.georeference.models import AnnotationSet
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -38,9 +38,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         if options['pk']:
-            ls = VirtualResourceSet.objects.get(pk=options['pk'])
+            ls = AnnotationSet.objects.get(pk=options['pk'])
         else:
-            ls = VirtualResourceSet.objects.get(volume__identifier=options['identifier'], category=options['category'])
+            ls = AnnotationSet.objects.get(volume__identifier=options['identifier'], category=options['category'])
 
         if options['operation'] == "generate-mosaic-cog":
             if options['background']:

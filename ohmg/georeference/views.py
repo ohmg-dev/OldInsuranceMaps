@@ -19,7 +19,7 @@ from ohmg.georeference.models import (
     GCPGroup,
     PrepSession,
     GeorefSession,
-    VirtualResourceSet,
+    AnnotationSet,
     ItemBase,
 )
 from ohmg.georeference.georeferencer import Georeferencer

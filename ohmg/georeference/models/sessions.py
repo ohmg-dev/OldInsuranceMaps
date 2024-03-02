@@ -577,7 +577,7 @@ class GeorefSession(SessionBase):
         layer.save(set_thumbnail=True, set_extent=True)
         self.lyr = layer
 
-        # hack around to add the layer to the main-content LayerSet
+        # hack around to add the layer to the main-content AnnotationSet
         pdoc = self.doc
         if pdoc.parent:
             pdoc = pdoc.parent

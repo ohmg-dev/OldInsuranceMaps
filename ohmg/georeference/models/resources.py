@@ -350,7 +350,7 @@ class ItemBase(models.Model):
         blank=True,
     )
     vrs = models.ForeignKey(
-        "georeference.VirtualResourceSet",
+        "georeference.AnnotationSet",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -812,7 +812,7 @@ class SetCategory(models.Model):
     def __str__(self):
         return self.display_name if self.display_name else self.slug
 
-class VirtualResourceSet(models.Model):
+class AnnotationSet(models.Model):
 
     volume = models.ForeignKey(
         "loc_insurancemaps.Volume",
@@ -847,6 +847,10 @@ class VirtualResourceSet(models.Model):
         return f"{self.volume} - {self.category}"
 
     @property
+    def is_geospatial(self):
+        return True if self.category and self.category.is_geospatial else False
+
+    @property
     def virtual_resources(self):
         return ItemBase.objects.filter(vrs=self)
 
@@ -856,52 +860,6 @@ class VirtualResourceSet(models.Model):
         return mark_safe("<ul>"+"".join(li)+"</ul>")
 
     vres_list.short_description = 'Virtual resources in this set'
-
-
-class DocumentSetManager(models.Manager):
-
-    def get_queryset(self):
-        return super(DocumentSetManager, self).get_queryset().filter(category__is_geospatial=False)
-
-    def create(self, **kwargs):
-        kwargs.update({ 'category': 1 })
-        return super(DocumentSetManager, self).create(**kwargs)
-
-
-class LayerSetManager(models.Manager):
-
-    def get_queryset(self):
-        return super(LayerSetManager, self).get_queryset().filter(category__is_geospatial=True)
-
-    def create(self, **kwargs):
-        kwargs.update({ 'category': 0 })
-        return super(LayerSetManager, self).create(**kwargs)
-
-
-class DocumentSet(VirtualResourceSet):
-
-    objects = DocumentSetManager()
-
-    class Meta:
-        proxy = True
-        verbose_name = "DocumentSet"
-        verbose_name_plural = "DocumentSets"
-
-    def __str__(self):
-        return f"{self.volume} - {self.category}"
-
-
-class LayerSet(VirtualResourceSet):
-
-    objects = LayerSetManager()
-
-    class Meta:
-        proxy = True
-        verbose_name = "LayerSet"
-        verbose_name_plural = "LayerSets"
-
-    def __str__(self):
-        return f"{self.volume} - {self.category}"
 
     def get_multimask_geojson(self):
         if self.multimask:

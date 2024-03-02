@@ -9,25 +9,16 @@ from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,
     ItemBase,
-    LayerSet,
-    DocumentSet,
+    AnnotationSet,
 )
 
-class LayerSetAdmin(admin.ModelAdmin):
+class AnnotationSetAdmin(admin.ModelAdmin):
     readonly_fields = (
         'vres_list',
     )
     search_fields = ('volume__city',)
 
-admin.site.register(LayerSet, LayerSetAdmin)
-
-class DocumentSetAdmin(admin.ModelAdmin):
-    readonly_fields = (
-        'vres_list',
-    )
-    search_fields = ('volume__city',)
-
-admin.site.register(DocumentSet, DocumentSetAdmin)
+admin.site.register(AnnotationSet, AnnotationSetAdmin)
 admin.site.register(ItemBase)
 
 class GCPAdmin(admin.ModelAdmin):
