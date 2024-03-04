@@ -25,14 +25,17 @@ import logging
 
 from django.conf import settings
 from django.contrib.gis.geos import Polygon, MultiPolygon
+from django.contrib.gis.db import models
 from django.core.files import File
 from osgeo import gdal
+
+from markdownx.models import MarkdownxField
 
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.backends import MosaicBackend
 
 from ohmg.georeference.models import Layer
-from ohmg.utils import random_alnum
+from ohmg.utils import random_alnum, slugify
 from ohmg.loc_insurancemaps.models import Volume
 
 logger = logging.getLogger(__name__)
@@ -45,6 +48,34 @@ def read_trim_feature_cache(file_path):
     with open(file_path, "r") as f:
         feature = json.load(f)
     return feature
+
+
+class Page(models.Model):
+
+    title = models.CharField(
+        max_length=200,
+        help_text="Title will be slugified and must not conflict with "\
+            "other Pages or Places. Place slugs are formatted as "\
+            "follows: 'united-states', 'orleans-parish-la', and "\
+            "'new-orleans-la'."
+    )
+    slug = models.CharField(
+        max_length=200,
+        null=True,
+        blank=True
+    )
+    content = MarkdownxField()
+    published = models.BooleanField(
+        default=False
+    )
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.title)
+        return super(Page, self).save(*args, **kwargs)
+
 
 class Map:
 

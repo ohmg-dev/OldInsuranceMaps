@@ -7,14 +7,15 @@ from django.urls import include, path
 from ohmg.api.api import api
 
 urlpatterns = [
+    path('', include('ohmg.content.urls')),
     path('', include('ohmg.frontend.urls')),
     path('', include('ohmg.accounts.urls')),
-    path('', include('ohmg.content.urls')),
     path('', include('ohmg.georeference.urls')),
     path('admin/', admin.site.urls, name="admin"),
     path('account/', include("allauth.urls")),
     path('avatar/', include('avatar.urls')),
     path('api/beta/', api.urls),
+    path('markdownx/', include('markdownx.urls')),
 ]
 
 if settings.ENABLE_NEWSLETTER:

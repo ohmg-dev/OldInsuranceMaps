@@ -169,7 +169,7 @@ class LOCParser(object):
                     break
         else:
             print(f"BAD STATE IN TITLE: {state_seg}")
-        
+
         # get city
         location_tags = [i for i in location_tags if i not in used_tags]
         city_seg = title_segs[0]
@@ -365,7 +365,7 @@ class LOCConnection(object):
             # set returned attributes
             self.query_url += "?at=search,results,pagination"
         elif identifier:
-            self.query_url = f"{self.baseurl}/map/{identifier}"
+            self.query_url = f"{self.baseurl}/item/{identifier}"
             # set returned attributes
             self.query_url += "?at=item,resources"
         else:
