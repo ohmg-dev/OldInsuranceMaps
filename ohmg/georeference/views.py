@@ -19,10 +19,10 @@ from ohmg.georeference.models import (
     GCPGroup,
     PrepSession,
     GeorefSession,
-    AnnotationSet,
     ItemBase,
 )
 from ohmg.georeference.georeferencer import Georeferencer
+from ohmg.georeference.schemas import AnnotationSetSchema
 from ohmg.georeference.splitter import Splitter
 from ohmg.georeference.tasks import delete_preview_vrt
 

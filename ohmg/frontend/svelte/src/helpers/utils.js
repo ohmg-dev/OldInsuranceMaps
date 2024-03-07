@@ -23,7 +23,7 @@ import LayerGroup from 'ol/layer/Group';
 import MapboxVector from 'ol/layer/MapboxVector';
 
 import Crop from 'ol-ext/filter/Crop';
-import { extendFlatCoordinates } from 'ol/extent';
+import { createEmpty, extend, extendFlatCoordinates } from 'ol/extent';
 
 export function makeTitilerXYZUrl (options) {
 	// options must be an object with the following properties:
@@ -139,7 +139,7 @@ export function makeLayerGroupFromVolume(options) {
 	if (options.zIndex) {
 		lyrGroup.setZIndex(options.zIndex)
 	}
-	
+
 	let layerDefs = [];
 	if (options.layerSet === "main") {
 		layerDefs = options.volume.sorted_layers.main;
@@ -153,7 +153,7 @@ export function makeLayerGroupFromVolume(options) {
 	layerDefs.forEach( function(layerDef) {
 	
 		if (layerDef.id != options.excludeLayerId && layerDef.extent) {
-	
+
 			// create the actual ol layers and add to group.
 			let newLayer = new TileLayer({
 				source: new XYZ({
@@ -162,7 +162,7 @@ export function makeLayerGroupFromVolume(options) {
 						url: layerDef.urls.cog,
 					}),
 				}),
-				extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
+				extent: lyrExtent
 			});
 		
 			lyrGroup.getLayers().push(newLayer)
@@ -184,6 +184,66 @@ export function makeLayerGroupFromVolume(options) {
 		}
 	});
 	
+	return lyrGroup
+}
+
+export function makeLayerGroupFromAnnotationSet (options) {
+	// options must be an object with the following properties:
+	// {
+	//	annotationSet: serialized item (this includes layers, extent, etc.)
+	//	titilerHost: full address to titiler instance, e.g. https://titiler.oldinsurancemaps.net
+	//	zIndex: optional zIndex to apply to the returned LayerGroup
+	//	excludeLayerId: the id of a single layer that should be omitted from the LayerGroup
+	//  applyMultiMask: if a MultiMask is present in the Annotation Set, apply it
+	// }
+
+	const groupExtent = createEmpty();
+
+	const lyrGroup = new LayerGroup();
+	if (options.zIndex) {
+		lyrGroup.setZIndex(options.zIndex)
+	}
+
+	options.annotationSet.annotations.forEach( function(annotation) {
+
+		if (annotation.slug != options.excludeLayerId && annotation.extent) {
+
+			const lyrExtent = transformExtent(annotation.extent, "EPSG:4326", "EPSG:3857")
+			extend(groupExtent, lyrExtent)
+
+			// create the actual ol layers and add to group.
+			let newLayer = new TileLayer({
+				source: new XYZ({
+				url: makeTitilerXYZUrl({
+						host: options.titilerHost,
+						url: annotation.urls.cog,
+					}),
+				}),
+				extent: lyrExtent
+			});
+
+			lyrGroup.getLayers().push(newLayer)
+
+			if (options.applyMultiMask && options.annotationSet.multimask_geojson) {
+				options.annotationSet.multimask_geojson.features.forEach( function(f) {
+					if (f.properties.layer == annotation.slug) {
+						const feature = new GeoJSON().readFeature(f.geometry)
+						feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
+						const crop = new Crop({
+							feature: feature,
+							wrapX: true,
+							inner: false
+						});
+						newLayer.addFilter(crop);
+					}
+				});
+			}
+		}
+	});
+
+	console.log(groupExtent)
+	lyrGroup.setExtent(groupExtent)
+
 	return lyrGroup
 }
 

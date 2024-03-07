@@ -861,7 +861,8 @@ class AnnotationSet(models.Model):
 
     vres_list.short_description = 'Virtual resources in this set'
 
-    def get_multimask_geojson(self):
+    @property
+    def multimask_geojson(self):
         if self.multimask:
             multimask_geojson = {"type": "FeatureCollection", "features": []}
             for layer, geojson in self.multimask.items():
@@ -879,7 +880,7 @@ class AnnotationSet(models.Model):
         gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
         gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")
 
-        multimask_geojson = self.get_multimask_geojson()
+        multimask_geojson = self.multimask_geojson
         multimask_file_name = f"multimask-{self.category.code}-{self.volume.identifier}"
         multimask_file = os.path.join(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
         with open(multimask_file, "w") as out:

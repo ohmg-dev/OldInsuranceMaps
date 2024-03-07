@@ -81,7 +81,7 @@ def make_mosaicjson(identifier, trim_all=False):
 
     logger.info(f"{identifier} | GENERATE MosaicJSON")
 
-    multimask_geojson = vol.get_multimask_geojson()
+    multimask_geojson = vol.multimask_geojson
 
     ct_4326_3857 = CoordTransform(SpatialReference(4326), SpatialReference(3857))
 
@@ -206,7 +206,7 @@ def make_geotiff(identifier, trim_all=False):
     ## (or newly created) will be trimmed, and then merged one by one into the
     ## existing GeoTIFF for this volume.
 
-    multimask_geojson = vol.get_multimask_geojson()
+    multimask_geojson = vol.multimask_geojson
 
     out_geotiff_path = os.path.join(settings.TEMP_DIR, f"{identifier}-mosaic.tif")
 

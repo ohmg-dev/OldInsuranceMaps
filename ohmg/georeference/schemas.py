@@ -8,6 +8,8 @@ from ninja import (
     Schema,
 )
 
+from ohmg.georeference.models import Layer
+
 
 class UserSchema(Schema):
     username: str
@@ -98,3 +100,43 @@ class FilterSessionSchema(FilterSchema):
     type: Optional[str]
     start_date: Optional[str] = Field(q='date_created__gte')
     end_date: Optional[str] = Field(q='date_created__lte')
+
+
+class LayerAnnotationSchema(Schema):
+
+    title: str
+    slug: str
+    urls: dict
+    status: str
+    extent: tuple
+
+    @staticmethod
+    def resolve_urls(obj):
+        return obj.urls
+
+
+class AnnotationSetSchema(Schema):
+
+    id: str
+    name: str
+    volume_id: str
+    is_geospatial: bool
+    annotations: list
+    multimask_geojson: dict = None
+
+    @staticmethod
+    def resolve_id(obj):
+        return str(obj.category.slug)
+
+    @staticmethod
+    def resolve_name(obj):
+        return str(obj.category)
+
+    @staticmethod
+    def resolve_annotations(obj):
+        layers = [Layer.objects.get(pk=i.pk) for i in obj.virtual_resources if i.type == "layer"]
+        return [LayerAnnotationSchema.from_orm(i) for i in layers]
+
+    @staticmethod
+    def resolve_is_geospatial(obj):
+        return obj.category.is_geospatial

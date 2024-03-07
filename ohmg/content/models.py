@@ -60,7 +60,7 @@ class Map:
         gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
         gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")
 
-        multimask_geojson = self.vol.get_multimask_geojson()
+        multimask_geojson = self.vol.multimask_geojson
         multimask_file_name = f"multimask-{self.vol.identifier}"
         multimask_file = os.path.join(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
         with open(multimask_file, "w") as out:
@@ -167,7 +167,7 @@ class Map:
 
         logger.info(f"{self.vol.identifier} | generating mosaic json")
 
-        multimask_geojson = self.vol.get_multimask_geojson()
+        multimask_geojson = self.vol.multimask_geojson
         multimask_file_name = f"multimask-{self.vol.identifier}"
         multimask_file = os.path.join(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
         with open(multimask_file, "w") as out:

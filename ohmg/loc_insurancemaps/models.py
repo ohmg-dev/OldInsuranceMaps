@@ -327,7 +327,8 @@ class Volume(models.Model):
         else:
             return None
 
-    def get_multimask_geojson(self):
+    @property
+    def multimask_geojson(self):
         """Really, the multimask property on Volume should be reimplemented
         so it is always storing a GeoJSON FeatureCollection with the layer
         name in the properties of each feature. This helper function will

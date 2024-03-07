@@ -12,7 +12,7 @@ import LegendModal from "./modals/LegendModal.svelte"
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
-import {transformExtent} from 'ol/proj';
+import {createEmpty, extend} from 'ol/extent';
 import {OSM, XYZ} from 'ol/source';
 
 import {
@@ -23,11 +23,10 @@ import {
 import '@src/css/map-panel.css';
 import {
 	iconProps,
-	makeLayerGroupFromVolume,
-	setMapExtent,
+	makeLayerGroupFromAnnotationSet,
 } from '@helpers/utils';
 
-export let VOLUME;
+export let ANNOTATION_SETS;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
 
@@ -76,27 +75,13 @@ function setVisibility(group, vis) {
 	}
 }
 
-let layerSets = {
-	"key-map": {
-		name: "Key Map",
-		layerGroup: new LayerGroup(),
-		opacity: 100,
-		layerCt: 0,
-	},
-	"main": {
-		name: "Main Content",
-		layerGroup: new LayerGroup(),
-		opacity: 100,
-		layerCt: 0,
-	},
+const zIndexLookup = {
+	"graphic-map-of-volumes": 10,
+	"key-map": 15,
+	"congested-district-map": 20,
+	"main-content": 25,
 }
-
-
-$: {
-	Object.entries(layerSets).forEach( function ([key, item]) {
-		setVisibility(item.layerGroup, item.opacity)
-	})
-}
+ANNOTATION_SETS.sort((a, b) => zIndexLookup[a.id] - zIndexLookup[b.id]);
 
 function initMap() {
 	map = new Map({ 
@@ -122,36 +107,50 @@ function initMap() {
 	
 	baseGroup.getLayers().push(osmLayer)
 	baseGroup.getLayers().push(imageryLayer)
-	map.addLayer(baseGroup);
-	
-	Object.entries(layerSets).forEach( function ([key, item]) {
-		map.addLayer(item.layerGroup)
-	})
-	
+	map.addLayer(baseGroup);	
 };
 
-let layerSetList = [];
+const annotationSets = {};
+let annotationSetList = [];
 
-function updateLayerSets() {
-	layerSetList = []
-	Object.entries(layerSets).forEach( function ([key, item]) {
-		item.layerGroup.getLayers().clear();
-		makeLayerGroupFromVolume({
-			volume: VOLUME,
-			layerSet: key,
+$: {
+	Object.entries(annotationSets).forEach( function ([key, item]) {
+		setVisibility(item.layerGroup, item.opacity)
+	})
+}
+
+const fullExtent = createEmpty();
+
+function createAnnotationSets() {
+
+	ANNOTATION_SETS.forEach( function( aSet ){
+
+		const layerGroup = makeLayerGroupFromAnnotationSet({
+			annotationSet: aSet,
+			zIndex: zIndexLookup[aSet.id],
 			titilerHost: TITILER_HOST,
-		}).getLayers().forEach( function(lyr) {
-			item.layerGroup.getLayers().push(lyr)
+			applyMultiMask: true,
 		})
-		item.layerCt = item.layerGroup.getLayers().getArray().length;
-		layerSetList.push(key)
-	});
+		extend(fullExtent, layerGroup.getExtent())
+		const setDef = {
+			id: aSet.id,
+			name: aSet.name,
+			layerGroup: layerGroup,
+			sortOrder: zIndexLookup[aSet.id],
+			opacity: 100,
+			layerCt: aSet.annotations.length,
+			extent: layerGroup.getExtent()
+		}
+		annotationSets[aSet.id] = setDef
+		annotationSetList.push(aSet.id)
+		map.addLayer(setDef.layerGroup)
+	})
 }
 
 onMount(() => {
 	initMap();
-	updateLayerSets();
-	setMapExtent(map, VOLUME.extent)
+	createAnnotationSets();
+	map.getView().fit(fullExtent)
 });
 
 </script>
@@ -164,7 +163,7 @@ onMount(() => {
 	</div>
 	<div id="layer-panel" style="display: flex;">
 		<div class="layer-section-header" style="border-top-width: 1px;">
-			<FullExtentButton action={() => {setMapExtent(map, VOLUME.extent)}} />
+			<FullExtentButton action={() => {map.getView().fit(fullExtent)}} />
 			<OpenModalButton style="tool-ui" icon="article" modalId={"modal-legend"} />
 			<ExpandElement elementId={'map-container'} maps={[map]} />
 		</div>
@@ -176,16 +175,17 @@ onMount(() => {
 			<div class="layer-section-subheader">
 				{currentBasemap}
 			</div>
-			{#each layerSetList as id}
-				{#if layerSets[id].layerCt > 0}
+			{#each annotationSetList as id}
+				{#if annotationSets[id].layerCt > 0}
 				<div class="layer-section-header">
-					<span>{layerSets[id].name}</span>
+					<span>{annotationSets[id].name}</span>
+					<FullExtentButton action={() => {map.getView().fit(annotationSets[id].extent)}} />
 				</div>
 				<div class="layer-section-subheader">
 					<div style="display:flex; align-items:center;">
-						<input class="slider" type=range bind:value={layerSets[id].opacity} min=0 max=100>
-						<button class="transparency-toggle" on:click={() => {layerSets[id].opacity = toggleTransparency(layerSets[id].opacity)}}>
-							<i class="{getClass(layerSets[id].opacity)}" />
+						<input class="slider" type=range bind:value={annotationSets[id].opacity} min=0 max=100>
+						<button class="transparency-toggle" on:click={() => {annotationSets[id].opacity = toggleTransparency(annotationSets[id].opacity)}}>
+							<i class="{getClass(annotationSets[id].opacity)}" />
 						</button>
 					</div>
 				</div>

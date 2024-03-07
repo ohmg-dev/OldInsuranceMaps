@@ -34,12 +34,13 @@ import ItemDetails from './sections/ItemDetails.svelte';
     import SigninReminder from '../layout/SigninReminder.svelte';
 
 export let VOLUME;
+export let ANNOTATION_SETS;
 export let CSRFTOKEN;
 export let USER;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
 
-console.log(VOLUME)
+console.log(ANNOTATION_SETS)
 
 let userCanEdit = false;
 userCanEdit = USER.is_staff || (VOLUME.access == "any" && USER.is_authenticated) || (VOLUME.access == "sponsor" && VOLUME.sponsor == USER.username)
@@ -305,7 +306,7 @@ let modalLyrExtent = "";
 		{#if sectionVis['preview']}
 		<div class="section-content" transition:slide>
 			{#each reinitMap as key (key)}
-				<ItemPreviewMap VOLUME={VOLUME} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
+				<ItemPreviewMap {VOLUME} {ANNOTATION_SETS} {MAPBOX_API_KEY} {TITILER_HOST} />
 			{/each}
 		</div>
 		{/if}

@@ -14,6 +14,7 @@ from ohmg.georeference.models import (
     Document,
     ItemBase,
 )
+from ohmg.georeference.schemas import AnnotationSetSchema
 from ohmg.loc_insurancemaps.models import Volume, find_volume
 from ohmg.loc_insurancemaps.tasks import load_docs_as_task
 from ohmg.frontend.context_processors import user_info_from_request
@@ -28,10 +29,13 @@ class MapSummary(View):
         volume = get_object_or_404(Volume, pk=identifier)
         volume_json = volume.serialize(include_session_info=True)
 
+        annotation_sets = [AnnotationSetSchema.from_orm(i).dict() for i in volume.get_annotation_sets()]
+
         context_dict = {
             "svelte_params": {
                 "TITILER_HOST": settings.TITILER_HOST,
                 "VOLUME": volume_json,
+                "ANNOTATION_SETS": annotation_sets,
                 "CSRFTOKEN": csrf.get_token(request),
                 "USER": user_info_from_request(request),
                 "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
