@@ -13,7 +13,7 @@ import TitleBar from '@components/layout/TitleBar.svelte';
 import MultiMask from "@components/interfaces/MultiMask.svelte";
 import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
 
-import ItemPreviewMapModal from './modals/ItemPreviewMapModal.svelte'
+import MapPreviewModal from './modals/MapPreviewModal.svelte'
 import GeoreferenceOverviewModal from './modals/GeoreferenceOverviewModal.svelte'
 import UnpreparedSectionModal from './modals/UnpreparedSectionModal.svelte'
 import PreparedSectionModal from './modals/PreparedSectionModal.svelte'
@@ -26,7 +26,7 @@ import IconButton from "@components/base/IconButton.svelte";
 import OpenModalButton from '@components/base/OpenModalButton.svelte';
 import Modal, {getModal} from '@components/base/Modal.svelte';
 
-import ItemPreviewMap from "@components/interfaces/ItemPreviewMap.svelte";
+import MapPreview from "@components/interfaces/MapPreview.svelte";
 import SingleLayerViewer from '@components/interfaces/SingleLayerViewer.svelte';
 import SingleDocumentViewer from '@components/interfaces/SingleDocumentViewer.svelte';
 import DownloadSectionModal from './modals/ItemDownloadSectionModal.svelte';
@@ -159,7 +159,7 @@ function postOperation(operation) {
 	})
 	.then(response => response.json())
 	.then(result => {
-		// trigger a reinit of the ItemPreviewMap component
+		// trigger a reinit of the MapPreview component
 		if (operation == "set-index-layers" || VOLUME.items.layers.length != result.items.layers.length) {
 			reinitMap = [{}];
 		}
@@ -241,7 +241,7 @@ let modalLyrExtent = "";
 
 </script>
 <IconContext values={iconProps}>
-<ItemPreviewMapModal id={"modal-preview-map"} placeName={VOLUME.locale.display_name} viewerUrl={VOLUME.urls.viewer}/>
+<MapPreviewModal id={"modal-preview-map"} placeName={VOLUME.locale.display_name} viewerUrl={VOLUME.urls.viewer}/>
 <GeoreferenceOverviewModal id={"modal-georeference-overview"} />
 <UnpreparedSectionModal id={'modal-unprepared'} />
 <PreparedSectionModal id={"modal-prepared"} />
@@ -306,7 +306,7 @@ let modalLyrExtent = "";
 		{#if sectionVis['preview']}
 		<div class="section-content" transition:slide>
 			{#each reinitMap as key (key)}
-				<ItemPreviewMap {VOLUME} {ANNOTATION_SETS} {MAPBOX_API_KEY} {TITILER_HOST} />
+				<MapPreview {ANNOTATION_SETS} {MAPBOX_API_KEY} {TITILER_HOST} />
 			{/each}
 		</div>
 		{/if}

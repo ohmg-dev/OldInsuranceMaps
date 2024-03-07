@@ -178,8 +178,8 @@ onMount(() => {
 			{#each annotationSetList as id}
 				{#if annotationSets[id].layerCt > 0}
 				<div class="layer-section-header">
-					<span>{annotationSets[id].name}</span>
-					<FullExtentButton action={() => {map.getView().fit(annotationSets[id].extent)}} />
+					<span>{annotationSets[id].name} <span style="color:grey">{annotationSets[id].layerCt}</span></span>
+					<FullExtentButton style="tool-ui-secondary" action={() => {map.getView().fit(annotationSets[id].extent)}} />
 				</div>
 				<div class="layer-section-subheader">
 					<div style="display:flex; align-items:center;">
