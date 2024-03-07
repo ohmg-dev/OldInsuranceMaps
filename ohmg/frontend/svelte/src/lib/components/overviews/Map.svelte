@@ -42,6 +42,10 @@ export let TITILER_HOST;
 
 console.log(ANNOTATION_SETS)
 
+let currentAnnotationSet = "main-content";
+const annotationSetLookup = {}
+ANNOTATION_SETS.forEach(function (annoSet) {annotationSetLookup[annoSet.id] = annoSet})
+
 let userCanEdit = false;
 userCanEdit = USER.is_staff || (VOLUME.access == "any" && USER.is_authenticated) || (VOLUME.access == "sponsor" && VOLUME.sponsor == USER.username)
 
@@ -238,6 +242,8 @@ let modalDocImageSize = "";
 let reinitMap3 = [{}]
 let modalLyrUrl = "";
 let modalLyrExtent = "";
+
+let reinitMultimask = [{}];
 
 </script>
 <IconContext values={iconProps}>
@@ -567,11 +573,19 @@ let modalLyrExtent = "";
 			{#if !USER.is_authenticated}
 				<SigninReminder />
 			{/if}
-			<MultiMask VOLUME={VOLUME}
+			<select class="item-select" bind:value={currentAnnotationSet} on:change={() => {reinitMultimask = [{}]}}>
+				{#each ANNOTATION_SETS as annoSet}
+				<option value={annoSet.id}>{annoSet.name}</option>
+				{/each}
+			</select>
+			{#each reinitMultimask as key (key)}
+			<MultiMask ANNOTATION_SET={annotationSetLookup[currentAnnotationSet]}
+				VOLUME={VOLUME}
 				CSRFTOKEN={CSRFTOKEN}
 				DISABLED={!userCanEdit}
 				MAPBOX_API_KEY={MAPBOX_API_KEY}
 				TITILER_HOST={TITILER_HOST} />
+			{/each}
 		</div>
 		{/if}
 	</section>

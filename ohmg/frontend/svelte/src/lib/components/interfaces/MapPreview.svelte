@@ -178,8 +178,10 @@ onMount(() => {
 			{#each annotationSetList as id}
 				{#if annotationSets[id].layerCt > 0}
 				<div class="layer-section-header">
-					<span>{annotationSets[id].name} <span style="color:grey">{annotationSets[id].layerCt}</span></span>
-					<FullExtentButton style="tool-ui-secondary" action={() => {map.getView().fit(annotationSets[id].extent)}} />
+					<button class="layer-entry" on:click={() => map.getView().fit(annotationSets[id].extent)} on:focus={null}>
+						<span>{annotationSets[id].name}</span>
+					</button>
+					<span style="color:grey">({annotationSets[id].layerCt})</span>
 				</div>
 				<div class="layer-section-subheader">
 					<div style="display:flex; align-items:center;">
@@ -195,3 +197,14 @@ onMount(() => {
 	</div>
 </div>
 </IconContext>
+
+<style>
+	button.layer-entry {
+		cursor: pointer;
+		border: none;
+		background: none;
+	}
+	button.layer-entry:hover {
+		color: #1b4060;
+	}
+</style>

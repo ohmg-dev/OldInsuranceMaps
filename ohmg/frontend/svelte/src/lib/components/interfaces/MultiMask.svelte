@@ -41,12 +41,14 @@ import Styles from '@helpers/ol-styles';
 
 const styles = new Styles();
 
-
+export let ANNOTATION_SET;
 export let VOLUME;
 export let CSRFTOKEN;
 export let DISABLED;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
+
+console.log(ANNOTATION_SET)
 
 let currentLayer = null;
 
