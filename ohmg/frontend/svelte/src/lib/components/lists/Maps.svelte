@@ -4,10 +4,10 @@ import Link from '@components/base/Link.svelte';
 
 export let MAP_API_URL;
 export let OHMG_API_KEY;
-export let ALL_ITEMS = [];
 export let PLACE_SLUG;
 export let PLACE_INCLUSIVE = false;
 
+let fullList = [];
 let items = [];
 let loading = true
 
@@ -20,7 +20,8 @@ function handleFetch(url) {
 	fetch(url, { headers: apiHeaders })
 		.then(response => response.json())
 		.then(result => {
-			items = flatten_response(result);
+			fullList = flatten_response(result);
+			items = fullList;
 		});
 	
 	function flatten_response(items_json) {
@@ -47,7 +48,7 @@ $: handleFetch(url)
 function updateFilteredList(filterText) {
 	if (filterText && filterText.length > 0) {
 		items = [];
-		ALL_ITEMS.forEach( function(vol) {
+		fullList.forEach( function(vol) {
 			const volumeName = vol.title.toUpperCase();
 			const filterBy = filterText.toUpperCase();
 			if (volumeName.indexOf(filterBy) > -1) {
@@ -55,7 +56,7 @@ function updateFilteredList(filterText) {
 			}
 		});
 	} else {
-		items = ALL_ITEMS;
+		items = fullList;
 	}
 }
 let filterInput;

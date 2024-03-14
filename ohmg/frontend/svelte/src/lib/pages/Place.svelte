@@ -116,7 +116,7 @@ $: VIEWER_LINK = PLACE.volumes.length > 0 ? `/viewer/${PLACE.slug}/` : '';
 	<div id="items-panel" style="flex-grow:1; overflow-x:auto;">
 		<h3>Maps</h3>
 		{#each reinitList as key (key)}
-		<Maps {MAP_API_URL} OHMG_API_KEY={OHMG_API_KEY} ALL_ITEMS={[]} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
+		<Maps {MAP_API_URL} OHMG_API_KEY={OHMG_API_KEY} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
 		{/each}
 	</div>
 </div>
