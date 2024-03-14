@@ -10,6 +10,13 @@ from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
+def get_internal_routes():
+    return {
+        "api_key": settings.OHMG_API_KEY,
+        "api_annotation_set": reverse("api-beta:annotation_set"),
+        "api_annotation_sets": reverse("api-beta:annotation_sets"),
+    }
+
 def download_image(url, out_path, retries=3):
 
     # basic download code: https://stackoverflow.com/a/18043472/3873885

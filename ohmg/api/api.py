@@ -14,10 +14,11 @@ from ohmg.accounts.schemas import UserSchema
 from ohmg.api.models import Key
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.content.schemas import MapListSchema
-from ohmg.georeference.models import SessionBase
+from ohmg.georeference.models import SessionBase, AnnotationSet
 from ohmg.georeference.schemas import (
     FilterSessionSchema,
     SessionSchema,
+    AnnotationSetSchema,
 )
 from ohmg.places.models import Place
 from ohmg.places.schemas import PlaceSchema
@@ -105,6 +106,19 @@ def list_maps(request,
         maps = maps[:limit]
     return list(maps)
 
+@api.get('annotation-set/', response=AnnotationSetSchema, url_name="annotation_set")
+def annotation(request,
+        volume: str,
+        category: str,
+    ):
+    return AnnotationSet.objects.get(category__slug=category, volume_id=volume)
+
+@api.get('annotation-sets/', response=List[AnnotationSetSchema], url_name="annotation_sets")
+def annotations(request,
+        volume: str,
+    ):
+    return AnnotationSet.objects.filter(volume_id=volume)
+
 @api.get('places/', response=List[PlaceSchema], url_name="place_list")
 def list_places(request):
     queryset = Place.objects.all().exclude(volume_count=0).order_by('name')
@@ -159,7 +173,3 @@ def get_places_geojson(request):
                 geojson['features'].append(feature)
 
     return geojson
-
-# @api.get('user/{username}/', response=UserProfileSchema)
-# def user_details(request, username: str):
-#     return get_object_or_404(User, username=username)

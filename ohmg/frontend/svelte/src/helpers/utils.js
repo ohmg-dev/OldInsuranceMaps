@@ -17,6 +17,8 @@ import Fill from 'ol/style/Fill';
 import Stroke from 'ol/style/Stroke';
 import RegularShape from 'ol/style/RegularShape';
 
+import {Modify} from 'ol/interaction';
+
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import LayerGroup from 'ol/layer/Group';
@@ -125,6 +127,24 @@ export function makeBasemaps (mapboxKey) {
 	]
 }
 
+export function makeModifyInteraction(hitDetection, source, targetElement, style) {
+	const modify = new Modify({
+		hitDetection: hitDetection,
+		source: source,
+		style: style,
+	});
+
+	modify.on(['modifystart', 'modifyend'], function (e) {
+		targetElement.style.cursor = e.type === 'modifystart' ? 'grabbing' : 'pointer';
+	});
+
+	let overlaySource = modify.getOverlay().getSource();
+	overlaySource.on(['addfeature', 'removefeature'], function (e) {
+		targetElement.style.cursor = e.type === 'addfeature' ? 'pointer' : '';
+	});
+	return modify
+}
+
 export function makeLayerGroupFromVolume(options) {
 	// options must be an object with the following properties:
 	// {
@@ -162,7 +182,7 @@ export function makeLayerGroupFromVolume(options) {
 						url: layerDef.urls.cog,
 					}),
 				}),
-				extent: lyrExtent
+				extent: layerDef.extent
 			});
 		
 			lyrGroup.getLayers().push(newLayer)

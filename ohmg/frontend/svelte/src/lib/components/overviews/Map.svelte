@@ -39,12 +39,17 @@ export let CSRFTOKEN;
 export let USER;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
+export let ROUTES;
+
+console.log(ROUTES)
 
 console.log(ANNOTATION_SETS)
 
 let currentAnnotationSet = "main-content";
 const annotationSetLookup = {}
-ANNOTATION_SETS.forEach(function (annoSet) {annotationSetLookup[annoSet.id] = annoSet})
+$: {
+	ANNOTATION_SETS.forEach(function (annoSet) {annotationSetLookup[annoSet.id] = annoSet})
+}
 
 let userCanEdit = false;
 userCanEdit = USER.is_staff || (VOLUME.access == "any" && USER.is_authenticated) || (VOLUME.access == "sponsor" && VOLUME.sponsor == USER.username)
@@ -163,15 +168,24 @@ function postOperation(operation) {
 	})
 	.then(response => response.json())
 	.then(result => {
-		// trigger a reinit of the MapPreview component
-		if (operation == "set-index-layers" || VOLUME.items.layers.length != result.items.layers.length) {
-			reinitMap = [{}];
-		}
+		// need to trigger a reinit of the MapPreview component
 		VOLUME = result;
 		sheetsLoading = VOLUME.status == "initializing...";
 		if (operation == "refresh-lookups") {
 			refreshingLookups = false;
 		}
+	});
+}
+
+function fetchAnnotationSets() {
+	fetch(`${ROUTES.api_annotation_sets}?volume=${VOLUME.identifier}`, {
+		headers: {
+			'X-API-Key': ROUTES.api_key,
+		}
+	})
+	.then(response => response.json())
+	.then(result => {
+		ANNOTATION_SETS = result  
 	});
 }
 
@@ -194,10 +208,6 @@ function postGeoref(url, operation, status) {
 	});
 }
 
-let mmLbl = `0/${VOLUME.items.layers.length}`;
-if (VOLUME.multimask != undefined) {
-	mmLbl = `${Object.keys(VOLUME.multimask).length}/${VOLUME.sorted_layers.main.length}`;
-}
 let mosaicUrl;
 let ohmUrl;
 if (VOLUME.urls.mosaic_json) {
@@ -231,19 +241,14 @@ if (VOLUME.urls.mosaic_geotiff) {
 
 let settingKeyMapLayer = false;
 
-// These variable are used to trigger a reinit of map interfaces.
-// See https://svelte.dev/repl/65c80083b515477784d8128c3655edac?version=3.24.1
-let reinitMap = [{}]
-"download-section-modal"
-let reinitMap2 = [{}]
+function resetMosaicPreview() {
+	fetchAnnotationSets()
+}
 let modalDocUrl = "";
 let modalDocImageSize = "";
 
-let reinitMap3 = [{}]
 let modalLyrUrl = "";
 let modalLyrExtent = "";
-
-let reinitMultimask = [{}];
 
 </script>
 <IconContext values={iconProps}>
@@ -256,14 +261,14 @@ let reinitMultimask = [{}];
 <NonMapContentModal id={"modal-non-map"} />
 <GeoreferencePermissionsModal id={"modal-permissions"} user={USER} userCanEdit={userCanEdit} item={VOLUME} />
 <Modal id={"modal-doc-view"} full={true}>
-{#each reinitMap2 as key (key)}
+{#key modalDocUrl}
 	<SingleDocumentViewer LAYER_URL={modalDocUrl} IMAGE_SIZE={modalDocImageSize} />
-{/each}
+{/key}
 </Modal>
 <Modal id={"modal-lyr-view"} full={true}>
-{#each reinitMap3 as key (key)}
+{#key modalLyrUrl}
 	<SingleLayerViewer LAYER_URL={modalLyrUrl} EXTENT={modalLyrExtent} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
-{/each}
+{/key}
 </Modal>
 <main>
 	<section class="breadcrumbs">
@@ -311,9 +316,9 @@ let reinitMultimask = [{}];
 		</div>
 		{#if sectionVis['preview']}
 		<div class="section-content" transition:slide>
-			{#each reinitMap as key (key)}
+			{#key ANNOTATION_SETS}
 				<MapPreview {ANNOTATION_SETS} {MAPBOX_API_KEY} {TITILER_HOST} />
-			{/each}
+			{/key}
 		</div>
 		{/if}
 	</section>
@@ -389,8 +394,7 @@ let reinitMultimask = [{}];
 							<button class="thumbnail-btn" on:click={() => {
 								modalDocUrl=document.urls.image;
 								modalDocImageSize=document.image_size;
-								getModal('modal-doc-view').open();
-								reinitMap2 = [{}]}} >
+								getModal('modal-doc-view').open();}} >
 								<img style="cursor:zoom-in"
 									src={document.urls.thumbnail}
 									alt={document.title}
@@ -437,8 +441,7 @@ let reinitMultimask = [{}];
 							<button class="thumbnail-btn" on:click={() => {
 								modalDocUrl=document.urls.image;
 								modalDocImageSize=document.image_size;
-								getModal('modal-doc-view').open();
-								reinitMap2 = [{}]}} >
+								getModal('modal-doc-view').open();}} >
 								<img style="cursor:zoom-in"
 									src={document.urls.thumbnail}
 									alt={document.title}
@@ -493,8 +496,7 @@ let reinitMultimask = [{}];
 							<button class="thumbnail-btn" on:click={() => {
 								modalLyrUrl=layer.urls.cog;
 								modalLyrExtent=layer.extent;
-								getModal('modal-lyr-view').open();
-								reinitMap3 = [{}]}}>
+								getModal('modal-lyr-view').open();}}>
 								<img style="cursor:zoom-in"
 									src={layer.urls.thumbnail}
 									alt={layer.title}
@@ -564,7 +566,7 @@ let reinitMultimask = [{}];
 			<button class="section-toggle-btn" on:click={() => toggleSection('multimask')} disabled={VOLUME.items.layers.length == 0}
 				title={sectionVis['multimask'] ? 'Collapse section' : 'Expand section'}>
 				<ConditionalDoubleChevron down={sectionVis['multimask']} size="md" />
-				<a id="multimask"><h2>MultiMask ({mmLbl})</h2></a>
+				<a id="multimask"><h2>MultiMask</h2></a>
 			</button>
 			<OpenModalButton modalId="modal-multimask" />
 		</div>
@@ -573,19 +575,27 @@ let reinitMultimask = [{}];
 			{#if !USER.is_authenticated}
 				<SigninReminder />
 			{/if}
-			<select class="item-select" bind:value={currentAnnotationSet} on:change={() => {reinitMultimask = [{}]}}>
+			<select class="item-select" bind:value={currentAnnotationSet}>
 				{#each ANNOTATION_SETS as annoSet}
 				<option value={annoSet.id}>{annoSet.name}</option>
 				{/each}
 			</select>
-			{#each reinitMultimask as key (key)}
+			<span>
+				{#if annotationSetLookup[currentAnnotationSet].multimask_geojson}
+				{annotationSetLookup[currentAnnotationSet].multimask_geojson.features.length}/{annotationSetLookup[currentAnnotationSet].annotations.length}
+				{:else}
+				0/{annotationSetLookup[currentAnnotationSet].annotations.length}
+				{/if}
+			</span>
+			{#key currentAnnotationSet}
 			<MultiMask ANNOTATION_SET={annotationSetLookup[currentAnnotationSet]}
-				VOLUME={VOLUME}
-				CSRFTOKEN={CSRFTOKEN}
+				{CSRFTOKEN}
 				DISABLED={!userCanEdit}
-				MAPBOX_API_KEY={MAPBOX_API_KEY}
-				TITILER_HOST={TITILER_HOST} />
-			{/each}
+				{MAPBOX_API_KEY}
+				{TITILER_HOST}
+				resetMosaic={resetMosaicPreview}
+			 />
+			{/key}
 		</div>
 		{/if}
 	</section>

@@ -109,10 +109,15 @@ class LayerAnnotationSchema(Schema):
     urls: dict
     status: str
     extent: tuple
+    page_str: str = ""
 
     @staticmethod
     def resolve_urls(obj):
         return obj.urls
+    
+    @staticmethod
+    def resolve_page_str(obj):
+        return obj.title.split("|")[-1].split("p")[1]
 
 
 class AnnotationSetSchema(Schema):

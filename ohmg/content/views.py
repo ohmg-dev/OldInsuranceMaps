@@ -9,6 +9,7 @@ from django.views import View
 from django.middleware import csrf
 from django.urls import reverse
 
+from ohmg.utils import get_internal_routes
 from ohmg.georeference.models import (
     Layer,
     Document,
@@ -17,7 +18,7 @@ from ohmg.georeference.models import (
 from ohmg.georeference.schemas import AnnotationSetSchema
 from ohmg.loc_insurancemaps.models import Volume, find_volume
 from ohmg.loc_insurancemaps.tasks import load_docs_as_task
-from ohmg.frontend.context_processors import user_info_from_request
+from ohmg.frontend.context_processors import user_info_from_request#, get_internal_routes
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,7 @@ class MapSummary(View):
                 "CSRFTOKEN": csrf.get_token(request),
                 "USER": user_info_from_request(request),
                 "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+                "ROUTES": get_internal_routes(),
             }
         }
         return render(
@@ -47,18 +49,18 @@ class MapSummary(View):
             context=context_dict
         )
 
-    def post(self, request, volumeid):
+    def post(self, request, identifier):
 
         body = json.loads(request.body)
         operation = body.get("operation", None)
 
         if operation == "initialize":
-            volume = Volume.objects.get(pk=volumeid)
+            volume = Volume.objects.get(pk=identifier)
             if volume.loaded_by is None:
                 volume.loaded_by = request.user
                 volume.load_date = datetime.now()
                 volume.save(update_fields=["loaded_by", "load_date"])
-            load_docs_as_task.delay(volumeid)
+            load_docs_as_task.delay(identifier)
             volume_json = volume.serialize(include_session_info=True)
             volume_json["status"] = "initializing..."
 
@@ -66,7 +68,7 @@ class MapSummary(View):
 
         elif operation == "set-index-layers":
 
-            volume = Volume.objects.get(pk=volumeid)
+            volume = Volume.objects.get(pk=identifier)
 
             lcat_lookup = body.get("layerCategoryLookup", {})
 
@@ -78,12 +80,12 @@ class MapSummary(View):
             return JsonResponse(volume_json)
 
         elif operation == "refresh":
-            volume = Volume.objects.get(pk=volumeid)
+            volume = Volume.objects.get(pk=identifier)
             volume_json = volume.serialize(include_session_info=True)
             return JsonResponse(volume_json)
 
         elif operation == "refresh-lookups":
-            volume = Volume.objects.get(pk=volumeid)
+            volume = Volume.objects.get(pk=identifier)
             volume.refresh_lookups()
             volume_json = volume.serialize(include_session_info=True)
             return JsonResponse(volume_json)

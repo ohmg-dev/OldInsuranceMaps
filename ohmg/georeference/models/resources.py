@@ -11,7 +11,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.gis.geos import Point, Polygon, MultiPolygon
+from django.contrib.gis.geos import Point, Polygon, MultiPolygon, GEOSGeometry
 from django.contrib.gis.db import models
 from django.core.files import File
 from django.core.files.base import ContentFile
@@ -871,6 +871,36 @@ class AnnotationSet(models.Model):
             return multimask_geojson
         else:
             return None
+        
+    def validate_multimask_geojson(self, multimask_geojson):
+        errors = []
+        for feature in multimask_geojson['features']:
+            print(feature)
+            print(type(feature))
+            lyr = feature['properties']['layer']
+            try:
+                geom_str = json.dumps(feature['geometry'])
+                g = GEOSGeometry(geom_str)
+                if not g.valid:
+                    logger.error(f"{self} | invalid mask: {lyr} - {g.valid_reason}")
+                    errors.append((lyr, g.valid_reason))
+            except Exception as e:
+                logger.error(f"{self} | improper GeoJSON in multimask")
+                errors.append((lyr, e))
+        return errors
+    
+    def update_multimask_from_geojson(self, multimask_geojson):
+        errors = self.validate_multimask_geojson(multimask_geojson)
+        if errors:
+            return errors
+        
+        if multimask_geojson['features']:
+            self.multimask = {}
+            for feature in multimask_geojson['features']:
+                self.multimask[feature['properties']['layer']] = feature
+        else:
+            self.multimask = None
+        self.save(update_fields=['multimask'])
 
     def generate_mosaic_vrt(self):
         """ A helpful reference from the BPLv used during the creation of this method:

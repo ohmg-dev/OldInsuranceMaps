@@ -440,9 +440,7 @@ class AnnotationSetView(View):
         resource_id = body.get("resourceId")
         volume_id = body.get("volumeId")
         category = body.get("categorySlug")
-
-        v = get_object_or_404(Volume, pk=volume_id)
-        r = get_object_or_404(ItemBase, pk=resource_id)
+        multimask_geojson = body.get('multimaskGeoJSON')
 
         response = {
             "status": "",
@@ -450,6 +448,8 @@ class AnnotationSetView(View):
         }
 
         if operation == "update":
+            v = get_object_or_404(Volume, pk=volume_id)
+            r = get_object_or_404(ItemBase, pk=resource_id)
 
             try:
                 annoset = v.get_annotation_set(category, create=True)
@@ -462,7 +462,17 @@ class AnnotationSetView(View):
                 response['status'] = "fail"
                 response['message'] = str(e)
 
+        if operation == "set-mask":
+
+            v = get_object_or_404(Volume, pk=volume_id)
+            annoset = v.get_annotation_set(category)
+
+            errors = annoset.update_multimask_from_geojson(multimask_geojson)
+
+            if errors:
+                response["status"] = "fail"
+                response["message"] = errors
+            else:
+                response["status"] = "success"
+
         return JsonResponse(response)
-        
-        # else:
-        #     return BadPostRequest

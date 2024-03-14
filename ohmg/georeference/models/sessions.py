@@ -584,7 +584,7 @@ class GeorefSession(SessionBase):
         try:
             from ohmg.loc_insurancemaps.models import Sheet
             volume = Sheet.objects.get(doc=pdoc).volume
-            layer.vrs = volume.get_layer_set("main-content")
+            layer.vrs = volume.get_annotation_set("main-content", create=True)
             layer.save()
         except Sheet.DoesNotExist:
             logger.warn(f"error getting Sheet for document {pdoc.pk}")

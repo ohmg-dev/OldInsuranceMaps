@@ -27,7 +27,7 @@ import Crop from 'ol-ext/filter/Crop';
 import MousePosition from 'ol/control/MousePosition';
 import {createStringXY} from 'ol/coordinate';
 
-import {Draw, Modify, Snap} from 'ol/interaction';
+import {Draw, Snap} from 'ol/interaction';
 
 import Style from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
@@ -36,19 +36,17 @@ import IconButton from '@components/base/IconButton.svelte';
 import FullExtentButton from './buttons/FullExtentButton.svelte';
 import ExpandElement from './buttons/ExpandElement.svelte';
 
-import { iconProps, makeTitilerXYZUrl, makeBasemaps } from "@helpers/utils"
+import { iconProps, makeTitilerXYZUrl, makeBasemaps, makeModifyInteraction } from "@helpers/utils"
 import Styles from '@helpers/ol-styles';
 
 const styles = new Styles();
 
 export let ANNOTATION_SET;
-export let VOLUME;
 export let CSRFTOKEN;
 export let DISABLED;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
-
-console.log(ANNOTATION_SET)
+export let resetMosaic;
 
 let currentLayer = null;
 
@@ -79,22 +77,20 @@ function updateLayerArr(){
 }
 
 function addIncomingMasks() {
-	if (VOLUME.multimask) {
-		Object.entries(VOLUME.multimask).forEach(kV => {
-			currentLayer = kV[0]
-			const feature = new GeoJSON().readFeature(kV[1])
-			feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
-			trimShapeSource.addFeature(feature)
-		});
-		currentLayer = null;
-	}
+  if (ANNOTATION_SET.multimask_geojson) {
+    const feats = new GeoJSON().readFeatures(ANNOTATION_SET.multimask_geojson, {
+      featureProjection: "EPSG:3857"
+    })
+    feats.forEach( function (f) {
+      trimShapeSource.addFeature(f)
+    })
+  }
 }
 
   function createLayerLookup() {
     layerLookup = {};
     trimShapeSource.clear()
-    VOLUME.sorted_layers.main.forEach( function(layerDef, n) {
-      // create the actual ol layers and add to group.
+    ANNOTATION_SET.annotations.forEach( function(layerDef) {
       let newLayer = new TileLayer({
         source: new XYZ({
           url: makeTitilerXYZUrl({
@@ -104,11 +100,6 @@ function addIncomingMasks() {
         }),
         extent: transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857")
       });
-      // zIndex for layers start from 100, should max out under 300.
-      // When a layer is shuffled to the top, it's zIndex is set to 500,
-      // and ally layers with a zIndex > 300 are shifted down 1.
-      // This should allow for plenty of shuffling without disruption to
-      // the lower-level layers.
 
       // make extent
       const extentGeom4326 = fromExtent(transformExtent(layerDef.extent, "EPSG:4326", "EPSG:3857"));
@@ -157,13 +148,12 @@ var extentLayer = new VectorLayer({
     zIndex: 1000
 });
 
-
-const trimShapeSource = new VectorSource();
 const trimShapeLayer = new VectorLayer({
-    source: trimShapeSource,
+    source: new VectorSource(),
     style: [styles.mmDraw, styles.vertexPoint],
     zIndex: 1001,
   });
+const trimShapeSource = trimShapeLayer.getSource()
 trimShapeSource.on("addfeature", function(e) {
   layerApplyMask(e.feature);
 })
@@ -174,28 +164,6 @@ function resetInterface() {
   })
   addIncomingMasks();
   unchanged = true;
-}
-
-  // this Modify interaction is created individually for each map panel
-function makeModifyInteraction(hitDetection, source, targetElement) {
-  const modify = new Modify({
-    hitDetection: hitDetection,
-    source: source,
-    style: styles.mmModify,
-  });
-
-  modify.on(['modifystart', 'modifyend'], function (e) {
-    targetElement.style.cursor = e.type === 'modifystart' ? 'grabbing' : 'pointer';
-    if (e.type == "modifyend") {
-      unchanged = false;
-    }
-  });
-
-  let overlaySource = modify.getOverlay().getSource();
-  overlaySource.on(['addfeature', 'removefeature'], function (e) {
-    targetElement.style.cursor = e.type === 'addfeature' ? 'pointer' : '';
-  });
-  return modify
 }
 
 let map;
@@ -227,7 +195,10 @@ function MapViewer (elementId) {
   });
   map.addInteraction(draw)
 
-  const modify = makeModifyInteraction(trimShapeLayer, trimShapeSource, targetElement)
+  const modify = makeModifyInteraction(trimShapeLayer, trimShapeSource, targetElement, styles.mmModify)
+  modify.on('modifyend', function (e) {
+		unchanged = false;
+	});
   map.addInteraction(modify)
 
   const snap = new Snap({
@@ -283,43 +254,46 @@ $: {
 
 function submitMultiMask() {
   if (DISABLED) {
-    window.alert("You do not edit permissions for this multimask.");
+    window.alert("You do not have edit permissions for this multimask.");
     return
   }
-  let multiMask = {}
+  const outGeoJSON = {"type": "FeatureCollection", "features": []}
   layerLookupArr.forEach( function(layer) {
     if (layer.feature) {
+      layer.feature.setProperties({"layer": layer.layerDef.slug})
       const wgs84feat = layer.feature.clone();
       wgs84feat.getGeometry().transform("EPSG:3857", "EPSG:4326")
-      const featureGeoJSONStr = new GeoJSON().writeFeature(wgs84feat, {
+      const featureGeoJSON = new GeoJSON().writeFeatureObject(wgs84feat, {
         rightHanded: true,
         decimals: 7,
       })
-      multiMask[layer.layerDef.slug] = JSON.parse(featureGeoJSONStr);
+      outGeoJSON.features.push(featureGeoJSON);
     }
   })
-  fetch(VOLUME.urls.trim, {
+  fetch(ANNOTATION_SET.urls.post, {
     method: 'POST',
     headers: {
-    'Content-Type': 'application/json;charset=utf-8',
-    'X-CSRFToken': CSRFTOKEN,
+      'Content-Type': 'application/json;charset=utf-8',
+      'X-CSRFToken': CSRFTOKEN,
     },
-    body: JSON.stringify({"multiMask": multiMask}),
+    body: JSON.stringify({
+      "operation": "set-mask",
+      "multimaskGeoJSON": outGeoJSON,
+      "volumeId": ANNOTATION_SET.volume_id,
+      "categorySlug": ANNOTATION_SET.id,
+    }),
   }).then(response => response.json())
     .then(result => {
-    if (result.status == "ok") {
-      // window.location.href = VOLUME.urls.summary
+    if (result.status == "success") {
       window.alert("Masks saved successfully.")
       unchanged = true;
-      VOLUME = result.volume_json;
+      resetMosaic()
     } else {
       let errMsg = "Error! MultiMask not saved."
-      if (result.errors) {
-        errMsg += "\nYou must remove and remake the following masks:"
-        result.errors.forEach((e) => {
-          errMsg += `\n${e[0]}\n  Reason: ${e[1]}`
-        })
-      }
+      errMsg += "\nYou must remove and remake the following masks:"
+      result.message.forEach((e) => {
+        errMsg += `\n${e[0]}\n  Reason: ${e[1]}`
+      })
       window.alert(errMsg)
     }
   })
@@ -367,6 +341,7 @@ function addMask(layer){
 }
 
 function layerApplyMask(feature) {
+  if (!currentLayer) { currentLayer = feature.getProperties().layer }
   if (currentLayer) {
     if (layerLookup[currentLayer].feature) {
       trimShapeSource.removeFeature(layerLookup[currentLayer].feature)
