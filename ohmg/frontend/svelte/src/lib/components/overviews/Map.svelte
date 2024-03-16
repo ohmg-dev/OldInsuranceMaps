@@ -67,7 +67,7 @@ $: sheetsLoading = VOLUME.status == "initializing...";
 
 let hash = window.location.hash.substr(1);
 
-function updateVrs(e, layerId) {
+function updateAnnotationSet(e, layerId) {
 
 	// a little bit of translation needed here during transition
 	const category = e.target.options[e.target.selectedIndex].value
@@ -85,7 +85,7 @@ function updateVrs(e, layerId) {
         categorySlug: categorySlugLookup[category]
 	})
 
-	fetch("/annotation-set/", {
+	fetch(ROUTES.post_annotation_set, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json;charset=utf-8',
@@ -95,7 +95,7 @@ function updateVrs(e, layerId) {
 	})
 	.then(response => response.json())
 	.then(result => {
-		console.log(result)
+		fetchAnnotationSets()
 	});
 }
 
@@ -178,11 +178,7 @@ function postOperation(operation) {
 }
 
 function fetchAnnotationSets() {
-	fetch(`${ROUTES.api_annotation_sets}?volume=${VOLUME.identifier}`, {
-		headers: {
-			'X-API-Key': ROUTES.api_key,
-		}
-	})
+	fetch(`${ROUTES.get_annotation_sets}?volume=${VOLUME.identifier}`, {headers: ROUTES.api_headers})
 	.then(response => response.json())
 	.then(result => {
 		ANNOTATION_SETS = result  
@@ -485,8 +481,7 @@ let modalLyrExtent = "";
 							>Classify Layers</button>
 						{/if}
 						{#if settingKeyMapLayer}
-						<button on:click={() => { settingKeyMapLayer = false; postOperation("set-index-layers"); }}>Save</button>
-						<button on:click={() => { settingKeyMapLayer = false; }}>Cancel</button>
+						<button on:click={() => { settingKeyMapLayer = false; }}>Done</button>
 						{/if}
 					</div>
 					<div class="documents-column">
@@ -515,7 +510,7 @@ let modalLyrExtent = "";
 								</ul>
 								{/if}
 								{#if settingKeyMapLayer}
-								<select bind:value={layerCategoryLookup[layer.slug]} on:change={(e) => {updateVrs(e, layer.id)}}>
+								<select bind:value={layerCategoryLookup[layer.slug]} on:change={(e) => {updateAnnotationSet(e, layer.id)}}>
 									{#each layerCategories as layerCat}
 									<option value={layerCat.value}>{layerCat.label}</option>
 									{/each}
@@ -577,7 +572,9 @@ let modalLyrExtent = "";
 			{/if}
 			<select class="item-select" bind:value={currentAnnotationSet}>
 				{#each ANNOTATION_SETS as annoSet}
+				{#if annoSet.annotations}
 				<option value={annoSet.id}>{annoSet.name}</option>
+				{/if}
 				{/each}
 			</select>
 			<span>
@@ -593,6 +590,7 @@ let modalLyrExtent = "";
 				DISABLED={!userCanEdit}
 				{MAPBOX_API_KEY}
 				{TITILER_HOST}
+				{ROUTES}
 				resetMosaic={resetMosaicPreview}
 			 />
 			{/key}

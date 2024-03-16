@@ -11,12 +11,9 @@
 	import LatestAdditions from '@components/lists/LatestAdditions.svelte';
 	import SessionList from '@components/lists/SessionList.svelte'
 
-	export let MAP_API_URL;
-	export let SESSION_API_URL;
-	export let PLACES_GEOJSON_URL;
+	export let ROUTES;
 	export let IS_MOBILE;
 	export let CSRFTOKEN;
-	export let OHMG_API_KEY;
 	export let NEWSLETTER_SLUG;
 	export let USER_SUBSCRIBED;
 	export let USER_EMAIL;
@@ -49,7 +46,7 @@
 			</div>
 			{#if IS_MOBILE}<span><button class="link-btn" on:click="{() => {showBrowseMap = !showBrowseMap}}">{ showBrowseMapBtnLabel }</button></span>{/if}
 			{#if showBrowseMap}
-			<MapBrowse PLACES_GEOJSON_URL={PLACES_GEOJSON_URL} MAP_HEIGHT={'400'} OHMG_API_KEY={OHMG_API_KEY} EMBEDDED={true} />
+			<MapBrowse {ROUTES} MAP_HEIGHT={'400'} EMBEDDED={true} />
 			{/if}
 		</div>
 	</div>
@@ -58,7 +55,7 @@
 		<div class="hero-banner-inner">
 			<div>
 			<h3>Recently Added Maps</h3>
-			<LatestAdditions {MAP_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
+			<LatestAdditions {ROUTES}/>
 			<span><em>Want to see more? View <Link href="/search/#items">all items</Link> and sort by <strong>Load date</strong>.</em></span>
 		</div>
 			<div id="link-list">
@@ -140,7 +137,7 @@
 		<div>
 			<h3>Latest activity</h3>
 			<p><Link href="/activity">all activity</Link></p>
-			<SessionList SESSION_API_URL={SESSION_API_URL} OHMG_API_KEY={OHMG_API_KEY} limit={"10"} showThumbs={true} paginate={false} />
+			<SessionList {ROUTES} limit={"10"} showThumbs={true} paginate={false} />
 		</div>
 	</div>
 

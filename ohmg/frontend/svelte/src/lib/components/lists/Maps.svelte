@@ -2,8 +2,7 @@
 import {TableSort} from 'svelte-tablesort';
 import Link from '@components/base/Link.svelte';
 
-export let MAP_API_URL;
-export let OHMG_API_KEY;
+export let ROUTES;
 export let PLACE_SLUG;
 export let PLACE_INCLUSIVE = false;
 
@@ -12,12 +11,9 @@ let items = [];
 let loading = true
 
 let showAll = false;
-$: url = PLACE_SLUG ? `${MAP_API_URL}?locale=${PLACE_SLUG}&locale_inclusive=${PLACE_INCLUSIVE}&loaded=${!showAll}` : `${MAP_API_URL}?loaded=${!showAll}`
+$: url = PLACE_SLUG ? `${ROUTES.get_maps}?locale=${PLACE_SLUG}&locale_inclusive=${PLACE_INCLUSIVE}&loaded=${!showAll}` : `${ROUTES.get_maps}?loaded=${!showAll}`
 function handleFetch(url) {
-	const apiHeaders = {
-		'X-API-Key': OHMG_API_KEY,
-	}
-	fetch(url, { headers: apiHeaders })
+	fetch(url, { headers: ROUTES.api_headers })
 		.then(response => response.json())
 		.then(result => {
 			fullList = flatten_response(result);

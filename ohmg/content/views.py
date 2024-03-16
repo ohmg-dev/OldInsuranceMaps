@@ -7,7 +7,6 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.middleware import csrf
-from django.urls import reverse
 
 from ohmg.utils import get_internal_routes
 from ohmg.georeference.models import (
@@ -114,7 +113,7 @@ class VirtualResourceView(View):
             "content/resource.html",
             context={
                 'resource_params': {
-                    'REFRESH_URL': None,
+                    'ROUTES': get_internal_routes(),
                     'RESOURCE': resource_json,
                     'VOLUME': volume_json,
                     'CSRFTOKEN': csrf.get_token(request),
@@ -122,8 +121,6 @@ class VirtualResourceView(View):
                     "SPLIT_SUMMARY": split_summary,
                     "GEOREFERENCE_SUMMARY": georeference_summary,
                     "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-                    "OHMG_API_KEY": settings.OHMG_API_KEY,
-                    "SESSION_API_URL": reverse("api-beta:session_list"),
                     "TITILER_HOST": settings.TITILER_HOST,
                 }
             }

@@ -4,12 +4,9 @@ import Maps from '@components/lists/Maps.svelte';
 import Places from '@components/lists/Places.svelte';
 import MapBrowse from '@components/interfaces/MapBrowse.svelte';
 
-export let PLACES_GEOJSON_URL;
+export let ROUTES;
 export let PLACES_CT;
-export let PLACES_API_URL;
 export let MAP_CT;
-export let MAP_API_URL;
-export let OHMG_API_KEY;
 
 let reinitMap = [{}]
 
@@ -35,14 +32,14 @@ $: { history.replaceState(null, document.title, `#${currentTab}`); }
 	<div>
 		<div style="display: {currentTab === 'map' ? 'block' : 'none'}">
 			{#each reinitMap as key (key)}
-			<MapBrowse PLACES_GEOJSON_URL={PLACES_GEOJSON_URL} OHMG_API_KEY={OHMG_API_KEY}/>
+			<MapBrowse {ROUTES}/>
 			{/each}
 		</div>
 		<div style="display: {currentTab === 'places' ? 'block' : 'none'}">
-			<Places PLACES_API_URL={PLACES_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
+			<Places {ROUTES}/>
 		</div>
 		<div style="display: {currentTab === 'items' ? 'block' : 'none'}">
-			<Maps {MAP_API_URL} OHMG_API_KEY={OHMG_API_KEY}/>
+			<Maps {ROUTES}/>
 		</div>
 	</div>
 </main>

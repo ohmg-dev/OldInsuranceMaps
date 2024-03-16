@@ -46,6 +46,7 @@ export let CSRFTOKEN;
 export let DISABLED;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
+export let ROUTES;
 export let resetMosaic;
 
 let currentLayer = null;
@@ -266,7 +267,7 @@ function submitMultiMask() {
       outGeoJSON.features.push(featureGeoJSON);
     }
   })
-  fetch(ANNOTATION_SET.urls.post, {
+  fetch(ROUTES.post_annotation_set, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json;charset=utf-8',

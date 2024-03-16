@@ -15,7 +15,7 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from newsletter.models import Submission, Message
 
-from ohmg.utils import full_reverse
+from ohmg.utils import full_reverse, get_internal_routes
 from ohmg.georeference.models import Layer
 
 from ohmg.loc_insurancemaps.models import Volume
@@ -80,12 +80,9 @@ class HomePage(View):
             "params": {
                 "PAGE_NAME": 'home',
                 'PARAMS': {
-                    "MAP_API_URL": reverse("api-beta:map_list"),
-                    "SESSION_API_URL": reverse("api-beta:session_list"),
-                    "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
+                    "ROUTES": get_internal_routes(),
                     "IS_MOBILE": mobile(request),
                     "CSRFTOKEN": csrf.get_token(request),
-                    "OHMG_API_KEY": settings.OHMG_API_KEY,
                     "NEWSLETTER_SLUG": newsletter_slug,
                     "USER_SUBSCRIBED": user_subscribed,
                     "USER_EMAIL": user_email,
@@ -110,12 +107,9 @@ class Browse(View):
             "params": {
                 "PAGE_NAME": 'browse',
                 "PARAMS": {
-                    "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
+                    "ROUTES": get_internal_routes(),
                     "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
-                    "PLACES_API_URL": reverse("api-beta:place_list"),
                     "MAP_CT": Volume.objects.all().exclude(loaded_by=None).count(),
-                    "MAP_API_URL": reverse("api-beta:map_list"),
-                    "OHMG_API_KEY": settings.OHMG_API_KEY,
                 }
             }
         }
@@ -134,8 +128,7 @@ class ActivityView(View):
                 "PAGE_TITLE": "Activity",
                 "PAGE_NAME": 'activity',
                 "PARAMS": {
-                    "SESSION_API_URL": reverse("api-beta:session_list"),
-                    "OHMG_API_KEY": settings.OHMG_API_KEY,
+                    "ROUTES": get_internal_routes()
                 }
             }
         }

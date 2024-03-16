@@ -19,10 +19,9 @@ import VectorLayer from 'ol/layer/Vector';
 import Styles from '@helpers/ol-styles';
 const styles = new Styles();
 
-export let PLACES_GEOJSON_URL;
 export let MAP_HEIGHT;
-export let OHMG_API_KEY;
 export let EMBEDDED;
+export let ROUTES;
 
 if (!MAP_HEIGHT) {MAP_HEIGHT = '600'};
 
@@ -61,10 +60,8 @@ onMount(async function() {
 		})
 	});
 	
-	const response = await fetch(PLACES_GEOJSON_URL, {
-		headers: {
-			'X-API-Key': OHMG_API_KEY,
-		},
+	const response = await fetch(ROUTES.get_places_geojson, {
+		headers: ROUTES.api_headers,
     })
 	const mapGeoJSON = await response.json()
 	

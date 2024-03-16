@@ -1,18 +1,15 @@
 <script>
 	import Link from '@components/base/Link.svelte';
 
-	export let MAP_API_URL;
-	export let OHMG_API_KEY;
+	export let ROUTES;
 
 	let loadingItems = false;
 	let latestItems = [];
 
 	function getInitialResults() {
 		loadingItems = true;
-		fetch(MAP_API_URL+"?limit=6&sort=load_date", {
-			headers: {
-				'X-API-Key': OHMG_API_KEY,
-			}
+		fetch(ROUTES.get_maps+"?limit=6&sort=load_date", {
+			headers: ROUTES.api_headers,
 		})
 		.then(response => response.json())
 		.then(result => {

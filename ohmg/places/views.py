@@ -1,11 +1,10 @@
 import logging
 
-from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse
 from django.views import View
 
+from ohmg.utils import get_internal_routes
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
@@ -29,9 +28,8 @@ class PlaceView(View):
                 "params": {
                     "PAGE_NAME": 'place',
                     "PARAMS": {
+                        "ROUTES": get_internal_routes(),
                         "PLACE": place,
-                        "MAP_API_URL": reverse("api-beta:map_list"),
-                        "OHMG_API_KEY": settings.OHMG_API_KEY,
                     }
                 }
             }

@@ -26,6 +26,7 @@ import ResourceDetails from './sections/ResourceDetails.svelte';
 
 import { makeTitilerXYZUrl } from '@helpers/utils';
 
+export let ROUTES;
 export let CSRFTOKEN;
 export let USER;
 export let RESOURCE;
@@ -34,8 +35,6 @@ export let SPLIT_SUMMARY;
 export let GEOREFERENCE_SUMMARY;
 export let MAPBOX_API_KEY;
 export let TITILER_HOST;
-export let OHMG_API_KEY;
-export let SESSION_API_URL; 
 
 let xyzUrl;
 let ohmUrl;
@@ -221,7 +220,6 @@ let currentDoc = RESOURCE.id;
 function goToDocument() {
 	window.location = "/resource/" + currentDoc
 }
-console.log(RESOURCE)
 </script>
 
 <IconContext values={iconProps}>
@@ -404,7 +402,7 @@ console.log(RESOURCE)
     </button>
     {#if sectionVis['history']}
     <div transition:slide>
-      <SessionList OHMG_API_KEY={OHMG_API_KEY} SESSION_API_URL={SESSION_API_URL} FILTER_PARAM={filterParam} showResource={false} paginate={false} limit={"0"}/>
+      <SessionList {ROUTES}} FILTER_PARAM={filterParam} showResource={false} paginate={false} limit={"0"}/>
     </div>
     {/if}
   </section>

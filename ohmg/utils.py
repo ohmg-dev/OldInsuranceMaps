@@ -12,9 +12,16 @@ logger = logging.getLogger(__name__)
 
 def get_internal_routes():
     return {
-        "api_key": settings.OHMG_API_KEY,
-        "api_annotation_set": reverse("api-beta:annotation_set"),
-        "api_annotation_sets": reverse("api-beta:annotation_sets"),
+        "api_headers": {'X-API-Key': settings.OHMG_API_KEY},
+        "get_annotation_set": reverse("api-beta:annotation_set"),
+        "get_annotation_sets": reverse("api-beta:annotation_sets"),
+        "post_annotation_set": reverse("annotation_set_view"),
+        "get_places_geojson": reverse("api-beta:places_geojson"),
+        "get_maps": reverse("api-beta:map_list"),
+        "get_sessions": reverse("api-beta:session_list"),
+        "get_users": reverse("api-beta:user_list"),
+        "get_places": reverse("api-beta:place_list"),
+        "change_avatar": reverse('avatar_change'),
     }
 
 def download_image(url, out_path, retries=3):

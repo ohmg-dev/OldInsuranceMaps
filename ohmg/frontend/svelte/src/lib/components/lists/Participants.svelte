@@ -2,17 +2,12 @@
 	import {TableSort} from 'svelte-tablesort';
 	import Link from '@components/base/Link.svelte';
 
-	export let USER_API_URL;
-	export let OHMG_API_KEY;
+	export let ROUTES;
 
 	let all_participants = [];
 	let items = []
 
-	const apiHeaders = {
-		"X-API-Key": OHMG_API_KEY,
-	}
-
-	fetch(USER_API_URL, { headers: apiHeaders })
+	fetch(ROUTES.get_users, { headers: ROUTES.api_headers })
 		.then(response => response.json())
 		.then(result => {
 			all_participants = result;

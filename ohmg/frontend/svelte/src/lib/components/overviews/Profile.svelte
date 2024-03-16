@@ -3,12 +3,11 @@
 	import Link from '@components/base/Link.svelte';
 
 	import SessionList from '@components/lists/SessionList.svelte'
-
+	
+	export let ROUTES;
 	export let CURRENT_USERNAME;
 	export let PROFILE_USER;
 	export let CHANGE_AVATAR_URL;
-	export let SESSION_API_URL;
-	export let OHMG_API_KEY;
 	export let USER_API_KEYS = [];
 
 	let myProfile = CURRENT_USERNAME === PROFILE_USER.username;
@@ -51,7 +50,7 @@
 			</button>
 		</div>
 		{#if showSessions}
-		<SessionList OHMG_API_KEY={OHMG_API_KEY} SESSION_API_URL={SESSION_API_URL} FILTER_PARAM={sessionFilterParam} showUser={false}/>
+		<SessionList {ROUTES} FILTER_PARAM={sessionFilterParam} showUser={false}/>
 		{/if}
 	</section>
 </main>

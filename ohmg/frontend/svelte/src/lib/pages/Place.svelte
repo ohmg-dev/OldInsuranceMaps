@@ -7,9 +7,8 @@
 	import { iconProps } from "@helpers/utils"
 
 
+export let ROUTES;
 export let PLACE;
-export let MAP_API_URL;
-export let OHMG_API_KEY;
 
 
 let reinitList = [{}]
@@ -116,7 +115,7 @@ $: VIEWER_LINK = PLACE.volumes.length > 0 ? `/viewer/${PLACE.slug}/` : '';
 	<div id="items-panel" style="flex-grow:1; overflow-x:auto;">
 		<h3>Maps</h3>
 		{#each reinitList as key (key)}
-		<Maps {MAP_API_URL} OHMG_API_KEY={OHMG_API_KEY} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
+		<Maps {ROUTES} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
 		{/each}
 	</div>
 </div>
