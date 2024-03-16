@@ -126,8 +126,10 @@ class AnnotationSetSchema(Schema):
     name: str
     volume_id: str
     is_geospatial: bool
-    annotations: list
+    annotations: list[LayerAnnotationSchema]
     multimask_geojson: dict = None
+    extent: list = None
+    multimask_extent: list = None
 
     @staticmethod
     def resolve_id(obj):
@@ -136,11 +138,6 @@ class AnnotationSetSchema(Schema):
     @staticmethod
     def resolve_name(obj):
         return str(obj.category)
-
-    @staticmethod
-    def resolve_annotations(obj):
-        layers = [Layer.objects.get(pk=i.pk) for i in obj.virtual_resources if i.type == "layer"]
-        return [LayerAnnotationSchema.from_orm(i) for i in layers]
 
     @staticmethod
     def resolve_is_geospatial(obj):

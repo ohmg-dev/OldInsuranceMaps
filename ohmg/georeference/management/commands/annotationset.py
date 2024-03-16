@@ -1,3 +1,4 @@
+from argparse import Namespace
 from django.core.management.base import BaseCommand
 from ohmg.loc_insurancemaps.tasks import (
     generate_mosaic_cog_task,
@@ -12,6 +13,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "operation",
             choices=[
+                "inspect",
                 "generate-mosaic-cog",
                 "generate-mosaic-json",
             ],
@@ -37,21 +39,26 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        if options['pk']:
-            ls = AnnotationSet.objects.get(pk=options['pk'])
-        else:
-            ls = AnnotationSet.objects.get(volume__identifier=options['identifier'], category=options['category'])
+        options = Namespace(**options)
 
-        if options['operation'] == "generate-mosaic-cog":
-            if options['background']:
+        if options.pk:
+            ls = AnnotationSet.objects.get(pk=options.pk)
+        else:
+            ls = AnnotationSet.objects.get(volume__identifier=options.identifier, category__slug=options.category)
+
+        if options.operation == "inspect":
+            print(ls.multimask_extent)
+
+        if options.operation == "generate-mosaic-cog":
+            if options.background:
                 raise NotImplementedError
                 generate_mosaic_cog_task.delay(ls.pk)
             else:
                 ls.generate_mosaic_cog()
 
-        if options['operation'] == "generate-mosaic-json":
-            if options['background']:
+        if options.operation == "generate-mosaic-json":
+            if options.background:
                 raise NotImplementedError
-                generate_mosaic_json_task.delay(ls.pk, trim_all=options['trim_all'])
+                generate_mosaic_json_task.delay(ls.pk, trim_all=options.trim_all)
             else:
-                ls.generate_mosaic_json(trim_all=options['trim_all'])
+                ls.generate_mosaic_json(trim_all=options.trim_all)

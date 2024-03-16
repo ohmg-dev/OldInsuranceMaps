@@ -217,19 +217,12 @@ export function makeLayerGroupFromAnnotationSet (options) {
 	//  applyMultiMask: if a MultiMask is present in the Annotation Set, apply it
 	// }
 
-	const groupExtent = createEmpty();
-
 	const lyrGroup = new LayerGroup();
-	if (options.zIndex) {
-		lyrGroup.setZIndex(options.zIndex)
-	}
-
 	options.annotationSet.annotations.forEach( function(annotation) {
 
 		if (annotation.slug != options.excludeLayerId && annotation.extent) {
 
 			const lyrExtent = transformExtent(annotation.extent, "EPSG:4326", "EPSG:3857")
-			extend(groupExtent, lyrExtent)
 
 			// create the actual ol layers and add to group.
 			let newLayer = new TileLayer({
@@ -261,9 +254,7 @@ export function makeLayerGroupFromAnnotationSet (options) {
 		}
 	});
 
-	console.log(groupExtent)
-	lyrGroup.setExtent(groupExtent)
-
+	options.zIndex && lyrGroup.setZIndex(options.zIndex)
 	return lyrGroup
 }
 

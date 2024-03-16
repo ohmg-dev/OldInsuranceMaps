@@ -14,7 +14,10 @@ from ohmg.georeference.models import (
 
 class AnnotationSetAdmin(admin.ModelAdmin):
     readonly_fields = (
-        'vres_list',
+        'annotation_display_list',
+        'extent',
+        'multimask_extent',
+        'multimask',
     )
     search_fields = ('volume__city',)
 

@@ -846,6 +846,13 @@ class AnnotationSet(models.Model):
     def __str__(self):
         return f"{self.volume} - {self.category}"
 
+    def annotation_display_list(self):
+        """For display in the admin interface only."""
+        li = [f"<li><a href='/admin/georeference/itembase/{i.pk}/change'>{i.slug}</a></li>" for i in self.annotations]
+        return mark_safe("<ul>"+"".join(li)+"</ul>")
+
+    annotation_display_list.short_description = 'Annotations'
+
     @property
     def is_geospatial(self):
         return True if self.category and self.category.is_geospatial else False
@@ -854,12 +861,41 @@ class AnnotationSet(models.Model):
     def virtual_resources(self):
         return ItemBase.objects.filter(vrs=self)
 
-    def vres_list(self):
-        """For display in the admin interface only."""
-        li = [f"<li><a href='/admin/georeference/itembase/{i.pk}/change'>{i.slug}</a></li>" for i in self.virtual_resources]
-        return mark_safe("<ul>"+"".join(li)+"</ul>")
+    @property
+    def annotations(self):
+        if self.is_geospatial:
+            return Layer.objects.filter(vrs=self)
+        else:
+            return Document.objects.filter(vrs=self)
 
-    vres_list.short_description = 'Virtual resources in this set'
+    @property
+    def extent(self):
+        """Calculate an extent based on all layers in this annotation set. If
+        this is not a spatial annotation set, or there are no layers, return None."""
+        extent = None
+        if self.is_geospatial:
+            layer_extent_polygons = []
+            for v in self.virtual_resources:
+                extent_poly = Polygon.from_bbox(v.extent)
+                layer_extent_polygons.append(extent_poly)
+            if len(layer_extent_polygons) > 0:
+                extent = MultiPolygon(layer_extent_polygons, srid=4326).extent
+        return extent
+
+    @property
+    def multimask_extent(self):
+        """Calculate an extent based on all layers in this annotation set's
+        multimask. If this is not a spatial annotation set, or there is no
+        multimask, return None."""
+        extent = None
+        if self.is_geospatial and self.multimask:
+            feature_polygons = []
+            for v in self.multimask.values():
+                poly = Polygon(v['geometry']['coordinates'][0])
+                feature_polygons.append(poly)
+            if len(feature_polygons) > 0:
+                extent = MultiPolygon(feature_polygons, srid=4326).extent
+        return extent
 
     @property
     def multimask_geojson(self):
@@ -875,8 +911,6 @@ class AnnotationSet(models.Model):
     def validate_multimask_geojson(self, multimask_geojson):
         errors = []
         for feature in multimask_geojson['features']:
-            print(feature)
-            print(type(feature))
             lyr = feature['properties']['layer']
             try:
                 geom_str = json.dumps(feature['geometry'])

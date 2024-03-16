@@ -225,13 +225,9 @@ function MapViewer (elementId) {
 
 function setMapExtent() {
 	if (mapView) {
-		if (layerLookupArr.length > 0) {
-			const fullExtent = createEmpty();
-			layerLookupArr.forEach( function(layer) {
-				const extent3857 = transformExtent(layer.layerDef.extent, "EPSG:4326", "EPSG:3857");
-				extend(fullExtent, extent3857)
-			});
-			mapView.map.getView().fit(fullExtent);
+    if (ANNOTATION_SET.extent) {
+      const extent3857 = transformExtent(ANNOTATION_SET.extent, "EPSG:4326", "EPSG:3857");
+			mapView.map.getView().fit(extent3857);
 		} else {
 			mapView.map.getView().setCenter([0,0]);
 			mapView.map.getView().setZoom(1)
@@ -342,7 +338,7 @@ function addMask(layer){
 
 function layerApplyMask(feature) {
   if (!currentLayer) { currentLayer = feature.getProperties().layer }
-  if (currentLayer) {
+  if (currentLayer && layerLookup[currentLayer]) {
     if (layerLookup[currentLayer].feature) {
       trimShapeSource.removeFeature(layerLookup[currentLayer].feature)
       layerLookup[currentLayer].feature = null;

@@ -13,6 +13,7 @@ import LegendModal from "./modals/LegendModal.svelte"
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import {createEmpty, extend} from 'ol/extent';
+import {transformExtent} from 'ol/proj';
 import {OSM, XYZ} from 'ol/source';
 
 import {
@@ -124,26 +125,28 @@ const fullExtent = createEmpty();
 function createAnnotationSets() {
 
 	ANNOTATION_SETS.forEach( function( aSet ){
-
-		const layerGroup = makeLayerGroupFromAnnotationSet({
-			annotationSet: aSet,
-			zIndex: zIndexLookup[aSet.id],
-			titilerHost: TITILER_HOST,
-			applyMultiMask: true,
-		})
-		extend(fullExtent, layerGroup.getExtent())
-		const setDef = {
-			id: aSet.id,
-			name: aSet.name,
-			layerGroup: layerGroup,
-			sortOrder: zIndexLookup[aSet.id],
-			opacity: 100,
-			layerCt: aSet.annotations.length,
-			extent: layerGroup.getExtent()
+		if (aSet.annotations.length > 0) {
+			const layerGroup = makeLayerGroupFromAnnotationSet({
+				annotationSet: aSet,
+				zIndex: zIndexLookup[aSet.id],
+				titilerHost: TITILER_HOST,
+				applyMultiMask: true,
+			})
+			const extent3857 = transformExtent(aSet.extent, "EPSG:4326", "EPSG:3857")
+			extend(fullExtent, extent3857)
+			const setDef = {
+				id: aSet.id,
+				name: aSet.name,
+				layerGroup: layerGroup,
+				sortOrder: zIndexLookup[aSet.id],
+				opacity: 100,
+				layerCt: aSet.annotations.length,
+				extent: extent3857
+			}
+			annotationSets[aSet.id] = setDef
+			annotationSetList.push(aSet.id)
+			map.addLayer(setDef.layerGroup)
 		}
-		annotationSets[aSet.id] = setDef
-		annotationSetList.push(aSet.id)
-		map.addLayer(setDef.layerGroup)
 	})
 }
 
