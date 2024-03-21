@@ -48,11 +48,9 @@ import Modal, {getModal} from '@components/base/Modal.svelte'
 import Link from '@components/base/Link.svelte';
 import MapboxLogoLink from "./buttons/MapboxLogoLink.svelte"
 
+export let CONTEXT;
 export let PLACE;
-export let MAPBOX_API_KEY;
 export let VOLUMES;
-export let TITILER_HOST;
-export let ON_MOBILE;
 
 let showPanel = true;
 
@@ -125,7 +123,7 @@ VOLUMES.forEach( function (vol, n) {
 			source: new XYZ({
 				transition: 0,
 				url: makeTitilerXYZUrl({
-					host: TITILER_HOST,
+					host: CONTEXT.titiler_host,
 					url: mosaicUrl,
 				}),
 			}),
@@ -137,7 +135,7 @@ VOLUMES.forEach( function (vol, n) {
 		// mainGroup = getMainLayerGroupFromVolume(vol);
 		mainGroup = makeLayerGroupFromVolume({
 			volume: vol,
-			titilerHost: TITILER_HOST,
+			titilerHost: CONTEXT.titiler_host,
 			zIndex: 400+n,
 			layerSet: "main",
 		})
@@ -262,7 +260,7 @@ function setOpacitiesFromParams() {
 
 // setup all the basemap stuff
 
-const basemaps = makeBasemaps(MAPBOX_API_KEY)
+const basemaps = makeBasemaps(CONTEXT.mapbox_api_token)
 
 
 const baseGroup = new LayerGroup({
@@ -392,7 +390,7 @@ function MapViewer (elementId) {
 		})
 	);
 
-	if (ON_MOBILE){
+	if (CONTEXT.on_mobile){
 		map.on('singleclick', function() { showPanel = !showPanel })
 	}
 

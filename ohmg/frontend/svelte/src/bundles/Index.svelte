@@ -13,44 +13,39 @@
 
     export let PAGE_NAME = '';
     export let PARAMS = {};
+    export let CONTEXT = {};
 
 </script>
 
 <IconContext values={{ weight:'bold'}} >
 {#if PAGE_NAME == 'home'}
 <Home 
-    ROUTES={PARAMS.ROUTES}
-    IS_MOBILE={PARAMS.IS_MOBILE}
-    CSRFTOKEN={PARAMS.CSRFTOKEN}
+    {CONTEXT}
     NEWSLETTER_SLUG={PARAMS.NEWSLETTER_SLUG}
     USER_SUBSCRIBED={PARAMS.USER_SUBSCRIBED}
-    USER_EMAIL={PARAMS.USER_EMAIL}
-    VIEWER_SHOWCASE={PARAMS.VIEWER_SHOWCASE}
     PLACES_CT={PARAMS.PLACES_CT}
     MAP_CT={PARAMS.MAP_CT} />
 {:else if PAGE_NAME == 'profile'}
 <TitleBar TITLE={PARAMS.PROFILE_USER.username} IMG_URL={PARAMS.PROFILE_USER.image_url} />
-<Profile 
-    ROUTES={PARAMS.ROUTES}
-    CURRENT_USERNAME={PARAMS.CURRENT_USERNAME}
-    PROFILE_USER={PARAMS.PROFILE_USER}
-    USER_API_KEYS={PARAMS.USER_API_KEYS} />
+<Profile
+    {CONTEXT}
+    PROFILE_USER={PARAMS.PROFILE_USER} />
 {:else if PAGE_NAME == 'activity'}
 <TitleBar TITLE={"All activity"} />
 <SessionList
-    ROUTES={PARAMS.ROUTES}
+    {CONTEXT}
     limit={"25"} showThumbs={true}/>
 {:else if PAGE_NAME == 'profiles'}
 <TitleBar TITLE={"Participants"} />
 <Participants
-    ROUTES={PARAMS.ROUTES} />
+    {CONTEXT} />
 {:else if PAGE_NAME == 'place'}
-<Place 
-    PLACE={PARAMS.PLACE}
-    ROUTES={PARAMS.ROUTES} />
+<Place
+    {CONTEXT}
+    PLACE={PARAMS.PLACE} />
 {:else if PAGE_NAME == 'browse'}
 <Browse 
-    ROUTES={PARAMS.ROUTES}
+    {CONTEXT}
     PLACES_CT={PARAMS.PLACES_CT}
     MAP_CT={PARAMS.MAP_CT} />
 {:else if PAGE_NAME == 'markdown-page'}

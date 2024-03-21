@@ -1,15 +1,15 @@
 <script>
 	import Link from '@components/base/Link.svelte';
 
-	export let ROUTES;
+	export let CONTEXT;
 
 	let loadingItems = false;
 	let latestItems = [];
 
 	function getInitialResults() {
 		loadingItems = true;
-		fetch(ROUTES.get_maps+"?limit=6&sort=load_date", {
-			headers: ROUTES.api_headers,
+		fetch(CONTEXT.urls.get_maps+"?limit=6&sort=load_date", {
+			headers: CONTEXT.ohmg_api_headers,
 		})
 		.then(response => response.json())
 		.then(result => {

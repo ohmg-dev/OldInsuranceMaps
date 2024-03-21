@@ -8,8 +8,8 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.http import JsonResponse, HttpResponseBadRequest
-from django.middleware import csrf
 
+from ohmg.context_processors import generate_ohmg_context
 from ohmg.georeference.tasks import (
     run_preparation_session,
     run_georeference_session,
@@ -53,9 +53,7 @@ class SplitView(View):
         volume_json = volume.serialize()
 
         split_params = {
-            "USER": "" if not request.user.is_authenticated else request.user.username,
-            "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
-            "CSRFTOKEN": csrf.get_token(request),
+            "CONTEXT": generate_ohmg_context(request),
             "DOCUMENT": doc_data,
             "VOLUME": volume_json,
         }
@@ -193,16 +191,9 @@ class GeoreferenceView(View):
         #         reference_layers.append(alt)
 
         georeference_params = {
-            "USER": "" if not request.user.is_authenticated else request.user.username,
-            "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
-            "CSRFTOKEN": csrf.get_token(request),
+            "CONTEXT": generate_ohmg_context(request),
             "DOCUMENT": doc_data,
             "VOLUME": volume_json,
-            # "REGION_EXTENT": extent,
-            "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-            ## these variables will be reevaluated when reference layers re-implemented
-            # "REFERENCE_LAYERS": reference_layers,
-            "TITILER_HOST": settings.TITILER_HOST,
         }
 
         return render(

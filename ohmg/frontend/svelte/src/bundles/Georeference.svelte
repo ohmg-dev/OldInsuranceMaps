@@ -2,14 +2,9 @@
   import TitleBar from '@components/layout/TitleBar.svelte';
   import Georeferencer from '@components/interfaces/Georeferencer.svelte';
 
-  export let USER;
-  export let SESSION_LENGTH;
+  export let CONTEXT;
   export let DOCUMENT;
   export let VOLUME;
-  export let CSRFTOKEN;
-  export let MAPBOX_API_KEY;
-
-  export let TITILER_HOST;
 
   const iconLinks = [
     {
@@ -38,11 +33,4 @@
 </script>
 
 <TitleBar TITLE={DOCUMENT.title} ICON_LINKS={iconLinks}/>
-<Georeferencer
-  USER={USER}
-  SESSION_LENGTH={SESSION_LENGTH}
-  DOCUMENT={DOCUMENT}
-  VOLUME={VOLUME}
-  CSRFTOKEN={CSRFTOKEN}
-  MAPBOX_API_KEY={MAPBOX_API_KEY}
-  TITILER_HOST={TITILER_HOST}/>
+<Georeferencer {CONTEXT} {DOCUMENT} {VOLUME} />

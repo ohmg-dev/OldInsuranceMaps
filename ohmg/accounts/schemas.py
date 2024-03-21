@@ -5,6 +5,7 @@ from ninja import (
     Schema,
 )
 
+from ohmg.api.models import Key
 from ohmg.georeference.schemas import SessionSchema
 from ohmg.loc_insurancemaps.models import Volume
 
@@ -19,6 +20,8 @@ class UserSchema(Schema):
     volumes: list
     load_ct: int
     image_url: str
+    email: str
+    api_keys: list[str]
 
     @staticmethod
     def resolve_volumes(obj):
@@ -39,6 +42,10 @@ class UserSchema(Schema):
     @staticmethod
     def resolve_image_url(obj):
         return avatar_url(obj)
+    
+    @staticmethod
+    def resolve_api_keys(obj):
+        return [i for i in Key.objects.filter(account=obj).values_list('value', flat=True)]
 
 
 class UserProfileSchema(Schema):

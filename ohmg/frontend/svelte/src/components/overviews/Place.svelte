@@ -6,8 +6,7 @@
 	import ArrowRight from "phosphor-svelte/lib/ArrowRight";
 	import { iconProps } from "@lib/utils"
 
-
-export let ROUTES;
+export let CONTEXT;
 export let PLACE;
 
 
@@ -115,7 +114,7 @@ $: VIEWER_LINK = PLACE.volumes.length > 0 ? `/viewer/${PLACE.slug}/` : '';
 	<div id="items-panel" style="flex-grow:1; overflow-x:auto;">
 		<h3>Maps</h3>
 		{#each reinitList as key (key)}
-		<Maps {ROUTES} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
+		<Maps {CONTEXT} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
 		{/each}
 	</div>
 </div>

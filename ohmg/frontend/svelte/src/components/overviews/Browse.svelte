@@ -4,7 +4,7 @@ import Maps from '@components/lists/Maps.svelte';
 import Places from '@components/lists/Places.svelte';
 import MapBrowse from '@components/interfaces/MapBrowse.svelte';
 
-export let ROUTES;
+export let CONTEXT;
 export let PLACES_CT;
 export let MAP_CT;
 
@@ -32,14 +32,14 @@ $: { history.replaceState(null, document.title, `#${currentTab}`); }
 	<div>
 		<div style="display: {currentTab === 'map' ? 'block' : 'none'}">
 			{#each reinitMap as key (key)}
-			<MapBrowse {ROUTES}/>
+			<MapBrowse {CONTEXT}/>
 			{/each}
 		</div>
 		<div style="display: {currentTab === 'places' ? 'block' : 'none'}">
-			<Places {ROUTES}/>
+			<Places {CONTEXT}/>
 		</div>
 		<div style="display: {currentTab === 'items' ? 'block' : 'none'}">
-			<Maps {ROUTES}/>
+			<Maps {CONTEXT}/>
 		</div>
 	</div>
 </main>

@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 
-from ohmg.utils import get_internal_routes
+from ohmg.context_processors import generate_ohmg_context
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
@@ -26,9 +26,9 @@ class PlaceView(View):
         else:
             context_dict = {
                 "params": {
+                    "CONTEXT": generate_ohmg_context(request),
                     "PAGE_NAME": 'place',
                     "PARAMS": {
-                        "ROUTES": get_internal_routes(),
                         "PLACE": place,
                     }
                 }

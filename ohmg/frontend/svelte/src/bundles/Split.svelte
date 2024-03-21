@@ -2,10 +2,8 @@
   import TitleBar from '@components/layout/TitleBar.svelte';
   import Splitter from '@components/interfaces/Splitter.svelte';
 
-  export let USER;
-  export let SESSION_LENGTH;
+  export let CONTEXT;
   export let DOCUMENT;
-  export let CSRFTOKEN;
   export let VOLUME;
 
   const iconLinks = [
@@ -34,9 +32,4 @@
 </script>
 
 <TitleBar TITLE={DOCUMENT.title} ICON_LINKS={iconLinks}/>
-<Splitter USER={USER}
-  SESSION_LENGTH={SESSION_LENGTH}
-  DOCUMENT={DOCUMENT}
-  CSRFTOKEN={CSRFTOKEN}
-  VOLUME={VOLUME}
-  />
+<Splitter {CONTEXT} {DOCUMENT} {VOLUME} />

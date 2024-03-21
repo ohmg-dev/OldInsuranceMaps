@@ -33,17 +33,9 @@ import DownloadSectionModal from './modals/ItemDownloadSectionModal.svelte';
 import ItemDetails from './sections/ItemDetails.svelte';
     import SigninReminder from '../layout/SigninReminder.svelte';
 
+export let CONTEXT;
 export let VOLUME;
 export let ANNOTATION_SETS;
-export let CSRFTOKEN;
-export let USER;
-export let MAPBOX_API_KEY;
-export let TITILER_HOST;
-export let ROUTES;
-
-console.log(ROUTES)
-
-console.log(ANNOTATION_SETS)
 
 let currentAnnotationSet = "main-content";
 const annotationSetLookup = {}
@@ -52,7 +44,7 @@ $: {
 }
 
 let userCanEdit = false;
-userCanEdit = USER.is_staff || (VOLUME.access == "any" && USER.is_authenticated) || (VOLUME.access == "sponsor" && VOLUME.sponsor == USER.username)
+userCanEdit = CONTEXT.user.is_staff || (VOLUME.access == "any" && CONTEXT.user.is_authenticated) || (VOLUME.access == "sponsor" && VOLUME.sponsor == CONTEXT.user.username)
 
 let currentIdentifier = VOLUME.identifier
 function goToItem() {
@@ -85,11 +77,11 @@ function updateAnnotationSet(e, layerId) {
         categorySlug: categorySlugLookup[category]
 	})
 
-	fetch(ROUTES.post_annotation_set, {
+	fetch(CONTEXT.urls.post_annotation_set, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json;charset=utf-8',
-			'X-CSRFToken': CSRFTOKEN,
+			'X-CSRFToken': CONTEXT.csrf_token,
 		},
 		body: postData,
 	})
@@ -162,7 +154,7 @@ function postOperation(operation) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json;charset=utf-8',
-			'X-CSRFToken': CSRFTOKEN,
+			'X-CSRFToken': CONTEXT.csrf_token,
 		},
 		body: data,
 	})
@@ -178,7 +170,9 @@ function postOperation(operation) {
 }
 
 function fetchAnnotationSets() {
-	fetch(`${ROUTES.get_annotation_sets}?volume=${VOLUME.identifier}`, {headers: ROUTES.api_headers})
+	fetch(`${CONTEXT.urls.get_annotation_sets}?volume=${VOLUME.identifier}`, {
+		headers: CONTEXT.ohmg_api_headers
+	})
 	.then(response => response.json())
 	.then(result => {
 		ANNOTATION_SETS = result  
@@ -194,7 +188,7 @@ function postGeoref(url, operation, status) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json;charset=utf-8',
-			'X-CSRFToken': CSRFTOKEN,
+			'X-CSRFToken': CONTEXT.csrf_token,
 		},
 		body: data,
 	})
@@ -208,12 +202,12 @@ let mosaicUrl;
 let ohmUrl;
 if (VOLUME.urls.mosaic_json) {
 	mosaicUrl = makeTitilerXYZUrl({
-		host: TITILER_HOST,
+		host: CONTEXT.titiler_host,
 		url: VOLUME.urls.mosaic_json
 	})
 	// make the OHM url here
 	const mosaicUrlEncoded = makeTitilerXYZUrl({
-		host: TITILER_HOST,
+		host: CONTEXT.titiler_host,
 		url: VOLUME.urls.mosaic_json,
 		doubleEncode: true
 	})
@@ -222,12 +216,12 @@ if (VOLUME.urls.mosaic_json) {
 }
 if (VOLUME.urls.mosaic_geotiff) {
 	mosaicUrl = makeTitilerXYZUrl({
-		host: TITILER_HOST,
+		host: CONTEXT.titiler_host,
 		url: VOLUME.urls.mosaic_geotiff
 	})
 	// make the OHM url here
 	const mosaicUrlEncoded = makeTitilerXYZUrl({
-		host: TITILER_HOST,
+		host: CONTEXT.titiler_host,
 		url: VOLUME.urls.mosaic_geotiff,
 		doubleEncode: true
 	})
@@ -255,7 +249,7 @@ let modalLyrExtent = "";
 <GeoreferencedSectionModal id={"modal-georeferenced"} />
 <MultiMaskModal id={"modal-multimask"} />
 <NonMapContentModal id={"modal-non-map"} />
-<GeoreferencePermissionsModal id={"modal-permissions"} user={USER} userCanEdit={userCanEdit} item={VOLUME} />
+<GeoreferencePermissionsModal id={"modal-permissions"} user={CONTEXT.user} userCanEdit={userCanEdit} item={VOLUME} />
 <Modal id={"modal-doc-view"} full={true}>
 {#key modalDocUrl}
 	<SingleDocumentViewer LAYER_URL={modalDocUrl} IMAGE_SIZE={modalDocImageSize} />
@@ -263,7 +257,7 @@ let modalLyrExtent = "";
 </Modal>
 <Modal id={"modal-lyr-view"} full={true}>
 {#key modalLyrUrl}
-	<SingleLayerViewer LAYER_URL={modalLyrUrl} EXTENT={modalLyrExtent} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
+	<SingleLayerViewer {CONTEXT} LAYER_URL={modalLyrUrl} EXTENT={modalLyrExtent} />
 {/key}
 </Modal>
 <main>
@@ -313,7 +307,7 @@ let modalLyrExtent = "";
 		{#if sectionVis['preview']}
 		<div class="section-content" transition:slide>
 			{#key ANNOTATION_SETS}
-				<MapPreview {ANNOTATION_SETS} {MAPBOX_API_KEY} {TITILER_HOST} />
+				<MapPreview {CONTEXT} {ANNOTATION_SETS} />
 			{/key}
 		</div>
 		{/if}
@@ -330,7 +324,7 @@ let modalLyrExtent = "";
 				<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
 			{/if}
 			<div style="display:flex; align-items:center;">
-				{#if USER.is_authenticated}
+				{#if CONTEXT.user.is_authenticated}
 				<IconButton style="lite" icon="wrench" action={() => {postOperation("refresh-lookups")}} title="Regenerate summary (may take a moment)" />
 				{/if}
 				
@@ -359,7 +353,7 @@ let modalLyrExtent = "";
 					</span></em>
 				</div>
 			</div>
-			{#if !USER.is_authenticated}
+			{#if !CONTEXT.user.is_authenticated}
 			<SigninReminder />
 			{/if}
 			<section class="subsection">
@@ -476,8 +470,8 @@ let modalLyrExtent = "";
 					<div style="margin: 10px 0px;">
 						{#if VOLUME.items.layers.length > 0 && !settingKeyMapLayer}
 						<button on:click={() => settingKeyMapLayer = !settingKeyMapLayer}
-							disabled={!USER.is_authenticated}
-							title={!USER.is_authenticated ? 'You must be signed in to classify layers' : 'Click to enable layer classification'}
+							disabled={!CONTEXT.user.is_authenticated}
+							title={!CONTEXT.user.is_authenticated ? 'You must be signed in to classify layers' : 'Click to enable layer classification'}
 							>Classify Layers</button>
 						{/if}
 						{#if settingKeyMapLayer}
@@ -567,7 +561,7 @@ let modalLyrExtent = "";
 		</div>
 		{#if sectionVis['multimask']}
 		<div transition:slide>
-			{#if !USER.is_authenticated}
+			{#if !CONTEXT.user.is_authenticated}
 				<SigninReminder />
 			{/if}
 			<select class="item-select" bind:value={currentAnnotationSet}>
@@ -586,11 +580,8 @@ let modalLyrExtent = "";
 			</span>
 			{#key currentAnnotationSet}
 			<MultiMask ANNOTATION_SET={annotationSetLookup[currentAnnotationSet]}
-				{CSRFTOKEN}
+				{CONTEXT}
 				DISABLED={!userCanEdit}
-				{MAPBOX_API_KEY}
-				{TITILER_HOST}
-				{ROUTES}
 				resetMosaic={resetMosaicPreview}
 			 />
 			{/key}

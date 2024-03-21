@@ -4,13 +4,10 @@
 
 	import SessionList from '@components/lists/SessionList.svelte'
 	
-	export let ROUTES;
-	export let CURRENT_USERNAME;
+	export let CONTEXT;
 	export let PROFILE_USER;
-	export let CHANGE_AVATAR_URL;
-	export let USER_API_KEYS = [];
 
-	let myProfile = CURRENT_USERNAME === PROFILE_USER.username;
+	let myProfile = CONTEXT.user.username === PROFILE_USER.username;
 
 	let showSessions = true;
 
@@ -27,12 +24,12 @@
 		<div class="section-content">
 			<ul>
 				<li><Link href="/account/password/change/" title="Change password">Change my password</Link></li>
-				<li><Link href="{CHANGE_AVATAR_URL}" title="Change profile picture">Change my profile picture</Link></li>
+				<li><Link href="{CONTEXT.urls.change_avatar}" title="Change profile picture">Change my profile picture</Link></li>
 				<li><Link href="/account/logout">Sign out</Link></li>
 			</ul>
-			{#if USER_API_KEYS.length > 0}
+			{#if CONTEXT.user.api_keys.length > 0}
 			<h4>Api Keys</h4>
-			{#each USER_API_KEYS as key}
+			{#each CONTEXT.user.api_keys as key}
 			<pre>key</pre>
 			{/each}
 			{/if}
@@ -50,7 +47,7 @@
 			</button>
 		</div>
 		{#if showSessions}
-		<SessionList {ROUTES} FILTER_PARAM={sessionFilterParam} showUser={false}/>
+		<SessionList {CONTEXT} FILTER_PARAM={sessionFilterParam} showUser={false}/>
 		{/if}
 	</section>
 </main>

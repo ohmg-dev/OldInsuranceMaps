@@ -6,8 +6,8 @@
     import ResourceDownloadSectionModal from "../modals/ResourceDownloadSectionModal.svelte";
     import IconButton from '@components/base/IconButton.svelte';
 
+    export let CONTEXT;
     export let RESOURCE;
-    export let TITILER_HOST;
 
     let xyzUrl;
     let ohmUrl;
@@ -22,11 +22,11 @@
         jpegUrl = RESOURCE.document.urls.image;
         cogUrl = RESOURCE.urls.cog;
         xyzUrl = makeTitilerXYZUrl({
-            host: TITILER_HOST,
+            host: CONTEXT.titiler_host,
             url: RESOURCE.urls.cog,
         });
         doubleEncodedXYZUrl = makeTitilerXYZUrl({
-            host: TITILER_HOST,
+            host: CONTEXT.titiler_host,
             url: RESOURCE.urls.cog,
             doubleEncode: true,
         });
@@ -43,12 +43,12 @@
         gcpsGeojsonUrl = `/mrm/${RESOURCE.layer.slug}?resource=gcps-geojson`;
         gcpsPointsUrl = `/mrm/${RESOURCE.layer.slug}?resource=points`;
         xyzUrl = makeTitilerXYZUrl({
-            host: TITILER_HOST,
+            host: CONTEXT.titiler_host,
             url: RESOURCE.layer.urls.cog,
             doubleEncode: true,
         });
         doubleEncodedXYZUrl = makeTitilerXYZUrl({
-            host: TITILER_HOST,
+            host: CONTEXT.titiler_host,
             url: RESOURCE.layer.urls.cog,
             doubleEncode: true,
         });

@@ -41,12 +41,9 @@ import Styles from '@lib/ol-styles';
 
 const styles = new Styles();
 
+export let CONTEXT;
 export let ANNOTATION_SET;
-export let CSRFTOKEN;
 export let DISABLED;
-export let MAPBOX_API_KEY;
-export let TITILER_HOST;
-export let ROUTES;
 export let resetMosaic;
 
 let currentLayer = null;
@@ -95,7 +92,7 @@ function addIncomingMasks() {
       let newLayer = new TileLayer({
         source: new XYZ({
           url: makeTitilerXYZUrl({
-            host: TITILER_HOST,
+            host: CONTEXT.titiler_host,
             url: layerDef.urls.cog
           }),
         }),
@@ -127,7 +124,7 @@ function addIncomingMasks() {
     unchanged = true;
   }
 
-const basemaps = makeBasemaps(MAPBOX_API_KEY)
+const basemaps = makeBasemaps(CONTEXT.mapbox_api_token)
 const osmBasemap = basemaps[0]
 osmBasemap.layer.setZIndex(0)
 
@@ -267,11 +264,11 @@ function submitMultiMask() {
       outGeoJSON.features.push(featureGeoJSON);
     }
   })
-  fetch(ROUTES.post_annotation_set, {
+  fetch(CONTEXT.urls.post_annotation_set, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json;charset=utf-8',
-      'X-CSRFToken': CSRFTOKEN,
+      'X-CSRFToken': CONTEXT.csrf_token,
     },
     body: JSON.stringify({
       "operation": "set-mask",

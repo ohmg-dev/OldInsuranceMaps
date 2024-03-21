@@ -11,24 +11,16 @@
 	import LatestAdditions from '@components/lists/LatestAdditions.svelte';
 	import SessionList from '@components/lists/SessionList.svelte'
 
-	export let ROUTES;
-	export let IS_MOBILE;
-	export let CSRFTOKEN;
+	export let CONTEXT;
 	export let NEWSLETTER_SLUG;
 	export let USER_SUBSCRIBED;
-	export let USER_EMAIL;
 	export let PLACES_CT;
 	export let MAP_CT;
 
-	let showBrowseMap = !IS_MOBILE;
+	let showBrowseMap = !CONTEXT.on_mobile;
 	$: showBrowseMapBtnLabel = showBrowseMap ? "Hide map finder" : "Show map finder";
-	let showBRMap = !IS_MOBILE;
 
 	const urlSegs = window.location.href.split('/')
-
-	if (urlSegs[urlSegs.length - 2] == 'about') {
-		page = 'about'
-	}
 
 </script>
 <IconContext values={iconProps}>
@@ -44,9 +36,9 @@
 				<h3>Explore georeferenced maps from {PLACES_CT} locations...</h3>
 				<p>Click a point to access maps of that locale, or <Link href="/united-states">search by place name</Link>.
 			</div>
-			{#if IS_MOBILE}<span><button class="link-btn" on:click="{() => {showBrowseMap = !showBrowseMap}}">{ showBrowseMapBtnLabel }</button></span>{/if}
+			{#if CONTEXT.on_mobile}<span><button class="link-btn" on:click="{() => {showBrowseMap = !showBrowseMap}}">{ showBrowseMapBtnLabel }</button></span>{/if}
 			{#if showBrowseMap}
-			<MapBrowse {ROUTES} MAP_HEIGHT={'400'} EMBEDDED={true} />
+			<MapBrowse {CONTEXT} MAP_HEIGHT={'400'} EMBEDDED={true} />
 			{/if}
 		</div>
 	</div>
@@ -55,7 +47,7 @@
 		<div class="hero-banner-inner">
 			<div>
 			<h3>Recently Added Maps</h3>
-			<LatestAdditions {ROUTES}/>
+			<LatestAdditions {CONTEXT}/>
 			<span><em>Want to see more? View <Link href="/search/#items">all items</Link> and sort by <strong>Load date</strong>.</em></span>
 		</div>
 			<div id="link-list">
@@ -71,8 +63,8 @@
 		{#if NEWSLETTER_SLUG}
 		<div>
 			<form enctype="multipart/form-data"  method="post" action="/newsletter/{NEWSLETTER_SLUG}/subscribe/">
-				<input type="hidden" name="csrfmiddlewaretoken" value={CSRFTOKEN}>
-				<label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe to the newsletter:</label> <input type="email" name="email_field" required="" id="id_email_field" value="{USER_EMAIL}" disabled={USER_SUBSCRIBED}>
+				<input type="hidden" name="csrfmiddlewaretoken" value={CONTEXT.csrf_token}>
+				<label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe to the newsletter:</label> <input type="email" name="email_field" required="" id="id_email_field" value="{CONTEXT.user.email}" disabled={USER_SUBSCRIBED}>
 				{#if USER_SUBSCRIBED}
 				<Link href="/newsletter/{NEWSLETTER_SLUG}?utm_source=index">manage subscription</Link>
 				{:else}
@@ -137,7 +129,7 @@
 		<div>
 			<h3>Latest activity</h3>
 			<p><Link href="/activity">all activity</Link></p>
-			<SessionList {ROUTES} limit={"10"} showThumbs={true} paginate={false} />
+			<SessionList {CONTEXT} limit={"10"} showThumbs={true} paginate={false} />
 		</div>
 	</div>
 

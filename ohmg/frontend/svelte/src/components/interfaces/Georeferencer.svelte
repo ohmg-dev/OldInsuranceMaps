@@ -58,13 +58,9 @@ import Link from '@components/base/Link.svelte';
 
 import ExpandElement from "./buttons/ExpandElement.svelte";
 
-export let USER;
-export let SESSION_LENGTH;
+export let CONTEXT;
 export let DOCUMENT;
 export let VOLUME;
-export let CSRFTOKEN;
-export let MAPBOX_API_KEY;
-export let TITILER_HOST;
 
 let previewMode = "n/a";
 let previewUrl = '';
@@ -110,18 +106,18 @@ $: {
 
 const session_id = DOCUMENT.lock_enabled ? DOCUMENT.lock_details.session_id : null;
 
-let disableInterface = DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name != USER);
+let disableInterface = DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name != CONTEXT.user.username);
 let disableReason;
 let leaveOkay = true;
 let enableButtons = false;
-if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == USER)) {
+if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == CONTEXT.user.username)) {
   leaveOkay = false;
   enableButtons = true;
 }
 $: enableSave = gcpList.length >= 3 && enableButtons;
 
 // show the extend session prompt 15 seconds before the session expires
-setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 15000)
+setTimeout(promptRefresh, (CONTEXT.session_length*1000) - 15000)
 
 let autoRedirect;
 function promptRefresh() {
@@ -164,7 +160,7 @@ function uuid() {
   return uuidValue;
 }
 
-const basemaps = makeBasemaps(MAPBOX_API_KEY);
+const basemaps = makeBasemaps(CONTEXT.mapbox_api_token);
 let currentBasemap = basemaps[0].id;
 
 function toggleBasemap() {
@@ -194,7 +190,7 @@ mapGCPSource.on(['addfeature'], function (e) {
     e.feature.setProperties({
       'id': uuid(),
       'listId': nextGCP,
-      'username': USER,
+      'username': CONTEXT.user.username,
       'note': '',
     });
   }
@@ -209,14 +205,14 @@ const refGroupKey = makeLayerGroupFromVolume({
   volume: VOLUME,
   layerSet: 'key-map',
   zIndex: 10,
-  titilerHost: TITILER_HOST,
+  titilerHost: CONTEXT.titiler_host,
 })
 
 const refGroupMain = makeLayerGroupFromVolume({
   volume: VOLUME,
   layerSet: 'main',
   zIndex: 11,
-  titilerHost: TITILER_HOST,
+  titilerHost: CONTEXT.titiler_host,
   excludeLayerId: DOCUMENT.layer ? DOCUMENT.layer.id : '',
 })
 
@@ -506,7 +502,7 @@ onMount(() => {
   loadIncomingGCPs();
   disabledMap(disableInterface)
   inProgress = false;
-  if (!USER) { getModal('modal-anonymous').open() }
+  if (!CONTEXT.user.is_authenticated) { getModal('modal-anonymous').open() }
 });
 
 function disabledMap(disabled) {
@@ -747,7 +743,7 @@ function updatePreviewSource (previewUrl) {
   if (previewUrl) {
     const source = new XYZ({
       url: makeTitilerXYZUrl({
-        host: TITILER_HOST,
+        host: CONTEXT.titiler_host,
         url: previewUrl,
       }),
     })
@@ -796,7 +792,7 @@ function process(operation){
   if (operation == "extend-session") {
     leaveOkay = false;
     clearTimeout(autoRedirect)
-    setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
+    setTimeout(promptRefresh, (CONTEXT.session_length*1000) - 10000)
   }
 
   const body = {
@@ -813,7 +809,7 @@ function process(operation){
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=utf-8',
-        'X-CSRFToken': CSRFTOKEN,
+        'X-CSRFToken': CONTEXT.csrf_token,
       },
       body: data,
     })

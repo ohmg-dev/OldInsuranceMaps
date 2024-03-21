@@ -2,12 +2,12 @@
 	import {TableSort} from 'svelte-tablesort';
 	import Link from '@components/base/Link.svelte';
 
-	export let ROUTES;
+	export let CONTEXT;
 
 	let all_participants = [];
 	let items = []
 
-	fetch(ROUTES.get_users, { headers: ROUTES.api_headers })
+	fetch(CONTEXT.urls.get_users, { headers: CONTEXT.ohmg_api_headers })
 		.then(response => response.json())
 		.then(result => {
 			all_participants = result;

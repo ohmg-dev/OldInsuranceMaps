@@ -2,19 +2,18 @@
 	import {TableSort} from 'svelte-tablesort';
 	import Link from '@components/base/Link.svelte';
 
-	export let ROUTES;
+	export let CONTEXT;
 
 	let all_places = [];
 	let items = []
 	let loading = true
 
-	fetch(ROUTES.get_places, { headers: ROUTES.api_headers })
+	fetch(CONTEXT.urls.get_places, { headers: CONTEXT.ohmg_api_headers })
 		.then(response => response.json())
 		.then(result => {
 			all_places = result;
 			items = result;
 			loading = false;
-			console.log(all_places)
 		});
 
 	function updateFilteredList(filterText) {

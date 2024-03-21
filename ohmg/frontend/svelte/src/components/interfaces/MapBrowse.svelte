@@ -19,11 +19,9 @@ import VectorLayer from 'ol/layer/Vector';
 import Styles from '@lib/ol-styles';
 const styles = new Styles();
 
-export let MAP_HEIGHT;
-export let EMBEDDED;
-export let ROUTES;
-
-if (!MAP_HEIGHT) {MAP_HEIGHT = '600'};
+export let CONTEXT;
+export let MAP_HEIGHT = '600';
+export let EMBEDDED = false;
 
 const osmLayer = new TileLayer({ source: new OSM() });
 
@@ -60,8 +58,8 @@ onMount(async function() {
 		})
 	});
 	
-	const response = await fetch(ROUTES.get_places_geojson, {
-		headers: ROUTES.api_headers,
+	const response = await fetch(CONTEXT.urls.get_places_geojson, {
+		headers: CONTEXT.ohmg_api_headers,
     })
 	const mapGeoJSON = await response.json()
 	

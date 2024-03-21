@@ -26,15 +26,11 @@ import ResourceDetails from './sections/ResourceDetails.svelte';
 
 import { makeTitilerXYZUrl } from '@lib/utils';
 
-export let ROUTES;
-export let CSRFTOKEN;
-export let USER;
+export let CONTEXT;
 export let RESOURCE;
 export let VOLUME;
 export let SPLIT_SUMMARY;
 export let GEOREFERENCE_SUMMARY;
-export let MAPBOX_API_KEY;
-export let TITILER_HOST;
 
 let xyzUrl;
 let ohmUrl;
@@ -43,11 +39,11 @@ let doubleEncodedXYZUrl;
 let viewerUrl;
 if (RESOURCE.type == "layer") {
   xyzUrl = makeTitilerXYZUrl({
-    host: TITILER_HOST,
+    host: CONTEXT.titiler_host,
     url: RESOURCE.urls.cog,
   });
   doubleEncodedXYZUrl = makeTitilerXYZUrl({
-    host: TITILER_HOST,
+    host: CONTEXT.titiler_host,
     url: RESOURCE.urls.cog,
     doubleEncode: true,
   });
@@ -55,12 +51,12 @@ if (RESOURCE.type == "layer") {
   viewerUrl = `/viewer/${VOLUME.locale.slug}/?${VOLUME.identifier}=100#/center/${ll[0]},${ll[1]}/zoom/18`;
 } else if (RESOURCE.layer){
   xyzUrl = makeTitilerXYZUrl({
-    host: TITILER_HOST,
+    host: CONTEXT.titiler_host,
     url: RESOURCE.layer.urls.cog,
     doubleEncode: true,
   });
   doubleEncodedXYZUrl = makeTitilerXYZUrl({
-    host: TITILER_HOST,
+    host: CONTEXT.titiler_host,
     url: RESOURCE.layer.urls.cog,
     doubleEncode: true,
   });
@@ -112,7 +108,7 @@ $: {
   undoBtnEnabled = SPLIT_SUMMARY ? SPLIT_SUMMARY.allow_reset : false;
   switch(RESOURCE.status) {
     case "unprepared":
-      if (USER.is_authenticated) {
+      if (CONTEXT.user.is_authenticated) {
         splitBtnEnabled = true;
         noSplitBtnEnabled = true;
       }
@@ -146,7 +142,7 @@ function setSplit(operation) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=utf-8',
-        'X-CSRFToken': CSRFTOKEN,
+        'X-CSRFToken': CONTEXT.csrf_token,
       },
       body: data,
     })
@@ -166,7 +162,7 @@ function unGeoreference() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=utf-8',
-        'X-CSRFToken': CSRFTOKEN,
+        'X-CSRFToken': CONTEXT.csrf_token,
       },
       body: data,
     })
@@ -247,7 +243,7 @@ function goToDocument() {
     </button>
     {#if sectionVis['summary']}
     <div transition:slide>
-      <ResourceDetails {RESOURCE} {TITILER_HOST}/>
+      <ResourceDetails {CONTEXT} {RESOURCE} />
     </div>
     {/if}
   </section>
@@ -261,9 +257,9 @@ function goToDocument() {
       <div id="map-panel">
         {#each reinitMap as key (key)}
         {#if RESOURCE.type == "document"}
-          <SingleDocumentViewer  LAYER_URL={RESOURCE.urls.image} IMAGE_SIZE={RESOURCE.image_size} />
+          <SingleDocumentViewer LAYER_URL={RESOURCE.urls.image} IMAGE_SIZE={RESOURCE.image_size} />
         {:else}
-          <SingleLayerViewer  LAYER_URL={RESOURCE.urls.cog} EXTENT={RESOURCE.extent} MAPBOX_API_KEY={MAPBOX_API_KEY} TITILER_HOST={TITILER_HOST} />
+          <SingleLayerViewer {CONTEXT} LAYER_URL={RESOURCE.urls.cog} EXTENT={RESOURCE.extent} />
         {/if}
         {/each}
       </div>
@@ -292,7 +288,7 @@ function goToDocument() {
           class="control-btn{splitNeeded == false ? ' btn-chosen': ''}">
           <CheckSquareOffset /> No split needed
         </button>
-        {#if USER.is_authenticated}
+        {#if CONTEXT.user.is_authenticated}
         <button 
           class="control-btn"
           title={undoBtnTitle}
@@ -357,7 +353,7 @@ function goToDocument() {
           onclick="window.location.href='{RESOURCE.urls.georeference}'">
           <MapPin />{georeferenceBtnTitle}
         </button>
-        {#if USER.is_authenticated && USER.is_staff}
+        {#if CONTEXT.user.is_authenticated && CONTEXT.user.is_staff}
         <button
           class="control-btn"
           title="Remove all georeferencing for this resource"
@@ -402,7 +398,7 @@ function goToDocument() {
     </button>
     {#if sectionVis['history']}
     <div transition:slide>
-      <SessionList {ROUTES}} FILTER_PARAM={filterParam} showResource={false} paginate={false} limit={"0"}/>
+      <SessionList {CONTEXT} FILTER_PARAM={filterParam} showResource={false} paginate={false} limit={"0"}/>
     </div>
     {/if}
   </section>

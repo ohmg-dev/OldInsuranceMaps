@@ -27,9 +27,8 @@ import {
 	makeLayerGroupFromAnnotationSet,
 } from '@lib/utils';
 
+export let CONTEXT;
 export let ANNOTATION_SETS;
-export let MAPBOX_API_KEY;
-export let TITILER_HOST;
 
 let map;
 
@@ -98,7 +97,7 @@ function initMap() {
 	
 	const imageryLayer = new TileLayer({
 		source: new XYZ({
-			url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/{z}/{x}/{y}?access_token='+MAPBOX_API_KEY,
+			url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/{z}/{x}/{y}?access_token='+CONTEXT.mapbox_api_token,
 			tileSize: 512,
 		})
 	});
@@ -129,7 +128,7 @@ function createAnnotationSets() {
 			const layerGroup = makeLayerGroupFromAnnotationSet({
 				annotationSet: aSet,
 				zIndex: zIndexLookup[aSet.id],
-				titilerHost: TITILER_HOST,
+				titilerHost: CONTEXT.titiler_host,
 				applyMultiMask: true,
 			})
 			const extent3857 = transformExtent(aSet.extent, "EPSG:4326", "EPSG:3857")

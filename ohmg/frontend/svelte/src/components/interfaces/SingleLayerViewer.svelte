@@ -21,22 +21,21 @@
         makeBasemaps,
     } from '@lib/utils';
 
+    export let CONTEXT;
     export let EXTENT;
-    export let MAPBOX_API_KEY;
-    export let TITILER_HOST;
     export let LAYER_URL;
 
     function LayerViewer () {
 
         const targetElement = document.getElementById('lyr-viewer');
 
-        const basemaps = makeBasemaps(MAPBOX_API_KEY);
+        const basemaps = makeBasemaps(CONTEXT.mapbox_api_token);
         const extent = transformExtent(EXTENT, "EPSG:4326", "EPSG:3857");
 
         const resLayer = new TileLayer({
             source: new XYZ({
                 url: makeTitilerXYZUrl({
-                    host: TITILER_HOST,
+                    host: CONTEXT.titiler_host,
                     url: LAYER_URL,
                 }),
             }),

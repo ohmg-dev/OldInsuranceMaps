@@ -2,22 +2,19 @@ import json
 import logging
 from datetime import datetime
 
-from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import View
-from django.middleware import csrf
 
-from ohmg.utils import get_internal_routes
 from ohmg.georeference.models import (
     Layer,
     Document,
     ItemBase,
 )
+from ohmg.context_processors import generate_ohmg_context
 from ohmg.georeference.schemas import AnnotationSetSchema
 from ohmg.loc_insurancemaps.models import Volume, find_volume
 from ohmg.loc_insurancemaps.tasks import load_docs_as_task
-from ohmg.frontend.context_processors import user_info_from_request#, get_internal_routes
 
 logger = logging.getLogger(__name__)
 
@@ -33,13 +30,9 @@ class MapSummary(View):
 
         context_dict = {
             "svelte_params": {
-                "TITILER_HOST": settings.TITILER_HOST,
+                "CONTEXT": generate_ohmg_context(request),
                 "VOLUME": volume_json,
                 "ANNOTATION_SETS": annotation_sets,
-                "CSRFTOKEN": csrf.get_token(request),
-                "USER": user_info_from_request(request),
-                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-                "ROUTES": get_internal_routes(),
             }
         }
         return render(
@@ -113,15 +106,11 @@ class VirtualResourceView(View):
             "content/resource.html",
             context={
                 'resource_params': {
-                    'ROUTES': get_internal_routes(),
+                    "CONTEXT": generate_ohmg_context(request),
                     'RESOURCE': resource_json,
                     'VOLUME': volume_json,
-                    'CSRFTOKEN': csrf.get_token(request),
-                    "USER": user_info_from_request(request),
                     "SPLIT_SUMMARY": split_summary,
                     "GEOREFERENCE_SUMMARY": georeference_summary,
-                    "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-                    "TITILER_HOST": settings.TITILER_HOST,
                 }
             }
         )

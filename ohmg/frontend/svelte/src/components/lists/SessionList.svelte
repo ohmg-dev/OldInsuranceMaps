@@ -14,7 +14,7 @@ import Link from '@components/base/Link.svelte';
 import OpenModalButton from '@components/base/OpenModalButton.svelte';
 import SessionListModal from './modals/SessionListModal.svelte';
 
-export let ROUTES;
+export let CONTEXT;
 export let FILTER_PARAM = '';
 export let limit = "10";
 export let showThumbs = false;
@@ -32,14 +32,14 @@ $: limitInt = parseInt(limit)
 
 $: {
 	loading = true;
-	let fetchUrl = `${ROUTES.get_sessions}?offset=${offset}`
+	let fetchUrl = `${CONTEXT.urls.get_sessions}?offset=${offset}`
 	if (limitInt > 0) {
 		fetchUrl = `${fetchUrl}&limit=${limitInt}`
 	}
 	if (FILTER_PARAM) {
 		fetchUrl += `&${FILTER_PARAM}`
 	}
-	fetch(fetchUrl, { headers: ROUTES.api_headers })
+	fetch(fetchUrl, { headers: CONTEXT.ohmg_api_headers })
 		.then(response => response.json())
 		.then(result => {
 			items = result.items;

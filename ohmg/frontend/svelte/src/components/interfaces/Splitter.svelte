@@ -43,10 +43,8 @@ import Modal, {getModal} from '@components/base/Modal.svelte';
 
 const styles = new Styles();
 
-export let USER;
-export let SESSION_LENGTH;
+export let CONTEXT;
 export let DOCUMENT;
-export let CSRFTOKEN;
 export let VOLUME;
 
 let docView;
@@ -62,17 +60,17 @@ let unchanged = true;
 
 const session_id = DOCUMENT.lock_enabled ? DOCUMENT.lock_details.session_id : null;
 
-let disableInterface = DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name != USER);
+let disableInterface = DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name != CONTEXT.user.username);
 let disableReason;
 let leaveOkay = true;
 let enableButtons = false;
-if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == USER)) {
+if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == CONTEXT.user.username)) {
   leaveOkay = false;
   enableButtons = true;
 }
 
 // show the extend session prompt 10 seconds before the session expires
-setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
+setTimeout(promptRefresh, (CONTEXT.session_length*1000) - 10000)
 
 let autoRedirect;
 function promptRefresh() {
@@ -265,7 +263,7 @@ $: {
 onMount(() => {
   docView = new DocViewer("doc-viewer");
   resetInterface();
-  if (!USER) { getModal('modal-anonymous').open() }
+  if (!CONTEXT.user.is_authenticated) { getModal('modal-anonymous').open() }
 });
 
 $: {
@@ -312,7 +310,7 @@ function process(operation) {
   if (operation == "extend-session") {
     leaveOkay = false;
     clearTimeout(autoRedirect)
-    setTimeout(promptRefresh, (SESSION_LENGTH*1000) - 10000)
+    setTimeout(promptRefresh, (CONTEXT.session_length*1000) - 10000)
   }
 
   let data = JSON.stringify({
@@ -325,7 +323,7 @@ function process(operation) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=utf-8',
-        'X-CSRFToken': CSRFTOKEN,
+        'X-CSRFToken': CONTEXT.csrf_token,
       },
       body: data,
     })
@@ -353,7 +351,7 @@ function confirmLeave () {
 
 function cleanup () {
   // if this is an in-progress session for the current user
-  if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == USER)) {
+  if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == CONTEXT.user.username)) {
     process("cancel")
   }
 }

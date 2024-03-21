@@ -8,8 +8,7 @@ import NavDropdown from '@components/layout/NavDropdown.svelte';
 import SigninModal from '@components/layout/SigninModal.svelte';
 import Link from '@components/base/Link.svelte';
 
-export let USER;
-export let CSRFTOKEN;
+export let CONTEXT;
 
 let subMenus = {
 	"georef": {
@@ -71,13 +70,13 @@ let subMenus = {
 		"visible": false,
 		"links": [
 			{
-				"title": USER.username,
+				"title": CONTEXT.user.username,
 				"href": "",
 				"external": false,
 			},
 			{
 				"title": "My Profile",
-				"href": USER.profile_url,
+				"href": CONTEXT.user.profile_url,
 				"external": false,
 			},
 			{
@@ -115,7 +114,7 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 </script>
 
 <IconContext values={iconProps}>
-<SigninModal CSRFTOKEN={CSRFTOKEN} />
+<SigninModal {CONTEXT} />
 <nav>
 	<div>
 		<div>
@@ -140,10 +139,10 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 		</div>
 	</div>
 	<div>
-		{#if USER.is_authenticated }
+		{#if CONTEXT.user.is_authenticated }
 		<div class="dropdown-container {subMenus.user.visible ? 'active' : ''}" use:clickOutside={{ enabled: subMenus.user.visible, cb: () => subMenus.user.visible = false }} >
-			<button on:click={() => {subMenus.user.visible = !subMenus.user.visible}} title={USER.username}>
-				<img style="height:45px; width:45px;" src={USER.image_url} class="navbar-brand-new" alt={USER.username} /><CaretDown />
+			<button on:click={() => {subMenus.user.visible = !subMenus.user.visible}} title={CONTEXT.user.username}>
+				<img style="height:45px; width:45px;" src={CONTEXT.user.image_url} class="navbar-brand-new" alt={CONTEXT.user.username} /><CaretDown />
 			</button>
 			{#if subMenus.user.visible}
 			<NavDropdown LINKS={subMenus.user.links} RIGHT_POS={0}/>
