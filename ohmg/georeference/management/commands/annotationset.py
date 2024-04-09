@@ -25,6 +25,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "-c", "--category",
+            default="main-content",
             help="category of the layerset to work with",
         )
         parser.add_argument(

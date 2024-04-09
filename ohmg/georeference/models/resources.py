@@ -1,4 +1,5 @@
 import os
+import glob
 import uuid
 import json
 import logging
@@ -18,6 +19,9 @@ from django.core.files.base import ContentFile
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
+
+from cogeo_mosaic.mosaic import MosaicJSON
+from cogeo_mosaic.backends import MosaicBackend
 
 from ohmg.utils import (
     full_reverse,
@@ -858,10 +862,6 @@ class AnnotationSet(models.Model):
         return True if self.category and self.category.is_geospatial else False
 
     @property
-    def virtual_resources(self):
-        return ItemBase.objects.filter(vrs=self)
-
-    @property
     def annotations(self):
         if self.is_geospatial:
             return Layer.objects.filter(vrs=self)
@@ -875,7 +875,7 @@ class AnnotationSet(models.Model):
         extent = None
         if self.is_geospatial:
             layer_extent_polygons = []
-            for v in self.virtual_resources:
+            for v in self.annotations:
                 extent_poly = Polygon.from_bbox(v.extent)
                 layer_extent_polygons.append(extent_poly)
             if len(layer_extent_polygons) > 0:
@@ -1042,3 +1042,121 @@ class AnnotationSet(models.Model):
             os.remove(existing_file_path)
 
         print(f"completed - elapsed time: {datetime.now() - start}")
+
+    def generate_mosaic_json(self, trim_all=False):
+
+        def write_trim_feature_cache(feature, file_path):
+            with open(file_path, "w") as f:
+                json.dump(feature, f, indent=2)
+
+        def read_trim_feature_cache(file_path):
+            with open(file_path, "r") as f:
+                feature = json.load(f)
+            return feature
+
+        logger.info(f"{self.vol.identifier} | generating mosaic json")
+
+        multimask_geojson = self.vol.multimask_geojson
+        multimask_file_name = f"multimask-{self.vol.identifier}"
+        multimask_file = os.path.join(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
+        with open(multimask_file, "w") as out:
+            json.dump(multimask_geojson, out, indent=1)
+
+        logger.debug(f"{self.vol.identifier} | multimask loaded")
+        logger.info(f"{self.vol.identifier} | iterating and trimming layers")
+        trim_list = []
+        for feature in multimask_geojson['features']:
+
+            layer_name = feature['properties']['layer']
+            layer = Layer.objects.get(slug=layer_name)
+            if not layer.file:
+                logger.error(f"{self.vol.identifier} | no layer file for this layer {layer_name}")
+                raise Exception(f"no layer file for this layer {layer_name}")
+            in_path = layer.file.path
+
+            layer_dir = os.path.dirname(in_path)
+            file_name = os.path.basename(in_path)
+            logger.debug(f"{self.vol.identifier} | processing layer file {file_name}")
+
+            file_root = os.path.splitext(file_name)[0]
+            existing_trimmed_tif = glob.glob(f"{layer_dir}/{file_root}*_trim.tif")
+            print(existing_trimmed_tif)
+
+            feat_cache_path = in_path.replace(".tif", "_trim-feature.json")
+            if os.path.isfile(feat_cache_path):
+                cached_feature = read_trim_feature_cache(feat_cache_path)
+                logger.debug(f"{self.vol.identifier} | using cached trim json boundary")
+            else:
+                cached_feature = None
+                write_trim_feature_cache(feature, feat_cache_path)
+
+            unique_id = random_alnum(6)
+            trim_vrt_path = in_path.replace(".tif", f"_{unique_id}_trim.vrt")
+            out_path = trim_vrt_path.replace(".vrt", ".tif")
+
+            # compare this multimask feature to the cached one for this layer
+            # and only (re)create a trimmed tif if they do not match
+            if feature != cached_feature or trim_all is True:
+
+                wo = gdal.WarpOptions(
+                    format="VRT",
+                    dstSRS = "EPSG:3857",
+                    cutlineDSName = multimask_file,
+                    cutlineLayer = multimask_file_name,
+                    cutlineWhere = f"layer='{layer_name}'",
+                    cropToCutline = True,
+                    creationOptions = ['COMPRESS=LZW', 'BIGTIFF=YES'],
+                    resampleAlg = 'cubic',
+                    dstAlpha = False,
+                    dstNodata = "255 255 255",
+                )
+                gdal.Warp(trim_vrt_path, in_path, options=wo)
+
+                to = gdal.TranslateOptions(
+                    format="GTiff",
+                    bandList = [1,2,3],
+                    creationOptions = [
+                        "TILED=YES",
+                        "COMPRESS=LZW",
+                        "PREDICTOR=2",
+                        "NUM_THREADS=ALL_CPUS",
+                        ## the following is apparently in the COG spec but doesn't work??
+                        # "COPY_SOURCE_OVERVIEWS=YES",
+                    ],
+                )
+
+                logger.debug(f"writing trimmed tif {os.path.basename(out_path)}")
+                gdal.Translate(out_path, trim_vrt_path, options=to)
+                write_trim_feature_cache(feature, feat_cache_path)
+
+                img = gdal.Open(out_path, 1)
+                if img is None:
+                    logger.warn(f"{self.vol.identifier} | file was not properly created, omitting: {file_name}")
+                    continue   
+                logger.debug(f"{self.vol.identifier} | building overview: {file_name}")
+                gdal.SetConfigOption("COMPRESS_OVERVIEW", "LZW")
+                gdal.SetConfigOption("PREDICTOR", "2")
+                gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
+                img.BuildOverviews("AVERAGE", [2, 4, 8, 16])
+
+            else:
+                logger.debug(f"{self.vol.identifier} | using existing trimmed tif {file_name}")
+
+            trim_list.append(out_path)
+
+        trim_urls = [
+            i.replace(os.path.dirname(settings.MEDIA_ROOT), settings.MEDIA_HOST.rstrip("/")) \
+                for i in trim_list
+        ]
+        logger.info(f"{self.vol.identifier} | writing mosaic from {len(trim_urls)} trimmed tifs")
+        mosaic_data = MosaicJSON.from_urls(trim_urls, minzoom=14)
+        mosaic_json_path = os.path.join(settings.TEMP_DIR, f"{self.vol.identifier}-mosaic.json")
+        with MosaicBackend(mosaic_json_path, mosaic_def=mosaic_data) as mosaic:
+            mosaic.write(overwrite=True)
+
+        with open(mosaic_json_path, 'rb') as f:
+            self.vol.mosaic_json = File(f, name=os.path.basename(mosaic_json_path))
+            self.vol.save()
+
+        logger.info(f"{self.vol.identifier} | mosaic created: {os.path.basename(mosaic_json_path)}")
+        return mosaic_json_path

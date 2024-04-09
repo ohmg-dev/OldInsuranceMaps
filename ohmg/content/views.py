@@ -58,19 +58,6 @@ class MapSummary(View):
 
             return JsonResponse(volume_json)
 
-        elif operation == "set-index-layers":
-
-            volume = Volume.objects.get(pk=identifier)
-
-            lcat_lookup = body.get("layerCategoryLookup", {})
-
-            for cat in volume.sorted_layers:
-                volume.sorted_layers[cat] = [k for k, v in lcat_lookup.items() if v == cat]
-
-            volume.save(update_fields=["sorted_layers"])
-            volume_json = volume.serialize(include_session_info=True)
-            return JsonResponse(volume_json)
-
         elif operation == "refresh":
             volume = Volume.objects.get(pk=identifier)
             volume_json = volume.serialize(include_session_info=True)
@@ -81,6 +68,7 @@ class MapSummary(View):
             volume.refresh_lookups()
             volume_json = volume.serialize(include_session_info=True)
             return JsonResponse(volume_json)
+
 
 class VirtualResourceView(View):
 
