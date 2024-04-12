@@ -364,20 +364,6 @@ class Volume(models.Model):
         else:
             return None
 
-    @property
-    def multimask_geojson(self):
-        """Really, the multimask property on Volume should be reimplemented
-        so it is always storing a GeoJSON FeatureCollection with the layer
-        name in the properties of each feature. This helper function will
-        convert the existing multimask format for now."""
-
-        multimask_geojson = {"type": "FeatureCollection", "features": []}
-        for layer, geojson in self.multimask.items():
-            geojson["properties"] = {"layer": layer}
-            multimask_geojson['features'].append(geojson)
-
-        return multimask_geojson
-
     def lc_item_formatted(self):
         return format_json_display(self.lc_item)
     lc_item_formatted.short_description = 'LC Item'
@@ -394,10 +380,6 @@ class Volume(models.Model):
         return format_json_display(self.layer_lookup)
     layer_lookup_formatted.short_description = 'Layer Lookup'
 
-    def sorted_layers_formatted(self):
-        return format_json_display(self.sorted_layers)
-    sorted_layers_formatted.short_description = 'Sorted Layers'
-        
     def get_annotation_set(self, cat_slug:str, create:bool=False):
         try:
             annoset = AnnotationSet.objects.get(volume=self, category__slug=cat_slug)
@@ -499,22 +481,10 @@ class Volume(models.Model):
             "loc_item": loc_item,
             "loc_resource": resource_url,
             "summary": reverse("map_summary", args=(self.identifier,)),
-            "trim": reverse("volume_trim", args=(self.identifier,)),
             "viewer": viewer_url,
             "mosaic_geotiff": mosaic_gt_url,
             "mosaic_json": mosaic_json_url,
         }
-
-    def hydrate_sorted_layers(self):
-
-        hydrated = default_sorted_layers_dict()
-        for cat, layers in self.sorted_layers.items():
-            for layer_id in layers:
-                try:
-                    hydrated[cat].append(self.layer_lookup[layer_id])
-                except KeyError:
-                    logger.warn(f"{self.__str__()} | layer missing from layer lookup: {layer_id}")
-        return hydrated
 
     def refresh_lookups(self):
         """Clean and remake document_lookup and layer_lookup fields
@@ -599,15 +569,6 @@ class Volume(models.Model):
 
         self.layer_lookup[data['slug']] = data
         self.save(update_fields=["layer_lookup"])
-
-        # add layer id to ordered_layers list if its not yet there
-        sorted_layers = []
-        for v in self.sorted_layers.values():
-            sorted_layers += v
-
-        if data['slug'] not in sorted_layers:
-            self.sorted_layers["main"].append(data['slug'])
-            self.save(update_fields=["sorted_layers"])
 
         self.set_extent()
 
@@ -737,8 +698,6 @@ class Volume(models.Model):
             "items": items,
             "loaded_by": loaded_by,
             "urls": self.get_urls(),
-            "sorted_layers": self.hydrate_sorted_layers(),
-            "multimask": self.multimask,
             "extent": self.extent.extent if self.extent else None,
             "locale": self.get_locale(serialized=True),
             "mosaic_preference": self.mosaic_preference,

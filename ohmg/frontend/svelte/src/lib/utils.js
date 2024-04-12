@@ -157,8 +157,6 @@ export function makeLayerGroupFromAnnotationSet (options) {
 
 	const lyrGroup = new LayerGroup();
 	options.annotationSet.annotations.forEach( function(annotation) {
-		console.log(annotation)
-		console.log(options.excludeLayerId)
 		if (annotation.slug != options.excludeLayerId && annotation.extent) {
 
 			const lyrExtent = transformExtent(annotation.extent, "EPSG:4326", "EPSG:3857")

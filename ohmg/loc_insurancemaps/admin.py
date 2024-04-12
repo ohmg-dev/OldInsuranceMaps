@@ -9,11 +9,10 @@ class SheetAdmin(admin.ModelAdmin):
 admin.site.register(Sheet, SheetAdmin)
 
 class VolumeAdmin(admin.ModelAdmin):
-    exclude = ('lc_item', 'lc_resources', 'document_lookup', 'layer_lookup', 'sorted_layers')
+    exclude = ('lc_item', 'lc_resources', 'document_lookup', 'layer_lookup')
     readonly_fields = (
         'document_lookup_formatted',
         'layer_lookup_formatted',
-        'sorted_layers_formatted',
         'lc_item_formatted',
         'lc_resources_formatted'
     )
