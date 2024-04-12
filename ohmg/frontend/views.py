@@ -1,8 +1,5 @@
 import os
 import logging
-from pathlib import Path
-
-import frontmatter
 
 from django.conf import settings
 from django.http import JsonResponse, Http404, HttpResponse

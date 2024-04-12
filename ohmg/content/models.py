@@ -24,7 +24,6 @@ from datetime import datetime
 from django.contrib.gis.db import models
 from django.core.files import File
 from django.core.files.base import ContentFile
-from django.contrib.gis.db import models
 
 from markdownx.models import MarkdownxField
 
@@ -41,6 +40,7 @@ logger = logging.getLogger(__name__)
 
 class Map(object):
     pass
+
 
 class Page(models.Model):
 
