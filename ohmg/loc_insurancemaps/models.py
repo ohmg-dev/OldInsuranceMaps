@@ -376,9 +376,9 @@ class Volume(models.Model):
                 annoset = None
         return annoset
 
-    def get_annotation_sets(self, geopatial:bool=False):
+    def get_annotation_sets(self, geospatial:bool=False):
         sets = AnnotationSet.objects.filter(volume=self)
-        if geopatial:
+        if geospatial:
             sets = sets.filter(category__is_geospatial=True)
         return sets
 
