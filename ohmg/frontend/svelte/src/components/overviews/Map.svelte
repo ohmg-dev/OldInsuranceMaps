@@ -40,8 +40,14 @@ export let ANNOTATION_SET_OPTIONS;
 
 let currentAnnotationSet = "main-content";
 const annotationSetLookup = {}
+const layerAnnotationLookup = {}
 $: {
-	ANNOTATION_SETS.forEach(function (annoSet) {annotationSetLookup[annoSet.id] = annoSet})
+	ANNOTATION_SETS.forEach(function (annoSet) {
+		annotationSetLookup[annoSet.id] = annoSet;
+		annoSet.annotations.forEach(function (anno) {
+			layerAnnotationLookup[anno.slug] = annoSet.id;
+		})
+	})
 }
 
 let userCanEdit = false;
@@ -60,22 +66,14 @@ $: sheetsLoading = VOLUME.status == "initializing...";
 
 let hash = window.location.hash.substr(1);
 
-function updateAnnotationSet(e, layerId) {
-
-	// a little bit of translation needed here during transition
-	const category = e.target.options[e.target.selectedIndex].value
-	const categorySlugLookup = {
-		"main": "main-content",
-		"key_map": "key-map",
-		"congest_district": "congested-district-map",
-		"graphic_map_of_volumes": "graphic-map-of-volumes",
-	}
+function updateAnnotationSet(category, layerId, override) {
 
 	const postData = JSON.stringify({
 		operation: "update",
         resourceId: layerId,
         volumeId: VOLUME.identifier,
-        categorySlug: categorySlugLookup[category]
+		categorySlug: category,
+		overrideExisting: override,
 	})
 
 	fetch(CONTEXT.urls.post_annotation_set, {
@@ -88,6 +86,9 @@ function updateAnnotationSet(e, layerId) {
 	})
 	.then(response => response.json())
 	.then(result => {
+		if (result.status == "existing-mask") {
+			confirm(result.message) ? updateAnnotationSet(category, layerId, true) : VOLUME = VOLUME;
+		}
 		fetchAnnotationSets()
 	});
 }
@@ -113,23 +114,6 @@ function setHash(hash){
 
 let refreshingLookups = false;
 
-let layerCategories = [
-	{value: "graphic_map_of_volumes", label: "Graphic Map of Volumes"},
-	{value: "key_map", label: "Key Map"},
-	{value: "congested_district", label: "Congested District Map"},
-	{value: "main", label: "Main Content (default)"},
-]
-let layerCategoryLookup = {};
-function setLayerCategoryLookup(VOLUME) {
-	layerCategoryLookup = {};
-	for (let category in VOLUME.sorted_layers) {
-		VOLUME.sorted_layers[category].forEach( function (lyr) {
-			layerCategoryLookup[lyr.slug] = category;
-		});
-	}
-}
-$: setLayerCategoryLookup(VOLUME)
-
 let intervalId;
 function manageAutoReload(run) {
 	if (run) {
@@ -149,7 +133,6 @@ function postOperation(operation) {
 	const data = JSON.stringify({
 		"operation": operation,
 		"indexLayerIds": indexLayerIds,
-		"layerCategoryLookup": layerCategoryLookup,
 	});
 	fetch(VOLUME.urls.summary, {
 		method: 'POST',
@@ -176,7 +159,7 @@ function fetchAnnotationSets() {
 	})
 	.then(response => response.json())
 	.then(result => {
-		ANNOTATION_SETS = result  
+		ANNOTATION_SETS = result
 	});
 }
 
@@ -230,7 +213,7 @@ if (VOLUME.urls.mosaic_geotiff) {
 	ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
 }
 
-let settingKeyMapLayer = false;
+let classifyingLayers = false;
 
 function resetMosaicPreview() {
 	fetchAnnotationSets()
@@ -469,14 +452,14 @@ let modalLyrExtent = "";
 				{#if sectionVis['georeferenced']}
 				<div transition:slide>
 					<div style="margin: 10px 0px;">
-						{#if VOLUME.items.layers.length > 0 && !settingKeyMapLayer}
-						<button on:click={() => settingKeyMapLayer = !settingKeyMapLayer}
+						{#if VOLUME.items.layers.length > 0 && !classifyingLayers}
+						<button on:click={() => classifyingLayers = !classifyingLayers}
 							disabled={!CONTEXT.user.is_authenticated}
 							title={!CONTEXT.user.is_authenticated ? 'You must be signed in to classify layers' : 'Click to enable layer classification'}
 							>Classify Layers</button>
 						{/if}
-						{#if settingKeyMapLayer}
-						<button on:click={() => { settingKeyMapLayer = false; }}>Done</button>
+						{#if classifyingLayers}
+						<button on:click={() => { classifyingLayers = false; }}>Done</button>
 						{/if}
 					</div>
 					<div class="documents-column">
@@ -504,10 +487,12 @@ let modalLyrExtent = "";
 									<li><Link href={layer.urls.resource} title="edit georeferencing">downloads & web services &rarr;</Link></li>
 								</ul>
 								{/if}
-								{#if settingKeyMapLayer}
-								<select bind:value={layerCategoryLookup[layer.slug]} on:change={(e) => {updateAnnotationSet(e, layer.id)}}>
-									{#each layerCategories as layerCat}
-									<option value={layerCat.value}>{layerCat.label}</option>
+								{#if classifyingLayers}
+								<select bind:value={layerAnnotationLookup[layer.slug]} on:change={(e) => {
+										updateAnnotationSet(e.target.options[e.target.selectedIndex].value, layer.id)
+									}}>
+									{#each ANNOTATION_SET_OPTIONS as annoOpt}
+									<option value={annoOpt.slug}>{annoOpt.display_name}</option>
 									{/each}
 								</select>
 								{/if}
@@ -579,7 +564,7 @@ let modalLyrExtent = "";
 				0/{annotationSetLookup[currentAnnotationSet].annotations.length}
 				{/if}
 			</span>
-			{#key currentAnnotationSet}
+			{#key annotationSetLookup[currentAnnotationSet]}
 			<MultiMask ANNOTATION_SET={annotationSetLookup[currentAnnotationSet]}
 				{CONTEXT}
 				DISABLED={!userCanEdit}
