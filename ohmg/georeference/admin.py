@@ -10,6 +10,7 @@ from ohmg.georeference.models import (
     GeorefSession,
     ItemBase,
     AnnotationSet,
+    SetCategory,
 )
 
 class AnnotationSetAdmin(admin.ModelAdmin):
@@ -22,6 +23,7 @@ class AnnotationSetAdmin(admin.ModelAdmin):
     search_fields = ('volume__city',)
 
 admin.site.register(AnnotationSet, AnnotationSetAdmin)
+admin.site.register(SetCategory)
 admin.site.register(ItemBase)
 
 class GCPAdmin(admin.ModelAdmin):

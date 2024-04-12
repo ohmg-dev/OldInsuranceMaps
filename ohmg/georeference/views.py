@@ -443,7 +443,7 @@ class AnnotationSetView(View):
 
             try:
                 annoset = v.get_annotation_set(category, create=True)
-                r.update_vrs(annoset)
+                r.update_annotationset(annoset)
                 response['status'] = "success"
                 response['message'] = f"{resource_id} added to {category} annotation set"
 

@@ -10,6 +10,7 @@ from ohmg.georeference.models import (
     Layer,
     Document,
     ItemBase,
+    SetCategory,
 )
 from ohmg.context_processors import generate_ohmg_context
 from ohmg.georeference.schemas import AnnotationSetSchema
@@ -27,12 +28,14 @@ class MapSummary(View):
         volume_json = volume.serialize(include_session_info=True)
 
         annotation_sets = [AnnotationSetSchema.from_orm(i).dict() for i in volume.get_annotation_sets()]
+        annotation_set_options = list(SetCategory.objects.filter(is_geospatial=True).values("slug", "display_name"))
 
         context_dict = {
             "svelte_params": {
                 "CONTEXT": generate_ohmg_context(request),
                 "VOLUME": volume_json,
                 "ANNOTATION_SETS": annotation_sets,
+                "ANNOTATION_SET_OPTIONS": annotation_set_options,
             }
         }
         return render(

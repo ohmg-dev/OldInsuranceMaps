@@ -467,7 +467,7 @@ class ItemBase(models.Model):
         if save is True:
             self.save(update_fields=["status"])
 
-    def update_vrs(self, vrs):
+    def update_annotationset(self, vrs):
 
         # if it's the same vrs then do nothing
         if self.vrs == vrs:
@@ -807,6 +807,9 @@ class DocumentLink(models.Model):
 
 
 class SetCategory(models.Model):
+
+    class Meta:
+        verbose_name_plural = "Set Categories"
 
     slug = models.CharField(max_length=50)
     description = models.CharField(max_length=200, null=True, blank=True)

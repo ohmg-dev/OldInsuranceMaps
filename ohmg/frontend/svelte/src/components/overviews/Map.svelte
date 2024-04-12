@@ -36,6 +36,7 @@ import ItemDetails from './sections/ItemDetails.svelte';
 export let CONTEXT;
 export let VOLUME;
 export let ANNOTATION_SETS;
+export let ANNOTATION_SET_OPTIONS;
 
 let currentAnnotationSet = "main-content";
 const annotationSetLookup = {}
