@@ -4,6 +4,9 @@ import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import TileWMS from 'ol/source/TileWMS';
 
+import MousePosition from 'ol/control/MousePosition';
+import {createStringXY} from 'ol/coordinate';
+
 import GeoJSON from 'ol/format/GeoJSON';
 
 import {transformExtent} from 'ol/proj';
@@ -25,7 +28,7 @@ import LayerGroup from 'ol/layer/Group';
 import MapboxVector from 'ol/layer/MapboxVector';
 
 import Crop from 'ol-ext/filter/Crop';
-import { createEmpty, extend, extendFlatCoordinates } from 'ol/extent';
+import { extendFlatCoordinates, containsXY } from 'ol/extent';
 
 export function makeTitilerXYZUrl (options) {
 	// options must be an object with the following properties:

@@ -437,11 +437,10 @@ function getCompletedStr(id) {
 			<CrosshairSimple />
 		</button>
 	</div>
-	<div id="map">
-		{#if currentBasemap == "satellite"}
-		<MapboxLogoLink />
-		{/if}
-	</div>
+	<div id="map"></div>
+	{#if currentBasemap == "satellite"}
+	<MapboxLogoLink fullpage={true} />
+	{/if}
 	<div id="panel-btn">
 		<button class="control-btn" on:click={() => {showPanel=!showPanel}}>
 			{#if showPanel}

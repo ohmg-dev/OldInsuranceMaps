@@ -75,13 +75,17 @@ INSTALLED_APPS = [
     'invitations',
 
     'ninja',
+    'markdownx',
 
     'ohmg.api',
+    'ohmg.content',
     'ohmg.frontend',
     'ohmg.georeference',
     'ohmg.loc_insurancemaps',
     'ohmg.places',
 ]
+
+MARKDOWNX_IMAGE_MAX_SIZE = { 'size': (800,0), 'quality': 90 }
 
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.SHA1PasswordHasher',

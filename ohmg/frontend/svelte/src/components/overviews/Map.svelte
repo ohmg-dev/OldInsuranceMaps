@@ -27,8 +27,7 @@ import OpenModalButton from '@components/base/OpenModalButton.svelte';
 import Modal, {getModal} from '@components/base/Modal.svelte';
 
 import MapPreview from "@components/interfaces/MapPreview.svelte";
-import SingleLayerViewer from '@components/interfaces/SingleLayerViewer.svelte';
-import SingleDocumentViewer from '@components/interfaces/SingleDocumentViewer.svelte';
+import SimpleViewer from '@components/interfaces/SimpleViewer.svelte';
 import DownloadSectionModal from './modals/ItemDownloadSectionModal.svelte';
 import ItemDetails from './sections/ItemDetails.svelte';
     import SigninReminder from '../layout/SigninReminder.svelte';
@@ -221,8 +220,15 @@ function resetMosaicPreview() {
 let modalDocUrl = "";
 let modalDocImageSize = "";
 
+// These variable are used to trigger a reinit of map interfaces.
+// See https://svelte.dev/repl/65c80083b515477784d8128c3655edac?version=3.24.1
+let reinitMap = [{}]
+let reinitModalMap = [{}]
+
+let modalIsGeospatial = false;
 let modalLyrUrl = "";
-let modalLyrExtent = "";
+let modalExtent = []
+
 
 </script>
 <IconContext values={iconProps}>
@@ -233,16 +239,11 @@ let modalLyrExtent = "";
 <GeoreferencedSectionModal id={"modal-georeferenced"} />
 <MultiMaskModal id={"modal-multimask"} />
 <NonMapContentModal id={"modal-non-map"} />
-<GeoreferencePermissionsModal id={"modal-permissions"} user={CONTEXT.user} userCanEdit={userCanEdit} item={VOLUME} />
-<Modal id={"modal-doc-view"} full={true}>
-{#key modalDocUrl}
-	<SingleDocumentViewer LAYER_URL={modalDocUrl} IMAGE_SIZE={modalDocImageSize} />
-{/key}
-</Modal>
-<Modal id={"modal-lyr-view"} full={true}>
-{#key modalLyrUrl}
-	<SingleLayerViewer {CONTEXT} LAYER_URL={modalLyrUrl} EXTENT={modalLyrExtent} />
-{/key}
+<GeoreferencePermissionsModal id={"modal-permissions"} user={USER} userCanEdit={userCanEdit} item={VOLUME} />
+<Modal id={"modal-simple-viewer"} full={true}>
+{#each reinitModalMap as key (key)}
+	<SimpleViewer LAYER_URL={modalLyrUrl} EXTENT={modalExtent} {MAPBOX_API_KEY} {TITILER_HOST} GEOSPATIAL={modalIsGeospatial} />
+{/each}
 </Modal>
 <main>
 	<section class="breadcrumbs">
@@ -366,9 +367,12 @@ let modalLyrExtent = "";
 						<div class="document-item">
 							<div><p><Link href={document.urls.resource} title={document.title}>Sheet {document.page_str}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
-								modalDocUrl=document.urls.image;
-								modalDocImageSize=document.image_size;
-								getModal('modal-doc-view').open();}} >
+								modalLyrUrl=document.urls.image;
+								modalExtent=[0, -document.image_size[1], document.image_size[0], 0];
+								modalIsGeospatial=false;
+								getModal('modal-simple-viewer').open();
+								reinitModalMap = [{}];
+								}} >
 								<img style="cursor:zoom-in"
 									src={document.urls.thumbnail}
 									alt={document.title}
@@ -413,9 +417,12 @@ let modalLyrExtent = "";
 						<div class="document-item">
 							<div><p><Link href={document.urls.resource} title={document.title}>{document.title}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
-								modalDocUrl=document.urls.image;
-								modalDocImageSize=document.image_size;
-								getModal('modal-doc-view').open();}} >
+								modalLyrUrl=document.urls.image;
+								modalExtent=[0, -document.image_size[1], document.image_size[0], 0];
+								modalIsGeospatial=false;
+								getModal('modal-simple-viewer').open();
+								reinitModalMap = [{}];
+								}} >
 								<img style="cursor:zoom-in"
 									src={document.urls.thumbnail}
 									alt={document.title}
@@ -468,8 +475,10 @@ let modalLyrExtent = "";
 							<div><p><Link href={layer.urls.resource} title={layer.title}>{layer.title}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
 								modalLyrUrl=layer.urls.cog;
-								modalLyrExtent=layer.extent;
-								getModal('modal-lyr-view').open();}}>
+								modalExtent=layer.extent;
+								modalIsGeospatial=true;
+								getModal('modal-simple-viewer').open();
+								reinitModalMap = [{}]}}>
 								<img style="cursor:zoom-in"
 									src={layer.urls.thumbnail}
 									alt={layer.title}
@@ -518,9 +527,18 @@ let modalLyrExtent = "";
 						{#each VOLUME.items.nonmaps as nonmap}
 						<div class="document-item">
 							<div><p><Link href={nonmap.urls.resource} title={nonmap.title}>{nonmap.title}</Link></p></div>
-							<Link href={nonmap.urls.resource} external={true} title="go to detail page for this document" classes={["zoom-in"]}>
-								<img src={nonmap.urls.thumbnail} alt={nonmap.title}>
-							</Link>
+							<button class="thumbnail-btn" on:click={() => {
+								modalLyrUrl=nonmap.urls.image;
+								modalExtent=[0, -nonmap.image_size[1], nonmap.image_size[0], 0];
+								modalIsGeospatial=false;
+								getModal('modal-simple-viewer').open();
+								reinitModalMap = [{}];
+								}} >
+								<img style="cursor:zoom-in"
+									src={nonmap.urls.thumbnail}
+									alt={nonmap.title}
+									/>
+							</button>
 							{#if userCanEdit}
 							<div>
 								<ul>

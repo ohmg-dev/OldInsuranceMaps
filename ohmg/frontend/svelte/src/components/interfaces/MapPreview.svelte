@@ -2,11 +2,12 @@
 import {onMount} from 'svelte';
 
 import IconContext from 'phosphor-svelte/lib/IconContext';
+import CornersOut from 'phosphor-svelte/lib/CornersOut';
+import MapboxLogoLink from "./buttons/MapboxLogoLink.svelte"
 
 import OpenModalButton from "@components/base/OpenModalButton.svelte"
 import BasemapToggleButton from "./buttons/BasemapToggleButton.svelte"
 import ExpandElement from "./buttons/ExpandElement.svelte"
-import FullExtentButton from "./buttons/FullExtentButton.svelte"
 
 import LegendModal from "./modals/LegendModal.svelte"
 
@@ -14,6 +15,8 @@ import 'ol/ol.css';
 import Map from 'ol/Map';
 import {createEmpty, extend} from 'ol/extent';
 import {transformExtent} from 'ol/proj';
+import MousePosition from 'ol/control/MousePosition';
+    import {createStringXY} from 'ol/coordinate';
 import {OSM, XYZ} from 'ol/source';
 
 import {
@@ -21,19 +24,19 @@ import {
 	Group as LayerGroup,
 } from 'ol/layer';
 
+import {ZoomToExtent, defaults as defaultControls} from 'ol/control.js';
+
 import '@src/css/map-panel.css';
 import {
 	iconProps,
 	makeLayerGroupFromAnnotationSet,
+	makeBasemaps,
 } from '@lib/utils';
 
 export let CONTEXT;
 export let ANNOTATION_SETS;
 
 let map;
-
-const baseGroup = new LayerGroup();
-let currentBasemap;
 
 function getClass(n) {
 	if (n == 100) {
@@ -45,14 +48,29 @@ function getClass(n) {
 	}
 }
 
+const basemaps = makeBasemaps(MAPBOX_API_KEY);
+let currentBasemap = 'satellite';
+
 function toggleBasemap() {
-	baseGroup.getLayers().forEach( function(layer) {
-		layer.setVisible(!layer.getVisible())
-		if (layer.getVisible() == true) {
-			currentBasemap = layer.get('name')
-		}
-	})
+  if (currentBasemap === "osm") {
+    currentBasemap = "satellite"
+  } else {
+    currentBasemap = "osm"
+  }
 }
+
+// triggered by a change in the basemap id
+function setBasemap(basemapId) {
+  if (viewer) {
+    viewer.map.getLayers().removeAt(0);
+    basemaps.forEach( function(item) {
+      if (item.id == basemapId) {
+        viewer.map.getLayers().insertAt(0, item.layer);
+      }
+    });
+  }
+}
+$: setBasemap(currentBasemap);
 
 function toggleTransparency(inTrans) {
 	let outTrans;
@@ -83,31 +101,43 @@ const zIndexLookup = {
 }
 ANNOTATION_SETS.sort((a, b) => zIndexLookup[a.id] - zIndexLookup[b.id]);
 
-function initMap() {
-	map = new Map({ 
-		target: "map",
-		maxTilesLoading: 50,
-	});
-	const osmLayer = new TileLayer({
-		source: new OSM(),
-		zIndex: 0,
-	});
-	osmLayer.setVisible(false)
-	osmLayer.set('name', 'Open Street Map')
-	
-	const imageryLayer = new TileLayer({
-		source: new XYZ({
-			url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/{z}/{x}/{y}?access_token='+CONTEXT.mapbox_api_token,
-			tileSize: 512,
+let currentZoom = '';
+class MapPreviewViewer {
+	constructor(elementId) {
+		map = new Map({
+			target: document.getElementById(elementId),
+			maxTilesLoading: 50,
+			controls: defaultControls().extend([
+				new ZoomToExtent({
+					extent:  transformExtent(VOLUME.extent, "EPSG:4326", "EPSG:3857"),
+					label: document.getElementById('extent-icon-preview'),
+				}),
+			]),
+			layers: [
+				basemaps[1].layer,
+			]
+		});
+
+		let mousePositionControl = new MousePosition({
+			projection: 'EPSG:4326',
+			coordinateFormat: createStringXY(6),
+			placeholder: 'n/a',
+			target: document.getElementById('pointer-coords-preview'),
+			className: null,
+		});
+		map.addControl(mousePositionControl);
+
+		Object.entries(layerSets).forEach( function ([key, item]) {
+			map.addLayer(item.layerGroup)
 		})
-	});
-	imageryLayer.setVisible(true)
-	imageryLayer.set('name', 'Mapbox Imagery')
-	currentBasemap = imageryLayer.get('name')
-	
-	baseGroup.getLayers().push(osmLayer)
-	baseGroup.getLayers().push(imageryLayer)
-	map.addLayer(baseGroup);	
+
+		map.getView().on('change:resolution', () => {
+			const z = map.getView().getZoom()
+			currentZoom = Math.round(z*10)/10
+		})
+
+		this.map = map;
+	}
 };
 
 const annotationSets = {};
@@ -149,6 +179,7 @@ function createAnnotationSets() {
 	})
 }
 
+let viewer;
 onMount(() => {
 	initMap();
 	createAnnotationSets();
@@ -161,11 +192,15 @@ onMount(() => {
 <LegendModal id={"modal-legend"} legendUrl={"/static/img/key-nola-1940.png"} legendAlt={"Sanborn Map Key"} />
 <div id="map-container" class="map-container"  style="display:flex; justify-content: center; height:550px">
 	<div id="map-panel">
-		<div id="map" style="height: 100%;"></div>
+		<div id="map" style="height: 100%;">
+		</div>
+		<i id='extent-icon-preview'><CornersOut size={'20px'} /></i>
+		{#if currentBasemap == "satellite"}
+			<MapboxLogoLink />
+		{/if}
 	</div>
 	<div id="layer-panel" style="display: flex;">
 		<div class="layer-section-header" style="border-top-width: 1px;">
-			<FullExtentButton action={() => {map.getView().fit(fullExtent)}} />
 			<OpenModalButton style="tool-ui" icon="article" modalId={"modal-legend"} />
 			<ExpandElement elementId={'map-container'} maps={[map]} />
 		</div>
@@ -175,7 +210,7 @@ onMount(() => {
 				<BasemapToggleButton action={toggleBasemap} />
 			</div>
 			<div class="layer-section-subheader">
-				{currentBasemap}
+				{currentBasemap == 'satellite' ? 'Mapbox Imagery' : 'Open Street Map'}
 			</div>
 			{#each annotationSetList as id}
 				{#if annotationSets[id].layerCt > 0}
@@ -196,17 +231,21 @@ onMount(() => {
 				{/if}
 			{/each}
 		</div>
+		<div id="info-box">
+			<span>z: {currentZoom}</span>
+			<span id="pointer-coords-preview"></span>
+		</div>
 	</div>
 </div>
 </IconContext>
-
 <style>
-	button.layer-entry {
-		cursor: pointer;
-		border: none;
-		background: none;
-	}
-	button.layer-entry:hover {
-		color: #1b4060;
+	#info-box {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		background-color: rgba(255,255,255,.6);
+		align-items: end;
+		padding: 0 10px;
+		font-size: .8em;
 	}
 </style>

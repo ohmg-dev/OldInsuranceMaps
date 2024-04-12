@@ -17,9 +17,8 @@ import {getCenter} from 'ol/extent';
 
 import Link from '@components/base/Link.svelte';
 import TitleBar from '@components/layout/TitleBar.svelte';
-import SessionList from '@components/lists/SessionList.svelte'
-import SingleLayerViewer from '@components/interfaces/SingleLayerViewer.svelte';
-import SingleDocumentViewer from '@components/interfaces/SingleDocumentViewer.svelte';
+import SessionList from '@components/lists/SessionList.svelte';
+import SimpleViewer from '@components/interfaces/SimpleViewer.svelte';
 import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
 
 import ResourceDetails from './sections/ResourceDetails.svelte';
@@ -31,6 +30,9 @@ export let RESOURCE;
 export let VOLUME;
 export let SPLIT_SUMMARY;
 export let GEOREFERENCE_SUMMARY;
+
+const EXTENT = RESOURCE.type == "layer" ? RESOURCE.extent : [0, -RESOURCE.image_size[1], RESOURCE.image_size[0], 0]
+const LAYER_URL = RESOURCE.type == "layer" ? RESOURCE.urls.cog : RESOURCE.urls.image
 
 let xyzUrl;
 let ohmUrl;
@@ -256,11 +258,7 @@ function goToDocument() {
     <div transition:slide>
       <div id="map-panel">
         {#each reinitMap as key (key)}
-        {#if RESOURCE.type == "document"}
-          <SingleDocumentViewer LAYER_URL={RESOURCE.urls.image} IMAGE_SIZE={RESOURCE.image_size} />
-        {:else}
-          <SingleLayerViewer {CONTEXT} LAYER_URL={RESOURCE.urls.cog} EXTENT={RESOURCE.extent} />
-        {/if}
+        <SimpleViewer  {LAYER_URL} {EXTENT} MAPBOX_API_KEY={CONTEXT.mapbox_api_token} TITILER_HOST={CONTEXT.titiler_host} GEOSPATIAL={RESOURCE.type == "layer"} />
         {/each}
       </div>
     </div>

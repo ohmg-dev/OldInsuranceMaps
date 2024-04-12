@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.views.generic import TemplateView, RedirectView
 from django.urls import path
 
@@ -9,18 +10,13 @@ from ohmg.frontend.views import (
     ActivityView,
     NewsList,
     NewsArticle,
-    MarkdownPage,
     Viewer,
 )
 
 urlpatterns = [
     path('', HomePage.as_view(), name='home'),
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
-    path('about-sanborn-maps/', MarkdownPage.as_view(), {"slug":"about-sanborn-maps"}),
-    path('about/', MarkdownPage.as_view(), {"slug":"about"}),
-    path('contact/', MarkdownPage.as_view(), {"slug":"contact"}),
-    path('faq/', MarkdownPage.as_view(), {"slug":"faq"}),
-    path('getting-started/', MarkdownPage.as_view(), {"slug":"getting-started"}),
+    path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + "favicon.ico", permanent=True)),
     path('activity/', ActivityView.as_view(), name='activity'),
     path('search/', Browse.as_view(), name='search'),
     path('browse/', RedirectView.as_view(pattern_name='search'), name='browse'),
