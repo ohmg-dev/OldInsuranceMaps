@@ -145,68 +145,6 @@ export function makeModifyInteraction(hitDetection, source, targetElement, style
 	return modify
 }
 
-export function makeLayerGroupFromVolume(options) {
-	// options must be an object with the following properties:
-	// {
-	//	item: serialized item (this includes layers, extent, etc.)
-	//	titilerHost: full address to titiler instance, e.g. https://titiler.oldinsurancemaps.net
-	//	layerSet: name of the layer subset to be turned into a group, must be 'main' or 'key-map'
-	//	zIndex: optional zIndex to apply to the returned LayerGroup
-	//	excludeLayerId: the id of a single layer that should be omitted from the LayerGroup
-	// }
-
-	const lyrGroup = new LayerGroup();
-	if (options.zIndex) {
-		lyrGroup.setZIndex(options.zIndex)
-	}
-
-	let layerDefs = [];
-	if (options.layerSet === "main") {
-		layerDefs = options.volume.sorted_layers.main;
-	} else if (options.layerSet === "key-map") {
-		layerDefs = options.volume.sorted_layers.key_map
-	} else {
-		console.log("invalid layerSet requested:" + options.layerSet)
-		return
-	}
-
-	layerDefs.forEach( function(layerDef) {
-	
-		if (layerDef.id != options.excludeLayerId && layerDef.extent) {
-
-			// create the actual ol layers and add to group.
-			let newLayer = new TileLayer({
-				source: new XYZ({
-				url: makeTitilerXYZUrl({
-						host: options.titilerHost,
-						url: layerDef.urls.cog,
-					}),
-				}),
-				extent: layerDef.extent
-			});
-		
-			lyrGroup.getLayers().push(newLayer)
-		
-			if (options.volume.multimask) {
-				Object.entries(options.volume.multimask).forEach(kV => {
-					if (kV[0] == layerDef.slug) {
-						const feature = new GeoJSON().readFeature(kV[1])
-					feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
-						const crop = new Crop({
-						feature: feature,
-						wrapX: true,
-						inner: false
-						});
-					newLayer.addFilter(crop);
-					}
-				});
-			}
-		}
-	});
-	
-	return lyrGroup
-}
-
 export function makeLayerGroupFromAnnotationSet (options) {
 	// options must be an object with the following properties:
 	// {
@@ -219,7 +157,8 @@ export function makeLayerGroupFromAnnotationSet (options) {
 
 	const lyrGroup = new LayerGroup();
 	options.annotationSet.annotations.forEach( function(annotation) {
-
+		console.log(annotation)
+		console.log(options.excludeLayerId)
 		if (annotation.slug != options.excludeLayerId && annotation.extent) {
 
 			const lyrExtent = transformExtent(annotation.extent, "EPSG:4326", "EPSG:3857")

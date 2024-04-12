@@ -44,7 +44,7 @@ import Snap from 'ol/interaction/Snap';
 import Styles from '@lib/ol-styles';
 const styles = new Styles();
 import {
-  makeLayerGroupFromVolume,
+  makeLayerGroupFromAnnotationSet,
   makeTitilerXYZUrl,
   makeBasemaps,
   generateFullMaskLayer,
@@ -61,6 +61,8 @@ import ExpandElement from "./buttons/ExpandElement.svelte";
 export let CONTEXT;
 export let DOCUMENT;
 export let VOLUME;
+export let ANNOSET_MAIN;
+export let ANNOSET_KEYMAP;
 
 let previewMode = "n/a";
 let previewUrl = '';
@@ -201,19 +203,22 @@ mapGCPSource.on(['addfeature'], function (e) {
   activeGCP = e.feature.getProperties().listId;
 })
 
-const refGroupKey = makeLayerGroupFromVolume({
-  volume: VOLUME,
-  layerSet: 'key-map',
-  zIndex: 10,
-  titilerHost: CONTEXT.titiler_host,
-})
+let kmLayerGroup;
+if (ANNOSET_KEYMAP) {
+  kmLayerGroup = makeLayerGroupFromAnnotationSet({
+    annotationSet: ANNOSET_KEYMAP,
+    zIndex: 10,
+    titilerHost: CONTEXT.titiler_host,
+    applyMultiMask: true,
+  })
+}
 
-const refGroupMain = makeLayerGroupFromVolume({
-  volume: VOLUME,
-  layerSet: 'main',
+const mainLayerGroup = makeLayerGroupFromAnnotationSet({
+  annotationSet: ANNOSET_MAIN,
   zIndex: 11,
   titilerHost: CONTEXT.titiler_host,
-  excludeLayerId: DOCUMENT.layer ? DOCUMENT.layer.id : '',
+  applyMultiMask: true,
+  excludeLayerId: DOCUMENT.layer ? DOCUMENT.layer.slug : '',
 })
 
 const refLayers = [
@@ -226,19 +231,19 @@ const refLayers = [
   {
     id: "keyMap",
     label: "Key Map",
-    layer: refGroupKey,
-    disabled: refGroupKey.getLayers().getArray().length == 0 ? true : null,
+    layer: kmLayerGroup,
+    disabled: kmLayerGroup ? false : true,
   },
   {
     id: "mainLayers",
     label: "Main Layers",
-    layer: refGroupMain,
-    disabled: refGroupMain.getLayers().getArray().length == 0 ? true : null,
+    layer: mainLayerGroup,
+    disabled: mainLayerGroup.getLayers().getArray().length == 0 ? true : null,
   }
 ]
 
 let currentRefLayer = 'none';
-if (refGroupKey) { currentRefLayer = "keyMap"}
+if (kmLayerGroup) { currentRefLayer = "keyMap"}
 
 $: {
   refLayers.forEach( function(layerDef) {
@@ -466,8 +471,8 @@ function MapViewer (elementId) {
     mapRotate = makeRotateCenterLayer()
     map.addLayer(mapRotate.layer)
 
-    map.addLayer(refGroupKey)
-    map.addLayer(refGroupMain)
+    kmLayerGroup &&  map.addLayer(kmLayerGroup)
+    map.addLayer(mainLayerGroup)
 
     // add transition actions to the map element
     function updateMapEl() {map.updateSize()}

@@ -15,6 +15,7 @@ from newsletter.models import Submission, Message
 from ohmg.context_processors import generate_ohmg_context
 from ohmg.utils import full_reverse
 from ohmg.georeference.models import Layer
+from ohmg.georeference.schemas import AnnotationSetSchema
 
 from ohmg.loc_insurancemaps.models import Volume
 
@@ -249,7 +250,9 @@ class Viewer(View):
 
         place_data = place.serialize()
         for v in Volume.objects.filter(locales__id__exact=place.id).order_by("year","volume_no").reverse():
-            volumes.append(v.serialize())
+            v_serialized = v.serialize()
+            v_serialized['main_annotation_set'] = AnnotationSetSchema.from_orm(v.get_annotation_set('main-content')).dict()
+            volumes.append(v_serialized)
 
         context_dict = {
             "svelte_params": {

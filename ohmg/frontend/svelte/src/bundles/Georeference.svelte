@@ -5,6 +5,8 @@
   export let CONTEXT;
   export let DOCUMENT;
   export let VOLUME;
+  export let ANNOSET_MAIN;
+  export let ANNOSET_KEYMAP;
 
   const iconLinks = [
     {
@@ -33,4 +35,4 @@
 </script>
 
 <TitleBar TITLE={DOCUMENT.title} ICON_LINKS={iconLinks}/>
-<Georeferencer {CONTEXT} {DOCUMENT} {VOLUME} />
+<Georeferencer {CONTEXT} {DOCUMENT} {VOLUME} {ANNOSET_MAIN} {ANNOSET_KEYMAP} />

@@ -43,7 +43,11 @@ import VectorLayer from 'ol/layer/Vector';
 
 import {MouseWheelZoom, defaults} from 'ol/interaction';
 
-import {makeTitilerXYZUrl, makeLayerGroupFromVolume, makeBasemaps} from '@lib/utils';
+import {
+	makeTitilerXYZUrl,
+	makeLayerGroupFromAnnotationSet,
+	makeBasemaps
+} from '@lib/utils';
 import Modal, {getModal} from '@components/base/Modal.svelte'
 import Link from '@components/base/Link.svelte';
 import MapboxLogoLink from "./buttons/MapboxLogoLink.svelte"
@@ -92,7 +96,6 @@ let baseUrl = baseFromUrl(originalUrl);
 
 let needToShowOneLayer = true;
 VOLUMES.forEach( function (vol, n) {
-
 	if (vol.extent) {
 		extend(homeExtent, transformExtent(vol.extent, "EPSG:4326", "EPSG:3857"))
 	}
@@ -131,15 +134,13 @@ VOLUMES.forEach( function (vol, n) {
 		});
 	}
 	// otherwise make a group layer out of all the main layers in the volume.
-	else if (vol.sorted_layers.main.length > 0) {
-		// mainGroup = getMainLayerGroupFromVolume(vol);
-		mainGroup = makeLayerGroupFromVolume({
-			volume: vol,
-			titilerHost: CONTEXT.titiler_host,
+	else if (vol.main_annotation_set.annotations.length > 0) {
+		mainGroup = makeLayerGroupFromAnnotationSet({
+			annotationSet: vol.main_annotation_set,
 			zIndex: 400+n,
-			layerSet: "main",
+			titilerHost: CONTEXT.titiler_host,
+			applyMultiMask: true,
 		})
-		mainGroup.setZIndex(400+n)
 	}
 
 	let opacity = 0;
