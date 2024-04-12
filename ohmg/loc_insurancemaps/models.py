@@ -314,6 +314,43 @@ class Volume(models.Model):
             sessions += list(chain(sessions, GeorefSession.objects.filter(doc=doc)))
         return sessions
 
+    @property
+    def stats(self):
+        items = self.sort_lookups()
+        unprep_ct = len(items['unprepared'])
+        prep_ct = len(items['prepared'])
+        georef_ct = len(items['georeferenced'])
+        percent = 0
+        if georef_ct > 0:
+            percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
+
+        main_lyrs_ct = 0
+        main_anno = self.get_annotation_set('main-content')
+        if main_anno.annotations:
+            main_lyrs_ct = len(main_anno.annotations)
+        mm_ct, mm_todo, mm_percent = 0, 0, 0
+        if main_lyrs_ct != 0:
+            # make sure 0/0 appears at the very bottom, then 0/1, 0/2, etc.
+            mm_percent = main_lyrs_ct * .000001
+        mm_display = f"0/{main_lyrs_ct}"
+        if main_anno.multimask is not None:
+            mm_ct = len(main_anno.multimask)
+            mm_todo = main_lyrs_ct - mm_ct
+            if mm_ct > 0 and main_lyrs_ct > 0:
+                mm_display = f"{mm_ct}/{main_lyrs_ct}"
+                mm_percent = mm_ct / main_lyrs_ct
+                mm_percent += main_lyrs_ct * .000001
+
+        return {
+            "unprepared_ct": unprep_ct,
+            "prepared_ct": prep_ct,
+            "georeferenced_ct": georef_ct,
+            "percent": percent,
+            "mm_ct": mm_todo,
+            "mm_display": mm_display,
+            "mm_percent": mm_percent,
+        }
+
     def get_locale(self, serialized=False):
         """ Returns the first locale in the list of related locales.
         This is a patch in use until the frontend is ready for multiple
