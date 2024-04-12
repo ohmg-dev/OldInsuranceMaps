@@ -1,9 +1,11 @@
 <script>
     import SigninModal from "./SigninModal.svelte";
     import OpenModalButton from "../base/OpenModalButton.svelte";
+
+    export let csrfToken;
 </script>
 
-<SigninModal />
+<SigninModal {csrfToken} />
 <div class="signin-reminder">
     <p><em>
         <OpenModalButton modalId="signin-modal" style="link" icon="none"><em>sign in</em></OpenModalButton> to work on this content

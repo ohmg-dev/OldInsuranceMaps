@@ -114,7 +114,7 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 </script>
 
 <IconContext values={iconProps}>
-<SigninModal {CONTEXT} />
+<SigninModal csrfToken={CONTEXT.csrf_token} />
 <nav>
 	<div>
 		<div>

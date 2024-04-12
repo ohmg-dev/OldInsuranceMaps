@@ -355,7 +355,7 @@ let modalLyrExtent = "";
 				</div>
 			</div>
 			{#if !CONTEXT.user.is_authenticated}
-			<SigninReminder />
+			<SigninReminder csrfToken={CONTEXT.csrf_token} />
 			{/if}
 			<section class="subsection">
 				<div class="subsection-title-bar">
@@ -563,7 +563,7 @@ let modalLyrExtent = "";
 		{#if sectionVis['multimask']}
 		<div transition:slide>
 			{#if !CONTEXT.user.is_authenticated}
-				<SigninReminder />
+				<SigninReminder csrfToken={CONTEXT.csrf_token} />
 			{/if}
 			<select class="item-select" bind:value={currentAnnotationSet}>
 				{#each ANNOTATION_SETS as annoSet}
