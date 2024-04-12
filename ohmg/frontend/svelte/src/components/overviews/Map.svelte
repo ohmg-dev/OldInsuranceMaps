@@ -239,10 +239,10 @@ let modalExtent = []
 <GeoreferencedSectionModal id={"modal-georeferenced"} />
 <MultiMaskModal id={"modal-multimask"} />
 <NonMapContentModal id={"modal-non-map"} />
-<GeoreferencePermissionsModal id={"modal-permissions"} user={USER} userCanEdit={userCanEdit} item={VOLUME} />
+<GeoreferencePermissionsModal id={"modal-permissions"} user={CONTEXT.user.username} userCanEdit={userCanEdit} item={VOLUME} />
 <Modal id={"modal-simple-viewer"} full={true}>
 {#each reinitModalMap as key (key)}
-	<SimpleViewer LAYER_URL={modalLyrUrl} EXTENT={modalExtent} {MAPBOX_API_KEY} {TITILER_HOST} GEOSPATIAL={modalIsGeospatial} />
+	<SimpleViewer {CONTEXT} LAYER_URL={modalLyrUrl} EXTENT={modalExtent} GEOSPATIAL={modalIsGeospatial} />
 {/each}
 </Modal>
 <main>

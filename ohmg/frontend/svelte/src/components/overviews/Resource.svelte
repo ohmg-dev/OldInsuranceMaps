@@ -258,7 +258,7 @@ function goToDocument() {
     <div transition:slide>
       <div id="map-panel">
         {#each reinitMap as key (key)}
-        <SimpleViewer  {LAYER_URL} {EXTENT} MAPBOX_API_KEY={CONTEXT.mapbox_api_token} TITILER_HOST={CONTEXT.titiler_host} GEOSPATIAL={RESOURCE.type == "layer"} />
+        <SimpleViewer {CONTEXT} {LAYER_URL} {EXTENT} GEOSPATIAL={RESOURCE.type == "layer"} />
         {/each}
       </div>
     </div>

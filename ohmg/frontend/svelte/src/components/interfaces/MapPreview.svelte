@@ -48,7 +48,7 @@ function getClass(n) {
 	}
 }
 
-const basemaps = makeBasemaps(MAPBOX_API_KEY);
+const basemaps = makeBasemaps(CONTEXT.mapbox_api_token);
 let currentBasemap = 'satellite';
 
 function toggleBasemap() {
@@ -109,7 +109,7 @@ class MapPreviewViewer {
 			maxTilesLoading: 50,
 			controls: defaultControls().extend([
 				new ZoomToExtent({
-					extent:  transformExtent(VOLUME.extent, "EPSG:4326", "EPSG:3857"),
+					extent: fullExtent,
 					label: document.getElementById('extent-icon-preview'),
 				}),
 			]),
@@ -127,9 +127,9 @@ class MapPreviewViewer {
 		});
 		map.addControl(mousePositionControl);
 
-		Object.entries(layerSets).forEach( function ([key, item]) {
-			map.addLayer(item.layerGroup)
-		})
+		// Object.entries(layerSets).forEach( function ([key, item]) {
+		// 	map.addLayer(item.layerGroup)
+		// })
 
 		map.getView().on('change:resolution', () => {
 			const z = map.getView().getZoom()
@@ -181,7 +181,7 @@ function createAnnotationSets() {
 
 let viewer;
 onMount(() => {
-	initMap();
+	viewer = new MapPreviewViewer('map');
 	createAnnotationSets();
 	map.getView().fit(fullExtent)
 });

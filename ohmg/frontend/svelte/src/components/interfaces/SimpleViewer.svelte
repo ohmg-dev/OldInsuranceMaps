@@ -22,16 +22,15 @@
         iconProps,
         makeTitilerXYZUrl,
         makeBasemaps,
-    } from '@helpers/utils';
-    import { DocMousePosition, LyrMousePosition } from '@helpers/controls';
+    } from '@lib/utils';
+    import { DocMousePosition, LyrMousePosition } from '@lib/controls';
 
     import '@src/css/ol-overrides.css';
     
+    export let CONTEXT;
     export let LAYER_URL;
     export let EXTENT;
     export let GEOSPATIAL = false;
-    export let MAPBOX_API_KEY = null;
-    export let TITILER_HOST = null;
 
     let currentZoom = '';
 
@@ -45,13 +44,13 @@
             if (GEOSPATIAL) {
                 EXTENT = transformExtent(EXTENT, "EPSG:4326", "EPSG:3857");
 
-                const basemaps = makeBasemaps(MAPBOX_API_KEY);
+                const basemaps = makeBasemaps(CONTEXT.mapbox_api_token);
                 layers.push(basemaps[0].layer)
                 
                 const resLayer = new TileLayer({
                     source: new XYZ({
                         url: makeTitilerXYZUrl({
-                            host: TITILER_HOST,
+                            host: CONTEXT.titiler_host,
                             url: LAYER_URL,
                         }),
                     }),
