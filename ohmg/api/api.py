@@ -9,8 +9,10 @@ from ninja import NinjaAPI, Query, FilterSchema
 from ninja.pagination import paginate
 from ninja.security import APIKeyHeader
 
-from ohmg.accounts.models import User
-from ohmg.api.models import Key
+from ohmg.accounts.models import (
+    User,
+    APIKey,
+)
 from ohmg.core.schemas import (
     UserSchema,
     MapListSchema,
@@ -25,20 +27,20 @@ from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
 
-class ApiKey(APIKeyHeader):
+class APIKeyAuth(APIKeyHeader):
     param_name = "X-API-Key"
 
     def authenticate(self, request, key):
         if key == settings.OHMG_API_KEY:
             return key
-        elif key in Key.objects.filter(active=True).values_list('value', flat=True):
-            Key.objects.get(value=key).increment_count()
+        elif key in APIKey.objects.filter(active=True).values_list('value', flat=True):
+            APIKey.objects.get(value=key).increment_count()
             return key
 
 # going to be useful eventually for Geo support
 # https://github.com/vitalik/django-ninja/issues/335
 api = NinjaAPI(
-    auth=ApiKey(),
+    auth=APIKeyAuth(),
     title="OldInsuranceMaps.net API",
     version="beta",
     description="An experimental API for accessing content on "\

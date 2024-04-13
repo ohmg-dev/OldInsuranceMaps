@@ -9,7 +9,6 @@ from ninja import (
 
 from avatar.templatetags.avatar_tags import avatar_url
 
-from ohmg.api.models import Key
 from ohmg.loc_insurancemaps.models import Volume
 
 
@@ -45,10 +44,6 @@ class UserSchema(Schema):
     @staticmethod
     def resolve_image_url(obj):
         return avatar_url(obj)
-    
-    @staticmethod
-    def resolve_api_keys(obj):
-        return [i for i in Key.objects.filter(account=obj).values_list('value', flat=True)]
 
 
 class UserSchemaLite(Schema):
