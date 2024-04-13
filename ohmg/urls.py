@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
 
-from ohmg.api.api import api
+from ohmg.core.api import api
 
 urlpatterns = [
     path('', include('ohmg.content.urls')),

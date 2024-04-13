@@ -77,7 +77,7 @@ INSTALLED_APPS = [
     'ninja',
     'markdownx',
 
-    'ohmg.api',
+    'ohmg.core',
     'ohmg.content',
     'ohmg.frontend',
     'ohmg.georeference',
