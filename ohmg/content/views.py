@@ -12,7 +12,7 @@ from ohmg.georeference.models import (
     ItemBase,
     SetCategory,
 )
-from ohmg.context_processors import generate_ohmg_context
+from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.georeference.schemas import AnnotationSetSchema
 from ohmg.loc_insurancemaps.models import Volume, find_volume
 from ohmg.loc_insurancemaps.tasks import load_docs_as_task

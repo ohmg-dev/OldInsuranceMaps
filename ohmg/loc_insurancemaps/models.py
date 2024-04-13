@@ -38,7 +38,7 @@ from ohmg.loc_insurancemaps.utils import (
     unsanitize_name,
     get_jpg_from_jp2_url,
 )
-from ohmg.utils import (
+from ohmg.core.utils import (
     STATE_CHOICES,
     STATE_ABBREV,
     MONTH_CHOICES,
@@ -243,14 +243,17 @@ class Volume(models.Model):
         blank=True,
         default=dict,
     )
+    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
     sorted_layers = models.JSONField(
         default=default_sorted_layers_dict,
     )
+    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
     multimask = models.JSONField(null=True, blank=True)
     locales = models.ManyToManyField(
         Place,
         blank=True,
     )
+    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
     mosaic_geotiff = models.FileField(
         upload_to='mosaics',
         null=True,
@@ -258,6 +261,7 @@ class Volume(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
+    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
     mosaic_json = models.FileField(
         upload_to='mosaics',
         null=True,
@@ -265,6 +269,7 @@ class Volume(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
+    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
     mosaic_preference = models.CharField(
         choices=(('mosaicjson', 'MosaicJSON'), ('geotiff', 'GeoTIFF')),
         default='mosaicjson',

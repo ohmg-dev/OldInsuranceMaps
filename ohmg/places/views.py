@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 
-from ohmg.context_processors import generate_ohmg_context
+from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)

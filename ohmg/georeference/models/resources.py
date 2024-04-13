@@ -23,12 +23,12 @@ from django.utils.safestring import mark_safe
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.backends import MosaicBackend
 
-from ohmg.utils import (
+from ohmg.core.utils import (
     full_reverse,
     slugify,
     random_alnum,
 )
-from ohmg.georeference.renderers import generate_document_thumbnail_content, generate_layer_thumbnail_content
+from ohmg.core.renderers import generate_document_thumbnail_content, generate_layer_thumbnail_content
 from ohmg.georeference.storage import OverwriteStorage
 
 logger = logging.getLogger(__name__)

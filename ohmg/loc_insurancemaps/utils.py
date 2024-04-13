@@ -10,12 +10,12 @@ from PIL import Image
 from django.conf import settings
 from django.urls import reverse
 
-from ohmg.utils import (
+from ohmg.core.utils import (
     download_image,
     full_capitalize,
 )
 
-from ohmg.utils import (
+from ohmg.core.utils import (
     STATE_CHOICES,
 )
 

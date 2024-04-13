@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError # noqa: F401
 
 from ohmg.georeference.models import Document, Layer
-from ohmg.georeference.renderers import generate_layer_thumbnail_content
+from ohmg.core.renderers import generate_layer_thumbnail_content
 
 class Command(BaseCommand):
     help = 'Command line access point for the internal georeferencing utilities.'

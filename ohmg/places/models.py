@@ -1,8 +1,8 @@
 import logging
 from django.db import models
 
-from ohmg.utils import slugify
-from ohmg.utils import (
+from ohmg.core.utils import slugify
+from ohmg.core.utils import (
     STATE_ABBREV,
     STATE_POSTAL,
 )

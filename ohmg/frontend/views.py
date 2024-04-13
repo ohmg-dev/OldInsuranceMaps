@@ -9,8 +9,8 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from newsletter.models import Submission, Message
 
-from ohmg.context_processors import generate_ohmg_context
-from ohmg.utils import full_reverse
+from ohmg.core.context_processors import generate_ohmg_context
+from ohmg.core.utils import full_reverse
 from ohmg.georeference.models import Layer
 from ohmg.georeference.schemas import AnnotationSetSchema
 
