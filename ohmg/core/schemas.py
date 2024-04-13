@@ -240,6 +240,8 @@ class AnnotationSetSchema(Schema):
     multimask_geojson: dict = None
     extent: list = None
     multimask_extent: list = None
+    mosaic_cog_url: str = None
+    mosaic_json_url: str = None
 
     @staticmethod
     def resolve_id(obj):

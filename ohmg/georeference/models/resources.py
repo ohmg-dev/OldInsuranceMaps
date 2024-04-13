@@ -872,6 +872,18 @@ class AnnotationSet(models.Model):
             return Document.objects.filter(vrs=self)
 
     @property
+    def mosaic_cog_url(self):
+        """ return the public url to the mosaic COG for this annotation set. If 
+        no COG exists, return None."""
+        return self.mosaic_geotiff.url if self.mosaic_geotiff else None
+
+    @property
+    def mosaic_json_url(self):
+        """ return the public url to the mosaic JSON for this annotation set. If 
+        no mosaic JSON exists, return None."""
+        return self.mosaic_json.url if self.mosaic_json else None
+
+    @property
     def extent(self):
         """Calculate an extent based on all layers in this annotation set. If
         this is not a spatial annotation set, or there are no layers, return None."""
