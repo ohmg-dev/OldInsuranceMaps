@@ -21,7 +21,7 @@ from ohmg.georeference.models import (
     GeorefSession,
     ItemBase,
 )
-from ohmg.georeference.schemas import AnnotationSetSchema
+from ohmg.core.schemas import AnnotationSetSchema
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.georeference.tasks import delete_preview_vrt

@@ -10,18 +10,18 @@ from ninja.pagination import paginate
 from ninja.security import APIKeyHeader
 
 from ohmg.accounts.models import User
-from ohmg.accounts.schemas import UserSchema
 from ohmg.api.models import Key
-from ohmg.loc_insurancemaps.models import Volume
-from ohmg.content.schemas import MapListSchema
-from ohmg.georeference.models import SessionBase, AnnotationSet
-from ohmg.georeference.schemas import (
+from ohmg.core.schemas import (
+    UserSchema,
+    MapListSchema,
     FilterSessionSchema,
     SessionSchema,
     AnnotationSetSchema,
+    PlaceSchema,
 )
+from ohmg.loc_insurancemaps.models import Volume
+from ohmg.georeference.models import SessionBase, AnnotationSet
 from ohmg.places.models import Place
-from ohmg.places.schemas import PlaceSchema
 
 logger = logging.getLogger(__name__)
 

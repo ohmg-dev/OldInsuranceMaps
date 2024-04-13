@@ -4,7 +4,7 @@ from django.contrib.sites.models import Site
 from django.middleware import csrf
 from django.urls import reverse
 
-from ohmg.accounts.schemas import UserSchema
+from ohmg.core.schemas import UserSchema
 
 def on_mobile(request):
     """ determine if user on mobile device or not """

@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views import View
 
 from ohmg.core.context_processors import generate_ohmg_context
-from ohmg.accounts.schemas import UserSchema
+from ohmg.core.schemas import UserSchema
 
 class ProfileView(View):
 

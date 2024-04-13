@@ -12,7 +12,7 @@ from newsletter.models import Submission, Message
 from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.core.utils import full_reverse
 from ohmg.georeference.models import Layer
-from ohmg.georeference.schemas import AnnotationSetSchema
+from ohmg.core.schemas import AnnotationSetSchema
 
 from ohmg.loc_insurancemaps.models import Volume
 
