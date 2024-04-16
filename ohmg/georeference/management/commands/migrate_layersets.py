@@ -19,7 +19,7 @@ class Command(BaseCommand):
         cat_lookup = {
             "main": "main-content",
             "key_map": "key-map",
-            "congest_district": "congested-district-map",
+            "congested_district": "congested-district-map",
             "graphic_map_of_volumes": "graphic-map-of-volumes",
         }
 
@@ -41,17 +41,19 @@ class Command(BaseCommand):
                 mod_time = os.stat(file_path).st_mtime
                 mod_date = datetime.fromtimestamp(mod_time)
                 mod_date_str = mod_date.strftime("%Y-%m-%d")
-                volid, suffix = fname.split("__")
+                try:
+                    volid, suffix = fname.split("__")
 
-                outname = f"{volid}-main-{mod_date_str}__{suffix}"
-                print(outname)
+                    outname = f"{volid}-main-{mod_date_str}__{suffix}"
+                    print(outname)
 
-                ## save the mosaic over to annotation set instance with same file name
-                with open(file_path, "rb") as openf:
-                    main_ls.mosaic_geotiff.save(outname, File(openf))
+                    ## save the mosaic over to annotation set instance with same file name
+                    with open(file_path, "rb") as openf:
+                        main_ls.mosaic_geotiff.save(outname, File(openf))
 
-                mosaic_lookup.append((str(vol), volid, fname, outname))
-
+                    mosaic_lookup.append((str(vol), volid, fname, outname))
+                except Exception as e:
+                    print(file_path, e)
             for k, v in vol.sorted_layers.items():
                 if len(v) > 0:
                     vrscat = cat_lookup[k]
@@ -64,10 +66,12 @@ class Command(BaseCommand):
                         ls.multimask = vol.multimask
                     ls.save()
                     for i in v:
-                        res = ItemBase.objects.filter(slug=i, type="layer")[0]
-                        print(res)
-                        res.vrs = ls
-                        res.save()
+                        res = ItemBase.objects.filter(slug=i, type="layer")
+                        if res.exists():
+                            res = res[0]
+                            print(res)
+                            res.vrs = ls
+                            res.save()
             # handle the nonmaps a little differently because this is marked as a status
             nonmaps = [k for k, v in vol.document_lookup.items() if v['status'] == 'nonmap']
             if len(nonmaps) > 0:

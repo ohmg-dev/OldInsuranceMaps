@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Any, Union
 from django.urls import reverse
 from ninja import (
     Field,
@@ -23,7 +23,7 @@ class UserSchema(Schema):
     load_ct: int
     image_url: str
     email: str
-    api_keys: list[str]
+    api_keys: List[str]
 
     @staticmethod
     def resolve_volumes(obj):
@@ -55,13 +55,13 @@ class MapFullSchema(Schema):
 
     identifier: str
     title: str = Field(..., alias="__str__")
-    year: int = None
+    year: int = 0
     loaded_by: Optional[UserSchemaLite]
-    status: str = None
+    status: str = ""
     progress: dict
-    extent: tuple = None
-    multimask: dict = None
-    mosaic_preference: str = None
+    extent: Optional[Any]
+    multimask: Optional[Any]
+    mosaic_preference: str = ""
 
     def resolve_extent(obj):
         return obj.extent.extent if obj.extent else None
@@ -86,15 +86,15 @@ class MapFullSchema(Schema):
 class MapListSchema(Schema):
     identifier: str
     title: str = Field(..., alias="__str__")
-    city: str = None
-    county_equivalent: str = None
-    state: str = None
+    city: Optional[str]
+    county_equivalent: Optional[str]
+    state: Optional[str]
     year_vol: str
     sheet_ct: int
     stats: dict
     loaded_by: Optional[UserSchemaLite]
     load_date: str
-    volume_no: str = None
+    volume_no: Optional[str]
     urls: dict
     mj_exists: bool
     gt_exists: bool
@@ -149,7 +149,7 @@ class LayerSchema(Schema):
     def resolve_thumb_url(obj):
         if obj.thumbnail:
             return obj.thumbnail.url
-    
+
     @staticmethod
     def resolve_detail_url(obj):
         return reverse("resource_detail", args=(obj.pk, ))
@@ -160,15 +160,15 @@ class SessionSchema(Schema):
     id: int
     type: str
     user: UserSchemaLite
-    note: str = None
+    note: str = ""
     # resource_id = int
     doc: DocumentSchema = None
     lyr: LayerSchema = None
     status: str
     stage: str
     data: dict
-    user_input_duration: int = None
-    date_created: dict = None
+    user_input_duration: int = 0
+    date_created: dict = {}
 
     @staticmethod
     def resolve_date_created(obj):
@@ -210,13 +210,13 @@ class LayerAnnotationSchema(Schema):
     slug: str
     urls: dict
     status: str
-    extent: tuple
+    extent: Optional[tuple]
     page_str: str = ""
 
     @staticmethod
     def resolve_urls(obj):
         return obj.urls
-    
+
     @staticmethod
     def resolve_page_str(obj):
         return obj.title.split("|")[-1].split("p")[1]
@@ -228,12 +228,12 @@ class AnnotationSetSchema(Schema):
     name: str
     volume_id: str
     is_geospatial: bool
-    annotations: list[LayerAnnotationSchema]
-    multimask_geojson: dict = None
-    extent: list = None
-    multimask_extent: list = None
-    mosaic_cog_url: str = None
-    mosaic_json_url: str = None
+    annotations: List[LayerAnnotationSchema]
+    multimask_geojson: Optional[dict]
+    extent: Optional[tuple]
+    multimask_extent: Optional[tuple]
+    mosaic_cog_url: Optional[str]
+    mosaic_json_url: Optional[str]
 
     @staticmethod
     def resolve_id(obj):
