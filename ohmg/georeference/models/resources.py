@@ -875,13 +875,19 @@ class AnnotationSet(models.Model):
     def mosaic_cog_url(self):
         """ return the public url to the mosaic COG for this annotation set. If 
         no COG exists, return None."""
-        return self.mosaic_geotiff.url if self.mosaic_geotiff else None
+        url = None
+        if self.mosaic_geotiff:
+            url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_geotiff.url
+        return url
 
     @property
     def mosaic_json_url(self):
         """ return the public url to the mosaic JSON for this annotation set. If 
         no mosaic JSON exists, return None."""
-        return self.mosaic_json.url if self.mosaic_json else None
+        url = None
+        if self.mosaic_json:
+            url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_json.url
+        return url
 
     @property
     def extent(self):

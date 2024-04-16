@@ -96,9 +96,6 @@ let baseUrl = baseFromUrl(originalUrl);
 
 let needToShowOneLayer = true;
 VOLUMES.forEach( function (vol, n) {
-	if (vol.extent) {
-		extend(homeExtent, transformExtent(vol.extent, "EPSG:4326", "EPSG:3857"))
-	}
 
 	// zIndex guide (not all categories are implemented):
 	// 0 = basemaps
@@ -108,39 +105,30 @@ VOLUMES.forEach( function (vol, n) {
 	// 400 = main content
 
 	let mainGroup;
-
-	// look for mosaics of this item, and use the one that is indicated by the volume's
-	// mosaic_preference field. If neither mosaics exist, load
-	// each layer individually and apply the Crop mask
-	let mosaicUrl;
 	let mosaicType;
-	if (vol.urls.mosaic_geotiff && vol.mosaic_preference === 'geotiff') {
-		mosaicUrl = vol.urls.mosaic_geotiff;
-		mosaicType = "gt";
-	} else if (vol.urls.mosaic_json && vol.mosaic_preference === 'mosaicjson') {
-		mosaicUrl = vol.urls.mosaic_json;
-		mosaicType = "mj";
-	}
-	if (mosaicUrl) {
-		mainGroup = new TileLayer({
-			source: new XYZ({
-				transition: 0,
-				url: makeTitilerXYZUrl({
-					host: CONTEXT.titiler_host,
-					url: mosaicUrl,
+	if (vol.main_annotation_set.annotations.length > 0) {
+		const mainExtent = transformExtent(vol.main_annotation_set.extent, "EPSG:4326", "EPSG:3857")
+		extend(homeExtent, mainExtent)
+		if (vol.main_annotation_set.mosaic_cog_url) {
+			mainGroup = new TileLayer({
+				source: new XYZ({
+					transition: 0,
+					url: makeTitilerXYZUrl({
+						host: CONTEXT.titiler_host,
+						url: vol.main_annotation_set.mosaic_cog_url,
+					}),
 				}),
-			}),
-			extent: transformExtent(vol.extent, "EPSG:4326", "EPSG:3857")
-		});
-	}
-	// otherwise make a group layer out of all the main layers in the volume.
-	else if (vol.main_annotation_set.annotations.length > 0) {
-		mainGroup = makeLayerGroupFromAnnotationSet({
-			annotationSet: vol.main_annotation_set,
-			zIndex: 400+n,
-			titilerHost: CONTEXT.titiler_host,
-			applyMultiMask: true,
-		})
+				extent: transformExtent(vol.main_annotation_set.multimask_extent, "EPSG:4326", "EPSG:3857")
+			});
+			mosaicType = "gt";
+		} else {
+			mainGroup = makeLayerGroupFromAnnotationSet({
+				annotationSet: vol.main_annotation_set,
+				zIndex: 400+n,
+				titilerHost: CONTEXT.titiler_host,
+				applyMultiMask: true,
+			})
+		}
 	}
 
 	let opacity = 0;
