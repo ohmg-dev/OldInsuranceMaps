@@ -29,7 +29,7 @@ import Modal, {getModal} from '@components/base/Modal.svelte';
 import MapPreview from "@components/interfaces/MapPreview.svelte";
 import SimpleViewer from '@components/interfaces/SimpleViewer.svelte';
 import DownloadSectionModal from './modals/ItemDownloadSectionModal.svelte';
-import ItemDetails from './sections/ItemDetails.svelte';
+import MapDetails from './sections/MapDetails.svelte';
     import SigninReminder from '../layout/SigninReminder.svelte';
 
 export let CONTEXT;
@@ -46,6 +46,39 @@ $: {
 		annoSet.annotations.forEach(function (anno) {
 			layerAnnotationLookup[anno.slug] = annoSet.id;
 		})
+
+		let mosaicUrl;
+		let ohmUrl;
+		if (annoSet.mosaic_json_url) {
+			mosaicUrl = makeTitilerXYZUrl({
+				host: CONTEXT.titiler_host,
+				url: annoSet.mosaic_json_url
+			})
+			// make the OHM url here
+			const mosaicUrlEncoded = makeTitilerXYZUrl({
+				host: CONTEXT.titiler_host,
+				url: annoSet.mosaic_json_url,
+				doubleEncode: true
+			})
+			const ll = getCenter(annoSet.extent);
+			ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
+		}
+		if (annoSet.mosaic_cog_url) {
+			mosaicUrl = makeTitilerXYZUrl({
+				host: CONTEXT.titiler_host,
+				url: annoSet.mosaic_cog_url
+			})
+			// make the OHM url here
+			const mosaicUrlEncoded = makeTitilerXYZUrl({
+				host: CONTEXT.titiler_host,
+				url: annoSet.mosaic_cog_url,
+				doubleEncode: true
+			})
+			const ll = getCenter(annoSet.extent);
+			ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
+		}
+		annoSet.mosaicUrl = mosaicUrl;
+		annoSet.ohmUrl = ohmUrl;
 	})
 }
 
@@ -181,37 +214,6 @@ function postGeoref(url, operation, status) {
 	});
 }
 
-let mosaicUrl;
-let ohmUrl;
-if (VOLUME.urls.mosaic_json) {
-	mosaicUrl = makeTitilerXYZUrl({
-		host: CONTEXT.titiler_host,
-		url: VOLUME.urls.mosaic_json
-	})
-	// make the OHM url here
-	const mosaicUrlEncoded = makeTitilerXYZUrl({
-		host: CONTEXT.titiler_host,
-		url: VOLUME.urls.mosaic_json,
-		doubleEncode: true
-	})
-	const ll = getCenter(VOLUME.extent);
-	ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
-}
-if (VOLUME.urls.mosaic_geotiff) {
-	mosaicUrl = makeTitilerXYZUrl({
-		host: CONTEXT.titiler_host,
-		url: VOLUME.urls.mosaic_geotiff
-	})
-	// make the OHM url here
-	const mosaicUrlEncoded = makeTitilerXYZUrl({
-		host: CONTEXT.titiler_host,
-		url: VOLUME.urls.mosaic_geotiff,
-		doubleEncode: true
-	})
-	const ll = getCenter(VOLUME.extent);
-	ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
-}
-
 let classifyingLayers = false;
 
 function resetMosaicPreview() {
@@ -276,7 +278,7 @@ let modalExtent = []
 		</div>
 		{#if sectionVis['summary']}
 		<div style="margin-bottom:10px;" transition:slide>
-			<ItemDetails ITEM={VOLUME} {mosaicUrl} {ohmUrl}/>
+			<MapDetails {VOLUME} {ANNOTATION_SETS}/>
 		</div>
 		{/if}
 	</section>

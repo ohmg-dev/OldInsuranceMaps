@@ -115,14 +115,6 @@ class MapListSchema(Schema):
         return str(year_vol)
 
     @staticmethod
-    def resolve_mj_exists(obj):
-        return False if not obj.mosaic_json else True
-
-    @staticmethod
-    def resolve_gt_exists(obj):
-        return False if not obj.mosaic_geotiff else True
-
-    @staticmethod
     def resolve_urls(obj):
         return {
             "summary": reverse('map_summary', args=(obj.identifier, )),

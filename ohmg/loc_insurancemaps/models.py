@@ -320,6 +320,14 @@ class Volume(models.Model):
         return sessions
 
     @property
+    def gt_exists(self):
+        return True if self.get_annotation_set('main-content').mosaic_geotiff else False
+
+    @property
+    def mj_exists(self):
+        return True if self.get_annotation_set('main-content').mosaic_json else False
+
+    @property
     def stats(self):
         items = self.sort_lookups()
         unprep_ct = len(items['unprepared'])
@@ -476,19 +484,11 @@ class Volume(models.Model):
         if self.get_locale():
             viewer_url = reverse("viewer", args=(self.get_locale().slug,)) + f"?{self.identifier}=100"
 
-        mosaic_gt_url = ""
-        if self.mosaic_geotiff:
-            mosaic_gt_url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_geotiff.url
-        mosaic_json_url = ""
-        if self.mosaic_json:
-            mosaic_json_url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_json.url
         return {
             "loc_item": loc_item,
             "loc_resource": resource_url,
             "summary": reverse("map_summary", args=(self.identifier,)),
             "viewer": viewer_url,
-            "mosaic_geotiff": mosaic_gt_url,
-            "mosaic_json": mosaic_json_url,
         }
 
     def refresh_lookups(self):
