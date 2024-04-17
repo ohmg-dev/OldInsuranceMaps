@@ -50,7 +50,7 @@ class MapSummary(View):
         volume = get_object_or_404(Volume, pk=identifier)
         volume_json = volume.serialize(include_session_info=True)
 
-        annotation_sets = [AnnotationSetSchema.from_orm(i).dict() for i in volume.get_annotation_sets()]
+        annotation_sets = [AnnotationSetSchema.from_orm(i).dict() for i in volume.get_annotation_sets(geospatial=True)]
         annotation_set_options = list(SetCategory.objects.filter(is_geospatial=True).values("slug", "display_name"))
 
         context_dict = {
