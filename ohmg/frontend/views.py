@@ -1,50 +1,29 @@
 import os
-import re
 import logging
-from pathlib import Path
-
-import frontmatter
 
 from django.conf import settings
 from django.http import JsonResponse, Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse
 from django.views import View
-from django.middleware import csrf
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from newsletter.models import Submission, Message
 
-from ohmg.utils import full_reverse
+from ohmg.core.context_processors import generate_ohmg_context
+from ohmg.core.utils import full_reverse
 from ohmg.georeference.models import Layer
+from ohmg.core.schemas import AnnotationSetSchema
 
 from ohmg.loc_insurancemaps.models import Volume
 
 from ohmg.places.models import Place
+
 
 if settings.ENABLE_NEWSLETTER:
     from newsletter.models import Newsletter, Subscription
 
 logger = logging.getLogger(__name__)
 
-def get_user_type(user):
-    if user.is_superuser:
-        user_type = "superuser"
-    elif user.is_authenticated:
-        user_type = "participant"
-    else:
-        user_type = "anonymous"
-    return user_type
-
-def mobile(request):
-    """Return True if the request comes from a mobile device."""
-
-    MOBILE_AGENT_RE=re.compile(r".*(iphone|mobile|androidtouch)",re.IGNORECASE)
-
-    if MOBILE_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
-        return True
-    else:
-        return False
 
 class HomePage(View):
 
@@ -61,35 +40,14 @@ class HomePage(View):
                 user_subscription = Subscription.objects.filter(newsletter=newsletter, user=request.user)
                 if user_subscription.exists() and user_subscription[0].subscribed is True:
                     user_subscribed = True
-        user_email = ""
-        if request.user.is_authenticated and request.user.email is not None:
-            user_email = request.user.email
-
-        viewer_showcase = None
-        if settings.VIEWER_SHOWCASE_SLUG:
-            try:
-                p = Place.objects.get(slug=settings.VIEWER_SHOWCASE_SLUG)
-                viewer_showcase = {
-                    'name': p.name,
-                    'url': reverse('viewer', args=(settings.VIEWER_SHOWCASE_SLUG,))
-                }
-            except Place.DoesNotExist:
-                pass
 
         context_dict = {
             "params": {
+                "CONTEXT": generate_ohmg_context(request),
                 "PAGE_NAME": 'home',
                 'PARAMS': {
-                    "MAP_API_URL": reverse("api-beta:map_list"),
-                    "SESSION_API_URL": reverse("api-beta:session_list"),
-                    "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
-                    "IS_MOBILE": mobile(request),
-                    "CSRFTOKEN": csrf.get_token(request),
-                    "OHMG_API_KEY": settings.OHMG_API_KEY,
                     "NEWSLETTER_SLUG": newsletter_slug,
                     "USER_SUBSCRIBED": user_subscribed,
-                    "USER_EMAIL": user_email,
-                    "VIEWER_SHOWCASE": viewer_showcase,
                     "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
                     "MAP_CT": Volume.objects.all().exclude(loaded_by=None).count(),
                 }
@@ -108,14 +66,11 @@ class Browse(View):
 
         context_dict = {
             "params": {
+                "CONTEXT": generate_ohmg_context(request),
                 "PAGE_NAME": 'browse',
                 "PARAMS": {
-                    "PLACES_GEOJSON_URL": reverse("api-beta:places_geojson"),
                     "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
-                    "PLACES_API_URL": reverse("api-beta:place_list"),
                     "MAP_CT": Volume.objects.all().exclude(loaded_by=None).count(),
-                    "MAP_API_URL": reverse("api-beta:map_list"),
-                    "OHMG_API_KEY": settings.OHMG_API_KEY,
                 }
             }
         }
@@ -131,12 +86,8 @@ class ActivityView(View):
 
         context_dict = {
             "params": {
-                "PAGE_TITLE": "Activity",
+                "CONTEXT": generate_ohmg_context(request),
                 "PAGE_NAME": 'activity',
-                "PARAMS": {
-                    "SESSION_API_URL": reverse("api-beta:session_list"),
-                    "OHMG_API_KEY": settings.OHMG_API_KEY,
-                }
             }
         }
 
@@ -268,15 +219,15 @@ class Viewer(View):
 
         place_data = place.serialize()
         for v in Volume.objects.filter(locales__id__exact=place.id).order_by("year","volume_no").reverse():
-            volumes.append(v.serialize())
+            v_serialized = v.serialize()
+            v_serialized['main_annotation_set'] = AnnotationSetSchema.from_orm(v.get_annotation_set('main-content')).dict()
+            volumes.append(v_serialized)
 
         context_dict = {
             "svelte_params": {
+                "CONTEXT": generate_ohmg_context(request),
                 "PLACE": place_data,
                 "VOLUMES": volumes,
-                "TITILER_HOST": settings.TITILER_HOST,
-                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-                "ON_MOBILE": mobile(request),
             }
         }
         return render(

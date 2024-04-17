@@ -8,8 +8,8 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.http import JsonResponse, HttpResponseBadRequest
-from django.middleware import csrf
 
+from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.georeference.tasks import (
     run_preparation_session,
     run_georeference_session,
@@ -19,7 +19,9 @@ from ohmg.georeference.models import (
     GCPGroup,
     PrepSession,
     GeorefSession,
+    ItemBase,
 )
+from ohmg.core.schemas import AnnotationSetSchema
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.georeference.tasks import delete_preview_vrt
@@ -52,9 +54,7 @@ class SplitView(View):
         volume_json = volume.serialize()
 
         split_params = {
-            "USER": "" if not request.user.is_authenticated else request.user.username,
-            "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
-            "CSRFTOKEN": csrf.get_token(request),
+            "CONTEXT": generate_ohmg_context(request),
             "DOCUMENT": doc_data,
             "VOLUME": volume_json,
         }
@@ -191,17 +191,18 @@ class GeoreferenceView(View):
         #     if GNLayer.objects.filter(alternate=alt).exists():
         #         reference_layers.append(alt)
 
+        annoset_main = AnnotationSetSchema.from_orm(volume.get_annotation_set('main-content')).dict()
+        annoset_keymap = None
+        akm = volume.get_annotation_set('key-map')
+        if akm:
+            annoset_keymap = AnnotationSetSchema.from_orm(akm).dict()
+
         georeference_params = {
-            "USER": "" if not request.user.is_authenticated else request.user.username,
-            "SESSION_LENGTH": settings.GEOREFERENCE_SESSION_LENGTH,
-            "CSRFTOKEN": csrf.get_token(request),
+            "CONTEXT": generate_ohmg_context(request),
             "DOCUMENT": doc_data,
             "VOLUME": volume_json,
-            # "REGION_EXTENT": extent,
-            "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-            ## these variables will be reevaluated when reference layers re-implemented
-            # "REFERENCE_LAYERS": reference_layers,
-            "TITILER_HOST": settings.TITILER_HOST,
+            "ANNOSET_MAIN": annoset_main,
+            "ANNOSET_KEYMAP": annoset_keymap,
         }
 
         return render(
@@ -388,39 +389,64 @@ class GeoreferenceView(View):
             return BadPostRequest
 
 
-class MultiMaskView(View):
+class AnnotationSetView(View):
 
-    def post(self, request, volumeid):
+    def post(self, request):
 
-        volume = get_object_or_404(Volume, pk=volumeid)
+        if not request.body:
+            return BadPostRequest
 
         body = json.loads(request.body)
-        multimask = body.get('multiMask')
+        operation = body.get("operation")
+        resource_id = body.get("resourceId")
+        volume_id = body.get("volumeId")
+        category = body.get("categorySlug")
+        multimask_geojson = body.get('multimaskGeoJSON')
+        override_existing = body.get('overrideExisting')
 
-        # data validation
-        errors = []
-        if multimask is not None and isinstance(multimask, dict):
-            for k, v in multimask.items():
-                try:
-                    geom_str = json.dumps(v['geometry'])
-                    g = GEOSGeometry(geom_str)
-                    if not g.valid:
-                        logger.error(f"{volumeid} | invalid mask: {k} - {g.valid_reason}")
-                        errors.append((k, g.valid_reason))
-                except Exception as e:
-                    logger.error(f"{volumeid} | improper GeoJSON in multimask: {k}")
-                    errors.append((k, e))
-        if errors:
-            response = {
-                "status": "error",
-                "errors": errors,
-            }
-        else:
-            volume.multimask = multimask
-            volume.save()
-            response = {
-                "status": "ok",
-                "volume_json": volume.serialize()
-            }
+        response = {
+            "status": "",
+            "message": ""
+        }
+
+        if operation == "update":
+            v = get_object_or_404(Volume, pk=volume_id)
+            r = get_object_or_404(ItemBase, pk=resource_id)
+
+            if r.vrs:
+                if not r.vrs.category.slug == category:
+                    if r.vrs.multimask and r.slug in r.vrs.multimask:
+                        if override_existing:
+                            del r.vrs.multimask[r.slug]
+                            r.vrs.save()
+                            logger.info(f"{r.slug} entry removed from {r.vrs.category} multimask")
+                        else:
+                            response['status'] = "existing-mask"
+                            response['message'] = f"Layer already in {r.vrs.category} multimask."
+                            return JsonResponse(response)
+
+            try:
+                annoset = v.get_annotation_set(category, create=True)
+                r.update_annotationset(annoset)
+                response['status'] = "success"
+                response['message'] = f"{resource_id} added to {category} annotation set"
+
+            except Exception as e:
+                logger.error(e)
+                response['status'] = "fail"
+                response['message'] = str(e)
+
+        if operation == "set-mask":
+
+            v = get_object_or_404(Volume, pk=volume_id)
+            annoset = v.get_annotation_set(category)
+
+            errors = annoset.update_multimask_from_geojson(multimask_geojson)
+
+            if errors:
+                response["status"] = "fail"
+                response["message"] = errors
+            else:
+                response["status"] = "success"
 
         return JsonResponse(response)

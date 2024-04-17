@@ -17,7 +17,7 @@ from ohmg.georeference.models import (
 )
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
-from ohmg.utils import (
+from ohmg.core.utils import (
     full_reverse,
     random_alnum,
 )
@@ -576,6 +576,18 @@ class GeorefSession(SessionBase):
         layer.set_status("georeferenced", save=False)
         layer.save(set_thumbnail=True, set_extent=True)
         self.lyr = layer
+
+        # hack around to add the layer to the main-content AnnotationSet
+        pdoc = self.doc
+        if pdoc.parent:
+            pdoc = pdoc.parent
+        try:
+            from ohmg.loc_insurancemaps.models import Sheet
+            volume = Sheet.objects.get(doc=pdoc).volume
+            layer.vrs = volume.get_annotation_set("main-content", create=True)
+            layer.save()
+        except Sheet.DoesNotExist:
+            logger.warn(f"error getting Sheet for document {pdoc.pk}")
 
         self.update_status("saving control points")
 

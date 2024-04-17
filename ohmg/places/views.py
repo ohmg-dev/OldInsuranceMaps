@@ -1,11 +1,10 @@
 import logging
 
-from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse
 from django.views import View
 
+from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
@@ -27,11 +26,10 @@ class PlaceView(View):
         else:
             context_dict = {
                 "params": {
+                    "CONTEXT": generate_ohmg_context(request),
                     "PAGE_NAME": 'place',
                     "PARAMS": {
                         "PLACE": place,
-                        "MAP_API_URL": reverse("api-beta:map_list"),
-                        "OHMG_API_KEY": settings.OHMG_API_KEY,
                     }
                 }
             }

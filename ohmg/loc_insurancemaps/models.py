@@ -25,6 +25,8 @@ from ohmg.georeference.models import (
     Layer,
     PrepSession,
     GeorefSession,
+    SetCategory,
+    AnnotationSet,
 )
 from ohmg.georeference.storage import OverwriteStorage
 from ohmg.places.models import Place
@@ -36,7 +38,7 @@ from ohmg.loc_insurancemaps.utils import (
     unsanitize_name,
     get_jpg_from_jp2_url,
 )
-from ohmg.utils import (
+from ohmg.core.utils import (
     STATE_CHOICES,
     STATE_ABBREV,
     MONTH_CHOICES,
@@ -241,14 +243,17 @@ class Volume(models.Model):
         blank=True,
         default=dict,
     )
+    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
     sorted_layers = models.JSONField(
         default=default_sorted_layers_dict,
     )
+    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
     multimask = models.JSONField(null=True, blank=True)
     locales = models.ManyToManyField(
         Place,
         blank=True,
     )
+    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
     mosaic_geotiff = models.FileField(
         upload_to='mosaics',
         null=True,
@@ -256,6 +261,7 @@ class Volume(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
+    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
     mosaic_json = models.FileField(
         upload_to='mosaics',
         null=True,
@@ -263,6 +269,7 @@ class Volume(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
+    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
     mosaic_preference = models.CharField(
         choices=(('mosaicjson', 'MosaicJSON'), ('geotiff', 'GeoTIFF')),
         default='mosaicjson',
@@ -312,6 +319,51 @@ class Volume(models.Model):
             sessions += list(chain(sessions, GeorefSession.objects.filter(doc=doc)))
         return sessions
 
+    @property
+    def gt_exists(self):
+        return True if self.get_annotation_set('main-content').mosaic_geotiff else False
+
+    @property
+    def mj_exists(self):
+        return True if self.get_annotation_set('main-content').mosaic_json else False
+
+    @property
+    def stats(self):
+        items = self.sort_lookups()
+        unprep_ct = len(items['unprepared'])
+        prep_ct = len(items['prepared'])
+        georef_ct = len(items['georeferenced'])
+        percent = 0
+        if georef_ct > 0:
+            percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
+
+        main_lyrs_ct = 0
+        main_anno = self.get_annotation_set('main-content')
+        if main_anno.annotations:
+            main_lyrs_ct = len(main_anno.annotations)
+        mm_ct, mm_todo, mm_percent = 0, 0, 0
+        if main_lyrs_ct != 0:
+            # make sure 0/0 appears at the very bottom, then 0/1, 0/2, etc.
+            mm_percent = main_lyrs_ct * .000001
+        mm_display = f"0/{main_lyrs_ct}"
+        if main_anno.multimask is not None:
+            mm_ct = len(main_anno.multimask)
+            mm_todo = main_lyrs_ct - mm_ct
+            if mm_ct > 0 and main_lyrs_ct > 0:
+                mm_display = f"{mm_ct}/{main_lyrs_ct}"
+                mm_percent = mm_ct / main_lyrs_ct
+                mm_percent += main_lyrs_ct * .000001
+
+        return {
+            "unprepared_ct": unprep_ct,
+            "prepared_ct": prep_ct,
+            "georeferenced_ct": georef_ct,
+            "percent": percent,
+            "mm_ct": mm_todo,
+            "mm_display": mm_display,
+            "mm_percent": mm_percent,
+        }
+
     def get_locale(self, serialized=False):
         """ Returns the first locale in the list of related locales.
         This is a patch in use until the frontend is ready for multiple
@@ -324,19 +376,6 @@ class Volume(models.Model):
                 return locale
         else:
             return None
-
-    def get_multimask_geojson(self):
-        """Really, the multimask property on Volume should be reimplemented
-        so it is always storing a GeoJSON FeatureCollection with the layer
-        name in the properties of each feature. This helper function will
-        convert the existing multimask format for now."""
-
-        multimask_geojson = {"type": "FeatureCollection", "features": []}
-        for layer, geojson in self.multimask.items():
-            geojson["properties"] = {"layer": layer}
-            multimask_geojson['features'].append(geojson)
-
-        return multimask_geojson
 
     def lc_item_formatted(self):
         return format_json_display(self.lc_item)
@@ -354,9 +393,26 @@ class Volume(models.Model):
         return format_json_display(self.layer_lookup)
     layer_lookup_formatted.short_description = 'Layer Lookup'
 
-    def sorted_layers_formatted(self):
-        return format_json_display(self.sorted_layers)
-    sorted_layers_formatted.short_description = 'Sorted Layers'
+    def get_annotation_set(self, cat_slug:str, create:bool=False):
+        try:
+            annoset = AnnotationSet.objects.get(volume=self, category__slug=cat_slug)
+        except AnnotationSet.DoesNotExist:
+            if create:
+                category = SetCategory.objects.get(slug=cat_slug)
+                annoset = AnnotationSet.objects.create(
+                    volume=self,
+                    category=category
+                )
+                logger.debug(f"created new AnnotationSet: {self.pk} - {cat_slug}")
+            else:
+                annoset = None
+        return annoset
+
+    def get_annotation_sets(self, geospatial:bool=False):
+        sets = AnnotationSet.objects.filter(volume=self)
+        if geospatial:
+            sets = sets.filter(category__is_geospatial=True)
+        return sets
 
     def make_sheets(self):
 
@@ -428,32 +484,12 @@ class Volume(models.Model):
         if self.get_locale():
             viewer_url = reverse("viewer", args=(self.get_locale().slug,)) + f"?{self.identifier}=100"
 
-        mosaic_gt_url = ""
-        if self.mosaic_geotiff:
-            mosaic_gt_url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_geotiff.url
-        mosaic_json_url = ""
-        if self.mosaic_json:
-            mosaic_json_url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_json.url
         return {
             "loc_item": loc_item,
             "loc_resource": resource_url,
             "summary": reverse("map_summary", args=(self.identifier,)),
-            "trim": reverse("volume_trim", args=(self.identifier,)),
             "viewer": viewer_url,
-            "mosaic_geotiff": mosaic_gt_url,
-            "mosaic_json": mosaic_json_url,
         }
-
-    def hydrate_sorted_layers(self):
-
-        hydrated = default_sorted_layers_dict()
-        for cat, layers in self.sorted_layers.items():
-            for layer_id in layers:
-                try:
-                    hydrated[cat].append(self.layer_lookup[layer_id])
-                except KeyError:
-                    logger.warn(f"{self.__str__()} | layer missing from layer lookup: {layer_id}")
-        return hydrated
 
     def refresh_lookups(self):
         """Clean and remake document_lookup and layer_lookup fields
@@ -538,15 +574,6 @@ class Volume(models.Model):
 
         self.layer_lookup[data['slug']] = data
         self.save(update_fields=["layer_lookup"])
-
-        # add layer id to ordered_layers list if its not yet there
-        sorted_layers = []
-        for v in self.sorted_layers.values():
-            sorted_layers += v
-
-        if data['slug'] not in sorted_layers:
-            self.sorted_layers["main"].append(data['slug'])
-            self.save(update_fields=["sorted_layers"])
 
         self.set_extent()
 
@@ -676,8 +703,6 @@ class Volume(models.Model):
             "items": items,
             "loaded_by": loaded_by,
             "urls": self.get_urls(),
-            "sorted_layers": self.hydrate_sorted_layers(),
-            "multimask": self.multimask,
             "extent": self.extent.extent if self.extent else None,
             "locale": self.get_locale(serialized=True),
             "mosaic_preference": self.mosaic_preference,
@@ -721,6 +746,12 @@ class Volume(models.Model):
             volume = Volume.objects.get(pk=identifier)
             volume.locales.set([locale])
             volume.update_place_counts()
+
+            # make sure a main-content layerset exists for this volume
+            main_ls, _ = AnnotationSet.objects.get_or_create(
+                category=SetCategory.objects.get(slug="main-content"),
+                volume=volume,
+            )
             return volume
         except Volume.DoesNotExist:
             pass
@@ -742,6 +773,11 @@ class Volume(models.Model):
             volume = Volume.objects.create(**volume_kwargs)
             volume.locales.add(locale)
             volume.update_place_counts()
+            # make sure a main-content layerset exists for this volume
+            main_ls, _ = AnnotationSet.objects.get_or_create(
+                category=SetCategory.objects.get(slug="main-content"),
+                volume=volume,
+            )
             return volume
 
 ## This seems to be where the signals need to be connected. See

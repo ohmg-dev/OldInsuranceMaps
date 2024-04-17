@@ -77,7 +77,7 @@ INSTALLED_APPS = [
     'ninja',
     'markdownx',
 
-    'ohmg.api',
+    'ohmg.core',
     'ohmg.content',
     'ohmg.frontend',
     'ohmg.georeference',
@@ -115,8 +115,8 @@ TEMPLATES = [
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
         "django.contrib.auth.context_processors.auth",
-        "ohmg.frontend.context_processors.navbar_footer_params",
-        "ohmg.frontend.context_processors.site_info",
+        "ohmg.core.context_processors.navbar_footer_params",
+        "ohmg.core.context_processors.site_info",
         "pinax_theme_bootstrap.context_processors.theme",
       ],
       "debug": DEBUG,
@@ -247,8 +247,6 @@ S3_CONFIG = {
     "aws_secret_access_key": os.getenv("S3_SECRET_ACCESS_KEY"),
     "endpoint_url": os.getenv("S3_ENDPOINT_URL"),
 }
-
-VIEWER_SHOWCASE_SLUG = os.getenv("VIEWER_SHOWCASE_SLUG")
 
 # this is a hack to handle the fact that certain GDAL and Django versions
 # are not compatible, and the order of lat/long gets messed up. ONLY to

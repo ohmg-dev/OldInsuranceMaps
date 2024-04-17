@@ -8,7 +8,23 @@ from ohmg.georeference.models import (
     DocumentLink,
     PrepSession,
     GeorefSession,
+    ItemBase,
+    AnnotationSet,
+    SetCategory,
 )
+
+class AnnotationSetAdmin(admin.ModelAdmin):
+    readonly_fields = (
+        'annotation_display_list',
+        'extent',
+        'multimask_extent',
+        'multimask',
+    )
+    search_fields = ('volume__city',)
+
+admin.site.register(AnnotationSet, AnnotationSetAdmin)
+admin.site.register(SetCategory)
+admin.site.register(ItemBase)
 
 class GCPAdmin(admin.ModelAdmin):
     readonly_fields = ('last_modified',)

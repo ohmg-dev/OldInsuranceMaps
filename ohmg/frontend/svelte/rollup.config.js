@@ -32,7 +32,7 @@ function serve() {
 
 function componentExportDetails(componentName) {
 	return {
-    input: `src/${componentName.toLowerCase()}.js`,
+    input: `src/bundles/${componentName.toLowerCase()}.js`,
 		output: {
 			sourcemap: true,
 			format: 'iife',
@@ -53,12 +53,12 @@ function componentExportDetails(componentName) {
 						replacement: path.resolve(__dirname, "src"),
 					},
 					{
-						find: "@helpers",
-						replacement: path.resolve(__dirname, "src/helpers"),
+						find: "@lib",
+						replacement: path.resolve(__dirname, "src/lib"),
 					},
 					{
 						find: "@components",
-						replacement: path.resolve(__dirname, "src/lib/components"),
+						replacement: path.resolve(__dirname, "src/components"),
 					},
 				],
 			}),

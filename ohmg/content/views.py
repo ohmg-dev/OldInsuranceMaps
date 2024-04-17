@@ -2,22 +2,20 @@ import json
 import logging
 from datetime import datetime
 
-from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import View
-from django.middleware import csrf
-from django.urls import reverse
 
 from ohmg.georeference.models import (
     Layer,
     Document,
     ItemBase,
+    SetCategory,
 )
+from ohmg.core.context_processors import generate_ohmg_context
+from ohmg.core.schemas import AnnotationSetSchema
 from ohmg.loc_insurancemaps.models import Volume, find_volume
 from ohmg.loc_insurancemaps.tasks import load_docs_as_task
-from ohmg.frontend.context_processors import user_info_from_request
-from ohmg.content.models import Page 
 
 logger = logging.getLogger(__name__)
 
@@ -52,13 +50,15 @@ class MapSummary(View):
         volume = get_object_or_404(Volume, pk=identifier)
         volume_json = volume.serialize(include_session_info=True)
 
+        annotation_sets = [AnnotationSetSchema.from_orm(i).dict() for i in volume.get_annotation_sets(geospatial=True)]
+        annotation_set_options = list(SetCategory.objects.filter(is_geospatial=True).values("slug", "display_name"))
+
         context_dict = {
             "svelte_params": {
-                "TITILER_HOST": settings.TITILER_HOST,
+                "CONTEXT": generate_ohmg_context(request),
                 "VOLUME": volume_json,
-                "CSRFTOKEN": csrf.get_token(request),
-                "USER": user_info_from_request(request),
-                "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
+                "ANNOTATION_SETS": annotation_sets,
+                "ANNOTATION_SET_OPTIONS": annotation_set_options,
             }
         }
         return render(
@@ -84,19 +84,6 @@ class MapSummary(View):
 
             return JsonResponse(volume_json)
 
-        elif operation == "set-index-layers":
-
-            volume = Volume.objects.get(pk=identifier)
-
-            lcat_lookup = body.get("layerCategoryLookup", {})
-
-            for cat in volume.sorted_layers:
-                volume.sorted_layers[cat] = [k for k, v in lcat_lookup.items() if v == cat]
-
-            volume.save(update_fields=["sorted_layers"])
-            volume_json = volume.serialize(include_session_info=True)
-            return JsonResponse(volume_json)
-
         elif operation == "refresh":
             volume = Volume.objects.get(pk=identifier)
             volume_json = volume.serialize(include_session_info=True)
@@ -107,6 +94,7 @@ class MapSummary(View):
             volume.refresh_lookups()
             volume_json = volume.serialize(include_session_info=True)
             return JsonResponse(volume_json)
+
 
 class VirtualResourceView(View):
 
@@ -132,17 +120,11 @@ class VirtualResourceView(View):
             "content/resource.html",
             context={
                 'resource_params': {
-                    'REFRESH_URL': None,
+                    "CONTEXT": generate_ohmg_context(request),
                     'RESOURCE': resource_json,
                     'VOLUME': volume_json,
-                    'CSRFTOKEN': csrf.get_token(request),
-                    "USER": user_info_from_request(request),
                     "SPLIT_SUMMARY": split_summary,
                     "GEOREFERENCE_SUMMARY": georeference_summary,
-                    "MAPBOX_API_KEY": settings.MAPBOX_API_TOKEN,
-                    "OHMG_API_KEY": settings.OHMG_API_KEY,
-                    "SESSION_API_URL": reverse("api-beta:session_list"),
-                    "TITILER_HOST": settings.TITILER_HOST,
                 }
             }
         )

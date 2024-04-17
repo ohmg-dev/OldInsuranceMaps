@@ -1,4 +1,5 @@
 import os
+import glob
 import uuid
 import json
 import logging
@@ -11,19 +12,24 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, Polygon, MultiPolygon, GEOSGeometry
 from django.contrib.gis.db import models
+from django.core.files import File
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django.utils.safestring import mark_safe
 
-from ohmg.utils import (
+from cogeo_mosaic.mosaic import MosaicJSON
+from cogeo_mosaic.backends import MosaicBackend
+
+from ohmg.core.utils import (
     full_reverse,
     slugify,
+    random_alnum,
 )
-from ohmg.georeference.renderers import generate_document_thumbnail_content, generate_layer_thumbnail_content
+from ohmg.core.renderers import generate_document_thumbnail_content, generate_layer_thumbnail_content
 from ohmg.georeference.storage import OverwriteStorage
-
 
 logger = logging.getLogger(__name__)
 
@@ -347,6 +353,12 @@ class ItemBase(models.Model):
         null=True,
         blank=True,
     )
+    vrs = models.ForeignKey(
+        "georeference.AnnotationSet",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
 
     def __str__(self):
         return str(self.title)
@@ -455,6 +467,23 @@ class ItemBase(models.Model):
         if save is True:
             self.save(update_fields=["status"])
 
+    def update_annotationset(self, vrs):
+
+        # if it's the same vrs then do nothing
+        if self.vrs == vrs:
+            logger.debug(f"{self.pk} same as existing vrs, no action")
+            return
+
+        # make sure to clean up the existing multimask in the current vrs if necessary
+        if self.vrs:
+            if self.vrs.multimask and self.pk in self.vrs.multimask:
+                del self.vrs.multimask[self.pk]
+                self.vrs.save(update_fields=["multimask"])
+                logger.warn(f"{self.pk} removed layer from existing multimask in vrs {self.vrs.pk}")
+        self.vrs = vrs
+        self.save(update_fields=["vrs"])
+        logger.info(f"{self.pk} added to vrs {self.vrs.pk}")
+
     def save(self, set_slug=False, set_thumbnail=False, set_extent=False, *args, **kwargs):
 
         if set_slug or not self.slug:
@@ -500,7 +529,7 @@ class Document(ItemBase):
         urls = self._base_urls
         urls.update({
             "resource": full_reverse("resource_detail", args=(self.pk, )),
-            # # remove detail and progress_page urls once InfoPanel has been fully 
+            # # remove detail and progress_page urls once InfoPanel has been fully
             # # deprecated and volume summary has been updated.
             # "detail": f"/documents/{self.pk}",
             # "progress_page": f"/documents/{self.pk}#georeference",
@@ -689,7 +718,7 @@ class Layer(ItemBase):
         doc = self.get_document()
         urls.update({
             "resource": full_reverse("resource_detail", args=(self.pk, )),
-            # remove detail and progress_page urls once InfoPanel has been fully 
+            # remove detail and progress_page urls once InfoPanel has been fully
             # deprecated and volume summary has been updated.
             # note the geonode: prefix is still necessary until non-geonode
             # layer and document detail pages are created.
@@ -775,3 +804,380 @@ class DocumentLink(models.Model):
 
     def __str__(self):
         return f"{self.source} --> {self.target}"
+
+
+class SetCategory(models.Model):
+
+    class Meta:
+        verbose_name_plural = "Set Categories"
+
+    slug = models.CharField(max_length=50)
+    description = models.CharField(max_length=200, null=True, blank=True)
+    display_name = models.CharField(max_length=50)
+    is_geospatial = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.display_name if self.display_name else self.slug
+
+class AnnotationSet(models.Model):
+
+    volume = models.ForeignKey(
+        "loc_insurancemaps.Volume",
+        on_delete=models.CASCADE,
+    )
+    category = models.ForeignKey(
+        SetCategory,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+    )
+    multimask = models.JSONField(
+        null=True,
+        blank=True
+    )
+    mosaic_geotiff = models.FileField(
+        upload_to='mosaics',
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
+    )
+    mosaic_json = models.FileField(
+        upload_to='mosaics',
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
+    )
+
+    def __str__(self):
+        return f"{self.volume} - {self.category}"
+
+    def annotation_display_list(self):
+        """For display in the admin interface only."""
+        li = [f"<li><a href='/admin/georeference/itembase/{i.pk}/change'>{i.slug}</a></li>" for i in self.annotations]
+        return mark_safe("<ul>"+"".join(li)+"</ul>")
+
+    annotation_display_list.short_description = 'Annotations'
+
+    @property
+    def is_geospatial(self):
+        return True if self.category and self.category.is_geospatial else False
+
+    @property
+    def annotations(self):
+        if self.is_geospatial:
+            return Layer.objects.filter(vrs=self)
+        else:
+            return Document.objects.filter(vrs=self)
+
+    @property
+    def mosaic_cog_url(self):
+        """ return the public url to the mosaic COG for this annotation set. If 
+        no COG exists, return None."""
+        url = None
+        if self.mosaic_geotiff:
+            url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_geotiff.url
+        return url
+
+    @property
+    def mosaic_json_url(self):
+        """ return the public url to the mosaic JSON for this annotation set. If 
+        no mosaic JSON exists, return None."""
+        url = None
+        if self.mosaic_json:
+            url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_json.url
+        return url
+
+    @property
+    def extent(self):
+        """Calculate an extent based on all layers in this annotation set. If
+        this is not a spatial annotation set, or there are no layers, return None."""
+        extent = None
+        if self.is_geospatial:
+            layer_extent_polygons = []
+            for v in self.annotations:
+                extent_poly = Polygon.from_bbox(v.extent)
+                layer_extent_polygons.append(extent_poly)
+            if len(layer_extent_polygons) > 0:
+                extent = MultiPolygon(layer_extent_polygons, srid=4326).extent
+        return extent
+
+    @property
+    def multimask_extent(self):
+        """Calculate an extent based on all layers in this annotation set's
+        multimask. If this is not a spatial annotation set, or there is no
+        multimask, return None."""
+        extent = None
+        if self.is_geospatial and self.multimask:
+            feature_polygons = []
+            for v in self.multimask.values():
+                poly = Polygon(v['geometry']['coordinates'][0])
+                feature_polygons.append(poly)
+            if len(feature_polygons) > 0:
+                extent = MultiPolygon(feature_polygons, srid=4326).extent
+        return extent
+
+    @property
+    def multimask_geojson(self):
+        if self.multimask:
+            multimask_geojson = {"type": "FeatureCollection", "features": []}
+            for layer, geojson in self.multimask.items():
+                geojson["properties"] = {"layer": layer}
+                multimask_geojson['features'].append(geojson)
+            return multimask_geojson
+        else:
+            return None
+        
+    def validate_multimask_geojson(self, multimask_geojson):
+        errors = []
+        for feature in multimask_geojson['features']:
+            lyr = feature['properties']['layer']
+            try:
+                geom_str = json.dumps(feature['geometry'])
+                g = GEOSGeometry(geom_str)
+                if not g.valid:
+                    logger.error(f"{self} | invalid mask: {lyr} - {g.valid_reason}")
+                    errors.append((lyr, g.valid_reason))
+            except Exception as e:
+                logger.error(f"{self} | improper GeoJSON in multimask")
+                errors.append((lyr, e))
+        return errors
+    
+    def update_multimask_from_geojson(self, multimask_geojson):
+        errors = self.validate_multimask_geojson(multimask_geojson)
+        if errors:
+            return errors
+        
+        if multimask_geojson['features']:
+            self.multimask = {}
+            for feature in multimask_geojson['features']:
+                self.multimask[feature['properties']['layer']] = feature
+        else:
+            self.multimask = None
+        self.save(update_fields=['multimask'])
+
+    def generate_mosaic_vrt(self):
+        """ A helpful reference from the BPLv used during the creation of this method:
+        https://github.com/bplmaps/atlascope-utilities/blob/master/new-workflow/atlas-tools.py
+        """
+
+        gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
+        gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")
+
+        multimask_geojson = self.multimask_geojson
+        multimask_file_name = f"multimask-{self.category.code}-{self.volume.identifier}"
+        multimask_file = os.path.join(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
+        with open(multimask_file, "w") as out:
+            json.dump(multimask_geojson, out, indent=1)
+
+        trim_list = []
+        layer_extent_polygons = []
+        for feature in multimask_geojson['features']:
+
+            layer_name = feature['properties']['layer']
+
+            layer = Layer.objects.get(slug=layer_name)
+            if not layer.file:
+                raise Exception(f"no layer file for this layer {layer_name}")
+
+            if layer.extent:
+                extent_poly = Polygon.from_bbox(layer.extent)
+                layer_extent_polygons.append(extent_poly)
+
+            latest_sesh = list(layer.get_document().georeference_sessions)[-1]
+            in_path = latest_sesh.run(return_vrt=True)
+            trim_name = os.path.basename(in_path).replace(".vrt", "_trim.vrt")
+            out_path = os.path.join(settings.TEMP_DIR, trim_name)
+
+            wo = gdal.WarpOptions(
+                format="VRT",
+                dstSRS = "EPSG:3857",
+                cutlineDSName = multimask_file,
+                cutlineLayer = multimask_file_name,
+                cutlineWhere = f"layer='{layer_name}'",
+                cropToCutline = True,
+                # srcAlpha = True,
+                # dstAlpha = True,
+                # creationOptions= [
+                #     'COMPRESS=JPEG',
+                # ]
+                # creationOptions= [
+                #     'COMPRESS=DEFLATE',
+                #     'PREDICTOR=2',
+                # ]
+            )
+            gdal.Warp(out_path, in_path, options=wo)
+            print("warped")
+
+            trim_list.append(out_path)
+
+        if len(layer_extent_polygons) > 0:
+            multi = MultiPolygon(layer_extent_polygons, srid=4326)
+
+        bounds = multi.transform(3857, True).extent
+        vo = gdal.BuildVRTOptions(
+            resolution = 'highest',
+            outputSRS="EPSG:3857",
+            outputBounds=bounds,
+            separate = False,
+        )
+        print("building vrt")
+
+        mosaic_vrt = os.path.join(settings.TEMP_DIR, f"{self.volume.identifier}-{self.category.code}.vrt")
+        gdal.BuildVRT(mosaic_vrt, trim_list, options=vo)
+
+        return mosaic_vrt
+
+    def generate_mosaic_cog(self):
+
+        start = datetime.now()
+
+        mosaic_vrt = self.generate_mosaic_vrt()
+
+        print("building final geotiff")
+
+        to = gdal.TranslateOptions(
+            format="COG",
+            creationOptions = [
+                "BIGTIFF=YES",
+                "COMPRESS=JPEG",
+                "TILING_SCHEME=GoogleMapsCompatible",
+            ],
+        )
+
+        mosaic_tif = mosaic_vrt.replace(".vrt", ".tif")
+        gdal.Translate(mosaic_tif, mosaic_vrt, options=to)
+
+        existing_file_path = None
+        if self.mosaic_geotiff:
+            existing_file_path = self.mosaic_geotiff.path
+
+        file_name = f"{self.volume.identifier}-{self.category.code}__{datetime.now().strftime('%Y-%m-%d')}__{random_alnum(6)}.tif"
+
+        with open(mosaic_tif, 'rb') as f:
+            self.mosaic_geotiff.save(file_name, File(f))
+
+        os.remove(mosaic_tif)
+        if existing_file_path:
+            os.remove(existing_file_path)
+
+        print(f"completed - elapsed time: {datetime.now() - start}")
+
+    def generate_mosaic_json(self, trim_all=False):
+
+        def write_trim_feature_cache(feature, file_path):
+            with open(file_path, "w") as f:
+                json.dump(feature, f, indent=2)
+
+        def read_trim_feature_cache(file_path):
+            with open(file_path, "r") as f:
+                feature = json.load(f)
+            return feature
+
+        logger.info(f"{self.vol.identifier} | generating mosaic json")
+
+        multimask_geojson = self.vol.multimask_geojson
+        multimask_file_name = f"multimask-{self.vol.identifier}"
+        multimask_file = os.path.join(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
+        with open(multimask_file, "w") as out:
+            json.dump(multimask_geojson, out, indent=1)
+
+        logger.debug(f"{self.vol.identifier} | multimask loaded")
+        logger.info(f"{self.vol.identifier} | iterating and trimming layers")
+        trim_list = []
+        for feature in multimask_geojson['features']:
+
+            layer_name = feature['properties']['layer']
+            layer = Layer.objects.get(slug=layer_name)
+            if not layer.file:
+                logger.error(f"{self.vol.identifier} | no layer file for this layer {layer_name}")
+                raise Exception(f"no layer file for this layer {layer_name}")
+            in_path = layer.file.path
+
+            layer_dir = os.path.dirname(in_path)
+            file_name = os.path.basename(in_path)
+            logger.debug(f"{self.vol.identifier} | processing layer file {file_name}")
+
+            file_root = os.path.splitext(file_name)[0]
+            existing_trimmed_tif = glob.glob(f"{layer_dir}/{file_root}*_trim.tif")
+            print(existing_trimmed_tif)
+
+            feat_cache_path = in_path.replace(".tif", "_trim-feature.json")
+            if os.path.isfile(feat_cache_path):
+                cached_feature = read_trim_feature_cache(feat_cache_path)
+                logger.debug(f"{self.vol.identifier} | using cached trim json boundary")
+            else:
+                cached_feature = None
+                write_trim_feature_cache(feature, feat_cache_path)
+
+            unique_id = random_alnum(6)
+            trim_vrt_path = in_path.replace(".tif", f"_{unique_id}_trim.vrt")
+            out_path = trim_vrt_path.replace(".vrt", ".tif")
+
+            # compare this multimask feature to the cached one for this layer
+            # and only (re)create a trimmed tif if they do not match
+            if feature != cached_feature or trim_all is True:
+
+                wo = gdal.WarpOptions(
+                    format="VRT",
+                    dstSRS = "EPSG:3857",
+                    cutlineDSName = multimask_file,
+                    cutlineLayer = multimask_file_name,
+                    cutlineWhere = f"layer='{layer_name}'",
+                    cropToCutline = True,
+                    creationOptions = ['COMPRESS=LZW', 'BIGTIFF=YES'],
+                    resampleAlg = 'cubic',
+                    dstAlpha = False,
+                    dstNodata = "255 255 255",
+                )
+                gdal.Warp(trim_vrt_path, in_path, options=wo)
+
+                to = gdal.TranslateOptions(
+                    format="GTiff",
+                    bandList = [1,2,3],
+                    creationOptions = [
+                        "TILED=YES",
+                        "COMPRESS=LZW",
+                        "PREDICTOR=2",
+                        "NUM_THREADS=ALL_CPUS",
+                        ## the following is apparently in the COG spec but doesn't work??
+                        # "COPY_SOURCE_OVERVIEWS=YES",
+                    ],
+                )
+
+                logger.debug(f"writing trimmed tif {os.path.basename(out_path)}")
+                gdal.Translate(out_path, trim_vrt_path, options=to)
+                write_trim_feature_cache(feature, feat_cache_path)
+
+                img = gdal.Open(out_path, 1)
+                if img is None:
+                    logger.warn(f"{self.vol.identifier} | file was not properly created, omitting: {file_name}")
+                    continue   
+                logger.debug(f"{self.vol.identifier} | building overview: {file_name}")
+                gdal.SetConfigOption("COMPRESS_OVERVIEW", "LZW")
+                gdal.SetConfigOption("PREDICTOR", "2")
+                gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
+                img.BuildOverviews("AVERAGE", [2, 4, 8, 16])
+
+            else:
+                logger.debug(f"{self.vol.identifier} | using existing trimmed tif {file_name}")
+
+            trim_list.append(out_path)
+
+        trim_urls = [
+            i.replace(os.path.dirname(settings.MEDIA_ROOT), settings.MEDIA_HOST.rstrip("/")) \
+                for i in trim_list
+        ]
+        logger.info(f"{self.vol.identifier} | writing mosaic from {len(trim_urls)} trimmed tifs")
+        mosaic_data = MosaicJSON.from_urls(trim_urls, minzoom=14)
+        mosaic_json_path = os.path.join(settings.TEMP_DIR, f"{self.vol.identifier}-mosaic.json")
+        with MosaicBackend(mosaic_json_path, mosaic_def=mosaic_data) as mosaic:
+            mosaic.write(overwrite=True)
+
+        with open(mosaic_json_path, 'rb') as f:
+            self.vol.mosaic_json = File(f, name=os.path.basename(mosaic_json_path))
+            self.vol.save()
+
+        logger.info(f"{self.vol.identifier} | mosaic created: {os.path.basename(mosaic_json_path)}")
+        return mosaic_json_path

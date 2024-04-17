@@ -4,11 +4,6 @@ from datetime import datetime
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
-from ohmg.content.models import Map
-from ohmg.loc_insurancemaps.tasks import (
-    generate_mosaic_cog_task,
-    generate_mosaic_json_task,
-)
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.places.models import Place
 from ohmg.places.management.utils import reset_volume_counts
@@ -212,22 +207,6 @@ class Command(BaseCommand):
                 vol.load_date = datetime.now()
                 vol.save(update_fields=["loaded_by", "load_date"])
                 vol.load_sheet_docs(force_reload=True)
-
-        if options['operation'] == "generate-mosaic-cog":
-            if i is not None:
-                if options['background']:
-                    generate_mosaic_cog_task.delay(i)
-                else:
-                    map = Map(i)
-                    map.generate_mosaic_cog()
-
-        if options['operation'] == "generate-mosaic-json":
-            if i is not None:
-                if options['background']:
-                    generate_mosaic_json_task.delay(i, trim_all=options['trim_all'])
-                else:
-                    map = Map(i)
-                    map.generate_mosaic_json(trim_all=options['trim_all'])
 
         if options['operation'] == "set-extent":
             if i is not None:

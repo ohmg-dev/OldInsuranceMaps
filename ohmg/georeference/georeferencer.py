@@ -261,7 +261,6 @@ class Georeferencer:
             GCPs=self.gcps,
             format="VRT",
             creationOptions=[
-                "TILED=YES",
                 "BLOCKXSIZE=512",
                 "BLOCKYSIZE=512",
             ]
@@ -291,7 +290,6 @@ class Georeferencer:
             creationOptions=[
             #     "NUM_THREADS=ALL_CPUS",
             #     ## originally used this set of flags used
-                "TILED=YES",
             #     # "COMPRESS=DEFLATE",
             #     ## should have been used PREDICTOR=2 with DEFLATE but didn't know about it
             #     # "PREDICTOR=2"
@@ -304,8 +302,6 @@ class Georeferencer:
             #     ## Use JPEG, as recommended by Paul Ramsey article:
             #     ## https://blog.cleverelephant.ca/2015/02/geotiff-compression-for-dummies.html
                 # "COMPRESS=JPEG",
-                "ADD_ALPHA=YES",
-                'TILING_SCHEME=GoogleMapsCompatible',
             ],
             transformerOptions = [
                 f'DST_SRS={self.crs_wkt}',
