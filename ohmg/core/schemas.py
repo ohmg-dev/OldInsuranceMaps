@@ -160,15 +160,15 @@ class SessionSchema(Schema):
     id: int
     type: str
     user: UserSchemaLite
-    note: str = ""
+    note: Optional[str]
     # resource_id = int
     doc: DocumentSchema = None
     lyr: LayerSchema = None
     status: str
     stage: str
     data: dict
-    user_input_duration: int = 0
-    date_created: dict = {}
+    user_input_duration: Optional[int]
+    date_created: Optional[dict]
 
     @staticmethod
     def resolve_date_created(obj):
