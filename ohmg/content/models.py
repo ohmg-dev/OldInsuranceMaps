@@ -27,10 +27,7 @@ from django.core.files.base import ContentFile
 
 from markdownx.models import MarkdownxField
 
-from ohmg.core.utils import slugify
-from ohmg.loc_insurancemaps.utils import (
-    get_jpg_from_jp2_url,
-)
+from ohmg.core.utils import slugify, get_jpg_from_jp2_url
 from ohmg.core.storages import OverwriteStorage
 from ohmg.core.renderers import generate_document_thumbnail_content
 from ohmg.loc_insurancemaps.models import Volume

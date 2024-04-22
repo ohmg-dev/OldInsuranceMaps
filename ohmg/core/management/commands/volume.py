@@ -4,6 +4,7 @@ from datetime import datetime
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
+from ohmg.core.importers.loc_sanborn import import_volume
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.places.models import Place
 from ohmg.places.management.utils import reset_volume_counts
@@ -146,7 +147,7 @@ class Command(BaseCommand):
                         to_load.append((row["identifier"], locale))
 
             for identifier, locale in to_load:
-                vol = Volume().import_volume(
+                vol = import_volume(
                     identifier,
                     locale=locale,
                     dry_run=options['dry_run']

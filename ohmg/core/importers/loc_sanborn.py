@@ -5,52 +5,21 @@ import time
 import logging
 import requests
 from datetime import datetime
-from PIL import Image
 
 from django.conf import settings
 from django.urls import reverse
 
 from ohmg.core.utils import (
-    download_image,
     full_capitalize,
 )
+from ohmg.loc_insurancemaps.models import Volume
+from ohmg.georeference.models import AnnotationSet, SetCategory
 
 from ohmg.core.utils import (
     STATE_CHOICES,
 )
 
 logger = logging.getLogger(__name__)
-
-def convert_img_format(input_img, format="JPEG"):
-
-    ext_map = {"PNG":".png", "JPEG":".jpg", "TIFF": ".tif"}
-    ext = os.path.splitext(input_img)[1]
-
-    outpath = input_img.replace(ext, ext_map[format])
-
-    img = Image.open(input_img)
-    img.save(outpath, format=format)
-
-    return outpath
-
-def get_jpg_from_jp2_url(jp2_url):
-
-    temp_img_dir = os.path.join(settings.CACHE_DIR, "img")
-    if not os.path.isdir(temp_img_dir):
-        os.mkdir(temp_img_dir)
-
-    tmp_path = os.path.join(temp_img_dir, jp2_url.split("/")[-1])
-
-    tmp_path = download_image(jp2_url, tmp_path)
-    print(tmp_path)
-    if tmp_path is None:
-        return
-
-    # convert the downloaded jp2 to jpeg (needed for OpenLayers static image)
-    jpg_path = convert_img_format(tmp_path, format="JPEG")
-    os.remove(tmp_path)
-
-    return jpg_path
 
 def filter_volumes_for_use(volumes):
     """
@@ -101,6 +70,71 @@ def unsanitize_name(state, name):
     rev = {v: k for k, v in lookup.items()}
 
     return rev.get(name, name)
+
+def import_all_available_volumes(state, apply_filter=True, verbose=False):
+    """Preparatory step that runs through all cities in the provided
+    state, filters the available volumes for those cities, and then
+    imports each one to create a new Volume object."""
+
+    lc = LOCConnection(delay=0, verbose=verbose)
+    cities = lc.get_city_list_by_state(state)
+
+    volumes = []
+    for city in cities:
+        lc.reset()
+        city = unsanitize_name(state, city[0])
+        vols = lc.get_volume_list_by_city(city, state)
+        if apply_filter is True:
+            vols = filter_volumes_for_use(vols)
+            volumes += [i for i in vols if i['include'] is True]
+        else:
+            volumes += vols
+
+    for volume in volumes:
+        try:
+            Volume.objects.get(pk=volume['identifier'])
+        except Volume.DoesNotExist:
+            import_volume(volume['identifier'])
+
+def import_volume(identifier, locale=None, dry_run=False):
+
+    try:
+        volume = Volume.objects.get(pk=identifier)
+        volume.locales.set([locale])
+        volume.update_place_counts()
+
+        # make sure a main-content layerset exists for this volume
+        main_ls, _ = AnnotationSet.objects.get_or_create(
+            category=SetCategory.objects.get(slug="main-content"),
+            volume=volume,
+        )
+        return volume
+    except Volume.DoesNotExist:
+        pass
+
+    lc = LOCConnection(delay=0, verbose=True)
+    response = lc.get_item(identifier)
+    if response.get("status") == 404:
+        return None
+
+    parsed = LOCParser(item=response['item'])
+    volume_kwargs = parsed.volume_kwargs()
+
+    # add resources to args, not in item (they exist adjacent)
+    volume_kwargs["lc_resources"] = response['resources']
+
+    if dry_run:
+        return volume_kwargs
+    else:
+        volume = Volume.objects.create(**volume_kwargs)
+        volume.locales.add(locale)
+        volume.update_place_counts()
+        # make sure a main-content layerset exists for this volume
+        main_ls, _ = AnnotationSet.objects.get_or_create(
+            category=SetCategory.objects.get(slug="main-content"),
+            volume=volume,
+        )
+        return volume
 
 
 class LOCParser(object):
@@ -273,8 +307,6 @@ class LOCParser(object):
         self.title = " | ".join([seg2, seg1, seg3])
 
     def serialize_to_volume(self):
-
-        from .models import Volume
 
         try:
             v = Volume.objects.get(identifier=self.identifier)
