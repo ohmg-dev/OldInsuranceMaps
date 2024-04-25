@@ -966,7 +966,7 @@ class AnnotationSet(models.Model):
         gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")
 
         multimask_geojson = self.multimask_geojson
-        multimask_file_name = f"multimask-{self.category.code}-{self.volume.identifier}"
+        multimask_file_name = f"multimask-{self.category.slug}-{self.volume.identifier}"
         multimask_file = os.path.join(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
         with open(multimask_file, "w") as out:
             json.dump(multimask_geojson, out, indent=1)
@@ -1024,7 +1024,7 @@ class AnnotationSet(models.Model):
         )
         print("building vrt")
 
-        mosaic_vrt = os.path.join(settings.TEMP_DIR, f"{self.volume.identifier}-{self.category.code}.vrt")
+        mosaic_vrt = os.path.join(settings.TEMP_DIR, f"{self.volume.identifier}-{self.category.slug}.vrt")
         gdal.BuildVRT(mosaic_vrt, trim_list, options=vo)
 
         return mosaic_vrt
@@ -1053,7 +1053,7 @@ class AnnotationSet(models.Model):
         if self.mosaic_geotiff:
             existing_file_path = self.mosaic_geotiff.path
 
-        file_name = f"{self.volume.identifier}-{self.category.code}__{datetime.now().strftime('%Y-%m-%d')}__{random_alnum(6)}.tif"
+        file_name = f"{self.volume.identifier}-{self.category.slug}__{datetime.now().strftime('%Y-%m-%d')}__{random_alnum(6)}.tif"
 
         with open(mosaic_tif, 'rb') as f:
             self.mosaic_geotiff.save(file_name, File(f))
