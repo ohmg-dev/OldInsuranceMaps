@@ -49,15 +49,29 @@ def filter_volumes_for_use(volumes):
     return volumes
 
 def load_city_name_misspellings(state_name):
+    """ Currently unused as this is a small lookup and can live in this
+    file for now. May be good to move it back out to a separate JSON file eventually. """
 
-    lookup = {}
-    file_path = os.path.join(settings.BASE_DIR, "loc_insurancemaps", "reference_data", "city-name-misspellings.json")
-    if not os.path.isfile(file_path):
-        return lookup
-    with open(file_path, "r") as o:
-        data = json.load(o)
-    lookup = data.get(state_name.lower(), {})
-    return lookup
+    # lookup = {}
+    # file_path = os.path.join(settings.BASE_DIR, "loc_insurancemaps", "reference_data", "city-name-misspellings.json")
+    # if not os.path.isfile(file_path):
+    #     return lookup
+    # with open(file_path, "r") as o:
+    #     data = json.load(o)
+    # lookup = data.get(state_name.lower(), {})
+
+    lookup = {
+        "louisiana": {
+            "Jeannerette": "Jeanerette",
+            "De Quincy": "DeQuincy",
+            "De Ridder": "DeRidder",
+            "Keatchie": "Keachi",
+            "Saint Rose": "St. Rose",
+            "Saint Martinville": "St. Martinville",
+            "Saint Francisville": "St. Francisville"
+        }
+    }
+    return lookup[state_name]
 
 def unsanitize_name(state, name):
     """must 'uncorrect' names from the interface which need to be passed to 

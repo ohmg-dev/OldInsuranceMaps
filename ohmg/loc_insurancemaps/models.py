@@ -14,8 +14,6 @@ from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.core.files import File
 from django.db import transaction
 from django.contrib.gis.db import models
-from django.db.models import signals
-from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.utils.functional import cached_property
 from django.urls import reverse
@@ -687,16 +685,3 @@ class Volume(models.Model):
             data['sessions'] = self.get_user_activity_summary()
 
         return data
-
-## This seems to be where the signals need to be connected. See
-## https://github.com/mradamcox/loc-insurancemaps/issues/75
-
-@receiver([signals.post_delete, signals.post_save], sender=Document)
-@receiver([signals.post_delete, signals.post_save], sender=Layer)
-def refresh_volume_lookup(sender, instance, **kwargs):
-    volume = find_volume(instance)
-    if volume is not None:
-        if sender == Document:
-            volume.update_doc_lookup(instance)
-        if sender == Layer:
-            volume.update_lyr_lookup(instance)
