@@ -402,7 +402,7 @@ class AnnotationSetView(View):
         volume_id = body.get("volumeId")
         category = body.get("categorySlug")
         multimask_geojson = body.get('multimaskGeoJSON')
-        override_existing = body.get('overrideExisting')
+        update_list = body.get('updateList', [])
 
         response = {
             "status": "",
@@ -410,31 +410,34 @@ class AnnotationSetView(View):
         }
 
         if operation == "update":
-            v = get_object_or_404(Volume, pk=volume_id)
+            for resource_id, category in update_list:
+                v = get_object_or_404(Volume, pk=volume_id)
+                r = get_object_or_404(ItemBase, pk=resource_id)
+
+                try:
+                    annoset = v.get_annotation_set(category, create=True)
+                    r.update_annotationset(annoset)
+                    response['status'] = "success"
+                    response['message'] = f"{resource_id} added to {category} annotation set"
+
+                except Exception as e:
+                    logger.error(e)
+                    response['status'] = "fail"
+                    response['message'] = str(e)
+
+        if operation == "check-for-existing-mask":
+
             r = get_object_or_404(ItemBase, pk=resource_id)
 
             if r.vrs:
                 if not r.vrs.category.slug == category:
                     if r.vrs.multimask and r.slug in r.vrs.multimask:
-                        if override_existing:
-                            del r.vrs.multimask[r.slug]
-                            r.vrs.save()
-                            logger.info(f"{r.slug} entry removed from {r.vrs.category} multimask")
-                        else:
-                            response['status'] = "existing-mask"
-                            response['message'] = f"Layer already in {r.vrs.category} multimask."
-                            return JsonResponse(response)
+                        response['status'] = "fail"
+                        response['message'] = f"Layer already in {r.vrs.category} multimask."
+                        return JsonResponse(response)
 
-            try:
-                annoset = v.get_annotation_set(category, create=True)
-                r.update_annotationset(annoset)
-                response['status'] = "success"
-                response['message'] = f"{resource_id} added to {category} annotation set"
-
-            except Exception as e:
-                logger.error(e)
-                response['status'] = "fail"
-                response['message'] = str(e)
+            response['status'] = "success"
+            return JsonResponse(response)
 
         if operation == "set-mask":
 

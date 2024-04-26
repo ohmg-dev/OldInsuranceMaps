@@ -476,8 +476,8 @@ class ItemBase(models.Model):
 
         # make sure to clean up the existing multimask in the current vrs if necessary
         if self.vrs:
-            if self.vrs.multimask and self.pk in self.vrs.multimask:
-                del self.vrs.multimask[self.pk]
+            if self.vrs.multimask and self.slug in self.vrs.multimask:
+                del self.vrs.multimask[self.slug]
                 self.vrs.save(update_fields=["multimask"])
                 logger.warn(f"{self.pk} removed layer from existing multimask in vrs {self.vrs.pk}")
         self.vrs = vrs

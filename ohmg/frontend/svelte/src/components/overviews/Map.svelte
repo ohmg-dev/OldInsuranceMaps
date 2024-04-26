@@ -37,14 +37,30 @@ export let VOLUME;
 export let ANNOTATION_SETS;
 export let ANNOTATION_SET_OPTIONS;
 
+let multimaskKey = false;
+function reinitMultimask() {
+	multimaskKey = !multimaskKey
+}
+
+let previewKey = false;
+function reinitPreview() {
+	previewKey = !previewKey
+}
+
+
 let currentAnnotationSet = "main-content";
-const annotationSetLookup = {}
-const layerAnnotationLookup = {}
-$: {
-	ANNOTATION_SETS.forEach(function (annoSet) {
+let annotationSetLookup = {};
+let layerAnnotationLookup = {};
+let origLayerAnnotationLookup = {};
+let annotationsToUpdate = {};
+function resetAnnotationSets(newAnnotationSets) {
+	annotationSetLookup = {}
+	layerAnnotationLookup = {}
+	newAnnotationSets.forEach(function (annoSet) {
 		annotationSetLookup[annoSet.id] = annoSet;
 		annoSet.annotations.forEach(function (anno) {
 			layerAnnotationLookup[anno.slug] = annoSet.id;
+			origLayerAnnotationLookup[anno.slug] = annoSet.id;
 		})
 
 		let mosaicUrl;
@@ -80,7 +96,11 @@ $: {
 		annoSet.mosaicUrl = mosaicUrl;
 		annoSet.ohmUrl = ohmUrl;
 	})
+	ANNOTATION_SETS = newAnnotationSets;
+	reinitMultimask();
+	reinitPreview();
 }
+resetAnnotationSets(ANNOTATION_SETS)
 
 let userCanEdit = false;
 userCanEdit = CONTEXT.user.is_staff || (VOLUME.access == "any" && CONTEXT.user.is_authenticated) || (VOLUME.access == "sponsor" && VOLUME.sponsor == CONTEXT.user.username)
@@ -98,14 +118,13 @@ $: sheetsLoading = VOLUME.status == "initializing...";
 
 let hash = window.location.hash.substr(1);
 
-function updateAnnotationSet(category, layerId, override) {
+function checkForExistingMask(category, layerId) {
 
 	const postData = JSON.stringify({
-		operation: "update",
+		operation: "check-for-existing-mask",
         resourceId: layerId,
         volumeId: VOLUME.identifier,
 		categorySlug: category,
-		overrideExisting: override,
 	})
 
 	fetch(CONTEXT.urls.post_annotation_set, {
@@ -118,9 +137,33 @@ function updateAnnotationSet(category, layerId, override) {
 	})
 	.then(response => response.json())
 	.then(result => {
-		if (result.status == "existing-mask") {
-			confirm(result.message) ? updateAnnotationSet(category, layerId, true) : VOLUME = VOLUME;
+		if (result.status == "fail") {
+			const msg = "This layer is already included in the multimask for its current classification, and that mask will be deleted if you continue with this change.<br>Set the layer back to its original classification to stop the change."
+			if (confirm(msg)) {annotationsToUpdate[layerId] = category};
+		} else {
+			annotationsToUpdate[layerId] = category
 		}
+	});
+}
+
+function updateAnnotationSets() {
+
+	const postData = JSON.stringify({
+		operation: "update",
+		volumeId: VOLUME.identifier,
+		updateList: Object.entries(annotationsToUpdate)
+	})
+
+	fetch(CONTEXT.urls.post_annotation_set, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json;charset=utf-8',
+			'X-CSRFToken': CONTEXT.csrf_token,
+		},
+		body: postData,
+	})
+	.then(response => response.json())
+	.then(result => {
 		fetchAnnotationSets()
 	});
 }
@@ -179,6 +222,8 @@ function postOperation(operation) {
 		// need to trigger a reinit of the MapPreview component
 		VOLUME = result;
 		sheetsLoading = VOLUME.status == "initializing...";
+		reinitPreview();
+		reinitMultimask();
 		if (operation == "refresh-lookups") {
 			refreshingLookups = false;
 		}
@@ -191,7 +236,7 @@ function fetchAnnotationSets() {
 	})
 	.then(response => response.json())
 	.then(result => {
-		ANNOTATION_SETS = result
+		resetAnnotationSets(result)
 	});
 }
 
@@ -216,21 +261,11 @@ function postGeoref(url, operation, status) {
 
 let classifyingLayers = false;
 
-function resetMosaicPreview() {
-	fetchAnnotationSets()
-}
-let modalDocUrl = "";
-let modalDocImageSize = "";
-
-// These variable are used to trigger a reinit of map interfaces.
-// See https://svelte.dev/repl/65c80083b515477784d8128c3655edac?version=3.24.1
-let reinitMap = [{}]
 let reinitModalMap = [{}]
 
 let modalIsGeospatial = false;
 let modalLyrUrl = "";
 let modalExtent = []
-
 
 </script>
 <IconContext values={iconProps}>
@@ -293,7 +328,7 @@ let modalExtent = []
 		</div>
 		{#if sectionVis['preview']}
 		<div class="section-content" transition:slide>
-			{#key ANNOTATION_SETS}
+			{#key previewKey}
 				<MapPreview {CONTEXT} {ANNOTATION_SETS} />
 			{/key}
 		</div>
@@ -468,7 +503,17 @@ let modalExtent = []
 							>Classify Layers</button>
 						{/if}
 						{#if classifyingLayers}
-						<button on:click={() => { classifyingLayers = false; }}>Done</button>
+						<button disabled={Object.keys(annotationsToUpdate).length === 0} on:click={() => {
+							updateAnnotationSets();
+							classifyingLayers = false;
+							annotationsToUpdate = {};
+							reinitMultimask();
+						}}>Save</button>
+						<button on:click={() => {
+							classifyingLayers = false;
+							annotationsToUpdate = {};
+							Object.keys(origLayerAnnotationLookup).forEach(function(k) {layerAnnotationLookup[k] = origLayerAnnotationLookup[k]})
+						}}>Cancel</button>
 						{/if}
 					</div>
 					<div class="documents-column">
@@ -500,7 +545,8 @@ let modalExtent = []
 								{/if}
 								{#if classifyingLayers}
 								<select bind:value={layerAnnotationLookup[layer.slug]} on:change={(e) => {
-										updateAnnotationSet(e.target.options[e.target.selectedIndex].value, layer.id)
+										checkForExistingMask(e.target.options[e.target.selectedIndex].value, layer.id)
+										// updateAnnotationSet(e.target.options[e.target.selectedIndex].value, layer.id);
 									}}>
 									{#each ANNOTATION_SET_OPTIONS as annoOpt}
 									<option value={annoOpt.slug}>{annoOpt.display_name}</option>
@@ -570,7 +616,9 @@ let modalExtent = []
 			{#if !CONTEXT.user.is_authenticated}
 				<SigninReminder csrfToken={CONTEXT.csrf_token} />
 			{/if}
-			<select class="item-select" bind:value={currentAnnotationSet}>
+			<select class="item-select" bind:value={currentAnnotationSet} on:change={(e) => {
+					reinitMultimask();
+				}}>
 				{#each ANNOTATION_SETS as annoSet}
 				{#if annoSet.annotations}
 				<option value={annoSet.id}>{annoSet.name}</option>
@@ -584,11 +632,11 @@ let modalExtent = []
 				0/{annotationSetLookup[currentAnnotationSet].annotations.length}
 				{/if}
 			</span>
-			{#key annotationSetLookup[currentAnnotationSet]}
+			{#key multimaskKey}
 			<MultiMask ANNOTATION_SET={annotationSetLookup[currentAnnotationSet]}
 				{CONTEXT}
 				DISABLED={!userCanEdit}
-				resetMosaic={resetMosaicPreview}
+				resetMosaic={reinitPreview}
 			 />
 			{/key}
 		</div>
