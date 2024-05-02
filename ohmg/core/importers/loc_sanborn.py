@@ -71,7 +71,9 @@ def load_city_name_misspellings(state_name):
             "Saint Francisville": "St. Francisville"
         }
     }
-    return lookup[state_name]
+
+    l = lookup.get(state_name, {})
+    return l
 
 def unsanitize_name(state, name):
     """must 'uncorrect' names from the interface which need to be passed to 
