@@ -54,11 +54,18 @@ def generate_ohmg_context(request):
         "change_avatar": reverse('avatar_change'),
     }
 
+    csrf_token = csrf.get_token(request)
     return {
         "titiler_host": settings.TITILER_HOST,
         "mapbox_api_token": settings.MAPBOX_API_TOKEN,
-        "ohmg_api_headers": {'X-API-Key': settings.OHMG_API_KEY},
-        "csrf_token": csrf.get_token(request),
+        "ohmg_api_headers": {
+            'X-API-Key': settings.OHMG_API_KEY,
+        },
+        "ohmg_post_headers": {
+            'Content-Type': 'application/json;charset=utf-8',
+            'X-CSRFToken': csrf_token,
+        },
+        "csrf_token": csrf_token,
         "session_length": settings.GEOREFERENCE_SESSION_LENGTH,
         "on_mobile": on_mobile(request)['on_mobile'],
         "user": user_info_from_request(request),

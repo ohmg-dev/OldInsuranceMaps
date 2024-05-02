@@ -129,10 +129,7 @@ function checkForExistingMask(category, layerId) {
 
 	fetch(CONTEXT.urls.post_annotation_set, {
 		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json;charset=utf-8',
-			'X-CSRFToken': CONTEXT.csrf_token,
-		},
+		headers: CONTEXT.ohmg_post_headers,
 		body: postData,
 	})
 	.then(response => response.json())
@@ -156,10 +153,7 @@ function updateAnnotationSets() {
 
 	fetch(CONTEXT.urls.post_annotation_set, {
 		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json;charset=utf-8',
-			'X-CSRFToken': CONTEXT.csrf_token,
-		},
+		headers: CONTEXT.ohmg_post_headers,
 		body: postData,
 	})
 	.then(response => response.json())
@@ -211,10 +205,7 @@ function postOperation(operation) {
 	});
 	fetch(VOLUME.urls.summary, {
 		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json;charset=utf-8',
-			'X-CSRFToken': CONTEXT.csrf_token,
-		},
+		headers: CONTEXT.ohmg_post_headers,
 		body: data,
 	})
 	.then(response => response.json())
@@ -247,10 +238,7 @@ function postGeoref(url, operation, status) {
 	});
 	fetch(url, {
 		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json;charset=utf-8',
-			'X-CSRFToken': CONTEXT.csrf_token,
-		},
+		headers: CONTEXT.ohmg_post_headers,
 		body: data,
 	})
 	.then(response => response.json())

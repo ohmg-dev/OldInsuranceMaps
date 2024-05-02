@@ -321,10 +321,7 @@ function process(operation) {
 
   fetch(DOCUMENT.urls.split, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8',
-        'X-CSRFToken': CONTEXT.csrf_token,
-      },
+      headers: CONTEXT.ohmg_post_headers,
       body: data,
     })
     .then(response => response.json())
