@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError # noqa: F401
 
-from ohmg.content.models import Resource
+from ohmg.core.models import Resource
 from ohmg.loc_insurancemaps.models import Sheet
 from ohmg.georeference.models import ItemBase, AnnotationSet, SetCategory
 

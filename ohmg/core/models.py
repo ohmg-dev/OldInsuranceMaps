@@ -1,3 +1,22 @@
+'''
+This is a step toward moving database models from the loc_insurancemaps app into
+this content app. At present, these are not Django models or even Django proxy models,
+just light-weight objects that are instantiated through the Volume and related
+models. This will allow the codebase to slowly evolve before actually changing any
+database content and running migrations.
+
+The eventual migration plan is this:
+
+ohmg.loc_insurancemaps.models.Volume        --> core.models.Map
+ohmg.loc_insurancemaps.models.Sheet         --> core.models.Resource
+
+new model (idea)                            --> core.models.ItemConfigPreset
+    This would allow an extraction of Sanborn-specific properties vs. generic item
+    uploads. Still unclear exactly what to call this, or everything that it would have.
+    Think about this more when the Map model is created, and a hard-look is made at its
+    attributes.
+'''
+
 import os
 import json
 import logging
@@ -9,51 +28,26 @@ from pygments.formatters.html import HtmlFormatter
 from pygments.lexers.data import JsonLexer
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.gis.geos import Polygon, MultiPolygon
-from django.core.files import File
-from django.db import transaction
 from django.contrib.gis.db import models
-from django.utils.safestring import mark_safe
+from django.core.files import File
+from django.core.files.base import ContentFile
+from django.db import transaction
 from django.utils.functional import cached_property
+from django.utils.safestring import mark_safe
 from django.urls import reverse
 
-from ohmg.georeference.models import (
-    Document,
-    Layer,
-    PrepSession,
-    GeorefSession,
-    SetCategory,
-    AnnotationSet,
-)
-from ohmg.georeference.storage import OverwriteStorage
-from ohmg.places.models import Place
 from ohmg.core.utils import (
+    slugify,
     get_jpg_from_jp2_url,
-    STATE_CHOICES,
     STATE_ABBREV,
-    MONTH_CHOICES,
+    STATE_POSTAL,
 )
+from ohmg.core.storages import OverwriteStorage
+from ohmg.core.renderers import generate_document_thumbnail_content
+from ohmg.loc_insurancemaps.models import Volume
+from ohmg.places.models import Place
+
 logger = logging.getLogger(__name__)
-
-def find_volume(item):
-    """Attempt to get the volume from which a Document or Layer
-    is derived. Return None if not applicable/no volume exists."""
-
-    volume, document = None, None
-    if isinstance(item, Document):
-        document = item
-    elif isinstance(item, Layer):
-        document = item.get_document()
-
-    if document is not None:
-        if document.parent:
-            document = document.parent
-        try:
-            volume = Sheet.objects.get(doc=document).volume
-        except Sheet.DoesNotExist:
-            volume = None
-    return volume
 
 def format_json_display(data):
     """very nice from here:
@@ -76,92 +70,8 @@ def format_json_display(data):
     return mark_safe(style + response)
 
 
-class Sheet(models.Model):
-    """Sheet serves mainly as a middle model between Volume and Document.
-    It can store fields (like sheet number) that could conceivably be
-    attached to the Document, but avoids the need for actually inheriting
-    that model (and all of the signals, etc. that come along with it)."""
-    doc = models.ForeignKey(Document, on_delete=models.SET_NULL, null=True, blank=True)
-    volume = models.ForeignKey("Volume", on_delete=models.CASCADE)
-    sheet_no = models.CharField(max_length=10, null=True, blank=True)
-    lc_iiif_service = models.CharField(max_length=150, null=True, blank=True)
-    jp2_url = models.CharField(max_length=150, null=True, blank=True)
+class Map(object):
 
-    def __str__(self):
-        return f"{self.volume.__str__()} p{self.sheet_no}"
-
-    def load_doc(self, user=None):
-
-        log_prefix = f"{self.volume} p{self.sheet_no} |"
-        logger.info(f"{log_prefix} start load")
-
-        if self.jp2_url is None:
-            logger.warn(f"{log_prefix} jp2_url - cancelling download")
-            return
-
-        try:
-            document = Document.objects.get(title=self.__str__())
-        except Document.MultipleObjectsReturned:
-            logger.error(f"{self.__str__()} - multiple Documents exist. Delete one and rerun operation.")
-            return
-        except Document.DoesNotExist:
-            document = Document.objects.create(title=self.__str__())
-            document.save()
-
-        self.doc = document
-        self.save()
-
-        if not self.doc.file:
-            jpg_path = get_jpg_from_jp2_url(self.jp2_url)
-            with open(jpg_path, "rb") as new_file:
-                self.doc.file.save(f"{self.doc.slug}.jpg", File(new_file))
-            os.remove(jpg_path)
-
-        month = 1 if self.volume.month is None else int(self.volume.month)
-        date = datetime(self.volume.year, month, 1, 12, 0)
-        self.doc.date = date
-
-        # set owner to user
-        if user is None:
-            user = get_user_model().objects.get(username="admin")
-        self.doc.owner = user
-
-        self.doc.status = "unprepared"
-        self.doc.save()
-
-        # self.volume.update_doc_lookup(doc)
-
-    @property
-    def real_docs(self):
-        """
-        This method is a necessary patch for the fact that once a
-        Document has been split by the georeferencing tools, its
-        children will not be associated with this Sheet.
-        """
-        documents = []
-        if self.doc is not None:
-            if self.doc.children:
-                documents = self.doc.children
-            else:
-                documents.append(self.doc)
-        return documents
-
-    def serialize(self):
-        return {
-            "sheet_no": self.sheet_no,
-            "sheet_name": self.__str__(),
-            "doc_id": self.doc.pk,
-        }
-
-def default_ordered_layers_dict():
-    return {"layers": [], "index_layers": []}
-
-def default_sorted_layers_dict():
-    return {"main": [], "key_map": [], "congested_district": [], "graphic_map_of_volumes": []}
-
-class Volume(models.Model):
-
-    YEAR_CHOICES = [(r,r) for r in range(1867, 1970)]
     STATUS_CHOICES = (
         ("not started", "not started"),
         ("initializing...", "initializing..."),
@@ -176,11 +86,9 @@ class Volume(models.Model):
     identifier = models.CharField(max_length=100, primary_key=True)
     city = models.CharField(max_length=100)
     county_equivalent = models.CharField(max_length=100, null=True, blank=True)
-    state = models.CharField(max_length=50, choices=STATE_CHOICES)
-    year = models.IntegerField(choices=YEAR_CHOICES)
-    month = models.IntegerField(choices=MONTH_CHOICES, null=True, blank=True)
+    publish_date = models.IntegerField(blank=True, null=True)
     volume_no = models.CharField(max_length=5, null=True, blank=True)
-    lc_item = models.JSONField(default=None, null=True, blank=True)
+    iiif_manifest = models.JSONField(default=None, null=True, blank=True)
     lc_resources = models.JSONField(default=None, null=True, blank=True)
     lc_manifest_url = models.CharField(max_length=200, null=True, blank=True,
         verbose_name="LC Manifest URL"
@@ -195,13 +103,8 @@ class Volume(models.Model):
         on_delete=models.CASCADE,
         related_name="loaded_by"
     )
+    create_date = models.DateTimeField(auto_now_add=True)
     load_date = models.DateTimeField(null=True, blank=True)
-    # DEPRECATE: marking this field for removal
-    ordered_layers = models.JSONField(
-        null=True,
-        blank=True,
-        default=default_ordered_layers_dict
-    )
     document_lookup = models.JSONField(
         null=True,
         blank=True,
@@ -212,42 +115,9 @@ class Volume(models.Model):
         blank=True,
         default=dict,
     )
-    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
-    sorted_layers = models.JSONField(
-        default=default_sorted_layers_dict,
-    )
-    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
-    multimask = models.JSONField(null=True, blank=True)
     locales = models.ManyToManyField(
         Place,
         blank=True,
-    )
-    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
-    mosaic_geotiff = models.FileField(
-        upload_to='mosaics',
-        null=True,
-        blank=True,
-        max_length=255,
-        storage=OverwriteStorage(),
-    )
-    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
-    mosaic_json = models.FileField(
-        upload_to='mosaics',
-        null=True,
-        blank=True,
-        max_length=255,
-        storage=OverwriteStorage(),
-    )
-    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
-    mosaic_preference = models.CharField(
-        choices=(('mosaicjson', 'MosaicJSON'), ('geotiff', 'GeoTIFF')),
-        default='mosaicjson',
-        max_length=20,
-    )
-    extent = models.PolygonField(
-        null=True,
-        blank=True,
-        srid=4326,
     )
     access = models.CharField(
         max_length=50,
@@ -270,11 +140,12 @@ class Volume(models.Model):
         return display_str
 
     @cached_property
-    def sheets(self):
-        return Sheet.objects.filter(volume=self).order_by("sheet_no")
+    def resources(self):
+        return Resource.objects.filter(map=self).order_by("page_id")
 
     @cached_property
     def prep_sessions(self):
+        from ohmg.georeference.models.sessions import PrepSession
         sessions = []
         for sheet in self.sheets:
             if sheet.doc:
@@ -283,10 +154,19 @@ class Volume(models.Model):
 
     @cached_property
     def georef_sessions(self):
+        from ohmg.georeference.models.sessions import GeorefSession
         sessions = []
         for doc in self.get_all_docs():
             sessions += list(chain(sessions, GeorefSession.objects.filter(doc=doc)))
         return sessions
+    
+    @property
+    def extent(self):
+        annoset = self.get_annotation_set('main-content')
+        if annoset:
+            return annoset.extent
+        else:
+            return None
 
     @property
     def gt_exists(self):
@@ -363,6 +243,7 @@ class Volume(models.Model):
     layer_lookup_formatted.short_description = 'Layer Lookup'
 
     def get_annotation_set(self, cat_slug:str, create:bool=False):
+        from ohmg.georeference.models.resources import AnnotationSet, SetCategory
         try:
             annoset = AnnotationSet.objects.get(volume=self, category__slug=cat_slug)
         except AnnotationSet.DoesNotExist:
@@ -378,6 +259,7 @@ class Volume(models.Model):
         return annoset
 
     def get_annotation_sets(self, geospatial:bool=False):
+        from ohmg.georeference.models.resources import AnnotationSet
         sets = AnnotationSet.objects.filter(volume=self)
         if geospatial:
             sets = sets.filter(category__is_geospatial=True)
@@ -386,6 +268,7 @@ class Volume(models.Model):
     def make_sheets(self):
 
         from ohmg.core.importers.loc_sanborn import LOCParser
+        from ohmg.loc_insurancemaps.models import Sheet
 
         files_to_import = self.lc_resources[0]['files']
         for fileset in files_to_import:
@@ -484,6 +367,7 @@ class Volume(models.Model):
         If update_layer=True, also trigger the update of the layer
         lookup for the georeference layer from this document
         (if applicable)."""
+        from ohmg.georeference.models.resources import Document
 
         if isinstance(document, Document):
             data = document.serialize(serialize_layer=False, include_sessions=True)
@@ -508,6 +392,7 @@ class Volume(models.Model):
     def update_lyr_lookup(self, layer):
         """Serialize the input layer id (pk), and save it into
         this volume's lookup table."""
+        from ohmg.georeference.models.resources import Layer
 
         if isinstance(layer, Layer):
             data = layer.serialize(serialize_document=False, include_sessions=True)
@@ -545,23 +430,6 @@ class Volume(models.Model):
 
         self.layer_lookup[data['slug']] = data
         self.save(update_fields=["layer_lookup"])
-
-        self.set_extent()
-
-    def set_extent(self):
-        # calculate extent from all of the layer extents.
-        # perhaps would be better to get this from the Place once that
-        # those attributes have been added to those instances.
-
-        layer_extent_polygons = []
-        for lyr in self.layer_lookup.values():
-            if lyr['extent']:
-                poly = Polygon.from_bbox(lyr['extent'])
-                layer_extent_polygons.append(poly)
-        if len(layer_extent_polygons) > 0:
-            multi = MultiPolygon(layer_extent_polygons)
-            self.extent = Polygon.from_bbox(multi.extent)
-            self.save(update_fields=['extent'])
 
     def sort_lookups(self):
 
@@ -685,3 +553,348 @@ class Volume(models.Model):
             data['sessions'] = self.get_user_activity_summary()
 
         return data
+
+
+class Resource(object):
+    """Resources represent the individual source files that are directly attached to Maps.
+    They represent pages in an atlas or even just a single scan of a map."""
+    volume = models.ForeignKey(Volume, on_delete=models.CASCADE)
+    page_id = models.CharField(max_length=10, null=True, blank=True)
+    file = models.FileField(
+        upload_to='resources',
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
+    )
+    thumbnail = models.FileField(
+        upload_to='thumbnails',
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
+    )
+    source_url = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="Storing a source_url allows the file to be downloaded at any point after "\
+            "the instance has been created."
+    )
+    load_date = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def name(self):
+        return f"{self.volume.__str__()} p{self.page_number}"
+
+    def __str__(self):
+        return self.name
+    
+    def download_file(self):
+
+        log_prefix = f"{self.__str__()} |"
+        logger.info(f"{log_prefix} start load")
+
+        if not self.source_url:
+            logger.warn(f"{log_prefix} no source_url - cancelling download")
+            return
+
+        if not self.file:
+            jpg_path = get_jpg_from_jp2_url(self.source_url)
+            with open(jpg_path, "rb") as new_file:
+                self.file.save(f"{slugify(self.name)}.jpg", File(new_file))
+            os.remove(jpg_path)
+
+        self.load_date = datetime.now()
+        self.save()
+
+    def set_thumbnail(self):
+        if self.file is not None:
+            if self.thumbnail:
+                self.thumbnail.delete()
+            path = self.file.path
+            name = os.path.splitext(os.path.basename(path))[0]
+            content = generate_document_thumbnail_content(path)
+            tname = f"{name}-res-thumb.jpg"
+            self.thumbnail.save(tname, ContentFile(content))
+
+
+class Place(object):
+
+    PLACE_CATEGORIES = (
+        ("state", "State"),
+        ("county", "County"),
+        ("parish", "Parish"),
+        ("borough", "Borough"),
+        ("census area", "Census Area"),
+        {"independent city", "Independent City"},
+        ("city", "City"),
+        ("town", "Town"),
+        ("village", "Village"),
+        ("other", "Other"),
+    )
+
+    name = models.CharField(
+        max_length = 200,
+    )
+    category = models.CharField(
+        max_length=20,
+        choices=PLACE_CATEGORIES,
+    )
+    display_name = models.CharField(
+        max_length = 250,
+        editable=False,
+        null=True,
+        blank=True,
+    )
+    slug = models.CharField(
+        max_length = 250,
+        null=True,
+        blank=True,
+        editable=False,
+    )
+    volume_count = models.IntegerField(
+        default = 0,
+        help_text="Number of volumes attached to this place",
+    )
+    volume_count_inclusive = models.IntegerField(
+        default = 0,
+        help_text="Number of volumes attached to this place and any of its descendants",
+    )
+    direct_parents = models.ManyToManyField("Place")
+
+    def __str__(self):
+        name = self.display_name if self.display_name else self.name
+        return name
+
+    @property
+    def state(self):
+        states = self.states
+        state = None
+        if len(states) == 1:
+            state = states[0]
+        elif len(states) > 1:
+            state = states[0]
+            logger.info(f"Place {self.pk} has {len(states)} states. Going with {state.slug}")
+        return state
+
+    @property
+    def states(self):
+        candidates = [self]
+        states = []
+        while candidates:
+            new_candidates = []
+            for p in candidates:
+                if p.category == "state":
+                    states.append(p)
+                else:
+                    for i in p.direct_parents.all():
+                        new_candidates.append(i)
+            candidates = new_candidates
+        return list(set(states))
+
+    def get_volumes(self):
+        from ohmg.loc_insurancemaps.models import Volume
+        return Volume.objects.filter(locales__id__exact=self.id).order_by("year")
+
+    def get_state_postal(self):
+        if self.state and self.state.name.lower() in STATE_POSTAL:
+            return STATE_POSTAL[self.state.name.lower()]
+        else:
+            return None
+
+    def get_state_abbrev(self):
+        if self.state and self.state.name.lower() in STATE_ABBREV:
+            return STATE_ABBREV[self.state.name.lower()]
+        else:
+            return None
+
+    def get_descendants(self):
+        return Place.objects.filter(direct_parents__id__exact=self.id).order_by("name")
+
+    def get_breadcrumbs(self):
+        breadcrumbs = []
+        p = self
+        while p.direct_parents.all().count() > 0:
+            parent = p.direct_parents.all()[0]
+            par_name = parent.name
+            if parent.category in ("county", "parish", "borough", "census area"):
+                par_name += f" {parent.get_category_display()}"
+            breadcrumbs.append({"name": par_name, "slug": parent.slug})
+            p = parent
+        breadcrumbs.reverse()
+        name = self.name
+        if self.category in ("county", "parish", "borough", "census area"):
+            name += f" {self.get_category_display()}"
+        breadcrumbs.append({"name": name, "slug": self.slug})
+        return breadcrumbs
+    
+    def get_select_lists(self):
+        """
+        Returns a dictionary with 4 levels of lists, these are used to populate
+        select dropdowns. Each list has both a list of options and also a current
+        selection. For example, if this Place object is Madison, WI, the returned
+        dictionary would look like this:
+
+        {
+            1: {
+                "selected": "united-states",
+                "options": [
+                    <all countries>,
+                ],
+            },
+            2: {
+                "selected": "wisconsin",
+                "options": [
+                    <all US states>
+                ],
+            },
+            3: {
+                "selected": "dane-county-wi",
+                "options": [
+                    <all counties in WI>
+                ],
+            },
+            4: {
+                "selected": "madison-wi",
+                "options": [
+                    <all cities in Dane County>
+                ],
+            },
+        }
+
+        The value --- is used to signify a non-selection in a given category,
+        so for the Wisconsin Place instance, the 3rd and 4th entry above would
+        have selection: "---".
+        
+        Note that the selected value will be a slug, while the options
+        list contains dictionaries with the following key/values:
+        
+        "pk", "slug", "display_name", "volume_count_inclusive"
+        """
+
+        lists = {
+            1: {
+                "selected": "---",
+                "options": [],
+            },
+            2: {
+                "selected": "---",
+                "options": [],
+            },
+            3: {
+                "selected": "---",
+                "options": [],
+            },
+            4: {
+                "selected": "---",
+                "options": [],
+            },
+        }
+
+        # take the requested place, and prefill list selections based on its breadcrumbs
+        for n, i in enumerate(self.get_breadcrumbs(), start=1):
+            lists[n]['selected'] = i['slug']
+        
+        # at this point, at least a country will be selected, get its pk
+        top_pk = Place.objects.get(slug=lists[1]["selected"]).pk
+
+        # always give all of the country options
+        all_lvl1 = list(Place.objects.filter(direct_parents=None).values("pk", "slug", "display_name", "volume_count_inclusive"))
+        lists[1]["options"] = all_lvl1
+
+        # set level 2 (state) options to only those in this country
+        all_lvl2 = list(Place.objects.filter(direct_parents=top_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
+        lists[2]["options"] = all_lvl2
+
+        # if a state is selected, set options to all other states in the same country
+        # also, set county/parish and city options for everything within the state
+        if lists[2]['selected'] != "---":
+            state_pk = Place.objects.get(slug=lists[2]["selected"]).pk
+            all_lvl3 = list(Place.objects.filter(direct_parents=state_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
+            lists[3]["options"] = all_lvl3
+            lvl3_pks = [i['pk'] for i in all_lvl3]
+            all_lvl4 = list(Place.objects.filter(direct_parents__in=lvl3_pks).values("pk", "slug", "display_name", "volume_count_inclusive"))
+            lists[4]["options"] = all_lvl4
+
+        # if a county/parish is selected, narrow cities to only those in the county
+        if lists[3]['selected'] != "---":
+            ce_pk = Place.objects.get(slug=lists[3]["selected"]).pk
+            all_lvl4 = list(Place.objects.filter(direct_parents=ce_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
+            lists[4]["options"] = all_lvl4
+
+        for k, v in lists.items():
+            v['options'].sort(key=lambda k : k['display_name'])
+
+        return lists
+
+    def get_inclusive_pks(self):
+        pks = [self.pk]
+        descendants = Place.objects.filter(direct_parents__id__exact=self.id)
+        while descendants:
+            pks += [i.pk for i in descendants]
+            new_descendants = []
+            for d in descendants:
+                new_descendants += [i for i in Place.objects.filter(direct_parents__id__exact=d.pk)]
+            descendants = new_descendants
+        return pks
+
+    def serialize(self):
+        return {
+            "pk": self.pk,
+            "name": self.name,
+            "display_name": self.display_name,
+            "category": self.get_category_display(),
+            "parents": [{
+                "display_name": i.display_name,
+                "slug": i.slug,
+            } for i in self.direct_parents.all()],
+            "descendants": [{
+                "display_name": i.display_name,
+                "slug": i.slug,
+                "volume_count": i.volume_count,
+                "volume_count_inclusive": i.volume_count_inclusive,
+                # "has_descendant_maps": i.has_descendant_maps if self.has_descendant_maps else False,
+            } for i in self.get_descendants()],
+            "states": [{
+                "display_name": i.display_name,
+                "slug": i.slug,
+            } for i in self.states],
+            "slug": self.slug,
+            "breadcrumbs": self.get_breadcrumbs(),
+            "select_lists": self.get_select_lists(),
+            "volume_count": self.volume_count,
+            "volume_count_inclusive": self.volume_count_inclusive,
+            "volumes": [{
+                "identifier": i[0],
+                "year": i[1],
+                "volume_no":i[2]
+            } for i in self.get_volumes().values_list("identifier", "year", "volume_no")],
+        }
+
+    def save(self, set_slug=True, *args, **kwargs):
+        if set_slug is True:
+            state_postal = self.get_state_postal()
+            state_abbrev = self.get_state_abbrev()
+            slug, display_name = "", ""
+            if self.category == "state":
+                slug = slugify(self.name)
+                display_name = self.name
+            else:
+                if self.category in ["county", "parish", "borough" "census area"]:
+                    slug = slugify(f"{self.name}-{self.category}")
+                    display_name = f"{self.name} {self.get_category_display()}"
+                else:
+                    slug = slugify(self.name)
+                    display_name = self.name
+                if state_postal is not None:
+                    slug += f"-{state_postal}"
+                if state_abbrev is not None:
+                    display_name += f", {state_abbrev}"
+            if not slug:
+                slug = slugify(self.name)
+            if not display_name:
+                display_name = self.name
+            self.slug = slug
+            self.display_name = display_name
+        super(Place, self).save(*args, **kwargs)

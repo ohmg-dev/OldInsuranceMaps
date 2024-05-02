@@ -142,10 +142,7 @@ function setSplit(operation) {
 
   fetch(RESOURCE.urls.split, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8',
-        'X-CSRFToken': CONTEXT.csrf_token,
-      },
+      headers: CONTEXT.ohmg_post_headers,
       body: data,
     })
     .then(response => response.json())
@@ -162,10 +159,7 @@ function unGeoreference() {
 
   fetch(RESOURCE.urls.georeference, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8',
-        'X-CSRFToken': CONTEXT.csrf_token,
-      },
+      headers: CONTEXT.ohmg_post_headers,
       body: data,
     })
     .then(response => response.json())

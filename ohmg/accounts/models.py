@@ -51,6 +51,9 @@ def generate_key():
 
 class APIKey(models.Model):
 
+    class Meta:
+        verbose_name = "API Key"
+
     value = models.CharField(
         primary_key=True,
         default=generate_key,

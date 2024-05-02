@@ -266,10 +266,7 @@ function submitMultiMask() {
   })
   fetch(CONTEXT.urls.post_annotation_set, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8',
-      'X-CSRFToken': CONTEXT.csrf_token,
-    },
+    headers: CONTEXT.ohmg_post_headers,
     body: JSON.stringify({
       "operation": "set-mask",
       "multimaskGeoJSON": outGeoJSON,

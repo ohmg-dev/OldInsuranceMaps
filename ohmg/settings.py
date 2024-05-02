@@ -275,7 +275,6 @@ CELERY_TASK_ROUTES = {
     'ohmg.georeference.tasks.delete_expired': {'queue': 'housekeeping'},
     'ohmg.georeference.tasks.delete_preview_vrt': {'queue': 'housekeeping'},
     'ohmg.loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
-    'ohmg.loc_insurancemaps.tasks.generate_mosaic_geotiff_as_task': {'queue': 'mosaic'},
 }
 
 # empty celery beat schedule of default GeoNode jobs

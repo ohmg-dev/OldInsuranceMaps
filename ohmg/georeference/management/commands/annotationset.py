@@ -1,9 +1,5 @@
 from argparse import Namespace
 from django.core.management.base import BaseCommand
-from ohmg.loc_insurancemaps.tasks import (
-    generate_mosaic_cog_task,
-    generate_mosaic_json_task,
-)
 from ohmg.georeference.models import AnnotationSet
 
 class Command(BaseCommand):
@@ -53,13 +49,13 @@ class Command(BaseCommand):
         if options.operation == "generate-mosaic-cog":
             if options.background:
                 raise NotImplementedError
-                generate_mosaic_cog_task.delay(ls.pk)
+                # generate_mosaic_cog_task.delay(ls.pk)
             else:
                 ls.generate_mosaic_cog()
 
         if options.operation == "generate-mosaic-json":
             if options.background:
                 raise NotImplementedError
-                generate_mosaic_json_task.delay(ls.pk, trim_all=options.trim_all)
+                # generate_mosaic_json_task.delay(ls.pk, trim_all=options.trim_all)
             else:
                 ls.generate_mosaic_json(trim_all=options.trim_all)
