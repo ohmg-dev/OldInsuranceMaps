@@ -210,11 +210,17 @@ function postOperation(operation) {
 	})
 	.then(response => response.json())
 	.then(result => {
-		// need to trigger a reinit of the MapPreview component
+		// need to trigger a reinit of the MapPreview/Multimask components
+		// with new annotationsets
+		if (
+			VOLUME.items.unprepared.length != result.items.unprepared.length ||
+			VOLUME.items.prepared.length != result.items.prepared.length ||
+			VOLUME.items.georeferenced.length != result.items.georeferenced.length
+		) {
+			fetchAnnotationSets();
+		}
 		VOLUME = result;
 		sheetsLoading = VOLUME.status == "initializing...";
-		reinitPreview();
-		reinitMultimask();
 		if (operation == "refresh-lookups") {
 			refreshingLookups = false;
 		}
