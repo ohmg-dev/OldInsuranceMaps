@@ -168,7 +168,7 @@ main p {
 }
 
 #how-it-works {
-	scroll-margin-top: 60px;
+	scroll-margin-top: 40px;
 }
 
 #link-list {

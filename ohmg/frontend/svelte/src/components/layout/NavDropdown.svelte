@@ -21,7 +21,7 @@
 	flex-direction: column;
 	align-items: baseline;
 	position:fixed;
-	top: 60px;
+	top: 40px;
 	background: #123B4F;
 	padding: 10px 15px;
 }

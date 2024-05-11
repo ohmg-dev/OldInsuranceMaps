@@ -119,7 +119,7 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 	<div>
 		<div>
 			<Link href="/" title="Home">
-				<img style="height:45px; width:45px;" src="/static/img/colored-full-linework.png" alt="OldInsuranceMaps.net Home" class="navbar-brand-new">
+				<img style="height:30px; width:30px;" src="/static/img/colored-full-linework.png" alt="OldInsuranceMaps.net Home" class="navbar-brand-new">
 			</Link>
 		</div>
 		<div style="padding-left: 8px;">
@@ -157,7 +157,7 @@ function clickOutside(node, { enabled: initialEnabled, cb }) {
 <style>
 nav {
 	display: flex;
-	height: 60px;
+	height: 40px;
 	background:#123B4F;
 	box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
     position: fixed;

@@ -42,7 +42,7 @@
 
   </head>
 
-  <body class="{% block body_class %}{% endblock %}">
+  <body>
     <!-- Loading Mask -->
     <div class='lmask'></div>
     <!-- Navbar -->
@@ -73,7 +73,7 @@
     </header> -->
     
     {% block middle %}
-    <div class="container background-fg" style="min-height:calc(100vh - 250px)" >
+    <div class="container background-fg" style="min-height:calc(100vh - 230px)" >
         {% include "_status_message.html" %}
         {% include "_announcements.html" %}
         {% include "_messages.html" %}

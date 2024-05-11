@@ -20,7 +20,7 @@ html, * {
 
 body {
   letter-spacing: -.3px;
-  padding-top: 60px;
+  padding-top: 40px;
   background-color: #F7F1E1;
   margin: 0;
   line-height: 1.42857143;
@@ -192,7 +192,7 @@ button.control-btn[disabled], button.control-btn[disabled]:hover {
 
 @media (max-width: 991px) {
 	body {
-	  padding-top: 60px;
+	  padding-top: 40px;
 	}
 }
 
