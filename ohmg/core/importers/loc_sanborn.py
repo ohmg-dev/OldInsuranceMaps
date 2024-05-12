@@ -11,146 +11,69 @@ from django.urls import reverse
 
 from ohmg.core.utils import (
     full_capitalize,
+    STATE_ABBREV,
 )
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.georeference.models import AnnotationSet, SetCategory
 
+from ohmg.core.importers.base import BaseImporter
 from ohmg.core.utils import (
     STATE_CHOICES,
 )
 
 logger = logging.getLogger(__name__)
 
-def filter_volumes_for_use(volumes):
-    """
-    This is the primary filter function that is applied to a set of volumes
-    from a given city (it must be a full list) and determines whether each
-    one will be available in the current implementation.
-    """
-
-    ## set all to excluded first
-    for volume in volumes:
-        volume['include'] = False
-
-    ## now iterate and selectively enable based on some criteria
-    for n, v in enumerate(volumes):
-        ## use the first volume for the city regardless of date
-        if n == 0:
-            v['include'] = True
-        ## include the four New Orleans volumes that create the 
-        ## first full mosaic of the city: v1-v2 1885, v3 1887, v4 1893
-        elif v['city'] == "New Orleans":
-            if v['year'] < 1894:
-                v['include'] = True
-        ## for all other cities, include volumes through 1910
-        elif v['year'] < 1911:
-            v['include'] = True
-
-    return volumes
-
-def load_city_name_misspellings(state_name):
-    """ Currently unused as this is a small lookup and can live in this
-    file for now. May be good to move it back out to a separate JSON file eventually. """
-
-    # lookup = {}
-    # file_path = os.path.join(settings.BASE_DIR, "loc_insurancemaps", "reference_data", "city-name-misspellings.json")
-    # if not os.path.isfile(file_path):
-    #     return lookup
-    # with open(file_path, "r") as o:
-    #     data = json.load(o)
-    # lookup = data.get(state_name.lower(), {})
-
-    lookup = {
-        "louisiana": {
-            "Jeannerette": "Jeanerette",
-            "De Quincy": "DeQuincy",
-            "De Ridder": "DeRidder",
-            "Keatchie": "Keachi",
-            "Saint Rose": "St. Rose",
-            "Saint Martinville": "St. Martinville",
-            "Saint Francisville": "St. Francisville"
-        }
+# format for the city name misspelling lookup is
+#   {
+#       "state name": {
+#           "wrong name": "right name",
+#       }
+#   }
+LOC_SANBORN_CITY_MISSPELLINGS = {
+    "louisiana": {
+        "Jeannerette": "Jeanerette",
+        "De Quincy": "DeQuincy",
+        "De Ridder": "DeRidder",
+        "Keatchie": "Keachi",
+        "Saint Rose": "St. Rose",
+        "Saint Martinville": "St. Martinville",
+        "Saint Francisville": "St. Francisville"
     }
+}
+    
+class LOCImporter(BaseImporter):
+    """LOC Importer
+------------
+Load items from the Library of Congress Sanborn map collection. Required args are:
+    
+    identifier:   the LOC id for the item, looks like 'sanborn04339_026'
+    locale:       slug for the locale to attach to the new map that is created
+    """
 
-    l = lookup.get(state_name, {})
-    return l
+    required_args = [
+        "identifier",
+        "locale"
+    ]
 
-def unsanitize_name(state, name):
-    """must 'uncorrect' names from the interface which need to be passed to 
-    the LC api. For example, in the LC database there is De Quincy, which
-    should be DeQuincy. The input search term here may be DeQuincy, but it
-    must be changed to De Quincy for the search to work properly."""
+    def acquire_data(self, **kwargs):
+        
+        identifier = kwargs['identifier']
+        lc = LOCConnection(delay=0, verbose=True)
+        response = lc.get_item(identifier)
+        if response.get("status") == 404:
+            return None
+        
+        item = response['item']
+        item["lc_resources"] = response['resources']
+        self.data = item
 
-    lookup = load_city_name_misspellings(state)
+    def parse_data(self, **kwargs):
 
-    rev = {v: k for k, v in lookup.items()}
+        parsed = LOCParser(item=self.data)
+        volume_kwargs = parsed.volume_kwargs()
 
-    return rev.get(name, name)
+        volume_kwargs['locale'] = kwargs['locale']
 
-def import_all_available_volumes(state, apply_filter=True, verbose=False):
-    """Preparatory step that runs through all cities in the provided
-    state, filters the available volumes for those cities, and then
-    imports each one to create a new Volume object."""
-
-    lc = LOCConnection(delay=0, verbose=verbose)
-    cities = lc.get_city_list_by_state(state)
-
-    volumes = []
-    for city in cities:
-        lc.reset()
-        city = unsanitize_name(state, city[0])
-        vols = lc.get_volume_list_by_city(city, state)
-        if apply_filter is True:
-            vols = filter_volumes_for_use(vols)
-            volumes += [i for i in vols if i['include'] is True]
-        else:
-            volumes += vols
-
-    for volume in volumes:
-        try:
-            Volume.objects.get(pk=volume['identifier'])
-        except Volume.DoesNotExist:
-            import_volume(volume['identifier'])
-
-def import_volume(identifier, locale=None, dry_run=False):
-
-    try:
-        volume = Volume.objects.get(pk=identifier)
-        volume.locales.set([locale])
-        volume.update_place_counts()
-
-        # make sure a main-content layerset exists for this volume
-        main_ls, _ = AnnotationSet.objects.get_or_create(
-            category=SetCategory.objects.get(slug="main-content"),
-            volume=volume,
-        )
-        return volume
-    except Volume.DoesNotExist:
-        pass
-
-    lc = LOCConnection(delay=0, verbose=True)
-    response = lc.get_item(identifier)
-    if response.get("status") == 404:
-        return None
-
-    parsed = LOCParser(item=response['item'])
-    volume_kwargs = parsed.volume_kwargs()
-
-    # add resources to args, not in item (they exist adjacent)
-    volume_kwargs["lc_resources"] = response['resources']
-
-    if dry_run:
-        return volume_kwargs
-    else:
-        volume = Volume.objects.create(**volume_kwargs)
-        volume.locales.add(locale)
-        volume.update_place_counts()
-        # make sure a main-content layerset exists for this volume
-        main_ls, _ = AnnotationSet.objects.get_or_create(
-            category=SetCategory.objects.get(slug="main-content"),
-            volume=volume,
-        )
-        return volume
+        self.parsed_data = volume_kwargs
 
 
 class LOCParser(object):
@@ -223,7 +146,7 @@ class LOCParser(object):
         # get city
         location_tags = [i for i in location_tags if i not in used_tags]
         city_seg = title_segs[0]
-        misspellings = load_city_name_misspellings(self.state)
+        misspellings = LOC_SANBORN_CITY_MISSPELLINGS.get(self.state, {})
         if city_seg in misspellings:
             self.city = misspellings[city_seg]
         else:
@@ -322,6 +245,14 @@ class LOCParser(object):
 
         self.title = " | ".join([seg2, seg1, seg3])
 
+    def set_map_title(self):
+
+        title = f"{self.city}, {STATE_ABBREV[self.state]} | {self.year}"
+        if self.volume_no is not None:
+            title += f" | Vol. {self.volume_no}"
+
+        self.title = title
+
     def serialize_to_volume(self):
 
         try:
@@ -333,13 +264,13 @@ class LOCParser(object):
         return {
             "identifier": self.identifier,
             "city": self.city,
-            "county_equivalent": self.county_equivalent,
             "state": self.state,
             "year": self.year,
             "month": self.month,
             "volume_no": self.volume_no,
             "lc_item": self.item,
             "lc_manifest_url": self.lc_manifest_url,
+            "lc_resources": self.item['lc_resources'],
             "extra_location_tags": self.extra_location_tags,
             "sheet_ct": self.sheet_ct,
             "title": self.title,
@@ -498,54 +429,3 @@ class LOCConnection(object):
         self.perform_search(no_cache=no_cache)
 
         return self.data
-
-    def get_items(self, locations=[], no_cache=False, year=None):
-
-        self.initialize_query(collection="sanborn-maps")
-        if len(locations) > 0:
-            self.add_location_param(locations)
-        if year is not None:
-            self.add_date_param(year)
-
-        page_no = 1
-        while True:
-            self.perform_search(no_cache=no_cache, page=page_no)
-            if self.data['pagination']['next'] is not None:
-                page_no += 1
-            else:
-                break
-
-        return self.results
-
-    def get_city_list_by_state(self, state):
-
-        items = self.get_items(locations=[state])
-
-        cities = {}
-        for item in items:
-            parsed = LOCParser(item=item)
-            if parsed.state != state:
-                continue
-            city = parsed.city
-            cities[city] = cities.get(city, 0) + 1
-        cities_list = [(k, v) for k, v in cities.items()]
-
-        return sorted(cities_list)
-
-    def get_volume_list_by_city(self, city, state):
-
-        items = self.get_items(
-            locations=[i for i in [state, city] if i is not None],
-        )
-
-        if self.verbose:
-            print(f"{len(items)} items retrieved")
-
-        volumes = []
-        for item in items:
-            parsed = LOCParser(item=item)
-            
-            serialized = parsed.serialize_to_volume()
-            volumes.append(serialized)
-
-        return sorted(volumes, key=lambda k: k['title'])

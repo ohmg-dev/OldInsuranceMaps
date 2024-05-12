@@ -315,6 +315,13 @@ LOCALE_PATHS = (
     PROJECT_DIR / 'locale',
 )
 
+OHMG_IMPORTERS = {
+    'map': {
+        'single-file': 'ohmg.core.importers.base.SingleFileImporter',
+        'loc-sanborn': 'ohmg.core.importers.loc_sanborn.LOCImporter',
+    }
+}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
@@ -364,6 +371,12 @@ LOGGING = {
             'filename': os.path.join(LOG_DIR, 'info.log'),
             'formatter': 'moderate',
         },
+        'ohmg-debug': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'ohmg-debug.log'),
+            'formatter': 'moderate',
+        },
         'georeference-debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
@@ -401,6 +414,8 @@ LOGGING = {
             "handlers": ["info", "georeference-debug"], "level": "DEBUG", },
         "ohmg.loc_insurancemaps": {
             "handlers": ["info", "loc_insurancemaps-debug"], "level": "DEBUG", },
+        "ohmg": {
+            "handlers": ["ohmg-debug"], "level": "DEBUG", },
     },
 }
 
