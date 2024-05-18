@@ -22,6 +22,7 @@ class Command(BaseCommand):
                 "add",
                 "remove",
                 "list-importers",
+                "add-document",
 
                 "refresh-lookups",
                 "make-sheets",
@@ -38,7 +39,7 @@ class Command(BaseCommand):
             help="id of map",
         ),
         parser.add_argument(
-            "-f", "--csv-file",
+            "--csv-file",
             help="path to file for bulk import",
         ),
         parser.add_argument(
@@ -89,8 +90,7 @@ class Command(BaseCommand):
 
         if operation == "add":
             if options['importer'] not in settings.OHMG_IMPORTERS['map']:
-                print("no entry in settings.OHMG_IMPORTERS for this importer")
-                exit()
+                raise NotImplementedError("no entry in settings.OHMG_IMPORTERS for this importer")
 
             importer = get_importer(options['importer'], dry_run=options['dry_run'])
 
@@ -98,12 +98,15 @@ class Command(BaseCommand):
             if options['opts']:
                 for opt in options['opts']:
                     if "=" not in opt:
-                        print(f"{opt} is a malformed opt. Format must be key=value.")
-                        exit()
+                        raise ValueError(f"{opt} is a malformed opt. Format must be key=value.")
+
                     key, value = opt.split("=")
                     importer_kwargs[key] = value
+    
+                importer.run_import(**importer_kwargs)
 
-            importer.run_import(**importer_kwargs)
+            elif options['csv-file']:
+                importer.run_bulk_import(options['csv-file'])
 
         if operation == "remove":
             try:

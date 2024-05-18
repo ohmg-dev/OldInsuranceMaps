@@ -49,31 +49,31 @@ Load items from the Library of Congress Sanborn map collection. Required args ar
     locale:       slug for the locale to attach to the new map that is created
     """
 
-    required_args = [
+    required_input = [
         "identifier",
-        "locale"
+        "locale",
     ]
 
-    def acquire_data(self, **kwargs):
-        
-        identifier = kwargs['identifier']
+    def parse(self):
+
+        identifier = self.input_data['identifier']
         lc = LOCConnection(delay=0, verbose=True)
-        response = lc.get_item(identifier)
+
+        no_cache = self.input_data.get('no-cache', False)
+        if no_cache.lower() == "true":
+            no_cache = True
+        response = lc.get_item(identifier, no_cache=no_cache)
         if response.get("status") == 404:
-            return None
+            raise ValueError("Can't get this resource from LC")
         
         item = response['item']
         item["lc_resources"] = response['resources']
-        self.data = item
 
-    def parse_data(self, **kwargs):
-
-        parsed = LOCParser(item=self.data)
+        parsed = LOCParser(item=item)
         volume_kwargs = parsed.volume_kwargs()
+        volume_kwargs['locale'] = self.input_data['locale']
 
-        volume_kwargs['locale'] = kwargs['locale']
-
-        self.parsed_data = volume_kwargs
+        return volume_kwargs
 
 
 class LOCParser(object):

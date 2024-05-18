@@ -1,3 +1,4 @@
+import csv
 import json
 import importlib
 import logging
@@ -7,6 +8,7 @@ from django.conf import settings
 from ohmg.places.models import Place
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.georeference.models import AnnotationSet, SetCategory
+from ohmg.core.utils import random_alnum
 
 logger = logging.getLogger(__name__)
 
@@ -31,38 +33,54 @@ def get_importer(name, dry_run=False):
 
 class BaseImporter():
 
-    required_args = []
+    required_input = []
 
     def __init__(self, dry_run: bool=False, verbose: bool=False):
 
         self.dry_run = dry_run
         self.verbose = verbose
-        self.data = {}
+        self.input_data = {}
         self.parsed_data = {}
 
-    def check_args(self, **kwargs):
+    def validate_input(self, **kwargs):
 
         errors = []
-        for arg in self.required_args:
+        for arg in self.required_input:
             if arg not in kwargs:
                 error = f"Import operation missing required argument: {arg}"
                 logger.warn(error)
                 errors.append(error)
         return errors
+    
+    def validate_output(self, **kwargs):
 
-    def acquire_data(self, **kwargs):
-        """ This method can be passed any arguments that are needed. It must 
-        generate a dict and set that dict to self.data, which will then be 
-        parsed by self.data to self.parse().
-        """
-        raise NotImplementedError("Must be defined downstream.")
+        errors = []
+        output_schema = {
+            'title': str,
+            'year': (int, type(None)),
+            'creator': (str, type(None)),
+            'locale': (str, type(None)),
+            'document_sources': list,
+        }
+        missing = [i for i in output_schema.keys() if i not in kwargs.keys()]
+        if missing:
+            errors.append(f"missing props: {missing}")
 
-    def parse_data(self, **kwargs):
-        """ This method will use whatever is in self.data, parse it, and set
-        the result to self.parsed_data. Default behavior leaves the input
-        data unchanged."""
+        for k, v in kwargs.items():
+            try:
+                if not isinstance(v, output_schema[k]):
+                   errors.append(f"incorrect value for {k}: {v}") 
+            except KeyError:
+                pass
+        return errors
 
-        self.parsed_data = self.data
+    def parse(self, **kwargs):
+        """ This method must parse whatever the input kwargs are, and set the
+        result to self.parsed_data. Default behavior leaves the input data 
+        unchanged. The structure of the o"""
+
+        raise NotImplementedError("This method must be implemented on each"\
+            "importer class that inherits from this one.")
 
     def create_map(self):
 
@@ -87,13 +105,65 @@ class BaseImporter():
         return volume
 
     def run_import(self, **kwargs):
+        """ Import a single map using the kwargs provided. These keywords are supplied to the
+        self.acquire_data(). """
 
-        errors = self.check_args(**kwargs)
+        errors = self.validate_input(**kwargs)
         if errors:
             raise Exception("Import operation missing required arg(s), check logs for more info.")
-        self.acquire_data(**kwargs)
-        self.parse_data(**kwargs)
 
+        self.input_data = kwargs
+        parsed = self.parse()
+
+        print(parsed)
+
+        errors = self.validate_output(**parsed)
+        if errors:
+            print(errors)
+            raise Exception('errors')
+        
+        self.parsed_data = parsed
         map = self.create_map()
 
         return map
+    
+    def run_bulk_import(self, csv_file: str):
+        """ Wraps the main import function by feeding rows from a CSV into it. 
+        All values in a CSV row are passed to the importer, any irrelevant ones
+        will be ignored. """
+
+        with open(csv_file, "r") as o:
+            reader = csv.DictReader(o)
+            items = [i for i in reader]
+
+        for item in items:
+            self.run_import(**item)
+
+
+class SingleFileImporter(BaseImporter):
+    """Single File Importer
+-------------
+Use this importer to create a new Map object with a single file in it. The following
+opts are supported:
+
+    file_name: path/to/file.tif
+    (incomplete list so far...\)
+"""
+    
+    def parse(self, **kwargs):
+
+        id = kwargs.get('identifier')
+        if id:
+            try:
+                Volume.objects.get(pk=id)
+                raise Exception("A map with the specified identifier already exists.")
+            except Volume.DoesNotExist:
+                pass
+        else:
+            id = random_alnum()
+        
+        out = {
+            'identifier': id,
+            'title': "test map"
+        }
+        return out
