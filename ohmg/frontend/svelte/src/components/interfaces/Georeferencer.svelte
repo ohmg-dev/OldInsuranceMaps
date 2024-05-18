@@ -902,7 +902,7 @@ function cleanup () {
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 <IconContext values={iconProps}>
-<p>Create 3 or more ground control points to georeference this document. To create a ground control point, first click on a location in the left panel, then find and click on the corresponding location in right panel. <Link href="https://ohmg.dev/docs/making-the-mosaics/georeferencing" external={true}>Learn more</Link></p>
+<p>Create 3 or more ground control points to georeference this document. To create a ground control point, first click on a location in the left panel, then find and click on the corresponding location in right panel. <Link href="https://docs.oldinsurancemaps.net/guides/georeferencing/" external={true}>Learn more</Link></p>
 
 <Modal id="modal-expiration">
   <p>This georeferencing session is expiring, and will be cancelled soon.</p>

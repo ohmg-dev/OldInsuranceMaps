@@ -39,7 +39,7 @@
 				},
 				{
 					"title": "Documentation",
-					"href": "https://ohmg.dev/docs",
+					"href": "https://docs.oldinsurancemaps.net",
 					"external": true,
 				},
 			]
