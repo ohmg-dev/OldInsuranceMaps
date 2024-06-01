@@ -8,11 +8,12 @@ from django.conf import settings
 from ohmg.places.models import Place
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.georeference.models import AnnotationSet, SetCategory
+from ohmg.core.models import Sheet
 from ohmg.core.utils import random_alnum
 
 logger = logging.getLogger(__name__)
 
-def get_importer(name, dry_run=False):
+def get_importer(name, dry_run=False, overwrite=False):
     """ Creates an instance of an importer from the class specified in
     settings.py corresponding to the name provided to this function.
     Any kwargs passed to this function are pass directly to the new importer
@@ -26,7 +27,7 @@ def get_importer(name, dry_run=False):
     class_name = full_path.split(".")[-1]
     module  = importlib.import_module(module_path)
     importer_class = getattr(module, class_name)
-    importer_instance = importer_class(dry_run=dry_run)
+    importer_instance = importer_class(dry_run=dry_run, overwrite=overwrite)
 
     return importer_instance
 
@@ -35,10 +36,11 @@ class BaseImporter():
 
     required_input = []
 
-    def __init__(self, dry_run: bool=False, verbose: bool=False):
+    def __init__(self, dry_run: bool=False, verbose: bool=False, overwrite: bool=False):
 
         self.dry_run = dry_run
         self.verbose = verbose
+        self.overwrite = overwrite
         self.input_data = {}
         self.parsed_data = {}
 
@@ -91,6 +93,12 @@ class BaseImporter():
         if self.dry_run:
             print(json.dumps(self.parsed_data, indent=2))
             return None
+
+        ## remove unused keys for now
+        title = self.parsed_data.pop('title')
+        creator = self.parsed_data.pop('creator')
+        docs = self.parsed_data.pop('document_sources')
+
         volume = Volume.objects.create(**self.parsed_data)
 
         if locale:
@@ -150,20 +158,83 @@ opts are supported:
     (incomplete list so far...\)
 """
     
-    def parse(self, **kwargs):
+    def parse(self):
 
-        id = kwargs.get('identifier')
+        print(self.input_data)
+
+        id = self.input_data.get('identifier')
         if id:
             try:
                 Volume.objects.get(pk=id)
-                raise Exception("A map with the specified identifier already exists.")
+                if not self.overwrite:
+                    raise Exception("A map with the specified identifier already exists.")
             except Volume.DoesNotExist:
                 pass
         else:
-            id = random_alnum()
+            id = random_alnum().upper()
+
+        file_path = self.input_data.get('file_path')
+        title = self.input_data.get('title', "test map")
+        year = self.input_data.get('year')
+        if year:
+            year = int(year)
+        creator = self.input_data.get('creator')
+        locale = self.input_data.get('locale')
+
+        # to be removed soon
+        city = self.input_data.get('city')
+        state = self.input_data.get('state')
+
+        print(file_path)
         
         out = {
             'identifier': id,
-            'title': "test map"
+            'title': title,
+            'year': year,
+            'creator': creator,
+            'locale': locale,
+            'document_sources': [file_path],
+            'city': city,
+            'state': state,
         }
         return out
+
+    def create_map(self):
+
+        locale = None
+        if 'locale' in self.parsed_data:
+            locale = Place.objects.get(slug=self.parsed_data.pop('locale'))
+
+        if self.dry_run:
+            print(json.dumps(self.parsed_data, indent=2))
+            return None
+        
+        title = self.parsed_data.pop('title')
+        creator = self.parsed_data.pop('creator')
+        docs = self.parsed_data.pop('document_sources')
+
+        try:
+            volume = Volume.objects.get(identifier=self.parsed_data['identifier'])
+            if self.overwrite:
+                for key, value in self.parsed_data.items():
+                    setattr(volume, key, value)
+                volume.save()
+            else:
+                raise Exception("A map with the specified identifier already exists.")
+        except Volume.DoesNotExist:
+            volume = Volume.objects.create(**self.parsed_data)
+
+        if locale:
+            volume.locales.add(locale)
+
+        for doc in docs:
+            sheet = Sheet().create_from_file(doc, volume=volume)
+            
+
+        volume.update_place_counts()
+        # make sure a main-content layerset exists for this volume
+        main_ls, _ = AnnotationSet.objects.get_or_create(
+            category=SetCategory.objects.get(slug="main-content"),
+            volume=volume,
+        )
+        return volume

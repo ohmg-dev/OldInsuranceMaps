@@ -59,7 +59,7 @@ Load items from the Library of Congress Sanborn map collection. Required args ar
         identifier = self.input_data['identifier']
         lc = LOCConnection(delay=0, verbose=True)
 
-        no_cache = self.input_data.get('no-cache', False)
+        no_cache = self.input_data.get('no-cache', "false")
         if no_cache.lower() == "true":
             no_cache = True
         response = lc.get_item(identifier, no_cache=no_cache)
@@ -72,6 +72,11 @@ Load items from the Library of Congress Sanborn map collection. Required args ar
         parsed = LOCParser(item=item)
         volume_kwargs = parsed.volume_kwargs()
         volume_kwargs['locale'] = self.input_data['locale']
+
+        ## fake values to pass validation for now
+        volume_kwargs['title']= ""
+        volume_kwargs['creator']= ""
+        volume_kwargs['document_sources']= []
 
         return volume_kwargs
 
@@ -329,7 +334,7 @@ class LOCConnection(object):
         if url is None:
             url = self.query_url
 
-        cache_dir = settings.CACHE_DIR
+        cache_dir = settings.CACHE_DIR / 'requests'
         if not os.path.isdir(cache_dir):
             os.mkdir(cache_dir)
         file_name = url.replace("/", "__") + ".json"

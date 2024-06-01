@@ -10,7 +10,7 @@ from ohmg.core.importers.base import get_importer
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.places.models import Place
 from ohmg.places.management.utils import reset_volume_counts
-from ohmg.georeference.models import ItemBase, Layer, DocumentLink
+from ohmg.georeference.models import ItemBase, LayerV1, DocumentLink
 
 class Command(BaseCommand):
     help = 'management command to handle map object operations'
@@ -47,6 +47,12 @@ class Command(BaseCommand):
             action="store_true",
             default=False,
             help="perform a dry-run of the operation",
+        ),
+        parser.add_argument(
+            "--overwrite",
+            action="store_true",
+            default=False,
+            help="overwrite existing content with new input",
         ),
         parser.add_argument(
             "--load-documents",
@@ -92,7 +98,7 @@ class Command(BaseCommand):
             if options['importer'] not in settings.OHMG_IMPORTERS['map']:
                 raise NotImplementedError("no entry in settings.OHMG_IMPORTERS for this importer")
 
-            importer = get_importer(options['importer'], dry_run=options['dry_run'])
+            importer = get_importer(options['importer'], dry_run=options['dry_run'], overwrite=options['overwrite'])
 
             importer_kwargs = {}
             if options['opts']:
