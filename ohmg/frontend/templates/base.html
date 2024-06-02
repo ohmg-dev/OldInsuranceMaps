@@ -14,7 +14,8 @@
     <meta Http-Equiv="Pragma-directive: no-cache">
     <meta Http-Equiv="Cache-directive: no-cache">
     
-    <!-- title is the block used in my own templates (for now) -->
+    <!-- title is the block used in my own templates -->
+    <!-- title is the block used in the django-newsletter templates -->
     <!-- head_title is the block used by the allauth templates -->
     <title>
       {% block title %}{{ SITE_NAME }}{% endblock %}
@@ -34,6 +35,10 @@
     
     <link href="{{ STATIC_URL }}css/site_base.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
     {% endblock %}
+
+    <!-- dependencies for pinax-announcements -->
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/eldarion-ajax@0.16.0/js/eldarion-ajax.min.js"></script>
 
     <script>
         var siteUrl = '{{ SITEURL }}'.replace(/\/?$/, '/');
