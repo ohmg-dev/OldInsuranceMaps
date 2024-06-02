@@ -114,6 +114,7 @@ STATE_CHOICES = [
     ('colorado', 'Colorado'),
     ('connecticut', 'Connecticut'),
     ('delaware', 'Delaware'),
+    ('district of columbia', 'District of Columbia'),
     ('florida', 'Florida'),
     ('georgia', 'Georgia'),
     ('hawaii', 'Hawaii'),
