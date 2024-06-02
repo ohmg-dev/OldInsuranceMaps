@@ -5,10 +5,17 @@
 <div id="site_wide_announcements">
     {% for announcement in site_wide_announcements %}
     {% if not announcement.members_only or request.user.is_authenticated %}
-    <div class="alert alert-block announcements {{ announcement.level_css  }}">
-        <h4><a href="{{ announcement.get_absolute_url }}">{{ announcement.title }}</a></h4>
-        <p><small><em>{{ announcement.creation_date }}</em></small></p>
-        <div>{{ announcement.content }}</div>
+    <div class="alert alert-block announcement alert-info alert-dismissable {{ announcement.level_css  }}">
+        <div style="display:flex; justify-content:space-between;">
+            <h4><a class="alert-link" href="{{ announcement.get_absolute_url }}">{{ announcement.title }}</a></h4>
+            {% if announcement.dismiss_url %}
+            <form class="form ajax" data-replace=".announcement" action="{{ announcement.dismiss_url }}" method="post">
+                {% csrf_token %}
+                <button class="alert-info alert-dismiss-btn">&times;</button>
+            </form>
+            {% endif %}
+        </div>
+        <div>{{ announcement.content | safe}}</div>
     </div>
     {% endif %}
     {% endfor %}

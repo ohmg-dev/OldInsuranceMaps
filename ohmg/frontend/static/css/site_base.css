@@ -425,7 +425,7 @@ footer a:hover {
 
 .alert {
 	padding: 15px;
-	margin-bottom: 22px;
+	margin: 15px 0px;
 	border: 1px solid transparent;
 	border-radius: 4px;
   }
@@ -443,17 +443,22 @@ footer a:hover {
   .alert > p + p {
 	margin-top: 5px;
   }
-  .alert-dismissable,
+  .alert-dismiss-btn {
+	border: none;
+	background: none;
+	font-size: 2em;
+	line-height: 0;
+  }
   .alert-dismissible {
 	padding-right: 35px;
   }
-  .alert-dismissable .close,
   .alert-dismissible .close {
 	position: relative;
 	top: -2px;
 	right: -21px;
 	color: inherit;
   }
+
   .alert-success {
 	color: #3c763d;
 	background-color: #dff0d8;
@@ -465,6 +470,10 @@ footer a:hover {
   .alert-success .alert-link {
 	color: #2b542c;
   }
+  .alert-success .alert-dismiss-btn {
+	color: #2b542c;
+  }
+
   .alert-info {
 	color: #31708f;
 	background-color: #d9edf7;
@@ -476,6 +485,10 @@ footer a:hover {
   .alert-info .alert-link {
 	color: #245269;
   }
+  .alert-success .alert-dismiss-btn {
+	color: #245269;
+  }
+
   .alert-warning {
 	color: #8a6d3b;
 	background-color: #fcf8e3;
@@ -487,6 +500,10 @@ footer a:hover {
   .alert-warning .alert-link {
 	color: #66512c;
   }
+  .alert-success .alert-dismiss-btn {
+	color: #66512c;
+  }
+
   .alert-danger {
 	color: #a94442;
 	background-color: #f2dede;
@@ -496,6 +513,9 @@ footer a:hover {
 	border-top-color: #e4b9c0;
   }
   .alert-danger .alert-link {
+	color: #843534;
+  }
+  .alert-success .alert-dismiss-btn {
 	color: #843534;
   }
 
