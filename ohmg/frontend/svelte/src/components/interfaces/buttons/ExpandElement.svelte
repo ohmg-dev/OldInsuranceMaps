@@ -42,7 +42,7 @@
 :global(.ffs) {
     position: fixed !important;
     width: 100%;
-    top: 40px;
+    top: 45px;
     height: calc(100vh - 60px) !important;
     left: 0;
 }

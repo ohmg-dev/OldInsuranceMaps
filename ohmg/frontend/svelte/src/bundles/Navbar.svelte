@@ -1,217 +1,159 @@
 <script>
-import IconContext from 'phosphor-svelte/lib/IconContext';
-import CaretDown from "phosphor-svelte/lib/CaretDown";
-import { iconProps } from "@lib/utils"
+	import IconContext from 'phosphor-svelte/lib/IconContext';
+	import CaretDown from "phosphor-svelte/lib/CaretDown";
+	import { iconProps } from "@lib/utils"
 
-import OpenModalButton from '@components/base/OpenModalButton.svelte';
-import NavDropdown from '@components/layout/NavDropdown.svelte';
-import SigninModal from '@components/layout/SigninModal.svelte';
-import Link from '@components/base/Link.svelte';
+	import OpenModalButton from '@components/base/OpenModalButton.svelte';
+    import NavbarLink from '../components/layout/NavbarLink.svelte';
 
-export let CONTEXT;
+	export let CONTEXT;
 
-let subMenus = {
-	"georef": {
-		"visible": false,
-		"links": [
-			{
-				"title": "Find an item...",
-				"href": "/browse#items",
-				"external": false,
-			},
-			{
-				"title": "All contributors",
-				"href": "/profiles",
-				"external": false,
-			},
-			{
-				"title": "All activity",
-				"href": "/activity",
-				"external": false,
-			},
-			{
-				"title": "Full documentation",
-				"href": "https://docs.oldinsurancemaps.net",
-				"external": true,
-			},
-		]
-	},
-	"about": {
-		"visible": false,
-		"links": [
-			{
-				"title": "News",
-				"href": "/news",
-				"external": false,
-			},
-			{
-				"title": "FAQ",
-				"href": "/faq",
-				"external": false,
-			},
-			{
-				"title": "Contact",
-				"href": "/contact",
-				"external": false,
-			},
-			{
-				"title": "About Sanborn maps",
-				"href": "/about-sanborn-maps",
-				"external": false,
-			},
-			{
-				"title": "About this site...",
-				"href": "/about",
-				"external": false,
-			},
-		]
-	},
-	"user": {
-		"visible": false,
-		"links": [
-			{
-				"title": CONTEXT.user.username,
-				"href": "",
-				"external": false,
-			},
-			{
-				"title": "My Profile",
-				"href": CONTEXT.user.profile_url,
-				"external": false,
-			},
-			{
-				"title": "Sign Out",
-				"href": "/account/logout",
-				"external": false,
-			},
-		]
-	}
-}
+	const leftMenu = [
+		{
+			title: "Search",
+			href: "/search",
+		},
+		{
+			title: "Georeferencing",
+			hasDropdown: true,
+			links: [
+				{
+					title: "Latest Activity",
+					href: "/search",
+				},
+				{
+					title: "Contributors",
+					href: "/profiles",
+				},
+				{
+					title: "Guides",
+					href: "https://about.oldinsurancemaps.net/guides",
+					isExternal: true,
+				},
+				{
+					title: "Find a map...",
+					href: "/browse#items",
+				},
+			]
+		},
+		{
+			title: "Community",
+			hasDropdown: true,
+			links: [
+				{
+					title: "Forum",
+					href: "https://forum.openhistoricalmap.org/c/oldinsurancemaps/13",
+					isExternal: true,
+				},
+				{
+					title: "News & Newsletter",
+					href: "/news",
+				},
+				{
+					title: "FAQ",
+					href: "https://about.oldinsurancemaps.net/faq",
+					isExternal: true,
+				},
+				{
+					title: "Get in touch!",
+					href: "https://about.oldinsurancemaps.net/community",
+					isExternal: true,
+				},
+			]
+		},
+		{
+			title: "Learn more",
+			hasDropdown: true,
+			links: [
+				{
+					title: "FAQ",
+					href: "https://about.oldinsurancemaps.net/faq",
+					isExternal: true,
+				},
+				{
+					title: "Contact",
+					href: "https://about.oldinsurancemaps.net/contact",
+					isExternal: true,
+				},
+				{
+					title: "Sanborn Maps",
+					href: "https://about.oldinsurancemaps.net/sanborn-maps",
+					isExternal: true,
+				},
+				{
+					title: "Background",
+					href: "https://about.oldinsurancemaps.net",
+					isExternal: true,
+				},
+				{
+					title: "Credits",
+					href: "https://about.oldinsurancemaps.net/credits",
+					isExternal: true,
+				},
+			]
+		}
+	]
 
-function clickOutside(node, { enabled: initialEnabled, cb }) {
-    const handleOutsideClick = ({ target }) => {
-      if (!node.contains(target)) {
-        cb();
-      }
-    };
-
-    function update({enabled}) {
-      if (enabled) {
-        window.addEventListener('click', handleOutsideClick);
-      } else {
-        window.removeEventListener('click', handleOutsideClick);
-      }
-    }
-
-    update({ enabled: initialEnabled });
-    return {
-      update,
-      destroy() {
-        window.removeEventListener( 'click', handleOutsideClick );
-      }
-    };
-  }
+	function toggleBurger() {document.getElementsByClassName('navbar-burger')[0].classList.toggle('is-active')}
+	function toggleMenu() {document.getElementsByClassName('navbar-menu')[0].classList.toggle('is-active')}
 </script>
 
 <IconContext values={iconProps}>
-<SigninModal csrfToken={CONTEXT.csrf_token} />
-<nav>
-	<div>
-		<div>
-			<Link href="/" title="Home">
-				<img style="height:30px; width:30px;" src="/static/img/colored-full-linework.png" alt="OldInsuranceMaps.net Home" class="navbar-brand-new">
-			</Link>
-		</div>
-		<div style="padding-left: 8px;">
-			<Link href="/browse" classes={["white"]}>Search</Link>
-		</div>
-		<div class="dropdown-container {subMenus.georef.visible ? 'active' : ''}" use:clickOutside={{ enabled: subMenus.georef.visible, cb: () => subMenus.georef.visible = false }} >
-			<button on:click={() => {subMenus.georef.visible = !subMenus.georef.visible}} title="Georeferencing">Georeferencing <CaretDown /></button>
-			{#if subMenus.georef.visible}
-			<NavDropdown LINKS={subMenus.georef.links} />
-			{/if}
-		</div>
-		<div class="dropdown-container {subMenus.about.visible ? 'active' : ''}" use:clickOutside={{ enabled: subMenus.about.visible, cb: () => subMenus.about.visible = false }} >
-			<button on:click={() => {subMenus.about.visible = !subMenus.about.visible}} title="About">About <CaretDown /></button>
-			{#if subMenus.about.visible}
-			<NavDropdown LINKS={subMenus.about.links} />
-			{/if}
-		</div>
+<nav class="navbar" aria-label="main navigation">
+	<div class="navbar-brand">
+		<a class="navbar-item" href="/">
+		<img style="height:30px; width:30px;" src="/static/img/colored-full-linework.png" alt="OldInsuranceMaps.net Home">
+		</a>
+
+		<button class="navbar-burger" on:click={() => {toggleBurger(); toggleMenu()}} aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+		<span aria-hidden="true"></span>
+		<span aria-hidden="true"></span>
+		<span aria-hidden="true"></span>
+		<span aria-hidden="true"></span>
+		</button>
 	</div>
-	<div>
-		{#if CONTEXT.user.is_authenticated }
-		<div class="dropdown-container {subMenus.user.visible ? 'active' : ''}" use:clickOutside={{ enabled: subMenus.user.visible, cb: () => subMenus.user.visible = false }} >
-			<button on:click={() => {subMenus.user.visible = !subMenus.user.visible}} title={CONTEXT.user.username}>
-				<img style="height:45px; width:45px;" src={CONTEXT.user.image_url} class="navbar-brand-new" alt={CONTEXT.user.username} /><CaretDown />
-			</button>
-			{#if subMenus.user.visible}
-			<NavDropdown LINKS={subMenus.user.links} RIGHT_POS={0}/>
+
+	<div id="navbarBasicExample" class="navbar-menu">
+		<div class="navbar-start">
+		{#each leftMenu as item}
+			{#if item.hasDropdown}
+			<div class="navbar-item has-dropdown is-hoverable" style="border-top:none;">
+				<!-- svelte-ignore a11y-missing-attribute -->
+				<a class="navbar-link is-hoverable is-arrowless">
+					{item.title}
+					<CaretDown />
+				</a>
+				<div class="navbar-dropdown">
+					{#each item.links as link}
+					<NavbarLink title={link.title} href={link.href} isExternal={link.isExternal} />			
+					{/each}
+				</div>
+			</div>
+			{:else}
+			<NavbarLink title={item.title} href={item.href} isExternal={item.isExternal} />
 			{/if}
+		{/each}
+		</div>
+		<div class="navbar-end">
+		{#if CONTEXT.user.is_authenticated }
+		<div class="navbar-item is-right has-dropdown is-hoverable" style="border-top:none;">
+			<!-- svelte-ignore a11y-missing-attribute -->
+			<a class="navbar-link is-arrowless">
+				<span style="margin-right:5px">{CONTEXT.user.username}</span>
+				<img style="border-radius:5px" height=32 width=32 src={CONTEXT.user.image_url} />
+				<CaretDown />
+			</a>
+			<div class="navbar-dropdown">
+				<NavbarLink title="My Profile" href={CONTEXT.user.profile_url}/>
+				<NavbarLink title="Sign out" href={"/account/logout"}/>
+			</div>
 		</div>
 		{:else}
-		<OpenModalButton modalId="signin-modal" style="nav-link" icon="none">Sign in</OpenModalButton>
+		<div class="navbar-item is-right">
+			<OpenModalButton modalId="signin-modal" style="nav-link" icon="none">Sign in</OpenModalButton>
+		</div>
 		{/if}
+		</div>
 	</div>
 </nav>
 </IconContext>
-<style>
-nav {
-	display: flex;
-	height: 40px;
-	background:#123B4F;
-	box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
-    position: fixed;
-    top: 0;
-    right: 0;
-    left: 0;
-    z-index: 1030;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-	padding: 0px 10px;
-	color:white;
-	font-weight: 500;
-	overflow-x: auto;
-	border: none;
-	max-width: 100vw;
-}
-
-nav button {
-	color: white;
-	font-size: inherit;
-}
-
-nav button:hover {
-	color: #cecece;
-	cursor: pointer;
-}
-
-nav > div {
-	display: flex;
-	align-items: center;
-}
-
-nav > div > div {
-	padding: 4px;
-	white-space: nowrap;
-}
-
-.active button {
-	color: #cecece !important;
-}
-
-.dropdown-container button {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	background: none;
-	border: none;
-}
-
-@media (max-width: 760px) {
-	nav {
-		padding: 0px 5px;
-	}
-}
-
-</style>

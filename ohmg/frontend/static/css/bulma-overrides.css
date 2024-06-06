@@ -1,0 +1,46 @@
+:root {
+    --bulma-scheme-main: #123b4f;
+    --bulma-navbar-height: 45px;
+    --bulma-scheme-h: 200;
+    --bulma-scheme-s: 63%;
+    --bulma-scheme-l: 19%;
+    --bulma-navbar-h: 200;
+    --bulma-navbar-s: 63%;
+    --bulma-navbar-l: 19%;
+    --bulma-navbar-dropdown-item-h: 200;
+    --bulma-navbar-dropdown-item-s: 63%;
+    --bulma-navbar-dropdown-item-l: 19%;
+    --bulma-navbar-item-background-l: 19%;
+    --bulma-text-color: #333333;
+    --bulma-strong-color: #333333;
+}
+
+.navbar-dropdown a.navbar-item {
+    background-color: var(--bulma-scheme-main)
+}
+
+.navbar-dropdown a.navbar-item:not(.is-active, .is-selected) {
+    background-color: var(--bulma-scheme-main);
+    color: white;
+}
+
+a.navbar-item, a.navbar-link {
+    color: white;
+}
+
+nav.navbar {
+    height: var(--bulma-navbar-height);
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    color: white;
+}
+
+
+.navbar-burger > span{
+    background-color: white;
+}
+.navbar-dropdown {
+    background-color: #123b4f;
+}
