@@ -1,9 +1,6 @@
 <script>
 	import SvelteMarkdown from 'svelte-markdown'
 
-	import IconContext from 'phosphor-svelte/lib/IconContext';
-	import { iconProps } from "@lib/utils";
-
 	import Link from '@components/base/Link.svelte';
 	import SVGIcon from '@components/base/SVGIcon.svelte';
 	import MapBrowse from '@components/interfaces/MapBrowse.svelte';
@@ -23,7 +20,7 @@
 	const urlSegs = window.location.href.split('/')
 
 </script>
-<IconContext values={iconProps}>
+
 <main>
 	<div>
 		<h1>OldInsuranceMaps.net</h1>
@@ -144,7 +141,6 @@ To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
 		</div>
 	</div>
 </main>
-</IconContext>
 
 <style>
 

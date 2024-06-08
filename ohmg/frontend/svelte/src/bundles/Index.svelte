@@ -1,5 +1,4 @@
 <script>
-    import IconContext from 'phosphor-svelte/lib/IconContext';
     import '@src/css/shared.css'
     import Browse from '@components/overviews/Browse.svelte'
     import Home from '@components/Home.svelte'
@@ -17,7 +16,6 @@
 
 </script>
 
-<IconContext values={{ weight:'bold'}} >
 {#if PAGE_NAME == 'home'}
 <Home 
     {CONTEXT}
@@ -53,4 +51,3 @@
     HEADER={PARAMS.HEADER}
     source={PARAMS.source} />
 {/if}
-</IconContext>

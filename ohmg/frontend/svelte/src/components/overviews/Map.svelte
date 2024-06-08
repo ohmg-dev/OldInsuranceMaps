@@ -1,10 +1,11 @@
 <script>
 import { slide } from 'svelte/transition';
 
-import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps, makeTitilerXYZUrl } from "@lib/utils"
+import { makeTitilerXYZUrl } from "@lib/utils"
 
 import ArrowRight from "phosphor-svelte/lib/ArrowRight";
+import Question from "phosphor-svelte/lib/Question";
+import Wrench from "phosphor-svelte/lib/Wrench";
 
 import {getCenter} from 'ol/extent';
 
@@ -22,8 +23,6 @@ import MultiMaskModal from './modals/MultiMaskModal.svelte'
 import NonMapContentModal from './modals/NonMapContentModal.svelte'
 import GeoreferencePermissionsModal from './modals/GeoreferencePermissionsModal.svelte'
 
-import IconButton from "@components/base/IconButton.svelte";
-import OpenModalButton from '@components/base/OpenModalButton.svelte';
 import Modal, {getModal} from '@components/base/Modal.svelte';
 
 import MapPreview from "@components/interfaces/MapPreview.svelte";
@@ -262,7 +261,6 @@ let modalLyrUrl = "";
 let modalExtent = []
 
 </script>
-<IconContext values={iconProps}>
 <MapPreviewModal id={"modal-preview-map"} placeName={VOLUME.locale.display_name} viewerUrl={VOLUME.urls.viewer}/>
 <GeoreferenceOverviewModal id={"modal-georeference-overview"} />
 <UnpreparedSectionModal id={'modal-unprepared'} />
@@ -318,7 +316,7 @@ let modalExtent = []
 				<ConditionalDoubleChevron down={sectionVis['preview']} size="md"/>
 				<a id="preview"><h2>Mosaic Preview ({VOLUME.items.layers.length} layers)</h2></a>
 			</button>
-			<OpenModalButton modalId="modal-preview-map" />
+			<button class="is-icon-link" on:click={() => {getModal('modal-preview-map').open()}} ><Question /></button>
 		</div>
 		{#if sectionVis['preview']}
 		<div class="section-content" transition:slide>
@@ -341,15 +339,9 @@ let modalExtent = []
 			{/if}
 			<div style="display:flex; align-items:center;">
 				{#if CONTEXT.user.is_authenticated}
-				<IconButton style="lite" icon="wrench" action={() => {postOperation("refresh-lookups")}} title="Regenerate summary (may take a moment)" />
+				<button class="is-icon-link" on:click={() => {postOperation("refresh-lookups")}} title="Regenerate summary (may take a moment)"><Wrench /></button>
 				{/if}
-				
-				<!-- {#if userCanEdit}
-				<OpenModalButton icon="lock-open" modalId="modal-permissions" />
-				{:else}
-				<OpenModalButton icon="lock" modalId="modal-permissions" />
-				{/if} -->
-				<OpenModalButton modalId="modal-georeference-overview" />
+				<button class="is-icon-link" on:click={() => {getModal('modal-georeference-overview').open()}} ><Question /></button>
 			</div>
 		</div>
 		<div>
@@ -386,10 +378,7 @@ let modalExtent = []
 							</h3>
 						</a>
 					</button>
-					<div class="button-list">
-						<OpenModalButton modalId="modal-unprepared" />
-						<!-- <IconButton style="lite" icon="link" action={() => {setHash("unprepared")}} title="Link to this section" /> -->
-					</div>
+					<button class="is-icon-link" on:click={() => {getModal('modal-unprepared').open()}} ><Question /></button>
 				</div>
 				{#if sectionVis['unprepared']}
 				<div transition:slide>
@@ -439,7 +428,7 @@ let modalExtent = []
 							{/if}
 						</h3></a>
 					</button>
-					<OpenModalButton modalId="modal-prepared" />
+					<button class="is-icon-link" on:click={() => {getModal('modal-prepared').open()}} ><Question /></button>
 				</div>
 				{#if sectionVis['prepared']}
 				<div transition:slide>
@@ -485,7 +474,7 @@ let modalExtent = []
 						<ConditionalDoubleChevron down={sectionVis['georeferenced']} size="md" />
 						<a id="georeferenced"><h3>Georeferenced ({VOLUME.items.layers.length})</h3></a>
 					</button>
-					<OpenModalButton modalId="modal-georeferenced" />
+					<button class="is-icon-link" on:click={() => {getModal('modal-georeferenced').open()}} ><Question /></button>
 				</div>
 				{#if sectionVis['georeferenced']}
 				<div transition:slide>
@@ -561,7 +550,7 @@ let modalExtent = []
 						<ConditionalDoubleChevron down={sectionVis['nonmaps']} size="md" />
 						<a id="georeferenced"><h3>Non-Map Content ({VOLUME.items.nonmaps.length})</h3></a>
 					</button>
-					<OpenModalButton modalId="modal-non-map" />
+					<button class="is-icon-link" on:click={() => {getModal('modal-non-map').open()}} ><Question /></button>
 				</div>
 				{#if sectionVis['nonmaps']}
 				<div transition:slide>
@@ -603,7 +592,7 @@ let modalExtent = []
 				<ConditionalDoubleChevron down={sectionVis['multimask']} size="md" />
 				<a id="multimask"><h2>MultiMask</h2></a>
 			</button>
-			<OpenModalButton modalId="modal-multimask" />
+			<button class="is-icon-link" on:click={() => {getModal('modal-multimask').open()}} ><Question /></button>
 		</div>
 		{#if sectionVis['multimask']}
 		<div transition:slide>
@@ -637,7 +626,6 @@ let modalExtent = []
 		{/if}
 	</section>
 </main>
-</IconContext>
 
 <style>
 

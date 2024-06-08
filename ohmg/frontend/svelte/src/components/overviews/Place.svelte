@@ -3,9 +3,6 @@
 	import PlaceBreadcrumbsSelect from '@components/layout/PlaceBreadcrumbsSelect.svelte';
 	import Maps from '@components/lists/Maps.svelte';
 
-	import IconContext from 'phosphor-svelte/lib/IconContext';
-	import { iconProps } from "@lib/utils"
-
 export let CONTEXT;
 export let PLACE;
 
@@ -39,7 +36,6 @@ $: VIEWER_LINK = PLACE.volumes.length > 0 ? `/viewer/${PLACE.slug}/` : '';
 
 </script>
 
-<IconContext values={iconProps} >
 <PlaceBreadcrumbsSelect bind:PLACE {update} />
 <TitleBar TITLE={PLACE.display_name} {VIEWER_LINK}/>
 
@@ -84,7 +80,6 @@ $: VIEWER_LINK = PLACE.volumes.length > 0 ? `/viewer/${PLACE.slug}/` : '';
 		{/key}
 	</div>
 </div>
-</IconContext>
 
 <style>
 button {

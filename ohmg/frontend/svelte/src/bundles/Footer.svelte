@@ -1,91 +1,8 @@
-<script>
-	import IconContext from 'phosphor-svelte/lib/IconContext';
-	import Link from "@components/base/Link.svelte";
-	import { iconProps } from "@lib/utils"
-
-	const linkSets =[
-		{
-			"header": "Content",
-			"links": [
-				{
-					"title": "Search Maps",
-					"href": "/browse",
-					"external": false,
-				},
-				{
-					"title": "Contributors",
-					"href": "/profiles",
-					"external": false,
-				},
-				{
-					"title": "GitHub",
-					"href": "https://github.com/mradamcox/ohmg",
-					"external": true,
-				},
-			]
-		},
-		{
-			"header": "Learn More",
-			"links": [
-				{
-					"title": "FAQ",
-					"href": "/faq",
-					"external": false,
-				},
-				{
-					"title": "About Sanborn Maps",
-					"href": "/about-sanborn-maps",
-					"external": false,
-				},
-				{
-					"title": "Documentation",
-					"href": "https://docs.oldinsurancemaps.net",
-					"external": true,
-				},
-			]
-		},
-		{
-			"header": "News & Updates",
-			"links": [
-				{
-					"title": "FAQ",
-					"href": "/faq",
-					"external": false,
-				},
-				{
-					"title": "Contact",
-					"href": "/contact",
-					"external": false,
-				},
-				{
-					"title": "Blog",
-					"href": "https://ohmg.dev/blog",
-					"external": true,
-				},
-			]
-		},
-	]
-</script>
-
-<IconContext values={iconProps} >
-<footer class="lahmg-footer">
-	<div class="main-row">
-		{#each linkSets as set}
-		<div>
-			<h4>{set.header}</h4>
-			<ul>
-				{#each set.links as link}
-				<li><Link href={link.href} classes={["white"]} title={link.title} external={link.external}>{link.title}</Link></li>
-				{/each}
-			</ul>
-		</div>
-		{/each}
-	</div>
-	<div style="color:lightgrey; text-align:right;">
-		Copyright © 2024
+<footer>
+	<div class="content has-text-centered">
+		<a href="https://about.oldinsurancemaps.net/background">Project background</a> | <a href="https://github.com/ohmg-dev/OldInsuranceMaps">Source code (GNU GPL v3)</a>
 	</div>
 </footer>
-</IconContext>
 <style>
 	footer {
 		display: flex;
@@ -94,26 +11,15 @@
 		color: white;
 		padding: 15px;
 		font-weight: 500;
-		min-height: 190px;
-	}
-	.main-row {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-around;
-	}	
-	footer > div {
-		margin: 0px 10px;
+		min-height: 60px;
 	}
 
-	ul {
-		padding: 0;
-		margin: 0;
-		list-style: none;
+	footer .content {
+		font-size: .95em;
 	}
-	
-	@media only screen and (max-width: 480px) {
-		.main-row {
-			flex-direction: column;
-		}
+
+	footer a {
+		color: white;
+		text-decoration: underline;
 	}
 </style>

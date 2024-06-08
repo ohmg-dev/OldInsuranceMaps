@@ -1,10 +1,6 @@
 <script>
 import {onMount} from 'svelte';
 
-import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps } from "@lib/utils"
-
-import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
 import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
 import Scissors from "phosphor-svelte/lib/Scissors";
 import ArrowCounterClockwise from "phosphor-svelte/lib/ArrowCounterClockwise";
@@ -40,6 +36,7 @@ import LineString from 'ol/geom/LineString';
 import Styles from '@lib/ol-styles';
 
 import Modal, {getModal} from '@components/base/Modal.svelte';
+import ToolUIButton from '@components/base/ToolUIButton.svelte';
 
 const styles = new Styles();
 
@@ -355,7 +352,7 @@ function cleanup () {
 
 </script>
 <svelte:window on:keydown={handleKeydown} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
-<IconContext values={iconProps}>
+
 <Modal id="modal-expiration">
   <p>This preparation session is expiring, and will be cancelled soon.</p>
   <button on:click={() => {
@@ -423,18 +420,18 @@ function cleanup () {
     </div>
     
     <div class="control-btn-group">
-      <button class="control-btn tool-ui" title="Run split operation" disabled={divisions.length<=1 || !enableButtons} on:click={() => {process("split")}}>
+      <ToolUIButton action={() => {process("split")}} title="Run split operation" disabled={divisions.length<=1 || !enableButtons}>
         <Scissors />
-      </button>
-      <button class="control-btn tool-ui" title="No split needed" disabled={divisions.length>0 || !enableButtons} on:click={() => {process("no_split")}}>
+      </ToolUIButton>
+      <ToolUIButton action={() => {process("no_split")}} title="No split needed" disabled={divisions.length>0 || !enableButtons}>
         <CheckSquareOffset />
-      </button>
-      <button class="control-btn tool-ui" title="Cancel this preparation" disabled={session_id == null || !enableButtons} on:click={() => { getModal('modal-cancel').open() }}>
+      </ToolUIButton>
+      <ToolUIButton action={() => { getModal('modal-cancel').open() }} title="Cancel this preparation" disabled={session_id == null || !enableButtons}>
         <X />
-      </button>
-      <button class="control-btn tool-ui" title="Reset interface" disabled={unchanged} on:click={resetInterface}>
+      </ToolUIButton>
+      <ToolUIButton action={resetInterface} title="Reset interface" disabled={unchanged}>
         <ArrowCounterClockwise />
-      </button>
+      </ToolUIButton>
       <ExpandElement elementId="map-container" maps={[docViewMap]} />
     </div>
   </nav>
@@ -442,4 +439,3 @@ function cleanup () {
       <div id="doc-viewer" class="map-item rounded-bottom"></div>
   </div>
 </div>
-</IconContext>

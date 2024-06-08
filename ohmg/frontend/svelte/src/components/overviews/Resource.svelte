@@ -1,9 +1,6 @@
 <script>
 import { slide } from 'svelte/transition';
 
-import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps } from "@lib/utils"
-
 import Scissors from "phosphor-svelte/lib/Scissors";
 import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
 import ArrowCounterClockwise from "phosphor-svelte/lib/ArrowCounterClockwise";
@@ -20,6 +17,7 @@ import TitleBar from '@components/layout/TitleBar.svelte';
 import SessionList from '@components/lists/SessionList.svelte';
 import SimpleViewer from '@components/interfaces/SimpleViewer.svelte';
 import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
+import ToolUIButton from '@components/base/ToolUIButton.svelte';
 
 import ResourceDetails from './sections/ResourceDetails.svelte';
 
@@ -34,11 +32,11 @@ export let GEOREFERENCE_SUMMARY;
 const EXTENT = RESOURCE.type == "layer" ? RESOURCE.extent : [0, -RESOURCE.image_size[1], RESOURCE.image_size[0], 0]
 const LAYER_URL = RESOURCE.type == "layer" ? RESOURCE.urls.cog : RESOURCE.urls.image
 
-let xyzUrl;
-let ohmUrl;
 let ll;
 let doubleEncodedXYZUrl;
 let viewerUrl;
+let xyzUrl;
+let ohmUrl;
 if (RESOURCE.type == "layer") {
   xyzUrl = makeTitilerXYZUrl({
     host: CONTEXT.titiler_host,
@@ -214,7 +212,6 @@ function goToDocument() {
 }
 </script>
 
-<IconContext values={iconProps}>
 <main>
   <section class="breadcrumbs">
 		{#each VOLUME.locale.breadcrumbs as bc, n}
@@ -266,28 +263,29 @@ function goToDocument() {
     {#if sectionVis['prep']}
     <div transition:slide>
       <div class="control-btn-group">
-        <button
+        <ToolUIButton
+          onlyIcon={false}
           title="Split this document"
           disabled={!splitBtnEnabled}
-          onclick="window.location.href='{RESOURCE.urls.split}'"
-          class="control-btn{splitNeeded == true ? ' btn-chosen': ''}">
+          action={() => {window.location.href='{RESOURCE.urls.split}'}}>
+          <!-- class="control-btn{splitNeeded == true ? ' btn-chosen': ''}"> -->
           <Scissors /> Split
-        </button>
-        <button
+        </ToolUIButton>
+        <ToolUIButton
+          onlyIcon={false}
           title="This document does not need to be split"
           disabled={!noSplitBtnEnabled}
-          on:click={() => {setSplit("no_split")}}
-          class="control-btn{splitNeeded == false ? ' btn-chosen': ''}">
+          action={() => {setSplit("no_split")}}>
+          <!-- class="control-btn{splitNeeded == false ? ' btn-chosen': ''}"> -->
           <CheckSquareOffset /> No split needed
-        </button>
+        </ToolUIButton>
         {#if CONTEXT.user.is_authenticated}
-        <button 
-          class="control-btn"
+        <ToolUIButton
           title={undoBtnTitle}
           disabled={!undoBtnEnabled}
-          on:click={() => {setSplit("undo")}}>
+          action={() => {setSplit("undo")}}>
           <ArrowCounterClockwise />
-        </button>
+        </ToolUIButton>
         {/if}
       </div>
       <div class="section-body">
@@ -338,21 +336,20 @@ function goToDocument() {
     {#if sectionVis['georef']}
     <div transition:slide>
       <div class="control-btn-group">
-        <button 
-          class="control-btn"
+        <ToolUIButton
+          onlyIcon= {false}
           title={georeferenceBtnTitle}
           disabled={!georeferenceBtnEnable}
-          onclick="window.location.href='{RESOURCE.urls.georeference}'">
+          action={() => {window.location.href=RESOURCE.urls.georeference}}>
           <MapPin />{georeferenceBtnTitle}
-        </button>
+        </ToolUIButton>
         {#if CONTEXT.user.is_authenticated && CONTEXT.user.is_staff}
-        <button
-          class="control-btn"
+        <ToolUIButton
           title="Remove all georeferencing for this resource"
           disabled={RESOURCE.status != "georeferenced"}
-          on:click={unGeoreference}>
+          action={unGeoreference}>
           <Trash />
-        </button>
+        </ToolUIButton>
         {/if}
       </div>
       <div class="section-body">
@@ -395,7 +392,6 @@ function goToDocument() {
     {/if}
   </section>
 </main>
-</IconContext>
 
 <style>
 

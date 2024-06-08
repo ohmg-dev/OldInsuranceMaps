@@ -1,10 +1,9 @@
 <script>
-	import IconContext from 'phosphor-svelte/lib/IconContext';
 	import CaretDown from "phosphor-svelte/lib/CaretDown";
-	import { iconProps } from "@lib/utils"
 
-	import OpenModalButton from '@components/base/OpenModalButton.svelte';
-    import NavbarLink from '../components/layout/NavbarLink.svelte';
+	import SigninModal from "@components/layout/SigninModal.svelte";
+	import {getModal} from "@components/base/Modal.svelte"
+    import NavbarLink from '@components/layout/NavbarLink.svelte';
 
 	export let CONTEXT;
 
@@ -98,7 +97,7 @@
 	function toggleMenu() {document.getElementsByClassName('navbar-menu')[0].classList.toggle('is-active')}
 </script>
 
-<IconContext values={iconProps}>
+<SigninModal csrfToken={CONTEXT.csrf_token} />
 <nav class="navbar" aria-label="main navigation">
 	<div class="navbar-brand">
 		<a class="navbar-item" href="/">
@@ -150,10 +149,9 @@
 		</div>
 		{:else}
 		<div class="navbar-item is-right">
-			<OpenModalButton modalId="signin-modal" style="nav-link" icon="none">Sign in</OpenModalButton>
+			<button class="button is-primary" on:click={() => {getModal('signin-modal').open()}}>Sign in</button>
 		</div>
 		{/if}
 		</div>
 	</div>
 </nav>
-</IconContext>

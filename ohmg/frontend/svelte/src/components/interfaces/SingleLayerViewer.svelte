@@ -1,7 +1,6 @@
 <script>
     import {onMount} from 'svelte';
 
-    import IconContext from 'phosphor-svelte/lib/IconContext';
     import CornersOut from "phosphor-svelte/lib/CornersOut";
 
     import 'ol/ol.css';
@@ -11,15 +10,11 @@
     
     import {transformExtent} from 'ol/proj';
 
-    import MousePosition from 'ol/control/MousePosition';
-    import {createStringXY} from 'ol/coordinate';
-
     import {XYZ} from 'ol/source';
     import {Tile as TileLayer} from 'ol/layer';
     
     import '@src/css/ol-overrides.css';
     import {
-        iconProps,
         makeTitilerXYZUrl,
         makeBasemaps,
     } from '@lib/utils';
@@ -80,7 +75,7 @@
         viewer = new Viewer('lyr-viewer');
     })
 </script>
-<IconContext values={iconProps}>
+
 <div style="height:100%;">
     <div id="lyr-viewer">
         <i id='extent-icon-lyr'><CornersOut size={'20px'} /></i>
@@ -92,7 +87,6 @@
         </div>
     </div>
 </div>
-</IconContext>
 
 <style>
     #lyr-viewer {

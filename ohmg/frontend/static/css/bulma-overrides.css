@@ -1,5 +1,6 @@
 :root {
     --bulma-scheme-main: #123b4f;
+    --bulma-scheme-main-bis: #123b4f;
     --bulma-navbar-height: 45px;
     --bulma-scheme-h: 200;
     --bulma-scheme-s: 63%;
@@ -49,7 +50,37 @@ nav.navbar {
     background-color: var(--bulma-scheme-main);
 }
 
+button[disabled].button {
+    cursor: default;
+}
+
+button.button.is-icon {
+    box-shadow:
+        inset 1px 1px 1px 1px rgb(234, 234, 234),
+        inset -1px -1px 1px 1px rgb(145, 145, 145);
+}
+
+button.button.is-icon:disabled {
+    box-shadow:
+        inset 1px 1px 1px 1px rgb(234, 234, 234),
+        inset -1px -1px 1px 1px rgb(145, 145, 145);
+}
+
+button.button.is-icon:active {
+    box-shadow:
+        inset 1px 1px 1px 1px rgb(145, 145, 145),
+        inset -1px -1px 1px 1px rgb(234, 234, 234);
+}
+
+/* button.button:active {
+    box-shadow: inset 0px 0px 3px rgba(200, 200, 200, 0.75);
+} */
+
 button.button.is-primary {
     color: white;
     /* background-color: var(--bulma-scheme-main); */
+}
+
+button.button > span.icon > svg {
+    font-size: 2em;
 }
