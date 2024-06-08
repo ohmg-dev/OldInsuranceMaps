@@ -104,7 +104,7 @@
 		<img style="height:30px; width:30px;" src="/static/img/colored-full-linework.png" alt="OldInsuranceMaps.net Home">
 		</a>
 
-		<button class="navbar-burger" on:click={() => {toggleBurger(); toggleMenu()}} aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+		<button class="navbar-burger" on:click={() => {toggleBurger(); toggleMenu()}} aria-label="menu" aria-expanded="false" data-target="top-navbar">
 		<span aria-hidden="true"></span>
 		<span aria-hidden="true"></span>
 		<span aria-hidden="true"></span>
@@ -112,7 +112,7 @@
 		</button>
 	</div>
 
-	<div id="navbarBasicExample" class="navbar-menu">
+	<div id="top-navbar" class="navbar-menu" style="max-height: calc(100vh - 45px); overflow-y:auto;">
 		<div class="navbar-start">
 		{#each leftMenu as item}
 			{#if item.hasDropdown}

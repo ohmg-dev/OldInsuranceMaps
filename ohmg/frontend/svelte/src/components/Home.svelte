@@ -24,7 +24,7 @@
 <main>
 	<div>
 		<h1>OldInsuranceMaps.net</h1>
-		<p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. See <Link href="/#how-it-works">how it works</Link> or visit the <Link href="/about?utm_source=hero" external={true}>about</Link> or <Link href="/faq?utm_source=hero">FAQ</Link> pages to learn more.</p>
+		<p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. See <Link href="/#how-it-works">how it works</Link> or visit the <Link href="https://about.oldinsurancemaps.net?utm_source=hero" external={true}>about</Link> or <Link href="https://about.oldinsurancemaps.net/faq?utm_source=hero">FAQ</Link> pages to learn more.</p>
 	</div>
 
 	<div class="hero-banner2 img-bg-3">
