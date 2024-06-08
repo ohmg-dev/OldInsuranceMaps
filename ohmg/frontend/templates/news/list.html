@@ -29,7 +29,7 @@
             <label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe to the newsletter:</label>
             {% if USER_SUBSCRIBED %}
             <input type="email" name="email_field" required="" id="id_email_field" value="{{ user.email }}" disabled>
-            <a href="/newsletter/{NEWSLETTER_SLUG}?utm_source=index">Manage my subscription</a>
+            <a href="/newsletter/{{ NEWSLETTER_SLUG }}?utm_source=index">Manage my subscription</a>
             {% else %}
             <input type="email" name="email_field" required="" id="id_email_field" placeholder="enter your email address">
             <button class="button is-small is-primary" id="id_submit" name="submit" value="Subscribe" type="submit">Subscribe</button>
