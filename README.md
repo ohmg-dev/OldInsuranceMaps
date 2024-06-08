@@ -5,7 +5,7 @@ OHMG is a web application that facilitates public participation in the process o
 At present, the system is structured around the Sanborn Map Collection at the Library of Congress ([loc.gov/collections/sanborn-maps](https://loc.gov/collections/sanborn-maps)). More generic ingestion methods are in the works.
 
 - **Implementation:** [oldinsurancemaps.net](https://oldinsurancemaps.net)
-- **Documentation:** [docs.oldinsurancemaps.net](https://docs.oldinsurancemaps.net)
+- **Documentation:** [about.oldinsurancemaps.net](https://about.oldinsurancemaps.net)
 
 ---
 

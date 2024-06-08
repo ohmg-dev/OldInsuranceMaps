@@ -25,7 +25,6 @@ urlpatterns = [
 ]
 
 if settings.ENABLE_NEWSLETTER:
-    print('enabled??/')
     from ohmg.frontend.views import NewsList, NewsArticle
     urlpatterns += [
         path('news/', NewsList.as_view(), name="news"),

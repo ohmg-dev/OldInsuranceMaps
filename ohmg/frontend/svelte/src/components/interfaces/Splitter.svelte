@@ -382,7 +382,7 @@ function cleanup () {
     }>No - keep working</button>
 </Modal>
 
-<p>{currentTxt} <Link href="https://docs.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link></p>
+<p>{currentTxt} <Link href="https://about.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link></p>
 <div id="map-container" class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">

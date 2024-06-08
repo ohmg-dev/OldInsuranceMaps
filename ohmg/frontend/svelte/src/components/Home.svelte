@@ -117,7 +117,7 @@
 						Finally, all volume mosaics for a given locale are automatically aggregated into a simple web viewer so you can easily compare different years and current maps (<Link href="/viewer/baton-rouge-la?utm_source=index">Baton Rouge viewer</Link>).
 					</p>
 				</div>
-				<h4>Want to learn more? Visit the <Link href="https://docs.oldinsurancemaps.net?utm_source=index" external={true}>documentation site</Link>.</h4>
+				<h4>Want to learn more? Visit the <Link href="https://about.oldinsurancemaps.net?utm_source=index" external={true}>documentation site</Link>.</h4>
 			</div>
 		</div>
 	</div>

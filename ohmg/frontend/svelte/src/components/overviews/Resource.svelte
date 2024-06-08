@@ -400,11 +400,6 @@ function goToDocument() {
   height: 500px;
 }
 
-.btn-chosen {
-  border: 2px solid #2c2c2c;
-  border-radius: 4px;
-}
-
 section {
 	border-bottom: 1px solid rgb(149, 149, 149);
 }

@@ -480,19 +480,22 @@ let modalExtent = []
 				<div transition:slide>
 					<div style="margin: 10px 0px;">
 						{#if VOLUME.items.layers.length > 0 && !classifyingLayers}
-						<button on:click={() => classifyingLayers = !classifyingLayers}
+						<button class="button is-primary"
+							on:click={() => classifyingLayers = !classifyingLayers}
 							disabled={!CONTEXT.user.is_authenticated}
 							title={!CONTEXT.user.is_authenticated ? 'You must be signed in to classify layers' : 'Click to enable layer classification'}
 							>Classify Layers</button>
 						{/if}
 						{#if classifyingLayers}
-						<button disabled={Object.keys(annotationsToUpdate).length === 0} on:click={() => {
+						<button class="button is-success"
+							disabled={Object.keys(annotationsToUpdate).length === 0} on:click={() => {
 							updateAnnotationSets();
 							classifyingLayers = false;
 							annotationsToUpdate = {};
 							reinitMultimask();
 						}}>Save</button>
-						<button on:click={() => {
+						<button class="button is-danger"
+							on:click={() => {
 							classifyingLayers = false;
 							annotationsToUpdate = {};
 							Object.keys(origLayerAnnotationLookup).forEach(function(k) {layerAnnotationLookup[k] = origLayerAnnotationLookup[k]})
@@ -703,11 +706,6 @@ button:disabled {
 	flex-direction:row;
 	justify-content:space-between;
 	align-items:center;
-}
-
-.button-list {
-	display:flex;
-	flex-direction:row;
 }
 
 .documents-column {
