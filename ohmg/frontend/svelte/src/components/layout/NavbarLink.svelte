@@ -7,11 +7,11 @@
 </script>
 
 {#if isExternal}
-<a class="navbar-item" href={href}>
+<a class="navbar-item" href={href} target="_blank">
     <span style="margin-right:5px;">{title}</span><ArrowSquareOut />
 </a>
 {:else}
-<a class="navbar-item" href={href} target="_blank">
+<a class="navbar-item" href={href}>
     {title}
 </a>
 {/if}

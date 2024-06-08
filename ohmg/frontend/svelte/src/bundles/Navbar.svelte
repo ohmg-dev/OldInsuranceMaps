@@ -19,7 +19,7 @@
 			links: [
 				{
 					title: "Latest Activity",
-					href: "/search",
+					href: "/activity",
 				},
 				{
 					title: "Contributors",
@@ -32,7 +32,7 @@
 				},
 				{
 					title: "Find a map...",
-					href: "/browse#items",
+					href: "/search#items",
 				},
 			]
 		},

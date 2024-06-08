@@ -7,8 +7,6 @@ from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
-from newsletter.models import Submission, Message
-
 from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.core.utils import full_reverse
 from ohmg.georeference.models import Layer
@@ -20,26 +18,39 @@ from ohmg.places.models import Place
 
 
 if settings.ENABLE_NEWSLETTER:
-    from newsletter.models import Newsletter, Subscription
+    from newsletter.models import (
+        Newsletter,
+        Subscription,
+        Submission,
+        Message,
+    )
 
 logger = logging.getLogger(__name__)
+
+def newsletter_context(request):
+
+    newsletter_slug = None
+    user_subscribed = False
+    newsletter = None
+    if Newsletter.objects.all().exists():
+        newsletter = Newsletter.objects.all()[0]
+        newsletter_slug = newsletter.slug
+    if newsletter is not None and request.user.is_authenticated:
+        user_subscription = Subscription.objects.filter(newsletter=newsletter, user=request.user)
+        if user_subscription.exists() and user_subscription[0].subscribed is True:
+            user_subscribed = True
+
+    return (newsletter_slug, user_subscribed)
 
 
 class HomePage(View):
 
     def get(self, request):
 
-        newsletter_slug = None
-        user_subscribed = None
         if settings.ENABLE_NEWSLETTER:
-            newsletter = None
-            if Newsletter.objects.all().exists():
-                newsletter = Newsletter.objects.all()[0]
-                newsletter_slug = newsletter.slug
-            if newsletter is not None and request.user.is_authenticated:
-                user_subscription = Subscription.objects.filter(newsletter=newsletter, user=request.user)
-                if user_subscription.exists() and user_subscription[0].subscribed is True:
-                    user_subscribed = True
+            newsletter_slug, user_subscribed = newsletter_context(request)
+        else:
+            newsletter_slug, user_subscribed = None, False
 
         context_dict = {
             "params": {
@@ -111,7 +122,7 @@ class MRMEndpointList(View):
     def get(self, request):
 
         output = {}
-        for lyr in Layer.objects.all().order_by("slug"):
+        for lyr in LayerV1.objects.all().order_by("slug"):
             output[lyr.slug] = get_layer_mrm_urls(lyr.slug)
 
         return JsonResponse(output)
@@ -123,7 +134,7 @@ class MRMEndpointLayer(View):
         if layerid.startswith("geonode:"):
             layerid = layerid.replace("geonode:", "")
 
-        layer = get_object_or_404(Layer, slug=layerid)
+        layer = get_object_or_404(LayerV1, slug=layerid)
         item = request.GET.get("resource", None)
 
         if item is None:
@@ -164,6 +175,8 @@ class NewsList(View):
 
     def get(self, request):
 
+        newsletter_slug, user_subscribed = newsletter_context(request)
+
         submissions = Submission.objects.filter(publish=True).order_by("-publish_date")
         for s in submissions:
             ## consider it a "newsletter" post if it's been sent to more than one subscription
@@ -174,7 +187,9 @@ class NewsList(View):
                 s.is_newsletter = False
 
         context_dict = {
-            "submissions": submissions
+            "submissions": submissions,
+            "NEWSLETTER_SLUG": newsletter_slug,
+            "USER_SUBSCRIBED": user_subscribed,
         }
 
         return render(

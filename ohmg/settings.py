@@ -163,7 +163,7 @@ else:
     EMAIL_BACKEND = os.getenv('DJANGO_EMAIL_BACKEND',
                               default='django.core.mail.backends.console.EmailBackend')
 
-ENABLE_NEWSLETTER = os.getenv("ENABLE_NEWSLETTER", False)
+ENABLE_NEWSLETTER = ast.literal_eval(os.getenv('ENABLE_NEWSLETTER', 'False'))
 if ENABLE_NEWSLETTER:
     INSTALLED_APPS += (
         'sorl.thumbnail',
