@@ -112,7 +112,7 @@
 		</button>
 	</div>
 
-	<div id="top-navbar" class="navbar-menu" style="max-height: calc(100vh - 45px); overflow-y:auto;">
+	<div id="top-navbar" class="navbar-menu">
 		<div class="navbar-start">
 		{#each leftMenu as item}
 			{#if item.hasDropdown}
@@ -155,3 +155,13 @@
 		</div>
 	</div>
 </nav>
+
+<style>
+
+@media (max-width: 1024px) {
+	.navbar-menu {
+		overflow-y: auto;
+		max-height: calc(100vh - 45px);
+	}
+}
+</style>
