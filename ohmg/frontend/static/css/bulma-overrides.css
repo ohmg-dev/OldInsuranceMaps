@@ -33,6 +33,13 @@ a.navbar-item, a.navbar-link {
     color: white;
 }
 
+/* seems like the delta-l strategy in Bulma isn't compatible with a lot of 
+browsers?? Pretty weird and annoying...
+Force hover color here to what it was supposed to be with the delta*/
+.navbar-link:hover, .navbar-item:hover {
+    background-color: #0d2b3a;
+}
+
 nav.navbar {
     height: var(--bulma-navbar-height);
     position: fixed;
