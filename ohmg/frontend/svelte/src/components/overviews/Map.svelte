@@ -345,21 +345,21 @@ let modalExtent = []
 			</div>
 		</div>
 		<div>
-			<div style="display:flex; justify-content:space-between; align-items:center;">
-				<div>
-					{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && userCanEdit && !sheetsLoading}
-						<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
+			<div style="display:flex; align-items:center;">
+				<span>
+					<em>
+					{#if sheetsLoading}
+					Loading sheet {VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
+					{:else if VOLUME.sheet_ct.loaded == 0}
+					No sheets loaded yet...
+					{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
+					{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
 					{/if}
-					<em><span>
-						{#if sheetsLoading}
-						Loading sheet {VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
-						{:else if VOLUME.sheet_ct.loaded == 0}
-						No sheets loaded yet...
-						{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
-						{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
-						{/if}
-					</span></em>
-				</div>
+					</em>
+				</span>
+				{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && userCanEdit && !sheetsLoading}
+					<button class="button is-primary is-small" style="margin-left:10px;" on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
+				{/if}
 			</div>
 			{#if !CONTEXT.user.is_authenticated}
 			<SigninReminder csrfToken={CONTEXT.csrf_token} />
