@@ -7,7 +7,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views import View
 
 from ohmg.georeference.models import (
-    Layer,
+    LayerV1,
     Document,
     ItemBase,
     SetCategory,
@@ -104,7 +104,7 @@ class VirtualResourceView(View):
         if resource.type == 'document':
             resource = Document.objects.get(pk=pk)
         elif resource.type == 'layer':
-            resource = Layer.objects.get(pk=pk)
+            resource = LayerV1.objects.get(pk=pk)
 
         split_summary = resource.get_split_summary()
         georeference_summary = resource.get_georeference_summary()

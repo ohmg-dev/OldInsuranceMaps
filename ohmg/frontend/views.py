@@ -11,7 +11,7 @@ from newsletter.models import Submission, Message
 
 from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.core.utils import full_reverse
-from ohmg.georeference.models import Layer
+from ohmg.georeference.models import LayerV1
 from ohmg.core.schemas import AnnotationSetSchema
 
 from ohmg.loc_insurancemaps.models import Volume
@@ -111,7 +111,7 @@ class MRMEndpointList(View):
     def get(self, request):
 
         output = {}
-        for lyr in Layer.objects.all().order_by("slug"):
+        for lyr in LayerV1.objects.all().order_by("slug"):
             output[lyr.slug] = get_layer_mrm_urls(lyr.slug)
 
         return JsonResponse(output)
@@ -123,7 +123,7 @@ class MRMEndpointLayer(View):
         if layerid.startswith("geonode:"):
             layerid = layerid.replace("geonode:", "")
 
-        layer = get_object_or_404(Layer, slug=layerid)
+        layer = get_object_or_404(LayerV1, slug=layerid)
         item = request.GET.get("resource", None)
 
         if item is None:

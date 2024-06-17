@@ -8,7 +8,7 @@ from ohmg.core.importers.loc_sanborn import import_volume
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.places.models import Place
 from ohmg.places.management.utils import reset_volume_counts
-from ohmg.georeference.models import ItemBase, Layer, DocumentLink
+from ohmg.georeference.models import ItemBase, LayerV1, DocumentLink
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -248,7 +248,7 @@ class Command(BaseCommand):
                 print(f'{v.identifier} - {v.__str__()}')
                 for i in v.layer_lookup.keys():
                     print(f'  {i}')
-                    ss = Layer.objects.filter(slug=i)
+                    ss = LayerV1.objects.filter(slug=i)
                     for s in ss:
                         latest_sesh = list(s.get_document().georeference_sessions)[-1]
                         print(f"  running session {latest_sesh.pk}")

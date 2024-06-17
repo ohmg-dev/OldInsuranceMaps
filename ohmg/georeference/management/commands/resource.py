@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError # noqa: F401
 
-from ohmg.georeference.models import Document, Layer
+from ohmg.georeference.models import Document, LayerV1
 from ohmg.core.renderers import generate_layer_thumbnail_content
 
 class Command(BaseCommand):
@@ -63,7 +63,7 @@ class Command(BaseCommand):
                 resource = Document.objects.get(pk=options['docid'])
                 sessions = resource.georeference_sessions
             elif options['lyrid']:
-                resource = Layer.objects.get(pk=options['lyrid'])
+                resource = LayerV1.objects.get(pk=options['lyrid'])
                 sessions = resource.get_document().georeference_sessions
             print(sessions)
             if sessions.exists():
@@ -71,7 +71,7 @@ class Command(BaseCommand):
 
         if op == "set-extent":
             if options['lyrid']:
-                lyr = Layer.objects.get(pk=options['lyrid'])
+                lyr = LayerV1.objects.get(pk=options['lyrid'])
                 lyr.save(set_extent=True)
 
         elif op == "thumbnail":
@@ -80,7 +80,7 @@ class Command(BaseCommand):
                 doc.save(set_thumbnail=True)
             
             elif options['lyrid']:
-                lyr = Layer.objects.get(pk=options['lyrid'])
+                lyr = LayerV1.objects.get(pk=options['lyrid'])
                 lyr.save(set_thumbnail=True)
             
             elif options['file']:

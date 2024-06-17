@@ -703,7 +703,7 @@ class Document(ItemBase):
             "session_data": session_data,
         }
 
-class Layer(ItemBase):
+class LayerV1(ItemBase):
 
     objects = LayerManager()
 
@@ -867,7 +867,7 @@ class AnnotationSet(models.Model):
     @property
     def annotations(self):
         if self.is_geospatial:
-            return Layer.objects.filter(vrs=self)
+            return LayerV1.objects.filter(vrs=self)
         else:
             return Document.objects.filter(vrs=self)
 
@@ -977,7 +977,7 @@ class AnnotationSet(models.Model):
 
             layer_name = feature['properties']['layer']
 
-            layer = Layer.objects.get(slug=layer_name)
+            layer = LayerV1.objects.get(slug=layer_name)
             if not layer.file:
                 raise Exception(f"no layer file for this layer {layer_name}")
 
@@ -1089,7 +1089,7 @@ class AnnotationSet(models.Model):
         for feature in multimask_geojson['features']:
 
             layer_name = feature['properties']['layer']
-            layer = Layer.objects.get(slug=layer_name)
+            layer = LayerV1.objects.get(slug=layer_name)
             if not layer.file:
                 logger.error(f"{self.vol.identifier} | no layer file for this layer {layer_name}")
                 raise Exception(f"no layer file for this layer {layer_name}")

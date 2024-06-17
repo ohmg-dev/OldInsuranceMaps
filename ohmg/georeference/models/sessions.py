@@ -12,7 +12,7 @@ from ohmg.georeference.models import (
     GCPGroup,
     ItemBase,
     Document,
-    Layer,
+    LayerV1,
     DocumentLink
 )
 from ohmg.georeference.georeferencer import Georeferencer
@@ -129,7 +129,7 @@ class SessionBase(models.Model):
         related_name="doc",
     )
     lyr = models.ForeignKey(
-        Layer,
+        LayerV1,
         models.SET_NULL,
         null=True,
         blank=True,
@@ -542,7 +542,7 @@ class GeorefSession(SessionBase):
         if layer is None:
             logger.debug("no existing layer, creating new layer now")
 
-            layer = Layer.objects.create(
+            layer = LayerV1.objects.create(
                 title = self.doc.title.replace(",", " -"),
                 owner = self.doc.owner,
             )

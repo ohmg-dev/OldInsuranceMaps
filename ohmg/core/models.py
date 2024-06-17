@@ -240,7 +240,7 @@ class Map(object):
 
     def layer_lookup_formatted(self):
         return format_json_display(self.layer_lookup)
-    layer_lookup_formatted.short_description = 'Layer Lookup'
+    layer_lookup_formatted.short_description = 'LayerV1 Lookup'
 
     def get_annotation_set(self, cat_slug:str, create:bool=False):
         from ohmg.georeference.models.resources import AnnotationSet, SetCategory
@@ -348,7 +348,7 @@ class Map(object):
     def refresh_lookups(self):
         """Clean and remake document_lookup and layer_lookup fields
         for this Volume by examining the original loaded Sheets and
-        re-evaluating every descendant Document and Layer.
+        re-evaluating every descendant Document and LayerV1.
         """
 
         if len(self.document_lookup) > 0 or len(self.layer_lookup) > 0:
@@ -392,13 +392,13 @@ class Map(object):
     def update_lyr_lookup(self, layer):
         """Serialize the input layer id (pk), and save it into
         this volume's lookup table."""
-        from ohmg.georeference.models.resources import Layer
+        from ohmg.georeference.models.resources import LayerV1
 
-        if isinstance(layer, Layer):
+        if isinstance(layer, LayerV1):
             data = layer.serialize(serialize_document=False, include_sessions=True)
         else:
             try:
-                data = Layer.objects.get(slug=layer).serialize(serialize_document=False, include_sessions=True)
+                data = LayerV1.objects.get(slug=layer).serialize(serialize_document=False, include_sessions=True)
             except Exception as e:
                 logger.warn(f"{e} | cannot update_lyr_lookup with this input: {layer} ({type(layer)}")
                 return

@@ -3,7 +3,7 @@ from django.contrib import admin
 from ohmg.georeference.models import (
     GCP,
     GCPGroup,
-    Layer,
+    LayerV1,
     Document,
     DocumentLink,
     PrepSession,
@@ -64,7 +64,7 @@ class LayerAdmin(admin.ModelAdmin):
     list_filter = ('lock_enabled', )
 
 admin.site.register(Document, DocumentAdmin)
-admin.site.register(Layer, LayerAdmin)
+admin.site.register(LayerV1, LayerAdmin)
 
 class DocumentLinkAdmin(admin.ModelAdmin):
     list_display = ['pk', 'source', 'target', 'link_type']

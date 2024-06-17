@@ -20,7 +20,7 @@ from django.urls import reverse
 
 from ohmg.georeference.models import (
     Document,
-    Layer,
+    LayerV1,
     PrepSession,
     GeorefSession,
     SetCategory,
@@ -43,7 +43,7 @@ def find_volume(item):
     volume, document = None, None
     if isinstance(item, Document):
         document = item
-    elif isinstance(item, Layer):
+    elif isinstance(item, LayerV1):
         document = item.get_document()
 
     if document is not None:
@@ -509,11 +509,11 @@ class Volume(models.Model):
         """Serialize the input layer id (pk), and save it into
         this volume's lookup table."""
 
-        if isinstance(layer, Layer):
+        if isinstance(layer, LayerV1):
             data = layer.serialize(serialize_document=False, include_sessions=True)
         else:
             try:
-                data = Layer.objects.get(slug=layer).serialize(serialize_document=False, include_sessions=True)
+                data = LayerV1.objects.get(slug=layer).serialize(serialize_document=False, include_sessions=True)
             except Exception as e:
                 logger.warn(f"{e} | cannot update_lyr_lookup with this input: {layer} ({type(layer)}")
                 return
