@@ -5,8 +5,8 @@ from .resources import LayerV1
 from .resources import GCP
 from .resources import GCPGroup
 from .resources import DocumentLink
-from .resources import AnnotationSet
-from .resources import SetCategory
+from .resources import LayerSet
+from .resources import LayerSetCategory
 
 from .sessions import SessionBase
 from .sessions import PrepSession

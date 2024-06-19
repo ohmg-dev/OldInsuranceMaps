@@ -354,7 +354,7 @@ class ItemBase(models.Model):
         blank=True,
     )
     vrs = models.ForeignKey(
-        "georeference.AnnotationSet",
+        "georeference.LayerSet",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -806,7 +806,7 @@ class DocumentLink(models.Model):
         return f"{self.source} --> {self.target}"
 
 
-class SetCategory(models.Model):
+class LayerSetCategory(models.Model):
 
     class Meta:
         verbose_name_plural = "Set Categories"
@@ -819,14 +819,14 @@ class SetCategory(models.Model):
     def __str__(self):
         return self.display_name if self.display_name else self.slug
 
-class AnnotationSet(models.Model):
+class LayerSet(models.Model):
 
     volume = models.ForeignKey(
         "loc_insurancemaps.Volume",
         on_delete=models.CASCADE,
     )
     category = models.ForeignKey(
-        SetCategory,
+        LayerSetCategory,
         on_delete=models.PROTECT,
         blank=True,
         null=True,

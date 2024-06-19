@@ -243,24 +243,24 @@ class Map(object):
     layer_lookup_formatted.short_description = 'LayerV1 Lookup'
 
     def get_annotation_set(self, cat_slug:str, create:bool=False):
-        from ohmg.georeference.models.resources import AnnotationSet, SetCategory
+        from ohmg.georeference.models.resources import LayerSet, LayerSetCategory
         try:
-            annoset = AnnotationSet.objects.get(volume=self, category__slug=cat_slug)
-        except AnnotationSet.DoesNotExist:
+            annoset = LayerSet.objects.get(volume=self, category__slug=cat_slug)
+        except LayerSet.DoesNotExist:
             if create:
-                category = SetCategory.objects.get(slug=cat_slug)
-                annoset = AnnotationSet.objects.create(
+                category = LayerSetCategory.objects.get(slug=cat_slug)
+                annoset = LayerSet.objects.create(
                     volume=self,
                     category=category
                 )
-                logger.debug(f"created new AnnotationSet: {self.pk} - {cat_slug}")
+                logger.debug(f"created new LayerSet: {self.pk} - {cat_slug}")
             else:
                 annoset = None
         return annoset
 
     def get_annotation_sets(self, geospatial:bool=False):
-        from ohmg.georeference.models.resources import AnnotationSet
-        sets = AnnotationSet.objects.filter(volume=self)
+        from ohmg.georeference.models.resources import LayerSet
+        sets = LayerSet.objects.filter(volume=self)
         if geospatial:
             sets = sets.filter(category__is_geospatial=True)
         return sets

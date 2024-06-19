@@ -222,7 +222,7 @@ class LayerAnnotationSchema(Schema):
         return obj.title.split("|")[-1].split("p")[1]
 
 
-class AnnotationSetSchema(Schema):
+class LayerSetSchema(Schema):
 
     id: str
     name: str

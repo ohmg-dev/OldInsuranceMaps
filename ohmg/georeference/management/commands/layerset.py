@@ -1,6 +1,6 @@
 from argparse import Namespace
 from django.core.management.base import BaseCommand
-from ohmg.georeference.models import AnnotationSet
+from ohmg.georeference.models import LayerSet
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -39,9 +39,9 @@ class Command(BaseCommand):
         options = Namespace(**options)
 
         if options.pk:
-            ls = AnnotationSet.objects.get(pk=options.pk)
+            ls = LayerSet.objects.get(pk=options.pk)
         else:
-            ls = AnnotationSet.objects.get(volume__identifier=options.identifier, category__slug=options.category)
+            ls = LayerSet.objects.get(volume__identifier=options.identifier, category__slug=options.category)
 
         if options.operation == "inspect":
             print(ls.multimask_extent)

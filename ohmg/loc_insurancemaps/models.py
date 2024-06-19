@@ -23,8 +23,8 @@ from ohmg.georeference.models import (
     LayerV1,
     PrepSession,
     GeorefSession,
-    SetCategory,
-    AnnotationSet,
+    LayerSetCategory,
+    LayerSet,
 )
 from ohmg.georeference.storage import OverwriteStorage
 from ohmg.places.models import Place
@@ -212,17 +212,17 @@ class Volume(models.Model):
         blank=True,
         default=dict,
     )
-    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
+    ## after migration to LayerSets ~4/13/24, this field is obsolete and can be removed.
     sorted_layers = models.JSONField(
         default=default_sorted_layers_dict,
     )
-    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
+    ## after migration to LayerSets ~4/13/24, this field is obsolete and can be removed.
     multimask = models.JSONField(null=True, blank=True)
     locales = models.ManyToManyField(
         Place,
         blank=True,
     )
-    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
+    ## after migration to LayerSets ~4/13/24, this field is obsolete and can be removed.
     mosaic_geotiff = models.FileField(
         upload_to='mosaics',
         null=True,
@@ -230,7 +230,7 @@ class Volume(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
-    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
+    ## after migration to LayerSets ~4/13/24, this field is obsolete and can be removed.
     mosaic_json = models.FileField(
         upload_to='mosaics',
         null=True,
@@ -238,7 +238,7 @@ class Volume(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
-    ## after migration to AnnotationSets ~4/13/24, this field is obsolete and can be removed.
+    ## after migration to LayerSets ~4/13/24, this field is obsolete and can be removed.
     mosaic_preference = models.CharField(
         choices=(('mosaicjson', 'MosaicJSON'), ('geotiff', 'GeoTIFF')),
         default='mosaicjson',
@@ -364,21 +364,21 @@ class Volume(models.Model):
 
     def get_annotation_set(self, cat_slug:str, create:bool=False):
         try:
-            annoset = AnnotationSet.objects.get(volume=self, category__slug=cat_slug)
-        except AnnotationSet.DoesNotExist:
+            annoset = LayerSet.objects.get(volume=self, category__slug=cat_slug)
+        except LayerSet.DoesNotExist:
             if create:
-                category = SetCategory.objects.get(slug=cat_slug)
-                annoset = AnnotationSet.objects.create(
+                category = LayerSetCategory.objects.get(slug=cat_slug)
+                annoset = LayerSet.objects.create(
                     volume=self,
                     category=category
                 )
-                logger.debug(f"created new AnnotationSet: {self.pk} - {cat_slug}")
+                logger.debug(f"created new LayerSet: {self.pk} - {cat_slug}")
             else:
                 annoset = None
         return annoset
 
     def get_annotation_sets(self, geospatial:bool=False):
-        sets = AnnotationSet.objects.filter(volume=self)
+        sets = LayerSet.objects.filter(volume=self)
         if geospatial:
             sets = sets.filter(category__is_geospatial=True)
         return sets

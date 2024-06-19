@@ -10,10 +10,10 @@ from ohmg.georeference.models import (
     LayerV1,
     Document,
     ItemBase,
-    SetCategory,
+    LayerSetCategory,
 )
 from ohmg.core.context_processors import generate_ohmg_context
-from ohmg.core.schemas import AnnotationSetSchema
+from ohmg.core.schemas import LayerSetSchema
 from ohmg.loc_insurancemaps.models import Volume, find_volume
 from ohmg.loc_insurancemaps.tasks import load_docs_as_task
 
@@ -50,8 +50,8 @@ class MapSummary(View):
         volume = get_object_or_404(Volume, pk=identifier)
         volume_json = volume.serialize(include_session_info=True)
 
-        annotation_sets = [AnnotationSetSchema.from_orm(i).dict() for i in volume.get_annotation_sets(geospatial=True)]
-        annotation_set_options = list(SetCategory.objects.filter(is_geospatial=True).values("slug", "display_name"))
+        annotation_sets = [LayerSetSchema.from_orm(i).dict() for i in volume.get_annotation_sets(geospatial=True)]
+        annotation_set_options = list(LayerSetCategory.objects.filter(is_geospatial=True).values("slug", "display_name"))
 
         context_dict = {
             "svelte_params": {

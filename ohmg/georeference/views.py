@@ -21,7 +21,7 @@ from ohmg.georeference.models import (
     GeorefSession,
     ItemBase,
 )
-from ohmg.core.schemas import AnnotationSetSchema
+from ohmg.core.schemas import LayerSetSchema
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.georeference.tasks import delete_preview_vrt
@@ -191,11 +191,11 @@ class GeoreferenceView(View):
         #     if GNLayer.objects.filter(alternate=alt).exists():
         #         reference_layers.append(alt)
 
-        annoset_main = AnnotationSetSchema.from_orm(volume.get_annotation_set('main-content')).dict()
+        annoset_main = LayerSetSchema.from_orm(volume.get_annotation_set('main-content')).dict()
         annoset_keymap = None
         akm = volume.get_annotation_set('key-map')
         if akm:
-            annoset_keymap = AnnotationSetSchema.from_orm(akm).dict()
+            annoset_keymap = LayerSetSchema.from_orm(akm).dict()
 
         georeference_params = {
             "CONTEXT": generate_ohmg_context(request),
@@ -389,7 +389,7 @@ class GeoreferenceView(View):
             return BadPostRequest
 
 
-class AnnotationSetView(View):
+class LayerSetView(View):
 
     def post(self, request):
 

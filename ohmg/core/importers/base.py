@@ -7,7 +7,7 @@ from django.conf import settings
 
 from ohmg.places.models import Place
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.georeference.models import AnnotationSet, SetCategory
+from ohmg.georeference.models import LayerSet, LayerSetCategory
 from ohmg.core.models import Sheet
 from ohmg.core.utils import random_alnum
 
@@ -106,8 +106,8 @@ class BaseImporter():
 
         volume.update_place_counts()
         # make sure a main-content layerset exists for this volume
-        main_ls, _ = AnnotationSet.objects.get_or_create(
-            category=SetCategory.objects.get(slug="main-content"),
+        main_ls, _ = LayerSet.objects.get_or_create(
+            category=LayerSetCategory.objects.get(slug="main-content"),
             volume=volume,
         )
         return volume
@@ -233,8 +233,8 @@ opts are supported:
 
         volume.update_place_counts()
         # make sure a main-content layerset exists for this volume
-        main_ls, _ = AnnotationSet.objects.get_or_create(
-            category=SetCategory.objects.get(slug="main-content"),
+        main_ls, _ = LayerSet.objects.get_or_create(
+            category=LayerSetCategory.objects.get(slug="main-content"),
             volume=volume,
         )
         return volume

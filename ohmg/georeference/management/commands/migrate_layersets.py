@@ -6,7 +6,7 @@ from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError # noqa: F401
 
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.georeference.models import ItemBase, AnnotationSet, SetCategory
+from ohmg.georeference.models import ItemBase, LayerSet, LayerSetCategory
 
 
 class Command(BaseCommand):
@@ -28,8 +28,8 @@ class Command(BaseCommand):
         for vol in Volume.objects.all():
             print(vol)
             # make sure there is a main-content annotationset for every volume
-            main_ls, _ = AnnotationSet.objects.get_or_create(
-                category=SetCategory.objects.get(slug="main-content"),
+            main_ls, _ = LayerSet.objects.get_or_create(
+                category=LayerSetCategory.objects.get(slug="main-content"),
                 volume=vol,
             )
             if vol.mosaic_geotiff:
@@ -57,8 +57,8 @@ class Command(BaseCommand):
             for k, v in vol.sorted_layers.items():
                 if len(v) > 0:
                     vrscat = cat_lookup[k]
-                    ls, _ = AnnotationSet.objects.get_or_create(
-                        category=SetCategory.objects.get(slug=vrscat),
+                    ls, _ = LayerSet.objects.get_or_create(
+                        category=LayerSetCategory.objects.get(slug=vrscat),
                         volume=vol,
                     )
                     print(ls)
@@ -75,7 +75,7 @@ class Command(BaseCommand):
             # handle the nonmaps a little differently because this is marked as a status
             nonmaps = [k for k, v in vol.document_lookup.items() if v['status'] == 'nonmap']
             if len(nonmaps) > 0:
-                vrs, _ = AnnotationSet.objects.get_or_create(
+                vrs, _ = LayerSet.objects.get_or_create(
                     category__slug='non-map-content',
                     volume=vol,
                 )
