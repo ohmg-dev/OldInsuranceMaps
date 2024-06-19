@@ -8,7 +8,7 @@ from django.conf import settings
 from ohmg.places.models import Place
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.georeference.models import LayerSet, LayerSetCategory
-from ohmg.core.models import Sheet
+from ohmg.core.models import Document
 from ohmg.core.utils import random_alnum
 
 logger = logging.getLogger(__name__)
@@ -228,8 +228,7 @@ opts are supported:
             volume.locales.add(locale)
 
         for doc in docs:
-            sheet = Sheet().create_from_file(doc, volume=volume)
-            
+            document = Document().create_from_file(doc, volume=volume)
 
         volume.update_place_counts()
         # make sure a main-content layerset exists for this volume

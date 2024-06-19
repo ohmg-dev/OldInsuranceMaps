@@ -18,14 +18,11 @@ new model (idea)                            --> core.models.ItemConfigPreset
 '''
 
 import os
-import json
 import logging
 from itertools import chain
 from datetime import datetime
+from pathlib import Path
 
-from pygments import highlight
-from pygments.formatters.html import HtmlFormatter
-from pygments.lexers.data import JsonLexer
 
 from django.conf import settings
 from django.contrib.gis.db import models
@@ -33,76 +30,89 @@ from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import transaction
 from django.utils.functional import cached_property
-from django.utils.safestring import mark_safe
 from django.urls import reverse
 
 from ohmg.core.utils import (
     slugify,
     get_jpg_from_jp2_url,
-    STATE_ABBREV,
-    STATE_POSTAL,
 )
 from ohmg.core.storages import OverwriteStorage
-from ohmg.core.renderers import generate_document_thumbnail_content
-from ohmg.loc_insurancemaps.models import Volume
+from ohmg.core.renderers import (
+    generate_document_thumbnail_content,
+    convert_img_to_pyramidal_tiff,
+)
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
 
-def format_json_display(data):
-    """very nice from here:
-    https://www.laurencegellert.com/2018/09/django-tricks-for-processing-and-storing-json/"""
 
-    content = json.dumps(data, indent=2)
+class MapGroup(models.Model):
 
-    # format it with pygments and highlight it
-    formatter = HtmlFormatter(style='colorful')
-
-    # for some reason this isn't displaying correctly, the newlines and indents are gone.
-    # tried JsonLdLexer(stripnl=False, stripall=False) so far but no luck.
-    # must have to do with existing styles in GeoNode or something.
-    # https://pygments.org/docs/lexers/?highlight=new%20line
-    response = highlight(content, JsonLexer(stripnl=False, stripall=False), formatter)
-    
-    # include the style sheet
-    style = "<style>" + formatter.get_style_defs() + "</style><br/>"
-
-    return mark_safe(style + response)
-
-
-class Map(object):
-
-    STATUS_CHOICES = (
-        ("not started", "not started"),
-        ("initializing...", "initializing..."),
-        ("ready", "ready"),
+    MAP_PREFIX_CHOICES = (
+        ("volume", "volume"),
+        ("part", "part"),
     )
+
+    MAP_PREFIX_ABBREVIATIONS = {
+        "volume": "Vol.",
+        "part": "Pt.",
+    }
+
+    title = models.CharField(max_length=200)
+    year_start = models.IntegerField(blank=True, null=True)
+    year_end = models.IntegerField(blank=True, null=True)
+    creator = models.CharField(max_length=200)
+    publisher = models.CharField(max_length=200)
+    map_prefix = models.CharField(
+        max_length=10,
+        choices=MAP_PREFIX_CHOICES,
+        null=True,
+        blank=True,
+        help_text="The preferred term for referring to maps within this map group."
+    )
+
+    def __str__(self):
+        return self.title
+
+
+class Map(models.Model):
+
     ACCESS_CHOICES = (
         ("none", "none"),
         ("sponsor", "sponsor"),
         ("any", "any"),
     )
 
+    DOCUMENT_PREFIX_CHOICES = (
+        ("page", "page"),
+        ("sheet", "sheet"),
+        ("plate", "plate"),
+        ("part", "part"),
+    )
+
+    DOCUMENT_PREFIX_ABBREVIATIONS = {
+        "page": "p.",
+        "sheet": "s.",
+        "plate": "pl.",
+        "part": "pt.",
+    }
+
     identifier = models.CharField(max_length=100, primary_key=True)
-    city = models.CharField(max_length=100)
-    county_equivalent = models.CharField(max_length=100, null=True, blank=True)
-    publish_date = models.IntegerField(blank=True, null=True)
-    volume_no = models.CharField(max_length=5, null=True, blank=True)
-    iiif_manifest = models.JSONField(default=None, null=True, blank=True)
-    lc_resources = models.JSONField(default=None, null=True, blank=True)
-    lc_manifest_url = models.CharField(max_length=200, null=True, blank=True,
-        verbose_name="LC Manifest URL"
-    )
-    extra_location_tags = models.JSONField(null=True, blank=True, default=list)
-    sheet_ct = models.IntegerField(null=True, blank=True)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
-    loaded_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        blank=True,
+    title = models.CharField(max_length=200)
+    year = models.IntegerField(blank=True, null=True)
+    creator = models.CharField(max_length=200)
+    publisher = models.CharField(max_length=200)
+
+    suffix = models.CharField(max_length=5, null=True, blank=True)
+    document_prefix = models.CharField(
+        max_length=10,
+        choices=DOCUMENT_PREFIX_CHOICES,
         null=True,
-        on_delete=models.CASCADE,
-        related_name="loaded_by"
+        blank=True,
+        help_text="The preferred term for referring to documents within this map."
     )
+    iiif_manifest = models.JSONField(null=True, blank=True)
+    
     create_date = models.DateTimeField(auto_now_add=True)
     load_date = models.DateTimeField(null=True, blank=True)
     document_lookup = models.JSONField(
@@ -119,6 +129,12 @@ class Map(object):
         Place,
         blank=True,
     )
+    mapgroup = models.ForeignKey(
+        MapGroup,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     access = models.CharField(
         max_length=50,
         choices=ACCESS_CHOICES,
@@ -129,27 +145,29 @@ class Map(object):
         blank=True,
         null=True,
         on_delete=models.PROTECT,
-        related_name="sponsor",
+        related_name="sponsor_user",
+    )
+    loaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="loaded_by_user"
     )
 
     def __str__(self):
-        display_str = f"{self.city}, {STATE_ABBREV[self.state]} | {self.year}"
-        if self.volume_no is not None:
-            display_str += f" | Vol. {self.volume_no}"
-
-        return display_str
+        return self.title
 
     @cached_property
-    def resources(self):
-        return Resource.objects.filter(map=self).order_by("page_id")
+    def documents(self):
+        return Document.objects.filter(map=self).order_by("page_id")
 
     @cached_property
     def prep_sessions(self):
         from ohmg.georeference.models.sessions import PrepSession
         sessions = []
-        for sheet in self.sheets:
-            if sheet.doc:
-                sessions = list(chain(sessions, PrepSession.objects.filter(doc=sheet.doc)))
+        for document in self.documents:
+            sessions = list(chain(sessions, PrepSession.objects.filter(doc=document)))
         return sessions
 
     @cached_property
@@ -162,19 +180,19 @@ class Map(object):
     
     @property
     def extent(self):
-        annoset = self.get_annotation_set('main-content')
-        if annoset:
-            return annoset.extent
+        ls = self.get_layerset('main-content')
+        if ls:
+            return ls.extent
         else:
             return None
 
     @property
     def gt_exists(self):
-        return True if self.get_annotation_set('main-content').mosaic_geotiff else False
+        return True if self.get_layerset('main-content').mosaic_geotiff else False
 
     @property
     def mj_exists(self):
-        return True if self.get_annotation_set('main-content').mosaic_json else False
+        return True if self.get_layerset('main-content').mosaic_json else False
 
     @property
     def stats(self):
@@ -187,7 +205,7 @@ class Map(object):
             percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
 
         main_lyrs_ct = 0
-        main_anno = self.get_annotation_set('main-content')
+        main_anno = self.get_layerset('main-content')
         if main_anno.annotations:
             main_lyrs_ct = len(main_anno.annotations)
         mm_ct, mm_todo, mm_percent = 0, 0, 0
@@ -226,23 +244,7 @@ class Map(object):
         else:
             return None
 
-    def lc_item_formatted(self):
-        return format_json_display(self.lc_item)
-    lc_item_formatted.short_description = 'LC Item'
-
-    def lc_resources_formatted(self):
-        return format_json_display(self.lc_resources)
-    lc_resources_formatted.short_description = 'LC Resources'
-
-    def document_lookup_formatted(self):
-        return format_json_display(self.document_lookup)
-    document_lookup_formatted.short_description = 'Document Lookup'
-
-    def layer_lookup_formatted(self):
-        return format_json_display(self.layer_lookup)
-    layer_lookup_formatted.short_description = 'LayerV1 Lookup'
-
-    def get_annotation_set(self, cat_slug:str, create:bool=False):
+    def get_layerset(self, cat_slug:str, create:bool=False):
         from ohmg.georeference.models.resources import LayerSet, LayerSetCategory
         try:
             annoset = LayerSet.objects.get(volume=self, category__slug=cat_slug)
@@ -258,7 +260,7 @@ class Map(object):
                 annoset = None
         return annoset
 
-    def get_annotation_sets(self, geospatial:bool=False):
+    def get_layersets(self, geospatial:bool=False):
         from ohmg.georeference.models.resources import LayerSet
         sets = LayerSet.objects.filter(volume=self)
         if geospatial:
@@ -281,25 +283,10 @@ class Map(object):
             sheet.lc_iiif_service = parsed.iiif_service
             sheet.save()
 
-    def load_sheet_docs(self, force_reload=False):
-
-        self.make_sheets()
-        self.update_status("initializing...")
-        for sheet in self.sheets:
-            if sheet.doc is None or sheet.doc.file is None or force_reload:
-                sheet.load_doc(self.loaded_by)
-        self.update_status("ready")
-        self.refresh_lookups()
-
     def remove_sheets(self):
 
-        for s in self.sheets:
-            s.delete()
-
-    def update_status(self, status):
-        self.status = status
-        self.save(update_fields=['status'])
-        logger.info(f"{self.__str__()} | status: {self.status}")
+        for document in self.documents:
+            document.delete()
 
     def update_place_counts(self):
 
@@ -326,21 +313,11 @@ class Map(object):
 
     def get_urls(self):
 
-        loc_item = f"https://loc.gov/item/{self.identifier}",
-        try:
-            resource_url = self.lc_item['resources'][0]['url']
-            if self.sheet_ct > 1:
-                resource_url += "?st=gallery"
-        except IndexError:
-            resource_url = loc_item
-
         viewer_url = ""
         if self.get_locale():
             viewer_url = reverse("viewer", args=(self.get_locale().slug,)) + f"?{self.identifier}=100"
 
         return {
-            "loc_item": loc_item,
-            "loc_resource": resource_url,
             "summary": reverse("map_summary", args=(self.identifier,)),
             "viewer": viewer_url,
         }
@@ -504,7 +481,7 @@ class Map(object):
         # and refresh that layer lookup if so.
         for k, v in self.layer_lookup.items():
             if "missing_thumb" in v["urls"]["thumbnail"]:
-                self.update_layer_lookup(k)
+                self.update_lyr_lookup(k)
 
         # now sort all of the lookups (by status) into a single set of items
         items = self.sort_lookups()
@@ -555,13 +532,14 @@ class Map(object):
         return data
 
 
-class Resource(object):
-    """Resources represent the individual source files that are directly attached to Maps.
+class Document(models.Model):
+    """Documents are the individual source files that are directly attached to Maps.
     They represent pages in an atlas or even just a single scan of a map."""
-    volume = models.ForeignKey(Volume, on_delete=models.CASCADE)
-    page_id = models.CharField(max_length=10, null=True, blank=True)
+
+    map = models.ForeignKey(Map, on_delete=models.CASCADE)
+    suffix = models.CharField(max_length=10, null=True, blank=True)
     file = models.FileField(
-        upload_to='resources',
+        upload_to='documents',
         null=True,
         blank=True,
         max_length=255,
@@ -581,15 +559,33 @@ class Resource(object):
         help_text="Storing a source_url allows the file to be downloaded at any point after "\
             "the instance has been created."
     )
+    iiif_info = models.JSONField(null=True, blank=True)
     load_date = models.DateTimeField(null=True, blank=True)
 
     @property
-    def name(self):
-        return f"{self.volume.__str__()} p{self.page_number}"
+    def title(self):
+        title = self.map.__str__()
+        if self.suffix:
+            title += f"{self.map.DOCUMENT_PREFIX_ABBREVIATIONS[self.map.document_prefix]} {self.suffix}"
+        return title
 
     def __str__(self):
-        return self.name
-    
+        return self.title 
+
+    def create_from_file(self, file_path: Path, volume=None, sheet_no=None):
+
+        tif_path = convert_img_to_pyramidal_tiff(file_path)
+
+        sheet = Document(
+            volume=volume,
+            source=file_path,
+        )
+        sheet.save()
+
+        with open(tif_path, "rb") as openf:
+            sheet.file.save(Path(tif_path).name, File(openf))
+        return sheet
+
     def download_file(self):
 
         log_prefix = f"{self.__str__()} |"
@@ -602,7 +598,7 @@ class Resource(object):
         if not self.file:
             jpg_path = get_jpg_from_jp2_url(self.source_url)
             with open(jpg_path, "rb") as new_file:
-                self.file.save(f"{slugify(self.name)}.jpg", File(new_file))
+                self.file.save(f"{slugify(self.title)}.jpg", File(new_file))
             os.remove(jpg_path)
 
         self.load_date = datetime.now()
@@ -615,286 +611,5 @@ class Resource(object):
             path = self.file.path
             name = os.path.splitext(os.path.basename(path))[0]
             content = generate_document_thumbnail_content(path)
-            tname = f"{name}-res-thumb.jpg"
+            tname = f"{name}-doc-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
-
-
-class Place(object):
-
-    PLACE_CATEGORIES = (
-        ("state", "State"),
-        ("county", "County"),
-        ("parish", "Parish"),
-        ("borough", "Borough"),
-        ("census area", "Census Area"),
-        {"independent city", "Independent City"},
-        ("city", "City"),
-        ("town", "Town"),
-        ("village", "Village"),
-        ("other", "Other"),
-    )
-
-    name = models.CharField(
-        max_length = 200,
-    )
-    category = models.CharField(
-        max_length=20,
-        choices=PLACE_CATEGORIES,
-    )
-    display_name = models.CharField(
-        max_length = 250,
-        editable=False,
-        null=True,
-        blank=True,
-    )
-    slug = models.CharField(
-        max_length = 250,
-        null=True,
-        blank=True,
-        editable=False,
-    )
-    volume_count = models.IntegerField(
-        default = 0,
-        help_text="Number of volumes attached to this place",
-    )
-    volume_count_inclusive = models.IntegerField(
-        default = 0,
-        help_text="Number of volumes attached to this place and any of its descendants",
-    )
-    direct_parents = models.ManyToManyField("Place")
-
-    def __str__(self):
-        name = self.display_name if self.display_name else self.name
-        return name
-
-    @property
-    def state(self):
-        states = self.states
-        state = None
-        if len(states) == 1:
-            state = states[0]
-        elif len(states) > 1:
-            state = states[0]
-            logger.info(f"Place {self.pk} has {len(states)} states. Going with {state.slug}")
-        return state
-
-    @property
-    def states(self):
-        candidates = [self]
-        states = []
-        while candidates:
-            new_candidates = []
-            for p in candidates:
-                if p.category == "state":
-                    states.append(p)
-                else:
-                    for i in p.direct_parents.all():
-                        new_candidates.append(i)
-            candidates = new_candidates
-        return list(set(states))
-
-    def get_volumes(self):
-        from ohmg.loc_insurancemaps.models import Volume
-        return Volume.objects.filter(locales__id__exact=self.id).order_by("year")
-
-    def get_state_postal(self):
-        if self.state and self.state.name.lower() in STATE_POSTAL:
-            return STATE_POSTAL[self.state.name.lower()]
-        else:
-            return None
-
-    def get_state_abbrev(self):
-        if self.state and self.state.name.lower() in STATE_ABBREV:
-            return STATE_ABBREV[self.state.name.lower()]
-        else:
-            return None
-
-    def get_descendants(self):
-        return Place.objects.filter(direct_parents__id__exact=self.id).order_by("name")
-
-    def get_breadcrumbs(self):
-        breadcrumbs = []
-        p = self
-        while p.direct_parents.all().count() > 0:
-            parent = p.direct_parents.all()[0]
-            par_name = parent.name
-            if parent.category in ("county", "parish", "borough", "census area"):
-                par_name += f" {parent.get_category_display()}"
-            breadcrumbs.append({"name": par_name, "slug": parent.slug})
-            p = parent
-        breadcrumbs.reverse()
-        name = self.name
-        if self.category in ("county", "parish", "borough", "census area"):
-            name += f" {self.get_category_display()}"
-        breadcrumbs.append({"name": name, "slug": self.slug})
-        return breadcrumbs
-    
-    def get_select_lists(self):
-        """
-        Returns a dictionary with 4 levels of lists, these are used to populate
-        select dropdowns. Each list has both a list of options and also a current
-        selection. For example, if this Place object is Madison, WI, the returned
-        dictionary would look like this:
-
-        {
-            1: {
-                "selected": "united-states",
-                "options": [
-                    <all countries>,
-                ],
-            },
-            2: {
-                "selected": "wisconsin",
-                "options": [
-                    <all US states>
-                ],
-            },
-            3: {
-                "selected": "dane-county-wi",
-                "options": [
-                    <all counties in WI>
-                ],
-            },
-            4: {
-                "selected": "madison-wi",
-                "options": [
-                    <all cities in Dane County>
-                ],
-            },
-        }
-
-        The value --- is used to signify a non-selection in a given category,
-        so for the Wisconsin Place instance, the 3rd and 4th entry above would
-        have selection: "---".
-        
-        Note that the selected value will be a slug, while the options
-        list contains dictionaries with the following key/values:
-        
-        "pk", "slug", "display_name", "volume_count_inclusive"
-        """
-
-        lists = {
-            1: {
-                "selected": "---",
-                "options": [],
-            },
-            2: {
-                "selected": "---",
-                "options": [],
-            },
-            3: {
-                "selected": "---",
-                "options": [],
-            },
-            4: {
-                "selected": "---",
-                "options": [],
-            },
-        }
-
-        # take the requested place, and prefill list selections based on its breadcrumbs
-        for n, i in enumerate(self.get_breadcrumbs(), start=1):
-            lists[n]['selected'] = i['slug']
-        
-        # at this point, at least a country will be selected, get its pk
-        top_pk = Place.objects.get(slug=lists[1]["selected"]).pk
-
-        # always give all of the country options
-        all_lvl1 = list(Place.objects.filter(direct_parents=None).values("pk", "slug", "display_name", "volume_count_inclusive"))
-        lists[1]["options"] = all_lvl1
-
-        # set level 2 (state) options to only those in this country
-        all_lvl2 = list(Place.objects.filter(direct_parents=top_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
-        lists[2]["options"] = all_lvl2
-
-        # if a state is selected, set options to all other states in the same country
-        # also, set county/parish and city options for everything within the state
-        if lists[2]['selected'] != "---":
-            state_pk = Place.objects.get(slug=lists[2]["selected"]).pk
-            all_lvl3 = list(Place.objects.filter(direct_parents=state_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
-            lists[3]["options"] = all_lvl3
-            lvl3_pks = [i['pk'] for i in all_lvl3]
-            all_lvl4 = list(Place.objects.filter(direct_parents__in=lvl3_pks).values("pk", "slug", "display_name", "volume_count_inclusive"))
-            lists[4]["options"] = all_lvl4
-
-        # if a county/parish is selected, narrow cities to only those in the county
-        if lists[3]['selected'] != "---":
-            ce_pk = Place.objects.get(slug=lists[3]["selected"]).pk
-            all_lvl4 = list(Place.objects.filter(direct_parents=ce_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
-            lists[4]["options"] = all_lvl4
-
-        for k, v in lists.items():
-            v['options'].sort(key=lambda k : k['display_name'])
-
-        return lists
-
-    def get_inclusive_pks(self):
-        pks = [self.pk]
-        descendants = Place.objects.filter(direct_parents__id__exact=self.id)
-        while descendants:
-            pks += [i.pk for i in descendants]
-            new_descendants = []
-            for d in descendants:
-                new_descendants += [i for i in Place.objects.filter(direct_parents__id__exact=d.pk)]
-            descendants = new_descendants
-        return pks
-
-    def serialize(self):
-        return {
-            "pk": self.pk,
-            "name": self.name,
-            "display_name": self.display_name,
-            "category": self.get_category_display(),
-            "parents": [{
-                "display_name": i.display_name,
-                "slug": i.slug,
-            } for i in self.direct_parents.all()],
-            "descendants": [{
-                "display_name": i.display_name,
-                "slug": i.slug,
-                "volume_count": i.volume_count,
-                "volume_count_inclusive": i.volume_count_inclusive,
-                # "has_descendant_maps": i.has_descendant_maps if self.has_descendant_maps else False,
-            } for i in self.get_descendants()],
-            "states": [{
-                "display_name": i.display_name,
-                "slug": i.slug,
-            } for i in self.states],
-            "slug": self.slug,
-            "breadcrumbs": self.get_breadcrumbs(),
-            "select_lists": self.get_select_lists(),
-            "volume_count": self.volume_count,
-            "volume_count_inclusive": self.volume_count_inclusive,
-            "volumes": [{
-                "identifier": i[0],
-                "year": i[1],
-                "volume_no":i[2]
-            } for i in self.get_volumes().values_list("identifier", "year", "volume_no")],
-        }
-
-    def save(self, set_slug=True, *args, **kwargs):
-        if set_slug is True:
-            state_postal = self.get_state_postal()
-            state_abbrev = self.get_state_abbrev()
-            slug, display_name = "", ""
-            if self.category == "state":
-                slug = slugify(self.name)
-                display_name = self.name
-            else:
-                if self.category in ["county", "parish", "borough" "census area"]:
-                    slug = slugify(f"{self.name}-{self.category}")
-                    display_name = f"{self.name} {self.get_category_display()}"
-                else:
-                    slug = slugify(self.name)
-                    display_name = self.name
-                if state_postal is not None:
-                    slug += f"-{state_postal}"
-                if state_abbrev is not None:
-                    display_name += f", {state_abbrev}"
-            if not slug:
-                slug = slugify(self.name)
-            if not display_name:
-                display_name = self.name
-            self.slug = slug
-            self.display_name = display_name
-        super(Place, self).save(*args, **kwargs)
