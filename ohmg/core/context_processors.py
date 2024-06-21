@@ -11,7 +11,8 @@ def on_mobile(request):
     MOBILE_AGENT_RE=re.compile(r".*(iphone|mobile|androidtouch)",re.IGNORECASE)
 
     on_mobile = False
-    if MOBILE_AGENT_RE.match(request.META['HTTP_USER_AGENT']):
+    user_agent = request.META.get('HTTP_USER_AGENT')
+    if user_agent and MOBILE_AGENT_RE.match(user_agent):
         on_mobile = True
 
     return {
