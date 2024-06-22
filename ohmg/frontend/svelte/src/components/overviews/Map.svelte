@@ -457,7 +457,7 @@ let modalExtent = []
 								{:else if userCanEdit}
 								<ul>
 									<li><Link href={document.urls.georeference} title="georeference this document">georeference &rarr;</Link></li>
-									<li><button class="button is-small is-light" title="click to move this document to the non-map section" on:click={() => {postGeoref(document.urls.georeference, "set-status", "nonmap")}}><em>set as non-map</em></button></li>
+									<li><button class="is-text-link" title="click to move this document to the non-map section" on:click={() => {postGeoref(document.urls.georeference, "set-status", "nonmap")}}>set as non-map</button></li>
 								</ul>
 								{/if}
 							</div>
@@ -576,7 +576,7 @@ let modalExtent = []
 							{#if userCanEdit}
 							<div>
 								<ul>
-									<li><button class="button is-small is-light" on:click={() => {postGeoref(nonmap.urls.georeference, "set-status", "prepared")}} title="click to set this document back to 'prepared' so it can be georeferenced"><em>this <strong>is</strong> a map</em></button></li>
+									<li><button class="is-text-link" on:click={() => {postGeoref(nonmap.urls.georeference, "set-status", "prepared")}} title="click to set this document back to 'prepared' so it can be georeferenced">this <em>is</em> a map</button></li>
 								</ul>
 							</div>
 							{/if}

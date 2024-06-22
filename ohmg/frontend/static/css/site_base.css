@@ -9,6 +9,7 @@
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
+	letter-spacing: -.3px;
 }
 
 html, * {
@@ -16,7 +17,6 @@ html, * {
 }
 
 body {
-  letter-spacing: -.3px;
   padding-top: 45px;
   background-color: var(--primary-background-color);
   margin: 0;
@@ -231,13 +231,7 @@ footer a:hover {
 	color: #ffffff !important;
 }
 
-#wrap {
-	margin-top: 50px !important;
-}
 
-.banner-wrap {
-	position: relative
-}
 @media (max-width: 991px) {
 	.banner-button-list {
 	  flex-direction: column;
@@ -246,104 +240,6 @@ footer a:hover {
 	.banner-button-list div {
 		width: 100%;
 	}
-}
-
-.banner .btn-default {
-    border: 2px solid #3a3a3a;
-    color: #3a3a3a;
-}
-
-/* unset max height so scroll overflow never shows up */
-.navbar-fixed-top .navbar-collapse,
-.navbar-fixed-bottom .navbar-collapse {
-  max-height: none;
-}
-
-.navbar-inverse .navbar-nav > li > a {
-  padding-top: 10px;
-  padding-bottom: 10px;
-}
-
-.tify-header {
-	font-family: 'Josefin Sans', sans-serif !important;
-}
-
-.showcase-tile {
-	height: 100%;
-	margin-top: 25px;
-	margin-bottom: 25px;
-}
-.showcase-tile-title {
-	display: inline-block;
-	font-size: 2em;
-}
-.showcase-tile-title a {
-	display: flex;
-	align-items: center;
-}
-.showcase-tile-title a:hover {
-	color: #2c689c;
-}
-.showcase-tile-title a:hover > span.i {
-	background: #2c689c;
-}
-.showcase-tile-title a:hover > span.i {
-	background: #2c689c;
-}
-
-.search-result-item-title-bar {
-	padding: 5px;
-	background: #f5f5f5;
-	border-top-right-radius: 5px;
-	border-top-left-radius: 5px;
-}
-
-.search-result-item-title-bar h4 {
-	margin: 0px;
-}
-.item-details {
-	background: unset;
-}
-.item-details .item-items {
-	border-top: unset;
-}
-.item-details .item-items ul {
-	margin: 0 0 0 -15px;
-	padding: 0.2em;
-}
-
-.search-result-item-list {
-	margin: 0 0 0 -15px;
-    padding: 0.5em;
-    list-style: none;
-}
-
-.navbar-inverse .navbar-nav > li > a {
-	font-weight: 400;
-}
-
-.search-result-item {
-	padding: 0;
-	background: white;
-	border: 1px solid #777777;
-	border-radius: 5px;
-}
-
-.search-result-item img {
-	border-bottom-left-radius: 5px;
-}
-
-.home-facets {
-	padding: 0 !important;
-}
-
-.consent-dl dt {
-	font-weight: bold;
-}
-
-.consent-dl dd {
-	/* font-style: italic; */
-	padding-left: 10px;
 }
 
 /* pure css loading bar */
