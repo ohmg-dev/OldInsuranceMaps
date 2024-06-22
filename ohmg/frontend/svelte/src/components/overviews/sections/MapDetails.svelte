@@ -1,12 +1,12 @@
 <script>
+    import Question from 'phosphor-svelte/lib/Question';
     import Link from '@components/base/Link.svelte';
-    import OpenModalButton from '@components/base/OpenModalButton.svelte';
+    import {getModal} from '@components/base/Modal.svelte';
     import DownloadSectionModal from "../modals/ItemDownloadSectionModal.svelte";
 
     export let VOLUME;
     export let ANNOTATION_SETS = [];
-    // export let mosaicUrl = null;
-    // export let ohmUrl = null;
+
 </script>
 
 <DownloadSectionModal id={"download-section-modal"} />
@@ -44,7 +44,7 @@
     </div>
     <div class="header-bar">
         <h3>Mosaic Download & Web Services</h3>
-        <OpenModalButton modalId="download-section-modal" />
+        <button class="is-icon-link" on:click={() => {getModal('download-section-modal').open()}} ><Question /></button>
     </div>
     <p style="font-size:.9em;"><em>
         Only layers that have been trimmed in the <strong>MultiMask</strong> will appear in the mosaic. You can access untrimmed layers individually through the <strong>Georeferenced</strong> section.

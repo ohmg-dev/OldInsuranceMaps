@@ -6,15 +6,35 @@
 
 {% block body %}
 <h1>OldInsuranceMaps.net News</h1>
-<table>
-    {% for submission in submissions %}
-    <tr>
-        <td>
-            <h4><a href="{% url 'article' slug=submission.message.slug %}">{{ submission.message.title }}</a></h4>
-            <div><em>{% comment %}{%if submission.is_newsletter %}newsletter sent {% endif %}{% endcomment %}{{submission.publish_date}}</em></div>
-            <p>{{submission.message.articles.all.0.text|truncatewords:10|safe}}</p>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+<div style="display:flex; flex-direction:row;">
+    <div style="min-width:50px; flex-grow:1">
+        <h2>Newsletter archive</h2>
+        <table style="width:100%">
+            {% for submission in submissions %}
+            <tr>
+                <td>
+                    <h4><a href="{% url 'article' slug=submission.message.slug %}">{{ submission.message.title }}</a></h4>
+                    <div><em>{% comment %}{%if submission.is_newsletter %}newsletter sent {% endif %}{% endcomment %}{{submission.publish_date}}</em></div>
+                    <p>{{submission.message.articles.all.0.text|truncatewords:15|striptags}}</p>
+                </td>
+            </tr>
+            {% empty %}
+            <p><em>No entries yet...</em></p>
+            {% endfor %}
+        </table>
+    </div>
+    <div style="width:250px;">
+        <form enctype="multipart/form-data"  method="post" action="/newsletter/{{ NEWSLETTER_SLUG }}/subscribe/">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe to the newsletter:</label>
+            {% if USER_SUBSCRIBED %}
+            <input type="email" name="email_field" required="" id="id_email_field" value="{{ user.email }}" disabled>
+            <a href="/newsletter/{{ NEWSLETTER_SLUG }}?utm_source=index">Manage my subscription</a>
+            {% else %}
+            <input type="email" name="email_field" required="" id="id_email_field" placeholder="enter your email address">
+            <button class="button is-small is-primary" id="id_submit" name="submit" value="Subscribe" type="submit">Subscribe</button>
+            {% endif %}
+        </form>
+    </div>
+</div>
 {% endblock body %}

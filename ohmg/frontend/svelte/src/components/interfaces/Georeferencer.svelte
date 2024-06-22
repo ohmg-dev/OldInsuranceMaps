@@ -1,6 +1,5 @@
 <script>
-import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps } from "@lib/utils"
+
 import X from "phosphor-svelte/lib/X";
 import Check from "phosphor-svelte/lib/Check";
 import ArrowsClockwise from "phosphor-svelte/lib/ArrowsClockwise";
@@ -55,6 +54,7 @@ import {
 
 import Modal, {getModal} from '@components/base/Modal.svelte';
 import Link from '@components/base/Link.svelte';
+import ToolUIButton from '../base/ToolUIButton.svelte';
 
 import ExpandElement from "./buttons/ExpandElement.svelte";
 
@@ -901,12 +901,13 @@ function cleanup () {
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
-<IconContext values={iconProps}>
-<p>Create 3 or more ground control points to georeference this document. To create a ground control point, first click on a location in the left panel, then find and click on the corresponding location in right panel. <Link href="https://docs.oldinsurancemaps.net/guides/georeferencing/" external={true}>Learn more</Link></p>
+
+<p>Create 3 or more ground control points to georeference this document. To create a ground control point, first click on a location in the left panel, then find and click on the corresponding location in right panel. <Link href="https://about.oldinsurancemaps.net/guides/georeferencing/" external={true}>Learn more</Link></p>
 
 <Modal id="modal-expiration">
   <p>This georeferencing session is expiring, and will be cancelled soon.</p>
-  <button on:click={() => {
+  <button class="button is-success"
+    on:click={() => {
     process("extend-session");
     getModal('modal-expiration').close()}
     }>Give me more time!</button>
@@ -919,11 +920,11 @@ function cleanup () {
 </Modal>
 <Modal id="modal-cancel">
 	<p>Are you sure you want to cancel this session?</p>
-  <button on:click={() => {
+  <button class="button is-success" on:click={() => {
     process("cancel");
     getModal('modal-cancel').close()
-    }}>Yes</button>
-  <button on:click={() => {
+    }}>Yes - return to overview</button>
+  <button class="button is-danger" on:click={() => {
     getModal('modal-cancel').close()}
     }>No - keep working</button>
 </Modal>
@@ -960,15 +961,9 @@ function cleanup () {
       <label><input type=checkbox bind:checked={syncPanelWidth}> autosize</label>
     </div>
     <div class="control-btn-group">
-        <button class="control-btn tool-ui" title="Save control points" disabled={!enableSave} on:click={() => { process("submit") }}>
-          <Check />
-        </button>
-        <button class="control-btn tool-ui" title="Cancel georeferencing" disabled={!enableButtons} on:click={() => { getModal('modal-cancel').open() }}>
-          <X />
-        </button>
-        <button class="control-btn tool-ui" title="Reset interface" disabled={unchanged} on:click={loadIncomingGCPs}>
-          <ArrowsClockwise />
-        </button>
+        <ToolUIButton action={() => { process("submit") }} title="Save control points" disabled={!enableSave}><Check /></ToolUIButton>
+        <ToolUIButton action={() => { getModal('modal-cancel').open() }} title="Cancel georeferencing" disabled={!enableButtons}><X /></ToolUIButton>
+        <ToolUIButton action={loadIncomingGCPs} title="Reset/reload original GCPs" disabled={unchanged}><ArrowsClockwise /></ToolUIButton>
         <ExpandElement elementId={'map-container'} maps={[docViewMap, mapViewMap]} />
     </div>
   </nav>
@@ -1044,23 +1039,15 @@ function cleanup () {
             </option>
           {/each}
         </select>
-        <button class="control-btn tool-ui" title="Remove control point {activeGCP} (d)" on:click={removeActiveGCP}>
-          <Trash />
-        </button>
-        <button class="control-btn" on:click={() => {showNotePanel=!showNotePanel}}>
-          Note
-        </button>
+        <ToolUIButton action={removeActiveGCP} title="Remove control point {activeGCP} (d)"><Trash /></ToolUIButton>
+        <ToolUIButton action={() => {showNotePanel=!showNotePanel}} onlyIcon={false} title="">Show/edit note for this GCP...</ToolUIButton>
       </div>
       {/if}
     </div>
     <div style="display:flex; flex-direction:row; text-align:right;">
       <div class="control-btn-group">
-        <button class="control-btn tool-ui" on:click={() => {showSettingsPanel=!showSettingsPanel}}>
-          <GearSix />
-        </button>
-        <button class="control-btn tool-ui" on:click={() => {showLayerPanel=!showLayerPanel}}>
-          <Stack />
-        </button>
+        <ToolUIButton action={() => {showSettingsPanel=!showSettingsPanel}} title="Show/hide advanced settings..."><GearSix /></ToolUIButton>
+        <ToolUIButton action={() => {showLayerPanel=!showLayerPanel}} title="Show/hide layer panel..."><Stack /></ToolUIButton>
       </div>
       <!--
       <div>
@@ -1076,7 +1063,7 @@ function cleanup () {
     </div>
   </nav>
 </div>
-</IconContext>
+
 <style>
 
 label {

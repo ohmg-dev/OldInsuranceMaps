@@ -8,9 +8,6 @@
     export let disabled = false;
     export let size = "";
 
-    if (style === "lite") {
-        iconProps.weight = 'regular'
-    }
 </script>
 
 <button class="svg-btn {style}" on:click={action} {title} {disabled}>

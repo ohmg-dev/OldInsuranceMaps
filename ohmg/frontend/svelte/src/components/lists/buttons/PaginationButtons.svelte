@@ -1,7 +1,4 @@
 <script>
-    import IconContext from 'phosphor-svelte/lib/IconContext';
-    import { iconProps } from "@lib/utils"
-
     import CaretDoubleLeft from 'phosphor-svelte/lib/CaretDoubleLeft'
     import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight'
 
@@ -13,7 +10,6 @@
     export let getNext = () => {}
 </script>
 
-<IconContext values={iconProps}>
 <div class="btn-container">
     <button disabled={currentOffset < apiLimit || loading} on:click={getPrevious}>
         <CaretDoubleLeft />
@@ -25,7 +21,6 @@
         <CaretDoubleRight />
     </button>
 </div>
-</IconContext>
 
 <style>
     button {

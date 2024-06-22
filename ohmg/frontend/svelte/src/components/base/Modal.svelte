@@ -103,7 +103,7 @@ onDestroy(()=>{
 		position: relative;
 		border-radius: 6px;
 		border: 2px solid gray;
-		background: #F7F1E1;
+		background: var(--primary-background-color);
 		color: #333333;
 		filter: drop-shadow(5px 5px 5px #555);
 		padding: 1em;
@@ -145,7 +145,7 @@ onDestroy(()=>{
 	}
 	.full-modal {
 		width: 100%;
-		height: calc(100vh - 40px);
+		height: calc(100vh - 45px);
 	}
 
 	.full-modal-content {

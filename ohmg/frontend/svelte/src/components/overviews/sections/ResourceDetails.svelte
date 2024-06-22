@@ -2,9 +2,10 @@
     import {getCenter} from 'ol/extent';
     import { makeTitilerXYZUrl } from '@lib/utils';
     import Link from '@components/base/Link.svelte';
-    import OpenModalButton from '@components/base/OpenModalButton.svelte';
+    import {getModal} from '@components/base/Modal.svelte';
     import ResourceDownloadSectionModal from "../modals/ResourceDownloadSectionModal.svelte";
-    import IconButton from '@components/base/IconButton.svelte';
+
+    import Question from 'phosphor-svelte/lib/Question';
 
     export let CONTEXT;
     export let RESOURCE;
@@ -74,7 +75,7 @@
 </table>
 <div class="header-bar">
     <h3>Downloads & Web Services</h3>
-    <OpenModalButton modalId="download-section-modal" />
+    <button class="is-icon-link" on:click={() => {getModal('download-section-modal').open()}} ><Question /></button>
 </div>
 <table>
     <tr>

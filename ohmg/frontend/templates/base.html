@@ -28,6 +28,10 @@
     <!-- analytics with plausible.io -->
     <script defer data-domain="oldinsurancemaps.net" src="/js/script.js"></script>
 
+    <!-- Bulma CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link href="{{ STATIC_URL }}css/bulma-overrides.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
+
     {% block head %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,37 +52,13 @@
   </head>
 
   <body>
-    <!-- Loading Mask -->
-    <div class='lmask'></div>
-    <!-- Navbar -->
     {% block header %}{% endblock header %}
     
     {{ navbar_params|json_script:'navbar-props'}}
     {% include '_svelte_component.html' with component_name='Navbar' %}
-
-    <!-- Initial work on a mini.css-based navbar. needs more work though...-->
-    <!-- <header class="sticky" style="display:flex; justify-content:space-between; align-items:center; overflow-x:auto;">
-      <div>
-        <a href="/" class="logo"><img src="/static/img/colored-full-linework.png" style="height:45px"/></a>
-        <a href="/" class="button">Home</a>
-        <a href="/browse" title="Browse" class="button">Browse</a>
-        <a href="/people" title="People" class="button">People</a>
-        <a href="/#support" title="Support this project" class="button">Support</a>
-        <a href="https://ohmg.dev" title="Browse" class="button">About <i class="fa fa-external-link"></i></a>
-      </div>
-      <div>
-        {% if USER.is_authenticated %}
-        <a href={{ USER.profile }} class="button">{USER.name}</a>
-        <a href="/account/logout" class="button">Sign out</a>
-        {% else %}
-			  <a href="/account/login" class="button">Sign in</a>
-  			<a href="/account/signup" class="button">Sign up</a>
-		    {% endif %}
-      </div>
-    </header> -->
     
     {% block middle %}
-    <div class="container background-fg" style="min-height:calc(100vh - 230px)" >
+    <div class="container">
         {% include "_status_message.html" %}
         {% include "_announcements.html" %}
         {% include "_messages.html" %}

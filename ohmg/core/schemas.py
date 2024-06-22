@@ -22,7 +22,6 @@ class UserSchema(Schema):
     volumes: list
     load_ct: int
     image_url: str
-    email: str
     api_keys: List[str]
 
     @staticmethod

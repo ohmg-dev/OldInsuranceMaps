@@ -1,10 +1,12 @@
 import os
 import boto3
+from argparse import Namespace
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.template.loader import render_to_string
 from django.test.client import RequestFactory
+from django.contrib.sessions.middleware import SessionMiddleware
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -33,6 +35,10 @@ class Command(BaseCommand):
         if options['operation'] == "generate-error-pages":
             rf = RequestFactory()
             request = rf.get('/')
+            middleware = SessionMiddleware(lambda x: None)
+            middleware.process_request(request)
+            request.session.save()
+            request.user = Namespace(is_authenticated=False)
             for status in [404, 500]:
                 content = render_to_string(f'{status}.html.template', request=request)
                 outpath = os.path.join(settings.PROJECT_DIR, f"frontend/templates/{status}.html")

@@ -1,10 +1,11 @@
 <script>
 import { slide } from 'svelte/transition';
 
-import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps, makeTitilerXYZUrl } from "@lib/utils"
+import { makeTitilerXYZUrl } from "@lib/utils"
 
 import ArrowRight from "phosphor-svelte/lib/ArrowRight";
+import Question from "phosphor-svelte/lib/Question";
+import Wrench from "phosphor-svelte/lib/Wrench";
 
 import {getCenter} from 'ol/extent';
 
@@ -22,8 +23,6 @@ import MultiMaskModal from './modals/MultiMaskModal.svelte'
 import NonMapContentModal from './modals/NonMapContentModal.svelte'
 import GeoreferencePermissionsModal from './modals/GeoreferencePermissionsModal.svelte'
 
-import IconButton from "@components/base/IconButton.svelte";
-import OpenModalButton from '@components/base/OpenModalButton.svelte';
 import Modal, {getModal} from '@components/base/Modal.svelte';
 
 import MapPreview from "@components/interfaces/MapPreview.svelte";
@@ -262,7 +261,6 @@ let modalLyrUrl = "";
 let modalExtent = []
 
 </script>
-<IconContext values={iconProps}>
 <MapPreviewModal id={"modal-preview-map"} placeName={VOLUME.locale.display_name} viewerUrl={VOLUME.urls.viewer}/>
 <GeoreferenceOverviewModal id={"modal-georeference-overview"} />
 <UnpreparedSectionModal id={'modal-unprepared'} />
@@ -318,7 +316,7 @@ let modalExtent = []
 				<ConditionalDoubleChevron down={sectionVis['preview']} size="md"/>
 				<a id="preview"><h2>Mosaic Preview ({VOLUME.items.layers.length} layers)</h2></a>
 			</button>
-			<OpenModalButton modalId="modal-preview-map" />
+			<button class="is-icon-link" on:click={() => {getModal('modal-preview-map').open()}} ><Question /></button>
 		</div>
 		{#if sectionVis['preview']}
 		<div class="section-content" transition:slide>
@@ -341,33 +339,27 @@ let modalExtent = []
 			{/if}
 			<div style="display:flex; align-items:center;">
 				{#if CONTEXT.user.is_authenticated}
-				<IconButton style="lite" icon="wrench" action={() => {postOperation("refresh-lookups")}} title="Regenerate summary (may take a moment)" />
+				<button class="is-icon-link" on:click={() => {postOperation("refresh-lookups")}} title="Regenerate summary (may take a moment)"><Wrench /></button>
 				{/if}
-				
-				<!-- {#if userCanEdit}
-				<OpenModalButton icon="lock-open" modalId="modal-permissions" />
-				{:else}
-				<OpenModalButton icon="lock" modalId="modal-permissions" />
-				{/if} -->
-				<OpenModalButton modalId="modal-georeference-overview" />
+				<button class="is-icon-link" on:click={() => {getModal('modal-georeference-overview').open()}} ><Question /></button>
 			</div>
 		</div>
 		<div>
-			<div style="display:flex; justify-content:space-between; align-items:center;">
-				<div>
-					{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && userCanEdit && !sheetsLoading}
-						<button on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
+			<div style="display:flex; align-items:center;">
+				<span>
+					<em>
+					{#if sheetsLoading}
+					Loading sheet {VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
+					{:else if VOLUME.sheet_ct.loaded == 0}
+					No sheets loaded yet...
+					{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
+					{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
 					{/if}
-					<em><span>
-						{#if sheetsLoading}
-						Loading sheet {VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
-						{:else if VOLUME.sheet_ct.loaded == 0}
-						No sheets loaded yet...
-						{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
-						{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
-						{/if}
-					</span></em>
-				</div>
+					</em>
+				</span>
+				{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && userCanEdit && !sheetsLoading}
+					<button class="button is-primary is-small" style="margin-left:10px;" on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
+				{/if}
 			</div>
 			{#if !CONTEXT.user.is_authenticated}
 			<SigninReminder csrfToken={CONTEXT.csrf_token} />
@@ -386,10 +378,7 @@ let modalExtent = []
 							</h3>
 						</a>
 					</button>
-					<div class="button-list">
-						<OpenModalButton modalId="modal-unprepared" />
-						<!-- <IconButton style="lite" icon="link" action={() => {setHash("unprepared")}} title="Link to this section" /> -->
-					</div>
+					<button class="is-icon-link" on:click={() => {getModal('modal-unprepared').open()}} ><Question /></button>
 				</div>
 				{#if sectionVis['unprepared']}
 				<div transition:slide>
@@ -439,7 +428,7 @@ let modalExtent = []
 							{/if}
 						</h3></a>
 					</button>
-					<OpenModalButton modalId="modal-prepared" />
+					<button class="is-icon-link" on:click={() => {getModal('modal-prepared').open()}} ><Question /></button>
 				</div>
 				{#if sectionVis['prepared']}
 				<div transition:slide>
@@ -468,7 +457,7 @@ let modalExtent = []
 								{:else if userCanEdit}
 								<ul>
 									<li><Link href={document.urls.georeference} title="georeference this document">georeference &rarr;</Link></li>
-									<li><button class="btn-link" on:click={() => {postGeoref(document.urls.georeference, "set-status", "nonmap")}}><em>set as non-map</em></button></li>
+									<li><button class="is-text-link" title="click to move this document to the non-map section" on:click={() => {postGeoref(document.urls.georeference, "set-status", "nonmap")}}>set as non-map</button></li>
 								</ul>
 								{/if}
 							</div>
@@ -485,25 +474,28 @@ let modalExtent = []
 						<ConditionalDoubleChevron down={sectionVis['georeferenced']} size="md" />
 						<a id="georeferenced"><h3>Georeferenced ({VOLUME.items.layers.length})</h3></a>
 					</button>
-					<OpenModalButton modalId="modal-georeferenced" />
+					<button class="is-icon-link" on:click={() => {getModal('modal-georeferenced').open()}} ><Question /></button>
 				</div>
 				{#if sectionVis['georeferenced']}
 				<div transition:slide>
 					<div style="margin: 10px 0px;">
 						{#if VOLUME.items.layers.length > 0 && !classifyingLayers}
-						<button on:click={() => classifyingLayers = !classifyingLayers}
+						<button class="button is-primary"
+							on:click={() => classifyingLayers = !classifyingLayers}
 							disabled={!CONTEXT.user.is_authenticated}
 							title={!CONTEXT.user.is_authenticated ? 'You must be signed in to classify layers' : 'Click to enable layer classification'}
 							>Classify Layers</button>
 						{/if}
 						{#if classifyingLayers}
-						<button disabled={Object.keys(annotationsToUpdate).length === 0} on:click={() => {
+						<button class="button is-success"
+							disabled={Object.keys(annotationsToUpdate).length === 0} on:click={() => {
 							updateAnnotationSets();
 							classifyingLayers = false;
 							annotationsToUpdate = {};
 							reinitMultimask();
 						}}>Save</button>
-						<button on:click={() => {
+						<button class="button is-danger"
+							on:click={() => {
 							classifyingLayers = false;
 							annotationsToUpdate = {};
 							Object.keys(origLayerAnnotationLookup).forEach(function(k) {layerAnnotationLookup[k] = origLayerAnnotationLookup[k]})
@@ -561,7 +553,7 @@ let modalExtent = []
 						<ConditionalDoubleChevron down={sectionVis['nonmaps']} size="md" />
 						<a id="georeferenced"><h3>Non-Map Content ({VOLUME.items.nonmaps.length})</h3></a>
 					</button>
-					<OpenModalButton modalId="modal-non-map" />
+					<button class="is-icon-link" on:click={() => {getModal('modal-non-map').open()}} ><Question /></button>
 				</div>
 				{#if sectionVis['nonmaps']}
 				<div transition:slide>
@@ -584,7 +576,7 @@ let modalExtent = []
 							{#if userCanEdit}
 							<div>
 								<ul>
-									<li><button class="btn-link" on:click={() => {postGeoref(nonmap.urls.georeference, "set-status", "prepared")}} title="set this document back to 'prepared' so it can be georeferenced">this <em>is</em> a map</button></li>
+									<li><button class="is-text-link" on:click={() => {postGeoref(nonmap.urls.georeference, "set-status", "prepared")}} title="click to set this document back to 'prepared' so it can be georeferenced">this <em>is</em> a map</button></li>
 								</ul>
 							</div>
 							{/if}
@@ -603,7 +595,7 @@ let modalExtent = []
 				<ConditionalDoubleChevron down={sectionVis['multimask']} size="md" />
 				<a id="multimask"><h2>MultiMask</h2></a>
 			</button>
-			<OpenModalButton modalId="modal-multimask" />
+			<button class="is-icon-link" on:click={() => {getModal('modal-multimask').open()}} ><Question /></button>
 		</div>
 		{#if sectionVis['multimask']}
 		<div transition:slide>
@@ -637,7 +629,6 @@ let modalExtent = []
 		{/if}
 	</section>
 </main>
-</IconContext>
 
 <style>
 
@@ -715,11 +706,6 @@ button:disabled {
 	flex-direction:row;
 	justify-content:space-between;
 	align-items:center;
-}
-
-.button-list {
-	display:flex;
-	flex-direction:row;
 }
 
 .documents-column {
