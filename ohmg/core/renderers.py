@@ -1,5 +1,8 @@
 from io import BytesIO
+from pathlib import Path
+
 from PIL import Image, ImageOps
+from osgeo import gdal
 
 from django.conf import settings
 
@@ -69,3 +72,34 @@ def generate_layer_thumbnail_content(image_file_path):
     del background
 
     return content
+
+def convert_img_to_pyramidal_tiff(input_image):
+
+    in_path = Path(input_image)
+
+    print(in_path)
+    out_path = Path(settings.TEMP_DIR, in_path.stem + ".tif")
+
+    print(out_path)
+
+    to = gdal.TranslateOptions(
+        # format="GTiff",
+        format="COG",
+        # maskBand="mask",
+        creationOptions=[
+            # 'COMPRESS=DEFLATE',
+            # 'PREDICTOR=2',
+            # 'COMPRESS=LZW',
+            # 'PREDICTOR=YES',
+            'COMPRESS=JPEG',
+            'QUALITY=100',
+            # 'TILED=YES',
+            # 'BLOCKXSIZE=512',
+            # 'BLOCKYSIZE=512',
+            # "PHOTOMETRIC=YCBCR",
+        ],
+        resampleAlg="nearest"
+    )
+    gdal.Translate(out_path, input_image, options=to)
+
+    return out_path

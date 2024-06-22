@@ -1,4 +1,5 @@
 import os
+import json
 import time
 import shutil
 import string
@@ -12,6 +13,56 @@ from django.urls import reverse
 from PIL import Image
 
 logger = logging.getLogger(__name__)
+
+def make_cache_path(url):
+
+    cache_dir = settings.CACHE_DIR / 'requests'
+    if not os.path.isdir(cache_dir):
+        os.mkdir(cache_dir)
+    file_name = url.replace("/", "__") + ".json"
+    cache_path = os.path.join(cache_dir, file_name)
+
+    return cache_path
+
+def load_cache(url):
+
+    path = make_cache_path(url)
+    data = None
+    if os.path.isfile(path):
+        with open(path, "r") as op:
+            data = json.loads(op.read())
+    return data
+
+def save_cache(url, data):
+
+    path = make_cache_path(url)
+    with open(path, "w") as op:
+        json.dump(data, op, indent=1)
+
+def make_cacheable_request(url, delay=0, no_cache=False):
+
+    data = load_cache(url)
+    run_search = no_cache is True or data is None
+
+    if run_search:
+        time.sleep(delay)
+        try:
+            response = requests.get(url)
+            if response.status_code in [500, 503]:
+                msg = f"{response.status_code} error, retrying in 5 seconds..."
+                logger.warn(msg)
+                time.sleep(5)
+                response = requests.get(url)
+        except (ConnectionError, ConnectionRefusedError, ConnectionAbortedError, ConnectionResetError) as e:
+            msg = f"API Error: {e}"
+            print(msg)
+            logger.warn(e)
+            return
+        
+        data = json.loads(response.content)
+        save_cache(url, data)
+
+    return data
 
 def download_image(url, out_path, retries=3):
 
