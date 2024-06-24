@@ -23,6 +23,7 @@ from itertools import chain
 from datetime import datetime
 from pathlib import Path
 
+from PIL import Image
 
 from django.conf import settings
 from django.contrib.gis.db import models
@@ -33,6 +34,7 @@ from django.utils.functional import cached_property
 from django.urls import reverse
 
 from ohmg.core.utils import (
+    full_reverse,
     slugify,
     get_jpg_from_jp2_url,
 )
@@ -91,10 +93,10 @@ class Map(models.Model):
     )
 
     DOCUMENT_PREFIX_ABBREVIATIONS = {
-        "page": "p.",
-        "sheet": "s.",
-        "plate": "pl.",
-        "part": "pt.",
+        "page": "p",
+        "sheet": "s",
+        "plate": "pl",
+        "part": "pt",
     }
 
     identifier = models.CharField(max_length=100, primary_key=True)
@@ -103,8 +105,13 @@ class Map(models.Model):
     creator = models.CharField(max_length=200)
     publisher = models.CharField(max_length=200)
 
-    suffix = models.CharField(max_length=5, null=True, blank=True)
-    document_prefix = models.CharField(
+    volume_number = models.CharField(
+        max_length=25,
+        null=True,
+        blank=True,
+        help_text="Volume number (or name?), if this map is included in a MapGroup."
+    )
+    document_page_type = models.CharField(
         max_length=10,
         choices=DOCUMENT_PREFIX_CHOICES,
         null=True,
@@ -160,7 +167,7 @@ class Map(models.Model):
 
     @cached_property
     def documents(self):
-        return Document.objects.filter(map=self).order_by("page_id")
+        return Document.objects.filter(map=self).order_by("page_number")
 
     @cached_property
     def prep_sessions(self):
@@ -537,7 +544,7 @@ class Document(models.Model):
     They represent pages in an atlas or even just a single scan of a map."""
 
     map = models.ForeignKey(Map, on_delete=models.CASCADE)
-    suffix = models.CharField(max_length=10, null=True, blank=True)
+    page_number = models.CharField(max_length=10, null=True, blank=True)
     file = models.FileField(
         upload_to='documents',
         null=True,
@@ -565,8 +572,8 @@ class Document(models.Model):
     @property
     def title(self):
         title = self.map.__str__()
-        if self.suffix:
-            title += f"{self.map.DOCUMENT_PREFIX_ABBREVIATIONS[self.map.document_prefix]} {self.suffix}"
+        if self.page_number:
+            title += f" {self.map.DOCUMENT_PREFIX_ABBREVIATIONS[self.map.document_page_type]}{self.page_number}"
         return title
 
     def __str__(self):
@@ -613,3 +620,63 @@ class Document(models.Model):
             content = generate_document_thumbnail_content(path)
             tname = f"{name}-doc-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
+
+
+class Region(models.Model):
+
+    boundary = models.PolygonField(
+        null=True,
+        blank=True,
+    )
+    document = models.ForeignKey(
+        "core.Document",
+        on_delete=models.CASCADE,
+    )
+    division_number = models.IntegerField(null=True, blank=True)
+    is_map = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    last_updated = models.DateTimeField(auto_now=True, null=True, blank=True)
+    file = models.FileField(
+        upload_to='set_upload_location',
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
+    )
+    thumbnail = models.FileField(
+        upload_to='thumbnails',
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
+    )
+    gcp_group = models.ForeignKey(
+        "georeference.GCPGroup",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+
+    def __str__(self):
+        display_name = str(self.document.title)
+        if self.division_number:
+            display_name += f" [{self.division_number}]"
+        return display_name
+
+    @property
+    def _base_urls(self):
+        return {
+            "thumbnail": self.thumbnail.url if self.thumbnail else "",
+            "image": self.file.url if self.file else "",
+        }
+
+    def set_thumbnail(self):
+        if self.file is not None:
+            if self.thumbnail:
+                self.thumbnail.delete()
+            path = self.file.path
+            name = os.path.splitext(os.path.basename(path))[0]
+            content = generate_document_thumbnail_content(path)
+            tname = f"{name}-doc-thumb.jpg"
+            self.thumbnail.save(tname, ContentFile(content))
+
