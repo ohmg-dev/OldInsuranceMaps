@@ -122,7 +122,7 @@ class MRMEndpointList(View):
     def get(self, request):
 
         output = {}
-        for lyr in LayerV1.objects.all().order_by("slug"):
+        for lyr in Layer.objects.all().order_by("slug"):
             output[lyr.slug] = get_layer_mrm_urls(lyr.slug)
 
         return JsonResponse(output)
@@ -134,7 +134,7 @@ class MRMEndpointLayer(View):
         if layerid.startswith("geonode:"):
             layerid = layerid.replace("geonode:", "")
 
-        layer = get_object_or_404(LayerV1, slug=layerid)
+        layer = get_object_or_404(Layer, slug=layerid)
         item = request.GET.get("resource", None)
 
         if item is None:
