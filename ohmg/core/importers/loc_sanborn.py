@@ -112,7 +112,7 @@ def import_all_available_volumes(state, apply_filter=True, verbose=False):
         except Volume.DoesNotExist:
             import_volume(volume['identifier'])
 
-def import_volume(identifier, locale=None, dry_run=False):
+def import_volume(identifier, locale=None, dry_run=False, no_cache=False):
 
     try:
         volume = Volume.objects.get(pk=identifier)
@@ -129,7 +129,7 @@ def import_volume(identifier, locale=None, dry_run=False):
         pass
 
     lc = LOCConnection(delay=0, verbose=True)
-    response = lc.get_item(identifier)
+    response = lc.get_item(identifier, no_cache=no_cache)
     if response.get("status") == 404:
         return None
 
