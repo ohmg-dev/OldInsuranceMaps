@@ -4,7 +4,8 @@
 
     export let csrfToken;
     export let showForm = "signin";
-    
+
+    const currentUrl = window.location.href;
     let agreementCheck = true;
 </script>
 
@@ -14,6 +15,7 @@
     <p>If you have not yet created an account, then please <button class="is-text-link" on:click={() => {showForm = 'signup'}}>sign up</button> first.</p>
     <form class="login" method="POST" action="/account/login/">
         <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken}>
+        <input type="hidden" name="next" value={currentUrl}>
         <p><label for="id_login">Username:</label> <input type="text" name="login" placeholder="Username" autocomplete="username" maxlength="150" required="" id="id_login"></p>
         <p><label for="id_password">Password:</label> <input type="password" name="password" placeholder="Password" autocomplete="current-password" required="" id="id_password"></p>
         <p><label for="id_remember">Remember me:</label> <input type="checkbox" name="remember" id="id_remember"> | <Link href="/account/password/reset/">Forgot Password?</Link></p>
