@@ -1,4 +1,8 @@
 #! /usr/bin/bash
 
-psql -U postgres -c "DROP DATABASE oldinsurancemaps;"
-psql -U postgres -c "DROP USER ohmg;"
+set -a
+source ../.env
+set +a
+
+psql -U postgres -c "DROP DATABASE "$DATABASE_NAME";"
+psql -U postgres -c "DROP USER "$DATABASE_USER";"

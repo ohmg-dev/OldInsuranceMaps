@@ -8,7 +8,7 @@
 docker run --name titiler \
   --network=host \
   -e PORT=8008 \
-  -e MOSAIC_SCRIPT_ZOOM=False \
+  -e MOSAIC_STRICT_ZOOM=False \
   -e WORKERS_PER_CORE=1 \
   --rm \
   -it \
