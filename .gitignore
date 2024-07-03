@@ -1,6 +1,6 @@
 static_root
 uploaded
-logs
+.logs
 .ohmg_cache
 .build
 .temp
