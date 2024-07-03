@@ -19,7 +19,7 @@ This is a Django project, with a frontend built (mostly) with [Svelte](https://s
 
 ### Third-party Django Apps
 
-- [Django Ninja](https://django-ninja.rest-framework.com) - API
+- [Django Ninja](https://django-ninja.dev) - API
 - [Django Newsletter](https://github.com/jazzband/django-newsletter) - Newsletter (optional feature)
 
 ### External Dependencies
@@ -43,7 +43,7 @@ psql -U postgres -c "CREATE DATABASE oldinsurancemaps WITH OWNER ohmg;"
 psql -U postgres -d oldinsurancemaps -c "CREATE EXTENSION PostGIS;"
 ```
 
-See also `./scripts/create_database.sh`.
+See also `./scripts/create_database.sh`. You can run this script once you have updated the `DATABASE_*` variables in `.env`.
 
 ### Install Django project
 
@@ -54,17 +54,23 @@ python3 -m venv env
 source env/bin/activate
 ```
 
-Install Python deps
+Install GDAL bindings. These must match exactly the version of GDAL you have on your system, so use this command:
+
+```bash
+pip install gdal=="`gdal-config --version`.*"
+```
+
+Install the ohmg Python package and dependencies
 
 ```bash
 git clone https://github.com/mradamcox/ohmg && cd ohmg
-pip install -r requirements.txt
+pip install -e .[dev]
 ```
 
 Set environment variables
 
 ```bash
-cp .env.original .env
+cp .env.example .env
 ```
 
 Initialize database, create admin user
@@ -138,7 +144,7 @@ TiTiler can also be run via Docker, using a slightly modified version of the off
 docker run --name titiler \
   -p 8008:8000 \
   -e PORT=8000 \
-  -e MOSAIC_SCRIPT_ZOOM=False \
+  -e MOSAIC_STRICT_ZOOM=False \
   -e WORKERS_PER_CORE=1 \
   --rm \
   -it \
