@@ -17,10 +17,9 @@ class Command(BaseCommand):
                 "supervisor",
                 "celery",
                 "uwsgi",
-                "nginx",
-                "nginx-ssl",
+#                "nginx",
+#                "nginx-ssl",
                 "all",
-                "local-dirs",
             ],
             nargs="+",
             help="Choose what configurations to generate."
@@ -49,21 +48,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-
-        if 'local-dirs' not in options["type"]:
-            options['type'].append('local-dirs')
-
         self.verbose = options["verbose"]
         create_all = "all" in options["type"]
-
-        if 'local-dirs' in options['type']:
-            for d in [
-                settings.LOG_DIR,
-                settings.CACHE_DIR,
-                settings.TEMP_DIR,
-            ]:
-                if not os.path.isdir(d):
-                    os.mkdir(d)
 
         if options["directory"] is not None:
             self.out_dir = os.path.abspath(options['directory'])
