@@ -142,12 +142,9 @@ class Command(BaseCommand):
 
         vars = [
             ("DEBUG", False),
-            ("CACHE_BUSTING_STATIC_ENABLED", False),
-            ("CACHE_BUSTING_MEDIA_ENABLED", False),
             ("SITEURL", ""),
             ("DJANGO_SETTINGS_MODULE", None),
             ("BROKER_URL", ""),
-            ("ASYNC_SIGNALS", False),
             ("DATABASE_URL", ""),
             ("CACHE_DIR", ""),
             ("MEDIA_ROOT", ""),
@@ -164,18 +161,6 @@ class Command(BaseCommand):
                 ('DJANGO_EMAIL_USE_TLS', False),
                 ('DJANGO_EMAIL_USE_SSL', False),
                 ('DEFAULT_FROM_EMAIL', 'admin@localhost'),
-            ]
-
-        if self.resolve_var("ACCOUNT_OPEN_SIGNUP", False) is True:
-            vars += [
-                ('ACCOUNT_OPEN_SIGNUP', True),
-                ('ACCOUNT_EMAIL_REQUIRED', True),
-                ('ACCOUNT_CONFIRM_EMAIL_ON_GET', False),
-                ('ACCOUNT_EMAIL_VERIFICATION', True),
-                ('ACCOUNT_EMAIL_CONFIRMATION_EMAIL', True),
-                ('ACCOUNT_EMAIL_CONFIRMATION_REQUIRED', True),
-                ('ACCOUNT_AUTHENTICATION_METHOD', 'username_email'),
-                ('AUTO_ASSIGN_REGISTERED_MEMBERS_TO_REGISTERED_MEMBERS_GROUP_NAME', True),
             ]
 
         kv_list = []
@@ -290,15 +275,9 @@ sudo supervisorctl reload
             ("SITE_HOST_NAME", ""),
             ("SITEURL", ""),
             ("ALLOWED_HOSTS", []),
-            ("SESSION_EXPIRED_CONTROL_ENABLED", True),
-            ("MONITORING_ENABLED", False),
-            ("ADMIN_USERNAME", ""),
-            ("ADMIN_PASSWORD", ""),
             ("ADMIN_EMAIL", ""),
             ("MAPBOX_API_TOKEN", None),
             ("BROKER_URL", ""),
-            ("ASYNC_SIGNALS", False),
-            ("USE_TITILER", True),
             ("TITILER_HOST", ""),
             ("SWAP_COORDINATE_ORDER", False),
             ("ENABLE_CPROFILER", False),
@@ -318,18 +297,6 @@ sudo supervisorctl reload
                 ('DJANGO_EMAIL_USE_TLS', False),
                 ('DJANGO_EMAIL_USE_SSL', False),
                 ('DEFAULT_FROM_EMAIL', 'admin@localhost'),
-            ]
-
-        if self.resolve_var("ACCOUNT_OPEN_SIGNUP", False) is True:
-            vars += [
-                ('ACCOUNT_OPEN_SIGNUP', True),
-                ('ACCOUNT_EMAIL_REQUIRED', True),
-                ('ACCOUNT_CONFIRM_EMAIL_ON_GET', False),
-                ('ACCOUNT_EMAIL_VERIFICATION', True),
-                ('ACCOUNT_EMAIL_CONFIRMATION_EMAIL', True),
-                ('ACCOUNT_EMAIL_CONFIRMATION_REQUIRED', True),
-                ('ACCOUNT_AUTHENTICATION_METHOD', 'username_email'),
-                ('AUTO_ASSIGN_REGISTERED_MEMBERS_TO_REGISTERED_MEMBERS_GROUP_NAME', True),
             ]
 
         env_section = ""
