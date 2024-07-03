@@ -38,9 +38,13 @@ OHMG_API_KEY = os.getenv("OHMG_API_KEY", "")
 ALLOWED_HOSTS = ast.literal_eval(os.getenv("ALLOWED_HOSTS", "[]"))
 
 # Set path to cache directory
-LOG_DIR = os.getenv('LOG_DIR', BASE_DIR / "logs")
+LOG_DIR = os.getenv('LOG_DIR', BASE_DIR / ".logs")
 CACHE_DIR = os.getenv('CACHE_DIR', BASE_DIR / ".ohmg_cache")
 TEMP_DIR = os.getenv('TEMP_DIR', BASE_DIR / ".temp")
+
+for d in [LOG_DIR, CACHE_DIR, TEMP_DIR]:
+    if not os.path.isdir(d):
+        os.mkdir(d)
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -70,7 +74,6 @@ INSTALLED_APPS = [
     'tinymce',
     'django_extensions',
     'avatar',
-    'invitations',
 
     'ninja',
     'markdownx',
@@ -112,7 +115,6 @@ TEMPLATES = [
         "django.template.context_processors.static",
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
-        "django.contrib.auth.context_processors.auth",
         "ohmg.core.context_processors.navbar_footer_params",
         "ohmg.core.context_processors.site_info",
       ],
@@ -137,15 +139,18 @@ STATICFILES_DIRS = [
     PROJECT_DIR / "frontend" / "svelte" / "public" / "build",
 ]
 
+MEDIA_URL = os.getenv('MEDIA_URL', '/uploaded/')
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / 'uploaded')
+
+# this is a custom setting to allow apache to be used in development
+MEDIA_HOST = os.getenv("MEDIA_HOST", SITEURL)
+
 AUTHENTICATION_BACKENDS = [
   "django.contrib.auth.backends.ModelBackend",
-  "guardian.backends.ObjectPermissionBackend",
   "allauth.account.auth_backends.AuthenticationBackend",
-  "announcements.auth_backends.AnnouncementPermissionsBackend"
 ]
 
 EMAIL_ENABLE = ast.literal_eval(os.getenv('EMAIL_ENABLE', 'False'))
-
 if EMAIL_ENABLE:
     EMAIL_BACKEND = os.getenv('DJANGO_EMAIL_BACKEND',
                               default='django.core.mail.backends.smtp.EmailBackend')
@@ -231,12 +236,6 @@ if DEBUG and ENABLE_DEBUG_TOOLBAR:
     INTERNAL_IPS = ['127.0.0.1']
 
 TITILER_HOST = os.getenv("TITILER_HOST", "")
-
-MEDIA_URL = os.getenv('MEDIA_URL', '/uploaded/')
-MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / 'loc_insurancemaps' / 'uploaded')
-
-# this is a custom setting to allow apache to be used in development
-MEDIA_HOST = os.getenv("MEDIA_HOST", SITEURL)
 
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 S3_CONFIG = {

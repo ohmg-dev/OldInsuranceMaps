@@ -1,5 +1,9 @@
 #! /usr/bin/bash
 
-psql -U postgres -c "CREATE USER ohmg WITH ENCRYPTED PASSWORD '$DB_PASSWORD'"
-psql -U postgres -c "CREATE DATABASE oldinsurancemaps WITH OWNER ohmg;"
-psql -U postgres -d oldinsurancemaps -c "CREATE EXTENSION PostGIS;"
+set -a
+source ../.env
+set +a
+
+psql -U postgres -c "CREATE USER "$DATABASE_USER" WITH ENCRYPTED PASSWORD '$DATABASE_PASSWORD'"
+psql -U postgres -c "CREATE DATABASE "$DATABASE_NAME" WITH OWNER "$DATABASE_USER";"
+psql -U postgres -d $DATABASE_NAME -c "CREATE EXTENSION PostGIS;"
