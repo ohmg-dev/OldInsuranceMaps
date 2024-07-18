@@ -1,9 +1,6 @@
 <script>
 	import SvelteMarkdown from 'svelte-markdown'
 
-	import IconContext from 'phosphor-svelte/lib/IconContext';
-	import { iconProps } from "@lib/utils";
-
 	import Link from '@components/base/Link.svelte';
 	import SVGIcon from '@components/base/SVGIcon.svelte';
 	import MapBrowse from '@components/interfaces/MapBrowse.svelte';
@@ -23,11 +20,11 @@
 	const urlSegs = window.location.href.split('/')
 
 </script>
-<IconContext values={iconProps}>
+
 <main>
 	<div>
 		<h1>OldInsuranceMaps.net</h1>
-		<p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. See <Link href="/#how-it-works">how it works</Link> or visit the <Link href="/about?utm_source=hero" external={true}>about</Link> or <Link href="/faq?utm_source=hero">FAQ</Link> pages to learn more.</p>
+		<p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. See <Link href="/#how-it-works">how it works</Link> or visit the <Link href="https://about.oldinsurancemaps.net?utm_source=hero" external={true}>about</Link> or <Link href="https://about.oldinsurancemaps.net/faq?utm_source=hero">FAQ</Link> pages to learn more.</p>
 	</div>
 
 	<div class="hero-banner2 img-bg-3">
@@ -120,7 +117,7 @@
 						Finally, all volume mosaics for a given locale are automatically aggregated into a simple web viewer so you can easily compare different years and current maps (<Link href="/viewer/baton-rouge-la?utm_source=index">Baton Rouge viewer</Link>).
 					</p>
 				</div>
-				<h4>Want to learn more? Visit the <Link href="https://ohmg.dev/docs?utm_source=index" external={true}>documentation site</Link>.</h4>
+				<h4>Want to learn more? Visit the <Link href="https://about.oldinsurancemaps.net?utm_source=index" external={true}>documentation site</Link>.</h4>
 			</div>
 		</div>
 	</div>
@@ -144,7 +141,6 @@ To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
 		</div>
 	</div>
 </main>
-</IconContext>
 
 <style>
 
@@ -168,7 +164,7 @@ main p {
 }
 
 #how-it-works {
-	scroll-margin-top: 60px;
+	scroll-margin-top: 40px;
 }
 
 #link-list {

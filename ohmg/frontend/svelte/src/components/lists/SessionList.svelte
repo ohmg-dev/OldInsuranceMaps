@@ -1,18 +1,14 @@
 <script>
 import {TableSort} from 'svelte-tablesort';
 
-import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps } from "@lib/utils"
-
-import IconButton from '../base/IconButton.svelte';
-
 import CaretDoubleLeft from 'phosphor-svelte/lib/CaretDoubleLeft'
 import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight'
 import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise'
+import Question from 'phosphor-svelte/lib/Question'
 
 import Link from '@components/base/Link.svelte';
-import OpenModalButton from '@components/base/OpenModalButton.svelte';
 import SessionListModal from './modals/SessionListModal.svelte';
+    import { getModal } from '../base/Modal.svelte';
 
 export let CONTEXT;
 export let FILTER_PARAM = '';
@@ -50,14 +46,13 @@ $: {
 
 </script>
 <SessionListModal id={"modal-session-list"} />
-<IconContext values={iconProps} >
 <div>
 	<div class="btn-row">
 		{#if paginate}
 		<div class="btn-container">
-			<IconButton disabled={offset < limitInt || loading || offset == 0} action={() => {offset = offset - limitInt}} style="lite" icon="caret-double-left" />
-			<span style="font-size:1.25em">{offset} - {offset + limitInt < total ? offset + limitInt : total} ({total})</span>
-			<IconButton disabled={offset + limitInt >= total || loading} action={() => {offset = offset + limitInt}} style="lite" icon="caret-double-right" />
+			<button class="is-icon-link is-sm" disabled={offset < limitInt || loading || offset == 0} on:click={() => {offset = offset - limitInt}}><CaretDoubleLeft /></button>
+			<span>{offset} - {offset + limitInt < total ? offset + limitInt : total} ({total})</span>
+			<button class="is-icon-link is-sm" disabled={offset + limitInt >= total || loading} on:click={() => {offset = offset + limitInt}}><CaretDoubleRight /></button>
 		</div>
 		{:else}
 		<div></div>
@@ -79,8 +74,8 @@ $: {
 				</select>
 			</div>
 			{/if}
-			<IconButton action={() => {offset = 1000; offset=0}} style="lite" icon="refresh" />
-				<OpenModalButton modalId="modal-session-list" />
+			<button class="is-icon-link is-sm" disabled={loading} on:click={() => {offset = 1000; offset=0}}><ArrowsClockwise /></button>
+			<button class="is-icon-link is-sm" style="font-size:1.25em" on:click={() => {getModal('modal-session-list').open()}}><Question /></button>
 			</div>
 		</div>
 	<div style="height: 100%; overflow-y:auto; border:1px solid grey; border-radius:4px; background:white;">
@@ -148,11 +143,11 @@ $: {
 			{/if}
 	</div>
 </div>
-</IconContext>
 <style>
 	.btn-row {
 		display: flex;
 		justify-content: space-between;
+		padding: 10px 0px;
 	}
     .btn-container {
         display:flex;

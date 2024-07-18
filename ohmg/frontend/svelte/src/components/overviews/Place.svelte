@@ -1,16 +1,13 @@
 <script>
 	import TitleBar from '@components/layout/TitleBar.svelte';
+	import PlaceBreadcrumbsSelect from '@components/layout/PlaceBreadcrumbsSelect.svelte';
 	import Maps from '@components/lists/Maps.svelte';
-
-	import IconContext from 'phosphor-svelte/lib/IconContext';
-	import ArrowRight from "phosphor-svelte/lib/ArrowRight";
-	import { iconProps } from "@lib/utils"
 
 export let CONTEXT;
 export let PLACE;
 
-
-let reinitList = [{}]
+let reList = false
+function reinitList() {reList = !reList}
 
 let showAllSublocales = false;
 $: subLocales = PLACE.descendants
@@ -31,52 +28,17 @@ function update(place_slug) {
 			PLACE = result.PLACE;
 			history.pushState({slug:PLACE.slug}, PLACE.display_name, `/${PLACE.slug}`);
 			document.title = PLACE.display_name;
-			reinitList = [{}];
+			reinitList();
 	})
 }
-
-$: sideLinks = PLACE.volumes.length > 0 ? [
-		{
-			display: "Open in main viewer",
-			url: `/viewer/${PLACE.slug}/`,
-			external: true,
-		},
-	] : [];
 
 $: VIEWER_LINK = PLACE.volumes.length > 0 ? `/viewer/${PLACE.slug}/` : '';
 
 </script>
 
-<IconContext values={iconProps} >
-<div class="breadcrumbs-select-row">
-	<select bind:value={PLACE.select_lists[1].selected} on:change={() => {update(PLACE.select_lists[1].selected)}}>
-		{#each PLACE.select_lists[1].options as i}
-		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
-		{/each}
-	</select>
-	<ArrowRight size={12} />
-	<select bind:value={PLACE.select_lists[2].selected} on:change={() => {update(PLACE.select_lists[2].selected)}}>
-		<option value="---">---</option>
-		{#each PLACE.select_lists[2].options as i}
-		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
-		{/each}
-	</select>
-	<ArrowRight size={12} />
-	<select bind:value={PLACE.select_lists[3].selected} disabled={PLACE.select_lists[2].selected === "---"} on:change={() => {update(PLACE.select_lists[3].selected)}}>
-		<option value="---">---</option>
-		{#each PLACE.select_lists[3].options as i}
-		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
-		{/each}
-	</select>
-	<ArrowRight size={12} />
-	<select bind:value={PLACE.select_lists[4].selected} disabled={PLACE.select_lists[2].selected === "---"} on:change={() => {update(PLACE.select_lists[4].selected)}}>
-		<option value="---">---</option>
-		{#each PLACE.select_lists[4].options as i}
-		<option value={i.slug}>{i.display_name} {#if i.volume_count_inclusive != 0}({i.volume_count_inclusive}){/if}</option>
-		{/each}
-	</select>
-</div>
+<PlaceBreadcrumbsSelect bind:PLACE {update} />
 <TitleBar TITLE={PLACE.display_name} {VIEWER_LINK}/>
+
 <div style="display:flex;">
 	<div id="sub-locale-panel" style="margin-right:15px; min-width:250px;">
 		{#if PLACE.parents.length > 0}
@@ -113,12 +75,11 @@ $: VIEWER_LINK = PLACE.volumes.length > 0 ? `/viewer/${PLACE.slug}/` : '';
 	</div>
 	<div id="items-panel" style="flex-grow:1; overflow-x:auto;">
 		<h3>Maps</h3>
-		{#each reinitList as key (key)}
+		{#key reList}
 		<Maps {CONTEXT} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
-		{/each}
+		{/key}
 	</div>
 </div>
-</IconContext>
 
 <style>
 button {
@@ -133,21 +94,6 @@ button:hover {
 button:disabled {
 	color:#555;
 	text-decoration: none;
-}
-.breadcrumbs-select-row {
-	display:flex;
-	flex-direction:row;
-	flex-wrap: wrap;
-	align-items: center;
-	padding: 10px 0px;
-	font-size: .95em;
-}
-.breadcrumbs-select-row select {
-	color: #2c689c;
-	cursor: pointer;
-}
-.breadcrumbs-select-row select:disabled {
-	cursor: default;
 }
 :global(.breadcrumbs-select-row svg) {
 	margin: 0px 2px;
@@ -178,16 +124,6 @@ button:disabled {
 	}
 	#items-panel {
 		width: 100%;
-	}
-	.breadcrumbs-select-row {
-		flex-direction: column;
-	}
-	.breadcrumbs-select-row select {
-		margin-bottom: 2px;
-		width: 100%;
-	}
-	:global(.breadcrumbs-select-row svg) {
-		display: none;
 	}
   }
 </style>

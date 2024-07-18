@@ -64,9 +64,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
 
-    'bootstrapform',
     'pinax.announcements',
-    'pinax_theme_bootstrap',
 
     'storages',
     'tinymce',
@@ -117,7 +115,6 @@ TEMPLATES = [
         "django.contrib.auth.context_processors.auth",
         "ohmg.core.context_processors.navbar_footer_params",
         "ohmg.core.context_processors.site_info",
-        "pinax_theme_bootstrap.context_processors.theme",
       ],
       "debug": DEBUG,
     }
@@ -163,7 +160,7 @@ else:
     EMAIL_BACKEND = os.getenv('DJANGO_EMAIL_BACKEND',
                               default='django.core.mail.backends.console.EmailBackend')
 
-ENABLE_NEWSLETTER = os.getenv("ENABLE_NEWSLETTER", False)
+ENABLE_NEWSLETTER = ast.literal_eval(os.getenv('ENABLE_NEWSLETTER', 'False'))
 if ENABLE_NEWSLETTER:
     INSTALLED_APPS += (
         'sorl.thumbnail',

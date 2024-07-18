@@ -1,13 +1,15 @@
 <script>
 import {onMount} from 'svelte';
 
-import IconContext from 'phosphor-svelte/lib/IconContext';
 import CornersOut from 'phosphor-svelte/lib/CornersOut';
-import MapboxLogoLink from "./buttons/MapboxLogoLink.svelte"
+import Article from 'phosphor-svelte/lib/Article';
+import MapTrifold from "phosphor-svelte/lib/MapTrifold";
 
-import OpenModalButton from "@components/base/OpenModalButton.svelte"
-import BasemapToggleButton from "./buttons/BasemapToggleButton.svelte"
+import ToolUIButton from "@components/base/ToolUIButton.svelte";
+import {getModal} from "@components/base/Modal.svelte";
+
 import ExpandElement from "./buttons/ExpandElement.svelte"
+import MapboxLogoLink from "./buttons/MapboxLogoLink.svelte"
 
 import LegendModal from "./modals/LegendModal.svelte"
 
@@ -17,18 +19,11 @@ import {createEmpty, extend} from 'ol/extent';
 import {transformExtent} from 'ol/proj';
 import MousePosition from 'ol/control/MousePosition';
     import {createStringXY} from 'ol/coordinate';
-import {OSM, XYZ} from 'ol/source';
-
-import {
-	Tile as TileLayer,
-	Group as LayerGroup,
-} from 'ol/layer';
 
 import {ZoomToExtent, defaults as defaultControls} from 'ol/control.js';
 
 import '@src/css/map-panel.css';
 import {
-	iconProps,
 	makeLayerGroupFromAnnotationSet,
 	makeBasemaps,
 } from '@lib/utils';
@@ -188,7 +183,6 @@ onMount(() => {
 
 </script>
 
-<IconContext values={iconProps}>
 <LegendModal id={"modal-legend"} legendUrl={"/static/img/key-nola-1940.png"} legendAlt={"Sanborn Map Key"} />
 <div id="map-container" class="map-container"  style="display:flex; justify-content: center; height:550px">
 	<div id="map-panel">
@@ -201,13 +195,17 @@ onMount(() => {
 	</div>
 	<div id="layer-panel" style="display: flex;">
 		<div class="layer-section-header" style="border-top-width: 1px;">
-			<OpenModalButton style="tool-ui" icon="article" modalId={"modal-legend"} />
+			<ToolUIButton action={() => {getModal('modal-legend').open()}}>
+				<Article />
+			</ToolUIButton>
 			<ExpandElement elementId={'map-container'} maps={[map]} />
 		</div>
 		<div id="layer-list" style="flex:2;">
 			<div class="layer-section-header">
 				<span>Basemap</span>
-				<BasemapToggleButton action={toggleBasemap} />
+				<ToolUIButton action={toggleBasemap} title="change basemap">
+					<MapTrifold />
+				</ToolUIButton>
 			</div>
 			<div class="layer-section-subheader">
 				{currentBasemap == 'satellite' ? 'Mapbox Imagery' : 'Open Street Map'}
@@ -237,7 +235,7 @@ onMount(() => {
 		</div>
 	</div>
 </div>
-</IconContext>
+
 <style>
 	#info-box {
 		position: relative;

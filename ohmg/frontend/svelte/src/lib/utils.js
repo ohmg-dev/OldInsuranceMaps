@@ -262,12 +262,6 @@ export function removeRotateCenter (layer) {
 	}
 }
 
-// adding color here seems to override :hover color rules, so best to
-// just inherit color I think.
-export const iconProps = {
-	weight: 'bold',
-}
-
 export function setMapExtent(map, extent4326) {
 	if (map) {
 		const extent3857 = transformExtent(extent4326, "EPSG:4326", "EPSG:3857");

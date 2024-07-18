@@ -1,0 +1,93 @@
+:root {
+    --bulma-scheme-main: #123b4f;
+    --bulma-scheme-main-bis: #123b4f;
+    --bulma-navbar-height: 45px;
+    --bulma-scheme-h: 200;
+    --bulma-scheme-s: 63%;
+    --bulma-scheme-l: 19%;
+    --bulma-navbar-h: 200;
+    --bulma-navbar-s: 63%;
+    --bulma-navbar-l: 19%;
+    --bulma-navbar-dropdown-item-h: 200;
+    --bulma-navbar-dropdown-item-s: 63%;
+    --bulma-navbar-dropdown-item-l: 19%;
+    --bulma-navbar-item-background-l: 19%;
+    --bulma-primary-h: 200;
+    --bulma-primary-s: 63%;
+    --bulma-primary-l: 19%;
+    --bulma-text-color: #333333;
+    --bulma-text-strong: #333333;
+    --bulma-strong-color: #333333;
+}
+
+.navbar-dropdown a.navbar-item {
+    background-color: var(--bulma-scheme-main)
+}
+
+.navbar-dropdown a.navbar-item:not(.is-active, .is-selected) {
+    background-color: var(--bulma-scheme-main);
+    color: white;
+}
+
+a.navbar-item, a.navbar-link {
+    color: white;
+}
+
+/* seems like the delta-l strategy in Bulma isn't compatible with a lot of 
+browsers?? Pretty weird and annoying...
+Force hover color here to what it was supposed to be with the delta*/
+.navbar-link:hover, .navbar-item:hover {
+    background-color: #0d2b3a;
+}
+
+nav.navbar {
+    height: var(--bulma-navbar-height);
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    color: white;
+}
+
+
+.navbar-burger > span{
+    background-color: white;
+}
+.navbar-dropdown {
+    background-color: var(--bulma-scheme-main);
+}
+
+button[disabled].button {
+    cursor: default;
+}
+
+button.button.is-icon {
+    box-shadow:
+        inset 1px 1px 1px 1px rgb(234, 234, 234),
+        inset -1px -1px 1px 1px rgb(145, 145, 145);
+}
+
+button.button.is-icon:disabled {
+    box-shadow:
+        inset 1px 1px 1px 1px rgb(234, 234, 234),
+        inset -1px -1px 1px 1px rgb(145, 145, 145);
+}
+
+button.button.is-icon:active {
+    box-shadow:
+        inset 1px 1px 1px 1px rgb(145, 145, 145),
+        inset -1px -1px 1px 1px rgb(234, 234, 234);
+}
+
+/* button.button:active {
+    box-shadow: inset 0px 0px 3px rgba(200, 200, 200, 0.75);
+} */
+
+button.button.is-primary {
+    color: white;
+    /* background-color: var(--bulma-scheme-main); */
+}
+
+button.button > span.icon > svg {
+    font-size: 2em;
+}

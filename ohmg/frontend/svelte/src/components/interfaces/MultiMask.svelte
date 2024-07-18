@@ -1,7 +1,11 @@
 <script>
 import {onMount} from 'svelte';
 
-import IconContext from 'phosphor-svelte/lib/IconContext';
+import X from 'phosphor-svelte/lib/X';
+import Check from 'phosphor-svelte/lib/Check';
+import CropIcon  from 'phosphor-svelte/lib/Crop';
+import Trash from 'phosphor-svelte/lib/Trash';
+import CornersOut from 'phosphor-svelte/lib/CornersOut';
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
@@ -32,11 +36,10 @@ import {Draw, Snap} from 'ol/interaction';
 import Style from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
 
-import IconButton from '@components/base/IconButton.svelte';
-import FullExtentButton from './buttons/FullExtentButton.svelte';
+import ToolUIButton from '@components/base/ToolUIButton.svelte';
 import ExpandElement from './buttons/ExpandElement.svelte';
 
-import { iconProps, makeTitilerXYZUrl, makeBasemaps, makeModifyInteraction } from "@lib/utils"
+import { makeTitilerXYZUrl, makeBasemaps, makeModifyInteraction } from "@lib/utils"
 import Styles from '@lib/ol-styles';
 
 const styles = new Styles();
@@ -375,7 +378,6 @@ function layerRemoveMask(layer, confirm) {
 
 </script>
 
-<IconContext values={iconProps} >
 <div id='mm-container' class="svelte-component-main">
   <div id="map-container" class="map-container" style="height: calc(100%-35px);">
     <div id="map-viewer" class="map-item rounded-bottom">
@@ -383,7 +385,9 @@ function layerRemoveMask(layer, confirm) {
     </div>
     <div id="layer-panel" style="display: flex;">
       <div class="layer-section-header" style="border-top:none;">
-        <FullExtentButton action={setMapExtent} />
+        <ToolUIButton action={setMapExtent} title="Go to full extent">
+          <CornersOut />
+        </ToolUIButton>
         <ExpandElement elementId={'mm-container'} maps={[map]} />
       </div>
       <div id="layer-list" style="flex:2;">
@@ -393,7 +397,9 @@ function layerRemoveMask(layer, confirm) {
         <div class="layer-section-subheader" style="overflow-y:auto">
           {#each layerLookupUnmaskedArr as layer}		
             <div style="display:flex;">
-              <IconButton style="tool-ui-secondary" icon="crop" title="add mask" action={() => addMask(layer)} />
+              <ToolUIButton action={() => addMask(layer)} title="add mask" >
+                <CropIcon />
+              </ToolUIButton>
               &nbsp;
               <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
                 <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.page_str}</span>
@@ -409,7 +415,9 @@ function layerRemoveMask(layer, confirm) {
         <div class="layer-section-subheader" style="overflow-y:auto">
           {#each layerLookupMaskedArr as layer}		
             <div style="display:flex;">
-              <IconButton style="tool-ui-secondary" icon="trash" title="remove mask" action={() => layerRemoveMask(layer)} />
+              <ToolUIButton action={() => layerRemoveMask(layer)} title="remove mask" >
+                <Trash />
+              </ToolUIButton>
               &nbsp;
               <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
                 <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.page_str}</span>
@@ -421,13 +429,17 @@ function layerRemoveMask(layer, confirm) {
         </div>
       </div>
       <div class="layer-section-header">
-          <IconButton style="tool-ui-secondary" icon="x" title="Cancel (reset)" action={resetInterface} disabled={unchanged || DISABLED} />
-          <IconButton style="tool-ui-secondary" icon="check" title="Submit" action={submitMultiMask} disabled={unchanged || DISABLED} />
+          <ToolUIButton action={resetInterface} title="Cancel (reset)" disabled={unchanged || DISABLED}>
+            <X />
+          </ToolUIButton>
+          <ToolUIButton action={submitMultiMask} title="Submit" disabled={unchanged || DISABLED}>
+            <Check  />
+          </ToolUIButton>
       </div>
     </div>
   </div>
 </div>
-</IconContext>
+
 <style>
 
 button.layer-entry {

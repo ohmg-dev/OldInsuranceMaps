@@ -1,9 +1,6 @@
 <script>
 import {onMount} from 'svelte';
 
-import IconContext from 'phosphor-svelte/lib/IconContext';
-import { iconProps } from "@lib/utils"
-
 import CrosshairSimple from "phosphor-svelte/lib/CrosshairSimple";
 import MapTrifold from "phosphor-svelte/lib/MapTrifold";
 import CornersOut from "phosphor-svelte/lib/CornersOut";
@@ -401,7 +398,7 @@ function getCompletedStr(id) {
 } 
 
 </script>
-<IconContext values={iconProps}>
+
 <Modal id='modal-about'>
 	<h1>Using this Viewer</h1>
 	<ul>
@@ -499,7 +496,6 @@ function getCompletedStr(id) {
 	</div>
 	{/if}
 </main>
-</IconContext>
 
 <style>
 main {
@@ -569,7 +565,7 @@ h1, h2 {
 	right: .5em;
 	max-width: 100%;
 	min-width: 250px;
-	background: #F7F1E1;
+	background: var(--primary-background-color);
 	border-radius: 4px;
 	border: 1px solid #333333;
 	z-index: 999;

@@ -1,7 +1,6 @@
 <script>
     import {onMount} from 'svelte';
 
-    import IconContext from 'phosphor-svelte/lib/IconContext';
     import CornersOut from "phosphor-svelte/lib/CornersOut";
 
     import 'ol/ol.css';
@@ -19,7 +18,6 @@
     import {Image as ImageLayer} from 'ol/layer';
 
     import {
-        iconProps,
         makeTitilerXYZUrl,
         makeBasemaps,
     } from '@lib/utils';
@@ -115,7 +113,7 @@
         viewer = new DocViewer('doc-viewer');
     })
 </script>
-<IconContext values={iconProps}>
+
 <div style="height:100%;">
     <div id="doc-viewer">
         <i id='extent-icon-doc'><CornersOut size={'20px'} /></i>
@@ -127,7 +125,7 @@
         </div>
     </div>
 </div>
-</IconContext>
+
 <style>
     #doc-viewer {
         background: url('../../static/img/sandpaper-bg-vlite.jpg');

@@ -11,7 +11,7 @@
 <div class="title-bar">
     <div style="display:flex; flex-direction:row; justify-content:left; align-items:center;">
         {#if IMG_URL}
-        <img height="40px" style="border-radius:5px; margin-right:10px;" src="{IMG_URL}" alt="{TITLE}" />
+        <img style="border-radius:5px; margin-right:10px; height:50px;" src="{IMG_URL}" alt="{TITLE}" />
         {/if}
         <h1 style="margin-bottom:0px;">{ TITLE }</h1>
     </div>

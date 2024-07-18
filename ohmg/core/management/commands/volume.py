@@ -83,6 +83,11 @@ class Command(BaseCommand):
             action="store_true",
         )
         parser.add_argument(
+            "--no-cache",
+            help="don't use cached request response",
+            action="store_true",
+        )
+        parser.add_argument(
             "-e", "--exclude",
             nargs="*",
             help="identifiers of volumes to exclude, used in conjunction with --all."
@@ -150,7 +155,8 @@ class Command(BaseCommand):
                 vol = import_volume(
                     identifier,
                     locale=locale,
-                    dry_run=options['dry_run']
+                    dry_run=options['dry_run'],
+                    no_cache=options['no_cache'],
                 )
                 if vol:
                     vol.access = options['access']
