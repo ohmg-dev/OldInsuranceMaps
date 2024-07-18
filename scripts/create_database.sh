@@ -1,7 +1,9 @@
 #! /usr/bin/bash
 
+ENV_FILE=$(dirname "${BASH_SOURCE[0]}")/../.env
+
 set -a
-source ../.env
+source $ENV_FILE
 set +a
 
 psql -U postgres -c "CREATE USER "$DATABASE_USER" WITH ENCRYPTED PASSWORD '$DATABASE_PASSWORD'"

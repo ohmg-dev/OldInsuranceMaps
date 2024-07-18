@@ -1,6 +1,5 @@
 import ast
 import os
-import dj_database_url
 from pathlib import Path
 
 from kombu import Queue, Exchange
@@ -124,11 +123,17 @@ TEMPLATES = [
 ]
 
 DATABASES = {
-    'default': dj_database_url.parse(
-        os.getenv('DATABASE_URL'),
-        conn_max_age=0
-    )
+    'default': {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": os.getenv("DATABASE_NAME", "ohmg"),
+        "USER": os.getenv("DATABASE_USER", "postgres"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD", "postgres"),
+        "HOST": os.getenv("DATABASE_HOST", "localhost"),
+        "PORT": os.getenv("DATABASE_PORT", 5432),
+    }
 }
+
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 

@@ -131,7 +131,11 @@ class Command(BaseCommand):
             ("SITEURL", ""),
             ("DJANGO_SETTINGS_MODULE", None),
             ("BROKER_URL", ""),
-            ("DATABASE_URL", ""),
+            ("DATABASE_NAME", ""),
+            ("DATABASE_USER", ""),
+            ("DATABASE_PASSWORD", ""),
+            ("DATABASE_HOST", ""),
+            ("DATABASE_PORT", ""),
             ("CACHE_DIR", ""),
             ("MEDIA_ROOT", ""),
         ]
@@ -255,7 +259,11 @@ sudo supervisorctl reload
 
         vars = [
             ("MEDIA_ROOT", ""),
-            ("DATABASE_URL", ""),
+            ("DATABASE_NAME", ""),
+            ("DATABASE_USER", ""),
+            ("DATABASE_PASSWORD", ""),
+            ("DATABASE_HOST", ""),
+            ("DATABASE_PORT", ""),
             ("DEBUG", False),
             ("DJANGO_SETTINGS_MODULE", None),
             ("SITE_HOST_NAME", ""),
