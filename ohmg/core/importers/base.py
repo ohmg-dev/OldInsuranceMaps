@@ -123,11 +123,9 @@ class BaseImporter():
         self.input_data = kwargs
         parsed = self.parse()
 
-        print(parsed)
-
         errors = self.validate_output(**parsed)
         if errors:
-            print(errors)
+            logger.error(errors)
             raise Exception('errors')
         
         self.parsed_data = parsed

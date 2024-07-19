@@ -146,7 +146,7 @@ class LOCParser(object):
                     used_tags.append(lt)
                     break
         else:
-            print(f"BAD STATE IN TITLE: {state_seg}")
+            logger.warn(f"BAD STATE IN TITLE: {state_seg}")
 
         # get city
         location_tags = [i for i in location_tags if i not in used_tags]
@@ -185,7 +185,7 @@ class LOCParser(object):
         location_tags = [i for i in location_tags if i not in used_tags]
         if len(location_tags) > 0:
             msg = f"WARNING: unparsed location tags - {self.identifier} - {title} - {location_tags}"
-            print(msg)
+            logger.warn(msg)
 
         self.extra_location_tags = location_tags
 
@@ -392,13 +392,12 @@ class LOCConnection(object):
         self.load_cache(url)
         run_search = no_cache is True or self.data is None
         if self.verbose:
-            print(f"query url: {url} | delay: {self.delay} | using cache: {not run_search}")
+            logger.info(f"query url: {url} | delay: {self.delay} | using cache: {not run_search}")
         if run_search:
             if self.verbose and self.delay > 0:
-                print(f"waiting {self.delay} seconds before making a request...")
+                logger.info(f"waiting {self.delay} seconds before making a request...")
             time.sleep(self.delay)
-            if self.verbose:
-                print("making request")
+            logger.info("making request...")
             try:
                 response = requests.get(url)
                 if response.status_code in [500, 503]:

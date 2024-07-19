@@ -83,25 +83,11 @@ class Command(BaseCommand):
 
         datadir = Path(Path(__file__).parent.parent.parent, "reference_data")
         Place.objects.all().delete()
-        def load_place_csv(filepath):
-            print(filepath)
-            with open(filepath, "r") as op:
-                reader = csv.DictReader(op)
-                with transaction.atomic():
-                    for n, row in enumerate(reader, start=1):
-                        parents = row.pop("direct_parents")
-                        if n % 100 == 0:
-                            print(n)
-                        p = Place.objects.create(**row)
-                        if parents:
-                            for parent in parents.split(","):
-                                p.direct_parents.add(parent)
-                        p.save(set_slug=True)
 
-        load_place_csv(Path(datadir, "place_countries.csv"))
-        load_place_csv(Path(datadir, "place_states.csv"))
-        load_place_csv(Path(datadir, "place_counties.csv"))
-        load_place_csv(Path(datadir, "place_other.csv"))
+        Place().bulk_load_from_csv(Path(datadir, "place_countries.csv"))
+        Place().bulk_load_from_csv(Path(datadir, "place_states.csv"))
+        Place().bulk_load_from_csv(Path(datadir, "place_counties.csv"))
+        Place().bulk_load_from_csv(Path(datadir, "place_other.csv"))
 
     def reset_all_counts(self):
 

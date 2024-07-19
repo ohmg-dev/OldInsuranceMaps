@@ -1,5 +1,6 @@
+import csv
 import logging
-from django.db import models
+from django.db import models, transaction
 
 from ohmg.core.utils import slugify
 from ohmg.core.utils import (
@@ -289,3 +290,16 @@ class Place(models.Model):
             self.display_name = display_name
         super(Place, self).save(*args, **kwargs)
 
+    def bulk_load_from_csv(self, filepath):
+        with open(filepath, "r") as op:
+            reader = csv.DictReader(op)
+            with transaction.atomic():
+                for n, row in enumerate(reader, start=1):
+                    parents = row.pop("direct_parents")
+                    if n % 100 == 0:
+                        print(n)
+                    p = Place.objects.create(**row)
+                    if parents:
+                        for parent in parents.split(","):
+                            p.direct_parents.add(parent)
+                    p.save(set_slug=True)
