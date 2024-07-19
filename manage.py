@@ -5,6 +5,16 @@ import sys
 
 from dotenv import load_dotenv
 
+is_testing = 'test' in sys.argv
+
+if is_testing:
+    import coverage
+    cov = coverage.coverage(source=['ohmg'], omit=['*/tests/*', '*/migrations/*'])
+    cov.set_option('report:show_missing', True)
+    cov.set_option('report:skip_covered', True)
+    cov.erase()
+    cov.start()
+
 def main():
     """Run administrative tasks."""
     load_dotenv()
@@ -22,3 +32,8 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+    if is_testing:
+        cov.stop()
+        cov.save()
+        cov.report()

@@ -47,6 +47,7 @@ dev = [
     "django-cprofile-middleware==1.0.5",
     "pygraphviz",
     "ruff",
+    "coverage",
 ]
 
 [tool.setuptools]
