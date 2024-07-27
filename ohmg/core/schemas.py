@@ -167,18 +167,16 @@ class LayerSchema(Schema):
 
     @staticmethod
     def resolve_image_url(obj):
-        base = settings.SITEURL.rstrip("/")
         doc = obj.get_document()
         if doc and doc.file:
-            return base + doc.file.url
+            return doc.file.url
         else:
             return None
 
     @staticmethod
     def resolve_geotiff_url(obj):
-        base = settings.SITEURL.rstrip("/")
         if obj.file:
-            return base + obj.file.url
+            return obj.file.url
         else:
             return None
 

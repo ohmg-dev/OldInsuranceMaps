@@ -178,7 +178,10 @@ def get_places_geojson(request):
     return geojson
 
 @api.get('layers/', response=List[LayerSchema], url_name="layers")
-@paginate
-def layer(request):
+def layer(request, map: str):
 
-    return Layer.objects.prefetch_related("vrs")
+    vol = Volume.objects.get(pk=map).serialize()
+    layer_ids = [i['slug'] for i in vol['items']['layers']]
+    layers = Layer.objects.filter(slug__in=layer_ids).prefetch_related('vrs')
+
+    return layers
