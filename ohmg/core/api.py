@@ -20,9 +20,10 @@ from ohmg.core.schemas import (
     SessionSchema,
     AnnotationSetSchema,
     PlaceSchema,
+    LayerSchema,
 )
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.georeference.models import SessionBase, AnnotationSet
+from ohmg.georeference.models import SessionBase, AnnotationSet, Layer
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
@@ -175,3 +176,8 @@ def get_places_geojson(request):
                 geojson['features'].append(feature)
 
     return geojson
+
+@api.get('layers/', response=List[LayerSchema], url_name="layers")
+def layer(request):
+
+    return Layer.objects.all()
