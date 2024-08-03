@@ -1,12 +1,10 @@
-from pathlib import Path
-
-from django.test import TestCase
 from django.core.handlers.wsgi import WSGIHandler
 from django.core.handlers.asgi import ASGIHandler
 
 from ohmg.core.importers.base import get_importer, SingleFileImporter
 from ohmg.places.models import Place
-from ohmg.loc_insurancemaps.models import Volume
+from ohmg.loc_insurancemaps.models import Volume, Sheet
+from ohmg.georeference.models import Document
 
 from .base import OHMGTestCase, TEST_DATA_DIR
 
@@ -27,7 +25,7 @@ class ImportersTestCase(OHMGTestCase):
     fixtures = [
         'ohmg/georeference/fixtures/default-layerset-categories.json',
         'ohmg/georeference/fixtures/sanborn-layerset-categories.json',
-        'ohmg/tests/fixtures/places/alexandria-la-tree.json',
+        TEST_DATA_DIR / 'fixtures/places/alexandria-la-and-parents.json',
     ]
 
     def test_single_file_importer(self):
@@ -51,3 +49,21 @@ class ImportersTestCase(OHMGTestCase):
         
         locale = Place.objects.get(slug="alexandria-la")
         self.assertEqual(locale.volume_count, 1)
+
+class MapTestCase(OHMGTestCase):
+
+    fixtures = [
+        'ohmg/georeference/fixtures/default-layerset-categories.json',
+        'ohmg/georeference/fixtures/sanborn-layerset-categories.json',
+        TEST_DATA_DIR / 'fixtures/places/alexandria-la-and-parents.json',
+        TEST_DATA_DIR / 'fixtures/auth/admin-user.json',
+        TEST_DATA_DIR / 'fixtures/loc_insurancemaps/sanborn-alexandria-la-1892-volume.json',
+        TEST_DATA_DIR / 'fixtures/loc_insurancemaps/sanborn-alexandria-la-1892-docs.json',
+        TEST_DATA_DIR / 'fixtures/loc_insurancemaps/sanborn-alexandria-la-1892-sheets.json',
+    ]
+
+    def test_volume_operations(self):
+
+        self.assertEqual(Volume.objects.all().count(), 1)
+        self.assertEqual(Sheet.objects.all().count(), 3)
+        self.assertEqual(Document.objects.all().count(), 3)
