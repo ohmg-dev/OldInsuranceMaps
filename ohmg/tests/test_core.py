@@ -8,10 +8,10 @@ from ohmg.core.importers.base import get_importer, SingleFileImporter
 from ohmg.places.models import Place
 from ohmg.loc_insurancemaps.models import Volume
 
-fixture_dir = Path(__file__).parent / 'fixtures'
+from .base import OHMGTestCase, TEST_DATA_DIR
 
 
-class BasicTests(TestCase):
+class BasicTests(OHMGTestCase):
 
     def test_wsgi(self):
         from ohmg.wsgi import application
@@ -22,7 +22,7 @@ class BasicTests(TestCase):
         self.assertIsInstance(application, ASGIHandler)
 
 
-class ImportersTestCase(TestCase):
+class ImportersTestCase(OHMGTestCase):
 
     fixtures = [
         'ohmg/georeference/fixtures/default-layerset-categories.json',

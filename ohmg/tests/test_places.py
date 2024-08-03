@@ -1,15 +1,14 @@
 from pathlib import Path
 
-from django.test import TestCase
 from ohmg.places.models import Place
+from .base import OHMGTestCase, TEST_DATA_DIR
 
-fixture_dir = Path(__file__).parent / 'fixtures'
 
-class LoadPlacesTest(TestCase):
+class LoadPlacesTest(OHMGTestCase):
 
     def test_load_places(self):
         
-        csv_dir = fixture_dir / 'places' / 'csv'
+        csv_dir = TEST_DATA_DIR / 'fixtures' / 'places' / 'csv'
 
         Place().bulk_load_from_csv(Path(csv_dir, "place_countries.csv"))
         Place().bulk_load_from_csv(Path(csv_dir, "place_states.csv"))

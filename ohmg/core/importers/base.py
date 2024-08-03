@@ -4,6 +4,7 @@ import importlib
 import logging
 
 from django.conf import settings
+from django.db import DatabaseError
 
 from ohmg.places.models import Place
 from ohmg.loc_insurancemaps.models import Volume
@@ -99,11 +100,19 @@ class BaseImporter():
         creator = self.parsed_data.pop('creator')
         docs = self.parsed_data.pop('document_sources')
 
-        volume = Volume.objects.create(**self.parsed_data)
+        existing = Volume.objects.filter(pk=self.parsed_data['identifier'])
+        if existing.exists():
+            if self.overwrite:
+                existing.update(**self.parsed_data)
+                volume = existing[0]
+                # save to trigger any signals
+                volume.save()
+            else:
+                raise DatabaseError("[ERROR] This map already exists.")
+        else:
+            volume = Volume.objects.create(**self.parsed_data)
 
-        if locale:
-            volume.locales.add(locale)
-
+        volume.locales.set([locale])
         volume.update_place_counts()
         # make sure a main-content layerset exists for this volume
         main_ls, _ = LayerSet.objects.get_or_create(
