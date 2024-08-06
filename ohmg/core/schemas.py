@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, Optional, Any, Union
+from django.conf import settings
 from django.urls import reverse
 from ninja import (
     Field,
@@ -143,6 +144,10 @@ class LayerSchema(Schema):
     slug: str
     detail_url: str
     thumb_url: str = ''
+    geotiff_url: Optional[str]
+    image_url: Optional[str]
+    mask: Optional[dict]
+    gcps_geojson: Optional[dict]
 
     @staticmethod
     def resolve_thumb_url(obj):
@@ -153,6 +158,35 @@ class LayerSchema(Schema):
     def resolve_detail_url(obj):
         return reverse("resource_detail", args=(obj.pk, ))
 
+    @staticmethod
+    def resolve_mask(obj):
+        if obj.vrs and obj.vrs.multimask and obj.slug in obj.vrs.multimask:
+            return obj.vrs.multimask[obj.slug]
+        else:
+            return None
+
+    @staticmethod
+    def resolve_image_url(obj):
+        doc = obj.get_document()
+        if doc and doc.file:
+            return doc.file.url
+        else:
+            return None
+
+    @staticmethod
+    def resolve_geotiff_url(obj):
+        if obj.file:
+            return obj.file.url
+        else:
+            return None
+
+    @staticmethod
+    def resolve_gcps_geojson(obj):
+        doc = obj.get_document()
+        if doc:
+            return doc.gcps_geojson
+        else:
+            return None
 
 class SessionSchema(Schema):
 
