@@ -606,7 +606,6 @@ class Document(models.Model):
             jpg_path = get_jpg_from_jp2_url(self.source_url)
             with open(jpg_path, "rb") as new_file:
                 self.file.save(f"{slugify(self.title)}.jpg", File(new_file))
-            os.remove(jpg_path)
 
         self.load_date = datetime.now()
         self.save()

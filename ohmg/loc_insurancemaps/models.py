@@ -90,7 +90,7 @@ class Sheet(models.Model):
     def __str__(self):
         return f"{self.volume.__str__()} p{self.sheet_no}"
 
-    def load_doc(self, user=None):
+    def load_doc(self, user=None, force_reload: bool=True):
 
         log_prefix = f"{self.volume} p{self.sheet_no} |"
         logger.info(f"{log_prefix} start load")
@@ -112,10 +112,9 @@ class Sheet(models.Model):
         self.save()
 
         if not self.doc.file:
-            jpg_path = get_jpg_from_jp2_url(self.jp2_url)
+            jpg_path = get_jpg_from_jp2_url(self.jp2_url, use_cache=not force_reload, force_convert=force_reload)
             with open(jpg_path, "rb") as new_file:
                 self.doc.file.save(f"{self.doc.slug}.jpg", File(new_file))
-            os.remove(jpg_path)
 
         month = 1 if self.volume.month is None else int(self.volume.month)
         date = datetime(self.volume.year, month, 1, 12, 0)
@@ -404,7 +403,7 @@ class Volume(models.Model):
         self.update_status("initializing...")
         for sheet in self.sheets:
             if sheet.doc is None or sheet.doc.file is None or force_reload:
-                sheet.load_doc(self.loaded_by)
+                sheet.load_doc(self.loaded_by, force_reload=force_reload)
         self.update_status("ready")
         self.refresh_lookups()
 

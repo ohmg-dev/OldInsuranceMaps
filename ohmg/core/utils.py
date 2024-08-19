@@ -6,6 +6,7 @@ import string
 import random
 import requests
 import logging
+from pathlib import Path
 
 from django.conf import settings
 from django.urls import reverse
@@ -64,7 +65,10 @@ def make_cacheable_request(url, delay=0, no_cache=False):
 
     return data
 
-def download_image(url, out_path, retries=3):
+def download_image(url: str, out_path: Path, retries: int=3, use_cache: bool=True):
+
+    if out_path.is_file() and use_cache:
+        return out_path
 
     # basic download code: https://stackoverflow.com/a/18043472/3873885
     while True:
@@ -83,34 +87,32 @@ def download_image(url, out_path, retries=3):
                 return None
             
 
-def convert_img_format(input_img, format="JPEG"):
+def convert_img_format(input_img: Path, format: str="JPEG", force: bool=False):
 
     ext_map = {"PNG":".png", "JPEG":".jpg", "TIFF": ".tif"}
-    ext = os.path.splitext(input_img)[1]
+    outpath = input_img.with_suffix(ext_map[format])
 
-    outpath = input_img.replace(ext, ext_map[format])
+    if outpath.is_file() and not force:
+        return outpath
 
     img = Image.open(input_img)
     img.save(outpath, format=format)
 
     return outpath
 
-def get_jpg_from_jp2_url(jp2_url):
+def get_jpg_from_jp2_url(jp2_url: str, use_cache: bool=True, force_convert: bool=False):
 
-    temp_img_dir = os.path.join(settings.CACHE_DIR, "img")
-    if not os.path.isdir(temp_img_dir):
-        os.mkdir(temp_img_dir)
+    temp_img_dir = Path(settings.CACHE_DIR, "images")
+    temp_img_dir.mkdir(exist_ok=True)
 
-    tmp_path = os.path.join(temp_img_dir, jp2_url.split("/")[-1])
+    tmp_path = Path(temp_img_dir, jp2_url.split("/")[-1])
 
-    tmp_path = download_image(jp2_url, tmp_path)
-    print(tmp_path)
+    tmp_path = download_image(jp2_url, tmp_path, use_cache=use_cache)
     if tmp_path is None:
         return
 
     # convert the downloaded jp2 to jpeg (needed for OpenLayers static image)
-    jpg_path = convert_img_format(tmp_path, format="JPEG")
-    os.remove(tmp_path)
+    jpg_path = convert_img_format(tmp_path, force=force_convert)
 
     return jpg_path
 
