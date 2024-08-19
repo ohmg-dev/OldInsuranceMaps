@@ -201,3 +201,9 @@ All tests are stored in ohmg/tests. Make sure you have installed dev requirement
 ```
 python manage.py test ohmg/tests
 ```
+
+To skip the tests that make external calls to the LOC API, use the following command. Keep in mind that coverage numbers will be lower when you skip tests.
+
+```
+python manage.py test ohmg/tests --exclude-tag=loc
+```
