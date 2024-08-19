@@ -5,7 +5,11 @@ import sys
 
 from dotenv import load_dotenv
 
+settings_module = 'ohmg.settings'
+
 is_testing = 'test' in sys.argv
+if is_testing:
+    settings_module = 'ohmg.tests.settings_test'
 
 if is_testing:
     import coverage
@@ -20,7 +24,7 @@ if is_testing:
 def main():
     """Run administrative tasks."""
     load_dotenv()
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ohmg.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_module)
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

@@ -4,15 +4,12 @@ from pathlib import Path
 
 from kombu import Queue, Exchange
 
-# this environment variable is set in manage.py
-TESTING = ast.literal_eval(os.getenv("TESTING", "False"))
-
 # set the repo root as the BASE_DIR, project root at PROJECT_DIR
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 PROJECT_DIR = Path(__file__).resolve().parent
 
 # set BASE_DIR which is used to locate log, cache, temp, static, and uploaded dirs
-BASE_DIR = PROJECT_DIR.parent if not TESTING else PROJECT_DIR / "tests" / "root"
+BASE_DIR = PROJECT_DIR.parent
 
 # the build file is generated and updated with python manage.py update_build
 BUILD_FILE = BASE_DIR / '.build'
