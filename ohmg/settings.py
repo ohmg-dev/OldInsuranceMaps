@@ -351,22 +351,11 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
-        'console-vb': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
-        },
         ## haven't gotten this to work yet
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
-        },
-        'geonode': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(LOG_DIR, 'geonode.log'),
-            'formatter': 'moderate',
         },
         'info': {
             'level': 'INFO',
@@ -396,23 +385,6 @@ LOGGING = {
     "loggers": {
         "django": {
             "handlers": ["console"], "level": "ERROR", },
-        "geonode": {
-            "handlers": ["geonode"], "level": "DEBUG", },
-        "geoserver-restconfig.catalog": {
-            "handlers": ["console"], "level": "ERROR", },
-        "owslib": {
-            "handlers": ["console"], "level": "ERROR", },
-        "pycsw": {
-            "handlers": ["console"], "level": "ERROR", },
-        "celery": {
-            "handlers": ["console"], "level": "DEBUG", },
-        "mapstore2_adapter.plugins.serializers": {
-            "handlers": ["console"], "level": "DEBUG", },
-        "geonode_logstash.logstash": {
-            "handlers": ["console"], "level": "DEBUG", },
-        # logging for this app specifically
-        "ohmg.georeference.tests": {
-            "handlers": ["console"], "level": "DEBUG", },
         "ohmg.georeference": {
             "handlers": ["info", "georeference-debug"], "level": "DEBUG", },
         "ohmg.loc_insurancemaps": {
@@ -430,6 +402,9 @@ if DEBUG:
     LOGGING['loggers']['ohmg.loc_insurancemaps']['handlers'].append('console')
 else:
     celery_log_level = 'INFO'
+
+## TODO: figure out if this setting can fix what the list below are supposed to fix
+# CELERYD_HIJACK_ROOT_LOGGER = False
 
 LOGGING['loggers']['celery'] = {
     'handlers': ['console'],
