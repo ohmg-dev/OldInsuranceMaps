@@ -11,15 +11,14 @@ from ohmg.places.management.utils import reset_volume_counts
 from ohmg.loc_insurancemaps.models import Volume, Sheet
 from ohmg.georeference.models import Document, PrepSession, GeorefSession, DocumentLink
 
-from .base import OHMGTestCase
+from .base import OHMGTestCase, get_api_client
 
-api_auth_header = {"HTTP_X_API_KEY": settings.OHMG_API_KEY}
 
 class APITestCase(OHMGTestCase):
 
     fixtures = [
-        OHMGTestCase.fixture_default_layerset,
-        OHMGTestCase.fixture_sanborn_layerset,
+        OHMGTestCase.fixture_default_layerset_categories,
+        OHMGTestCase.fixture_sanborn_layerset_categories,
         OHMGTestCase.fixture_admin_user,
         OHMGTestCase.fixture_alexandria_place,
         OHMGTestCase.fixture_alexandria_volume,
@@ -30,15 +29,16 @@ class APITestCase(OHMGTestCase):
         OHMGTestCase.fixture_session_prep_split,
         OHMGTestCase.fixture_document_split_results,
         OHMGTestCase.fixture_document_links_split,
-        OHMGTestCase.fixture_document_georef_results,
+        OHMGTestCase.fixture_document_georef_results_lyr,
+        OHMGTestCase.fixture_document_georef_results_gcpgroup,
+        OHMGTestCase.fixture_document_georef_results_gcps,
         OHMGTestCase.fixture_session_georef,
         OHMGTestCase.fixture_document_links_georef,
     ]
 
     def test_places_endpoint(self):
 
-        client = Client(**api_auth_header)
-        response = client.get("/api/beta/places/")
+        response = get_api_client().get("/api/beta/places/")
         self.assertEqual(response.status_code, 200)
     
     def test_places_geojson_endpoint(self):
@@ -46,8 +46,7 @@ class APITestCase(OHMGTestCase):
         for v in Volume.objects.all():
             v.update_status("ready")
             v.refresh_lookups()
-        client = Client(**api_auth_header)
-        response = client.get("/api/beta/places/geojson/")
+        response = get_api_client().get("/api/beta/places/geojson/")
         self.assertEqual(response.status_code, 200)
 
     def test_maps_endpoint(self):
@@ -55,9 +54,8 @@ class APITestCase(OHMGTestCase):
         for v in Volume.objects.all():
             v.update_status("ready")
             v.refresh_lookups()
-        client = Client(**api_auth_header)
-        response = client.get("/api/beta/maps/")
+        response = get_api_client().get("/api/beta/maps/")
         self.assertEqual(response.status_code, 200)
 
-        response = client.get("/api/beta/maps/", {"locale": "alexandria-la"})
+        response = get_api_client().get("/api/beta/maps/", {"locale": "alexandria-la"})
         self.assertEqual(response.status_code, 200)

@@ -29,7 +29,7 @@ class BasicTests(OHMGTestCase):
 class ImportersTestCase(OHMGTestCase):
 
     fixtures = [
-        OHMGTestCase.fixture_default_layerset,
+        OHMGTestCase.fixture_default_layerset_categories,
     ]
 
     def test_single_file_importer(self):
@@ -43,8 +43,8 @@ class ImportersTestCase(OHMGTestCase):
 class LOCImporterTestCase(OHMGTestCase):
 
     fixtures = [
-        OHMGTestCase.fixture_default_layerset,
-        OHMGTestCase.fixture_sanborn_layerset,
+        OHMGTestCase.fixture_default_layerset_categories,
+        OHMGTestCase.fixture_sanborn_layerset_categories,
         OHMGTestCase.fixture_admin_user,
         OHMGTestCase.fixture_alexandria_place,
     ]
@@ -84,8 +84,8 @@ class LOCImporterTestCase(OHMGTestCase):
 class MapTestCase(OHMGTestCase):
 
     fixtures = [
-        OHMGTestCase.fixture_default_layerset,
-        OHMGTestCase.fixture_sanborn_layerset,
+        OHMGTestCase.fixture_default_layerset_categories,
+        OHMGTestCase.fixture_sanborn_layerset_categories,
         OHMGTestCase.fixture_admin_user,
         OHMGTestCase.fixture_alexandria_place,
         OHMGTestCase.fixture_alexandria_volume,
@@ -118,8 +118,8 @@ class MapTestCase(OHMGTestCase):
 class PreparationSessionTestCase(OHMGTestCase):
 
     fixtures = [
-        OHMGTestCase.fixture_default_layerset,
-        OHMGTestCase.fixture_sanborn_layerset,
+        OHMGTestCase.fixture_default_layerset_categories,
+        OHMGTestCase.fixture_sanborn_layerset_categories,
         OHMGTestCase.fixture_admin_user,
         OHMGTestCase.fixture_alexandria_place,
         OHMGTestCase.fixture_alexandria_volume,
@@ -179,8 +179,8 @@ class PreparationSessionTestCase(OHMGTestCase):
 class GeoreferenceSessionTestCase(OHMGTestCase):
 
     fixtures = [
-        OHMGTestCase.fixture_default_layerset,
-        OHMGTestCase.fixture_sanborn_layerset,
+        OHMGTestCase.fixture_default_layerset_categories,
+        OHMGTestCase.fixture_sanborn_layerset_categories,
         OHMGTestCase.fixture_admin_user,
         OHMGTestCase.fixture_alexandria_place,
         OHMGTestCase.fixture_alexandria_volume,
@@ -202,7 +202,7 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
             user=user,
         )
 
-        gcp_geojson = {
+        input_gcp_geojson = {
             "type": "FeatureCollection",
             "features": [
                 {
@@ -268,7 +268,7 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
             ]
         }
         session.data['epsg'] = 3857
-        session.data['gcps'] = gcp_geojson
+        session.data['gcps'] = input_gcp_geojson
         session.data['transformation'] = "poly1"
         session.save(update_fields=["data"])
         session.run()
@@ -279,3 +279,12 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
         self.assertIsNotNone(layer)
 
         self.assertTrue(filecmp.cmp(self.image_alex_p2__2_lyr, layer.file.path, shallow=False))
+
+        del document.gcp_group
+        self.assertIsNotNone(document.gcp_group)
+        self.assertEqual(len(document.gcp_group.gcps), 3)
+
+        # need to delete listId before comparison as it is not returned by as_geojson
+        for i in input_gcp_geojson["features"]:
+            del i["properties"]["listId"]
+        self.assertEqual(document.gcp_group.as_geojson, input_gcp_geojson)
