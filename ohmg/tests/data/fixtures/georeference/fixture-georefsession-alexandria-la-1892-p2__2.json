@@ -1,0 +1,88 @@
+[
+{
+  "model": "georeference.sessionbase",
+  "pk": 9,
+  "fields": {
+    "type": "g",
+    "stage": "finished",
+    "status": "success",
+    "doc": 5,
+    "lyr": 6,
+    "data": {
+      "epsg": 3857,
+      "gcps": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                -92.44538695899614,
+                31.312902143444333
+              ]
+            },
+            "properties": {
+              "id": "1d613210-4114-4b58-8d28-839b26867c68",
+              "note": "",
+              "image": [
+                3547,
+                3173
+              ],
+              "listId": 1,
+              "username": "admin"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                -92.44657641570406,
+                31.311858470117244
+              ]
+            },
+            "properties": {
+              "id": "80a64c7f-85e6-40f8-bc29-5709681e03d8",
+              "note": "",
+              "image": [
+                3564,
+                6276
+              ],
+              "listId": 2,
+              "username": "admin"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                -92.44718721779732,
+                31.312339110585995
+              ]
+            },
+            "properties": {
+              "id": "fab611f5-cf0d-4409-81a2-ebb59b7acfba",
+              "note": "",
+              "image": [
+                2004,
+                6243
+              ],
+              "listId": 3,
+              "username": "admin"
+            }
+          }
+        ]
+      },
+      "transformation": "poly1"
+    },
+    "user": 1,
+    "user_input_duration": 32,
+    "date_created": "2024-08-19T17:06:29.740",
+    "date_modified": "2024-08-19T17:09:52.580",
+    "date_run": "2024-08-19T17:09:47.868",
+    "note": "3 GCPs used"
+  }
+}
+]

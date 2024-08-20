@@ -549,7 +549,7 @@ class GeorefSession(SessionBase):
             layer.save()
 
             # create new DocumentLink here
-            ct = ContentType.objects.get(app_label="georeference", model="layer")
+            ct = ContentType.objects.get(app_label="georeference", model="layerv1")
             DocumentLink.objects.create(
                 source=self.doc,
                 target_type=ct,

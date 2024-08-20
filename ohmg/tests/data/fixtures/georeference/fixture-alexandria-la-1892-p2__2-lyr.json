@@ -1,0 +1,29 @@
+[
+{
+  "model": "georeference.itembase",
+  "pk": 6,
+  "fields": {
+    "title": "Alexandria - La. | 1892 p2 [2]",
+    "slug": "alexandria_la_1892_p2_2",
+    "type": "layer",
+    "date": "2024-08-19T17:09:51.261",
+    "attribution": null,
+    "status": "georeferenced",
+    "x0": "-92.448577880859375",
+    "y0": "31.311261726268281",
+    "x1": "-92.443943023681641",
+    "y1": "31.315074810319373",
+    "epsg": null,
+    "favorite_count": 0,
+    "share_count": 0,
+    "owner": 1,
+    "created": "2024-08-19T17:09:51.261",
+    "last_updated": "2024-08-19T17:09:52.534",
+    "file": "layers/alexandria_la_1892_p2_2__FzWrFg_00.tif",
+    "thumbnail": "thumbnails/alexandria_la_1892_p2_2__FzWrFg_00-lyr-thumb.jpg",
+    "lock_enabled": false,
+    "lock_details": null,
+    "vrs": 2
+  }
+}
+]
