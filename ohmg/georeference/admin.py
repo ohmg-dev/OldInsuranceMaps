@@ -15,6 +15,7 @@ from ohmg.georeference.models import (
 class LayerSetAdmin(admin.ModelAdmin):
     readonly_fields = (
         'annotation_display_list',
+        'layer_display_list',
         'extent',
         'multimask_extent',
         'multimask',

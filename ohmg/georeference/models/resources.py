@@ -853,12 +853,19 @@ class LayerSet(models.Model):
     def __str__(self):
         return f"{self.volume} - {self.category}"
 
+    # TODO: deprecate this once the new layers are implemented
     def annotation_display_list(self):
         """For display in the admin interface only."""
         li = [f"<li><a href='/admin/georeference/itembase/{i.pk}/change'>{i.slug}</a></li>" for i in self.annotations]
         return mark_safe("<ul>"+"".join(li)+"</ul>")
 
+    def layer_display_list(self):
+        """For display in the admin interface only."""
+        li = [f"<li><a href='/admin/core/layer/{i.pk}/change'>{i}</a></li>" for i in self.layers.all()]
+        return mark_safe("<ul>"+"".join(li)+"</ul>")
+
     annotation_display_list.short_description = 'Annotations'
+    layer_display_list.short_description = 'Layers'
 
     @property
     def is_geospatial(self):
