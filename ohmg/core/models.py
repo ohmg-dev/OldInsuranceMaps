@@ -1,29 +1,8 @@
-'''
-This is a step toward moving database models from the loc_insurancemaps app into
-this content app. At present, these are not Django models or even Django proxy models,
-just light-weight objects that are instantiated through the Volume and related
-models. This will allow the codebase to slowly evolve before actually changing any
-database content and running migrations.
-
-The eventual migration plan is this:
-
-ohmg.loc_insurancemaps.models.Volume        --> core.models.Map
-ohmg.loc_insurancemaps.models.Sheet         --> core.models.Resource
-
-new model (idea)                            --> core.models.ItemConfigPreset
-    This would allow an extraction of Sanborn-specific properties vs. generic item
-    uploads. Still unclear exactly what to call this, or everything that it would have.
-    Think about this more when the Map model is created, and a hard-look is made at its
-    attributes.
-'''
-
 import os
 import logging
 from itertools import chain
 from datetime import datetime
 from pathlib import Path
-
-from PIL import Image
 
 from django.conf import settings
 from django.contrib.gis.db import models
@@ -37,10 +16,15 @@ from ohmg.core.utils import (
     full_reverse,
     slugify,
     get_jpg_from_jp2_url,
+    MONTH_CHOICES,
+    DAY_CHOICES,
 )
 from ohmg.core.storages import OverwriteStorage
 from ohmg.core.renderers import (
+    get_image_size,
+    get_extent_from_file,
     generate_document_thumbnail_content,
+    generate_layer_thumbnail_content,
     convert_img_to_pyramidal_tiff,
 )
 from ohmg.places.models import Place
@@ -73,6 +57,9 @@ class MapGroup(models.Model):
         help_text="The preferred term for referring to maps within this map group."
     )
 
+    class Meta:
+        verbose_name_plural = "Map Groups"
+
     def __str__(self):
         return self.title
 
@@ -102,9 +89,26 @@ class Map(models.Model):
     identifier = models.CharField(max_length=100, primary_key=True)
     title = models.CharField(max_length=200)
     year = models.IntegerField(blank=True, null=True)
-    creator = models.CharField(max_length=200)
-    publisher = models.CharField(max_length=200)
-
+    month = models.IntegerField(
+        blank=True,
+        null=True,
+        choices=MONTH_CHOICES
+    )
+    day = models.IntegerField(
+        blank=True,
+        null=True,
+        choices=DAY_CHOICES
+    )
+    creator = models.CharField(
+        max_length=200,
+        null=True,
+        blank=True,
+    )
+    publisher = models.CharField(
+        max_length=200,
+        null=True,
+        blank=True,
+    )
     volume_number = models.CharField(
         max_length=25,
         null=True,
@@ -119,7 +123,6 @@ class Map(models.Model):
         help_text="The preferred term for referring to documents within this map."
     )
     iiif_manifest = models.JSONField(null=True, blank=True)
-    
     create_date = models.DateTimeField(auto_now_add=True)
     load_date = models.DateTimeField(null=True, blank=True)
     document_lookup = models.JSONField(
@@ -141,6 +144,7 @@ class Map(models.Model):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
+        related_name="maps"
     )
     access = models.CharField(
         max_length=50,
@@ -152,14 +156,14 @@ class Map(models.Model):
         blank=True,
         null=True,
         on_delete=models.PROTECT,
-        related_name="sponsor_user",
+        related_name="maps_sponsored",
     )
     loaded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
         null=True,
         on_delete=models.CASCADE,
-        related_name="loaded_by_user"
+        related_name="maps_loaded"
     )
 
     def __str__(self):
@@ -252,7 +256,7 @@ class Map(models.Model):
             return None
 
     def get_layerset(self, cat_slug:str, create:bool=False):
-        from ohmg.georeference.models.resources import LayerSet, LayerSetCategory
+        from ohmg.georeference.models import LayerSet, LayerSetCategory
         try:
             annoset = LayerSet.objects.get(volume=self, category__slug=cat_slug)
         except LayerSet.DoesNotExist:
@@ -268,7 +272,7 @@ class Map(models.Model):
         return annoset
 
     def get_layersets(self, geospatial:bool=False):
-        from ohmg.georeference.models.resources import LayerSet
+        from ohmg.georeference.models import LayerSet
         sets = LayerSet.objects.filter(volume=self)
         if geospatial:
             sets = sets.filter(category__is_geospatial=True)
@@ -543,7 +547,11 @@ class Document(models.Model):
     """Documents are the individual source files that are directly attached to Maps.
     They represent pages in an atlas or even just a single scan of a map."""
 
-    map = models.ForeignKey(Map, on_delete=models.CASCADE)
+    map = models.ForeignKey(
+        Map,
+        on_delete=models.CASCADE,
+        related_name="documents"
+    )
     page_number = models.CharField(max_length=10, null=True, blank=True)
     file = models.FileField(
         upload_to='documents',
@@ -577,7 +585,11 @@ class Document(models.Model):
         return title
 
     def __str__(self):
-        return self.title 
+        return self.title
+
+    @cached_property
+    def image_size(self):
+        return get_image_size(self.file.path)
 
     def create_from_file(self, file_path: Path, volume=None, sheet_no=None):
 
@@ -620,6 +632,13 @@ class Document(models.Model):
             tname = f"{name}-doc-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
 
+    def save(self, set_thumbnail=False, *args, **kwargs):
+
+        if set_thumbnail or (self.file and not self.thumbnail):
+            self.set_thumbnail()
+
+        return super(self.__class__, self).save(*args, **kwargs)
+
 
 class Region(models.Model):
 
@@ -628,15 +647,23 @@ class Region(models.Model):
         blank=True,
     )
     document = models.ForeignKey(
-        "core.Document",
+        Document,
         on_delete=models.CASCADE,
+        related_name="regions"
     )
     division_number = models.IntegerField(null=True, blank=True)
     is_map = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="region_created_by",
+    )
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True, null=True, blank=True)
     file = models.FileField(
-        upload_to='set_upload_location',
+        upload_to='regions',
         null=True,
         blank=True,
         max_length=255,
@@ -649,7 +676,7 @@ class Region(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
-    gcp_group = models.ForeignKey(
+    gcp_group = models.OneToOneField(
         "georeference.GCPGroup",
         null=True,
         blank=True,
@@ -661,6 +688,10 @@ class Region(models.Model):
         if self.division_number:
             display_name += f" [{self.division_number}]"
         return display_name
+
+    @cached_property
+    def image_size(self):
+        return get_image_size(self.file.path)
 
     @property
     def _base_urls(self):
@@ -676,6 +707,118 @@ class Region(models.Model):
             path = self.file.path
             name = os.path.splitext(os.path.basename(path))[0]
             content = generate_document_thumbnail_content(path)
-            tname = f"{name}-doc-thumb.jpg"
+            tname = f"{name}-reg-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
 
+    def save(self, set_thumbnail=False, *args, **kwargs):
+
+        if set_thumbnail or (self.file and not self.thumbnail):
+            self.set_thumbnail()
+
+        return super(self.__class__, self).save(*args, **kwargs)
+
+
+class Layer(models.Model):
+
+    region = models.OneToOneField(
+        Region,
+        on_delete=models.CASCADE,
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name="layers_created",
+    )
+    last_updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name="layers_updated",
+    )
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    last_updated = models.DateTimeField(auto_now=True, null=True, blank=True)
+    extent = models.JSONField(null=True, blank=True)
+    file = models.FileField(
+        upload_to='layers',
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
+    )
+    thumbnail = models.FileField(
+        upload_to='thumbnails',
+        null=True,
+        blank=True,
+        max_length=255,
+        storage=OverwriteStorage(),
+    )
+    layerset = models.ForeignKey(
+        "georeference.LayerSet",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="layers"
+    )
+
+    def __str__(self):
+        return str(self.region)
+
+    @property
+    def urls(self):
+        urls = self._base_urls
+        doc = self.get_document()
+        urls.update({
+            "resource": full_reverse("resource_detail", args=(self.pk, )),
+            # remove detail and progress_page urls once InfoPanel has been fully
+            # deprecated and volume summary has been updated.
+            # note the geonode: prefix is still necessary until non-geonode
+            # layer and document detail pages are created.
+            "detail": f"/layers/geonode:{self.slug}" if self.slug else "",
+            "progress_page": f"/layers/geonode:{self.pk}#georeference" if self.slug else "",
+            # redundant, I know, but a patch for now
+            "cog": settings.MEDIA_HOST.rstrip("/") + urls['image'],
+        })
+        if doc is not None:
+            urls.update({
+                "georeference": doc.urls['georeference'],
+                "document": doc.urls['image'],
+            })
+        return urls
+
+    def get_sessions(self, serialize=False):
+        return self.get_document().get_sessions(serialize=serialize)
+
+    def get_split_summary(self):
+        return self.get_document().get_split_summary()
+
+    def get_georeference_summary(self):
+        return self.get_document().get_georeference_summary()
+    
+    def set_thumbnail(self):
+        if self.file is not None:
+            if self.thumbnail:
+                self.thumbnail.delete()
+            path = self.file.path
+            name = os.path.splitext(os.path.basename(path))[0]
+            content = generate_layer_thumbnail_content(path)
+            tname = f"{name}-lyr-thumb.jpg"
+            self.thumbnail.save(tname, ContentFile(content))
+
+    def set_extent(self):
+        """ https://gis.stackexchange.com/a/201320/28414 """
+        if self.file is not None:
+            self.extent = get_extent_from_file(Path(self.file.path))
+            self.save(update_fields=["extent"])
+
+    def save(self, set_thumbnail=False, set_extent=False, *args, **kwargs):
+
+        if set_thumbnail or (self.file and not self.thumbnail):
+            self.set_thumbnail()
+
+        if set_extent or (self.file and not self.extent):
+            self.set_extent()
+
+        return super(self.__class__, self).save(*args, **kwargs)
