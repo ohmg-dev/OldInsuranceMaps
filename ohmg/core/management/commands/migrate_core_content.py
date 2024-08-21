@@ -15,7 +15,13 @@ from ohmg.core.models import (
 )
 
 from ohmg.loc_insurancemaps.models import Sheet, Volume
-from ohmg.georeference.models import Document as OldDocument, LayerV1, LayerSet
+from ohmg.georeference.models import (
+    Document as OldDocument,
+    LayerV1,
+    LayerSet,
+    PrepSession,
+    GeorefSession,
+)
 
 class Command(BaseCommand):
     help = 'command to search the Library of Congress API.'
@@ -94,6 +100,14 @@ class Command(BaseCommand):
                     save_file_to_new_instance(sheet.doc, new_doc)
                     print(new_doc, "(document)")
 
+                    # find the existing session for this document and attach the new doc to it
+                    prep_sessions = PrepSession.objects.filter(doc=sheet.doc)
+                    if len(prep_sessions) > 1:
+                        raise Exception(f"Too many prep sessions for this document: {sheet.doc}")
+                    if prep_sessions.exists():
+                        prep_sessions[0].doc2 = new_doc
+                        prep_sessions[0].save()
+
                     if len(sheet.real_docs) == 1:
                         w, h = sheet.doc.image_size
                         region = Region.objects.create(
@@ -124,6 +138,7 @@ class Command(BaseCommand):
         existing_layers = LayerV1.objects.all()
         matched = []
         for old_layer in existing_layers:
+
             old_doc = old_layer.get_document()
             old_doc_parent = old_doc.parent
             if old_doc_parent:
@@ -152,6 +167,7 @@ class Command(BaseCommand):
                 doc_regions = new_doc.regions.all()
                 if len(doc_regions) != 1:
                     raise Exception(f"{len(doc_regions)} regions on {new_doc}: this should be 1")
+
                 new_layer = Layer.objects.create(
                     pk=old_layer.pk,
                     region=doc_regions[0],
@@ -160,6 +176,16 @@ class Command(BaseCommand):
                 save_file_to_new_instance(old_layer, new_layer)
                 print(new_layer, "(layer)")
                 matched.append(old_layer.pk)
+
+
+            # find the existing session for this document and attach the new doc to it
+            georef_sessions = GeorefSession.objects.filter(lyr=old_layer)
+            if len(georef_sessions) == 0:
+                raise Exception(f"Why are there no georef sessions for this old layer?? {old_layer.slug}")
+            for gs in georef_sessions:
+                gs.reg2 = new_layer.region
+                gs.lyr2 = new_layer
+                gs.save()
 
         if len(existing_layers) != len(matched):
             print("[WARNING] some layers were not matched to new regions")

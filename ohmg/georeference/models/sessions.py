@@ -135,6 +135,24 @@ class SessionBase(models.Model):
         blank=True,
         related_name="lyr",
     )
+    doc2 = models.ForeignKey(
+        'core.Document',
+        models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    reg2 = models.ForeignKey(
+        'core.Region',
+        models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    lyr2 = models.ForeignKey(
+        'core.Layer',
+        models.SET_NULL,
+        null=True,
+        blank=True,
+    )
     data = models.JSONField(
         default=dict,
         blank=True,
