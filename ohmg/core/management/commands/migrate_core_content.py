@@ -193,6 +193,13 @@ class Command(BaseCommand):
                 print(missing)
 
         for layerset in LayerSet.objects.all():
+
+            # attach new maps corresponding to old volumes. This doubles as a lookup
+            # of old against new
+            map = Map.objects.get(pk=layerset.volume.pk)
+            layerset.map = map
+            layerset.save()
+
             ## make sure the old list of layers on this layerset is identical
             ## to the new list. This also (basically) ensures that the same pks
             ## have been used for all the new layers.

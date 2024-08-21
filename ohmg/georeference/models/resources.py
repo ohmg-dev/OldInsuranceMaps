@@ -825,6 +825,12 @@ class LayerSet(models.Model):
         "loc_insurancemaps.Volume",
         on_delete=models.CASCADE,
     )
+    map = models.ForeignKey(
+        "core.map",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+    )
     category = models.ForeignKey(
         LayerSetCategory,
         on_delete=models.PROTECT,
