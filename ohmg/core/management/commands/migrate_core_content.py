@@ -31,6 +31,11 @@ class Command(BaseCommand):
             action="store_true",
             help="deletes all instances of new models before running the migration operations",
         )
+        parser.add_argument(
+            "--no-files",
+            action="store_true",
+            help="don't copy files over during migration (use during local testing)",
+        )
 
     def handle(self, *args, **options):
         """ Migrates all of the existing content into new core models.
@@ -63,6 +68,7 @@ class Command(BaseCommand):
                 objs.delete()
 
         for vol in Volume.objects.all():
+            print(f"Processing: {vol}")
             map = Map.objects.create(
                 title=vol.__str__(),
                 identifier=vol.identifier,
@@ -88,7 +94,8 @@ class Command(BaseCommand):
                         map=map,
                         page_number=page_number,
                     )
-                    save_file_to_object(new_doc, source_object=sheet.doc)
+                    if not options['no_files']:
+                        save_file_to_object(new_doc, source_object=sheet.doc)
                     print(new_doc, "(document)")
 
                     # find the existing session for this document and attach the new doc to it
@@ -103,13 +110,18 @@ class Command(BaseCommand):
                     # a new Region, but only if that one document is not "unprepared".
                     if len(sheet.real_docs) == 1:
                         if sheet.doc.status != "unprepared":
-                            w, h = sheet.doc.image_size
+                            # use a fake boundary if there aren't local files available
+                            if options['no_files']:
+                                w, h = 10, 10
+                            else:
+                                w, h = sheet.doc.image_size
                             region = Region.objects.create(
                                 boundary = Polygon([[0,0], [0,h], [w,h], [w,0], [0,0]]),
                                 document=new_doc,
                                 gcp_group=sheet.doc.gcp_group,
                             )
-                            save_file_to_object(region, source_object=new_doc)
+                            if not options['no_files']:
+                                save_file_to_object(region, source_object=new_doc)
                             print(region, "(region)")
 
                     # if there are more than one real documents for this sheet, make a new
@@ -127,7 +139,8 @@ class Command(BaseCommand):
                                 gcp_group=matching_old_doc.gcp_group,
                                 created_by=matching_old_doc.preparation_session.user
                             )
-                            save_file_to_object(region, source_object=matching_old_doc)
+                            if not options['no_files']:
+                                save_file_to_object(region, source_object=matching_old_doc)
                             print(region, "(region)")
 
         # now, separately, iterate all old layers and create new ones from them
@@ -153,7 +166,8 @@ class Command(BaseCommand):
                             region=region,
                             layerset=old_layer.vrs,
                         )
-                        save_file_to_object(new_layer, source_object=old_layer)
+                        if not options['no_files']:
+                            save_file_to_object(new_layer, source_object=old_layer)
                         print(new_layer, "(layer)")
                         matched.append(old_layer.pk)
             else:
@@ -169,7 +183,8 @@ class Command(BaseCommand):
                     region=doc_regions[0],
                     layerset=old_layer.vrs,
                 )
-                save_file_to_object(new_layer, source_object=old_layer)
+                if not options['no_files']:
+                    save_file_to_object(new_layer, source_object=old_layer)
                 print(new_layer, "(layer)")
                 matched.append(old_layer.pk)
 
