@@ -10,6 +10,7 @@ from ohmg.georeference.models import (
     GeorefSession,
     ItemBase,
     LayerSet,
+    SessionLock,
 )
 
 class LayerSetAdmin(admin.ModelAdmin):
@@ -70,3 +71,4 @@ class DocumentLinkAdmin(admin.ModelAdmin):
     list_filter = ('link_type', )
 
 admin.site.register(DocumentLink, DocumentLinkAdmin)
+admin.site.register(SessionLock)

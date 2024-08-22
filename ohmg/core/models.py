@@ -45,6 +45,7 @@ class MapGroup(models.Model):
     }
 
     title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=100)
     year_start = models.IntegerField(blank=True, null=True)
     year_end = models.IntegerField(blank=True, null=True)
     creator = models.CharField(max_length=200)
@@ -87,6 +88,7 @@ class Map(models.Model):
     }
 
     identifier = models.CharField(max_length=100, primary_key=True)
+    slug = models.SlugField(max_length=100)
     title = models.CharField(max_length=200)
     year = models.IntegerField(blank=True, null=True)
     month = models.IntegerField(
@@ -155,7 +157,7 @@ class Map(models.Model):
         settings.AUTH_USER_MODEL,
         blank=True,
         null=True,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name="maps_sponsored",
     )
     loaded_by = models.ForeignKey(
@@ -258,18 +260,18 @@ class Map(models.Model):
     def get_layerset(self, cat_slug:str, create:bool=False):
         from ohmg.georeference.models import LayerSet, LayerSetCategory
         try:
-            annoset = LayerSet.objects.get(volume=self, category__slug=cat_slug)
+            layerset = LayerSet.objects.get(map=self, category__slug=cat_slug)
         except LayerSet.DoesNotExist:
             if create:
                 category = LayerSetCategory.objects.get(slug=cat_slug)
-                annoset = LayerSet.objects.create(
-                    volume=self,
+                layerset = LayerSet.objects.create(
+                    map=self,
                     category=category
                 )
                 logger.debug(f"created new LayerSet: {self.pk} - {cat_slug}")
             else:
-                annoset = None
-        return annoset
+                layerset = None
+        return layerset
 
     def get_layersets(self, geospatial:bool=False):
         from ohmg.georeference.models import LayerSet
@@ -542,11 +544,19 @@ class Map(models.Model):
 
         return data
 
+    def save(self, set_slug=False, *args, **kwargs):
+
+        if set_slug or not self.slug:
+            self.slug = slugify(self.title, join_char="_")
+
+        return super(self.__class__, self).save(*args, **kwargs)
+
 
 class Document(models.Model):
     """Documents are the individual source files that are directly attached to Maps.
     They represent pages in an atlas or even just a single scan of a map."""
 
+    slug = models.SlugField(max_length=100)
     map = models.ForeignKey(
         Map,
         on_delete=models.CASCADE,
@@ -577,19 +587,15 @@ class Document(models.Model):
     iiif_info = models.JSONField(null=True, blank=True)
     load_date = models.DateTimeField(null=True, blank=True)
 
-    @property
-    def title(self):
+    def __str__(self):
         title = self.map.__str__()
         if self.page_number:
             title += f" {self.map.DOCUMENT_PREFIX_ABBREVIATIONS[self.map.document_page_type]}{self.page_number}"
         return title
 
-    def __str__(self):
-        return self.title
-
     @cached_property
     def image_size(self):
-        return get_image_size(self.file.path)
+        return get_image_size(Path(self.file.path))
 
     def create_from_file(self, file_path: Path, volume=None, sheet_no=None):
 
@@ -617,7 +623,7 @@ class Document(models.Model):
         if not self.file:
             jpg_path = get_jpg_from_jp2_url(self.source_url)
             with open(jpg_path, "rb") as new_file:
-                self.file.save(f"{slugify(self.title)}.jpg", File(new_file))
+                self.file.save(f"{self.slug}.jpg", File(new_file))
 
         self.load_date = datetime.now()
         self.save()
@@ -632,16 +638,23 @@ class Document(models.Model):
             tname = f"{name}-doc-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
 
-    def save(self, set_thumbnail=False, *args, **kwargs):
+    def save(self, set_slug=False, set_thumbnail=False, *args, **kwargs):
 
         if set_thumbnail or (self.file and not self.thumbnail):
             self.set_thumbnail()
+
+        if set_slug or not self.slug:
+            title = self.map.__str__()
+            if self.page_number:
+                title += f" {self.map.DOCUMENT_PREFIX_ABBREVIATIONS[self.map.document_page_type]}{self.page_number}"
+            self.slug = slugify(title, join_char="_")
 
         return super(self.__class__, self).save(*args, **kwargs)
 
 
 class Region(models.Model):
 
+    slug = models.SlugField(max_length=100)
     boundary = models.PolygonField(
         null=True,
         blank=True,
@@ -684,14 +697,14 @@ class Region(models.Model):
     )
 
     def __str__(self):
-        display_name = str(self.document.title)
+        display_name = self.document.__str__()
         if self.division_number:
             display_name += f" [{self.division_number}]"
         return display_name
 
     @cached_property
     def image_size(self):
-        return get_image_size(self.file.path)
+        return get_image_size(Path(self.file.path))
 
     @property
     def _base_urls(self):
@@ -710,16 +723,23 @@ class Region(models.Model):
             tname = f"{name}-reg-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
 
-    def save(self, set_thumbnail=False, *args, **kwargs):
+    def save(self, set_slug=False, set_thumbnail=False, *args, **kwargs):
 
         if set_thumbnail or (self.file and not self.thumbnail):
             self.set_thumbnail()
+
+        if set_slug or not self.slug:
+            display_name = self.document.__str__()
+            if self.division_number:
+                display_name += f" [{self.division_number}]"
+            self.slug = slugify(display_name, join_char="_")
 
         return super(self.__class__, self).save(*args, **kwargs)
 
 
 class Layer(models.Model):
 
+    slug = models.SlugField(max_length=100)
     region = models.OneToOneField(
         Region,
         on_delete=models.CASCADE,
@@ -728,14 +748,14 @@ class Layer(models.Model):
         settings.AUTH_USER_MODEL,
         blank=True,
         null=True,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name="layers_created",
     )
     last_updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
         null=True,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name="layers_updated",
     )
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -764,7 +784,7 @@ class Layer(models.Model):
     )
 
     def __str__(self):
-        return str(self.region)
+        return self.region.__str__()
 
     @property
     def urls(self):
@@ -813,7 +833,15 @@ class Layer(models.Model):
             self.extent = get_extent_from_file(Path(self.file.path))
             self.save(update_fields=["extent"])
 
-    def save(self, set_thumbnail=False, set_extent=False, *args, **kwargs):
+    def save(self,
+        set_slug: bool=False,
+        set_thumbnail: bool=False,
+        set_extent: bool=False,
+        *args, **kwargs
+    ):
+
+        if set_slug or not self.slug:
+            self.slug = slugify(self.region.__str__(), join_char="_")
 
         if set_thumbnail or (self.file and not self.thumbnail):
             self.set_thumbnail()

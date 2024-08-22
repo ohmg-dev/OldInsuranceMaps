@@ -1,10 +1,8 @@
 
 import json
-from pathlib import Path
 
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Polygon
-from django.core.files import File
 
 from ohmg.core.models import (
     MapGroup,
@@ -13,7 +11,7 @@ from ohmg.core.models import (
     Region,
     Layer,
 )
-
+from ohmg.core.utils import save_file_to_object
 from ohmg.loc_insurancemaps.models import Sheet, Volume
 from ohmg.georeference.models import (
     Document as OldDocument,
@@ -21,6 +19,7 @@ from ohmg.georeference.models import (
     LayerSet,
     PrepSession,
     GeorefSession,
+    SessionLock,
 )
 
 class Command(BaseCommand):
@@ -47,15 +46,7 @@ class Command(BaseCommand):
         Layers will be made from all existing LayerV1s, and linked to the proper Region.
         Documents (new) will be made for all Sheets, however, they will be more similar
         to the Documents (old) that already exist for all Sheets.
-        """
-
-        def save_file_to_new_instance(old_instance, new_instance):
-            if old_instance.file:
-                with open(old_instance.file.path, "rb") as openf:
-                    new_instance.file.save(Path(old_instance.file.path).name, File(openf))
-            else:
-                print(f"[WARNING] {old_instance} is missing file")
-            
+        """           
 
         if options['clean']:
             models_to_clean = [
@@ -63,7 +54,8 @@ class Command(BaseCommand):
                 Map,
                 Document,
                 Region,
-                Layer
+                Layer,
+                SessionLock,
             ]
             for m in models_to_clean:
                 objs = m.objects.all()
@@ -80,7 +72,6 @@ class Command(BaseCommand):
                 month=vol.month,
                 loaded_by=vol.loaded_by,
                 load_date=vol.load_date,
-
             )
             map.locales.set(vol.locales.all())
 
@@ -97,7 +88,7 @@ class Command(BaseCommand):
                         map=map,
                         page_number=page_number,
                     )
-                    save_file_to_new_instance(sheet.doc, new_doc)
+                    save_file_to_object(new_doc, source_object=sheet.doc)
                     print(new_doc, "(document)")
 
                     # find the existing session for this document and attach the new doc to it
@@ -108,15 +99,21 @@ class Command(BaseCommand):
                         prep_sessions[0].doc2 = new_doc
                         prep_sessions[0].save()
 
+                    # if there is only one real document for this sheet, then use it to make
+                    # a new Region, but only if that one document is not "unprepared".
                     if len(sheet.real_docs) == 1:
-                        w, h = sheet.doc.image_size
-                        region = Region.objects.create(
-                            boundary = Polygon([[0,0], [0,h], [w,h], [w,0], [0,0]]),
-                            document=new_doc,
-                            gcp_group=sheet.doc.gcp_group,
-                        )
-                        save_file_to_new_instance(new_doc, region)
-                        print(region, "(region)")
+                        if sheet.doc.status != "unprepared":
+                            w, h = sheet.doc.image_size
+                            region = Region.objects.create(
+                                boundary = Polygon([[0,0], [0,h], [w,h], [w,0], [0,0]]),
+                                document=new_doc,
+                                gcp_group=sheet.doc.gcp_group,
+                            )
+                            save_file_to_object(region, source_object=new_doc)
+                            print(region, "(region)")
+
+                    # if there are more than one real documents for this sheet, make a new
+                    # Region for both of them, because these documents represent split children
                     else:
                         divisions = sheet.doc.preparation_session.data['divisions']
                         assert len(divisions) == len(sheet.real_docs)
@@ -130,8 +127,7 @@ class Command(BaseCommand):
                                 gcp_group=matching_old_doc.gcp_group,
                                 created_by=matching_old_doc.preparation_session.user
                             )
-                            save_file_to_new_instance(matching_old_doc, region)
-                            # save_file_to_new_instance(sheet.doc, region)
+                            save_file_to_object(region, source_object=matching_old_doc)
                             print(region, "(region)")
 
         # now, separately, iterate all old layers and create new ones from them
@@ -157,7 +153,7 @@ class Command(BaseCommand):
                             region=region,
                             layerset=old_layer.vrs,
                         )
-                        save_file_to_new_instance(old_layer, new_layer)
+                        save_file_to_object(new_layer, source_object=old_layer)
                         print(new_layer, "(layer)")
                         matched.append(old_layer.pk)
             else:
@@ -173,7 +169,7 @@ class Command(BaseCommand):
                     region=doc_regions[0],
                     layerset=old_layer.vrs,
                 )
-                save_file_to_new_instance(old_layer, new_layer)
+                save_file_to_object(new_layer, source_object=old_layer)
                 print(new_layer, "(layer)")
                 matched.append(old_layer.pk)
 

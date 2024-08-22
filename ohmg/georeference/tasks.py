@@ -7,6 +7,7 @@ from ohmg.georeference.models import (
     GeorefSession,
     delete_expired_sessions,
 )
+from ohmg.georeference.operations.sessions import run_georeferencing, run_preparation
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,16 @@ def run_georeference_session(sessionid):
     logger.debug("in tasks.run georef ....")
     session = GeorefSession.objects.get(pk=sessionid)
     session.run()
+
+@app.task
+def run_preparation_as_task(sessionid):
+    session = PrepSession.objects.get(pk=sessionid)
+    run_preparation(session)
+
+@app.task
+def run_georeferencing_as_task(sessionid):
+    session = GeorefSession.objects.get(pk=sessionid)
+    run_georeferencing(session)
 
 @app.task
 def delete_expired():

@@ -1,13 +1,21 @@
 import os
+from datetime import timedelta, datetime
 import logging
+from typing import Union
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.gis.db import models
 from django.core.files import File
 from django.core.mail import send_mass_mail
 from django.utils import timezone
 
+from ohmg.core.models import (
+    Document as Document2,
+    Region,
+    Layer,
+)
 from ohmg.georeference.models import (
     GCPGroup,
     ItemBase,
@@ -192,6 +200,7 @@ class SessionBase(models.Model):
                 self.lyr.set_status("georeferencing")
 
         self.lock_resources()
+        self.lock_resources2()
 
     def run(self):
         raise NotImplementedError("Must be implemented in proxy models.")
@@ -221,6 +230,25 @@ class SessionBase(models.Model):
             self.doc.extend_lock()
         if self.lyr:
             self.lyr.extend_lock()
+
+    def lock_resources2(self):
+        """Calls the add_lock method on this session's resources, passing this
+        session in to supply the details for the lock."""
+        for obj in [self.doc2, self.reg2, self.lyr2]:
+            if obj:
+                add_lock(self, obj)
+
+    def unlock_resources2(self):
+        """Calls the remove_lock method on this session's resources."""
+        for obj in [self.doc2, self.reg2, self.lyr2]:
+            if obj:
+                remove_lock(self, obj)
+
+    def extend_locks2(self):
+        """Extends the expiration time for all of the locks on this session's.
+        Quiet fail if the resources are not currently locked."""
+        for lock in self.locks:
+            lock.extend()
 
     def serialize(self):
 
@@ -655,3 +683,55 @@ class GeorefSession(SessionBase):
         if self.stage == "finished" and self.status == "success":
             self.note = self.generate_final_status_note()
         return super(GeorefSession, self).save(*args, **kwargs)
+    
+def add_lock(
+    session: Union[PrepSession, GeorefSession],
+    obj: Union[Document, Region, Layer]
+):
+    ct = ContentType.objects.get_for_model(obj)
+    SessionLock.objects.create(
+        session=session,
+        target_type=ct,
+        target_id=obj.pk,
+        user=session.user,
+    )
+
+def remove_lock(
+    session: Union[PrepSession, GeorefSession],
+    obj: Union[Document, Region, Layer]
+):
+    ct = ContentType.objects.get_for_model(obj)
+    session.locks.filter(target_type=ct, target_id=obj.pk).delete()
+
+class SessionLock(models.Model):
+    """Used to lock a resource attached to a given session."""
+
+    session = models.ForeignKey(
+        SessionBase,
+        on_delete=models.CASCADE,
+        related_name='locks',
+    )
+    target_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE
+    )
+    target_id = models.PositiveIntegerField()
+    target = GenericForeignKey('target_type', 'target_id')
+    expiration = models.DateTimeField(
+        default=timezone.now() + timedelta(seconds=settings.GEOREFERENCE_SESSION_LENGTH)
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        verbose_name = "Session Lock"
+        verbose_name_plural = "Session Locks"
+
+    def __str__(self):
+        return f"{self.session.get_type_display()} --> {self.target} ({self.target._meta.object_name})"
+    
+    def extend(self):
+        self.expiration += timedelta(seconds=settings.GEOREFERENCE_SESSION_LENGTH)
+        self.save()

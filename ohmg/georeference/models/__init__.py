@@ -12,3 +12,4 @@ from .sessions import SessionBase
 from .sessions import PrepSession
 from .sessions import GeorefSession
 from .sessions import delete_expired_sessions
+from .sessions import SessionLock

@@ -4,15 +4,14 @@ from datetime import datetime
 import logging
 
 from django.conf import settings
-from django.contrib.gis.geos import GEOSGeometry
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.http import JsonResponse, HttpResponseBadRequest
 
 from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.georeference.tasks import (
-    run_preparation_session,
-    run_georeference_session,
+    run_georeferencing_as_task,
+    run_preparation_as_task,
 )
 from ohmg.georeference.models import (
     Document,
@@ -22,6 +21,8 @@ from ohmg.georeference.models import (
     ItemBase,
 )
 from ohmg.core.schemas import LayerSetSchema
+from ohmg.core.models import Region, Document as Document2
+from ohmg.georeference.operations.sessions import run_preparation
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.georeference.tasks import delete_preview_vrt
@@ -40,12 +41,14 @@ class SplitView(View):
         """
 
         document = get_object_or_404(Document, pk=docid)
+        doc2 = get_object_or_404(Document2, slug=document.slug)
         # if the document is not currently locked and there is a logged in user,
         # create a new session
         if not document.lock_enabled and request.user.is_authenticated and document.status == "unprepared":
             session = PrepSession.objects.create(
                 doc=document,
-                user=request.user
+                user=request.user,
+                doc2=doc2
             )
             session.start()
         doc_data = document.serialize()
@@ -97,7 +100,8 @@ class SplitView(View):
             sesh.data['cutlines'] = cutlines
             sesh.save(update_fields=["data"])
             logger.info(f"{sesh.__str__()} | begin run() as task")
-            run_preparation_session.delay(sesh.pk)
+            
+            run_preparation_as_task.apply_async((sesh.pk,))
             return JsonResponse({"success":True})
 
         elif operation == "no_split":
@@ -123,7 +127,7 @@ class SplitView(View):
 
             sesh.data['split_needed'] = False
             sesh.save(update_fields=["data"])
-            sesh.run()
+            run_preparation(sesh)
             return JsonResponse({"success":True})
 
         elif operation == "cancel":
@@ -171,25 +175,22 @@ class GeoreferenceView(View):
         """
 
         doc = get_object_or_404(Document, pk=docid)
+        region = get_object_or_404(Region, slug=doc.slug)
+
         # if the document is not currently locked and there is a logged in user,
         # create a new session
         if not doc.lock_enabled and request.user.is_authenticated and \
             doc.status in ["prepared", "georeferenced"]:
             session = GeorefSession.objects.create(
                 doc=doc,
-                user=request.user
+                reg2=region,
+                user=request.user,
             )
             session.start()
         doc_data = doc.serialize()
 
         volume = find_volume(doc)
         volume_json = volume.serialize()
-
-        # reference_layers_param = request.GET.get('reference', '')
-        # reference_layers = []
-        # for alt in reference_layers_param.split(","):
-        #     if GNLayer.objects.filter(alternate=alt).exists():
-        #         reference_layers.append(alt)
 
         annoset_main = LayerSetSchema.from_orm(volume.get_annotation_set('main-content')).dict()
         annoset_keymap = None
@@ -332,8 +333,8 @@ class GeoreferenceView(View):
                 sesh.data['transformation'] = transformation
                 sesh.save(update_fields=["data"])
                 logger.info(f"{sesh.__str__()} | begin run() as task")
-                run_georeference_session.apply_async((sesh.pk,))
-                print('task should be running')
+                run_georeferencing_as_task.apply_async((sesh.pk,))
+
                 _cleanup_preview(document, cleanup_preview)
                 return JsonResponse({
                     "success": True,
@@ -367,6 +368,7 @@ class GeoreferenceView(View):
                 ## extend the lock expiration time on doc and lyr instance 
                 ## attached to this session
                 sesh.extend_locks()
+                sesh.extend_locks2()
                 return JsonResponse({"success":True})
             else:
                 return SESSION_NOT_FOUND_RESPONSE
