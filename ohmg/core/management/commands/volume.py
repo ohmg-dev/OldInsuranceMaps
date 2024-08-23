@@ -4,7 +4,6 @@ from datetime import datetime
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
-from ohmg.core.importers.loc_sanborn import import_volume
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.places.models import Place
 from ohmg.places.management.utils import reset_volume_counts
@@ -117,52 +116,8 @@ class Command(BaseCommand):
 
         if options['operation'] == "import":
 
-            def get_locale(locale_slug):
-                try:
-                    print(f'locale slug: {locale_slug}')
-                    locale = Place.objects.get(slug=locale_slug)
-                    print(f'using locale: {locale}')
-                except Place.DoesNotExist:
-                    locale = None
-                return locale
-
-            to_load = []
-
-            if i:
-                locale = get_locale(options['locale'])
-                if locale is None:
-                    confirm = input('no locale matching this slug, locale will be None. continue? y/N ')
-                    if not confirm.lower().startswith("y"):
-                        exit()
-                to_load.append((i, locale))
-
-            elif options['csv_file']:
-
-                with open(options['csv_file'], "r") as o:
-                    reader = csv.DictReader(o)
-                    for row in reader:
-                        if "identifier" not in row or "locale" not in row:
-                            print("missing info in row")
-                            print(row)
-                            continue
-                        locale = get_locale(row['locale'])
-                        if locale is None:
-                            print(f"can't find locale {row['locale']}, skipping.")
-                            continue
-                        to_load.append((row["identifier"], locale))
-
-            for identifier, locale in to_load:
-                vol = import_volume(
-                    identifier,
-                    locale=locale,
-                    dry_run=options['dry_run'],
-                    no_cache=options['no_cache'],
-                )
-                if vol:
-                    vol.access = options['access']
-                    vol.sponsor = sponsor
-                    vol.save()
-                print(vol)
+            print("This operation deprecated. Try this instead:\n")
+            print(f"python manage.py map add --importer loc-sanborn --opts identifier={options['identifier']} locale={options['locale']}")
 
         if options['operation'] == "remove":
             vol = Volume.objects.get(pk=i)
