@@ -11,8 +11,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameModel(
-            old_name='AnnotationSet',
-            new_name='LayerSet',
-        ),
+        migrations.RenameModel('AnnotationSet','LayerSet'),
     ]
