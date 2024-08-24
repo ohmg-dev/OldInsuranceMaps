@@ -75,6 +75,8 @@ class Command(BaseCommand):
                 print(f"deleting {len(objs)} {m}")
                 objs.delete()
 
+        print_to_log(f"starting migration: {datetime.now()}")
+
         for vol in Volume.objects.all():
             print(f"Processing: {vol}")
             document_sources = vol.lc_resources[0].get("files") if vol.lc_resources else None
@@ -284,6 +286,8 @@ class Command(BaseCommand):
             for sql in sequence_sql:
                 print(sql)
                 cursor.execute(sql)
+
+        print_to_log(f"finished: {datetime.now()}")
 
     def make_map_groups(self):
         """ Collect all of the existing maps in the database and create MapGroups, or

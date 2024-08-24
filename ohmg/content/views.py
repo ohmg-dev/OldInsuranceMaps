@@ -83,8 +83,9 @@ class MapSummary(View):
                 map.loaded_by = request.user
                 map.load_date = datetime.now()
                 map.save(update_fields=["loaded_by", "load_date"])
-            load_docs_as_task.delay(identifier)
-            load_map_documents_as_task.delay(identifier)
+            load_docs_as_task.apply_async((identifier,),
+                link=load_map_documents_as_task.s()
+            )
             volume_json = volume.serialize(include_session_info=True)
             volume_json["status"] = "initializing..."
 

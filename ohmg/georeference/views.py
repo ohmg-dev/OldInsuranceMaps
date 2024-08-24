@@ -16,6 +16,9 @@ from ohmg.georeference.tasks import (
     # these are the new commands, use from now on
     run_georeferencing_as_task,
     run_preparation_as_task,
+    # this is a temporary task used to create and link a new layer
+    # to a new georef session
+    patch_new_layer_to_session,
 )
 from ohmg.georeference.models import (
     Document,
@@ -340,7 +343,7 @@ class GeoreferenceView(View):
                 sesh.save(update_fields=["data"])
                 logger.info(f"{sesh.__str__()} | begin run() as task")
                 run_georeference_session.apply_async((sesh.pk,),
-                    link=run_georeferencing_as_task.s()
+                    link=patch_new_layer_to_session.s()
                 )
 
                 _cleanup_preview(document, cleanup_preview)

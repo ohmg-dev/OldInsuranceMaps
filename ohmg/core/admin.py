@@ -9,7 +9,7 @@ from ohmg.core.models import (
 )
 
 class RegionAdmin(admin.ModelAdmin):
-    raw_id_fields = ("document",)
+    raw_id_fields = ("document", "gcp_group")
 
 class LayerAdmin(admin.ModelAdmin):
     raw_id_fields = ("region", "layerset")
