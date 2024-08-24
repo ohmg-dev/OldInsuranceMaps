@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def get_extent_from_file(file_path: Path):
     """Credit: https://gis.stackexchange.com/a/201320/28414 """
-    src = gdal.Open(file_path)
+    src = gdal.Open(str(file_path))
     ulx, xres, xskew, uly, yskew, yres  = src.GetGeoTransform()
     lrx = ulx + (src.RasterXSize * xres)
     lry = uly + (src.RasterYSize * yres)
