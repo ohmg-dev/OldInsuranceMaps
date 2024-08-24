@@ -76,7 +76,9 @@ Load items from the Library of Congress Sanborn map collection. Required args ar
         ## fake values to pass validation for now
         volume_kwargs['title']= ""
         volume_kwargs['creator']= ""
-        volume_kwargs['document_sources']= []
+        lc_item = volume_kwargs.get('lc_item')
+        files = lc_item['lc_resources'][0]['files']
+        volume_kwargs['document_sources']= files
 
         return volume_kwargs
 

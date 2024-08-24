@@ -4,6 +4,8 @@ from datetime import datetime
 
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import Polygon
+from django.core.management.color import no_style
+from django.db import connection
 
 from ohmg.core.models import (
     MapGroup,
@@ -75,6 +77,7 @@ class Command(BaseCommand):
 
         for vol in Volume.objects.all():
             print(f"Processing: {vol}")
+            document_sources = vol.lc_resources[0].get("files") if vol.lc_resources else None
             map, created = Map.objects.get_or_create(
                 title=vol.__str__(),
                 identifier=vol.identifier,
@@ -84,6 +87,7 @@ class Command(BaseCommand):
                 month=vol.month,
                 loaded_by=vol.loaded_by,
                 load_date=vol.load_date,
+                document_sources=document_sources
             )
             if not created:
                 print("  -- using existing map object")
@@ -272,6 +276,14 @@ class Command(BaseCommand):
         for i in Layer.objects.all():
             if not i.region:
                 print(f"{i} has no region but should have one")
+
+        print("finally, resetting sequence counts")
+
+        sequence_sql = connection.ops.sequence_reset_sql(no_style(), [Document, Region, Layer])
+        with connection.cursor() as cursor:
+            for sql in sequence_sql:
+                print(sql)
+                cursor.execute(sql)
 
     def make_map_groups(self):
         """ Collect all of the existing maps in the database and create MapGroups, or

@@ -14,6 +14,7 @@ from ohmg.georeference.models import (
 )
 
 class LayerSetAdmin(admin.ModelAdmin):
+    raw_id_fields = ("map", "volume")
     readonly_fields = (
         'annotation_display_list',
         'layer_display_list',
@@ -34,6 +35,7 @@ admin.site.register(GCP, GCPAdmin)
 admin.site.register(GCPGroup)
 
 class SessionAdmin(admin.ModelAdmin):
+    raw_id_fields = ("doc", "lyr", "doc2", "reg2", "lyr2")
     readonly_fields = ('date_created', 'date_modified', 'date_run')
     list_display = ['__str__', 'doc', 'lyr', 'user', 'stage', 'status', 'note', 'date_created', 'date_modified', 'date_run']
     list_filter = ('stage', )

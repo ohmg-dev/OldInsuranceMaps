@@ -7,10 +7,11 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
 from ohmg.core.importers.base import get_importer
+from ohmg.core.models import Map
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.places.models import Place
 from ohmg.places.management.utils import reset_volume_counts
-from ohmg.georeference.models import ItemBase, LayerV1, DocumentLink
+from ohmg.georeference.models import ItemBase, LayerV1, DocumentLink, PrepSession, GeorefSession
 
 class Command(BaseCommand):
     help = 'management command to handle map object operations'
@@ -21,8 +22,10 @@ class Command(BaseCommand):
             choices=[
                 "add",
                 "remove",
+                "remove-map",
                 "list-importers",
                 "add-document",
+                "create-documents",
 
                 "refresh-lookups",
                 "make-sheets",
@@ -47,6 +50,12 @@ class Command(BaseCommand):
             action="store_true",
             default=False,
             help="perform a dry-run of the operation",
+        ),
+        parser.add_argument(
+            "--get-files",
+            action="store_true",
+            default=False,
+            help="Will download all files to documents, during the create-documents operation",
         ),
         parser.add_argument(
             "--overwrite",
@@ -118,7 +127,7 @@ class Command(BaseCommand):
             try:
                 vol = Volume.objects.get(pk=options["pk"])
             except Volume.DoesNotExist:
-                print("this map does not exist in the database")
+                print("this volume does not exist in the database")
                 exit()
 
             sheets = list(vol.sheets)
@@ -161,6 +170,52 @@ class Command(BaseCommand):
             print("onjects deleted. resetting map counts...")
             reset_volume_counts()
             print("done")
+        
+        if operation == "remove-map":
+            try:
+                map = Map.objects.get(pk=options["pk"])
+            except Map.DoesNotExist:
+                print("this map does not exist in the database")
+                exit()
+
+            documents = list(map.documents.all())
+            regions = []
+            for d in documents:
+                regions += list(d.regions.all())
+            layers = [i.layer for i in regions if i.layer]
+            gcp_groups = [i.region.gcp_group for i in layers]
+            gcps = []
+            for gcp_group in gcp_groups:
+                gcps += list(gcp_group.gcps.all())
+
+            prep_sessions = list(PrepSession.objects.filter(doc2__in=documents))
+            georef_sessions = list(GeorefSession.objects.filter(reg2__in=regions))
+
+            print(map)
+            print(f"documents {len(documents)}")
+            print(f"regions {len(regions)}")
+            print(f"layers {len(layers)}")
+            print(f"gcp groups {len(gcp_groups)}")
+            print(f"gcps {len(gcps)}")
+            print(f"prep sessions {len(prep_sessions)}")
+            print(f"georef sessions {len(georef_sessions)}")
+
+            prompt = "Delete all of these objects? y/N "
+            if options["force"] or input(prompt).lower().startswith("y"):
+                for i in prep_sessions + georef_sessions + gcps + gcp_groups + layers + regions + documents + [map]:
+                    print(i)
+                    i.delete()
+
+            print("objects deleted.")
+            print("done")
+
+        if operation == "create-documents":
+            try:
+                map = Map.objects.get(pk=options["pk"])
+            except Map.DoesNotExist:
+                print("this map does not exist in the database")
+                exit()
+            map.create_documents(get_files=options['get_files'])
 
         if operation == "list-importers":
             for name in settings.OHMG_IMPORTERS['map'].keys():

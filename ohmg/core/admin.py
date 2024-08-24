@@ -8,8 +8,14 @@ from ohmg.core.models import (
     Layer,
 )
 
+class RegionAdmin(admin.ModelAdmin):
+    raw_id_fields = ("document",)
+
+class LayerAdmin(admin.ModelAdmin):
+    raw_id_fields = ("region", "layerset")
+
 admin.site.register(MapGroup)
 admin.site.register(Map)
 admin.site.register(Document)
-admin.site.register(Region)
-admin.site.register(Layer)
+admin.site.register(Region, RegionAdmin)
+admin.site.register(Layer, LayerAdmin)

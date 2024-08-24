@@ -10,6 +10,10 @@ from django.http import JsonResponse, HttpResponseBadRequest
 
 from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.georeference.tasks import (
+    # these are the old commands, retain for now
+    run_georeference_session,
+    run_preparation_session,
+    # these are the new commands, use from now on
     run_georeferencing_as_task,
     run_preparation_as_task,
 )
@@ -21,7 +25,7 @@ from ohmg.georeference.models import (
     ItemBase,
 )
 from ohmg.core.schemas import LayerSetSchema
-from ohmg.core.models import Region, Document as Document2
+from ohmg.core.models import Region, Document as Document2, Layer
 from ohmg.georeference.operations.sessions import run_preparation
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
@@ -100,8 +104,9 @@ class SplitView(View):
             sesh.data['cutlines'] = cutlines
             sesh.save(update_fields=["data"])
             logger.info(f"{sesh.__str__()} | begin run() as task")
-            
-            run_preparation_as_task.apply_async((sesh.pk,))
+            run_preparation_session.apply_async((sesh.pk,),
+                link=run_preparation_as_task.s()
+            )
             return JsonResponse({"success":True})
 
         elif operation == "no_split":
@@ -127,6 +132,7 @@ class SplitView(View):
 
             sesh.data['split_needed'] = False
             sesh.save(update_fields=["data"])
+            sesh.run()
             run_preparation(sesh)
             return JsonResponse({"success":True})
 
@@ -333,7 +339,9 @@ class GeoreferenceView(View):
                 sesh.data['transformation'] = transformation
                 sesh.save(update_fields=["data"])
                 logger.info(f"{sesh.__str__()} | begin run() as task")
-                run_georeferencing_as_task.apply_async((sesh.pk,))
+                run_georeference_session.apply_async((sesh.pk,),
+                    link=run_georeferencing_as_task.s()
+                )
 
                 _cleanup_preview(document, cleanup_preview)
                 return JsonResponse({
@@ -415,10 +423,12 @@ class LayerSetView(View):
             for resource_id, category in update_list:
                 v = get_object_or_404(Volume, pk=volume_id)
                 r = get_object_or_404(ItemBase, pk=resource_id)
+                layer = Layer.objects.get(slug=r.slug)
 
                 try:
                     annoset = v.get_annotation_set(category, create=True)
                     r.update_annotationset(annoset)
+                    layer.set_layerset(annoset)
                     response['status'] = "success"
                     response['message'] = f"{resource_id} added to {category} annotation set"
 

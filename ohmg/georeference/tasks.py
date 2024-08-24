@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 def run_preparation_session(sessionid):
     session = PrepSession.objects.get(pk=sessionid)
     session.run()
+    return session.pk
 
 @app.task
 def run_georeference_session(sessionid):
@@ -22,6 +23,7 @@ def run_georeference_session(sessionid):
     logger.debug("in tasks.run georef ....")
     session = GeorefSession.objects.get(pk=sessionid)
     session.run()
+    return session.pk
 
 @app.task
 def run_preparation_as_task(sessionid):

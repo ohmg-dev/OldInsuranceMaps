@@ -127,6 +127,11 @@ class Map(models.Model):
     iiif_manifest = models.JSONField(null=True, blank=True)
     create_date = models.DateTimeField(auto_now_add=True)
     load_date = models.DateTimeField(null=True, blank=True)
+    document_sources = models.JSONField(
+        null=True,
+        blank=True,
+        default=dict,
+    )
     document_lookup = models.JSONField(
         null=True,
         blank=True,
@@ -280,21 +285,23 @@ class Map(models.Model):
             sets = sets.filter(category__is_geospatial=True)
         return sets
 
-    def make_sheets(self):
-
-        from ohmg.core.importers.loc_sanborn import LOCParser
-        from ohmg.loc_insurancemaps.models import Sheet
-
-        files_to_import = self.lc_resources[0]['files']
-        for fileset in files_to_import:
-            parsed = LOCParser(fileset=fileset)
-            sheet, created = Sheet.objects.get_or_create(
-                volume=self,
-                sheet_no=parsed.sheet_number,
-            )
-            sheet.jp2_url = parsed.jp2_url
-            sheet.lc_iiif_service = parsed.iiif_service
-            sheet.save()
+    def create_documents(self, get_files=False):
+        """ This method is still 100% reliant on having LOC content in the
+        document_sources field. """
+        if self.document_sources:
+            from ohmg.core.importers.loc_sanborn import LOCParser
+            for fileset in self.document_sources:
+                parsed = LOCParser(fileset=fileset)
+                document, created = Document.objects.get_or_create(
+                    map=self,
+                    source_url=parsed.jp2_url,
+                    iiif_info=parsed.iiif_service,
+                    page_number=parsed.sheet_number,
+                )
+                logger.debug(f"created new? {created} {document} ({document.pk})")
+        if get_files:
+            for doc in self.documents.all():
+                doc.download_file()
 
     def remove_sheets(self):
 
@@ -832,6 +839,29 @@ class Layer(models.Model):
         if self.file is not None:
             self.extent = get_extent_from_file(Path(self.file.path))
             self.save(update_fields=["extent"])
+
+    def set_layerset(self, layerset):
+
+        # if it's the same vrs then do nothing
+        if self.layerset == layerset:
+            logger.debug(f"{self.pk} same as existing layerset, no action")
+            return
+
+        # make sure to clean up the existing multimask in the current vrs if necessary
+        if self.layerset:
+            if self.layerset.multimask and self.slug in self.layerset.multimask:
+                del self.layerset.multimask[self.slug]
+                self.layerset.save(update_fields=["multimask"])
+                logger.warn(f"{self.pk} removed layer from existing multimask in layerset {self.layerset.pk}")
+        self.layerset = layerset
+        self.save(update_fields=["layerset"])
+        logger.info(f"{self.pk} added to layerset {self.layerset} ({self.layerset.pk})")
+
+        # little patch in here to make sure the new Map objects get added to the layerset,
+        # before everything is shifted away from the Volume model
+        if not layerset.map:
+            layerset.map = self.region.document.map
+            layerset.save()
 
     def save(self,
         set_slug: bool=False,

@@ -15,7 +15,7 @@ from ohmg.georeference.models import (
 from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.core.schemas import LayerSetSchema
 from ohmg.loc_insurancemaps.models import Volume, find_volume
-from ohmg.loc_insurancemaps.tasks import load_docs_as_task
+from ohmg.loc_insurancemaps.tasks import load_docs_as_task, load_map_documents_as_task
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,13 @@ class MapSummary(View):
                 volume.loaded_by = request.user
                 volume.load_date = datetime.now()
                 volume.save(update_fields=["loaded_by", "load_date"])
+            map = Volume.objects.get(pk=identifier)
+            if map.loaded_by is None:
+                map.loaded_by = request.user
+                map.load_date = datetime.now()
+                map.save(update_fields=["loaded_by", "load_date"])
             load_docs_as_task.delay(identifier)
+            load_map_documents_as_task.delay(identifier)
             volume_json = volume.serialize(include_session_info=True)
             volume_json["status"] = "initializing..."
 

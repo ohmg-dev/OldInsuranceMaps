@@ -9,7 +9,7 @@ from django.db import DatabaseError
 from ohmg.places.models import Place
 from ohmg.loc_insurancemaps.models import Volume
 from ohmg.georeference.models import LayerSet, LayerSetCategory
-from ohmg.core.models import Document
+from ohmg.core.models import Document, Map
 from ohmg.core.utils import random_alnum
 
 logger = logging.getLogger(__name__)
@@ -98,7 +98,7 @@ class BaseImporter():
         ## remove unused keys for now
         title = self.parsed_data.pop('title')
         creator = self.parsed_data.pop('creator')
-        docs = self.parsed_data.pop('document_sources')
+        document_sources = self.parsed_data.pop('document_sources')
 
         existing = Volume.objects.filter(pk=self.parsed_data['identifier'])
         if existing.exists():
@@ -114,10 +114,27 @@ class BaseImporter():
 
         volume.locales.set([locale])
         volume.update_place_counts()
+
+        ## patch in the kwargs for a Map, until the parser is rebuilt to spit out
+        ## fields for the new Map model
+        map = Map.objects.create(
+            title=volume.__str__(),
+            identifier=volume.identifier,
+            volume_number=volume.volume_no,
+            document_page_type="page",
+            year=volume.year,
+            month=volume.month,
+            loaded_by=volume.loaded_by,
+            load_date=volume.load_date,
+            document_sources=document_sources,
+        )
+        map.locales.set(volume.locales.all())
+        
         # make sure a main-content layerset exists for this volume
         main_ls, _ = LayerSet.objects.get_or_create(
             category=LayerSetCategory.objects.get(slug="main-content"),
             volume=volume,
+            map=map,
         )
         return volume
 
