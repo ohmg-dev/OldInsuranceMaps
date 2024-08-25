@@ -193,3 +193,17 @@ MEDIA_ROOT=/home/ohmg/uploaded
 ```
 
 In production, you will already be using Nginx, so these steps would be redundant. If there is no `MEDIA_ROOT` environment variable set locally, it will default to `SITEURL`.
+
+## Running Tests
+
+All tests are stored in ohmg/tests. Make sure you have installed dev requirements, then run:
+
+```
+python manage.py test ohmg/tests
+```
+
+To skip the tests that make external calls to the LOC API, use the following command. Keep in mind that coverage numbers will be lower when you skip tests.
+
+```
+python manage.py test ohmg/tests --exclude-tag=loc
+```

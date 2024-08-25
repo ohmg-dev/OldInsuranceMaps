@@ -1,9 +1,49 @@
 from io import BytesIO
+from pathlib import Path
+import logging
+
 from PIL import Image, ImageOps
+from osgeo import gdal, osr
 
 from django.conf import settings
 
 Image.MAX_IMAGE_PIXELS = None
+
+gdal.UseExceptions()
+
+logger = logging.getLogger(__name__)
+
+def get_extent_from_file(file_path: Path):
+    """Credit: https://gis.stackexchange.com/a/201320/28414 """
+    src = gdal.Open(str(file_path))
+    ulx, xres, xskew, uly, yskew, yres  = src.GetGeoTransform()
+    lrx = ulx + (src.RasterXSize * xres)
+    lry = uly + (src.RasterYSize * yres)
+
+    src = None
+    del src
+
+    webMerc = osr.SpatialReference()
+    webMerc.ImportFromEPSG(3857)
+    wgs84 = osr.SpatialReference()
+    wgs84.ImportFromEPSG(4326)
+    transform = osr.CoordinateTransformation(webMerc, wgs84)
+
+    ul = transform.TransformPoint(ulx, uly)
+    lr = transform.TransformPoint(lrx, lry)
+
+    return [ul[1], lr[0], lr[1], ul[0]]
+
+def get_image_size(file_path: Path):
+    size = None
+    if file_path.is_file():
+        try:
+            img = Image.open(file_path)
+            size = img.size
+            img.close()
+        except Exception as e:
+            logger.warn(f"error opening file {file_path}: {e}")
+    return size
 
 def generate_document_thumbnail_content(image_file_path):
 
@@ -69,3 +109,34 @@ def generate_layer_thumbnail_content(image_file_path):
     del background
 
     return content
+
+def convert_img_to_pyramidal_tiff(input_image):
+
+    in_path = Path(input_image)
+
+    print(in_path)
+    out_path = Path(settings.TEMP_DIR, in_path.stem + ".tif")
+
+    print(out_path)
+
+    to = gdal.TranslateOptions(
+        # format="GTiff",
+        format="COG",
+        # maskBand="mask",
+        creationOptions=[
+            # 'COMPRESS=DEFLATE',
+            # 'PREDICTOR=2',
+            # 'COMPRESS=LZW',
+            # 'PREDICTOR=YES',
+            'COMPRESS=JPEG',
+            'QUALITY=100',
+            # 'TILED=YES',
+            # 'BLOCKXSIZE=512',
+            # 'BLOCKYSIZE=512',
+            # "PHOTOMETRIC=YCBCR",
+        ],
+        resampleAlg="nearest"
+    )
+    gdal.Translate(out_path, input_image, options=to)
+
+    return out_path

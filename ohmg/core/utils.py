@@ -1,19 +1,75 @@
 import os
+import json
 import time
 import shutil
 import string
 import random
 import requests
 import logging
+from pathlib import Path
 
 from django.conf import settings
 from django.urls import reverse
+from django.core.files import File
 
 from PIL import Image
 
 logger = logging.getLogger(__name__)
 
-def download_image(url, out_path, retries=3):
+def make_cache_path(url):
+
+    cache_dir = settings.CACHE_DIR / 'requests'
+    if not os.path.isdir(cache_dir):
+        os.mkdir(cache_dir)
+    file_name = url.replace("/", "__") + ".json"
+    cache_path = os.path.join(cache_dir, file_name)
+
+    return cache_path
+
+def load_cache(url):
+
+    path = make_cache_path(url)
+    data = None
+    if os.path.isfile(path):
+        with open(path, "r") as op:
+            data = json.loads(op.read())
+    return data
+
+def save_cache(url, data):
+
+    path = make_cache_path(url)
+    with open(path, "w") as op:
+        json.dump(data, op, indent=1)
+
+def make_cacheable_request(url, delay=0, no_cache=False):
+
+    data = load_cache(url)
+    run_search = no_cache is True or data is None
+
+    if run_search:
+        time.sleep(delay)
+        try:
+            response = requests.get(url)
+            if response.status_code in [500, 503]:
+                msg = f"{response.status_code} error, retrying in 5 seconds..."
+                logger.warn(msg)
+                time.sleep(5)
+                response = requests.get(url)
+        except (ConnectionError, ConnectionRefusedError, ConnectionAbortedError, ConnectionResetError) as e:
+            msg = f"API Error: {e}"
+            print(msg)
+            logger.warn(e)
+            return
+        
+        data = json.loads(response.content)
+        save_cache(url, data)
+
+    return data
+
+def download_image(url: str, out_path: Path, retries: int=3, use_cache: bool=True):
+
+    if out_path.is_file() and use_cache:
+        return out_path
 
     # basic download code: https://stackoverflow.com/a/18043472/3873885
     while True:
@@ -30,36 +86,45 @@ def download_image(url, out_path, retries=3):
             if retries == 0:
                 logger.warn("request failed, cancelling")
                 return None
-            
 
-def convert_img_format(input_img, format="JPEG"):
+def save_file_to_object(target, file_path: Path=None, source_object=None):
+    if file_path:
+        source_path = file_path
+    if source_object:
+        if source_object.file:
+            source_path = Path(source_object.file.path)
+        else:
+            print(f"[WARNING] {source_object} is missing file")      
+
+    with open(source_path, "rb") as openf:
+        target.file.save(source_path.name, File(openf))
+
+def convert_img_format(input_img: Path, format: str="JPEG", force: bool=False):
 
     ext_map = {"PNG":".png", "JPEG":".jpg", "TIFF": ".tif"}
-    ext = os.path.splitext(input_img)[1]
+    outpath = input_img.with_suffix(ext_map[format])
 
-    outpath = input_img.replace(ext, ext_map[format])
+    if outpath.is_file() and not force:
+        return outpath
 
     img = Image.open(input_img)
     img.save(outpath, format=format)
 
     return outpath
 
-def get_jpg_from_jp2_url(jp2_url):
+def get_jpg_from_jp2_url(jp2_url: str, use_cache: bool=True, force_convert: bool=False):
 
-    temp_img_dir = os.path.join(settings.CACHE_DIR, "img")
-    if not os.path.isdir(temp_img_dir):
-        os.mkdir(temp_img_dir)
+    temp_img_dir = Path(settings.CACHE_DIR, "images")
+    temp_img_dir.mkdir(exist_ok=True)
 
-    tmp_path = os.path.join(temp_img_dir, jp2_url.split("/")[-1])
+    tmp_path = Path(temp_img_dir, jp2_url.split("/")[-1])
 
-    tmp_path = download_image(jp2_url, tmp_path)
-    print(tmp_path)
+    tmp_path = download_image(jp2_url, tmp_path, use_cache=use_cache)
     if tmp_path is None:
         return
 
     # convert the downloaded jp2 to jpeg (needed for OpenLayers static image)
-    jpg_path = convert_img_format(tmp_path, format="JPEG")
-    os.remove(tmp_path)
+    jpg_path = convert_img_format(tmp_path, force=force_convert)
 
     return jpg_path
 
@@ -104,6 +169,37 @@ MONTH_CHOICES = [
     (10, "OCT."),
     (11, "NOV."),
     (12, "DEC."),
+]
+DAY_CHOICES = [
+    (1, "1st"),
+    (2, "2nd"),
+    (3, "3rd"),
+    (4, "4th"),
+    (5, "5th"),
+    (6, "6th"),
+    (7, "7th"),
+    (8, "8th"),
+    (9, "9th"),
+    (10, "10th"),
+    (11, "11th"),
+    (12, "12th"),
+    (13, "13th"),
+    (14, "14th"),
+    (15, "15th"),
+    (16, "16th"),
+    (17, "17th"),
+    (18, "18th"),
+    (19, "19th"),
+    (20, "20th"),
+    (21, "21st"),
+    (22, "22nd"),
+    (23, "23rd"),
+    (24, "24th"),
+    (25, "25th"),
+    (26, "26th"),
+    (27, "27th"),
+    (28, "28th"),
+    (29, "29th"),
 ]
 STATE_CHOICES = [
     ('alabama', 'Alabama'),

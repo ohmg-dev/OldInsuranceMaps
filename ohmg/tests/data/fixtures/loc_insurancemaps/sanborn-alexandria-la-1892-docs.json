@@ -1,0 +1,83 @@
+[
+    {
+        "model": "georeference.itembase",
+        "pk": 1,
+        "fields": {
+            "title": "Alexandria, La. | 1892 p1",
+            "slug": "alexandria_la_1892_p1",
+            "type": "document",
+            "date": "1892-06-01T12:00:00",
+            "attribution": null,
+            "status": "unprepared",
+            "x0": null,
+            "y0": null,
+            "x1": null,
+            "y1": null,
+            "epsg": null,
+            "favorite_count": 0,
+            "share_count": 0,
+            "owner": 1,
+            "created": "2024-08-02T16:20:49.059",
+            "last_updated": "2024-08-02T16:21:04.134",
+            "file": "documents/alexandria_la_1892_p1.jpg",
+            "thumbnail": "thumbnails/alexandria_la_1892_p1-doc-thumb.jpg",
+            "lock_enabled": false,
+            "lock_details": null,
+            "vrs": null
+        }
+    },
+    {
+        "model": "georeference.itembase",
+        "pk": 2,
+        "fields": {
+            "title": "Alexandria, La. | 1892 p2",
+            "slug": "alexandria_la_1892_p2",
+            "type": "document",
+            "date": "1892-06-01T12:00:00",
+            "attribution": null,
+            "status": "unprepared",
+            "x0": null,
+            "y0": null,
+            "x1": null,
+            "y1": null,
+            "epsg": null,
+            "favorite_count": 0,
+            "share_count": 0,
+            "owner": 1,
+            "created": "2024-08-02T16:21:04.140",
+            "last_updated": "2024-08-02T16:21:16.693",
+            "file": "documents/alexandria_la_1892_p2.jpg",
+            "thumbnail": "thumbnails/alexandria_la_1892_p2-doc-thumb.jpg",
+            "lock_enabled": false,
+            "lock_details": null,
+            "vrs": null
+        }
+    },
+    {
+        "model": "georeference.itembase",
+        "pk": 3,
+        "fields": {
+            "title": "Alexandria, La. | 1892 p3",
+            "slug": "alexandria_la_1892_p3",
+            "type": "document",
+            "date": "1892-06-01T12:00:00",
+            "attribution": null,
+            "status": "unprepared",
+            "x0": null,
+            "y0": null,
+            "x1": null,
+            "y1": null,
+            "epsg": null,
+            "favorite_count": 0,
+            "share_count": 0,
+            "owner": 1,
+            "created": "2024-08-02T16:21:16.700",
+            "last_updated": "2024-08-02T16:21:28.809",
+            "file": "documents/alexandria_la_1892_p3.jpg",
+            "thumbnail": "thumbnails/alexandria_la_1892_p3-doc-thumb.jpg",
+            "lock_enabled": false,
+            "lock_details": null,
+            "vrs": null
+        }
+    }
+]

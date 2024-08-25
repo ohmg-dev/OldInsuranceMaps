@@ -1,0 +1,13 @@
+[
+{
+  "model": "georeference.layerset",
+  "pk": 2,
+  "fields": {
+    "volume": "sanborn03267_002",
+    "category": 0,
+    "multimask": null,
+    "mosaic_geotiff": "",
+    "mosaic_json": ""
+  }
+}
+]

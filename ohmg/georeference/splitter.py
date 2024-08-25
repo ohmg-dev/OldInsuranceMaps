@@ -2,6 +2,7 @@ import os
 import math
 import time
 import logging
+from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter
 
@@ -18,8 +19,6 @@ class Splitter(object):
         self.img_file = image_file
         self.divisions = divisions
 
-        if os.path.isdir(settings.TEMP_DIR) is False:
-            os.mkdir(settings.TEMP_DIR)
         self.temp_dir = settings.TEMP_DIR
 
     def make_border_geometry(self, image_file=None):
@@ -212,7 +211,6 @@ class Splitter(object):
 
             # finally, save the image out to the specified format
             out_image.save(out_path, format_lookup[out_format])
-
             out_paths.append(out_path)
 
         t = round(time.time()-start, 3)

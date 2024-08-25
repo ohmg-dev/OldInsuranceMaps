@@ -279,6 +279,7 @@ function goToDocument() {
           <!-- class="control-btn{splitNeeded == false ? ' btn-chosen': ''}"> -->
           <CheckSquareOffset /> No split needed
         </ToolUIButton>
+        <!-- DISABLE UNDO OPERATIONS TEMPORARILY
         {#if CONTEXT.user.is_authenticated}
         <ToolUIButton
           title={undoBtnTitle}
@@ -287,6 +288,7 @@ function goToDocument() {
           <ArrowCounterClockwise />
         </ToolUIButton>
         {/if}
+        -->
       </div>
       <div class="section-body">
         {#if SPLIT_SUMMARY}
@@ -343,6 +345,7 @@ function goToDocument() {
           action={() => {window.location.href=RESOURCE.urls.georeference}}>
           <MapPin />{georeferenceBtnTitle}
         </ToolUIButton>
+        <!-- DISABLE UNDO OPERATIONS TEMPORARILY
         {#if CONTEXT.user.is_authenticated && CONTEXT.user.is_staff}
         <ToolUIButton
           title="Remove all georeferencing for this resource"
@@ -351,6 +354,7 @@ function goToDocument() {
           <Trash />
         </ToolUIButton>
         {/if}
+        -->
       </div>
       <div class="section-body">
         {#if GEOREFERENCE_SUMMARY.gcp_geojson}

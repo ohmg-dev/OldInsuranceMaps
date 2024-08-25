@@ -18,12 +18,12 @@ from ohmg.core.schemas import (
     MapListSchema,
     FilterSessionSchema,
     SessionSchema,
-    AnnotationSetSchema,
+    LayerSetSchema,
     PlaceSchema,
     LayerSchema,
 )
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.georeference.models import SessionBase, AnnotationSet, Layer
+from ohmg.georeference.models import SessionBase, LayerSet, LayerV1
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
@@ -109,18 +109,18 @@ def list_maps(request,
         maps = maps[:limit]
     return list(maps)
 
-@api.get('annotation-set/', response=AnnotationSetSchema, url_name="annotation_set")
+@api.get('annotation-set/', response=LayerSetSchema, url_name="annotation_set")
 def annotation(request,
         volume: str,
         category: str,
     ):
-    return AnnotationSet.objects.get(category__slug=category, volume_id=volume)
+    return LayerSet.objects.get(category__slug=category, volume_id=volume)
 
-@api.get('annotation-sets/', response=List[AnnotationSetSchema], url_name="annotation_sets")
+@api.get('annotation-sets/', response=List[LayerSetSchema], url_name="annotation_sets")
 def annotations(request,
         volume: str,
     ):
-    return AnnotationSet.objects.filter(volume_id=volume)
+    return LayerSet.objects.filter(volume_id=volume)
 
 @api.get('places/', response=List[PlaceSchema], url_name="place_list")
 def list_places(request):
@@ -182,6 +182,6 @@ def layer(request, map: str):
 
     vol = Volume.objects.get(pk=map).serialize()
     layer_ids = [i['slug'] for i in vol['items']['layers']]
-    layers = Layer.objects.filter(slug__in=layer_ids).prefetch_related('vrs')
+    layers = LayerV1.objects.filter(slug__in=layer_ids).prefetch_related('vrs')
 
     return layers

@@ -3,27 +3,28 @@ from django.contrib import admin
 from ohmg.georeference.models import (
     GCP,
     GCPGroup,
-    Layer,
+    LayerV1,
     Document,
     DocumentLink,
     PrepSession,
     GeorefSession,
     ItemBase,
-    AnnotationSet,
-    SetCategory,
+    LayerSet,
+    SessionLock,
 )
 
-class AnnotationSetAdmin(admin.ModelAdmin):
+class LayerSetAdmin(admin.ModelAdmin):
+    raw_id_fields = ("map", "volume")
     readonly_fields = (
         'annotation_display_list',
+        'layer_display_list',
         'extent',
         'multimask_extent',
         'multimask',
     )
     search_fields = ('volume__city',)
 
-admin.site.register(AnnotationSet, AnnotationSetAdmin)
-admin.site.register(SetCategory)
+admin.site.register(LayerSet, LayerSetAdmin)
 admin.site.register(ItemBase)
 
 class GCPAdmin(admin.ModelAdmin):
@@ -34,6 +35,7 @@ admin.site.register(GCP, GCPAdmin)
 admin.site.register(GCPGroup)
 
 class SessionAdmin(admin.ModelAdmin):
+    raw_id_fields = ("doc", "lyr", "doc2", "reg2", "lyr2")
     readonly_fields = ('date_created', 'date_modified', 'date_run')
     list_display = ['__str__', 'doc', 'lyr', 'user', 'stage', 'status', 'note', 'date_created', 'date_modified', 'date_run']
     list_filter = ('stage', )
@@ -64,10 +66,11 @@ class LayerAdmin(admin.ModelAdmin):
     list_filter = ('lock_enabled', )
 
 admin.site.register(Document, DocumentAdmin)
-admin.site.register(Layer, LayerAdmin)
+admin.site.register(LayerV1, LayerAdmin)
 
 class DocumentLinkAdmin(admin.ModelAdmin):
     list_display = ['pk', 'source', 'target', 'link_type']
     list_filter = ('link_type', )
 
 admin.site.register(DocumentLink, DocumentLinkAdmin)
+admin.site.register(SessionLock)

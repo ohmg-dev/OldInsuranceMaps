@@ -8,7 +8,7 @@ from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,
     Document,
-    Layer,
+    LayerV1,
 )
 from ohmg.loc_insurancemaps.models import find_volume
 
@@ -49,11 +49,11 @@ def session_on_pre_delete(sender, instance, **kwargs):
         instance.doc.set_status(new_status)
 
 @receiver([signals.post_delete, signals.post_save], sender=Document)
-@receiver([signals.post_delete, signals.post_save], sender=Layer)
+@receiver([signals.post_delete, signals.post_save], sender=LayerV1)
 def refresh_volume_lookup(sender, instance, **kwargs):
     volume = find_volume(instance)
     if volume is not None:
         if sender == Document:
             volume.update_doc_lookup(instance)
-        if sender == Layer:
+        if sender == LayerV1:
             volume.update_lyr_lookup(instance)

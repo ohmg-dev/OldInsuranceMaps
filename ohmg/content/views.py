@@ -7,15 +7,15 @@ from django.shortcuts import render, get_object_or_404
 from django.views import View
 
 from ohmg.georeference.models import (
-    Layer,
+    LayerV1,
     Document,
     ItemBase,
-    SetCategory,
+    LayerSetCategory,
 )
 from ohmg.core.context_processors import generate_ohmg_context
-from ohmg.core.schemas import AnnotationSetSchema
+from ohmg.core.schemas import LayerSetSchema
 from ohmg.loc_insurancemaps.models import Volume, find_volume
-from ohmg.loc_insurancemaps.tasks import load_docs_as_task
+from ohmg.loc_insurancemaps.tasks import load_docs_as_task, load_map_documents_as_task
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +50,8 @@ class MapSummary(View):
         volume = get_object_or_404(Volume, pk=identifier)
         volume_json = volume.serialize(include_session_info=True)
 
-        annotation_sets = [AnnotationSetSchema.from_orm(i).dict() for i in volume.get_annotation_sets(geospatial=True)]
-        annotation_set_options = list(SetCategory.objects.filter(is_geospatial=True).values("slug", "display_name"))
+        annotation_sets = [LayerSetSchema.from_orm(i).dict() for i in volume.get_annotation_sets(geospatial=True)]
+        annotation_set_options = list(LayerSetCategory.objects.filter(is_geospatial=True).values("slug", "display_name"))
 
         context_dict = {
             "svelte_params": {
@@ -78,7 +78,14 @@ class MapSummary(View):
                 volume.loaded_by = request.user
                 volume.load_date = datetime.now()
                 volume.save(update_fields=["loaded_by", "load_date"])
-            load_docs_as_task.delay(identifier)
+            map = Volume.objects.get(pk=identifier)
+            if map.loaded_by is None:
+                map.loaded_by = request.user
+                map.load_date = datetime.now()
+                map.save(update_fields=["loaded_by", "load_date"])
+            load_docs_as_task.apply_async((identifier,),
+                link=load_map_documents_as_task.s()
+            )
             volume_json = volume.serialize(include_session_info=True)
             volume_json["status"] = "initializing..."
 
@@ -104,7 +111,7 @@ class VirtualResourceView(View):
         if resource.type == 'document':
             resource = Document.objects.get(pk=pk)
         elif resource.type == 'layer':
-            resource = Layer.objects.get(pk=pk)
+            resource = LayerV1.objects.get(pk=pk)
 
         split_summary = resource.get_split_summary()
         georeference_summary = resource.get_georeference_summary()

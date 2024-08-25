@@ -1,0 +1,22 @@
+[
+{
+  "model": "georeference.documentlink",
+  "pk": 1,
+  "fields": {
+    "source": 2,
+    "target_type": 26,
+    "target_id": 4,
+    "link_type": "split"
+  }
+},
+{
+  "model": "georeference.documentlink",
+  "pk": 2,
+  "fields": {
+    "source": 2,
+    "target_type": 26,
+    "target_id": 5,
+    "link_type": "split"
+  }
+}
+]

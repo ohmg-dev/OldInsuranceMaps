@@ -1,0 +1,12 @@
+[
+{
+  "model": "georeference.documentlink",
+  "pk": 3,
+  "fields": {
+    "source": 5,
+    "target_type": 30,
+    "target_id": 6,
+    "link_type": "georeference"
+  }
+}
+]

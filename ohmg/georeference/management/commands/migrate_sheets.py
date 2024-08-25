@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError # noqa: F401
 
 from ohmg.core.models import Resource
 from ohmg.loc_insurancemaps.models import Sheet
-from ohmg.georeference.models import ItemBase, AnnotationSet, SetCategory
+from ohmg.georeference.models import ItemBase, LayerSet, LayerSetCategory
 
 
 class Command(BaseCommand):

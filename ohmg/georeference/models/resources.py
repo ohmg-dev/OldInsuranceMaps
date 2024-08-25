@@ -354,7 +354,7 @@ class ItemBase(models.Model):
         blank=True,
     )
     vrs = models.ForeignKey(
-        "georeference.AnnotationSet",
+        "georeference.LayerSet",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -703,7 +703,7 @@ class Document(ItemBase):
             "session_data": session_data,
         }
 
-class Layer(ItemBase):
+class LayerV1(ItemBase):
 
     objects = LayerManager()
 
@@ -806,7 +806,7 @@ class DocumentLink(models.Model):
         return f"{self.source} --> {self.target}"
 
 
-class SetCategory(models.Model):
+class LayerSetCategory(models.Model):
 
     class Meta:
         verbose_name_plural = "Set Categories"
@@ -819,14 +819,20 @@ class SetCategory(models.Model):
     def __str__(self):
         return self.display_name if self.display_name else self.slug
 
-class AnnotationSet(models.Model):
+class LayerSet(models.Model):
 
     volume = models.ForeignKey(
         "loc_insurancemaps.Volume",
         on_delete=models.CASCADE,
     )
+    map = models.ForeignKey(
+        "core.map",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+    )
     category = models.ForeignKey(
-        SetCategory,
+        LayerSetCategory,
         on_delete=models.PROTECT,
         blank=True,
         null=True,
@@ -853,12 +859,19 @@ class AnnotationSet(models.Model):
     def __str__(self):
         return f"{self.volume} - {self.category}"
 
+    # TODO: deprecate this once the new layers are implemented
     def annotation_display_list(self):
         """For display in the admin interface only."""
         li = [f"<li><a href='/admin/georeference/itembase/{i.pk}/change'>{i.slug}</a></li>" for i in self.annotations]
         return mark_safe("<ul>"+"".join(li)+"</ul>")
 
+    def layer_display_list(self):
+        """For display in the admin interface only."""
+        li = [f"<li><a href='/admin/core/layer/{i.pk}/change'>{i}</a></li>" for i in self.layers.all()]
+        return mark_safe("<ul>"+"".join(li)+"</ul>")
+
     annotation_display_list.short_description = 'Annotations'
+    layer_display_list.short_description = 'Layers'
 
     @property
     def is_geospatial(self):
@@ -867,7 +880,7 @@ class AnnotationSet(models.Model):
     @property
     def annotations(self):
         if self.is_geospatial:
-            return Layer.objects.filter(vrs=self)
+            return LayerV1.objects.filter(vrs=self)
         else:
             return Document.objects.filter(vrs=self)
 
@@ -977,7 +990,7 @@ class AnnotationSet(models.Model):
 
             layer_name = feature['properties']['layer']
 
-            layer = Layer.objects.get(slug=layer_name)
+            layer = LayerV1.objects.get(slug=layer_name)
             if not layer.file:
                 raise Exception(f"no layer file for this layer {layer_name}")
 
@@ -1089,7 +1102,7 @@ class AnnotationSet(models.Model):
         for feature in multimask_geojson['features']:
 
             layer_name = feature['properties']['layer']
-            layer = Layer.objects.get(slug=layer_name)
+            layer = LayerV1.objects.get(slug=layer_name)
             if not layer.file:
                 logger.error(f"{self.vol.identifier} | no layer file for this layer {layer_name}")
                 raise Exception(f"no layer file for this layer {layer_name}")

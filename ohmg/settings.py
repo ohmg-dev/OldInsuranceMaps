@@ -1,6 +1,5 @@
 import ast
 import os
-import dj_database_url
 from pathlib import Path
 
 from kombu import Queue, Exchange
@@ -8,6 +7,8 @@ from kombu import Queue, Exchange
 # set the repo root as the BASE_DIR, project root at PROJECT_DIR
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 PROJECT_DIR = Path(__file__).resolve().parent
+
+# set BASE_DIR which is used to locate log, cache, temp, static, and uploaded dirs
 BASE_DIR = PROJECT_DIR.parent
 
 # the build file is generated and updated with python manage.py update_build
@@ -124,11 +125,17 @@ TEMPLATES = [
 ]
 
 DATABASES = {
-    'default': dj_database_url.parse(
-        os.getenv('DATABASE_URL'),
-        conn_max_age=0
-    )
+    'default': {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": os.getenv("DATABASE_NAME", "ohmg"),
+        "USER": os.getenv("DATABASE_USER", "postgres"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD", "postgres"),
+        "HOST": os.getenv("DATABASE_HOST", "localhost"),
+        "PORT": os.getenv("DATABASE_PORT", 5432),
+    }
 }
+
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
@@ -268,9 +275,13 @@ CELERY_TASK_QUEUES = (
 CELERY_TASK_ROUTES = {
     'ohmg.georeference.tasks.run_preparation_session': {'queue': 'split'},
     'ohmg.georeference.tasks.run_georeference_session': {'queue': 'georeference'},
+    'ohmg.georeference.tasks.run_preparation_as_task': {'queue': 'split'},
+    'ohmg.georeference.tasks.run_georeferencing_as_task': {'queue': 'georeference'},
+    'ohmg.georeference.tasks.patch_new_layer_to_session': {'queue': 'georeference'},
     'ohmg.georeference.tasks.delete_expired': {'queue': 'housekeeping'},
     'ohmg.georeference.tasks.delete_preview_vrt': {'queue': 'housekeeping'},
     'ohmg.loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
+    'ohmg.loc_insurancemaps.tasks.load_map_documents_as_task': {'queue': 'volume'},
 }
 
 # empty celery beat schedule of default GeoNode jobs
@@ -311,6 +322,13 @@ LOCALE_PATHS = (
     PROJECT_DIR / 'locale',
 )
 
+OHMG_IMPORTERS = {
+    'map': {
+        'single-file': 'ohmg.core.importers.base.SingleFileImporter',
+        'loc-sanborn': 'ohmg.core.importers.loc_sanborn.LOCImporter',
+    }
+}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
@@ -337,27 +355,22 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
-        'console-vb': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose'
-        },
         ## haven't gotten this to work yet
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
         },
-        'geonode': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(LOG_DIR, 'geonode.log'),
-            'formatter': 'moderate',
-        },
         'info': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'filename': os.path.join(LOG_DIR, 'info.log'),
+            'formatter': 'moderate',
+        },
+        'ohmg-debug': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'ohmg-debug.log'),
             'formatter': 'moderate',
         },
         'georeference-debug': {
@@ -376,27 +389,12 @@ LOGGING = {
     "loggers": {
         "django": {
             "handlers": ["console"], "level": "ERROR", },
-        "geonode": {
-            "handlers": ["geonode"], "level": "DEBUG", },
-        "geoserver-restconfig.catalog": {
-            "handlers": ["console"], "level": "ERROR", },
-        "owslib": {
-            "handlers": ["console"], "level": "ERROR", },
-        "pycsw": {
-            "handlers": ["console"], "level": "ERROR", },
-        "celery": {
-            "handlers": ["console"], "level": "DEBUG", },
-        "mapstore2_adapter.plugins.serializers": {
-            "handlers": ["console"], "level": "DEBUG", },
-        "geonode_logstash.logstash": {
-            "handlers": ["console"], "level": "DEBUG", },
-        # logging for this app specifically
-        "ohmg.georeference.tests": {
-            "handlers": ["console"], "level": "DEBUG", },
         "ohmg.georeference": {
             "handlers": ["info", "georeference-debug"], "level": "DEBUG", },
         "ohmg.loc_insurancemaps": {
             "handlers": ["info", "loc_insurancemaps-debug"], "level": "DEBUG", },
+        "ohmg": {
+            "handlers": ["ohmg-debug"], "level": "DEBUG", },
     },
 }
 
@@ -408,6 +406,9 @@ if DEBUG:
     LOGGING['loggers']['ohmg.loc_insurancemaps']['handlers'].append('console')
 else:
     celery_log_level = 'INFO'
+
+## TODO: figure out if this setting can fix what the list below are supposed to fix
+# CELERYD_HIJACK_ROOT_LOGGER = False
 
 LOGGING['loggers']['celery'] = {
     'handlers': ['console'],

@@ -6,6 +6,7 @@ from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,
 )
+from ohmg.georeference.operations.sessions import run_preparation, run_georeferencing
 from ohmg.loc_insurancemaps.models import find_volume
 
 class Command(BaseCommand):
@@ -15,6 +16,7 @@ class Command(BaseCommand):
             "operation",
             choices=[
                 "run",
+                "run2",
                 "undo",
                 "redo",
                 "list",
@@ -55,7 +57,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         operation = options['operation']
-        if operation in ['run', 'undo', 'redo']:
+        if operation in ['run', 'run2', 'undo', 'redo']:
 
             bs = SessionBase.objects.get(pk=options['pk'])
             model = self._model_from_type(bs.type)
@@ -63,6 +65,11 @@ class Command(BaseCommand):
 
             if operation == "run":
                 session.run()
+            if operation == "run2":
+                if bs.type == "p":
+                    run_preparation(session)
+                elif bs.type == "g":
+                    run_georeferencing(session)
             elif operation == "redo":
                 if bs.type == "p":
                     session.undo(keep_session=True)
