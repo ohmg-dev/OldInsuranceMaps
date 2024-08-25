@@ -20,9 +20,10 @@ from ohmg.core.schemas import (
     SessionSchema,
     LayerSetSchema,
     PlaceSchema,
+    LayerSchema,
 )
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.georeference.models import SessionBase, LayerSet
+from ohmg.georeference.models import SessionBase, LayerSet, LayerV1
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
@@ -175,3 +176,12 @@ def get_places_geojson(request):
                 geojson['features'].append(feature)
 
     return geojson
+
+@api.get('layers/', response=List[LayerSchema], url_name="layers")
+def layer(request, map: str):
+
+    vol = Volume.objects.get(pk=map).serialize()
+    layer_ids = [i['slug'] for i in vol['items']['layers']]
+    layers = LayerV1.objects.filter(slug__in=layer_ids).prefetch_related('vrs')
+
+    return layers
