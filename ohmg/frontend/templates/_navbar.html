@@ -1,0 +1,165 @@
+<nav class="navbar" aria-label="main navigation">
+	<div class="navbar-brand">
+		<a class="navbar-item" href="/">
+			<img style="height:30px; width:30px;" src="/static/img/colored-full-linework.png" alt="Home">
+		</a>
+		<button class="navbar-burger" onClick="toggleMobileMenu()" aria-label="menu" aria-expanded="false" data-target="top-navbar">
+		<span aria-hidden="true"></span>
+		<span aria-hidden="true"></span>
+		<span aria-hidden="true"></span>
+		<span aria-hidden="true"></span>
+		</button>
+	</div>
+	<div id="top-navbar" class="navbar-menu">
+		<div class="navbar-start">
+			<a class="navbar-item" href="/search">Search</a>
+			<div class="navbar-item has-dropdown is-hoverable" style="border-top:none;">
+				<button class="navbar-link is-hoverable is-arrowless" onclick="this.nextElementSibling.classList.toggle('is-active')">
+					<span>Georeferencing</span>
+					<i class="ph-bold ph-caret-down"></i>
+				</button>
+				<div class="navbar-dropdown navbar-menu">
+					<a class="navbar-item" href="/activity">Latest Activity</a>
+					<a class="navbar-item" href="/profiles">Contributors</a>
+					<a class="navbar-item" href="https://about.oldinsurancemaps.net/guides">Guides</a>
+					<a class="navbar-item" href="/search#items">Find a map...</a>
+				</div>
+			</div>
+			<div class="navbar-item has-dropdown is-hoverable" style="border-top:none;">
+				<button class="navbar-link is-hoverable is-arrowless" onclick="this.nextElementSibling.classList.toggle('is-active')">
+					<span>Community</span>
+					<i class="ph-bold ph-caret-down"></i>
+				</button>
+				<div class="navbar-dropdown navbar-menu">
+					<a class="navbar-item" href="https://forum.openhistoricalmap.org/c/oldinsurancemaps/13">Forum</a>
+					<a class="navbar-item" href="/news">News & Newsletter</a>
+					<a class="navbar-item" href="https://about.oldinsurancemaps.net/faq">FAQ</a>
+					<a class="navbar-item" href="https://about.oldinsurancemaps.net/contact">Get in touch!</a>
+				</div>
+			</div>
+			<div class="navbar-item has-dropdown is-hoverable" style="border-top:none;">
+				<button class="navbar-link is-hoverable is-arrowless" onclick="this.nextElementSibling.classList.toggle('is-active')">
+					<span>Learn More</span>
+					<i class="ph-bold ph-caret-down"></i>
+				</button>
+				<div class="navbar-dropdown navbar-menu">
+					<a class="navbar-item" href="https://about.oldinsurancemaps.net/faq">FAQ</a>
+					<a class="navbar-item" href="https://about.oldinsurancemaps.net/community">Contact</a>
+					<a class="navbar-item" href="https://about.oldinsurancemaps.net/sanborn-maps">Sanborn Maps</a>
+					<a class="navbar-item" href="https://about.oldinsurancemaps.net">Background</a>
+					<a class="navbar-item" href="https://about.oldinsurancemaps.net/credits">Credits</a>
+				</div>
+			</div>
+		</div>
+		<div class="navbar-end">
+		{% if user.is_authenticated %}
+		<div class="navbar-item is-right has-dropdown is-hoverable" style="border-top:none;">
+			<button class="navbar-link is-hoverable is-arrowless" onclick="this.nextElementSibling.classList.toggle('is-active')">
+				<span>{{ user.username }}</span>
+				<i class="ph-bold ph-caret-down"></i>
+			</button>
+			<div class="navbar-dropdown navbar-menu is-right">
+				<a class="navbar-item" href="{{ user.username }}" title="My Profile">My profile</a>
+				<a class="navbar-item" href="/account/logout" title="Logout">Logout</a>
+			</div>
+		</div>
+		{% else %}
+		<div class="navbar-item is-right">
+			<button class="navbar-link is-arrowless" onclick="openSigninModal()">
+				<span>Sign in</span>
+				<i class="ph-bold ph-sign-in"></i>
+			</button>
+		</div>
+		{% endif %}
+		</div>
+	</div>
+</nav>
+
+<div id="topModal">
+	<div id='modal'>
+		<svg id="close" onclick="closeSigninModal()" viewBox="0 0 12 12">
+			<circle cx=6 cy=6 r=6 />
+			<line x1=3 y1=3 x2=9 y2=9 />
+			<line x1=9 y1=3 x2=3 y2=9 />
+		</svg>
+		<div id='signin-modal-content'>
+			<div class="signin-forms">
+				<h2>Sign in</h2>
+				<p>If you have not yet created an account, then please <button class="is-text-link" onclick="toggleSigninForm()">sign up</button> first.</p>
+				<form class="login" method="POST" action="/account/login/">
+					<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+					<input type="hidden" name="next" value="{{ request.get_full_path }}">
+					<p>
+						<label for="id_login">Username:</label>
+						<input type="text" name="login" placeholder="Username" autocomplete="username" maxlength="150" required="" id="id_login">
+					</p>
+					<p>
+						<label for="id_password">Password:</label>
+						<input type="password" name="password" placeholder="Password" autocomplete="current-password" required="" id="id_password">
+					</p>
+					<p>
+						<label for="id_remember">Remember me:</label>
+						<input type="checkbox" name="remember" id="id_remember"> | <a href="/account/password/reset/">Forgot Password?</a>
+					</p>
+					<button class="button is-primary" type="submit">Sign In</button>
+				</form>
+			</div>
+			<div class="signin-forms" style="display:none;">
+				<h2>Sign up</h2>
+				<p>If you already have an account, please <button class="is-text-link" onclick="toggleSigninForm()">sign in</button>.</p>
+				<form id="signup_form" method="post" action="/account/signup/">
+					<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+					<p>
+						<label for="id_username">Username:</label>
+						<input type="text" name="username" placeholder="Username" autocomplete="username" minlength="1" maxlength="150" required="" id="id_username">
+					</p>
+					<p>
+						<label for="id_email">E-mail:</label>
+						<input type="email" name="email" placeholder="E-mail address" autocomplete="email" required="" id="id_email">
+					</p>
+					<p>
+						<label for="id_password1">Password:</label>
+						<input type="password" name="password1" placeholder="Password" autocomplete="new-password" required="" id="id_password1">
+					</p>
+					<p>
+						<label for="id_password2">Password (again):</label>
+						<input type="password" name="password2" placeholder="Password (again)" autocomplete="new-password" required="" id="id_password2">
+					</p>
+					<!-- <p><label style="width:100%;"> I understand that all work I perform on this site will be licensed <a href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a>.<input type="checkbox" bind:value={agreementCheck} /></label></p> -->
+					<button class="button is-primary" type="submit">Sign Up</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	function toggleMobileMenu() {
+		document.getElementsByClassName('navbar-burger')[0].classList.toggle('is-active')
+		document.getElementsByClassName('navbar-menu')[0].classList.toggle('is-active');
+	}
+	function toggleSigninForm() {
+		Array.from(document.getElementsByClassName("signin-forms")).forEach( function(el) {
+			if (el.style.display === "none") {
+				el.style.display = "block";
+			} else {
+				el.style.display = "none";
+			}
+		})
+	}
+	function keyPress(ev){
+		if (ev.key=="Escape") closeSigninModal()
+	}
+	function openSigninModal() {
+		window.addEventListener("keydown", keyPress)
+		document.getElementById('topModal').style.visibility = 'visible'
+		
+		//this prevents scrolling of the main window on larger screens
+		document.body.style.overflow="hidden" 
+	}
+	function closeSigninModal() {
+		window.addEventListener("keydown", keyPress)
+		document.getElementById('topModal').style.visibility = 'hidden'
+
+		document.body.style.overflow="" 
+	}
+</script>

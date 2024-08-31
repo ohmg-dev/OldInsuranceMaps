@@ -38,11 +38,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
     
     <link href="{{ STATIC_URL }}css/site_base.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
+    <link href="{{ STATIC_URL }}css/modal.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
     {% endblock %}
 
     <!-- dependencies for pinax-announcements -->
     <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/eldarion-ajax@0.16.0/js/eldarion-ajax.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css"/>
 
     <script>
         var siteUrl = '{{ SITEURL }}'.replace(/\/?$/, '/');
@@ -53,9 +56,8 @@
 
   <body>
     {% block header %}{% endblock header %}
-    
-    {{ navbar_params|json_script:'navbar-props'}}
-    {% include '_svelte_component.html' with component_name='Navbar' %}
+
+    {% include '_navbar.html' %}
     
     {% block middle %}
     <div class="container">
@@ -72,16 +74,7 @@
     </div>
     {% endblock middle %}
 
-    {% block extra_mainbody %}
-    {% endblock extra_mainbody %}
-
-  {% block monitoring %}
-  {% endblock %}
-
-  {% block footer %}
-  {{ footer_params|json_script:'footer-props'}}
-  {% include '_svelte_component.html' with component_name='Footer' %}
-  {% endblock footer %}
+    {% include '_footer.html' %}
 
   </body>
 </html>

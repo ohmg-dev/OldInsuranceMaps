@@ -14,6 +14,9 @@ import {onDestroy} from 'svelte'
 import SvelteMarkdown from 'svelte-markdown';
 
 import '@src/css/ol-overrides.css';
+
+// NOTE: the css for this modal component is in /static/css/modal.css, which allows
+// the same modal to be used directly in Django templates.
 	
 let topDiv
 let visible=false
@@ -84,98 +87,3 @@ onDestroy(()=>{
 		</div>
 	</div>
 </div>
-
-<style>
-	#topModal {
-		visibility: hidden;
-		z-index: 9999;
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: #4448;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	#modal {
-		position: relative;
-		border-radius: 6px;
-		border: 2px solid gray;
-		background: var(--primary-background-color);
-		color: #333333;
-		filter: drop-shadow(5px 5px 5px #555);
-		padding: 1em;
-		margin: 1em;
-		max-height: 100vh;
-	}
-
-	:global(#modal img) {
-		max-height: calc(100vh - 2em);
-	}
-
-	.visible {
-		visibility: visible !important;
-	}
-
-	#close {
-		position: absolute;
-		top:-12px;
-		right:-12px;
-		width:24px;
-		height:24px;
-		cursor: pointer;
-		fill:#F44;
-		/* transition: transform 0.3s; */
-	}	
-
-	#close:hover {
-		/* transform: scale(2); */
-	}
-
-	#close line {
-		stroke:#FFF;
-		stroke-width:2;
-	}
-	#modal-content {
-		max-width: calc(100vw - 20px);
-		max-height: calc(100vh - 20px);
-		overflow: auto;
-	}
-	.full-modal {
-		width: 100%;
-		height: calc(100vh - 45px);
-	}
-
-	.full-modal-content {
-		width: 100%;
-		height: 100%;
-	}
-
-	/* mimic the .container widths */
-	@media (max-width: 767px) {
-		#modal-content {
-			min-width: unset;
-		}
-	}
-	@media (min-width: 768px) {
-		#modal {
-			max-width: 700px;
-		}
-		#modal-content {
-			min-width: 500px;
-		}
-	}
-	@media (min-width: 992px) {
-		#modal {
-			max-width: 700px;
-		}
-	}
-	@media (min-width: 1200px) {
-		#modal {
-			max-width: 700px;
-		}
-	}
-</style>
-

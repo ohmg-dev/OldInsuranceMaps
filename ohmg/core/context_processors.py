@@ -73,17 +73,6 @@ def generate_ohmg_context(request):
         "urls": internal_urls,
     }
 
-def navbar_footer_params(request):
-    """ Build the params passed to the Navbar and Footer Svelte components."""
-
-    context = generate_ohmg_context(request)
-    return {
-        'navbar_params': {
-            "CONTEXT": context,
-        },
-        'footer_params': {},
-    }
-
 def site_info(request):
     """ Return site name, build number, etc. """
 

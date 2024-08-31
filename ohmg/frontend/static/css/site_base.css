@@ -423,3 +423,42 @@ footer a:hover {
 	padding: 0;
 	font-style: italic;
   }
+
+@media (max-width: 1024px) {
+	.navbar-menu {
+		overflow-y: auto;
+		max-height: calc(100vh - 45px);
+	}
+}
+
+.signin-forms input {
+	max-width: 50%;
+}
+.signin-forms label {
+	width: 150px;
+	display: inline-block;
+	text-align: right;
+}
+.signin-forms form {
+	display: flex;
+	flex-direction: column;
+}
+
+footer {
+	display: flex;
+	flex-direction: column;
+	background:#123B4F;
+	color: white;
+	padding: 15px;
+	font-weight: 500;
+	min-height: 60px;
+}
+
+footer .content {
+	font-size: .95em;
+}
+
+footer a {
+	color: white;
+	text-decoration: underline;
+}

@@ -118,9 +118,7 @@ let exportable = [];
 // e.g. ./src/main.js
 [
 	"Index",
-	"Footer",
 	"Georeference",
-	"Navbar",
 	"Resource",
 	"Split",
 	"Viewer",
