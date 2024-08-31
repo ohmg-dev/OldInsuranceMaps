@@ -1,6 +1,7 @@
 {% load i18n avatar_tags %}
 {% load static from static %}
 {% load account socialaccount %}
+{% load compress %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -28,24 +29,29 @@
     <!-- analytics with plausible.io -->
     <script defer data-domain="oldinsurancemaps.net" src="/js/script.js"></script>
 
-    <!-- Bulma CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
-    <link href="{{ STATIC_URL }}css/bulma-overrides.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
-
-    {% block head %}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
+    <!-- from: https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css -->
+    <link href="{{ STATIC_URL }}plugins/bulma.min.css" rel="stylesheet"/>
     
+    {% block head %}{% endblock %}
+    
+    {% compress css %}
+    <!-- custom stylesheets -->
+    <link href="{{ STATIC_URL }}css/bulma-overrides.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
     <link href="{{ STATIC_URL }}css/site_base.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
     <link href="{{ STATIC_URL }}css/modal.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
-    {% endblock %}
-
+    <!-- from: https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap -->
+    <link href="{{ STATIC_URL }}plugins/fonts/josephine.css" rel="stylesheet"/>
+    <!-- from: https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css -->
+    <link href="{{ STATIC_URL }}plugins/phosphor-icons@2.1.1/bold.css" rel="stylesheet"/>
+    {% endcompress %}
+    
+    {% compress js %}
     <!-- dependencies for pinax-announcements -->
-    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/eldarion-ajax@0.16.0/js/eldarion-ajax.min.js"></script>
-
-    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css"/>
+    <!-- from: https://code.jquery.com/jquery-2.2.4.min.js -->
+    <script src="{{ STATIC_URL }}plugins/jquery-2.2.4.min.js"></script>
+    <!-- from: https://cdn.jsdelivr.net/npm/eldarion-ajax@0.16.0/js/eldarion-ajax.min.js -->
+    <script src="{{ STATIC_URL }}plugins/eldarion-ajax.min.js"></script>
+    {% endcompress %}
 
     <script>
         var siteUrl = '{{ SITEURL }}'.replace(/\/?$/, '/');

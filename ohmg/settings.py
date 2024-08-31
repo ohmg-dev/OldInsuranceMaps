@@ -75,7 +75,7 @@ INSTALLED_APPS = [
     'tinymce',
     'django_extensions',
     'avatar',
-
+    'compressor',
     'ninja',
     'markdownx',
 
@@ -144,6 +144,14 @@ STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / 'static')
 STATICFILES_DIRS = [
     PROJECT_DIR / "frontend" / "svelte" / "public" / "build",
 ]
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+)
+
+COMPRESS_ENABLED = ast.literal_eval(os.getenv('COMPRESS_ENABLED', 'True'))
 
 MEDIA_URL = os.getenv('MEDIA_URL', '/uploaded/')
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / 'uploaded')
