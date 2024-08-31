@@ -292,12 +292,6 @@ function handleKeydown(event) {
 
 function process(operation) {
 
-  if (operation == "no_split") {
-    if (!confirm("Are you sure this document does not need to be split?")) {
-      return
-    }
-  }
-
   if (operation == "split" || operation == "no_split" || operation == "cancel") {
     disableReason = operation;
     leaveOkay = true;
@@ -355,7 +349,7 @@ function cleanup () {
 
 <Modal id="modal-expiration">
   <p>This preparation session is expiring, and will be cancelled soon.</p>
-  <button on:click={() => {
+  <button class="button is-success" on:click={() => {
     process("extend-session");
     getModal('modal-expiration').close()}
     }>Give me more time!</button>
@@ -373,13 +367,27 @@ function cleanup () {
 </Modal>
 <Modal id="modal-cancel">
 	<p>Are you sure you want to cancel this session?</p>
-  <button on:click={() => {
-    process("cancel");
-    getModal('modal-cancel').close()
+  <button class="button is-success"
+    on:click={() => {
+      process("cancel");
+      getModal('modal-cancel').close()
     }}>Yes</button>
-  <button on:click={() => {
-    getModal('modal-cancel').close()}
+  <button class="button is-danger"
+    on:click={() => {
+      getModal('modal-cancel').close()}
     }>No - keep working</button>
+</Modal>
+<Modal id="modal-confirm-no-split">
+	<p>Are you sure this document does not need to be split?</p>
+  <button class="button is-success"
+    on:click={() => {
+      process("no_split");
+      getModal('modal-confirm-no-split').close()
+    }}>Yes - it only contains one map</button>
+  <button class="button is-danger"
+    on:click={() => {
+      getModal('modal-confirm-no-split').close()}
+    }>Cancel</button>
 </Modal>
 
 <p>{currentTxt} <Link href="https://about.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link></p>
@@ -423,7 +431,7 @@ function cleanup () {
       <ToolUIButton action={() => {process("split")}} title="Run split operation" disabled={divisions.length<=1 || !enableButtons}>
         <Scissors />
       </ToolUIButton>
-      <ToolUIButton action={() => {process("no_split")}} title="No split needed" disabled={divisions.length>0 || !enableButtons}>
+      <ToolUIButton action={() => { getModal('modal-confirm-no-split').open() }} title="No split needed" disabled={divisions.length>0 || !enableButtons}>
         <CheckSquareOffset />
       </ToolUIButton>
       <ToolUIButton action={() => { getModal('modal-cancel').open() }} title="Cancel this preparation" disabled={session_id == null || !enableButtons}>
