@@ -331,6 +331,9 @@ class Map(models.Model):
             all_documents += sheet.real_docs
         return all_documents
 
+    def get_absolute_url(self):
+        return f"/map/{self.pk}/"
+
     def get_urls(self):
 
         viewer_url = ""
