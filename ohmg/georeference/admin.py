@@ -73,4 +73,8 @@ class DocumentLinkAdmin(admin.ModelAdmin):
     list_filter = ('link_type', )
 
 admin.site.register(DocumentLink, DocumentLinkAdmin)
-admin.site.register(SessionLock)
+
+class SessionLockAdmin(admin.ModelAdmin):
+    raw_id_fields = ['session']
+
+admin.site.register(SessionLock, SessionLockAdmin)

@@ -703,6 +703,9 @@ def remove_lock(
     ct = ContentType.objects.get_for_model(obj)
     session.locks.filter(target_type=ct, target_id=obj.pk).delete()
 
+def default_expiration_time():
+    return timezone.now() + timedelta(seconds=settings.GEOREFERENCE_SESSION_LENGTH)
+
 class SessionLock(models.Model):
     """Used to lock a resource attached to a given session."""
 
@@ -718,7 +721,7 @@ class SessionLock(models.Model):
     target_id = models.PositiveIntegerField()
     target = GenericForeignKey('target_type', 'target_id')
     expiration = models.DateTimeField(
-        default=timezone.now() + timedelta(seconds=settings.GEOREFERENCE_SESSION_LENGTH)
+        default=default_expiration_time
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -730,7 +733,7 @@ class SessionLock(models.Model):
         verbose_name_plural = "Session Locks"
 
     def __str__(self):
-        return f"{self.session.get_type_display()} --> {self.target} ({self.target._meta.object_name})"
+        return f"{self.session} --> {self.target._meta.object_name} ({self.target} {self.target_id})"
     
     def extend(self):
         self.expiration += timedelta(seconds=settings.GEOREFERENCE_SESSION_LENGTH)
