@@ -5,7 +5,8 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
 from django.contrib.sitemaps.views import sitemap
 
-from ohmg.core.api import api
+from ohmg.core.api_old import api
+from ohmg.core.api.routes import beta2
 from .sitemap import sitemaps
 
 urlpatterns = [
@@ -16,6 +17,7 @@ urlpatterns = [
     path('admin/', admin.site.urls, name="admin"),
     path('account/', include("allauth.urls")),
     path('avatar/', include('avatar.urls')),
+    path('api/beta2/', beta2.urls),
     path('api/beta/', api.urls),
     path('markdownx/', include('markdownx.urls')),
     path("sitemap.xml/", sitemap, {'sitemaps': sitemaps}, name="django.contrib.sitemaps.views.sitemap"),
