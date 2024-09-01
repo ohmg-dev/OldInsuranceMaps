@@ -53,7 +53,7 @@
 			<th data-sort="sort_years" style="max-width:300px;" title="Volumes available">Volumes available</th>
 		</tr>
 		<tr slot="tbody" let:item={p} style="height:38px;">
-			<td><Link title="View all {p.name} mosaics in viewer" href="{p.url}">{p.name}</Link></td>
+			<td><Link title="View all {p.name} mosaics in viewer" href="{p.url}">{p.display_name}</Link></td>
 			<td>{#each p.maps as v, i}<Link href="{v.url}">{v.year}</Link>{#if i < p.maps.length-1}, {/if}{/each}</td>
 		</tr>
 	</TableSort>

@@ -51,7 +51,8 @@ def generate_ohmg_context(request):
         "get_maps": reverse("api-beta:map_list"),
         "get_sessions": reverse("api-beta:session_list"),
         "get_users": reverse("api-beta:user_list"),
-        "get_places": reverse("api-beta:place_list"),
+        "get_place": reverse("api-beta2:place"),
+        "get_places": reverse("api-beta2:place_list"),
         "change_avatar": reverse('avatar_change'),
     }
 

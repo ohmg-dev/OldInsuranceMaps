@@ -22,17 +22,18 @@ function update(place_slug) {
 			place_slug = value.selected;
 		}
 	}
-	fetch(`/${place_slug}?f=json`, {
-	}).then(response => response.json())
+	fetch(`${CONTEXT.urls.get_place}?slug=${place_slug}`, {
+		headers: CONTEXT.ohmg_api_headers,
+    }).then(response => response.json())
 		.then(result => {
-			PLACE = result.PLACE;
+			PLACE = result;
 			history.pushState({slug:PLACE.slug}, PLACE.display_name, `/${PLACE.slug}`);
 			document.title = PLACE.display_name;
 			reinitList();
 	})
 }
 
-$: VIEWER_LINK = PLACE.volumes.length > 0 ? `/viewer/${PLACE.slug}/` : '';
+$: VIEWER_LINK = PLACE.maps.length > 0 ? `/viewer/${PLACE.slug}/` : '';
 
 </script>
 
