@@ -1,4 +1,6 @@
 {% load static from static %}
+{% load compress %}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -17,11 +19,16 @@
 
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap" rel="stylesheet">
-
-    <link href="{% static 'css/site_base.css' %}" rel="stylesheet"/>
+    {% compress css %}
+    <!-- custom stylesheets -->
+    <link href="{{ STATIC_URL }}css/bulma-overrides.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
+    <link href="{{ STATIC_URL }}css/site_base.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
+    <link href="{{ STATIC_URL }}css/modal.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
+    <!-- from: https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap -->
+    <link href="{{ STATIC_URL }}plugins/fonts/josephine.css" rel="stylesheet"/>
+    <!-- from: https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css -->
+    <link href="{{ STATIC_URL }}plugins/phosphor-icons@2.1.1/bold.css" rel="stylesheet"/>
+    {% endcompress %}
 
   </head>
   <body style="padding:0; margin:0;">
