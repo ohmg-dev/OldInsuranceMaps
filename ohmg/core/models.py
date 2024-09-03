@@ -309,12 +309,16 @@ class Map(models.Model):
             from ohmg.core.importers.loc_sanborn import LOCParser
             for fileset in self.document_sources:
                 parsed = LOCParser(fileset=fileset)
+                docs = Document.objects.filter(map=self)
+                for d in docs:
+                    print(d.__dict__)
                 document, created = Document.objects.get_or_create(
                     map=self,
-                    source_url=parsed.jp2_url,
-                    iiif_info=parsed.iiif_service,
                     page_number=parsed.sheet_number,
                 )
+                document.source_url = parsed.jp2_url
+                document.iiif_info = parsed.iiif_service
+                document.save()
                 logger.debug(f"created new? {created} {document} ({document.pk})")
                 if get_files:
                     document.download_file()
