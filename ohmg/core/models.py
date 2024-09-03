@@ -4,11 +4,14 @@ from itertools import chain
 from datetime import datetime
 from pathlib import Path
 
+from natsort import natsorted
+
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import transaction
+from django.db.models import Q, F
 from django.utils.functional import cached_property
 from django.urls import reverse
 
@@ -66,6 +69,12 @@ class MapGroup(models.Model):
 
 
 class Map(models.Model):
+
+    STATUS_CHOICES = (
+        ("not started", "not started"),
+        ("initializing...", "initializing..."),
+        ("ready", "ready"),
+    )
 
     ACCESS_CHOICES = (
         ("none", "none"),
@@ -125,6 +134,11 @@ class Map(models.Model):
         help_text="The preferred term for referring to documents within this map."
     )
     iiif_manifest = models.JSONField(null=True, blank=True)
+    status = models.CharField(
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default=STATUS_CHOICES[0][0],
+    )
     create_date = models.DateTimeField(auto_now_add=True)
     load_date = models.DateTimeField(null=True, blank=True)
     document_sources = models.JSONField(
@@ -138,6 +152,11 @@ class Map(models.Model):
         default=dict,
     )
     layer_lookup = models.JSONField(
+        null=True,
+        blank=True,
+        default=dict,
+    )
+    item_lookup = models.JSONField(
         null=True,
         blank=True,
         default=dict,
@@ -175,10 +194,14 @@ class Map(models.Model):
 
     def __str__(self):
         return self.title
-
-    @cached_property
-    def documents(self):
-        return Document.objects.filter(map=self).order_by("page_number")
+    
+    @property
+    def regions(self):
+        return Region.objects.filter(document__in=self.documents.all()).order_by('title')
+    
+    @property
+    def layers(self):
+        return Layer.objects.filter(region__in=self.regions).order_by('title')
 
     @cached_property
     def prep_sessions(self):
@@ -278,16 +301,10 @@ class Map(models.Model):
                 layerset = None
         return layerset
 
-    def get_layersets(self, geospatial:bool=False):
-        from ohmg.georeference.models import LayerSet
-        sets = LayerSet.objects.filter(volume=self)
-        if geospatial:
-            sets = sets.filter(category__is_geospatial=True)
-        return sets
-
     def create_documents(self, get_files=False):
-        """ This method is still 100% reliant on having LOC content in the
+        """ TODO: This method is still 100% reliant on having LOC content in the
         document_sources field. """
+        self.set_status("initializing...")
         if self.document_sources:
             from ohmg.core.importers.loc_sanborn import LOCParser
             for fileset in self.document_sources:
@@ -299,14 +316,17 @@ class Map(models.Model):
                     page_number=parsed.sheet_number,
                 )
                 logger.debug(f"created new? {created} {document} ({document.pk})")
-        if get_files:
-            for doc in self.documents.all():
-                doc.download_file()
+                if get_files:
+                    document.download_file()
+        self.set_status("ready")
 
     def remove_sheets(self):
-
         for document in self.documents:
             document.delete()
+
+    def set_status(self, status):
+        self.status = status
+        self.save(update_fields=['status'])
 
     def update_place_counts(self):
 
@@ -325,234 +345,60 @@ class Map(models.Model):
                         new_parents += list(p.direct_parents.all())
                     parents = new_parents
 
-    def get_all_docs(self):
-        all_documents = []
-        for sheet in self.sheets:
-            all_documents += sheet.real_docs
-        return all_documents
-
     def get_absolute_url(self):
         return f"/map/{self.pk}/"
-
-    def get_urls(self):
-
-        viewer_url = ""
-        if self.get_locale():
-            viewer_url = reverse("viewer", args=(self.get_locale().slug,)) + f"?{self.identifier}=100"
-
-        return {
-            "summary": reverse("map_summary", args=(self.identifier,)),
-            "viewer": viewer_url,
-        }
-
-    def refresh_lookups(self):
-        """Clean and remake document_lookup and layer_lookup fields
-        for this Volume by examining the original loaded Sheets and
-        re-evaluating every descendant Document and LayerV1.
-        """
-
-        if len(self.document_lookup) > 0 or len(self.layer_lookup) > 0:
-            self.document_lookup = {}
-            self.layer_lookup = {}
-            self.save(update_fields=["document_lookup", "layer_lookup"])
-
-        for document in self.get_all_docs():
-            self.update_doc_lookup(document, update_layer=True)
-
-    def update_doc_lookup(self, document, update_layer=False):
-        """Serialize the input document, and save it into
-        this volume's lookup table. If an int is passed, it will be used
-        as a primary key lookup.
-
-        If update_layer=True, also trigger the update of the layer
-        lookup for the georeference layer from this document
-        (if applicable)."""
-        from ohmg.georeference.models.resources import Document
-
-        if isinstance(document, Document):
-            data = document.serialize(serialize_layer=False, include_sessions=True)
-        elif str(document).isdigit():
-            data = Document.objects.get(pk=document).serialize(serialize_layer=False, include_sessions=True)
-        else:
-            logger.warn(f"cannot update_doc_lookup with this input: {document} ({type(document)}")
-            return
-
-        # hacky method for pulling out the sheet number from the title
-        try:
-            data["page_str"] = data['title'].split("|")[-1].split("p")[1]
-        except IndexError:
-            data["page_str"] = data['title']
-
-        self.document_lookup[data['id']] = data
-        self.save(update_fields=["document_lookup"])
-
-        if update_layer is True and data['layer']:
-            self.update_lyr_lookup(data['layer'])
-
-    def update_lyr_lookup(self, layer):
-        """Serialize the input layer id (pk), and save it into
-        this volume's lookup table."""
-        from ohmg.georeference.models.resources import LayerV1
-
-        if isinstance(layer, LayerV1):
-            data = layer.serialize(serialize_document=False, include_sessions=True)
-        else:
-            try:
-                data = LayerV1.objects.get(slug=layer).serialize(serialize_document=False, include_sessions=True)
-            except Exception as e:
-                logger.warn(f"{e} | cannot update_lyr_lookup with this input: {layer} ({type(layer)}")
-                return
-
-        # hacky method for pulling out the sheet number from the title
-        try:
-            data["page_str"] = data['title'].split("|")[-1].split("p")[1]
-        except IndexError:
-            data["page_str"] = data['title']
-
-        # even more hacky method of creating a sort order from this page_str
-        try:
-            data['sort_order'] = float(data['page_str'])
-        except ValueError:
-            if "[" in data['page_str']:
-                s = data['page_str'].split("[")
-                try:
-                    n1 = int(s[0].replace("R","").replace("L",""))
-                    n2 = s[1].rstrip("]")
-                    data['sort_order'] = float(f"{n1}.{n2}")
-                except Exception as e:
-                    logger.warn(f"error making sort_order for {data['title']}: {e}")
-                    data['sort_order'] = 0
-            else:
-                data['sort_order'] = 0
-        except Exception as e:
-            logger.warn(e)
-            data['sort_order'] = 0
-
-        self.layer_lookup[data['slug']] = data
-        self.save(update_fields=["layer_lookup"])
-
-    def sort_lookups(self):
-
-        sorted_items = {
-            "unprepared": [],
-            "prepared": [],
-            "georeferenced": [],
-            "nonmaps": [],
+    
+    def update_item_lookup(self):
+        from ohmg.core.api.schemas import (DocumentSchema, RegionSchema, LayerSchema)
+        regions = self.regions
+        items = {
+            "unprepared": [DocumentSchema.from_orm(i).dict() for i in self.documents.filter(prepared=False)],
+            "prepared": [RegionSchema.from_orm(i).dict() for i in regions.filter(georeferenced=False, is_map=True)],
+            "georeferenced": [LayerSchema.from_orm(i).dict() for i in self.layers],
+            "nonmaps": [RegionSchema.from_orm(i).dict() for i in regions.filter(is_map=False)],
             "processing": {
                 "unprep": 0,
                 "prep": 0,
                 "geo_trim": 0,
             }
         }
-        for v in self.document_lookup.values():
-            if v['status'] in ["unprepared", "splitting"]:
-                sorted_items['unprepared'].append(v)
-                if v['status'] == "splitting":
-                    sorted_items['processing']['unprep'] += 1
-            if v['status'] in ["prepared", "georeferencing"]:
-                sorted_items['prepared'].append(v)
-                if v['status'] == "georeferencing":
-                    sorted_items['processing']['prep'] += 1
-            if v['status'] in ["georeferenced", "trimming", "trimmed"]:
-                sorted_items['georeferenced'].append(v)
-                if v['status'] == "trimming":
-                    sorted_items['processing']['geo_trim'] += 1
-            if v['status'] == "nonmap":
-                sorted_items['nonmaps'].append(v)
+        for cat in ["unprepared", "prepared", "georeferenced", "nonmaps"]:
+            items[cat] = natsorted(items[cat], key=lambda k: k['title'])
+        self.item_lookup = items
+        self.save(update_fields=['item_lookup'])
 
-        sorted_items['layers'] = list(self.layer_lookup.values())
+    def get_session_summary(self):
 
-        sorted_items['unprepared'].sort(key=lambda item: item.get("slug"))
-        sorted_items['prepared'].sort(key=lambda item: item.get("slug"))
-        sorted_items['georeferenced'].sort(key=lambda item: item.get("slug"))
-        sorted_items['layers'].sort(key=lambda item: item.get("slug"))
-        sorted_items['nonmaps'].sort(key=lambda item: item.get("slug"))
+        from ohmg.georeference.models import SessionBase
+        sessions = SessionBase.objects.filter(
+            Q(doc2__map_id=self.pk)
+            | Q(reg2__document__map_id=self.pk)
+            # | Q(lyr2__region__document__map_id=self.pk)
+        ).prefetch_related()
 
-        return sorted_items
+        prep_sessions = sessions.filter(type="p")
+        georef_sessions = sessions.filter(type="g")
 
-    def get_user_activity_summary(self):
+        def _get_session_user_summary(session_list):
+            users = session_list.values_list("user__username", flat=True)
+            user_dict = {}
+            for name in users:
+                user_dict[name] = user_dict.get(name, {
+                    "ct": 0,
+                    "name": name,
+                })
+                user_dict[name]['ct'] += 1
+            return sorted(user_dict.values(), key=lambda item: item.get("ct"), reverse=True)
 
-        def _get_session_user_summary(session_dict):
-            users = [i['user']['name'] for i in session_dict.values()]
-            user_info = [{
-                "ct": users.count(i),
-                "name": i,
-                "profile": reverse('profile_detail', args=(i, ))
-            } for i in set(users)]
-            user_info.sort(key=lambda item: item.get("ct"), reverse=True)
-            return user_info
-
-        prep_sessions, georef_sessions = {}, {}
-        for item in list(self.document_lookup.values()) + list(self.layer_lookup.values()):
-            for sesh in item['session_data']:
-                if sesh['type'] == "Preparation":
-                    prep_sessions[sesh['id']] = sesh
-                elif sesh['type'] == "Georeference":
-                    georef_sessions[sesh['id']] = sesh
-
-        return {
-            'prep_ct': len(prep_sessions),
+        prep_ct = prep_sessions.count()
+        georef_ct = georef_sessions.count()
+        summary = {
+            'prep_ct': prep_ct,
             'prep_contributors': _get_session_user_summary(prep_sessions),
-            'georef_ct': len(georef_sessions),
+            'georef_ct': georef_ct,
             'georef_contributors': _get_session_user_summary(georef_sessions),
         }
-
-    def serialize(self, include_session_info=False):
-        """Serialize this Volume into a comprehensive JSON summary."""
-
-        # a quick, in-place check to see if any layer thumbnails are missing,
-        # and refresh that layer lookup if so.
-        for k, v in self.layer_lookup.items():
-            if "missing_thumb" in v["urls"]["thumbnail"]:
-                self.update_lyr_lookup(k)
-
-        # now sort all of the lookups (by status) into a single set of items
-        items = self.sort_lookups()
-
-        unprep_ct = len(items['unprepared'])
-        prep_ct = len(items['prepared'])
-        georef_ct = len(items['georeferenced'])
-        percent = 0
-        if georef_ct > 0:
-            percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
-
-        # generate extra links and info for the user that loaded the volume
-        loaded_by = {"name": "", "profile": "", "date": ""}
-        if self.loaded_by is not None:
-            loaded_by["name"] = self.loaded_by.username
-            loaded_by["profile"] = reverse("profile_detail", args=(self.loaded_by.username, ))
-            loaded_by["date"] = self.load_date.strftime("%Y-%m-%d")
-
-        data = {
-            "identifier": self.identifier,
-            "title": self.__str__(),
-            "year": self.year,
-            "volume_no": self.volume_no,
-            "status": self.status,
-            "sheet_ct": {
-                "total": self.sheet_ct,
-                "loaded": len([i for i in self.sheets if i.doc is not None]),
-            },
-            "progress": {
-                "unprep_ct": unprep_ct,
-                "prep_ct": prep_ct,
-                "georef_ct": georef_ct,
-                "percent": percent,
-            },
-            "items": items,
-            "loaded_by": loaded_by,
-            "urls": self.get_urls(),
-            "extent": self.extent.extent if self.extent else None,
-            "locale": self.get_locale(serialized=True),
-            "mosaic_preference": self.mosaic_preference,
-            "sponsor": self.sponsor.username if self.sponsor else None,
-            "access": self.access,
-        }
-
-        if include_session_info:
-            data['sessions'] = self.get_user_activity_summary()
-
-        return data
+        return summary
 
     def save(self, set_slug=False, *args, **kwargs):
 
@@ -566,6 +412,7 @@ class Document(models.Model):
     """Documents are the individual source files that are directly attached to Maps.
     They represent pages in an atlas or even just a single scan of a map."""
 
+    title = models.CharField(max_length=200, default="untitled document")
     slug = models.SlugField(max_length=100)
     map = models.ForeignKey(
         Map,
@@ -573,6 +420,7 @@ class Document(models.Model):
         related_name="documents"
     )
     page_number = models.CharField(max_length=10, null=True, blank=True)
+    prepared = models.BooleanField(default=False)
     file = models.FileField(
         upload_to='documents',
         null=True,
@@ -598,14 +446,11 @@ class Document(models.Model):
     load_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        title = self.map.__str__()
-        if self.page_number:
-            title += f" {self.map.DOCUMENT_PREFIX_ABBREVIATIONS[self.map.document_page_type]}{self.page_number}"
-        return title
+        return self.title
 
     @cached_property
     def image_size(self):
-        return get_image_size(Path(self.file.path))
+        return get_image_size(Path(self.file.path)) if self.file else None
 
     def create_from_file(self, file_path: Path, volume=None, sheet_no=None):
 
@@ -659,11 +504,19 @@ class Document(models.Model):
                 title += f" {self.map.DOCUMENT_PREFIX_ABBREVIATIONS[self.map.document_page_type]}{self.page_number}"
             self.slug = slugify(title, join_char="_")
 
+        if self.regions.all().count() > 0:
+            self.prepared = True
+
+        self.title = self.map.title
+        if self.page_number:
+            self.title += f" {self.map.DOCUMENT_PREFIX_ABBREVIATIONS[self.map.document_page_type]}{self.page_number}"
+
         return super(self.__class__, self).save(*args, **kwargs)
 
 
 class Region(models.Model):
 
+    title = models.CharField(max_length=200, default="untitled region")
     slug = models.SlugField(max_length=100)
     boundary = models.PolygonField(
         null=True,
@@ -676,6 +529,7 @@ class Region(models.Model):
     )
     division_number = models.IntegerField(null=True, blank=True)
     is_map = models.BooleanField(default=True)
+    georeferenced = models.BooleanField(default=False)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
@@ -707,14 +561,11 @@ class Region(models.Model):
     )
 
     def __str__(self):
-        display_name = self.document.__str__()
-        if self.division_number:
-            display_name += f" [{self.division_number}]"
-        return display_name
+        self.title
 
     @cached_property
     def image_size(self):
-        return get_image_size(Path(self.file.path))
+        return get_image_size(Path(self.file.path)) if self.file else None
 
     @property
     def _base_urls(self):
@@ -744,11 +595,19 @@ class Region(models.Model):
                 display_name += f" [{self.division_number}]"
             self.slug = slugify(display_name, join_char="_")
 
+        if hasattr(self, 'layer'):
+            self.georeferenced = True
+        
+        self.title = self.document.title
+        if self.division_number:
+            self.title += f" [{self.division_number}]"
+
         return super(self.__class__, self).save(*args, **kwargs)
 
 
 class Layer(models.Model):
 
+    title = models.CharField(max_length=200, default="untitled layer")
     slug = models.SlugField(max_length=100)
     region = models.OneToOneField(
         Region,
@@ -794,7 +653,7 @@ class Layer(models.Model):
     )
 
     def __str__(self):
-        return self.region.__str__()
+        return self.title
 
     @property
     def urls(self):
@@ -881,5 +740,7 @@ class Layer(models.Model):
 
         if set_extent or (self.file and not self.extent):
             self.set_extent()
+
+        self.title = self.region.title
 
         return super(self.__class__, self).save(*args, **kwargs)

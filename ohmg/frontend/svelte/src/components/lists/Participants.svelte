@@ -1,6 +1,7 @@
 <script>
 	import {TableSort} from 'svelte-tablesort';
 	import Link from '@components/base/Link.svelte';
+	import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
 
 	export let CONTEXT;
 
@@ -89,7 +90,7 @@
 		</tr>
 	</TableSort>
 	{#if all_participants.length === 0}
-	<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+	<LoadingEllipsis />
 	{/if}
 </div>
 <style>

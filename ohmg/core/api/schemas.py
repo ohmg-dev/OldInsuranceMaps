@@ -1,5 +1,10 @@
+import json
+import logging
 from datetime import datetime
 from typing import List, Optional, Any
+
+from django.conf import settings
+from django.db.models import Q
 from django.urls import reverse
 from ninja import (
     Field,
@@ -9,6 +14,9 @@ from ninja import (
 from avatar.templatetags.avatar_tags import avatar_url
 
 from ohmg.loc_insurancemaps.models import Volume
+from ohmg.georeference.models import SessionLock, SessionBase
+
+logger = logging.getLogger(__name__)
 
 
 class UserSchema(Schema):
@@ -47,38 +55,6 @@ class UserSchema(Schema):
 class UserSchemaLite(Schema):
     username: str
     profile_url: str
-
-
-class MapFullSchema(Schema):
-
-    identifier: str
-    title: str = Field(..., alias="__str__")
-    year: int = 0
-    loaded_by: Optional[UserSchemaLite]
-    status: str = ""
-    progress: dict
-    extent: Optional[Any]
-    multimask: Optional[Any]
-    mosaic_preference: str = ""
-
-    def resolve_extent(obj):
-        return obj.extent.extent if obj.extent else None
-
-    def resolve_progress(obj):
-        items = obj.sort_lookups()
-        unprep_ct = len(items['unprepared'])
-        prep_ct = len(items['prepared'])
-        georef_ct = len(items['georeferenced'])
-        percent = 0
-        if georef_ct > 0:
-            percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
-
-        return {
-            "unprep_ct": unprep_ct,
-            "prep_ct": prep_ct,
-            "georef_ct": georef_ct,
-            "percent": percent,
-        }
 
 
 class MapListSchema(Schema):
@@ -129,9 +105,21 @@ class DocumentSchema(Schema):
     id: int
     title: str
     slug: str
+    page_number: Optional[str]
     file: Optional[str]
     thumbnail: Optional[str]
     prepared: bool
+    urls: dict
+    image_size: Optional[list]
+
+    @staticmethod
+    def resolve_urls(obj):
+        return {
+            "resource": f"/resource/{obj.pk}",
+            "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
+            # "image": obj.file.url if obj.file else "",
+            "split": f"/split/{obj.pk}",
+        }
 
 
 class RegionSchema(Schema):
@@ -140,13 +128,24 @@ class RegionSchema(Schema):
     slug: str
     file: Optional[str]
     thumbnail: Optional[str]
-    boundary: dict
+    boundary: Optional[dict]
     georeferenced: bool
+    urls: dict
+    image_size: Optional[list]
+
+    @staticmethod
+    def resolve_urls(obj):
+        return {
+            "resource": f"/resource/{obj.pk}",
+            "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
+            # "image": obj.file.url if obj.file else "",
+            "georeference": f"/georeference/{obj.pk}",
+        }
 
     @staticmethod
     def resolve_boundary(obj):
         if obj.boundary:
-            return obj.boundary.as_geojson()
+            return json.loads(obj.boundary.geojson)
         else:
             return None
 
@@ -156,11 +155,22 @@ class LayerSchema(Schema):
     title: str
     slug: str
     detail_url: str
-    thumb_url: str = ''
+    thumb_url: Optional[str]
     geotiff_url: Optional[str]
     image_url: Optional[str]
     mask: Optional[dict]
     gcps_geojson: Optional[dict]
+    urls: dict
+    extent: Optional[list]
+
+    @staticmethod
+    def resolve_urls(obj):
+        return {
+            "resource": f"/resource/{obj.pk}",
+            "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
+            "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
+            "georeference": f"/georeference/{obj.region.pk}",
+        }
 
     @staticmethod
     def resolve_thumb_url(obj):
@@ -173,16 +183,15 @@ class LayerSchema(Schema):
 
     @staticmethod
     def resolve_mask(obj):
-        if obj.vrs and obj.vrs.multimask and obj.slug in obj.vrs.multimask:
-            return obj.vrs.multimask[obj.slug]
+        if obj.layerset and obj.layerset.multimask and obj.slug in obj.layerset.multimask:
+            return obj.layerset.multimask[obj.slug]
         else:
             return None
 
     @staticmethod
     def resolve_image_url(obj):
-        doc = obj.get_document()
-        if doc and doc.file:
-            return doc.file.url
+        if obj.region and obj.region.file:
+            return obj.region.file.url
         else:
             return None
 
@@ -195,11 +204,13 @@ class LayerSchema(Schema):
 
     @staticmethod
     def resolve_gcps_geojson(obj):
-        doc = obj.get_document()
-        if doc:
-            return doc.gcps_geojson
-        else:
+        if not obj.region:
+            logger.warn(f"[WARNING] Layer {obj.pk} has no associated region")
             return None
+        elif not obj.region.gcp_group:
+            logger.warn(f"[WARNING] Region {obj.region.pk} has no associated GCPGroup")
+            return None
+        return obj.region.gcp_group.as_geojson
 
 
 class SessionSchema(Schema):
@@ -208,9 +219,9 @@ class SessionSchema(Schema):
     type: str
     user: UserSchemaLite
     note: Optional[str]
-    doc2: DocumentSchema = None
-    reg2: DocumentSchema = None
-    lyr2: LayerSchema = None
+    doc2: Optional[DocumentSchema]
+    reg2: Optional[RegionSchema]
+    lyr2: Optional[LayerSchema]
     status: str
     stage: str
     data: dict
@@ -241,8 +252,7 @@ class SessionSchema(Schema):
         n = int(n)
         d['relative'] = f"{n} {u}{'' if n == 1 else 's'} ago"
         return d
-
-
+    
 
 class LayerAnnotationSchema(Schema):
 
@@ -298,11 +308,7 @@ class PlaceSchema(Schema):
 
     @staticmethod
     def resolve_maps(obj):
-        return [{
-            "identifier": i[0],
-            "year": i[1],
-            "volume_no":i[2]
-        } for i in obj.map_set.all().order_by('year', 'title', 'volume_number').values_list("identifier", "year", "volume_number")]
+        return obj.map_set.all().order_by('year', 'title', 'volume_number').values("identifier", "title", "year", "volume_number")
 
     @staticmethod
     def resolve_url(obj):
@@ -316,6 +322,7 @@ class PlaceFullSchema(Schema):
     maps: list
     url: str
     select_lists: dict
+    breadcrumbs: list
     parents: List[PlaceSchema]
     descendants: List[PlaceSchema]
     volume_count: int
@@ -323,15 +330,15 @@ class PlaceFullSchema(Schema):
 
     @staticmethod
     def resolve_maps(obj):
-        return [{
-            "identifier": i[0],
-            "year": i[1],
-            "volume_no":i[2]
-        } for i in obj.map_set.all().order_by('year', 'title', 'volume_number').values_list("identifier", "year", "volume_number")]
+        return obj.map_set.all().order_by('year', 'title', 'volume_number').values("identifier", "title", "year", "volume_number")
     
     @staticmethod
     def resolve_select_lists(obj):
         return obj.get_select_lists()
+
+    @staticmethod
+    def resolve_breadcrumbs(obj):
+        return obj.get_breadcrumbs()
 
     @staticmethod
     def resolve_url(obj):
@@ -344,3 +351,71 @@ class PlaceFullSchema(Schema):
     @staticmethod
     def resolve_descendants(obj):
         return obj.get_descendants()
+
+class MapFullSchema(Schema):
+
+    identifier: str
+    title: str
+    year: int = 0
+    loaded_by: Optional[UserSchemaLite]
+    status: str = ""
+    access: str
+    document_sources: list
+    documents: List[DocumentSchema]
+    # regions: List[RegionSchema]
+    item_lookup: dict
+    volume_number: Optional[str]
+    document_page_type: str
+    urls: dict
+    progress: dict
+    extent: Optional[Any]
+    locale: Optional[PlaceSchema]
+    loaded_by: dict
+    # multimask: Optional[Any]
+    # mosaic_preference: str = ""
+
+    @staticmethod
+    def resolve_extent(obj):
+        return obj.extent
+    
+    @staticmethod
+    def resolve_urls(obj):
+        viewer_url = ""
+        if obj.get_locale():
+            viewer_url = f"/viewer/{obj.get_locale().slug}?{obj.identifier}=100"
+
+        return {
+            "summary": f"/map/{obj.identifier}",
+            "viewer": viewer_url,
+        }
+
+    @staticmethod
+    def resolve_progress(obj):
+        unprep_ct = len(obj.item_lookup['unprepared'])
+        prep_ct = len(obj.item_lookup['prepared'])
+        georef_ct = len(obj.item_lookup['georeferenced'])
+        percent = 0
+        if georef_ct > 0:
+            percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
+
+        return {
+            "total_pages": len(obj.document_sources),
+            "loaded_pages": obj.documents.exclude(file__in=["", None]).count(),
+            "unprep_ct": unprep_ct,
+            "prep_ct": prep_ct,
+            "georef_ct": georef_ct,
+            "percent": percent,
+        }
+    
+    @staticmethod
+    def resolve_locale(obj):
+        return obj.get_locale()
+    
+    @staticmethod
+    def resolve_loaded_by(obj):
+        loaded_by = {"name": "", "profile": "", "date": ""}
+        if obj.loaded_by is not None:
+            loaded_by["name"] = obj.loaded_by.username
+            loaded_by["profile"] = reverse("profile_detail", args=(obj.loaded_by.username, ))
+            loaded_by["date"] = obj.load_date.strftime("%Y-%m-%d")
+        return loaded_by

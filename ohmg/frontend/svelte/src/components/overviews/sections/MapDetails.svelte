@@ -3,8 +3,11 @@
     import Link from '@components/base/Link.svelte';
     import {getModal} from '@components/base/Modal.svelte';
     import DownloadSectionModal from "../modals/ItemDownloadSectionModal.svelte";
+    import SessionList from "../../lists/SessionList.svelte";
 
-    export let VOLUME;
+    export let CONTEXT;
+    export let MAP;
+    export let SESSION_SUMMARY;
     export let ANNOTATION_SETS = [];
 
 </script>
@@ -12,32 +15,32 @@
 <DownloadSectionModal id={"download-section-modal"} />
 <section>
     <h3 style="margin-top:5px;">Map Details</h3>
-    <Link href="https://loc.gov/item/{VOLUME.identifier}" external={true}>View item in LOC collection</Link>
+    <Link href="https://loc.gov/item/{MAP.identifier}" external={true}>View item in LOC collection</Link>
     <table>
         <tr>
             <td>Title</td>
-            <td>Sanborn Map of {VOLUME.title}</td>
+            <td>Sanborn Map of {MAP.title}</td>
         </tr>
         <tr>
             <td>Year</td>
-            <td>{VOLUME.year}</td>
+            <td>{MAP.year}</td>
         </tr>
         <tr>
             <td>Locale</td>
-            <td><Link href="/{VOLUME.locale.slug}">{VOLUME.locale.display_name}</Link></td>
+            <td><Link href="/{MAP.locale.slug}">{MAP.locale.display_name}</Link></td>
         </tr>
     </table>
     <h3>Contributors & Attribution</h3>
     <div class="non-table-section">
         <p>
-        {#if VOLUME.sheet_ct.loaded == VOLUME.sheet_ct.total}
-        {VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded by <Link href={VOLUME.loaded_by.profile}>{VOLUME.loaded_by.name}</Link> - {VOLUME.loaded_by.date}<br>
+        {#if MAP.progress.loaded_pages == MAP.progress.total_pages}
+        {MAP.progress.loaded_pages} of {MAP.progress.total_pages} sheet{#if MAP.progress.total_pages != 1}s{/if} loaded by <Link href={MAP.loaded_by.profile}>{MAP.loaded_by.name}</Link> - {MAP.loaded_by.date}<br>
         {/if}
-        {VOLUME.sessions.prep_ct} sheet{#if VOLUME.sessions.prep_ct != 1}s{/if} prepared{#if VOLUME.sessions.prep_ct > 0}&nbsp;by 
-        {#each VOLUME.sessions.prep_contributors as c, n}<Link href="{c.profile}">{c.name}</Link> ({c.ct}){#if n != VOLUME.sessions.prep_contributors.length-1}, {/if}{/each}{/if}
+        {SESSION_SUMMARY.prep_ct} sheet{#if SESSION_SUMMARY.prep_ct != 1}s{/if} prepared{#if SESSION_SUMMARY.prep_ct > 0}&nbsp;by 
+        {#each SESSION_SUMMARY.prep_contributors as c, n}<Link href="/profile/{c.name}">{c.name}</Link> ({c.ct}){#if n != SESSION_SUMMARY.prep_contributors.length-1}, {/if}{/each}{/if}
         <br>
-        {VOLUME.sessions.georef_ct} georeferencing session{#if VOLUME.sessions.georef_ct != 1}s{/if}{#if VOLUME.sessions.georef_ct > 0}&nbsp;by 
-        {#each VOLUME.sessions.georef_contributors as c, n}<Link href="{c.profile}">{c.name}</Link> ({c.ct}){#if n != VOLUME.sessions.georef_contributors.length-1}, {/if}{/each}{/if}
+        {SESSION_SUMMARY.georef_ct} georeferencing session{#if SESSION_SUMMARY.georef_ct != 1}s{/if}{#if SESSION_SUMMARY.georef_ct > 0}&nbsp;by 
+        {#each SESSION_SUMMARY.georef_contributors as c, n}<Link href="/profile/{c.name}">{c.name}</Link> ({c.ct}){#if n != SESSION_SUMMARY.georef_contributors.length-1}, {/if}{/each}{/if}
         <br>
         <strong>Credit Line: Library of Congress, Geography and Map Division, Sanborn Maps Collection.</strong>
             </p>
@@ -89,6 +92,10 @@
         {/if}
     {/if}
     {/each}
+    <h3>Work History</h3>
+    <div>
+        <SessionList {CONTEXT} FILTER_PARAM={`map=${MAP.identifier}`} showResource={false} paginate={true} limit={"100"}/>
+    </div>
 </section>
 
 <style>

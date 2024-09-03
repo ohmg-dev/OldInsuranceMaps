@@ -50,6 +50,7 @@ def generate_ohmg_context(request):
         "get_places_geojson": reverse("api-beta:places_geojson"),
         "get_maps": reverse("api-beta:map_list"),
         "get_sessions": reverse("api-beta:session_list"),
+        "get_sessions2": reverse("api-beta2:session_list"),
         "get_users": reverse("api-beta:user_list"),
         "get_place": reverse("api-beta2:place"),
         "get_places": reverse("api-beta2:place_list"),

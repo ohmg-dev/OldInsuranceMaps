@@ -13,7 +13,14 @@ from ohmg.georeference.models import (
     LayerSetCategory,
 )
 from ohmg.core.context_processors import generate_ohmg_context
+from ohmg.core.models import (
+    Map,
+)
 from ohmg.core.schemas import LayerSetSchema
+from ohmg.core.api.schemas import (
+    MapFullSchema,
+    PlaceFullSchema,
+)
 from ohmg.loc_insurancemaps.models import Volume, find_volume
 from ohmg.loc_insurancemaps.tasks import load_docs_as_task, load_map_documents_as_task
 
@@ -47,20 +54,27 @@ class MapSummary(View):
 
     def get(self, request, identifier):
 
-        volume = get_object_or_404(Volume, pk=identifier)
-        volume_json = volume.serialize(include_session_info=True)
+        map = get_object_or_404(Map.objects.prefetch_related(), pk=identifier)
+        map_json = MapFullSchema.from_orm(map).dict()
 
-        annotation_sets = [LayerSetSchema.from_orm(i).dict() for i in volume.get_annotation_sets(geospatial=True)]
+        session_summary = map.get_session_summary()
+
+        locale_json = PlaceFullSchema.from_orm(map.get_locale()).dict()
+
+        annotation_sets = [LayerSetSchema.from_orm(i).dict() for i in map.layerset_set.all()]
         annotation_set_options = list(LayerSetCategory.objects.filter(is_geospatial=True).values("slug", "display_name"))
 
         context_dict = {
             "svelte_params": {
                 "CONTEXT": generate_ohmg_context(request),
-                "VOLUME": volume_json,
+                "MAP": map_json,
+                "LOCALE": locale_json,
+                "SESSION_SUMMARY": session_summary,
                 "ANNOTATION_SETS": annotation_sets,
                 "ANNOTATION_SET_OPTIONS": annotation_set_options,
             }
         }
+
         return render(
             request,
             "content/map.html",
@@ -78,29 +92,28 @@ class MapSummary(View):
                 volume.loaded_by = request.user
                 volume.load_date = datetime.now()
                 volume.save(update_fields=["loaded_by", "load_date"])
-            map = Volume.objects.get(pk=identifier)
+            map = Map.objects.get(pk=identifier)
             if map.loaded_by is None:
                 map.loaded_by = request.user
                 map.load_date = datetime.now()
                 map.save(update_fields=["loaded_by", "load_date"])
-            load_docs_as_task.apply_async((identifier,),
-                link=load_map_documents_as_task.s()
+            load_map_documents_as_task.apply_async((identifier,),
+                link=load_docs_as_task.s()
             )
-            volume_json = volume.serialize(include_session_info=True)
-            volume_json["status"] = "initializing..."
-
-            return JsonResponse(volume_json)
+            map_json = MapFullSchema.from_orm(map).dict()
+            map_json["status"] = "initializing..."
+            return JsonResponse(map_json)
 
         elif operation == "refresh":
-            volume = Volume.objects.get(pk=identifier)
-            volume_json = volume.serialize(include_session_info=True)
-            return JsonResponse(volume_json)
+            map = get_object_or_404(Map.objects.prefetch_related(), pk=identifier)
+            map_json = MapFullSchema.from_orm(map).dict()
+            return JsonResponse(map_json)
 
         elif operation == "refresh-lookups":
-            volume = Volume.objects.get(pk=identifier)
-            volume.refresh_lookups()
-            volume_json = volume.serialize(include_session_info=True)
-            return JsonResponse(volume_json)
+            map = get_object_or_404(Map.objects.prefetch_related(), pk=identifier)
+            map.update_item_lookup()
+            map_json = MapFullSchema.from_orm(map).dict()
+            return JsonResponse(map_json)
 
 
 class VirtualResourceView(View):

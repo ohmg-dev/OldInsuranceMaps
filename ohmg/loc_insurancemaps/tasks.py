@@ -12,3 +12,4 @@ def load_docs_as_task(volume_id):
 def load_map_documents_as_task(map_id):
     map = Map.objects.get(pk=map_id)
     map.create_documents(get_files=True)
+    return map_id

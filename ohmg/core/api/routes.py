@@ -1,11 +1,11 @@
 import logging
-from typing import List, Optional
+from typing import List
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
-from ninja import NinjaAPI, Query, FilterSchema
+from ninja import NinjaAPI, Query
 from ninja.pagination import paginate
 from ninja.security import APIKeyHeader
 
@@ -33,11 +33,11 @@ from .filters  import (
 from .schemas import (
     UserSchema,
     MapListSchema,
-    SessionSchema,
     LayerSetSchema,
     PlaceSchema,
     LayerSchema,
 
+    SessionSchema,
     DocumentSchema,
     RegionSchema,
     PlaceFullSchema,
@@ -85,6 +85,9 @@ def session_details(request, id: int):
 def list_users(request):
     queryset = User.objects.all().exclude(username="AnonymousUser").order_by("username")
     return list(queryset)
+
+# @beta2.get('map/session-summary', response=SessionSummarySchema, url_name="map_session_summary"):
+
 
 @beta2.get('maps/', response=List[MapListSchema], url_name="map_list")
 def list_maps(request,

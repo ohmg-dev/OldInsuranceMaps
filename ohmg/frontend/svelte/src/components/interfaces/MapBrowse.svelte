@@ -108,7 +108,7 @@ onMount(async function() {
 				})
 				const volListStr = volList.join(" • ")
 				const popupContent = `
-					<h4 style="margin-bottom:0px;">${props.place.name}</h4>
+					<h4 style="margin-bottom:0px;">${props.place.display_name}</h4>
 					<p><a title="Go to viewer" href="${props.place.url}">Go to viewer &rarr;</a></p>
 					<div style="margin-bottom:15px;">
 						<div style="border-bottom:1px dashed #000; height:12px; margin-bottom:10px;">
