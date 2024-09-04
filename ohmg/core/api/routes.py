@@ -1,7 +1,10 @@
+from datetime import datetime
 import logging
 from typing import List
 
 from django.conf import settings
+from django.contrib.gis.geos import Polygon, MultiPolygon
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
@@ -31,12 +34,12 @@ from .filters  import (
     FilterRegionSchema,
 )
 from .schemas import (
-    UserSchema,
-    MapListSchema,
     LayerSetSchema,
     PlaceSchema,
     LayerSchema,
 
+    UserSchema,
+    MapListSchema,
     SessionSchema,
     DocumentSchema,
     RegionSchema,
@@ -101,9 +104,9 @@ def list_maps(request,
     ):
     # overall, not really optimized. should refactor at some point...
     if sort == "load_date":
-        maps = Volume.objects.all().order_by('-load_date')
+        maps = Map.objects.all().order_by('-load_date')
     else:
-        maps = Volume.objects.all().order_by('city', 'year')
+        maps = Map.objects.all().order_by('title')
     
     if locale:
         place = Place.objects.get(slug=locale)
@@ -150,52 +153,41 @@ def list_places(request):
 
 @beta2.get('places/geojson/', url_name="places_geojson")
 def get_places_geojson(request):
-    """ Still pretty hacky, but pulling this map content creation into
-    a single, accessible location. """
+    """ Generate geojson for all places with their maps. """
 
+    place_dict = {}
+    for ls in LayerSet.objects.filter(category__slug="main-content").prefetch_related().annotate(
+            locale=F('map__locales'),
+            locale_name=F('map__locales__display_name'),
+            locale_slug=F('map__locales__slug'),
+            map_year=F('map__year'),
+            map_volume_number=F('map__volume_number'),
+        ):
+        if ls.locale and ls.extent:
+            place_entry = place_dict.get(ls.locale_slug, {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": Polygon().from_bbox(ls.extent).centroid.coords,
+                },
+                "properties": {
+                    "volumes": [],
+                    "place": {
+                        "url": f"/viewer/{ls.locale_slug}",
+                        "display_name": ls.locale_name,
+                    },
+                }
+            })
+            year_vol = f"{ls.map_year} vol. {ls.map_volume_number}" if ls.map_volume_number else ls.map_year
+            place_entry["properties"]["volumes"].append({
+                "year": year_vol,
+                "url": f"/map/{ls.map_id}",
+            })
+            place_dict[ls.locale_slug] = place_entry
     geojson = {
         "type": "FeatureCollection",
-        "features": [],
+        "features": list(place_dict.values()),
     }
-
-    places = Place.objects.all().exclude(volume_count=0).order_by('name')
-    for place in places:
-
-        feature = {
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": None,
-            },
-            "properties": {
-                "volumes": [],
-                "place": {},
-            }
-        }
-
-        ## get the centroid for the first volume that has one, then break
-        for volume in Volume.objects.filter(locales__id__exact=place.id) \
-                .order_by("year") \
-                .values("year", "volume_no", "identifier", "extent", "layer_lookup"):
-            if len(volume['layer_lookup'].values()) > 0:
-                year_vol = str(volume['year'])
-                if volume['volume_no'] is not None:
-                    year_vol = f"{year_vol} vol. {volume['volume_no']}"
-
-                feature['geometry']['coordinates'] = volume['extent'].centroid.coords
-
-                feature['properties']['volumes'].append({
-                    # 'title': str(volume),
-                    'year': year_vol,
-                    'url': reverse("map_summary", args=(volume['identifier'],)),
-                })
-                feature['properties']['place'] = {
-                    "name": str(place),
-                    "url": reverse("viewer", args=(place.slug,)),
-                }
-
-                geojson['features'].append(feature)
-
     return geojson
 
 

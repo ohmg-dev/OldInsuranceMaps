@@ -39,6 +39,8 @@ export let SESSION_SUMMARY;
 export let ANNOTATION_SETS;
 export let ANNOTATION_SET_OPTIONS;
 
+console.log(MAP)
+
 let multimaskKey = false;
 function reinitMultimask() {
 	multimaskKey = !multimaskKey

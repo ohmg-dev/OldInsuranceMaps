@@ -29,7 +29,7 @@ $: limitInt = parseInt(limit)
 
 $: {
 	loading = true;
-	let fetchUrl = `${CONTEXT.urls.get_sessions2}?offset=${offset}`
+	let fetchUrl = `${CONTEXT.urls.get_sessions}?offset=${offset}`
 	if (limitInt > 0) {
 		fetchUrl = `${fetchUrl}&limit=${limitInt}`
 	}
@@ -124,14 +124,14 @@ $: {
 				{#if showResource}
 				<td>
 					{#if s.type === "p"}
-					{#if showThumbs}<img style="max-height:50px;" src={s.doc2.thumb_url} alt="{s.doc2.title}"/>{/if}
-					<Link href="{s.doc2.detail_url}" title="{s.doc2.title}">
+					{#if showThumbs}<img style="max-height:50px;" src={s.doc2.urls.thumbnail} alt="{s.doc2.title}"/>{/if}
+					<Link href="{s.doc2.urls.resource}" title="{s.doc2.title}">
 						{s.doc2.title}
 					</Link>
 					{:else if s.type === "g" || s.type === "t"}
 						{#if s.lyr2}
-						{#if showThumbs}<img style="max-height:50px;" src={s.lyr2.thumb_url} alt="{s.reg2.title}"/>{/if}
-						<Link href="{s.lyr2.detail_url}" title="{s.lyr2.title}">
+						{#if showThumbs}<img style="max-height:50px;" src={s.lyr2.urls.thumbnail} alt="{s.reg2.title}"/>{/if}
+						<Link href="{s.lyr2.urls.resource}" title="{s.lyr2.title}">
 							{s.lyr2.title}
 						</Link>
 						{/if}

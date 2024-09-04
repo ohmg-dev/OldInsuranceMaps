@@ -59,20 +59,16 @@ class UserSchemaLite(Schema):
 
 class MapListSchema(Schema):
     identifier: str
-    title: str = Field(..., alias="__str__")
-    city: Optional[str]
-    county_equivalent: Optional[str]
-    state: Optional[str]
+    title: str
     year_vol: str
     sheet_ct: int
     stats: dict
     loaded_by: Optional[UserSchemaLite]
     load_date: str
-    volume_no: Optional[str]
-    urls: dict
+    volume_number: Optional[str]
     mj_exists: bool
     gt_exists: bool
-    mosaic_preference: str
+    urls: dict
 
     @staticmethod
     def resolve_load_date(obj):
@@ -84,21 +80,19 @@ class MapListSchema(Schema):
     @staticmethod
     def resolve_year_vol(obj):
         year_vol = obj.year
-        if obj.volume_no is not None:
-            year_vol = f"{obj.year} vol. {obj.volume_no}"
+        if obj.volume_number is not None:
+            year_vol = f"{obj.year} vol. {obj.volume_number}"
         return str(year_vol)
+    
+    @staticmethod
+    def resolve_sheet_ct(obj):
+        return len(obj.document_sources)
 
     @staticmethod
     def resolve_urls(obj):
         return {
-            "summary": reverse('map_summary', args=(obj.identifier, )),
-            "viewer": reverse('map_summary', args=(obj.identifier, )),
+            "summary": f"/map/{obj.identifier}",
         }
-
-
-    @staticmethod
-    def resolve_detail_url(obj):
-        return reverse("resource_detail", args=(obj.pk, ))
 
 
 class DocumentSchema(Schema):
@@ -117,7 +111,7 @@ class DocumentSchema(Schema):
         return {
             "resource": f"/resource/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
-            # "image": obj.file.url if obj.file else "",
+            "image": obj.file.url if obj.file else "",
             "split": f"/split/{obj.pk}",
         }
 
@@ -138,7 +132,7 @@ class RegionSchema(Schema):
         return {
             "resource": f"/resource/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
-            # "image": obj.file.url if obj.file else "",
+            "image": obj.file.url if obj.file else "",
             "georeference": f"/georeference/{obj.pk}",
         }
 
@@ -154,9 +148,6 @@ class LayerSchema(Schema):
     id: int
     title: str
     slug: str
-    detail_url: str
-    thumb_url: Optional[str]
-    geotiff_url: Optional[str]
     image_url: Optional[str]
     mask: Optional[dict]
     gcps_geojson: Optional[dict]
@@ -173,15 +164,6 @@ class LayerSchema(Schema):
         }
 
     @staticmethod
-    def resolve_thumb_url(obj):
-        if obj.thumbnail:
-            return obj.thumbnail.url
-
-    @staticmethod
-    def resolve_detail_url(obj):
-        return reverse("resource_detail", args=(obj.pk, ))
-
-    @staticmethod
     def resolve_mask(obj):
         if obj.layerset and obj.layerset.multimask and obj.slug in obj.layerset.multimask:
             return obj.layerset.multimask[obj.slug]
@@ -196,19 +178,12 @@ class LayerSchema(Schema):
             return None
 
     @staticmethod
-    def resolve_geotiff_url(obj):
-        if obj.file:
-            return obj.file.url
-        else:
-            return None
-
-    @staticmethod
     def resolve_gcps_geojson(obj):
         if not obj.region:
             logger.warn(f"[WARNING] Layer {obj.pk} has no associated region")
             return None
         elif not obj.region.gcp_group:
-            logger.warn(f"[WARNING] Region {obj.region.pk} has no associated GCPGroup")
+            logger.warn(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
             return None
         return obj.region.gcp_group.as_geojson
 
@@ -362,7 +337,6 @@ class MapFullSchema(Schema):
     access: str
     document_sources: list
     documents: List[DocumentSchema]
-    # regions: List[RegionSchema]
     item_lookup: dict
     volume_number: Optional[str]
     document_page_type: str
@@ -371,8 +345,6 @@ class MapFullSchema(Schema):
     extent: Optional[Any]
     locale: Optional[PlaceSchema]
     loaded_by: dict
-    # multimask: Optional[Any]
-    # mosaic_preference: str = ""
 
     @staticmethod
     def resolve_extent(obj):

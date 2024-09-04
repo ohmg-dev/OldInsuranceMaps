@@ -237,10 +237,9 @@ class Map(models.Model):
 
     @property
     def stats(self):
-        items = self.sort_lookups()
-        unprep_ct = len(items['unprepared'])
-        prep_ct = len(items['prepared'])
-        georef_ct = len(items['georeferenced'])
+        unprep_ct = len(self.item_lookup['unprepared'])
+        prep_ct = len(self.item_lookup['prepared'])
+        georef_ct = len(self.item_lookup['georeferenced'])
         percent = 0
         if georef_ct > 0:
             percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
@@ -743,7 +742,7 @@ class Layer(models.Model):
             self.set_thumbnail()
 
         if set_extent or (self.file and not self.extent):
-            self.set_extent()
+            self.extent = get_extent_from_file(Path(self.file.path))
 
         self.title = self.region.title
 
