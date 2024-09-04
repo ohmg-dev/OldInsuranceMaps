@@ -198,6 +198,56 @@ export function makeLayerGroupFromAnnotationSet (options) {
 	return lyrGroup
 }
 
+export function makeLayerGroupFromLayerSet (options) {
+	// options must be an object with the following properties:
+	// {
+	//	annotationSet: serialized item (this includes layers, extent, etc.)
+	//	titilerHost: full address to titiler instance, e.g. https://titiler.oldinsurancemaps.net
+	//	zIndex: optional zIndex to apply to the returned LayerGroup
+	//	excludeLayerId: the id of a single layer that should be omitted from the LayerGroup
+	//  applyMultiMask: if a MultiMask is present in the Annotation Set, apply it
+	// }
+
+	const lyrGroup = new LayerGroup();
+	options.annotationSet.layers.forEach( function(layer) {
+		if (layer.slug != options.excludeLayerId && layer.extent) {
+
+			const lyrExtent = transformExtent(layer.extent, "EPSG:4326", "EPSG:3857")
+
+			// create the actual ol layers and add to group.
+			let newLayer = new TileLayer({
+				source: new XYZ({
+				url: makeTitilerXYZUrl({
+						host: options.titilerHost,
+						url: layer.urls.cog,
+					}),
+				}),
+				extent: lyrExtent
+			});
+
+			lyrGroup.getLayers().push(newLayer)
+
+			if (options.applyMultiMask && options.annotationSet.multimask_geojson) {
+				options.annotationSet.multimask_geojson.features.forEach( function(f) {
+					if (f.properties.layer == layer.slug) {
+						const feature = new GeoJSON().readFeature(f.geometry)
+						feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
+						const crop = new Crop({
+							feature: feature,
+							wrapX: true,
+							inner: false
+						});
+						newLayer.addFilter(crop);
+					}
+				});
+			}
+		}
+	});
+
+	options.zIndex && lyrGroup.setZIndex(options.zIndex)
+	return lyrGroup
+}
+
 export function generateFullMaskLayer (map) {
 	let projExtent = map.getView().getProjection().getExtent()
 	const polygon = new Polygon([[

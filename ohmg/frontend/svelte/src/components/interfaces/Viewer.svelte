@@ -43,6 +43,7 @@ import {MouseWheelZoom, defaults} from 'ol/interaction';
 import {
 	makeTitilerXYZUrl,
 	makeLayerGroupFromAnnotationSet,
+	makeLayerGroupFromLayerSet,
 	makeBasemaps
 } from '@lib/utils';
 import Modal, {getModal} from '@components/base/Modal.svelte'
@@ -51,7 +52,7 @@ import MapboxLogoLink from "./buttons/MapboxLogoLink.svelte"
 
 export let CONTEXT;
 export let PLACE;
-export let VOLUMES;
+export let MAPS;
 
 let showPanel = true;
 
@@ -63,7 +64,7 @@ const tileGrid = createXYZ({
 });
 
 let homeExtent;
-if (VOLUMES.length > 0) {
+if (MAPS.length > 0) {
 	homeExtent = createEmpty();
 } else {
 	homeExtent = transformExtent([-100, 30, -80, 50], "EPSG:4326", "EPSG:3857")
@@ -92,7 +93,7 @@ let urlParams = paramsFromUrl(originalUrl);
 let baseUrl = baseFromUrl(originalUrl);
 
 let needToShowOneLayer = true;
-VOLUMES.forEach( function (vol, n) {
+MAPS.forEach( function (vol, n) {
 
 	// zIndex guide (not all categories are implemented):
 	// 0 = basemaps
@@ -103,24 +104,24 @@ VOLUMES.forEach( function (vol, n) {
 
 	let mainGroup;
 	let mosaicType;
-	if (vol.main_annotation_set.annotations.length > 0) {
-		const mainExtent = transformExtent(vol.main_annotation_set.extent, "EPSG:4326", "EPSG:3857")
+	if (vol.main_layerset.layers.length > 0 && vol.main_layerset.extent) {
+		const mainExtent = transformExtent(vol.main_layerset.extent, "EPSG:4326", "EPSG:3857")
 		extend(homeExtent, mainExtent)
-		if (vol.main_annotation_set.mosaic_cog_url) {
+		if (vol.main_layerset.mosaic_cog_url) {
 			mainGroup = new TileLayer({
 				source: new XYZ({
 					transition: 0,
 					url: makeTitilerXYZUrl({
 						host: CONTEXT.titiler_host,
-						url: vol.main_annotation_set.mosaic_cog_url,
+						url: vol.main_layerset.mosaic_cog_url,
 					}),
 				}),
-				extent: transformExtent(vol.main_annotation_set.multimask_extent, "EPSG:4326", "EPSG:3857")
+				extent: transformExtent(vol.main_layerset.multimask_extent, "EPSG:4326", "EPSG:3857")
 			});
 			mosaicType = "gt";
 		} else {
-			mainGroup = makeLayerGroupFromAnnotationSet({
-				annotationSet: vol.main_annotation_set,
+			mainGroup = makeLayerGroupFromLayerSet({
+				annotationSet: vol.main_layerset,
 				zIndex: 400+n,
 				titilerHost: CONTEXT.titiler_host,
 				applyMultiMask: true,
@@ -142,7 +143,7 @@ VOLUMES.forEach( function (vol, n) {
 	const volumeObj = {
 		id: vol.identifier,
 		summaryUrl: vol.urls.summary,
-		displayName: vol.volume_no ? `${vol.year} vol. ${vol.volume_no}` : vol.year,
+		displayName: vol.volume_number ? `${vol.year} vol. ${vol.volume_number}` : vol.year,
 		progress: vol.progress,
 		mainLayer: mainGroup,
 		mainLayerO: opacity,
@@ -352,7 +353,7 @@ function MapViewer (elementId) {
 	if (homeExtent) {
 		// only if there are layers to show...
 		// temporarily constrain to zoom 14 so the fit won't zoom too far out.
-		if (VOLUMES.length > 0) {
+		if (MAPS.length > 0) {
 			map.getView().setMinZoom(14)
 		}
 		map.getView().fit(homeExtent)

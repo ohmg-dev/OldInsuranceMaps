@@ -3,6 +3,6 @@
 
 	export let CONTEXT
 	export let PLACE;
-	export let VOLUMES;
+	export let MAPS;
 </script>
-<Viewer {CONTEXT} {PLACE} {VOLUMES} />
+<Viewer {CONTEXT} {PLACE} {MAPS} />

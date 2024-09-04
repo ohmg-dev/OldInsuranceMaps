@@ -247,13 +247,31 @@ class LayerAnnotationSchema(Schema):
         return obj.title.split("|")[-1].split("p")[1]
 
 
+class LayerSetLayer(Schema):
+
+    id: int
+    title: str
+    slug: str
+    urls: dict
+    extent: Optional[list]
+
+    @staticmethod
+    def resolve_urls(obj):
+        return {
+            "resource": f"/resource/{obj.pk}",
+            "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
+            "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
+            "georeference": f"/georeference/{obj.region.pk}",
+        }
+
+
 class LayerSetSchema(Schema):
 
     id: str
     name: str
     volume_id: str
     is_geospatial: bool
-    annotations: List[LayerAnnotationSchema]
+    layers: List[LayerSetLayer]
     multimask_geojson: Optional[dict]
     extent: Optional[tuple]
     multimask_extent: Optional[tuple]
