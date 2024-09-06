@@ -42,7 +42,6 @@ import {MouseWheelZoom, defaults} from 'ol/interaction';
 
 import {
 	makeTitilerXYZUrl,
-	makeLayerGroupFromAnnotationSet,
 	makeLayerGroupFromLayerSet,
 	makeBasemaps
 } from '@lib/utils';

@@ -43,7 +43,7 @@ import Snap from 'ol/interaction/Snap';
 import Styles from '@lib/ol-styles';
 const styles = new Styles();
 import {
-  makeLayerGroupFromAnnotationSet,
+  makeLayerGroupFromLayerSet,
   makeTitilerXYZUrl,
   makeBasemaps,
   generateFullMaskLayer,
@@ -205,7 +205,7 @@ mapGCPSource.on(['addfeature'], function (e) {
 
 let kmLayerGroup;
 if (ANNOSET_KEYMAP) {
-  kmLayerGroup = makeLayerGroupFromAnnotationSet({
+  kmLayerGroup = makeLayerGroupFromLayerSet({
     annotationSet: ANNOSET_KEYMAP,
     zIndex: 10,
     titilerHost: CONTEXT.titiler_host,
@@ -213,7 +213,7 @@ if (ANNOSET_KEYMAP) {
   })
 }
 
-const mainLayerGroup = makeLayerGroupFromAnnotationSet({
+const mainLayerGroup = makeLayerGroupFromLayerSet({
   annotationSet: ANNOSET_MAIN,
   zIndex: 11,
   titilerHost: CONTEXT.titiler_host,

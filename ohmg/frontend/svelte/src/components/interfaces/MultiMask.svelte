@@ -91,7 +91,7 @@ function addIncomingMasks() {
   function createLayerLookup() {
     layerLookup = {};
     trimShapeSource.clear()
-    ANNOTATION_SET.annotations.forEach( function(layerDef) {
+    ANNOTATION_SET.layers.forEach( function(layerDef) {
       let newLayer = new TileLayer({
         source: new XYZ({
           url: makeTitilerXYZUrl({
@@ -402,7 +402,7 @@ function layerRemoveMask(layer, confirm) {
               </ToolUIButton>
               &nbsp;
               <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
-                <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.page_str}</span>
+                <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.local_title}</span>
               </button>
             </div>
           {:else}
@@ -420,7 +420,7 @@ function layerRemoveMask(layer, confirm) {
               </ToolUIButton>
               &nbsp;
               <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
-                <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.page_str}</span>
+                <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.local_title}</span>
               </button>
             </div>
           {:else}

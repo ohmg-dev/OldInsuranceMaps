@@ -25,16 +25,21 @@ from ohmg.georeference.models import (
     GCPGroup,
     PrepSession,
     GeorefSession,
-    ItemBase,
+    LayerSet,
 )
 from ohmg.core.schemas import LayerSetSchema
-from ohmg.core.models import Region, Document as Document2, Layer
+from ohmg.core.models import (
+    Region,
+    Document as Document2,
+    Layer,
+    Map,
+)
 from ohmg.georeference.operations.sessions import run_preparation
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.georeference.tasks import delete_preview_vrt
 
-from ohmg.loc_insurancemaps.models import find_volume, Volume
+from ohmg.loc_insurancemaps.models import find_volume
 
 logger = logging.getLogger(__name__)
 
@@ -424,16 +429,14 @@ class LayerSetView(View):
 
         if operation == "update":
             for resource_id, category in update_list:
-                v = get_object_or_404(Volume, pk=volume_id)
-                r = get_object_or_404(ItemBase, pk=resource_id)
-                layer = Layer.objects.get(slug=r.slug)
+                map = get_object_or_404(Map, pk=volume_id)
+                layer = get_object_or_404(Layer, pk=resource_id)
 
                 try:
-                    annoset = v.get_annotation_set(category, create=True)
-                    r.update_annotationset(annoset)
-                    layer.set_layerset(annoset)
+                    layerset = map.get_layerset(category, create=True)
+                    layer.set_layerset(layerset)
                     response['status'] = "success"
-                    response['message'] = f"{resource_id} added to {category} annotation set"
+                    response['message'] = f"{resource_id} added to {category} layerset"
 
                 except Exception as e:
                     logger.error(e)
@@ -442,13 +445,13 @@ class LayerSetView(View):
 
         if operation == "check-for-existing-mask":
 
-            r = get_object_or_404(ItemBase, pk=resource_id)
+            r = get_object_or_404(Layer, pk=resource_id)
 
-            if r.vrs:
-                if not r.vrs.category.slug == category:
-                    if r.vrs.multimask and r.slug in r.vrs.multimask:
+            if r.layerset:
+                if not r.layerset.category.slug == category:
+                    if r.layerset.multimask and r.slug in r.layerset.multimask:
                         response['status'] = "fail"
-                        response['message'] = f"Layer already in {r.vrs.category} multimask."
+                        response['message'] = f"Layer already in {r.layerset.category} multimask."
                         return JsonResponse(response)
 
             response['status'] = "success"
@@ -456,15 +459,17 @@ class LayerSetView(View):
 
         if operation == "set-mask":
 
-            v = get_object_or_404(Volume, pk=volume_id)
-            annoset = v.get_annotation_set(category)
-
-            errors = annoset.update_multimask_from_geojson(multimask_geojson)
-
-            if errors:
+            try:
+                layerset = LayerSet.objects.get(map_id=volume_id, category__slug=category)
+                errors = layerset.update_multimask_from_geojson(multimask_geojson)
+                if errors:
+                    response["status"] = "fail"
+                    response["message"] = errors
+                else:
+                    response["status"] = "success"
+            except LayerSet.DoesNotExist:
                 response["status"] = "fail"
-                response["message"] = errors
-            else:
-                response["status"] = "success"
+                response["message"] = f"can't find this layerset: map_id={volume_id}, category={category}"
+
 
         return JsonResponse(response)

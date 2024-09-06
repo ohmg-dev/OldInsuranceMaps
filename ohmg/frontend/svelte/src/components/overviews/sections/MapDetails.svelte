@@ -53,7 +53,7 @@
         Only layers that have been trimmed in the <strong>MultiMask</strong> will appear in the mosaic. You can access untrimmed layers individually through the <strong>Georeferenced</strong> section.
     </em></p>
     {#each ANNOTATION_SETS as annoSet}
-    {#if annoSet.annotations.length > 1}
+    {#if annoSet.layers.length > 1}
         <h4>{annoSet.name}</h4>
         {#if annoSet.mosaicUrl}
         <table>

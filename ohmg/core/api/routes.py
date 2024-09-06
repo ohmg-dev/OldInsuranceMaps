@@ -34,10 +34,10 @@ from .filters  import (
     FilterRegionSchema,
 )
 from .schemas import (
-    LayerSetSchema,
     PlaceSchema,
     LayerSchema,
 
+    LayerSetSchema,
     UserSchema,
     MapListSchema,
     SessionSchema,
@@ -128,18 +128,18 @@ def list_maps(request,
         maps = maps[:limit]
     return list(maps)
 
-@beta2.get('annotation-set/', response=LayerSetSchema, url_name="annotation_set")
-def annotation(request,
-        volume: str,
+@beta2.get('layerset/', response=LayerSetSchema, url_name="layerset")
+def get_layerset(request,
+        map: str,
         category: str,
     ):
-    return LayerSet.objects.get(category__slug=category, volume_id=volume)
+    return LayerSet.objects.get(category__slug=category, map_id=map)
 
-@beta2.get('annotation-sets/', response=List[LayerSetSchema], url_name="annotation_sets")
-def annotations(request,
-        volume: str,
+@beta2.get('layersets/', response=List[LayerSetSchema], url_name="layersets")
+def get_layersets(request,
+        map: str,
     ):
-    return LayerSet.objects.filter(volume_id=volume)
+    return LayerSet.objects.filter(map_id=map)
 
 
 @beta2.get('place/', response=PlaceFullSchema, url_name="place")

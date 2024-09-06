@@ -40,6 +40,7 @@ export let ANNOTATION_SETS;
 export let ANNOTATION_SET_OPTIONS;
 
 console.log(MAP)
+console.log(ANNOTATION_SETS)
 
 let multimaskKey = false;
 function reinitMultimask() {
@@ -62,7 +63,7 @@ function resetAnnotationSets(newAnnotationSets) {
 	layerAnnotationLookup = {}
 	newAnnotationSets.forEach(function (annoSet) {
 		annotationSetLookup[annoSet.id] = annoSet;
-		annoSet.annotations.forEach(function (anno) {
+		annoSet.layers.forEach(function (anno) {
 			layerAnnotationLookup[anno.slug] = annoSet.id;
 			origLayerAnnotationLookup[anno.slug] = annoSet.id;
 		})
@@ -232,7 +233,7 @@ function postOperation(operation) {
 }
 
 function fetchAnnotationSets() {
-	fetch(`${CONTEXT.urls.get_annotation_sets}?volume=${MAP.identifier}`, {
+	fetch(`${CONTEXT.urls.get_layersets}?map=${MAP.identifier}`, {
 		headers: CONTEXT.ohmg_api_headers
 	})
 	.then(response => response.json())
@@ -611,16 +612,16 @@ let modalExtent = []
 					reinitMultimask();
 				}}>
 				{#each ANNOTATION_SETS as annoSet}
-				{#if annoSet.annotations}
+				{#if annoSet.layers}
 				<option value={annoSet.id}>{annoSet.name}</option>
 				{/if}
 				{/each}
 			</select>
 			<span>
 				{#if annotationSetLookup[currentAnnotationSet].multimask_geojson}
-				{annotationSetLookup[currentAnnotationSet].multimask_geojson.features.length}/{annotationSetLookup[currentAnnotationSet].annotations.length}
+				{annotationSetLookup[currentAnnotationSet].multimask_geojson.features.length}/{annotationSetLookup[currentAnnotationSet].layers.length}
 				{:else}
-				0/{annotationSetLookup[currentAnnotationSet].annotations.length}
+				0/{annotationSetLookup[currentAnnotationSet].layers.length}
 				{/if}
 			</span>
 			{#key multimaskKey}

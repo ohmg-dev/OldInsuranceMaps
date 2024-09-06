@@ -16,10 +16,10 @@ from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.core.models import (
     Map,
 )
-from ohmg.core.schemas import LayerSetSchema
 from ohmg.core.api.schemas import (
     MapFullSchema,
     PlaceFullSchema,
+    LayerSetSchema,
 )
 from ohmg.loc_insurancemaps.models import Volume, find_volume
 from ohmg.loc_insurancemaps.tasks import load_docs_as_task, load_map_documents_as_task

@@ -44,10 +44,9 @@ def generate_ohmg_context(request):
     via views.py, rather than as an actual context processor. """
 
     internal_urls = {
-        "get_annotation_set": reverse("api-beta:annotation_set"),
-        "get_annotation_sets": reverse("api-beta:annotation_sets"),
-        "post_annotation_set": reverse("annotation_set_view"),
-
+        "get_layerset": reverse("api-beta2:layerset"),
+        "get_layersets": reverse("api-beta2:layersets"),
+        "post_annotation_set": reverse("layerset_view"),
         "get_places_geojson": reverse("api-beta2:places_geojson"),
         "change_avatar": reverse('avatar_change'),
         "get_maps": reverse("api-beta2:map_list"),

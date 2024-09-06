@@ -227,33 +227,17 @@ class SessionSchema(Schema):
         n = int(n)
         d['relative'] = f"{n} {u}{'' if n == 1 else 's'} ago"
         return d
-    
-
-class LayerAnnotationSchema(Schema):
-
-    title: str
-    slug: str
-    urls: dict
-    status: str
-    extent: Optional[tuple]
-    page_str: str = ""
-
-    @staticmethod
-    def resolve_urls(obj):
-        return obj.urls
-
-    @staticmethod
-    def resolve_page_str(obj):
-        return obj.title.split("|")[-1].split("p")[1]
 
 
 class LayerSetLayer(Schema):
 
     id: int
     title: str
+    local_title: str
     slug: str
     urls: dict
     extent: Optional[list]
+
 
     @staticmethod
     def resolve_urls(obj):
@@ -263,6 +247,17 @@ class LayerSetLayer(Schema):
             "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
             "georeference": f"/georeference/{obj.region.pk}",
         }
+
+    @staticmethod
+    def resolve_local_title(obj):
+        # TODO: this should probably be saved onto the model itself
+        if obj.region:
+            lt = obj.region.document.page_number
+            if obj.region.division_number:
+                lt = f"{lt} [{obj.region.division_number}]"
+        else:
+            lt = obj.title.split(" ")[-1]
+        return lt
 
 
 class LayerSetSchema(Schema):

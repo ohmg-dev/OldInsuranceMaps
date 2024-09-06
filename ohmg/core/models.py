@@ -244,17 +244,15 @@ class Map(models.Model):
         if georef_ct > 0:
             percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
 
-        main_lyrs_ct = 0
-        main_anno = self.get_layerset('main-content')
-        if main_anno.annotations:
-            main_lyrs_ct = len(main_anno.annotations)
+        main_layerset = self.get_layerset('main-content')
+        main_lyrs_ct = main_layerset.layers.count()
         mm_ct, mm_todo, mm_percent = 0, 0, 0
         if main_lyrs_ct != 0:
             # make sure 0/0 appears at the very bottom, then 0/1, 0/2, etc.
             mm_percent = main_lyrs_ct * .000001
         mm_display = f"0/{main_lyrs_ct}"
-        if main_anno.multimask is not None:
-            mm_ct = len(main_anno.multimask)
+        if main_layerset.multimask is not None:
+            mm_ct = len(main_layerset.multimask)
             mm_todo = main_lyrs_ct - mm_ct
             if mm_ct > 0 and main_lyrs_ct > 0:
                 mm_display = f"{mm_ct}/{main_lyrs_ct}"
@@ -292,6 +290,8 @@ class Map(models.Model):
             if create:
                 category = LayerSetCategory.objects.get(slug=cat_slug)
                 layerset = LayerSet.objects.create(
+                    # TODO: remove once Volume objects have been fully deprecated
+                    volume_id=self.identifier,
                     map=self,
                     category=category
                 )
