@@ -49,11 +49,13 @@ def generate_ohmg_context(request):
         "post_annotation_set": reverse("layerset_view"),
         "get_places_geojson": reverse("api-beta2:places_geojson"),
         "change_avatar": reverse('avatar_change'),
+        "get_map": reverse('api-beta2:map'),
         "get_maps": reverse("api-beta2:map_list"),
         "get_users": reverse("api-beta2:user_list"),
         "get_place": reverse("api-beta2:place"),
         "get_places": reverse("api-beta2:place_list"),
         "get_sessions": reverse("api-beta2:session_list"),
+        "get_session_locks": reverse('api-beta2:session_locks')
     }
 
     csrf_token = csrf.get_token(request)

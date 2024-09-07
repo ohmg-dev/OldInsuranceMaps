@@ -27,7 +27,10 @@ from ohmg.georeference.models import (
     GeorefSession,
     LayerSet,
 )
-from ohmg.core.schemas import LayerSetSchema
+from ohmg.core.api.schemas import (
+    LayerSetSchema,
+    MapFullSchema,
+)
 from ohmg.core.models import (
     Region,
     Document as Document2,
@@ -188,8 +191,8 @@ class GeoreferenceView(View):
         Returns the georeferencing interface for this document.
         """
 
-        doc = get_object_or_404(Document, pk=docid)
-        region = get_object_or_404(Region, slug=doc.slug)
+        region = get_object_or_404(Region,  pk=docid)
+        doc = get_object_or_404(Document,  slug=region.slug)
 
         # if the document is not currently locked and there is a logged in user,
         # create a new session
@@ -200,22 +203,26 @@ class GeoreferenceView(View):
                 reg2=region,
                 user=request.user,
             )
+            if region.layer:
+                session.lyr2 = region.layer
             session.start()
         doc_data = doc.serialize()
 
-        volume = find_volume(doc)
-        volume_json = volume.serialize()
+        # volume = find_volume(doc)
+        # volume_json = volume.serialize()
 
-        annoset_main = LayerSetSchema.from_orm(volume.get_annotation_set('main-content')).dict()
+        map_json = MapFullSchema.from_orm(region.document.map).dict()
+
+        annoset_main = LayerSetSchema.from_orm(region.document.map.get_layerset('main-content')).dict()
         annoset_keymap = None
-        akm = volume.get_annotation_set('key-map')
+        akm = region.document.map.get_layerset('key-map')
         if akm:
             annoset_keymap = LayerSetSchema.from_orm(akm).dict()
 
         georeference_params = {
             "CONTEXT": generate_ohmg_context(request),
             "DOCUMENT": doc_data,
-            "VOLUME": volume_json,
+            "VOLUME": map_json,
             "ANNOSET_MAIN": annoset_main,
             "ANNOSET_KEYMAP": annoset_keymap,
         }

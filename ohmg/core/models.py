@@ -8,6 +8,8 @@ from natsort import natsorted
 
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import transaction
@@ -564,7 +566,11 @@ class Region(models.Model):
     )
 
     def __str__(self):
-        self.title
+        return self.title
+
+    @cached_property
+    def map(self):
+        return self.document.map
 
     @cached_property
     def image_size(self):
@@ -657,6 +663,10 @@ class Layer(models.Model):
 
     def __str__(self):
         return self.title
+
+    @cached_property
+    def map(self):
+        return self.region.document.map
 
     @property
     def urls(self):

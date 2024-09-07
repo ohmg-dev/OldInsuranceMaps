@@ -340,6 +340,19 @@ class PlaceFullSchema(Schema):
     def resolve_descendants(obj):
         return obj.get_descendants()
 
+
+class SessionLockSchema(Schema):
+
+    session_id: int
+    target_id: int
+    target_type: str
+    user: UserSchemaLite
+
+    @staticmethod
+    def resolve_target_type(obj):
+        return obj.target_type.model
+
+
 class MapFullSchema(Schema):
 
     identifier: str
@@ -358,6 +371,7 @@ class MapFullSchema(Schema):
     extent: Optional[Any]
     locale: Optional[PlaceSchema]
     loaded_by: dict
+    locks: List[SessionLockSchema]
 
     @staticmethod
     def resolve_extent(obj):
@@ -404,3 +418,8 @@ class MapFullSchema(Schema):
             loaded_by["profile"] = reverse("profile_detail", args=(obj.loaded_by.username, ))
             loaded_by["date"] = obj.load_date.strftime("%Y-%m-%d")
         return loaded_by
+    
+    @staticmethod
+    def resolve_locks(obj):
+        locks = [i for i in SessionLock.objects.all().prefetch_related() if i.target.map.pk == obj.pk]
+        return locks

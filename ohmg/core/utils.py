@@ -6,6 +6,7 @@ import string
 import random
 import requests
 import logging
+from datetime import datetime
 from pathlib import Path
 
 from django.conf import settings
@@ -155,6 +156,14 @@ def random_alnum(size=6):
     chars = string.ascii_letters + string.digits
     code = ''.join(random.choice(chars) for _ in range(size))
     return code
+
+def time_this(func):
+    def wrapper_function(*args, **kwargs):
+        start = datetime.now()
+        result = func(*args,  **kwargs)
+        logger.debug(f"{func.__module__} {func.__qualname__} elapsed time: {datetime.now() - start}")
+        return result
+    return wrapper_function
 
 MONTH_CHOICES = [
     (1, "JAN."),

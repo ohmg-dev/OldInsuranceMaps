@@ -1,6 +1,6 @@
 from datetime import datetime
 import logging
-from typing import List
+from typing import List, Optional
 
 from django.conf import settings
 from django.contrib.gis.geos import Polygon, MultiPolygon
@@ -24,7 +24,12 @@ from ohmg.core.models import (
     Layer,
 )
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.georeference.models import SessionBase, LayerSet, LayerV1
+from ohmg.georeference.models import (
+    SessionBase,
+    LayerSet,
+    LayerV1,
+    SessionLock,
+)
 from ohmg.places.models import Place
 
 from .filters  import (
@@ -39,8 +44,10 @@ from .schemas import (
 
     LayerSetSchema,
     UserSchema,
+    MapFullSchema,
     MapListSchema,
     SessionSchema,
+    SessionLockSchema,
     DocumentSchema,
     RegionSchema,
     PlaceFullSchema,
@@ -91,6 +98,9 @@ def list_users(request):
 
 # @beta2.get('map/session-summary', response=SessionSummarySchema, url_name="map_session_summary"):
 
+@beta2.get('map/', response=MapFullSchema, url_name="map")
+def get_map(request, map: str):
+    return get_object_or_404(Map, pk=map)
 
 @beta2.get('maps/', response=List[MapListSchema], url_name="map_list")
 def list_maps(request,
@@ -234,3 +244,12 @@ def layer(request, map: str):
     layers = LayerV1.objects.filter(slug__in=layer_ids).prefetch_related('vrs')
 
     return layers
+
+## SESSION LOCKS
+@beta2.get('session-locks/', response=List[SessionLockSchema], url_name="session_locks")
+def session_locks(request, map: str = None):
+
+    locks = SessionLock.objects.all().prefetch_related()
+    if map:
+        locks = [i for i in locks if i.target.map.pk == map]
+    return locks

@@ -42,6 +42,25 @@ export let ANNOTATION_SET_OPTIONS;
 console.log(MAP)
 console.log(ANNOTATION_SETS)
 
+const sessionLocks = {"docs": {}, "regs": {}, "lyrs": {}}
+$: {
+	sessionLocks.docs = {}
+	sessionLocks.regs = {}
+	sessionLocks.lyrs = {}
+	MAP.locks.forEach((lock) => {
+		if (lock.target_type == "document" && MAP.item_lookup.unprepared.map(i => i.id).includes(lock.target_id)) {
+			sessionLocks.docs[lock.target_id] = lock
+		} else if (lock.target_type == "region" && MAP.item_lookup.prepared.map(i => i.id).includes(lock.target_id)) {
+			sessionLocks.regs[lock.target_id] = lock
+		} else if (lock.target_type == "layer" && MAP.item_lookup.georeferenced.map(i => i.id).includes(lock.target_id)) {
+			sessionLocks.lyrs[lock.target_id] = lock
+		}
+	})
+}
+$: docsLockedCt = Object.keys(sessionLocks.docs).length
+$: regsLockedCt = Object.keys(sessionLocks.regs).length
+$: lyrsLockedCt = Object.keys(sessionLocks.lyrs).length
+
 let multimaskKey = false;
 function reinitMultimask() {
 	multimaskKey = !multimaskKey
@@ -186,19 +205,28 @@ function setHash(hash){
 	history.replaceState(null, document.title, `#${hash}`);
 }
 
-let refreshingLookups = false;
-
 let intervalId;
 function manageAutoReload(run) {
 	if (run) {
-		intervalId = setInterval(postOperation, 4000, "refresh");
+		intervalId = setInterval(pollMapSummary, 4000);
 	} else {
 		clearInterval(intervalId)
 	}
 }
-$: autoReload = sheetsLoading || MAP.item_lookup.processing.unprep != 0 || MAP.item_lookup.processing.prep != 0 || MAP.item_lookup.processing.geo_trim != 0;
+$: autoReload = sheetsLoading || MAP.locks.length > 0;
 $: manageAutoReload(autoReload)
 
+function pollMapSummary() {
+	fetch(`${CONTEXT.urls.get_map}?map=${MAP.identifier}`, {
+		headers: CONTEXT.ohmg_post_headers,
+	})
+	.then(response => response.json())
+	.then(result => {
+		MAP = result;
+	});
+}
+
+let refreshingLookups = false;
 function postOperation(operation) {
 	let indexLayerIds = [];
 	if (operation == "refresh-lookups") {
@@ -254,7 +282,7 @@ function postGeoref(url, operation, status) {
 	})
 	.then(response => response.json())
 	.then(result => {
-		postOperation("refresh");
+		pollMapSummary();
 	});
 }
 
@@ -376,12 +404,12 @@ let modalExtent = []
 						title={sectionVis['unprepared'] ? 'Collapse section' : 'Expand section'}>
 						<ConditionalDoubleChevron down={sectionVis['unprepared']} size="md" />
 						<a id="unprepared">
-							<h3 style="margin-top:5px;">
-								Unprepared ({MAP.item_lookup.unprepared.length})
-								{#if MAP.item_lookup.processing.unprep != 0}
-								&mdash; {MAP.item_lookup.processing.unprep} in progress...
-								{/if}
-							</h3>
+						<h3 style="margin-top:5px;">
+							Unprepared ({MAP.item_lookup.unprepared.length})
+							{#if docsLockedCt}
+							&ndash; {docsLockedCt} locked...
+							{/if}		
+						</h3>
 						</a>
 					</button>
 					<button class="is-icon-link" on:click={() => {getModal('modal-unprepared').open()}} ><Question /></button>
@@ -405,10 +433,10 @@ let modalExtent = []
 									/>
 							</button>
 							<div>
-								{#if document.lock_enabled}
+								{#if sessionLocks.regs[document.id]}
 								<ul style="text-align:center">
-									<li><em>preparation in progress.</em></li>
-									<li><em>user: {document.lock_details.user.name}</em></li>
+									<li><em>preparation in progress...</em></li>
+									<li><em>user: {sessionLocks.regs[document.id].user.username}</em></li>
 								</ul>
 								{:else if userCanEdit}
 								<ul>
@@ -429,8 +457,8 @@ let modalExtent = []
 						<ConditionalDoubleChevron down={sectionVis['prepared']} size="md" />
 						<a id="prepared"><h3>
 							Prepared ({MAP.item_lookup.prepared.length})
-							{#if MAP.item_lookup.processing.prep != 0}
-							&mdash; {MAP.item_lookup.processing.prep} in progress...
+							{#if regsLockedCt}
+							&ndash; {regsLockedCt} locked...
 							{/if}
 						</h3></a>
 					</button>
@@ -439,31 +467,31 @@ let modalExtent = []
 				{#if sectionVis['prepared']}
 				<div transition:slide>
 					<div class="documents-column">
-						{#each MAP.item_lookup.prepared as document}
+						{#each MAP.item_lookup.prepared as region}
 						<div class="document-item">
-							<div><p><Link href={document.urls.resource} title={document.title}>{document.title}</Link></p></div>
+							<div><p><Link href={region.urls.resource} title={region.title}>{region.title}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
-								modalLyrUrl=document.urls.image;
-								modalExtent=[0, -document.image_size[1], document.image_size[0], 0];
+								modalLyrUrl=region.urls.image;
+								modalExtent=[0, -region.image_size[1], region.image_size[0], 0];
 								modalIsGeospatial=false;
 								getModal('modal-simple-viewer').open();
 								reinitModalMap = [{}];
 								}} >
 								<img style="cursor:zoom-in"
-									src={document.urls.thumbnail}
-									alt={document.title}
+									src={region.urls.thumbnail}
+									alt={region.title}
 									/>
 							</button>
 							<div>
-								{#if document.lock_enabled}
+								{#if sessionLocks.regs[region.id]}
 								<ul style="text-align:center">
 									<li><em>georeferencing in progress...</em></li>
-									<li>{document.lock_details.user.name}</li>
+									<li>user: {sessionLocks.regs[region.id].user.username}</li>
 								</ul>
 								{:else if userCanEdit}
 								<ul>
-									<li><Link href={document.urls.georeference} title="georeference this document">georeference &rarr;</Link></li>
-									<li><button class="is-text-link" title="click to move this document to the non-map section" on:click={() => {postGeoref(document.urls.georeference, "set-status", "nonmap")}}>set as non-map</button></li>
+									<li><Link href={region.urls.georeference} title="georeference this document">georeference &rarr;</Link></li>
+									<li><button class="is-text-link" title="click to move this document to the non-map section" on:click={() => {postGeoref(region.urls.georeference, "set-status", "nonmap")}}>set as non-map</button></li>
 								</ul>
 								{/if}
 							</div>
@@ -478,7 +506,14 @@ let modalExtent = []
 					<button class="section-toggle-btn" on:click={() => toggleSection("georeferenced")} disabled={MAP.item_lookup.georeferenced.length == 0}
 						title={sectionVis['georeferenced'] ? 'Collapse section' : 'Expand section'}>
 						<ConditionalDoubleChevron down={sectionVis['georeferenced']} size="md" />
-						<a id="georeferenced"><h3>Georeferenced ({MAP.item_lookup.georeferenced.length})</h3></a>
+						<a id="georeferenced">
+						<h3>
+							Georeferenced ({MAP.item_lookup.georeferenced.length})
+							{#if lyrsLockedCt}
+							&ndash; {lyrsLockedCt} locked...
+							{/if}
+						</h3>
+						</a>
 					</button>
 					<button class="is-icon-link" on:click={() => {getModal('modal-georeferenced').open()}} ><Question /></button>
 				</div>
@@ -524,10 +559,10 @@ let modalExtent = []
 									>
 							</button>
 							<div>
-								{#if layer.lock && layer.lock.enabled}
+								{#if sessionLocks.lyrs[layer.id]}
 								<ul style="text-align:center">
 									<li><em>session in progress...</em></li>
-									<li>{layer.lock.username}</li>
+									<li>user: {sessionLocks.lyrs[layer.id].user.username}</li>
 								</ul>
 								{:else if userCanEdit}
 								<ul>

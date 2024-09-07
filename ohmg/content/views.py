@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime
 
+from django.db.models import F
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import View
@@ -16,11 +17,14 @@ from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.core.models import (
     Map,
 )
+from ohmg.core.utils import time_this
 from ohmg.core.api.schemas import (
     MapFullSchema,
     PlaceFullSchema,
     LayerSetSchema,
+    SessionLockSchema,
 )
+from ohmg.georeference.models import SessionLock
 from ohmg.loc_insurancemaps.models import Volume, find_volume
 from ohmg.loc_insurancemaps.tasks import load_docs_as_task, load_map_documents_as_task
 
@@ -52,6 +56,7 @@ class PageView(View):
 
 class MapSummary(View):
 
+    @time_this
     def get(self, request, identifier):
 
         map = get_object_or_404(Map.objects.prefetch_related(), pk=identifier)
@@ -102,11 +107,6 @@ class MapSummary(View):
             )
             map_json = MapFullSchema.from_orm(map).dict()
             map_json["status"] = "initializing..."
-            return JsonResponse(map_json)
-
-        elif operation == "refresh":
-            map = get_object_or_404(Map.objects.prefetch_related(), pk=identifier)
-            map_json = MapFullSchema.from_orm(map).dict()
             return JsonResponse(map_json)
 
         elif operation == "refresh-lookups":

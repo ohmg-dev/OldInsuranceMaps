@@ -409,6 +409,7 @@ LOGGING = {
 # https://stackoverflow.com/a/20719461/3873885
 if DEBUG:
     celery_log_level = 'DEBUG'
+    LOGGING['loggers']['ohmg']['handlers'].append('console')
     LOGGING['loggers']['ohmg.georeference']['handlers'].append('console')
     LOGGING['loggers']['ohmg.loc_insurancemaps']['handlers'].append('console')
 else:
