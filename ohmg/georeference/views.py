@@ -33,6 +33,7 @@ from ohmg.core.api.schemas import (
     LayerSetSchema,
     MapFullSchema,
     MapListSchema,
+    RegionFullSchema,
 )
 from ohmg.core.models import (
     Region,
@@ -184,26 +185,24 @@ class GeoreferenceView(View):
         """
 
         region = get_object_or_404(Region,  pk=docid)
-        doc = get_object_or_404(DocumentOld,  slug=region.slug)
 
-        # if the document is not currently locked and there is a logged in user,
+        # if the region is not currently locked and there is a logged in user,
         # create a new session
-        if not doc.lock_enabled and request.user.is_authenticated and \
-            doc.status in ["prepared", "georeferenced"]:
+        if not region.lock and request.user.is_authenticated:
             session = GeorefSession.objects.create(
-                doc=doc,
                 reg2=region,
                 user=request.user,
             )
-            if region.layer:
+            if hasattr(region, 'layer'):
                 session.lyr2 = region.layer
             session.start()
-        doc_data = doc.serialize()
+
+        region_json = RegionFullSchema.from_orm(region).dict()
 
         # volume = find_volume(doc)
         # volume_json = volume.serialize()
 
-        map_json = MapFullSchema.from_orm(region.document.map).dict()
+        map_json = MapFullSchema.from_orm(region.map).dict()
 
         annoset_main = LayerSetSchema.from_orm(region.document.map.get_layerset('main-content')).dict()
         annoset_keymap = None
@@ -213,7 +212,7 @@ class GeoreferenceView(View):
 
         georeference_params = {
             "CONTEXT": generate_ohmg_context(request),
-            "DOCUMENT": doc_data,
+            "REGION": region_json,
             "VOLUME": map_json,
             "ANNOSET_MAIN": annoset_main,
             "ANNOSET_KEYMAP": annoset_keymap,
@@ -235,7 +234,7 @@ class GeoreferenceView(View):
         if not request.body:
             return BadPostRequest
 
-        document = get_object_or_404(DocumentOld, pk=docid)
+        region = get_object_or_404(Region, pk=docid)
 
         body = json.loads(request.body)
         gcp_geojson = body.get("gcp_geojson", {})
@@ -264,11 +263,11 @@ class GeoreferenceView(View):
 
             return f"{ip_val}-{sesh_val}-{int(datetime.now().timestamp())}"
 
-        def _cleanup_preview(document, previous_url):
+        def _cleanup_preview(region, previous_url):
             """ Run this deletion through celery, so that it doesn't delay
             the return of whatever function called it. """
             if previous_url:
-                delete_preview_vrt.delay(document.file.path, previous_url)
+                delete_preview_vrt.delay(region.file.path, previous_url)
 
         def _get_georef_session(sesh_id):
 
@@ -295,14 +294,14 @@ class GeoreferenceView(View):
             )
             preview_id = _generate_preview_id(request, sesh_id)
             try:
-                out_path = g.warp(document.file.path, return_vrt=True, preview_id=preview_id)
-                out_path_relative = os.path.join(os.path.dirname(document.file.url), os.path.basename(out_path))
+                out_path = g.warp(region.file.path, return_vrt=True, preview_id=preview_id)
+                out_path_relative = os.path.join(os.path.dirname(region.file.url), os.path.basename(out_path))
                 preview_url = settings.MEDIA_HOST.rstrip("/") + out_path_relative
                 response["status"] = "success"
                 response["message"] = "all good"
                 response["preview_url"] = preview_url
                 # queue clean up of the last preview
-                _cleanup_preview(document, cleanup_preview)
+                _cleanup_preview(region, cleanup_preview)
             except Exception as e:
                 logger.error(e)
                 response["status"] = "fail"
@@ -317,20 +316,18 @@ class GeoreferenceView(View):
                     "message": "user not authorized for this operation"
                 })
             
-            sessions = GeorefSession.objects.filter(doc=document)
+            sessions = GeorefSession.objects.filter(reg2=region)
             for s in sessions:
                 s.delete()
-            layer = document.get_layer()
-            if layer:
-                layer.delete()
+            if hasattr(region, 'layer'):
+                region.layer.delete()
             try:
-                gcp_group = GCPGroup.objects.get(doc=document)
+                gcp_group = GCPGroup.objects.get(region=region)
                 gcp_group.delete()
             except GCPGroup.DoesNotExist:
                 pass
-            document.set_status("prepared")
-            vol = find_volume(document)
-            vol.refresh_lookups()
+            region.georeferenced = False
+            region.save()
             return JsonResponse({"success":True})
 
         elif operation == "submit":
@@ -346,11 +343,12 @@ class GeoreferenceView(View):
                 sesh.data['transformation'] = transformation
                 sesh.save(update_fields=["data"])
                 logger.info(f"{sesh.__str__()} | begin run() as task")
-                run_georeference_session.apply_async((sesh.pk,),
-                    link=patch_new_layer_to_session.s()
-                )
+                run_georeferencing_as_task.apply_async((sesh.pk,))
+                # run_georeference_session.apply_async((sesh.pk,),
+                #     link=patch_new_layer_to_session.s()
+                # )
 
-                _cleanup_preview(document, cleanup_preview)
+                _cleanup_preview(region, cleanup_preview)
                 return JsonResponse({
                     "success": True,
                     "message": "all good",
@@ -360,11 +358,15 @@ class GeoreferenceView(View):
                 return SESSION_NOT_FOUND_RESPONSE
 
         elif operation == "set-status":
-
+            # TODO: this functionality should be moved somewhere else.
             if request.user.is_authenticated:
-                new_status = body.get("status", None)
-                if new_status:
-                    document.set_status(new_status)
+                change_to = body.get("status", None)
+                if change_to == "nonmap":
+                    region.is_map = False
+                    region.save()
+                if change_to == "prepared":
+                    region.is_map = True
+                    region.save()
                 return JsonResponse({
                     "success": True,
                     "message": "all good",
@@ -399,7 +401,7 @@ class GeoreferenceView(View):
 
                 sesh.delete()
 
-            _cleanup_preview(document, cleanup_preview)
+            _cleanup_preview(region, cleanup_preview)
             return JsonResponse({"success":True})
 
         else:

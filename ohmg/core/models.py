@@ -585,6 +585,20 @@ class Region(models.Model):
     @cached_property
     def image_size(self):
         return get_image_size(Path(self.file.path)) if self.file else None
+    
+    @property
+    def tranformation(self):
+        if self.gcp_group:
+            return self.gcp_group.transformation
+        else:
+            return None
+    
+    @property
+    def gcps_geojson(self):
+        if self.gcp_group:
+            return self.gcp_group.as_geojson
+        else:
+            return None
 
     @property
     def _base_urls(self):
@@ -592,6 +606,16 @@ class Region(models.Model):
             "thumbnail": self.thumbnail.url if self.thumbnail else "",
             "image": self.file.url if self.file else "",
         }
+
+    @property
+    def lock(self):
+        from ohmg.georeference.models import SessionLock
+        ct = ContentType.objects.get_for_model(self)
+        locks = SessionLock.objects.filter(target_type=ct, target_id=self.pk)
+        if locks.exists():
+            return locks[0]
+        else:
+            return None
 
     def set_thumbnail(self):
         if self.file is not None:
@@ -677,6 +701,16 @@ class Layer(models.Model):
     @cached_property
     def map(self) -> Map:
         return self.region.document.map
+
+    @property
+    def lock(self):
+        from ohmg.georeference.models import SessionLock
+        ct = ContentType.objects.get_for_model(self)
+        locks = SessionLock.objects.filter(target_type=ct, target_id=self.pk)
+        if locks.exists():
+            return locks[0]
+        else:
+            return None
 
     @property
     def urls(self):

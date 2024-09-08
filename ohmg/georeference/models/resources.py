@@ -160,9 +160,9 @@ class GCPGroup(models.Model):
 
         return content
 
-    def save_from_geojson(self, geojson, document, transformation=None):
+    def save_from_geojson(self, geojson, region, transformation=None):
 
-        group, group_created = GCPGroup.objects.get_or_create(doc=document)
+        group = region.gcp_group if region.gcp_group else GCPGroup.objects.create()
 
         group.crs_epsg = 3857 # don't see this changing any time soon...
         group.transformation = transformation
@@ -214,13 +214,13 @@ class GCPGroup(models.Model):
         logger.info(f"GCPGroup {group.pk} | GCPs ct: {gcps_ct}, new: {gcps_new}, mod: {gcps_mod}, del: {gcps_del}")
         return group
 
-    def save_from_annotation(self, annotation, document):
+    def save_from_annotation(self, annotation, region):
 
         m = "georeference-ground-control-points"
         georef_annos = [i for i in annotation['items'] if i['motivation'] == m]
         anno = georef_annos[0]
 
-        self.save_from_geojson(anno['body'], document, "poly1")
+        self.save_from_geojson(anno['body'], region, "poly1")
 
 
 class DocumentManager(models.Manager):

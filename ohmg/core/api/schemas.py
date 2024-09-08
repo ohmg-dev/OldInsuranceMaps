@@ -178,6 +178,50 @@ class RegionSchema(Schema):
             return None
 
 
+class RegionFullSchema(Schema):
+    id: int
+    title: str
+    slug: str
+    file: Optional[str]
+    thumbnail: Optional[str]
+    boundary: Optional[dict]
+    georeferenced: bool
+    urls: dict
+    image_size: Optional[list]
+    document: DocumentSchema
+    layer: Optional["LayerSchema"]
+    lock: Optional["SessionLockSchema"]
+    map: str
+    gcps_geojson: Optional[dict]
+    transformation: Optional[str]
+
+    @staticmethod
+    def resolve_urls(obj):
+        return {
+            "resource": f"/resource/{obj.pk}",
+            "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
+            "image": obj.file.url if obj.file else "",
+            "georeference": f"/georeference/{obj.pk}/",
+        }
+
+    @staticmethod
+    def resolve_boundary(obj):
+        if obj.boundary:
+            return json.loads(obj.boundary.geojson)
+        else:
+            return None
+
+    @staticmethod
+    def resolve_layer(obj):
+        if hasattr(obj, 'layer'):
+            return obj.layer
+        else:
+            return None
+
+    @staticmethod
+    def resolve_map(obj):
+        return obj.map.pk
+
 class LayerSchema(Schema):
     id: int
     title: str
@@ -459,3 +503,4 @@ class MapFullSchema(Schema):
         return locks
 
 DocumentFullSchema.update_forward_refs()
+RegionFullSchema.update_forward_refs()

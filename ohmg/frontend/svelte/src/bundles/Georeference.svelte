@@ -3,7 +3,7 @@
   import Georeferencer from '@components/interfaces/Georeferencer.svelte';
 
   export let CONTEXT;
-  export let DOCUMENT;
+  export let REGION;
   export let VOLUME;
   export let ANNOSET_MAIN;
   export let ANNOSET_KEYMAP;
@@ -13,15 +13,15 @@
       visible: true,
       enabled: true,
       iconClass: 'document',
-      alt: 'Go to document: ' + DOCUMENT.title,
-      url: DOCUMENT.urls.resource,
+      alt: 'Go to document: ' + REGION.title,
+      url: REGION.urls.resource,
     },
     {
       visible: true,
-      enabled: DOCUMENT.layer ? true : false,
+      enabled: REGION.layer ? true : false,
       iconClass: 'layer',
-      alt: DOCUMENT.layer ? 'Go to layer: ' + DOCUMENT.layer.title : 'Layer not yet made',
-      url: DOCUMENT.layer ? DOCUMENT.layer.urls.resource : '',
+      alt: REGION.layer ? 'Go to layer: ' + REGION.layer.title : 'Layer not yet made',
+      url: REGION.layer ? REGION.layer.urls.resource : '',
     },
     {
       visible: true,
@@ -34,5 +34,5 @@
 
 </script>
 
-<TitleBar TITLE={DOCUMENT.title} ICON_LINKS={iconLinks}/>
-<Georeferencer {CONTEXT} {DOCUMENT} {VOLUME} {ANNOSET_MAIN} {ANNOSET_KEYMAP} />
+<TitleBar TITLE={REGION.title} ICON_LINKS={iconLinks}/>
+<Georeferencer {CONTEXT} {REGION} {VOLUME} {ANNOSET_MAIN} {ANNOSET_KEYMAP} />
