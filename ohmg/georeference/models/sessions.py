@@ -52,6 +52,24 @@ def delete_expired_sessions():
                 logger.warn(f"error during session cleanup. can't find SessionBase object for resource {resource.pk}. unlocking.")
                 resource.remove_lock()
 
+def delete_expired_session_locks():
+    """ Look at all current SessionLocks, and if one is expired and it's session is
+    still on the "input" stage, then delete the session (the lock will be deleted as well)
+    """
+    locks = SessionLock.objects.all()
+    if locks.count() > 0:
+        sessions = set([i.session for i in locks])
+        logger.info(f"{locks.count()} SessionLock(s) currently exist from {len(sessions)} sessions")
+    now = timezone.now().timestamp()
+    stale = set()
+    for lock in locks:
+        if now > lock.expiration.timestamp() and lock.session.stage == "input":
+            stale.add(lock.session.pk)
+
+    if stale:
+        logger.info(f"deleting {len(stale)} stale session(s): {','.join([str(i) for i in stale])}")
+        SessionBase.objects.filter(pk__in=stale).delete()
+
 def get_default_session_data(session_type):
     """Return a dict of the keys/types for a sessions's data field.
     Also used for type-checking during validation."""
@@ -192,14 +210,14 @@ class SessionBase(models.Model):
     )
 
     def start(self):
-        if self.type == "p":
-            self.doc.set_status("splitting")
-        elif self.type == "g":
-            self.doc.set_status("georeferencing")
-            if self.lyr:
-                self.lyr.set_status("georeferencing")
+        # if self.type == "p":
+        #     self.doc.set_status("splitting")
+        # elif self.type == "g":
+        #     self.doc.set_status("georeferencing")
+        #     if self.lyr:
+        #         self.lyr.set_status("georeferencing")
 
-        self.lock_resources()
+        # self.lock_resources()
         self.lock_resources2()
 
     def run(self):
@@ -352,6 +370,12 @@ class PrepSession(SessionBase):
     def get_child_docs(self):
         child_ids = DocumentLink.objects.filter(source=self.doc).values_list("target_id", flat=True)
         return list(Document.objects.filter(pk__in=child_ids))
+    
+    def output_regions(self):
+        if self.doc2:
+            return self.doc2.regions.all()
+        else:
+            return None
 
     def run(self):
         """
@@ -461,7 +485,7 @@ class PrepSession(SessionBase):
         if self.data['split_needed'] is False:
             n = "no split needed"
         else:
-            pks = [str(i.pk) for i in self.get_child_docs()]
+            pks = [str(i.pk) for i in self.output_regions()]
             n = f"split into {len(pks)} new docs ({', '.join(pks)})"
         return n
 

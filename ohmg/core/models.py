@@ -456,6 +456,16 @@ class Document(models.Model):
     @cached_property
     def image_size(self):
         return get_image_size(Path(self.file.path)) if self.file else None
+    
+    @property
+    def lock(self):
+        from ohmg.georeference.models import SessionLock
+        ct = ContentType.objects.get_for_model(self)
+        locks = SessionLock.objects.filter(target_type=ct, target_id=self.pk)
+        if locks.exists():
+            return locks[0]
+        else:
+            return None
 
     def create_from_file(self, file_path: Path, volume=None, sheet_no=None):
 
@@ -569,7 +579,7 @@ class Region(models.Model):
         return self.title
 
     @cached_property
-    def map(self):
+    def map(self) -> Map:
         return self.document.map
 
     @cached_property
@@ -665,7 +675,7 @@ class Layer(models.Model):
         return self.title
 
     @cached_property
-    def map(self):
+    def map(self) -> Map:
         return self.region.document.map
 
     @property

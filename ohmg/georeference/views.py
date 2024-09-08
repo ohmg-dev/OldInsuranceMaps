@@ -9,6 +9,7 @@ from django.views import View
 from django.http import JsonResponse, HttpResponseBadRequest
 
 from ohmg.core.context_processors import generate_ohmg_context
+from ohmg.core.utils import time_this
 from ohmg.georeference.tasks import (
     # these are the old commands, retain for now
     run_georeference_session,
@@ -21,19 +22,21 @@ from ohmg.georeference.tasks import (
     patch_new_layer_to_session,
 )
 from ohmg.georeference.models import (
-    Document,
+    Document as DocumentOld,
     GCPGroup,
     PrepSession,
     GeorefSession,
     LayerSet,
 )
 from ohmg.core.api.schemas import (
+    DocumentFullSchema,
     LayerSetSchema,
     MapFullSchema,
+    MapListSchema,
 )
 from ohmg.core.models import (
     Region,
-    Document as Document2,
+    Document,
     Layer,
     Map,
 )
@@ -50,31 +53,29 @@ BadPostRequest = HttpResponseBadRequest("invalid post content")
 
 class SplitView(View):
 
+    @time_this
     def get(self, request, docid):
         """
         Returns the splitting interface for this document.
         """
 
         document = get_object_or_404(Document, pk=docid)
-        doc2 = get_object_or_404(Document2, slug=document.slug)
+        
         # if the document is not currently locked and there is a logged in user,
         # create a new session
-        if not document.lock_enabled and request.user.is_authenticated and document.status == "unprepared":
+        if not document.lock and request.user.is_authenticated:
             session = PrepSession.objects.create(
-                doc=document,
                 user=request.user,
-                doc2=doc2
+                doc2=document
             )
             session.start()
-        doc_data = document.serialize()
 
-        volume = find_volume(document)
-        volume_json = volume.serialize()
+        # serialize the document after the session has been created, this will get the new lock.
+        document_json = DocumentFullSchema.from_orm(document).dict()
 
         split_params = {
             "CONTEXT": generate_ohmg_context(request),
-            "DOCUMENT": doc_data,
-            "VOLUME": volume_json,
+            "DOCUMENT": document_json,
         }
         
         return render(
@@ -97,45 +98,39 @@ class SplitView(View):
         operation = body.get("operation")
         sesh_id = body.get("sesh_id", None)
 
+        sesh = None
+        if sesh_id is not None:
+            try:
+                sesh = PrepSession.objects.get(pk=sesh_id)
+            except PrepSession.DoesNotExist:
+                logger.warn(f"can't find PrepSession ({sesh_id}), expected for Document {document.pk}")
+                return JsonResponse({"success":False, "message": "no session found"})
+
         if operation == "preview":
 
             s = Splitter(image_file=document.file.path)
-            # s = Splitter(image_file=doc_proxy.resource.doc_file.path)
             divisions = s.generate_divisions(cutlines)
             return JsonResponse({"success": True, "divisions": divisions})
 
         elif operation == "split":
 
-            try:
-                sesh = PrepSession.objects.get(pk=sesh_id)
-            except PrepSession.DoesNotExist:
-                logger.warn("can't find PrepSession to delete.")
-                return JsonResponse({"success":False, "message": "no session found"})
             sesh.data['split_needed'] = True
             sesh.data['cutlines'] = cutlines
             sesh.save(update_fields=["data"])
             logger.info(f"{sesh.__str__()} | begin run() as task")
-            run_preparation_session.apply_async((sesh.pk,),
-                link=run_preparation_as_task.s()
-            )
+            run_preparation_as_task.apply_async((sesh.pk,))
+            # run_preparation_session.apply_async((sesh.pk,),
+            #     link=run_preparation_as_task.s()
+            # )
             return JsonResponse({"success":True})
 
         elif operation == "no_split":
 
-            # if the request is made from the Split interface, then a sesh_ic
-            # should have been passed along (use it to find the sesh)
-            if sesh_id is not None:
-                try:
-                    sesh = PrepSession.objects.get(pk=sesh_id)
-                    # sesh = PrepSession.objects.get(document=doc_proxy.resource)
-                except PrepSession.DoesNotExist:
-                    logger.warn("can't find PrepSession to delete.")
-                    return JsonResponse({"success":False, "message": "no session to cancel"})
-            # otherwise this request was made straight from the volume summary or
-            # doc detail, so a new session must be created now
-            else:
+            # sesh could be None if this post has been made directly from an overview page,
+            # not from the split interface where a session will have already been made.
+            if sesh is None:
                 sesh = PrepSession.objects.create(
-                    doc=document,
+                    doc2=document,
                     user=request.user,
                     user_input_duration=0,
                 )
@@ -143,18 +138,16 @@ class SplitView(View):
 
             sesh.data['split_needed'] = False
             sesh.save(update_fields=["data"])
-            sesh.run()
-            run_preparation(sesh)
-            return JsonResponse({"success":True})
+            # sesh.run()
+            new_region = run_preparation(sesh)[0]
+
+            return JsonResponse({
+                "success":True,
+                "region_id": new_region.pk,
+            })
 
         elif operation == "cancel":
 
-            try:
-                sesh = PrepSession.objects.get(pk=sesh_id)
-                # sesh = PrepSession.objects.get(document=doc_proxy.resource)
-            except PrepSession.DoesNotExist:
-                logger.warn("can't find PrepSession to delete.")
-                return JsonResponse({"success":False, "message": "no session to cancel"})
             if sesh.stage != "input":
                 msg = "can't cancel session that is past the input stage"
                 logger.warn(f"{sesh.__str__()} | {msg}")
@@ -164,7 +157,7 @@ class SplitView(View):
 
         elif operation == "extend-session":
 
-            document.extend_lock()
+            sesh.extend_locks2()
             return JsonResponse({"success":True})
 
         elif operation == "undo":
@@ -174,8 +167,7 @@ class SplitView(View):
                 return JsonResponse({"success":False, "message": str(e)})
             try:
                 sesh.undo()
-                vol = find_volume(document)
-                vol.refresh_lookups()
+                sesh.doc2.map.update_item_lookup()
             except Exception as e:
                 return JsonResponse({"success":False, "message": str(e)})
             return JsonResponse({"success":True})
@@ -192,7 +184,7 @@ class GeoreferenceView(View):
         """
 
         region = get_object_or_404(Region,  pk=docid)
-        doc = get_object_or_404(Document,  slug=region.slug)
+        doc = get_object_or_404(DocumentOld,  slug=region.slug)
 
         # if the document is not currently locked and there is a logged in user,
         # create a new session
@@ -243,7 +235,7 @@ class GeoreferenceView(View):
         if not request.body:
             return BadPostRequest
 
-        document = get_object_or_404(Document, pk=docid)
+        document = get_object_or_404(DocumentOld, pk=docid)
 
         body = json.loads(request.body)
         gcp_geojson = body.get("gcp_geojson", {})

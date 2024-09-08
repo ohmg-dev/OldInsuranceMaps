@@ -169,6 +169,7 @@ def run_preparation(session: Union[int, PrepSession]):
 
     session.update_stage("processing")
 
+    output = []
     if session.data['split_needed'] is False:
         # create Region that matches this document
         w, h = session.doc2.image_size
@@ -178,6 +179,7 @@ def run_preparation(session: Union[int, PrepSession]):
             created_by=session.user,
         )
         save_file_to_object(region, source_object=session.doc2)
+        output.append(region)
 
     else:
         session.update_status("splitting document image")
@@ -201,10 +203,14 @@ def run_preparation(session: Union[int, PrepSession]):
 
             save_file_to_object(region, file_path=Path(file_path))
             os.remove(file_path)
+            output.append(region)
 
     session.update_status("success", save=False)
     session.update_stage("finished", save=False)
     session.save()
+
+    session.doc2.prepared = True
+    session.doc2.save()
 
     session.unlock_resources2()
 
@@ -220,4 +226,4 @@ def run_preparation(session: Union[int, PrepSession]):
 """
     )
 
-    return
+    return output

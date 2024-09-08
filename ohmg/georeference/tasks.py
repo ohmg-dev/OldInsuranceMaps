@@ -7,6 +7,7 @@ from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,
     delete_expired_sessions,
+    delete_expired_session_locks,
 )
 from ohmg.georeference.operations.sessions import run_georeferencing, run_preparation
 from ohmg.core.utils import save_file_to_object
@@ -62,6 +63,10 @@ def patch_new_layer_to_session(sessionid):
 @app.task
 def delete_expired():
     delete_expired_sessions()
+
+@app.task
+def remove_stale_sessions():
+    delete_expired_session_locks()
 
 @app.task
 def delete_preview_vrt(base_file_path, preview_url_to_remove):

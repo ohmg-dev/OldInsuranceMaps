@@ -42,7 +42,6 @@ const styles = new Styles();
 
 export let CONTEXT;
 export let DOCUMENT;
-export let VOLUME;
 
 let docView;
 let docViewMap;
@@ -55,13 +54,13 @@ let currentInteraction = 'draw';
 
 let unchanged = true;
 
-const session_id = DOCUMENT.lock_enabled ? DOCUMENT.lock_details.session_id : null;
+const session_id = DOCUMENT.lock ? DOCUMENT.lock.session_id : null;
 
-let disableInterface = DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name != CONTEXT.user.username);
+let disableInterface = DOCUMENT.lock && (DOCUMENT.lock.user.username != CONTEXT.user.username);
 let disableReason;
 let leaveOkay = true;
 let enableButtons = false;
-if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == CONTEXT.user.username)) {
+if (DOCUMENT.lock && (DOCUMENT.lock.user.username == CONTEXT.user.username)) {
   leaveOkay = false;
   enableButtons = true;
 }
@@ -84,14 +83,8 @@ function cancelAndRedirectToDetail() {
 
 let currentTxt;
 $: {
-  if (DOCUMENT.status == "prepared" || DOCUMENT.status == "georeferenced") {
-    if (DOCUMENT.parent) {
-      currentTxt = "This document has already been prepared! (It was split from another document.)"
-    } else {
-      "This document has already been prepared! (It did not need to be split.)"
-    }
-  } else if (DOCUMENT.status == "split") {
-    currentTxt = "This document has already been prepared! (It was split into "+DOCUMENT.children.length+" documents.)"
+  if (DOCUMENT.regions) {
+    currentTxt = "This document has already been prepared! (It was split into "+DOCUMENT.regions.length+" documents.)"
   } else if (divisions.length <= 1) {
     currentTxt = "If this image needs to be split, draw cut-lines across it as needed. Click once to start or continue a line, double-click to finish."
   } else {
@@ -320,11 +313,11 @@ function process(operation) {
       if (operation == "preview") {
         divisions = result['divisions'];
       } else if (operation == "split") {
-        window.location.href = VOLUME.urls.summary;
+        window.location.href = `/map/${DOCUMENT.map}`;
       } else if (operation == "no_split") {
-        window.location.href = DOCUMENT.urls.georeference;
+        window.location.href = `/georeference/${result.region_id}`;
       } else if (operation == "cancel") {
-        window.location.href = VOLUME.urls.summary;
+        window.location.href = `/map/${DOCUMENT.map}`;
       }
     });
 }
@@ -339,7 +332,7 @@ function confirmLeave () {
 
 function cleanup () {
   // if this is an in-progress session for the current user
-  if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == CONTEXT.user.username)) {
+  if (DOCUMENT.lock && (DOCUMENT.lock.user.username == CONTEXT.user.username)) {
     process("cancel")
   }
 }
@@ -395,8 +388,8 @@ function cleanup () {
   {#if disableInterface}
   <div class="interface-mask">
     <div class="signin-reminder">
-      {#if DOCUMENT.lock_enabled}
-      <p>Document currently locked for processing by {DOCUMENT.lock_details.user.name}</p>
+      {#if DOCUMENT.lock}
+      <p>Document currently locked for processing by {DOCUMENT.lock.user.username}</p>
       {:else if disableReason == "split"}
       <p>Processing document split... redirecting to document detail.</p>
       <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>

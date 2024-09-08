@@ -14,7 +14,7 @@ from ninja import (
 from avatar.templatetags.avatar_tags import avatar_url
 
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.georeference.models import SessionLock, SessionBase
+from ohmg.georeference.models import SessionLock, SessionBase, PrepSession
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +94,41 @@ class MapListSchema(Schema):
             "summary": f"/map/{obj.identifier}",
         }
 
+class DocumentFullSchema(Schema):
+    id: int
+    title: str
+    slug: str
+    page_number: Optional[str]
+    file: Optional[str]
+    thumbnail: Optional[str]
+    prepared: bool
+    urls: dict
+    image_size: Optional[list]
+    lock: Optional["SessionLockSchema"]
+    map: str
+    cutlines: list
+    regions: List["RegionSchema"]
+
+    @staticmethod
+    def resolve_urls(obj):
+        return {
+            "resource": f"/resource/{obj.pk}",
+            "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
+            "image": obj.file.url if obj.file else "",
+            "split": f"/split/{obj.pk}/",
+        }
+
+    @staticmethod
+    def resolve_map(obj):
+        return obj.map.pk
+    
+    @staticmethod
+    def resolve_cutlines(obj):
+        prep = PrepSession.objects.filter(doc2=obj)
+        if prep.exists():
+            return prep[0].data['cutlines']
+        else:
+            return []
 
 class DocumentSchema(Schema):
     id: int
@@ -112,9 +147,8 @@ class DocumentSchema(Schema):
             "resource": f"/resource/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
             "image": obj.file.url if obj.file else "",
-            "split": f"/split/{obj.pk}",
+            "split": f"/split/{obj.pk}/",
         }
-
 
 class RegionSchema(Schema):
     id: int
@@ -133,7 +167,7 @@ class RegionSchema(Schema):
             "resource": f"/resource/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
             "image": obj.file.url if obj.file else "",
-            "georeference": f"/georeference/{obj.pk}",
+            "georeference": f"/georeference/{obj.pk}/",
         }
 
     @staticmethod
@@ -160,7 +194,7 @@ class LayerSchema(Schema):
             "resource": f"/resource/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
             "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
-            "georeference": f"/georeference/{obj.region.pk}",
+            "georeference": f"/georeference/{obj.region.pk}/",
         }
 
     @staticmethod
@@ -245,7 +279,7 @@ class LayerSetLayer(Schema):
             "resource": f"/resource/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
             "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
-            "georeference": f"/georeference/{obj.region.pk}",
+            "georeference": f"/georeference/{obj.region.pk}/",
         }
 
     @staticmethod
@@ -423,3 +457,5 @@ class MapFullSchema(Schema):
     def resolve_locks(obj):
         locks = [i for i in SessionLock.objects.all().prefetch_related() if i.target.map.pk == obj.pk]
         return locks
+
+DocumentFullSchema.update_forward_refs()
