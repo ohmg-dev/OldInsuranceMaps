@@ -83,7 +83,7 @@ function cancelAndRedirectToDetail() {
 
 let currentTxt;
 $: {
-  if (DOCUMENT.regions) {
+  if (DOCUMENT.regions.length > 0) {
     currentTxt = "This document has already been prepared! (It was split into "+DOCUMENT.regions.length+" documents.)"
   } else if (divisions.length <= 1) {
     currentTxt = "If this image needs to be split, draw cut-lines across it as needed. Click once to start or continue a line, double-click to finish."
@@ -114,7 +114,7 @@ function resetInterface() {
   const view = new View({
     projection: projection,
     center: mapCenter,
-    zoom: 1,
+    zoom: 1.5,
     maxZoom: 8,
   })
   docView.map.setView(view)
@@ -382,9 +382,10 @@ function cleanup () {
       getModal('modal-confirm-no-split').close()}
     }>Cancel</button>
 </Modal>
-
-<p>{currentTxt} <Link href="https://about.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link></p>
-<div id="map-container" class="svelte-component-main">
+<div style="height:25px">
+  {currentTxt} <Link href="https://about.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link>
+</div>
+<div id="map-container" style="height:calc(100vh - 205px)" class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
     <div class="signin-reminder">

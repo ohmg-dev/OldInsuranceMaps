@@ -18,7 +18,7 @@ export let showThumbs = false;
 export let showUser = true;
 export let showResource = true;
 export let paginate = true;
-
+export let allowRefresh = true;
 
 let loading = false;
 let items = [];
@@ -76,7 +76,9 @@ $: {
 				</select>
 			</div>
 			{/if}
+			{#if allowRefresh}
 			<button class="is-icon-link is-sm" disabled={loading} on:click={() => {offset = 1000; offset=0}}><ArrowsClockwise /></button>
+			{/if}
 			<button class="is-icon-link is-sm" style="font-size:1.25em" on:click={() => {getModal('modal-session-list').open()}}><Question /></button>
 			</div>
 		</div>

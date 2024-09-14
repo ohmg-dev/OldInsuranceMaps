@@ -421,6 +421,11 @@ footer a:hover {
 	z-index: 1000;
   }
 
+  .ffs-container {
+	max-height: 0;
+	overflow: hidden;
+  }
+
   ul.errorlist {
 	color: #db0606;
 	list-style: none;

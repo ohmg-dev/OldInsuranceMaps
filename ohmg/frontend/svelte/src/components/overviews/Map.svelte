@@ -39,8 +39,8 @@ export let SESSION_SUMMARY;
 export let ANNOTATION_SETS;
 export let ANNOTATION_SET_OPTIONS;
 
-console.log(MAP)
-console.log(ANNOTATION_SETS)
+// console.log(MAP)
+// console.log(ANNOTATION_SETS)
 
 const sessionLocks = {"docs": {}, "regs": {}, "lyrs": {}}
 $: {
@@ -222,6 +222,13 @@ function pollMapSummary() {
 	})
 	.then(response => response.json())
 	.then(result => {
+		if (
+			MAP.item_lookup.unprepared.length != result.item_lookup.unprepared.length ||
+			MAP.item_lookup.prepared.length != result.item_lookup.prepared.length ||
+			MAP.item_lookup.georeferenced.length != result.item_lookup.georeferenced.length
+		) {
+			fetchAnnotationSets();
+		}
 		MAP = result;
 	});
 }
@@ -383,7 +390,7 @@ let modalExtent = []
 				<span>
 					<em>
 					{#if sheetsLoading}
-					Loading sheet {MAP.progress.loaded_pages}/{MAP.progress.total_pages}... (you can safely leave this page).
+					Loading sheet {MAP.progress.loaded_pages+1}/{MAP.progress.total_pages}... (you can safely leave this page).
 					{:else if MAP.progress.loaded_pages == 0}
 					No sheets loaded yet...
 					{:else if MAP.progress.loaded_pages < MAP.progress.total_pages }
@@ -433,10 +440,10 @@ let modalExtent = []
 									/>
 							</button>
 							<div>
-								{#if sessionLocks.regs[document.id]}
+								{#if sessionLocks.docs[document.id]}
 								<ul style="text-align:center">
 									<li><em>preparation in progress...</em></li>
-									<li><em>user: {sessionLocks.regs[document.id].user.username}</em></li>
+									<li><em>user: {sessionLocks.docs[document.id].user.username}</em></li>
 								</ul>
 								{:else if userCanEdit}
 								<ul>
@@ -653,11 +660,15 @@ let modalExtent = []
 				{/each}
 			</select>
 			<span>
+				Masked layers: 
 				{#if annotationSetLookup[currentAnnotationSet].multimask_geojson}
 				{annotationSetLookup[currentAnnotationSet].multimask_geojson.features.length}/{annotationSetLookup[currentAnnotationSet].layers.length}
 				{:else}
 				0/{annotationSetLookup[currentAnnotationSet].layers.length}
 				{/if}
+			</span>
+			<span>
+				<em>&mdash; <strong>Important:</strong> Do not work on a multimask while there is other work in progress on this map (you could lose work).</em>
 			</span>
 			{#key multimaskKey}
 			<MultiMask ANNOTATION_SET={annotationSetLookup[currentAnnotationSet]}

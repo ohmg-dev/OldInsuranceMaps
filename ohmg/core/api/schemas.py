@@ -1,7 +1,9 @@
 import json
 import logging
 from datetime import datetime
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Literal
+
+from natsort import natsorted
 
 from django.conf import settings
 from django.db.models import Q
@@ -13,8 +15,18 @@ from ninja import (
 
 from avatar.templatetags.avatar_tags import avatar_url
 
+from ohmg.core.models import (
+    Document,
+    Region,
+    Layer,
+)
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.georeference.models import SessionLock, SessionBase, PrepSession
+from ohmg.georeference.models import (
+    PrepSession,
+    GeorefSession,
+    SessionLock,
+    SessionBase,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +110,8 @@ class DocumentFullSchema(Schema):
     id: int
     title: str
     slug: str
+    type: str = "document"
+    status: str
     page_number: Optional[str]
     file: Optional[str]
     thumbnail: Optional[str]
@@ -108,11 +122,12 @@ class DocumentFullSchema(Schema):
     map: str
     cutlines: list
     regions: List["RegionSchema"]
+    layers: List["LayerSchema"]
 
     @staticmethod
     def resolve_urls(obj):
         return {
-            "resource": f"/resource/{obj.pk}",
+            "resource": f"/document/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
             "image": obj.file.url if obj.file else "",
             "split": f"/split/{obj.pk}/",
@@ -130,6 +145,14 @@ class DocumentFullSchema(Schema):
         else:
             return []
 
+    @staticmethod
+    def resolve_status(obj):
+        if obj.prepared:
+            return "prepared"
+        else:
+            return "unprepared"
+
+
 class DocumentSchema(Schema):
     id: int
     title: str
@@ -144,7 +167,7 @@ class DocumentSchema(Schema):
     @staticmethod
     def resolve_urls(obj):
         return {
-            "resource": f"/resource/{obj.pk}",
+            "resource": f"/document/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
             "image": obj.file.url if obj.file else "",
             "split": f"/split/{obj.pk}/",
@@ -160,11 +183,13 @@ class RegionSchema(Schema):
     georeferenced: bool
     urls: dict
     image_size: Optional[list]
+    page_number: Optional[str]
+    division_number: Optional[str]
 
     @staticmethod
     def resolve_urls(obj):
         return {
-            "resource": f"/resource/{obj.pk}",
+            "resource": f"/region/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
             "image": obj.file.url if obj.file else "",
             "georeference": f"/georeference/{obj.pk}/",
@@ -176,12 +201,18 @@ class RegionSchema(Schema):
             return json.loads(obj.boundary.geojson)
         else:
             return None
+        
+    @staticmethod
+    def resolve_page_number(obj):
+        return obj.document.page_number
 
 
 class RegionFullSchema(Schema):
     id: int
     title: str
     slug: str
+    type: str = "region"
+    status: str
     file: Optional[str]
     thumbnail: Optional[str]
     boundary: Optional[dict]
@@ -194,11 +225,13 @@ class RegionFullSchema(Schema):
     map: str
     gcps_geojson: Optional[dict]
     transformation: Optional[str]
+    page_number: Optional[str]
+    division_number: Optional[str]
 
     @staticmethod
     def resolve_urls(obj):
         return {
-            "resource": f"/resource/{obj.pk}",
+            "resource": f"/region/{obj.pk}/",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
             "image": obj.file.url if obj.file else "",
             "georeference": f"/georeference/{obj.pk}/",
@@ -222,6 +255,15 @@ class RegionFullSchema(Schema):
     def resolve_map(obj):
         return obj.map.pk
 
+    @staticmethod
+    def resolve_status(obj):
+        if obj.is_map is False:
+            return "non-map"
+        elif obj.georeferenced:
+            return "georeferenced"
+        else:
+            return "prepared"
+
 class LayerSchema(Schema):
     id: int
     title: str
@@ -235,7 +277,53 @@ class LayerSchema(Schema):
     @staticmethod
     def resolve_urls(obj):
         return {
-            "resource": f"/resource/{obj.pk}",
+            "resource": f"/layer/{obj.pk}",
+            "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
+            "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
+            "georeference": f"/georeference/{obj.region.pk}/",
+        }
+
+    @staticmethod
+    def resolve_mask(obj):
+        if obj.layerset and obj.layerset.multimask and obj.slug in obj.layerset.multimask:
+            return obj.layerset.multimask[obj.slug]
+        else:
+            return None
+
+    @staticmethod
+    def resolve_image_url(obj):
+        if obj.region and obj.region.file:
+            return obj.region.file.url
+        else:
+            return None
+
+    @staticmethod
+    def resolve_gcps_geojson(obj):
+        if not obj.region:
+            logger.warn(f"[WARNING] Layer {obj.pk} has no associated region")
+            return None
+        elif not obj.region.gcp_group:
+            logger.warn(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
+            return None
+        return obj.region.gcp_group.as_geojson
+    
+
+class LayerFullSchema(Schema):
+    id: int
+    title: str
+    slug: str
+    type: str = "layer"
+    status: str = "georeferenced"
+    image_url: Optional[str]
+    mask: Optional[dict]
+    gcps_geojson: Optional[dict]
+    urls: dict
+    extent: Optional[list]
+
+    @staticmethod
+    def resolve_urls(obj):
+        return {
+            "resource": f"/layer/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
             "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
             "georeference": f"/georeference/{obj.region.pk}/",
@@ -468,9 +556,10 @@ class MapFullSchema(Schema):
 
     @staticmethod
     def resolve_progress(obj):
-        unprep_ct = len(obj.item_lookup['unprepared'])
-        prep_ct = len(obj.item_lookup['prepared'])
-        georef_ct = len(obj.item_lookup['georeferenced'])
+
+        unprep_ct = len(obj.item_lookup.get('unprepared', []))
+        prep_ct = len(obj.item_lookup.get('prepared', []))
+        georef_ct = len(obj.item_lookup.get('georeferenced', []))
         percent = 0
         if georef_ct > 0:
             percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
@@ -501,6 +590,175 @@ class MapFullSchema(Schema):
     def resolve_locks(obj):
         locks = [i for i in SessionLock.objects.all().prefetch_related() if i.target.map.pk == obj.pk]
         return locks
+    
+    @staticmethod
+    def resolve_documents(obj):
+        return natsorted(obj.documents.all(), key=lambda k: k.title)
+
+
+class MapResourcesSchema(Schema):
+
+    identifier: str
+    title: str
+    year: int = 0
+    documents: List[DocumentSchema]
+    regions: List[RegionSchema]
+    volume_number: Optional[str]
+    document_page_type: str
+    urls: dict
+
+    @staticmethod
+    def resolve_urls(obj):
+        viewer_url = ""
+        if obj.get_locale():
+            viewer_url = f"/viewer/{obj.get_locale().slug}?{obj.identifier}=100"
+
+        return {
+            "summary": f"/map/{obj.identifier}",
+            "viewer": viewer_url,
+        }
+
+    @staticmethod
+    def resolve_documents(obj):
+        return natsorted(obj.documents.all(), key=lambda k: k.title)
+    
+    @staticmethod
+    def resolve_regions(obj):
+        return natsorted(obj.regions.all(), key=lambda k: k.title)
+
+
+def _get_type_lookup(obj):
+    return {
+        Document: "document",
+        Region: "region",
+        Layer: "layer",
+    }.get(obj.__class__)
+
+
+class ResourceFullSchema(Schema):
+    id: int
+    title: str
+    slug: str
+    type: Literal['document', 'region', 'layer']
+    status: str
+    page_number: Optional[str]
+    file: Optional[str]
+    thumbnail: Optional[str]
+    extent: Optional[list]
+    urls: dict
+    image_size: Optional[list]
+    lock: Optional["SessionLockSchema"]
+    map: str
+    document: DocumentFullSchema
+    region: Optional[RegionSchema]
+    regions: List[RegionSchema]
+    layers: List[LayerSchema]
+    prep_sessions: List[SessionSchema]
+    georef_sessions: List[SessionSchema]
+
+    @staticmethod
+    def resolve_type(obj):
+        return _get_type_lookup(obj)
+
+    @staticmethod
+    def resolve_urls(obj):
+        restype = _get_type_lookup(obj)
+        docid, regid = None, None
+        if restype == "layer":
+            docid = obj.region.document.pk
+            regid = obj.region.pk
+        elif restype == "region":
+            docid = obj.document.pk
+            regid = obj.pk
+        elif restype == "document":
+            docid = obj.pk
+        return {
+            "resource": f"/{restype}/{obj.pk}",
+            "split": f"/split/{docid}/",
+            "georeference": f"/georeference/{regid}/",
+            "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
+            "image": obj.file.url if obj.file else "",
+            "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
+        }
+
+    @staticmethod
+    def resolve_map(obj):
+        return obj.map.pk
+
+    @staticmethod
+    def resolve_document(obj):
+        restype = _get_type_lookup(obj)
+        if restype == "layer":
+            return obj.region.document
+        elif restype == "region":
+            return obj.document
+        elif restype == "document":
+            return obj
+
+    @staticmethod
+    def resolve_region(obj):
+        restype = _get_type_lookup(obj)
+        if restype == "layer":
+            return obj.region
+        else:
+            return None
+
+    @staticmethod
+    def resolve_regions(obj):
+        restype = _get_type_lookup(obj)
+        if restype == "layer":
+            return [obj.region]
+        elif restype == "region":
+            return obj.document.regions.all()
+        elif restype == "document":
+            return obj.regions.all()
+    
+    @staticmethod
+    def resolve_layers(obj):
+        restype = _get_type_lookup(obj)
+        if restype == "layer":
+            return [obj]
+        elif restype == "region":
+            return [obj.layer] if hasattr(obj, 'layer') and obj.layer else []
+        elif restype == "document":
+            return obj.layers.all()
+    
+    @staticmethod
+    def resolve_prep_sessions(obj):
+        restype = _get_type_lookup(obj)
+        if restype == "layer":
+            return PrepSession.objects.filter(doc2=obj.region.document)
+        elif restype == "region":
+            return PrepSession.objects.filter(doc2=obj.document)
+        elif restype == "document":
+            return PrepSession.objects.filter(doc2=obj)
+
+    @staticmethod
+    def resolve_georef_sessions(obj):
+        restype = _get_type_lookup(obj)
+        if restype == "layer":
+            return GeorefSession.objects.filter(lyr2=obj)
+        elif restype == "region":
+            return GeorefSession.objects.filter(reg2=obj)
+        elif restype == "document":
+            return GeorefSession.objects.filter(reg2__in=obj.regions.all())
+
+    @staticmethod
+    def resolve_status(obj):
+        restype = _get_type_lookup(obj)
+        if restype == "layer":
+            return "georeferenced"
+        elif restype == "region":
+            return "georeferenced" if obj.georeferenced else "prepared"
+        elif restype == "document":
+            reg_count = obj.regions.all().count()
+            if reg_count == 0:
+                return "unprepared"
+            elif reg_count == 1:
+                return "georeferenced" if obj.regions.all()[0].georeferenced else "prepared"
+            else:
+                return "split"
+
 
 DocumentFullSchema.update_forward_refs()
 RegionFullSchema.update_forward_refs()

@@ -458,6 +458,10 @@ class Document(models.Model):
         return get_image_size(Path(self.file.path)) if self.file else None
     
     @property
+    def layers(self):
+        return Layer.objects.filter(region_id__in=self.regions.all().values_list("id", flat=True))
+    
+    @property
     def lock(self):
         from ohmg.georeference.models import SessionLock
         ct = ContentType.objects.get_for_model(self)
@@ -780,7 +784,9 @@ class Layer(models.Model):
         # before everything is shifted away from the Volume model
         if not layerset.map:
             layerset.map = self.region.document.map
-            layerset.save()
+
+        # save here to trigger a recalculation of the layerset's extent
+        layerset.save()
 
     def save(self,
         set_slug: bool=False,

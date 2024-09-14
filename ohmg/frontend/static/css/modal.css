@@ -57,7 +57,7 @@
 }
 .full-modal {
     width: 100%;
-    height: calc(100vh - 45px);
+    height: calc(100vh - 105px);
 }
 
 .full-modal-content {

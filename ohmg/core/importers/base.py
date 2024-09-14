@@ -129,6 +129,7 @@ class BaseImporter():
             document_sources=document_sources,
         )
         map.locales.set(volume.locales.all())
+        map.update_item_lookup()
         
         # make sure a main-content layerset exists for this volume
         main_ls, _ = LayerSet.objects.get_or_create(
