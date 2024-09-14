@@ -69,7 +69,7 @@ class APIKeyAuth(APIKeyHeader):
 # going to be useful eventually for Geo support
 # https://github.com/vitalik/django-ninja/issues/335
 beta2 = NinjaAPI(
-    # auth=APIKeyAuth(),
+    auth=APIKeyAuth(),
     title="OldInsuranceMaps.net API",
     version="beta2",
     description="An API for accessing content on OldInsuranceMaps.net."
