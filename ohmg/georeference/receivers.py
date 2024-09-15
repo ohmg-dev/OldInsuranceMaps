@@ -67,9 +67,10 @@ def refresh_volume_lookup(sender, instance, **kwargs):
 @receiver([signals.post_delete, signals.post_save], sender=Region)
 @receiver([signals.post_delete, signals.post_save], sender=Layer)
 def update_item_lookup(sender, instance, **kwargs):
-    if sender == Document:
-        instance.map.update_item_lookup()
-    if sender == Region:
-        instance.document.map.update_item_lookup()
-    if sender == Layer:
-        instance.region.document.map.update_item_lookup()
+    if not hasattr(instance, 'skip_map_lookup_update') or instance.skip_map_lookup_update is False:
+        if sender == Document :
+            instance.map.update_item_lookup()
+        if sender == Region:
+            instance.document.map.update_item_lookup()
+        if sender == Layer:
+            instance.region.document.map.update_item_lookup()

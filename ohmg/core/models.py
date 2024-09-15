@@ -512,7 +512,15 @@ class Document(models.Model):
             tname = f"{name}-doc-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
 
-    def save(self, set_slug=False, set_thumbnail=False, *args, **kwargs):
+    def save(self,
+        set_slug: bool=False,
+        set_thumbnail: bool=False,
+        skip_map_lookup_update: bool=False,
+        *args, **kwargs
+    ):
+
+        # attach this flag which is checked on the post_save signal receiver
+        self.skip_map_lookup_update = skip_map_lookup_update
 
         if set_thumbnail or (self.file and not self.thumbnail):
             self.set_thumbnail()
@@ -631,7 +639,14 @@ class Region(models.Model):
             tname = f"{name}-reg-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
 
-    def save(self, set_slug=False, set_thumbnail=False, *args, **kwargs):
+    def save(self,
+        set_slug: bool=False,
+        set_thumbnail: bool=False,
+        skip_map_lookup_update: bool=False,
+        *args, **kwargs
+    ):
+        # attach this flag which is checked on the post_save signal receiver
+        self.skip_map_lookup_update = skip_map_lookup_update
 
         if set_thumbnail or (self.file and not self.thumbnail):
             self.set_thumbnail()
@@ -791,9 +806,12 @@ class Layer(models.Model):
     def save(self,
         set_slug: bool=False,
         set_thumbnail: bool=False,
-        set_extent: bool=False,
+        set_extent: bool=True,
+        skip_map_lookup_update: bool=False,
         *args, **kwargs
     ):
+        # attach this flag which is checked on the post_save signal receiver
+        self.skip_map_lookup_update = skip_map_lookup_update
 
         if set_slug or not self.slug:
             self.slug = slugify(self.region.__str__(), join_char="_")
@@ -801,7 +819,7 @@ class Layer(models.Model):
         if set_thumbnail or (self.file and not self.thumbnail):
             self.set_thumbnail()
 
-        if set_extent or (self.file and not self.extent):
+        if set_extent and self.file:
             self.extent = get_extent_from_file(Path(self.file.path))
 
         self.title = self.region.title
