@@ -218,7 +218,7 @@ $: manageAutoReload(autoReload)
 
 function pollMapSummary() {
 	fetch(`${CONTEXT.urls.get_map}?map=${MAP.identifier}`, {
-		headers: CONTEXT.ohmg_post_headers,
+		headers: CONTEXT.ohmg_api_headers,
 	})
 	.then(response => response.json())
 	.then(result => {
