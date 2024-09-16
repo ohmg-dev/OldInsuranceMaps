@@ -34,7 +34,7 @@
     
     {% block head %}{% endblock %}
     
-    {% compress css %}
+    {# compress css #}
     <!-- custom stylesheets -->
     <link href="{{ STATIC_URL }}css/bulma-overrides.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
     <link href="{{ STATIC_URL }}css/site_base.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
@@ -43,15 +43,15 @@
     <link href="{{ STATIC_URL }}plugins/fonts/josephine.css" rel="stylesheet"/>
     <!-- from: https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css -->
     <link href="{{ STATIC_URL }}plugins/phosphor-icons@2.1.1/bold.css" rel="stylesheet"/>
-    {% endcompress %}
+    {# endcompress #}
     
-    {% compress js %}
+    {# compress js #}
     <!-- dependencies for pinax-announcements -->
     <!-- from: https://code.jquery.com/jquery-2.2.4.min.js -->
     <script src="{{ STATIC_URL }}plugins/jquery-2.2.4.min.js"></script>
     <!-- from: https://cdn.jsdelivr.net/npm/eldarion-ajax@0.16.0/js/eldarion-ajax.min.js -->
     <script src="{{ STATIC_URL }}plugins/eldarion-ajax.min.js"></script>
-    {% endcompress %}
+    {# endcompress #}
 
     <script>
         var siteUrl = '{{ SITEURL }}'.replace(/\/?$/, '/');
