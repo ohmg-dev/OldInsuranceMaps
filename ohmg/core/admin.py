@@ -10,15 +10,18 @@ from ohmg.core.models import (
 
 
 class DocumentAdmin(admin.ModelAdmin):
+    search_fields = ("title",)
     readonly_fields = ("prepared", "title")
 
 
 class RegionAdmin(admin.ModelAdmin):
+    search_fields = ("title",)
     raw_id_fields = ("document", "gcp_group")
     readonly_fields = ("georeferenced", "title")
 
 
 class LayerAdmin(admin.ModelAdmin):
+    search_fields = ("title",)
     raw_id_fields = ("region", "layerset")
     readonly_fields = ("title",)
 
