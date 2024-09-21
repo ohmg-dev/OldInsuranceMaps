@@ -283,7 +283,7 @@ function goToRegion() {
           onlyIcon={false}
           title="Split this document"
           disabled={!splitBtnEnabled}
-          action={() => {window.location.href='{RESOURCE.urls.split}'}}>
+          action={() => {window.location.href=RESOURCE.urls.split}}>
           <!-- class="control-btn{splitNeeded == true ? ' btn-chosen': ''}"> -->
           <Scissors /> Split
         </ToolUIButton>
