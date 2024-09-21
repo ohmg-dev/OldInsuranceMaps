@@ -158,6 +158,10 @@ input, button, select, textarea {
 	line-height: inherit;
 }
 
+select:focus {
+	box-shadow: 0px 0px 2px 1px #333333;
+}
+
 button, html input[type="button"], input[type="reset"], input[type="submit"] {
 	appearance: button;
 	-moz-appearance: button;
@@ -417,9 +421,53 @@ footer a:hover {
 	z-index: 1000;
   }
 
+  .ffs-container {
+	max-height: 0;
+	overflow: hidden;
+  }
+
   ul.errorlist {
 	color: #db0606;
 	list-style: none;
 	padding: 0;
 	font-style: italic;
   }
+
+@media (max-width: 1024px) {
+	.navbar-menu {
+		overflow-y: auto;
+		max-height: calc(100vh - 45px);
+	}
+}
+
+.signin-forms input {
+	max-width: 50%;
+}
+.signin-forms label {
+	width: 150px;
+	display: inline-block;
+	text-align: right;
+}
+.signin-forms form {
+	display: flex;
+	flex-direction: column;
+}
+
+footer {
+	display: flex;
+	flex-direction: column;
+	background:#123B4F;
+	color: white;
+	padding: 15px;
+	font-weight: 500;
+	min-height: 60px;
+}
+
+footer .content {
+	font-size: .95em;
+}
+
+footer a {
+	color: white;
+	text-decoration: underline;
+}

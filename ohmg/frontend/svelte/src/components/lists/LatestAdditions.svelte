@@ -1,4 +1,5 @@
 <script>
+    import LoadingEllipsis from "../base/LoadingEllipsis.svelte";
 	import Link from '@components/base/Link.svelte';
 
 	export let CONTEXT;
@@ -22,7 +23,7 @@
 
 <div>
 	{#if loadingItems}
-	<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+	<LoadingEllipsis />
 	{:else}
 	{#each latestItems as v}
 	<div class="list-item-container">

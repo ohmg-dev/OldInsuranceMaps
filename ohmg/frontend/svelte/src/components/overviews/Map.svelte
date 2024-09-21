@@ -30,11 +30,36 @@ import SimpleViewer from '@components/interfaces/SimpleViewer.svelte';
 import DownloadSectionModal from './modals/ItemDownloadSectionModal.svelte';
 import MapDetails from './sections/MapDetails.svelte';
     import SigninReminder from '../layout/SigninReminder.svelte';
+	import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
 
 export let CONTEXT;
-export let VOLUME;
+export let MAP;
+export let LOCALE;
+export let SESSION_SUMMARY;
 export let ANNOTATION_SETS;
 export let ANNOTATION_SET_OPTIONS;
+
+// console.log(MAP)
+// console.log(ANNOTATION_SETS)
+
+const sessionLocks = {"docs": {}, "regs": {}, "lyrs": {}}
+$: {
+	sessionLocks.docs = {}
+	sessionLocks.regs = {}
+	sessionLocks.lyrs = {}
+	MAP.locks.forEach((lock) => {
+		if (lock.target_type == "document" && MAP.item_lookup.unprepared.map(i => i.id).includes(lock.target_id)) {
+			sessionLocks.docs[lock.target_id] = lock
+		} else if (lock.target_type == "region" && MAP.item_lookup.prepared.map(i => i.id).includes(lock.target_id)) {
+			sessionLocks.regs[lock.target_id] = lock
+		} else if (lock.target_type == "layer" && MAP.item_lookup.georeferenced.map(i => i.id).includes(lock.target_id)) {
+			sessionLocks.lyrs[lock.target_id] = lock
+		}
+	})
+}
+$: docsLockedCt = Object.keys(sessionLocks.docs).length
+$: regsLockedCt = Object.keys(sessionLocks.regs).length
+$: lyrsLockedCt = Object.keys(sessionLocks.lyrs).length
 
 let multimaskKey = false;
 function reinitMultimask() {
@@ -57,7 +82,7 @@ function resetAnnotationSets(newAnnotationSets) {
 	layerAnnotationLookup = {}
 	newAnnotationSets.forEach(function (annoSet) {
 		annotationSetLookup[annoSet.id] = annoSet;
-		annoSet.annotations.forEach(function (anno) {
+		annoSet.layers.forEach(function (anno) {
 			layerAnnotationLookup[anno.slug] = annoSet.id;
 			origLayerAnnotationLookup[anno.slug] = annoSet.id;
 		})
@@ -102,9 +127,9 @@ function resetAnnotationSets(newAnnotationSets) {
 resetAnnotationSets(ANNOTATION_SETS)
 
 let userCanEdit = false;
-userCanEdit = CONTEXT.user.is_staff || (VOLUME.access == "any" && CONTEXT.user.is_authenticated) || (VOLUME.access == "sponsor" && VOLUME.sponsor == CONTEXT.user.username)
+userCanEdit = CONTEXT.user.is_staff || (MAP.access == "any" && CONTEXT.user.is_authenticated) || (MAP.access == "sponsor" && MAP.sponsor == CONTEXT.user.username)
 
-let currentIdentifier = VOLUME.identifier
+let currentIdentifier = MAP.identifier
 function goToItem() {
 	window.location = "/map/" + currentIdentifier
 }
@@ -113,7 +138,7 @@ function goToDocument() {
 	window.location = "/resource/" + currentDoc
 }
 
-$: sheetsLoading = VOLUME.status == "initializing...";
+$: sheetsLoading = MAP.status == "initializing...";
 
 let hash = window.location.hash.substr(1);
 
@@ -122,7 +147,7 @@ function checkForExistingMask(category, layerId) {
 	const postData = JSON.stringify({
 		operation: "check-for-existing-mask",
         resourceId: layerId,
-        volumeId: VOLUME.identifier,
+        volumeId: MAP.identifier,
 		categorySlug: category,
 	})
 
@@ -146,7 +171,7 @@ function updateAnnotationSets() {
 
 	const postData = JSON.stringify({
 		operation: "update",
-		volumeId: VOLUME.identifier,
+		volumeId: MAP.identifier,
 		updateList: Object.entries(annotationsToUpdate)
 	})
 
@@ -162,8 +187,8 @@ function updateAnnotationSets() {
 }
 
 const sectionVis = {
-	"summary": (!hash && VOLUME.items.layers.length == 0) || hash == "summary",
-	"preview": (!hash && VOLUME.items.layers.length > 0) || hash == "preview",
+	"summary": (!hash && MAP.item_lookup.georeferenced.length == 0) || hash == "summary",
+	"preview": (!hash && MAP.item_lookup.georeferenced.length > 0) || hash == "preview",
 	"unprepared": hash == "unprepared",
 	"prepared": hash == "prepared",
 	"georeferenced": hash == "georeferenced",
@@ -180,19 +205,35 @@ function setHash(hash){
 	history.replaceState(null, document.title, `#${hash}`);
 }
 
-let refreshingLookups = false;
-
 let intervalId;
 function manageAutoReload(run) {
 	if (run) {
-		intervalId = setInterval(postOperation, 4000, "refresh");
+		intervalId = setInterval(pollMapSummary, 4000);
 	} else {
 		clearInterval(intervalId)
 	}
 }
-$: autoReload = sheetsLoading || VOLUME.items.processing.unprep != 0 || VOLUME.items.processing.prep != 0 || VOLUME.items.processing.geo_trim != 0;
+$: autoReload = sheetsLoading || MAP.locks.length > 0;
 $: manageAutoReload(autoReload)
 
+function pollMapSummary() {
+	fetch(`${CONTEXT.urls.get_map}?map=${MAP.identifier}`, {
+		headers: CONTEXT.ohmg_api_headers,
+	})
+	.then(response => response.json())
+	.then(result => {
+		if (
+			MAP.item_lookup.unprepared.length != result.item_lookup.unprepared.length ||
+			MAP.item_lookup.prepared.length != result.item_lookup.prepared.length ||
+			MAP.item_lookup.georeferenced.length != result.item_lookup.georeferenced.length
+		) {
+			fetchAnnotationSets();
+		}
+		MAP = result;
+	});
+}
+
+let refreshingLookups = false;
 function postOperation(operation) {
 	let indexLayerIds = [];
 	if (operation == "refresh-lookups") {
@@ -202,7 +243,7 @@ function postOperation(operation) {
 		"operation": operation,
 		"indexLayerIds": indexLayerIds,
 	});
-	fetch(VOLUME.urls.summary, {
+	fetch(MAP.urls.summary, {
 		method: 'POST',
 		headers: CONTEXT.ohmg_post_headers,
 		body: data,
@@ -212,14 +253,14 @@ function postOperation(operation) {
 		// need to trigger a reinit of the MapPreview/Multimask components
 		// with new annotationsets
 		if (
-			VOLUME.items.unprepared.length != result.items.unprepared.length ||
-			VOLUME.items.prepared.length != result.items.prepared.length ||
-			VOLUME.items.georeferenced.length != result.items.georeferenced.length
+			MAP.item_lookup.unprepared.length != result.item_lookup.unprepared.length ||
+			MAP.item_lookup.prepared.length != result.item_lookup.prepared.length ||
+			MAP.item_lookup.georeferenced.length != result.item_lookup.georeferenced.length
 		) {
 			fetchAnnotationSets();
 		}
-		VOLUME = result;
-		sheetsLoading = VOLUME.status == "initializing...";
+		MAP = result;
+		sheetsLoading = MAP.status == "initializing...";
 		if (operation == "refresh-lookups") {
 			refreshingLookups = false;
 		}
@@ -227,7 +268,7 @@ function postOperation(operation) {
 }
 
 function fetchAnnotationSets() {
-	fetch(`${CONTEXT.urls.get_annotation_sets}?volume=${VOLUME.identifier}`, {
+	fetch(`${CONTEXT.urls.get_layersets}?map=${MAP.identifier}`, {
 		headers: CONTEXT.ohmg_api_headers
 	})
 	.then(response => response.json())
@@ -248,7 +289,7 @@ function postGeoref(url, operation, status) {
 	})
 	.then(response => response.json())
 	.then(result => {
-		postOperation("refresh");
+		pollMapSummary();
 	});
 }
 
@@ -261,14 +302,14 @@ let modalLyrUrl = "";
 let modalExtent = []
 
 </script>
-<MapPreviewModal id={"modal-preview-map"} placeName={VOLUME.locale.display_name} viewerUrl={VOLUME.urls.viewer}/>
+<MapPreviewModal id={"modal-preview-map"} placeName={LOCALE.display_name} viewerUrl={MAP.urls.viewer}/>
 <GeoreferenceOverviewModal id={"modal-georeference-overview"} />
 <UnpreparedSectionModal id={'modal-unprepared'} />
 <PreparedSectionModal id={"modal-prepared"} />
 <GeoreferencedSectionModal id={"modal-georeferenced"} />
 <MultiMaskModal id={"modal-multimask"} />
 <NonMapContentModal id={"modal-non-map"} />
-<GeoreferencePermissionsModal id={"modal-permissions"} user={CONTEXT.user.username} userCanEdit={userCanEdit} item={VOLUME} />
+<GeoreferencePermissionsModal id={"modal-permissions"} user={CONTEXT.user.username} userCanEdit={userCanEdit} item={MAP} />
 <Modal id={"modal-simple-viewer"} full={true}>
 {#each reinitModalMap as key (key)}
 	<SimpleViewer {CONTEXT} LAYER_URL={modalLyrUrl} EXTENT={modalExtent} GEOSPATIAL={modalIsGeospatial} />
@@ -276,26 +317,26 @@ let modalExtent = []
 </Modal>
 <main>
 	<section class="breadcrumbs">
-		{#each VOLUME.locale.breadcrumbs as bc, n}
-		<Link href="/{bc.slug}">{bc.name}</Link>{#if n != VOLUME.locale.breadcrumbs.length-1}<ArrowRight size={12} />{/if}
+		{#each LOCALE.breadcrumbs as bc, n}
+		<Link href="/{bc.slug}">{bc.name}</Link>{#if n != LOCALE.breadcrumbs.length-1}<ArrowRight size={12} />{/if}
 		{/each}
 		<ArrowRight size={12} />
 		<select class="item-select" bind:value={currentIdentifier} on:change={goToItem}>
-			{#each VOLUME.locale.volumes as v}
-			<option value={v.identifier}>{v.year}{v.volume_no ? " vol. " + v.volume_no : ''}</option>
+			{#each LOCALE.maps as m}
+			<option value={m.identifier}>{m.title}</option>
 			{/each}
 		</select>
 		<!--
 		<ArrowRight size={12} />
 		<select class="item-select" bind:value={currentDoc} on:change={goToDocument}>
 			<option value="---" disabled>go to...</option>
-			{#each VOLUME.sheets as s}
+			{#each MAP.sheets as s}
 			<option value={s.doc_id}>page {s.sheet_no}</option>
 			{/each}
 		</select>
 		-->
 	</section>
-	<TitleBar TITLE={VOLUME.title} VIEWER_LINK={VOLUME.urls.viewer}/>
+	<TitleBar TITLE={MAP.title} VIEWER_LINK={MAP.urls.viewer}/>
 	<section>
 		<div class="section-title-bar">
 			<button class="section-toggle-btn" on:click={() => {toggleSection('summary')}} title={sectionVis['summary'] ? 'Collapse section' : 'Expand section'}>
@@ -305,16 +346,16 @@ let modalExtent = []
 		</div>
 		{#if sectionVis['summary']}
 		<div style="margin-bottom:10px;" transition:slide>
-			<MapDetails {VOLUME} {ANNOTATION_SETS}/>
+			<MapDetails {CONTEXT} {MAP} {SESSION_SUMMARY} {ANNOTATION_SETS}/>
 		</div>
 		{/if}
 	</section>
 	<section>
 		<div class="section-title-bar">
-			<button class="section-toggle-btn" disabled={VOLUME.items.layers.length == 0}
+			<button class="section-toggle-btn" disabled={MAP.item_lookup.georeferenced.length == 0}
 				on:click={() => {toggleSection('preview')}} title={sectionVis['preview'] ? 'Collapse section' : 'Expand section'}>
 				<ConditionalDoubleChevron down={sectionVis['preview']} size="md"/>
-				<a id="preview"><h2>Mosaic Preview ({VOLUME.items.layers.length} layers)</h2></a>
+				<a id="preview"><h2>Mosaic Preview ({MAP.item_lookup.georeferenced.length} layers)</h2></a>
 			</button>
 			<button class="is-icon-link" on:click={() => {getModal('modal-preview-map').open()}} ><Question /></button>
 		</div>
@@ -335,7 +376,7 @@ let modalExtent = []
 				</a>
 			</div>
 			{#if refreshingLookups}
-				<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+				<LoadingEllipsis />
 			{/if}
 			<div style="display:flex; align-items:center;">
 				{#if CONTEXT.user.is_authenticated}
@@ -349,16 +390,16 @@ let modalExtent = []
 				<span>
 					<em>
 					{#if sheetsLoading}
-					Loading sheet {VOLUME.sheet_ct.loaded}/{VOLUME.sheet_ct.total}... (you can safely leave this page).
-					{:else if VOLUME.sheet_ct.loaded == 0}
+					Loading sheet {MAP.progress.loaded_pages+1}/{MAP.progress.total_pages}... (you can safely leave this page).
+					{:else if MAP.progress.loaded_pages == 0}
 					No sheets loaded yet...
-					{:else if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total }
-					{VOLUME.sheet_ct.loaded} of {VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
+					{:else if MAP.progress.loaded_pages < MAP.progress.total_pages }
+					{MAP.progress.loaded_pages} of {MAP.progress.total_pages} sheet{#if MAP.progress.total_pages != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
 					{/if}
 					</em>
 				</span>
-				{#if VOLUME.sheet_ct.loaded < VOLUME.sheet_ct.total && userCanEdit && !sheetsLoading}
-					<button class="button is-primary is-small" style="margin-left:10px;" on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({VOLUME.sheet_ct.total} sheet{#if VOLUME.sheet_ct.total != 1}s{/if})</button>
+				{#if MAP.progress.loaded_pages < MAP.progress.total_pages && userCanEdit && !sheetsLoading}
+					<button class="button is-primary is-small" style="margin-left:10px;" on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({MAP.progress.total_pages} sheet{#if MAP.progress.total_pages != 1}s{/if})</button>
 				{/if}
 			</div>
 			{#if !CONTEXT.user.is_authenticated}
@@ -366,16 +407,16 @@ let modalExtent = []
 			{/if}
 			<section class="subsection">
 				<div class="subsection-title-bar">
-					<button class="section-toggle-btn" on:click={() => toggleSection('unprepared')} disabled={VOLUME.items.unprepared.length == 0}
+					<button class="section-toggle-btn" on:click={() => toggleSection('unprepared')} disabled={MAP.item_lookup.unprepared.length == 0}
 						title={sectionVis['unprepared'] ? 'Collapse section' : 'Expand section'}>
 						<ConditionalDoubleChevron down={sectionVis['unprepared']} size="md" />
 						<a id="unprepared">
-							<h3 style="margin-top:5px;">
-								Unprepared ({VOLUME.items.unprepared.length})
-								{#if VOLUME.items.processing.unprep != 0}
-								&mdash; {VOLUME.items.processing.unprep} in progress...
-								{/if}
-							</h3>
+						<h3 style="margin-top:5px;">
+							Unprepared ({MAP.item_lookup.unprepared.length})
+							{#if docsLockedCt}
+							&ndash; {docsLockedCt} locked...
+							{/if}		
+						</h3>
 						</a>
 					</button>
 					<button class="is-icon-link" on:click={() => {getModal('modal-unprepared').open()}} ><Question /></button>
@@ -383,9 +424,9 @@ let modalExtent = []
 				{#if sectionVis['unprepared']}
 				<div transition:slide>
 					<div class="documents-column">
-						{#each VOLUME.items.unprepared as document}
+						{#each MAP.item_lookup.unprepared as document}
 						<div class="document-item">
-							<div><p><Link href={document.urls.resource} title={document.title}>Sheet {document.page_str}</Link></p></div>
+							<div><p><Link href={document.urls.resource} title={document.title}>{MAP.document_page_type} {document.page_number}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
 								modalLyrUrl=document.urls.image;
 								modalExtent=[0, -document.image_size[1], document.image_size[0], 0];
@@ -399,10 +440,10 @@ let modalExtent = []
 									/>
 							</button>
 							<div>
-								{#if document.lock_enabled}
+								{#if sessionLocks.docs[document.id]}
 								<ul style="text-align:center">
-									<li><em>preparation in progress.</em></li>
-									<li><em>user: {document.lock_details.user.name}</em></li>
+									<li><em>preparation in progress...</em></li>
+									<li><em>user: {sessionLocks.docs[document.id].user.username}</em></li>
 								</ul>
 								{:else if userCanEdit}
 								<ul>
@@ -418,13 +459,13 @@ let modalExtent = []
 			</section>
 			<section class="subsection">
 				<div class="subsection-title-bar">
-					<button class="section-toggle-btn" on:click={() => toggleSection("prepared")} disabled={VOLUME.items.prepared.length === 0} 
+					<button class="section-toggle-btn" on:click={() => toggleSection("prepared")} disabled={MAP.item_lookup.prepared.length === 0} 
 						title={sectionVis['prepared'] ? 'Collapse section' : 'Expand section'}>
 						<ConditionalDoubleChevron down={sectionVis['prepared']} size="md" />
 						<a id="prepared"><h3>
-							Prepared ({VOLUME.items.prepared.length})
-							{#if VOLUME.items.processing.prep != 0}
-							&mdash; {VOLUME.items.processing.prep} in progress...
+							Prepared ({MAP.item_lookup.prepared.length})
+							{#if regsLockedCt}
+							&ndash; {regsLockedCt} locked...
 							{/if}
 						</h3></a>
 					</button>
@@ -433,31 +474,31 @@ let modalExtent = []
 				{#if sectionVis['prepared']}
 				<div transition:slide>
 					<div class="documents-column">
-						{#each VOLUME.items.prepared as document}
+						{#each MAP.item_lookup.prepared as region}
 						<div class="document-item">
-							<div><p><Link href={document.urls.resource} title={document.title}>{document.title}</Link></p></div>
+							<div><p><Link href={region.urls.resource} title={region.title}>{region.title}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
-								modalLyrUrl=document.urls.image;
-								modalExtent=[0, -document.image_size[1], document.image_size[0], 0];
+								modalLyrUrl=region.urls.image;
+								modalExtent=[0, -region.image_size[1], region.image_size[0], 0];
 								modalIsGeospatial=false;
 								getModal('modal-simple-viewer').open();
 								reinitModalMap = [{}];
 								}} >
 								<img style="cursor:zoom-in"
-									src={document.urls.thumbnail}
-									alt={document.title}
+									src={region.urls.thumbnail}
+									alt={region.title}
 									/>
 							</button>
 							<div>
-								{#if document.lock_enabled}
+								{#if sessionLocks.regs[region.id]}
 								<ul style="text-align:center">
 									<li><em>georeferencing in progress...</em></li>
-									<li>{document.lock_details.user.name}</li>
+									<li>user: {sessionLocks.regs[region.id].user.username}</li>
 								</ul>
 								{:else if userCanEdit}
 								<ul>
-									<li><Link href={document.urls.georeference} title="georeference this document">georeference &rarr;</Link></li>
-									<li><button class="is-text-link" title="click to move this document to the non-map section" on:click={() => {postGeoref(document.urls.georeference, "set-status", "nonmap")}}>set as non-map</button></li>
+									<li><Link href={region.urls.georeference} title="georeference this document">georeference &rarr;</Link></li>
+									<li><button class="is-text-link" title="click to move this document to the non-map section" on:click={() => {postGeoref(region.urls.georeference, "set-status", "nonmap")}}>set as non-map</button></li>
 								</ul>
 								{/if}
 							</div>
@@ -469,17 +510,24 @@ let modalExtent = []
 			</section>
 			<section class="subsection">
 				<div class="subsection-title-bar">
-					<button class="section-toggle-btn" on:click={() => toggleSection("georeferenced")} disabled={VOLUME.items.layers.length == 0}
+					<button class="section-toggle-btn" on:click={() => toggleSection("georeferenced")} disabled={MAP.item_lookup.georeferenced.length == 0}
 						title={sectionVis['georeferenced'] ? 'Collapse section' : 'Expand section'}>
 						<ConditionalDoubleChevron down={sectionVis['georeferenced']} size="md" />
-						<a id="georeferenced"><h3>Georeferenced ({VOLUME.items.layers.length})</h3></a>
+						<a id="georeferenced">
+						<h3>
+							Georeferenced ({MAP.item_lookup.georeferenced.length})
+							{#if lyrsLockedCt}
+							&ndash; {lyrsLockedCt} locked...
+							{/if}
+						</h3>
+						</a>
 					</button>
 					<button class="is-icon-link" on:click={() => {getModal('modal-georeferenced').open()}} ><Question /></button>
 				</div>
 				{#if sectionVis['georeferenced']}
 				<div transition:slide>
 					<div style="margin: 10px 0px;">
-						{#if VOLUME.items.layers.length > 0 && !classifyingLayers}
+						{#if MAP.item_lookup.georeferenced.length > 0 && !classifyingLayers}
 						<button class="button is-primary"
 							on:click={() => classifyingLayers = !classifyingLayers}
 							disabled={!CONTEXT.user.is_authenticated}
@@ -503,7 +551,7 @@ let modalExtent = []
 						{/if}
 					</div>
 					<div class="documents-column">
-						{#each VOLUME.items.layers as layer}
+						{#each MAP.item_lookup.georeferenced as layer}
 						<div class="document-item">
 							<div><p><Link href={layer.urls.resource} title={layer.title}>{layer.title}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
@@ -518,10 +566,10 @@ let modalExtent = []
 									>
 							</button>
 							<div>
-								{#if layer.lock && layer.lock.enabled}
+								{#if sessionLocks.lyrs[layer.id]}
 								<ul style="text-align:center">
 									<li><em>session in progress...</em></li>
-									<li>{layer.lock.username}</li>
+									<li>user: {sessionLocks.lyrs[layer.id].user.username}</li>
 								</ul>
 								{:else if userCanEdit}
 								<ul>
@@ -548,17 +596,17 @@ let modalExtent = []
 			</section>
 			<section class="subsection" style="border-bottom:none;">
 				<div class="subsection-title-bar">
-					<button class="section-toggle-btn" on:click={() => toggleSection("nonmaps")} disabled={VOLUME.items.nonmaps.length == 0}
+					<button class="section-toggle-btn" on:click={() => toggleSection("nonmaps")} disabled={MAP.item_lookup.nonmaps.length == 0}
 						title={sectionVis['nonmaps'] ? 'Collapse section' : 'Expand section'}>
 						<ConditionalDoubleChevron down={sectionVis['nonmaps']} size="md" />
-						<a id="georeferenced"><h3>Non-Map Content ({VOLUME.items.nonmaps.length})</h3></a>
+						<a id="georeferenced"><h3>Non-Map Content ({MAP.item_lookup.nonmaps.length})</h3></a>
 					</button>
 					<button class="is-icon-link" on:click={() => {getModal('modal-non-map').open()}} ><Question /></button>
 				</div>
 				{#if sectionVis['nonmaps']}
 				<div transition:slide>
 					<div class="documents-column">
-						{#each VOLUME.items.nonmaps as nonmap}
+						{#each MAP.item_lookup.nonmaps as nonmap}
 						<div class="document-item">
 							<div><p><Link href={nonmap.urls.resource} title={nonmap.title}>{nonmap.title}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
@@ -590,7 +638,7 @@ let modalExtent = []
 	</section>
 	<section>
 		<div class="section-title-bar">
-			<button class="section-toggle-btn" on:click={() => toggleSection('multimask')} disabled={VOLUME.items.layers.length == 0}
+			<button class="section-toggle-btn" on:click={() => toggleSection('multimask')} disabled={MAP.item_lookup.georeferenced.length == 0}
 				title={sectionVis['multimask'] ? 'Collapse section' : 'Expand section'}>
 				<ConditionalDoubleChevron down={sectionVis['multimask']} size="md" />
 				<a id="multimask"><h2>MultiMask</h2></a>
@@ -606,17 +654,21 @@ let modalExtent = []
 					reinitMultimask();
 				}}>
 				{#each ANNOTATION_SETS as annoSet}
-				{#if annoSet.annotations}
+				{#if annoSet.layers}
 				<option value={annoSet.id}>{annoSet.name}</option>
 				{/if}
 				{/each}
 			</select>
 			<span>
+				Masked layers: 
 				{#if annotationSetLookup[currentAnnotationSet].multimask_geojson}
-				{annotationSetLookup[currentAnnotationSet].multimask_geojson.features.length}/{annotationSetLookup[currentAnnotationSet].annotations.length}
+				{annotationSetLookup[currentAnnotationSet].multimask_geojson.features.length}/{annotationSetLookup[currentAnnotationSet].layers.length}
 				{:else}
-				0/{annotationSetLookup[currentAnnotationSet].annotations.length}
+				0/{annotationSetLookup[currentAnnotationSet].layers.length}
 				{/if}
+			</span>
+			<span>
+				<em>&mdash; <strong>Important:</strong> Do not work on a multimask while there is other work in progress on this map (you could lose work).</em>
 			</span>
 			{#key multimaskKey}
 			<MultiMask ANNOTATION_SET={annotationSetLookup[currentAnnotationSet]}

@@ -43,7 +43,7 @@ import Snap from 'ol/interaction/Snap';
 import Styles from '@lib/ol-styles';
 const styles = new Styles();
 import {
-  makeLayerGroupFromAnnotationSet,
+  makeLayerGroupFromLayerSet,
   makeTitilerXYZUrl,
   makeBasemaps,
   generateFullMaskLayer,
@@ -59,10 +59,12 @@ import ToolUIButton from '../base/ToolUIButton.svelte';
 import ExpandElement from "./buttons/ExpandElement.svelte";
 
 export let CONTEXT;
-export let DOCUMENT;
+export let REGION;
 export let VOLUME;
 export let ANNOSET_MAIN;
 export let ANNOSET_KEYMAP;
+
+// console.log(REGION)
 
 let previewMode = "n/a";
 let previewUrl = '';
@@ -106,13 +108,13 @@ $: {
   }
 }
 
-const session_id = DOCUMENT.lock_enabled ? DOCUMENT.lock_details.session_id : null;
+const session_id = REGION.lock ? REGION.lock.session_id : null;
 
-let disableInterface = DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name != CONTEXT.user.username);
+let disableInterface = REGION.lock && (REGION.lock.user.username != CONTEXT.user.username);
 let disableReason;
 let leaveOkay = true;
 let enableButtons = false;
-if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == CONTEXT.user.username)) {
+if (REGION.lock && (REGION.lock.user.username == CONTEXT.user.username)) {
   leaveOkay = false;
   enableButtons = true;
 }
@@ -130,7 +132,7 @@ function promptRefresh() {
   }
 }
 
-const nextPage = VOLUME.urls.summary;
+const nextPage = `/map/${REGION.map}`;
 function cancelAndRedirectToDetail() {
   process("cancel");
   window.location.href=nextPage;
@@ -204,22 +206,38 @@ mapGCPSource.on(['addfeature'], function (e) {
 })
 
 let kmLayerGroup;
+let kmLayerGroup50;
 if (ANNOSET_KEYMAP) {
-  kmLayerGroup = makeLayerGroupFromAnnotationSet({
+  kmLayerGroup = makeLayerGroupFromLayerSet({
     annotationSet: ANNOSET_KEYMAP,
     zIndex: 10,
     titilerHost: CONTEXT.titiler_host,
     applyMultiMask: true,
   })
+  kmLayerGroup50 = makeLayerGroupFromLayerSet({
+    annotationSet: ANNOSET_KEYMAP,
+    zIndex: 11,
+    titilerHost: CONTEXT.titiler_host,
+    applyMultiMask: true,
+  })
+  kmLayerGroup50.setOpacity(.5)
 }
 
-const mainLayerGroup = makeLayerGroupFromAnnotationSet({
+const mainLayerGroup = makeLayerGroupFromLayerSet({
   annotationSet: ANNOSET_MAIN,
-  zIndex: 11,
+  zIndex: 12,
   titilerHost: CONTEXT.titiler_host,
   applyMultiMask: true,
-  excludeLayerId: DOCUMENT.layer ? DOCUMENT.layer.slug : '',
+  excludeLayerId: REGION.layer ? REGION.layer.slug : '',
 })
+const mainLayerGroup50 = makeLayerGroupFromLayerSet({
+  annotationSet: ANNOSET_MAIN,
+  zIndex: 13,
+  titilerHost: CONTEXT.titiler_host,
+  applyMultiMask: true,
+  excludeLayerId: REGION.layer ? REGION.layer.slug : '',
+})
+mainLayerGroup50.setOpacity(.5)
 
 const refLayers = [
   {
@@ -229,10 +247,22 @@ const refLayers = [
     disabled: null,
   },
   {
+    id: "keyMap50",
+    label: "Key Map 1/2",
+    layer: kmLayerGroup50,
+    disabled: kmLayerGroup50 ? false : true,
+  },
+  {
     id: "keyMap",
     label: "Key Map",
     layer: kmLayerGroup,
     disabled: kmLayerGroup ? false : true,
+  },
+  {
+    id: "mainLayers50",
+    label: "Main Layers 1/2",
+    layer: mainLayerGroup50,
+    disabled: mainLayerGroup50.getLayers().getArray().length == 0 ? true : null,
   },
   {
     id: "mainLayers",
@@ -243,7 +273,7 @@ const refLayers = [
 ]
 
 let currentRefLayer = 'none';
-if (kmLayerGroup) { currentRefLayer = "keyMap"}
+if (kmLayerGroup) { currentRefLayer = "keyMap50"}
 
 $: {
   refLayers.forEach( function(layerDef) {
@@ -298,8 +328,8 @@ function DocumentViewer (elementId) {
 
   const targetElement = document.getElementById(elementId);
 
-  const imgWidth = DOCUMENT.image_size[0];
-  const imgHeight = DOCUMENT.image_size[1];
+  const imgWidth = REGION.image_size[0];
+  const imgHeight = REGION.image_size[1];
 
   // items needed by layers and map
   // set the extent and projection with 0, 0 at the **top left** of the image
@@ -312,7 +342,7 @@ function DocumentViewer (elementId) {
   // create layers
   const docLayer = new ImageLayer({
     source: new ImageStatic({
-      url: DOCUMENT.urls.image,
+      url: REGION.urls.image,
       projection: docProjection,
       imageExtent: docExtent,
     }),
@@ -472,7 +502,9 @@ function MapViewer (elementId) {
     map.addLayer(mapRotate.layer)
 
     kmLayerGroup &&  map.addLayer(kmLayerGroup)
+    kmLayerGroup50 &&  map.addLayer(kmLayerGroup50)
     map.addLayer(mainLayerGroup)
+    map.addLayer(mainLayerGroup50)
 
     // add transition actions to the map element
     function updateMapEl() {map.updateSize()}
@@ -487,7 +519,7 @@ function MapViewer (elementId) {
     this.modifyInteraction = modify;
     this.resetExtent = function () {
       map.getView().setRotation(0);
-      if (DOCUMENT.gcps_geojson) {
+      if (REGION.gcps_geojson) {
         map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
       } else if (VOLUME.extent) {
         const extent3857 = transformExtent(VOLUME.extent, "EPSG:4326", "EPSG:3857");
@@ -526,9 +558,9 @@ function loadIncomingGCPs() {
   loadingInitial = true;
   docGCPSource.clear();
   mapGCPSource.clear();
-  if (DOCUMENT.gcps_geojson) {
+  if (REGION.gcps_geojson) {
     let listId = 1;
-    let inGCPs = new GeoJSON().readFeatures(DOCUMENT.gcps_geojson, {
+    let inGCPs = new GeoJSON().readFeatures(REGION.gcps_geojson, {
       dataProjection: "EPSG:4326",
       featureProjection: "EPSG:3857",
     });
@@ -551,7 +583,7 @@ function loadIncomingGCPs() {
     });
     previewMode = "transparent";
   }
-  currentTransformation = (DOCUMENT.transformation ? DOCUMENT.transformation : "poly1")
+  currentTransformation = (REGION.transformation ? REGION.transformation : "poly1")
   syncGCPList();
   docView.resetExtent()
   mapView.resetExtent()
@@ -810,7 +842,7 @@ function process(operation){
   }
 
   const data = JSON.stringify(body);
-  fetch(DOCUMENT.urls.georeference, {
+  fetch(REGION.urls.georeference, {
       method: 'POST',
       headers: CONTEXT.ohmg_post_headers,
       body: data,
@@ -901,8 +933,9 @@ function cleanup () {
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
-
-<p>Create 3 or more ground control points to georeference this document. To create a ground control point, first click on a location in the left panel, then find and click on the corresponding location in right panel. <Link href="https://about.oldinsurancemaps.net/guides/georeferencing/" external={true}>Learn more</Link></p>
+<div style="height:25px;">
+  Create 3 or more ground control points to georeference this document. <Link href="https://about.oldinsurancemaps.net/guides/georeferencing/" external={true}>Learn more</Link>
+</div>
 
 <Modal id="modal-expiration">
   <p>This georeferencing session is expiring, and will be cancelled soon.</p>
@@ -929,7 +962,7 @@ function cleanup () {
     }>No - keep working</button>
 </Modal>
 
-<div id="map-container" class="svelte-component-main">
+<div id="map-container" style="height:calc(100vh - 205px)" class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
     <div class="signin-reminder">

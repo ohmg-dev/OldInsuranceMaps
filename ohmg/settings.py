@@ -75,7 +75,7 @@ INSTALLED_APPS = [
     'tinymce',
     'django_extensions',
     'avatar',
-
+    'compressor',
     'ninja',
     'markdownx',
 
@@ -116,7 +116,6 @@ TEMPLATES = [
         "django.template.context_processors.static",
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
-        "ohmg.core.context_processors.navbar_footer_params",
         "ohmg.core.context_processors.site_info",
       ],
       "debug": DEBUG,
@@ -145,6 +144,15 @@ STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / 'static')
 STATICFILES_DIRS = [
     PROJECT_DIR / "frontend" / "svelte" / "public" / "build",
 ]
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+)
+
+COMPRESS_ENABLED = False
+#COMPRESS_OFFLINE = True
 
 MEDIA_URL = os.getenv('MEDIA_URL', '/uploaded/')
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / 'uploaded')
@@ -279,6 +287,7 @@ CELERY_TASK_ROUTES = {
     'ohmg.georeference.tasks.run_georeferencing_as_task': {'queue': 'georeference'},
     'ohmg.georeference.tasks.patch_new_layer_to_session': {'queue': 'georeference'},
     'ohmg.georeference.tasks.delete_expired': {'queue': 'housekeeping'},
+    'ohmg.georeference.tasks.remove_stale_sessions': {'queue': 'housekeeping'},
     'ohmg.georeference.tasks.delete_preview_vrt': {'queue': 'housekeeping'},
     'ohmg.loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
     'ohmg.loc_insurancemaps.tasks.load_map_documents_as_task': {'queue': 'volume'},
@@ -288,6 +297,10 @@ CELERY_TASK_ROUTES = {
 CELERY_BEAT_SCHEDULE = {
     'delete_expired_sessions': {
         'task': 'ohmg.georeference.tasks.delete_expired',
+        'schedule': 60.0,
+    },
+    'remove_stale_sessions': {
+        'task': 'ohmg.georeference.tasks.remove_stale_sessions',
         'schedule': 60.0,
     }
 }
@@ -402,6 +415,7 @@ LOGGING = {
 # https://stackoverflow.com/a/20719461/3873885
 if DEBUG:
     celery_log_level = 'DEBUG'
+    LOGGING['loggers']['ohmg']['handlers'].append('console')
     LOGGING['loggers']['ohmg.georeference']['handlers'].append('console')
     LOGGING['loggers']['ohmg.loc_insurancemaps']['handlers'].append('console')
 else:

@@ -1,6 +1,8 @@
 import os
 import logging
 
+from natsort import natsorted
+
 from django.conf import settings
 from django.http import JsonResponse, Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -9,8 +11,12 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.core.utils import full_reverse
+from ohmg.core.models import Map
 from ohmg.georeference.models import LayerV1
-from ohmg.core.schemas import LayerSetSchema
+from ohmg.core.api.schemas import (
+    LayerSetSchema,
+    MapFullSchema,
+)
 
 from ohmg.loc_insurancemaps.models import Volume
 
@@ -224,7 +230,7 @@ class Viewer(View):
     def get(self, request, place_slug):
 
         place_data = {}
-        volumes = []
+        maps = []
 
         p = Place.objects.filter(slug=place_slug)
         if p.count() == 1:
@@ -233,16 +239,18 @@ class Viewer(View):
             place = Place.objects.get(slug="louisiana")
 
         place_data = place.serialize()
-        for v in Volume.objects.filter(locales__id__exact=place.id).order_by("year","volume_no").reverse():
-            v_serialized = v.serialize()
-            v_serialized['main_annotation_set'] = LayerSetSchema.from_orm(v.get_annotation_set('main-content')).dict()
-            volumes.append(v_serialized)
+        for map in Map.objects.filter(locales__id__exact=place.id).prefetch_related():
+            map_json = MapFullSchema.from_orm(map).dict()
+            map_json['main_layerset'] = LayerSetSchema.from_orm(map.get_layerset('main-content')).dict()
+            maps.append(map_json)
+
+        maps_sorted = natsorted(maps, key=lambda x: x['title'], reverse=True)
 
         context_dict = {
             "svelte_params": {
                 "CONTEXT": generate_ohmg_context(request),
                 "PLACE": place_data,
-                "VOLUMES": volumes,
+                "MAPS": maps_sorted,
             }
         }
         return render(

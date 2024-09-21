@@ -9,6 +9,7 @@ from django.views import View
 from django.http import JsonResponse, HttpResponseBadRequest
 
 from ohmg.core.context_processors import generate_ohmg_context
+from ohmg.core.utils import time_this
 from ohmg.georeference.tasks import (
     # these are the old commands, retain for now
     run_georeference_session,
@@ -21,20 +22,31 @@ from ohmg.georeference.tasks import (
     patch_new_layer_to_session,
 )
 from ohmg.georeference.models import (
-    Document,
+    Document as DocumentOld,
     GCPGroup,
     PrepSession,
     GeorefSession,
-    ItemBase,
+    LayerSet,
 )
-from ohmg.core.schemas import LayerSetSchema
-from ohmg.core.models import Region, Document as Document2, Layer
+from ohmg.core.api.schemas import (
+    DocumentFullSchema,
+    LayerSetSchema,
+    MapFullSchema,
+    MapListSchema,
+    RegionFullSchema,
+)
+from ohmg.core.models import (
+    Region,
+    Document,
+    Layer,
+    Map,
+)
 from ohmg.georeference.operations.sessions import run_preparation
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.georeference.tasks import delete_preview_vrt
 
-from ohmg.loc_insurancemaps.models import find_volume, Volume
+from ohmg.loc_insurancemaps.models import find_volume
 
 logger = logging.getLogger(__name__)
 
@@ -42,31 +54,29 @@ BadPostRequest = HttpResponseBadRequest("invalid post content")
 
 class SplitView(View):
 
+    @time_this
     def get(self, request, docid):
         """
         Returns the splitting interface for this document.
         """
 
         document = get_object_or_404(Document, pk=docid)
-        doc2 = get_object_or_404(Document2, slug=document.slug)
+        
         # if the document is not currently locked and there is a logged in user,
         # create a new session
-        if not document.lock_enabled and request.user.is_authenticated and document.status == "unprepared":
+        if not document.lock and request.user.is_authenticated:
             session = PrepSession.objects.create(
-                doc=document,
                 user=request.user,
-                doc2=doc2
+                doc2=document
             )
             session.start()
-        doc_data = document.serialize()
 
-        volume = find_volume(document)
-        volume_json = volume.serialize()
+        # serialize the document after the session has been created, this will get the new lock.
+        document_json = DocumentFullSchema.from_orm(document).dict()
 
         split_params = {
             "CONTEXT": generate_ohmg_context(request),
-            "DOCUMENT": doc_data,
-            "VOLUME": volume_json,
+            "DOCUMENT": document_json,
         }
         
         return render(
@@ -89,45 +99,39 @@ class SplitView(View):
         operation = body.get("operation")
         sesh_id = body.get("sesh_id", None)
 
+        sesh = None
+        if sesh_id is not None:
+            try:
+                sesh = PrepSession.objects.get(pk=sesh_id)
+            except PrepSession.DoesNotExist:
+                logger.warn(f"can't find PrepSession ({sesh_id}), expected for Document {document.pk}")
+                return JsonResponse({"success":False, "message": "no session found"})
+
         if operation == "preview":
 
             s = Splitter(image_file=document.file.path)
-            # s = Splitter(image_file=doc_proxy.resource.doc_file.path)
             divisions = s.generate_divisions(cutlines)
             return JsonResponse({"success": True, "divisions": divisions})
 
         elif operation == "split":
 
-            try:
-                sesh = PrepSession.objects.get(pk=sesh_id)
-            except PrepSession.DoesNotExist:
-                logger.warn("can't find PrepSession to delete.")
-                return JsonResponse({"success":False, "message": "no session found"})
             sesh.data['split_needed'] = True
             sesh.data['cutlines'] = cutlines
             sesh.save(update_fields=["data"])
             logger.info(f"{sesh.__str__()} | begin run() as task")
-            run_preparation_session.apply_async((sesh.pk,),
-                link=run_preparation_as_task.s()
-            )
+            run_preparation_as_task.apply_async((sesh.pk,))
+            # run_preparation_session.apply_async((sesh.pk,),
+            #     link=run_preparation_as_task.s()
+            # )
             return JsonResponse({"success":True})
 
         elif operation == "no_split":
 
-            # if the request is made from the Split interface, then a sesh_ic
-            # should have been passed along (use it to find the sesh)
-            if sesh_id is not None:
-                try:
-                    sesh = PrepSession.objects.get(pk=sesh_id)
-                    # sesh = PrepSession.objects.get(document=doc_proxy.resource)
-                except PrepSession.DoesNotExist:
-                    logger.warn("can't find PrepSession to delete.")
-                    return JsonResponse({"success":False, "message": "no session to cancel"})
-            # otherwise this request was made straight from the volume summary or
-            # doc detail, so a new session must be created now
-            else:
+            # sesh could be None if this post has been made directly from an overview page,
+            # not from the split interface where a session will have already been made.
+            if sesh is None:
                 sesh = PrepSession.objects.create(
-                    doc=document,
+                    doc2=document,
                     user=request.user,
                     user_input_duration=0,
                 )
@@ -135,18 +139,16 @@ class SplitView(View):
 
             sesh.data['split_needed'] = False
             sesh.save(update_fields=["data"])
-            sesh.run()
-            run_preparation(sesh)
-            return JsonResponse({"success":True})
+            # sesh.run()
+            new_region = run_preparation(sesh)[0]
+
+            return JsonResponse({
+                "success":True,
+                "region_id": new_region.pk,
+            })
 
         elif operation == "cancel":
 
-            try:
-                sesh = PrepSession.objects.get(pk=sesh_id)
-                # sesh = PrepSession.objects.get(document=doc_proxy.resource)
-            except PrepSession.DoesNotExist:
-                logger.warn("can't find PrepSession to delete.")
-                return JsonResponse({"success":False, "message": "no session to cancel"})
             if sesh.stage != "input":
                 msg = "can't cancel session that is past the input stage"
                 logger.warn(f"{sesh.__str__()} | {msg}")
@@ -156,7 +158,7 @@ class SplitView(View):
 
         elif operation == "extend-session":
 
-            document.extend_lock()
+            sesh.extend_locks2()
             return JsonResponse({"success":True})
 
         elif operation == "undo":
@@ -166,8 +168,7 @@ class SplitView(View):
                 return JsonResponse({"success":False, "message": str(e)})
             try:
                 sesh.undo()
-                vol = find_volume(document)
-                vol.refresh_lookups()
+                sesh.doc2.map.update_item_lookup()
             except Exception as e:
                 return JsonResponse({"success":False, "message": str(e)})
             return JsonResponse({"success":True})
@@ -183,34 +184,36 @@ class GeoreferenceView(View):
         Returns the georeferencing interface for this document.
         """
 
-        doc = get_object_or_404(Document, pk=docid)
-        region = get_object_or_404(Region, slug=doc.slug)
+        region = get_object_or_404(Region,  pk=docid)
 
-        # if the document is not currently locked and there is a logged in user,
+        # if the region is not currently locked and there is a logged in user,
         # create a new session
-        if not doc.lock_enabled and request.user.is_authenticated and \
-            doc.status in ["prepared", "georeferenced"]:
+        if not region.lock and request.user.is_authenticated:
             session = GeorefSession.objects.create(
-                doc=doc,
                 reg2=region,
                 user=request.user,
             )
+            if hasattr(region, 'layer'):
+                session.lyr2 = region.layer
             session.start()
-        doc_data = doc.serialize()
 
-        volume = find_volume(doc)
-        volume_json = volume.serialize()
+        region_json = RegionFullSchema.from_orm(region).dict()
 
-        annoset_main = LayerSetSchema.from_orm(volume.get_annotation_set('main-content')).dict()
+        # volume = find_volume(doc)
+        # volume_json = volume.serialize()
+
+        map_json = MapFullSchema.from_orm(region.map).dict()
+
+        annoset_main = LayerSetSchema.from_orm(region.document.map.get_layerset('main-content')).dict()
         annoset_keymap = None
-        akm = volume.get_annotation_set('key-map')
+        akm = region.document.map.get_layerset('key-map')
         if akm:
             annoset_keymap = LayerSetSchema.from_orm(akm).dict()
 
         georeference_params = {
             "CONTEXT": generate_ohmg_context(request),
-            "DOCUMENT": doc_data,
-            "VOLUME": volume_json,
+            "REGION": region_json,
+            "VOLUME": map_json,
             "ANNOSET_MAIN": annoset_main,
             "ANNOSET_KEYMAP": annoset_keymap,
         }
@@ -231,7 +234,7 @@ class GeoreferenceView(View):
         if not request.body:
             return BadPostRequest
 
-        document = get_object_or_404(Document, pk=docid)
+        region = get_object_or_404(Region, pk=docid)
 
         body = json.loads(request.body)
         gcp_geojson = body.get("gcp_geojson", {})
@@ -260,11 +263,11 @@ class GeoreferenceView(View):
 
             return f"{ip_val}-{sesh_val}-{int(datetime.now().timestamp())}"
 
-        def _cleanup_preview(document, previous_url):
+        def _cleanup_preview(region, previous_url):
             """ Run this deletion through celery, so that it doesn't delay
             the return of whatever function called it. """
             if previous_url:
-                delete_preview_vrt.delay(document.file.path, previous_url)
+                delete_preview_vrt.delay(region.file.path, previous_url)
 
         def _get_georef_session(sesh_id):
 
@@ -291,14 +294,14 @@ class GeoreferenceView(View):
             )
             preview_id = _generate_preview_id(request, sesh_id)
             try:
-                out_path = g.warp(document.file.path, return_vrt=True, preview_id=preview_id)
-                out_path_relative = os.path.join(os.path.dirname(document.file.url), os.path.basename(out_path))
+                out_path = g.warp(region.file.path, return_vrt=True, preview_id=preview_id)
+                out_path_relative = os.path.join(os.path.dirname(region.file.url), os.path.basename(out_path))
                 preview_url = settings.MEDIA_HOST.rstrip("/") + out_path_relative
                 response["status"] = "success"
                 response["message"] = "all good"
                 response["preview_url"] = preview_url
                 # queue clean up of the last preview
-                _cleanup_preview(document, cleanup_preview)
+                _cleanup_preview(region, cleanup_preview)
             except Exception as e:
                 logger.error(e)
                 response["status"] = "fail"
@@ -313,20 +316,18 @@ class GeoreferenceView(View):
                     "message": "user not authorized for this operation"
                 })
             
-            sessions = GeorefSession.objects.filter(doc=document)
+            sessions = GeorefSession.objects.filter(reg2=region)
             for s in sessions:
                 s.delete()
-            layer = document.get_layer()
-            if layer:
-                layer.delete()
+            if hasattr(region, 'layer'):
+                region.layer.delete()
             try:
-                gcp_group = GCPGroup.objects.get(doc=document)
+                gcp_group = GCPGroup.objects.get(region=region)
                 gcp_group.delete()
             except GCPGroup.DoesNotExist:
                 pass
-            document.set_status("prepared")
-            vol = find_volume(document)
-            vol.refresh_lookups()
+            region.georeferenced = False
+            region.save()
             return JsonResponse({"success":True})
 
         elif operation == "submit":
@@ -342,11 +343,12 @@ class GeoreferenceView(View):
                 sesh.data['transformation'] = transformation
                 sesh.save(update_fields=["data"])
                 logger.info(f"{sesh.__str__()} | begin run() as task")
-                run_georeference_session.apply_async((sesh.pk,),
-                    link=patch_new_layer_to_session.s()
-                )
+                run_georeferencing_as_task.apply_async((sesh.pk,))
+                # run_georeference_session.apply_async((sesh.pk,),
+                #     link=patch_new_layer_to_session.s()
+                # )
 
-                _cleanup_preview(document, cleanup_preview)
+                _cleanup_preview(region, cleanup_preview)
                 return JsonResponse({
                     "success": True,
                     "message": "all good",
@@ -356,11 +358,15 @@ class GeoreferenceView(View):
                 return SESSION_NOT_FOUND_RESPONSE
 
         elif operation == "set-status":
-
+            # TODO: this functionality should be moved somewhere else.
             if request.user.is_authenticated:
-                new_status = body.get("status", None)
-                if new_status:
-                    document.set_status(new_status)
+                change_to = body.get("status", None)
+                if change_to == "nonmap":
+                    region.is_map = False
+                    region.save()
+                if change_to == "prepared":
+                    region.is_map = True
+                    region.save()
                 return JsonResponse({
                     "success": True,
                     "message": "all good",
@@ -395,7 +401,7 @@ class GeoreferenceView(View):
 
                 sesh.delete()
 
-            _cleanup_preview(document, cleanup_preview)
+            _cleanup_preview(region, cleanup_preview)
             return JsonResponse({"success":True})
 
         else:
@@ -424,16 +430,14 @@ class LayerSetView(View):
 
         if operation == "update":
             for resource_id, category in update_list:
-                v = get_object_or_404(Volume, pk=volume_id)
-                r = get_object_or_404(ItemBase, pk=resource_id)
-                layer = Layer.objects.get(slug=r.slug)
+                map = get_object_or_404(Map, pk=volume_id)
+                layer = get_object_or_404(Layer, pk=resource_id)
 
                 try:
-                    annoset = v.get_annotation_set(category, create=True)
-                    r.update_annotationset(annoset)
-                    layer.set_layerset(annoset)
+                    layerset = map.get_layerset(category, create=True)
+                    layer.set_layerset(layerset)
                     response['status'] = "success"
-                    response['message'] = f"{resource_id} added to {category} annotation set"
+                    response['message'] = f"{resource_id} added to {category} layerset"
 
                 except Exception as e:
                     logger.error(e)
@@ -442,13 +446,13 @@ class LayerSetView(View):
 
         if operation == "check-for-existing-mask":
 
-            r = get_object_or_404(ItemBase, pk=resource_id)
+            r = get_object_or_404(Layer, pk=resource_id)
 
-            if r.vrs:
-                if not r.vrs.category.slug == category:
-                    if r.vrs.multimask and r.slug in r.vrs.multimask:
+            if r.layerset:
+                if not r.layerset.category.slug == category:
+                    if r.layerset.multimask and r.slug in r.layerset.multimask:
                         response['status'] = "fail"
-                        response['message'] = f"Layer already in {r.vrs.category} multimask."
+                        response['message'] = f"Layer already in {r.layerset.category} multimask."
                         return JsonResponse(response)
 
             response['status'] = "success"
@@ -456,15 +460,17 @@ class LayerSetView(View):
 
         if operation == "set-mask":
 
-            v = get_object_or_404(Volume, pk=volume_id)
-            annoset = v.get_annotation_set(category)
-
-            errors = annoset.update_multimask_from_geojson(multimask_geojson)
-
-            if errors:
+            try:
+                layerset = LayerSet.objects.get(map_id=volume_id, category__slug=category)
+                errors = layerset.update_multimask_from_geojson(multimask_geojson)
+                if errors:
+                    response["status"] = "fail"
+                    response["message"] = errors
+                else:
+                    response["status"] = "success"
+            except LayerSet.DoesNotExist:
                 response["status"] = "fail"
-                response["message"] = errors
-            else:
-                response["status"] = "success"
+                response["message"] = f"can't find this layerset: map_id={volume_id}, category={category}"
+
 
         return JsonResponse(response)

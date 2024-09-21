@@ -4,7 +4,7 @@ from django.contrib.sites.models import Site
 from django.middleware import csrf
 from django.urls import reverse
 
-from ohmg.core.schemas import UserSchema
+from ohmg.core.api.schemas import UserSchema
 
 def on_mobile(request):
     """ determine if user on mobile device or not """
@@ -44,15 +44,18 @@ def generate_ohmg_context(request):
     via views.py, rather than as an actual context processor. """
 
     internal_urls = {
-        "get_annotation_set": reverse("api-beta:annotation_set"),
-        "get_annotation_sets": reverse("api-beta:annotation_sets"),
-        "post_annotation_set": reverse("annotation_set_view"),
-        "get_places_geojson": reverse("api-beta:places_geojson"),
-        "get_maps": reverse("api-beta:map_list"),
-        "get_sessions": reverse("api-beta:session_list"),
-        "get_users": reverse("api-beta:user_list"),
-        "get_places": reverse("api-beta:place_list"),
+        "get_layerset": reverse("api-beta2:layerset"),
+        "get_layersets": reverse("api-beta2:layersets"),
+        "post_annotation_set": reverse("layerset_view"),
+        "get_places_geojson": reverse("api-beta2:places_geojson"),
         "change_avatar": reverse('avatar_change'),
+        "get_map": reverse('api-beta2:map'),
+        "get_maps": reverse("api-beta2:map_list"),
+        "get_users": reverse("api-beta2:user_list"),
+        "get_place": reverse("api-beta2:place"),
+        "get_places": reverse("api-beta2:place_list"),
+        "get_sessions": reverse("api-beta2:session_list"),
+        "get_session_locks": reverse('api-beta2:session_locks')
     }
 
     csrf_token = csrf.get_token(request)
@@ -71,17 +74,6 @@ def generate_ohmg_context(request):
         "on_mobile": on_mobile(request)['on_mobile'],
         "user": user_info_from_request(request),
         "urls": internal_urls,
-    }
-
-def navbar_footer_params(request):
-    """ Build the params passed to the Navbar and Footer Svelte components."""
-
-    context = generate_ohmg_context(request)
-    return {
-        'navbar_params': {
-            "CONTEXT": context,
-        },
-        'footer_params': {},
     }
 
 def site_info(request):

@@ -11,6 +11,7 @@
     function handleFfs(elementId) {
         ffs = !ffs
         document.getElementById(elementId).classList.toggle('ffs');
+        document.getElementById("main-container").classList.toggle('ffs-container');
         maps.forEach((map) => map && map.updateSize());
     }
 

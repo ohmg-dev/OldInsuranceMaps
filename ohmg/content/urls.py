@@ -5,6 +5,7 @@ from django.views.generic import RedirectView
 from .views import (
     PageView,
     MapSummary,
+    ResourceSummary,
     VirtualResourceView,
 )
 
@@ -31,6 +32,9 @@ urlpatterns = [
     path('<page-slug:page>/', PageView.as_view(), name="page-view"),
     path('map/<str:identifier>', MapSummary.as_view(), name="map_summary"),
     path('resource/<int:pk>', VirtualResourceView.as_view(), name="resource_detail"),
+    path('document/<int:pk>', ResourceSummary.as_view(), kwargs={"resource_type":"document"}, name="document_detail"),
+    path('region/<int:pk>', ResourceSummary.as_view(), kwargs={"resource_type":"region"}, name="region_detail"),
+    path('layer/<int:pk>', ResourceSummary.as_view(), kwargs={"resource_type":"layer"}, name="layer_detail"),
     # temporary overlap here, ultimately will remove all /loc/ and /item/ urls
     path('item/<str:identifier>', RedirectView.as_view(pattern_name='map_summary', permanent=True), name="volume_summary"),
     path('loc/volumes/', RedirectView.as_view(pattern_name='search', permanent=True), name='volumes_list'),

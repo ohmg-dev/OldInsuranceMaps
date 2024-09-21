@@ -14,6 +14,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon, GEOSGeometry
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.utils import timezone
@@ -159,9 +160,9 @@ class GCPGroup(models.Model):
 
         return content
 
-    def save_from_geojson(self, geojson, document, transformation=None):
+    def save_from_geojson(self, geojson, region, transformation=None):
 
-        group, group_created = GCPGroup.objects.get_or_create(doc=document)
+        group = region.gcp_group if region.gcp_group else GCPGroup.objects.create()
 
         group.crs_epsg = 3857 # don't see this changing any time soon...
         group.transformation = transformation
@@ -213,13 +214,13 @@ class GCPGroup(models.Model):
         logger.info(f"GCPGroup {group.pk} | GCPs ct: {gcps_ct}, new: {gcps_new}, mod: {gcps_mod}, del: {gcps_del}")
         return group
 
-    def save_from_annotation(self, annotation, document):
+    def save_from_annotation(self, annotation, region):
 
         m = "georeference-ground-control-points"
         georef_annos = [i for i in annotation['items'] if i['motivation'] == m]
         anno = georef_annos[0]
 
-        self.save_from_geojson(anno['body'], document, "poly1")
+        self.save_from_geojson(anno['body'], region, "poly1")
 
 
 class DocumentManager(models.Manager):
@@ -855,6 +856,12 @@ class LayerSet(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
+    extent = ArrayField(
+        models.FloatField(),
+        size=4,
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
         return f"{self.volume} - {self.category}"
@@ -902,19 +909,19 @@ class LayerSet(models.Model):
             url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_json.url
         return url
 
-    @property
-    def extent(self):
-        """Calculate an extent based on all layers in this annotation set. If
-        this is not a spatial annotation set, or there are no layers, return None."""
-        extent = None
-        if self.is_geospatial:
-            layer_extent_polygons = []
-            for v in self.annotations:
-                extent_poly = Polygon.from_bbox(v.extent)
-                layer_extent_polygons.append(extent_poly)
-            if len(layer_extent_polygons) > 0:
-                extent = MultiPolygon(layer_extent_polygons, srid=4326).extent
-        return extent
+    # @property
+    # def extent(self):
+    #     """Calculate an extent based on all layers in this annotation set. If
+    #     this is not a spatial annotation set, or there are no layers, return None."""
+    #     extent = None
+    #     if self.is_geospatial:
+    #         layer_extent_polygons = []
+    #         for v in self.annotations:
+    #             extent_poly = Polygon.from_bbox(v.extent)
+    #             layer_extent_polygons.append(extent_poly)
+    #         if len(layer_extent_polygons) > 0:
+    #             extent = MultiPolygon(layer_extent_polygons, srid=4326).extent
+    #     return extent
 
     @property
     def multimask_extent(self):
@@ -969,6 +976,21 @@ class LayerSet(models.Model):
         else:
             self.multimask = None
         self.save(update_fields=['multimask'])
+
+    def save(self, *args, **kwargs):
+
+        extents = self.layers.all().values_list('extent', flat=True)
+        layer_extents = []
+        for extent in extents:
+            if extent:
+                poly = Polygon().from_bbox(extent)
+                layer_extents.append(poly)
+        if layer_extents:
+            combined = MultiPolygon(layer_extents)
+            self.extent = combined.extent
+            # print(combined.envelope)
+
+        return super(self.__class__, self).save(*args, **kwargs)
 
     def generate_mosaic_vrt(self):
         """ A helpful reference from the BPLv used during the creation of this method:

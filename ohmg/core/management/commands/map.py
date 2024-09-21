@@ -26,8 +26,9 @@ class Command(BaseCommand):
                 "list-importers",
                 "add-document",
                 "create-documents",
-
+                "create-lookups",
                 "refresh-lookups",
+
                 "make-sheets",
                 "generate-mosaic-cog",
                 "generate-mosaic-json",
@@ -222,3 +223,23 @@ class Command(BaseCommand):
                 print(f"id: {name}")
                 importer = get_importer(name)
                 print(importer.__doc__)
+
+        if operation == "create-lookups":
+            if options['pk']:
+                maps = [Map.objects.get(pk=options["pk"])]
+            else:
+                maps = Map.objects.all().filter(item_lookup__isnull=True)
+            
+            for map in maps:
+                 print(map)
+                 map.update_item_lookup()
+
+        if operation == "refresh-lookups":
+            if options['pk']:
+                maps = [Map.objects.get(pk=options["pk"])]
+            else:
+                maps = Map.objects.all()
+            
+            for map in maps:
+                print(map)
+                map.update_item_lookup()

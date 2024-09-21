@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{{ svelte_params.VOLUME.title }}{% endblock title %}
+{% block title %}{{ svelte_params.MAP.title }}{% endblock title %}
 
 {% block main_content %}
 {{ svelte_params|json_script:'map-props'}}

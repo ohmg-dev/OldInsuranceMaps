@@ -24,7 +24,7 @@ import {ZoomToExtent, defaults as defaultControls} from 'ol/control.js';
 
 import '@src/css/map-panel.css';
 import {
-	makeLayerGroupFromAnnotationSet,
+	makeLayerGroupFromLayerSet,
 	makeBasemaps,
 } from '@lib/utils';
 
@@ -146,25 +146,28 @@ $: {
 
 const fullExtent = createEmpty();
 
-function createAnnotationSets() {
+function createLayerGroups() {
 
 	ANNOTATION_SETS.forEach( function( aSet ){
-		if (aSet.annotations.length > 0) {
-			const layerGroup = makeLayerGroupFromAnnotationSet({
+		if (aSet.layers.length > 0) {
+			const layerGroup = makeLayerGroupFromLayerSet({
 				annotationSet: aSet,
 				zIndex: zIndexLookup[aSet.id],
 				titilerHost: CONTEXT.titiler_host,
 				applyMultiMask: true,
 			})
-			const extent3857 = transformExtent(aSet.extent, "EPSG:4326", "EPSG:3857")
-			extend(fullExtent, extent3857)
+			let extent3857;
+			if (aSet.extent) {
+				extent3857 = transformExtent(aSet.extent, "EPSG:4326", "EPSG:3857")
+				extend(fullExtent, extent3857)
+			}
 			const setDef = {
 				id: aSet.id,
 				name: aSet.name,
 				layerGroup: layerGroup,
 				sortOrder: zIndexLookup[aSet.id],
 				opacity: 100,
-				layerCt: aSet.annotations.length,
+				layerCt: aSet.layers.length,
 				extent: extent3857
 			}
 			annotationSets[aSet.id] = setDef
@@ -177,7 +180,7 @@ function createAnnotationSets() {
 let viewer;
 onMount(() => {
 	viewer = new MapPreviewViewer('map');
-	createAnnotationSets();
+	createLayerGroups();
 	map.getView().fit(fullExtent)
 });
 

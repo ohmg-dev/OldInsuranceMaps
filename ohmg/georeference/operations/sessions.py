@@ -32,8 +32,6 @@ def generate_vrt_from_session(session: Union[int, GeorefSession]):
 
 def run_georeferencing(session: Union[int, GeorefSession]):
 
-    logger.debug("in run_georef_session()")
-
     if isinstance(session, int):
         session = GeorefSession.objects.get(pk=session)
 
@@ -105,7 +103,7 @@ def run_georeferencing(session: Union[int, GeorefSession]):
     ## the file with the newly georeferenced tif.
     session_ct = GeorefSession.objects.filter(reg2=session.reg2).exclude(pk=session.pk).count()
     file_name = f"{layer.slug}__{random_alnum(6)}_{str(session_ct).zfill(2)}.tif"
-    # file_name = f"{layer.slug}.tif"
+
     with open(out_path, "rb") as openf:
         layer.file.save(file_name, File(openf))
     logger.debug(f"new geotiff saved to layer, {layer.slug} ({layer.pk})")
@@ -119,19 +117,26 @@ def run_georeferencing(session: Union[int, GeorefSession]):
     session.lyr2 = layer
 
     # add the layer to the main-content LayerSet
-    layer.layerset = layer.region.document.map.get_layerset('main-content', create=True)
+    layer.layerset = layer.map.get_layerset('main-content', create=True)
     layer.save()
+
+    # saving the layerset now will update its extent
+    layer.layerset.save()
+
+    session.reg2.georeferenced = True
+    session.reg2.save()
 
     session.update_status("saving control points")
 
     # save the successful gcps to the canonical GCPGroup for the document
-    GCPGroup().save_from_geojson(
+    gcp_grop = GCPGroup().save_from_geojson(
         session.data['gcps'],
-        session.doc,
+        session.reg2,
         session.data['transformation'],
     )
+    session.reg2.gcp_group = gcp_grop
+    session.reg2.save()
 
-    session.doc.set_status("georeferenced")
     session.update_stage("finished", save=False)
     session.update_status("success", save=False)
     session.save()
@@ -169,6 +174,7 @@ def run_preparation(session: Union[int, PrepSession]):
 
     session.update_stage("processing")
 
+    output = []
     if session.data['split_needed'] is False:
         # create Region that matches this document
         w, h = session.doc2.image_size
@@ -178,6 +184,7 @@ def run_preparation(session: Union[int, PrepSession]):
             created_by=session.user,
         )
         save_file_to_object(region, source_object=session.doc2)
+        output.append(region)
 
     else:
         session.update_status("splitting document image")
@@ -201,10 +208,14 @@ def run_preparation(session: Union[int, PrepSession]):
 
             save_file_to_object(region, file_path=Path(file_path))
             os.remove(file_path)
+            output.append(region)
 
     session.update_status("success", save=False)
     session.update_stage("finished", save=False)
     session.save()
+
+    session.doc2.prepared = True
+    session.doc2.save()
 
     session.unlock_resources2()
 
@@ -220,4 +231,4 @@ def run_preparation(session: Union[int, PrepSession]):
 """
     )
 
-    return
+    return output

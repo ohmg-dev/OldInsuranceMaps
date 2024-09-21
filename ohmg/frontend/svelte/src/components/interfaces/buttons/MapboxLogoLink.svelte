@@ -19,7 +19,7 @@
         height: 20px;
         margin-top: -30px;
         margin-left: 10px;
-        z-index: 99999;
+        z-index: 1000;
     }
     .mapbox-logo {
         display: block;

@@ -55,8 +55,7 @@ class Place(models.Model):
     direct_parents = models.ManyToManyField("Place")
 
     def __str__(self):
-        name = self.display_name if self.display_name else self.name
-        return name
+        return self.display_name
 
     @property
     def state(self):
@@ -83,10 +82,6 @@ class Place(models.Model):
                         new_candidates.append(i)
             candidates = new_candidates
         return list(set(states))
-
-    def get_volumes(self):
-        from ohmg.loc_insurancemaps.models import Volume
-        return Volume.objects.filter(locales__id__exact=self.id).order_by("year")
 
     def get_state_postal(self):
         if self.state and self.state.name.lower() in STATE_POSTAL:
@@ -231,6 +226,8 @@ class Place(models.Model):
         return pks
 
     def serialize(self):
+        """ TO DEPRECATE: remove this once the Map model schema has been implemented, that's 
+        the only place it is used. """
         return {
             "pk": self.pk,
             "name": self.name,
@@ -260,11 +257,12 @@ class Place(models.Model):
                 "identifier": i[0],
                 "year": i[1],
                 "volume_no":i[2]
-            } for i in self.get_volumes().values_list("identifier", "year", "volume_no")],
+            } for i in self.map_set.all().order_by('year', 'title').values_list("identifier", "year", "volume_number")],
         }
 
     def save(self, set_slug=True, *args, **kwargs):
-        if set_slug is True:
+
+        if set_slug is True or (not self.slug or not self.display_name):
             state_postal = self.get_state_postal()
             state_abbrev = self.get_state_abbrev()
             slug, display_name = "", ""
@@ -288,6 +286,7 @@ class Place(models.Model):
                 display_name = self.name
             self.slug = slug
             self.display_name = display_name
+
         super(Place, self).save(*args, **kwargs)
 
     def bulk_load_from_csv(self, filepath):

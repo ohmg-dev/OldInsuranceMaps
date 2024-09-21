@@ -3,11 +3,9 @@
 
 {% block title %}{{ split_params.DOCUMENT.title }} — Split{% endblock %}
 
-{% block middle %}
-<div class="container" style="height: calc(100vh - 45px)">
+{% block main_content %}
 {{ split_params|json_script:'split-props'}}
 {% include '_svelte_component.html' with component_name='Split' %}
-</div>
 {% endblock %}
 
 {% block footer %}

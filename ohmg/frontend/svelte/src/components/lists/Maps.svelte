@@ -1,6 +1,7 @@
 <script>
 import {TableSort} from 'svelte-tablesort';
 import Link from '@components/base/Link.svelte';
+    import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
 
 export let CONTEXT;
 export let PLACE_SLUG = "";
@@ -66,7 +67,7 @@ $: updateFilteredList(filterInput)
 <div style="overflow-x:auto;">
 	{#if loading}
 	<div style="text-align:center;">
-		<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+		<LoadingEllipsis />
 	</div>
 	{:else if items.length == 0}
 	<div style="text-align:center;">

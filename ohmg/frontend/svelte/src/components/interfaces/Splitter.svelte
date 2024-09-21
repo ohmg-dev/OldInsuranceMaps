@@ -42,7 +42,6 @@ const styles = new Styles();
 
 export let CONTEXT;
 export let DOCUMENT;
-export let VOLUME;
 
 let docView;
 let docViewMap;
@@ -55,13 +54,13 @@ let currentInteraction = 'draw';
 
 let unchanged = true;
 
-const session_id = DOCUMENT.lock_enabled ? DOCUMENT.lock_details.session_id : null;
+const session_id = DOCUMENT.lock ? DOCUMENT.lock.session_id : null;
 
-let disableInterface = DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name != CONTEXT.user.username);
+let disableInterface = DOCUMENT.lock && (DOCUMENT.lock.user.username != CONTEXT.user.username);
 let disableReason;
 let leaveOkay = true;
 let enableButtons = false;
-if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == CONTEXT.user.username)) {
+if (DOCUMENT.lock && (DOCUMENT.lock.user.username == CONTEXT.user.username)) {
   leaveOkay = false;
   enableButtons = true;
 }
@@ -84,14 +83,8 @@ function cancelAndRedirectToDetail() {
 
 let currentTxt;
 $: {
-  if (DOCUMENT.status == "prepared" || DOCUMENT.status == "georeferenced") {
-    if (DOCUMENT.parent) {
-      currentTxt = "This document has already been prepared! (It was split from another document.)"
-    } else {
-      "This document has already been prepared! (It did not need to be split.)"
-    }
-  } else if (DOCUMENT.status == "split") {
-    currentTxt = "This document has already been prepared! (It was split into "+DOCUMENT.children.length+" documents.)"
+  if (DOCUMENT.regions.length > 0) {
+    currentTxt = "This document has already been prepared! (It was split into "+DOCUMENT.regions.length+" documents.)"
   } else if (divisions.length <= 1) {
     currentTxt = "If this image needs to be split, draw cut-lines across it as needed. Click once to start or continue a line, double-click to finish."
   } else {
@@ -121,7 +114,7 @@ function resetInterface() {
   const view = new View({
     projection: projection,
     center: mapCenter,
-    zoom: 1,
+    zoom: 1.5,
     maxZoom: 8,
   })
   docView.map.setView(view)
@@ -292,12 +285,6 @@ function handleKeydown(event) {
 
 function process(operation) {
 
-  if (operation == "no_split") {
-    if (!confirm("Are you sure this document does not need to be split?")) {
-      return
-    }
-  }
-
   if (operation == "split" || operation == "no_split" || operation == "cancel") {
     disableReason = operation;
     leaveOkay = true;
@@ -326,11 +313,11 @@ function process(operation) {
       if (operation == "preview") {
         divisions = result['divisions'];
       } else if (operation == "split") {
-        window.location.href = VOLUME.urls.summary;
+        window.location.href = `/map/${DOCUMENT.map}`;
       } else if (operation == "no_split") {
-        window.location.href = DOCUMENT.urls.georeference;
+        window.location.href = `/georeference/${result.region_id}`;
       } else if (operation == "cancel") {
-        window.location.href = VOLUME.urls.summary;
+        window.location.href = `/map/${DOCUMENT.map}`;
       }
     });
 }
@@ -345,7 +332,7 @@ function confirmLeave () {
 
 function cleanup () {
   // if this is an in-progress session for the current user
-  if (DOCUMENT.lock_enabled && (DOCUMENT.lock_details.user.name == CONTEXT.user.username)) {
+  if (DOCUMENT.lock && (DOCUMENT.lock.user.username == CONTEXT.user.username)) {
     process("cancel")
   }
 }
@@ -355,7 +342,7 @@ function cleanup () {
 
 <Modal id="modal-expiration">
   <p>This preparation session is expiring, and will be cancelled soon.</p>
-  <button on:click={() => {
+  <button class="button is-success" on:click={() => {
     process("extend-session");
     getModal('modal-expiration').close()}
     }>Give me more time!</button>
@@ -373,22 +360,37 @@ function cleanup () {
 </Modal>
 <Modal id="modal-cancel">
 	<p>Are you sure you want to cancel this session?</p>
-  <button on:click={() => {
-    process("cancel");
-    getModal('modal-cancel').close()
+  <button class="button is-success"
+    on:click={() => {
+      process("cancel");
+      getModal('modal-cancel').close()
     }}>Yes</button>
-  <button on:click={() => {
-    getModal('modal-cancel').close()}
+  <button class="button is-danger"
+    on:click={() => {
+      getModal('modal-cancel').close()}
     }>No - keep working</button>
 </Modal>
-
-<p>{currentTxt} <Link href="https://about.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link></p>
-<div id="map-container" class="svelte-component-main">
+<Modal id="modal-confirm-no-split">
+	<p>Are you sure this document does not need to be split?</p>
+  <button class="button is-success"
+    on:click={() => {
+      process("no_split");
+      getModal('modal-confirm-no-split').close()
+    }}>Yes - it only contains one map</button>
+  <button class="button is-danger"
+    on:click={() => {
+      getModal('modal-confirm-no-split').close()}
+    }>Cancel</button>
+</Modal>
+<div style="height:25px">
+  {currentTxt} <Link href="https://about.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link>
+</div>
+<div id="map-container" style="height:calc(100vh - 205px)" class="svelte-component-main">
   {#if disableInterface}
   <div class="interface-mask">
     <div class="signin-reminder">
-      {#if DOCUMENT.lock_enabled}
-      <p>Document currently locked for processing by {DOCUMENT.lock_details.user.name}</p>
+      {#if DOCUMENT.lock}
+      <p>Document currently locked for processing by {DOCUMENT.lock.user.username}</p>
       {:else if disableReason == "split"}
       <p>Processing document split... redirecting to document detail.</p>
       <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
@@ -423,7 +425,7 @@ function cleanup () {
       <ToolUIButton action={() => {process("split")}} title="Run split operation" disabled={divisions.length<=1 || !enableButtons}>
         <Scissors />
       </ToolUIButton>
-      <ToolUIButton action={() => {process("no_split")}} title="No split needed" disabled={divisions.length>0 || !enableButtons}>
+      <ToolUIButton action={() => { getModal('modal-confirm-no-split').open() }} title="No split needed" disabled={divisions.length>0 || !enableButtons}>
         <CheckSquareOffset />
       </ToolUIButton>
       <ToolUIButton action={() => { getModal('modal-cancel').open() }} title="Cancel this preparation" disabled={session_id == null || !enableButtons}>

@@ -1,6 +1,7 @@
 <script>
 	import {TableSort} from 'svelte-tablesort';
 	import Link from '@components/base/Link.svelte';
+	import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
 
 	export let CONTEXT;
 
@@ -20,7 +21,7 @@
 		if (filterText && filterText.length > 0) {
 			items = [];
 			all_places.forEach( function(place) {
-				const placeName = place.name.toUpperCase();
+				const placeName = place.display_name.toUpperCase();
 				const filterBy = filterText.toUpperCase();
 				if (placeName.indexOf(filterBy) > -1) {
 					items.push(place);
@@ -42,7 +43,7 @@
 <div style="overflow-x:auto;">
 	{#if loading}
 	<div style="text-align:center;">
-		<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+		<LoadingEllipsis />
 	</div>
 	{:else if items.length === 0}
 	<p><em>No places found...</em></p>
@@ -53,8 +54,8 @@
 			<th data-sort="sort_years" style="max-width:300px;" title="Volumes available">Volumes available</th>
 		</tr>
 		<tr slot="tbody" let:item={p} style="height:38px;">
-			<td><Link title="View all {p.name} mosaics in viewer" href="{p.url}">{p.name}</Link></td>
-			<td>{#each p.maps as v, i}<Link href="{v.url}">{v.year}</Link>{#if i < p.maps.length-1}, {/if}{/each}</td>
+			<td><Link title="View all {p.name} mosaics in viewer" href="{p.url}">{p.display_name}</Link></td>
+			<td>{#each p.maps as v, i}<Link href="/map/{v.identifier}">{v.year}{#if v.volume_number}, Vol. {v.volume_number}{/if}</Link>{#if i < p.maps.length-1}, {/if}{/each}</td>
 		</tr>
 	</TableSort>
 	{/if}

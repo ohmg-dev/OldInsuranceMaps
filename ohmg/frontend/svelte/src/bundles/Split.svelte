@@ -4,7 +4,6 @@
 
   export let CONTEXT;
   export let DOCUMENT;
-  export let VOLUME;
 
   const iconLinks = [
     {
@@ -25,11 +24,11 @@
       visible: true,
       enabled: true,
       iconClass: 'volume',
-      alt: 'Go to volume: ' + VOLUME.title,
-      url: VOLUME.urls.summary,
+      alt: 'Back to map overview',
+      url: `/map/${DOCUMENT.map}`,
     }
   ]
 </script>
 
 <TitleBar TITLE={DOCUMENT.title} ICON_LINKS={iconLinks}/>
-<Splitter {CONTEXT} {DOCUMENT} {VOLUME} />
+<Splitter {CONTEXT} {DOCUMENT} />
