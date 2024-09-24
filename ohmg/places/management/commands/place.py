@@ -1,17 +1,15 @@
-import csv
 import logging
 from pathlib import Path
 
 from django.core.management.base import BaseCommand
-from django.db import transaction
 
 from ohmg.places.models import Place
-from ohmg.places.management.utils import reset_volume_counts
+from ohmg.places.utils import reset_volume_counts
 
 logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
-    help = 'command to search the Library of Congress API.'
+    help = 'Helper operations for management of Place objects.'
 
     def add_arguments(self, parser):
         parser.add_argument(

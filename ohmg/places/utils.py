@@ -1,5 +1,5 @@
-from ohmg.loc_insurancemaps.models import Volume
-from ohmg.places.models import Place
+from ohmg.core.models import Map
+from .models import Place
 
 def reset_volume_counts(verbose=False):
 
@@ -9,7 +9,7 @@ def reset_volume_counts(verbose=False):
     if verbose:
         print("done")
 
-    for volume in Volume.objects.all():
+    for map in Map.objects.all():
         if verbose:
-            print(volume)
-        volume.update_place_counts()
+            print(map)
+        map.update_place_counts()

@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from ohmg.georeference.models import (
-    delete_expired_sessions,
+    delete_expired_session_locks,
     SessionBase,
     PrepSession,
     GeorefSession,
@@ -88,15 +88,15 @@ class Command(BaseCommand):
 
             if options["type"]:
                 model = self._model_from_type(options['type'])
-                for s in model.objects.filter(document_id=options['docid']):
+                for s in model.objects.filter(doc2_id=options['docid']):
                     print(s)
             else:
-                for ps in PrepSession.objects.filter(document_id=options['docid']):
+                for ps in PrepSession.objects.filter(doc2_id=options['docid']):
                     print(ps)
-                for gs in GeorefSession.objects.filter(document_id=options['docid']):
+                for gs in GeorefSession.objects.filter(doc2_id=options['docid']):
                     print(gs)
 
 
         elif operation == 'delete-expired':
 
-            delete_expired_sessions()
+            delete_expired_session_locks()

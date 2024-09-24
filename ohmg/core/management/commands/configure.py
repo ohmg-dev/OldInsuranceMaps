@@ -1,7 +1,14 @@
 import os
 import sys
+from argparse import Namespace
+
+import boto3
+
 from django.conf import settings
-from django.core.management.base import BaseCommand 
+from django.core.management.base import BaseCommand
+from django.template.loader import render_to_string
+from django.test.client import RequestFactory
+from django.contrib.sessions.middleware import SessionMiddleware
 
 
 class Command(BaseCommand):
@@ -20,6 +27,8 @@ class Command(BaseCommand):
 #                "nginx",
 #                "nginx-ssl",
                 "all",
+                "generate-error-pages",
+                "initialize-s3-bucket",
             ],
             nargs="+",
             help="Choose what configurations to generate."
@@ -105,6 +114,12 @@ class Command(BaseCommand):
             print(f"~~~\nfile count: {len(outputs)}")
             for f in outputs:
                 print(os.path.basename(f))
+
+        if options['type'] == "generate-error-pages":
+            self.generate_error_pages()
+
+        if options['type'] == "initialize-s3-bucket":
+            self.initialize_s3_bucket()
 
     def resolve_var(self, name, default_value=None):
 
@@ -550,3 +565,28 @@ server {{
         outfile_path = os.path.join(self.out_dir, file_name)
 
         return self.write_file(outfile_path, file_content)
+
+    def generate_error_pages(self):
+        rf = RequestFactory()
+        request = rf.get('/')
+        middleware = SessionMiddleware(lambda x: None)
+        middleware.process_request(request)
+        request.session.save()
+        request.user = Namespace(is_authenticated=False)
+        for status in [404, 500]:
+            content = render_to_string(f'{status}.html.template', request=request)
+            outpath = os.path.join(settings.PROJECT_DIR, f"frontend/templates/{status}.html")
+            with open(outpath, 'w') as static_file:
+                static_file.write(content)
+            print(f"file saved to: {outpath}")
+
+    def initialize_s3_bucket(self):
+        client = boto3.client("s3", **settings.S3_CONFIG)
+
+        response = client.list_buckets()
+        if settings.S3_BUCKET_NAME not in [i['Name'] for i in response['Buckets']]:
+            print(f"Creating bucket: {settings.S3_BUCKET_NAME}")
+            client.create_bucket(Bucket=settings.S3_BUCKET_NAME)
+            print("Bucket created.")
+        else:
+            print(f"Bucket already exists: {settings.S3_BUCKET_NAME}")
