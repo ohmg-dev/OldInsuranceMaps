@@ -232,3 +232,23 @@ def run_preparation(session: Union[int, PrepSession]):
     )
 
     return output
+
+def undo_preparation(session: PrepSession, keep_session=False):
+
+    if not session.doc2:
+        return
+
+    downstream = any([hasattr(i, 'layer') for i in session.doc2.regions.all()])
+    if downstream:
+        logger.warning("can't undo prep session with downstream georeferencing")
+        return
+
+    for region in session.doc2.regions.all():
+        region.delete()
+
+    session.doc2.prepared = False
+    session.doc2.save()
+    logger.info(f"PrepSession {session.pk} reversed. Document {session.doc2.pk} now unprepared.")
+
+    if not keep_session:
+        session.delete()
