@@ -444,6 +444,10 @@ class LayerSetSchema(Schema):
         return str(obj.category.slug)
 
     @staticmethod
+    def resolve_layers(obj):
+        return natsorted(obj.layers.all(), key=lambda k: k.title)
+
+    @staticmethod
     def resolve_name(obj):
         return str(obj.category)
 

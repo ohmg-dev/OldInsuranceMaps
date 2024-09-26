@@ -4,6 +4,7 @@ import {onMount} from 'svelte';
 import X from 'phosphor-svelte/lib/X';
 import Check from 'phosphor-svelte/lib/Check';
 import CropIcon  from 'phosphor-svelte/lib/Crop';
+import MapPin from 'phosphor-svelte/lib/MapPin';
 import Trash from 'phosphor-svelte/lib/Trash';
 import CornersOut from 'phosphor-svelte/lib/CornersOut';
 
@@ -48,6 +49,8 @@ export let CONTEXT;
 export let ANNOTATION_SET;
 export let DISABLED;
 export let resetMosaic;
+
+console.log(CONTEXT)
 
 let currentLayer = null;
 
@@ -117,7 +120,8 @@ function addIncomingMasks() {
         olLayer: newLayer,
         layerDef: layerDef,
         crop: null,
-        feature: null
+        feature: null,
+        georeferenceUrl: layerDef.urls.georeference,
       }
       layerLookup[layerDef.slug] = layer
     });
@@ -397,9 +401,18 @@ function layerRemoveMask(layer, confirm) {
         <div class="layer-section-subheader" style="overflow-y:auto">
           {#each layerLookupUnmaskedArr as layer}		
             <div style="display:flex;">
-              <ToolUIButton action={() => addMask(layer)} title="add mask" >
+              <ToolUIButton
+                title="add mask for this layer"
+                action={() => addMask(layer)}>
                 <CropIcon />
               </ToolUIButton>
+              {#if CONTEXT.user.is_authenticated}
+              <ToolUIButton
+                title="edit georeferencing for this layer"
+                action={() => {window.location.href=layer.georeferenceUrl}}>
+                <MapPin />
+              </ToolUIButton>
+              {/if}
               &nbsp;
               <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
                 <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.local_title}</span>
@@ -415,9 +428,16 @@ function layerRemoveMask(layer, confirm) {
         <div class="layer-section-subheader" style="overflow-y:auto">
           {#each layerLookupMaskedArr as layer}		
             <div style="display:flex;">
-              <ToolUIButton action={() => layerRemoveMask(layer)} title="remove mask" >
+              <ToolUIButton action={() => layerRemoveMask(layer)} title="remove this mask" >
                 <Trash />
               </ToolUIButton>
+              {#if CONTEXT.user.is_authenticated}
+              <ToolUIButton
+                title="edit georeferencing for this layer"
+                action={() => {window.location.href=layer.georeferenceUrl}}>
+                <MapPin />
+              </ToolUIButton>
+              {/if}
               &nbsp;
               <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
                 <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.local_title}</span>
