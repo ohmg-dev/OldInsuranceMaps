@@ -1,17 +1,11 @@
-import csv
-from datetime import datetime
-import importlib
-
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
 from ohmg.core.importers.base import get_importer
 from ohmg.core.models import Map
-from ohmg.loc_insurancemaps.models import Volume
-from ohmg.places.models import Place
-from ohmg.places.management.utils import reset_volume_counts
-from ohmg.georeference.models import ItemBase, LayerV1, DocumentLink, PrepSession, GeorefSession
+from ohmg.georeference.models import PrepSession, GeorefSession
+
 
 class Command(BaseCommand):
     help = 'management command to handle map object operations'
@@ -22,7 +16,6 @@ class Command(BaseCommand):
             choices=[
                 "add",
                 "remove",
-                "remove-map",
                 "list-importers",
                 "add-document",
                 "create-documents",
@@ -79,6 +72,12 @@ class Command(BaseCommand):
             help="username to use for load operation"
         )
         parser.add_argument(
+            "--skip-existing",
+            action="store_true",
+            default=False,
+            help="Used during Map lookup refresh; skip any Maps that don't have null lookups."
+        )
+        parser.add_argument(
             "--force",
             help="force operation (no confirmation dialog)",
             action="store_true",
@@ -123,56 +122,8 @@ class Command(BaseCommand):
 
             elif options['csv-file']:
                 importer.run_bulk_import(options['csv-file'])
-
-        if operation == "remove":
-            try:
-                vol = Volume.objects.get(pk=options["pk"])
-            except Volume.DoesNotExist:
-                print("this volume does not exist in the database")
-                exit()
-
-            sheets = list(vol.sheets)
-            documents = []
-            layers = []
-            gcp_groups = []
-            all_gcps = []
-            sessions = []
-            doc_links = []
-
-            for s in sheets:
-                if s.doc:
-                    documents.append(s.doc)
-                    sessions += s.doc.get_sessions()
-                    documents += s.doc.children
-                    doc_links += list(DocumentLink.objects.filter(source=s.doc))
-                    layer = s.doc.get_layer()
-                    if layer:
-                        layers.append(layer)
-                        gcp_group = s.doc.gcp_group
-                        gcp_groups.append(gcp_group)
-                        all_gcps += list(gcp_group.gcps)
-
-
-            print(vol)
-            print(f"sheets {len(sheets)}")
-            print(f"documents {len(documents)}")
-            print(f"layers {len(layers)}")
-            print(f"gcp groups {len(gcp_groups)}")
-            print(f"gcps {len(all_gcps)}")
-            print(f"sessions {len(sessions)}")
-            print(f"document links: {len(doc_links)}")
-
-            prompt = "Delete all of these objects? y/N "
-            if options["force"] or input(prompt).lower().startswith("y"):
-                for i in sessions + all_gcps + gcp_groups + layers + doc_links + documents + sheets + [vol]:
-                    print(i)
-                    i.delete()
-
-            print("onjects deleted. resetting map counts...")
-            reset_volume_counts()
-            print("done")
         
-        if operation == "remove-map":
+        if operation == "remove":
             try:
                 map = Map.objects.get(pk=options["pk"])
             except Map.DoesNotExist:
@@ -213,6 +164,8 @@ class Command(BaseCommand):
         if operation == "create-documents":
             try:
                 map = Map.objects.get(pk=options["pk"])
+                map.loaded_by = user
+                map.save()
             except Map.DoesNotExist:
                 print("this map does not exist in the database")
                 exit()
@@ -224,19 +177,11 @@ class Command(BaseCommand):
                 importer = get_importer(name)
                 print(importer.__doc__)
 
-        if operation == "create-lookups":
-            if options['pk']:
-                maps = [Map.objects.get(pk=options["pk"])]
-            else:
-                maps = Map.objects.all().filter(item_lookup__isnull=True)
-            
-            for map in maps:
-                 print(map)
-                 map.update_item_lookup()
-
         if operation == "refresh-lookups":
             if options['pk']:
                 maps = [Map.objects.get(pk=options["pk"])]
+            elif not options['skip_existing']:
+                maps = Map.objects.all().filter(item_lookup__isnull=True)
             else:
                 maps = Map.objects.all()
             
