@@ -6,6 +6,7 @@ class SheetAdmin(admin.ModelAdmin):
     # search_fields = ('volume', 'sheet_no', 'doc')
     list_display = ('volume', 'sheet_no', 'doc')
     list_filter = ('volume', 'sheet_no', 'doc')
+    raw_id_fields = ('volume', 'doc')
 admin.site.register(Sheet, SheetAdmin)
 
 class VolumeAdmin(admin.ModelAdmin):
@@ -19,5 +20,6 @@ class VolumeAdmin(admin.ModelAdmin):
     search_fields = ('city', 'volume_no', 'year')
     list_display = ('identifier', 'city', 'county_equivalent', 'volume_no', 'year', 'status')
     list_filter = ('identifier', 'city', 'county_equivalent', 'volume_no', 'year', 'status')
+    autocomplete_fields = ("locales",)
 
 admin.site.register(Volume, VolumeAdmin)

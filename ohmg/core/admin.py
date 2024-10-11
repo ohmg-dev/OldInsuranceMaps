@@ -9,9 +9,16 @@ from ohmg.core.models import (
 )
 
 
+class MapAdmin(admin.ModelAdmin):
+    search_fields = ('title',)
+    autocomplete_fields = ('locales',)
+    pass
+
+
 class DocumentAdmin(admin.ModelAdmin):
     search_fields = ("title",)
     readonly_fields = ("prepared", "title")
+    raw_id_fields = ("map", )
 
 
 class RegionAdmin(admin.ModelAdmin):
@@ -25,8 +32,9 @@ class LayerAdmin(admin.ModelAdmin):
     raw_id_fields = ("region", "layerset")
     readonly_fields = ("title",)
 
+
 admin.site.register(MapGroup)
-admin.site.register(Map)
+admin.site.register(Map, MapAdmin)
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(Region, RegionAdmin)
 admin.site.register(Layer, LayerAdmin)
