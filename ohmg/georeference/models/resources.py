@@ -24,12 +24,14 @@ from django.utils.safestring import mark_safe
 from cogeo_mosaic.mosaic import MosaicJSON
 from cogeo_mosaic.backends import MosaicBackend
 
+from ohmg.core.models import Layer
 from ohmg.core.utils import (
     full_reverse,
     slugify,
     random_alnum,
 )
 from ohmg.core.renderers import generate_document_thumbnail_content, generate_layer_thumbnail_content
+from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.storage import OverwriteStorage
 
 logger = logging.getLogger(__name__)
@@ -1012,7 +1014,7 @@ class LayerSet(models.Model):
 
             layer_name = feature['properties']['layer']
 
-            layer = LayerV1.objects.get(slug=layer_name)
+            layer = Layer.objects.get(slug=layer_name)
             if not layer.file:
                 raise Exception(f"no layer file for this layer {layer_name}")
 
@@ -1020,8 +1022,14 @@ class LayerSet(models.Model):
                 extent_poly = Polygon.from_bbox(layer.extent)
                 layer_extent_polygons.append(extent_poly)
 
-            latest_sesh = list(layer.get_document().georeference_sessions)[-1]
-            in_path = latest_sesh.run(return_vrt=True)
+            gcp_group = layer.region.gcp_group
+            g = Georeferencer(
+                crs=f"EPSG:{gcp_group.crs_epsg}",
+                transformation=gcp_group.transformation,
+                gcps_geojson=gcp_group.as_geojson,
+            )
+            in_path = g.warp(layer.region.file.path, return_vrt=True)
+
             trim_name = os.path.basename(in_path).replace(".vrt", "_trim.vrt")
             out_path = os.path.join(settings.TEMP_DIR, trim_name)
 
