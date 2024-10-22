@@ -7,11 +7,17 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
-from ohmg.georeference.models import SessionBase
+from ohmg.core.models import Map, Document, Region, Layer
+from ohmg.georeference.models import SessionBase, GCP, GCPGroup
 
 from ohmg.loc_insurancemaps.models import find_volume, Volume
 
 logger = logging.getLogger(__name__)
+
+def display_seconds(seconds):
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return f'{h:d}:{m:02d}:{s:02d}'
 
 def get_date(date):
     return date - timedelta(hours=6)
@@ -68,6 +74,7 @@ class Command(BaseCommand):
             "operation",
             help="the existing username to be changed.",
             choices=[
+                "dsl",
                 "user-signups",
                 "sessions-by-user",
                 "sessions-by-date",
@@ -93,6 +100,36 @@ class Command(BaseCommand):
         else:
             volumes = Volume.objects.all()
             sessions = SessionBase.objects.all()
+
+        if options['operation'] == "dsl":
+            users = get_user_model().objects.filter(email__endswith="richmond.edu")
+            maps = Map.objects.filter(sponsor__username="rchampine")
+            locales = set()
+            for m in maps:
+                locales.update(set(m.locales.all()))
+            print(f"users: {users.count()}, maps: {maps.count()}, cities: {len(locales)}")
+            docs = Document.objects.filter(map__in=maps)
+            prepped = docs.filter(prepared=True)
+            print(f"total sheets across all maps: {docs.count()}")
+            print(f"prepared sheets: {prepped.count()}")
+            regions = Region.objects.filter(document__in=docs)
+            print(f"regions: {regions.count()}")
+            layers = Layer.objects.filter(region__in=regions)
+            print(f"layers: {layers.count()}")
+            gcp_groups = [i.region.gcp_group for i in layers]
+            gcps = GCP.objects.filter(gcp_group__in=gcp_groups)
+            print(f"ground control points: {gcps.count()}")
+            sessions = SessionBase.objects.filter(user__in=users)
+            print(f"sessions: {sessions.count()}")
+            georef = sessions.filter(type="g")
+            prep = sessions.filter(type="p")
+            georef_dur = sum([i.user_input_duration for i in georef])
+            prep_dur = sum([i.user_input_duration for i in prep])
+            total_dur = prep_dur + georef_dur
+            print(f"prep sessions: {prep.count()}, duration (hh:mm:ss): {display_seconds(prep_dur)}")
+            print(f"georef sessions: {georef.count()}, duration (hh:mm:ss): {display_seconds(georef_dur)}")
+            print(f"total time spent (hh:mm:ss): {display_seconds(total_dur)}")
+            print(f"time per layer (hh:mm:ss): {display_seconds(int(total_dur/layers.count()))}")
 
         if options['operation'] in ["sessions-by-user", "all"]:
 
