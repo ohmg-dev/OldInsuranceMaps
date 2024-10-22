@@ -5,8 +5,6 @@ from django.urls import path
 
 from ohmg.frontend.views import (
     HomePage,
-    MRMEndpointList,
-    MRMEndpointLayer,
     Browse,
     ActivityView,
     Viewer,
@@ -26,8 +24,6 @@ urlpatterns = [
     path('activity/', ActivityView.as_view(), name='activity'),
     path('search/', Browse.as_view(), name='search'),
     path('browse/', RedirectView.as_view(pattern_name='search'), name='browse'),
-    path('mrm/', MRMEndpointList.as_view(), name="mrm_layer_list"),
-    path('mrm/<str:layerid>/', MRMEndpointLayer.as_view(), name="mrm_get_resource"),
     path('viewer/', RedirectView.as_view(pattern_name='browse', permanent=False), name='viewer_base'),
     path('viewer/<str:place_slug>/', Viewer.as_view(), name='viewer'),
 ]

@@ -1,7 +1,7 @@
 
 from django.core.management.base import BaseCommand
 
-from ohmg.georeference.models import LayerV1, LayerSet
+from ohmg.georeference.models import LayerSet
 from ohmg.core.models import (
     MapGroup,
     Map,
@@ -18,8 +18,6 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
-
-        # existing_bboxs = LayerV1.objects.all().values_list('slug', 'x0', 'y0', 'x1', 'y1')
 
         # bbox_lookup = {i[0]: [float(i[1]), float(i[2]), float(i[3]), float(i[4])] for i in existing_bboxs}
 

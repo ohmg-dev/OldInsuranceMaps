@@ -36,25 +36,6 @@ from ohmg.core.utils import (
 )
 logger = logging.getLogger(__name__)
 
-def find_volume(item):
-    """Attempt to get the volume from which a Document or Layer
-    is derived. Return None if not applicable/no volume exists."""
-
-    volume, document = None, None
-    if isinstance(item, Document):
-        document = item
-    elif isinstance(item, LayerV1):
-        document = item.get_document()
-
-    if document is not None:
-        if document.parent:
-            document = document.parent
-        try:
-            volume = Sheet.objects.get(doc=document).volume
-        except Sheet.DoesNotExist:
-            volume = None
-    return volume
-
 def format_json_display(data):
     """very nice from here:
     https://www.laurencegellert.com/2018/09/django-tricks-for-processing-and-storing-json/"""
