@@ -10,9 +10,10 @@ from ohmg.core.models import (
 
 
 class MapAdmin(admin.ModelAdmin):
+    list_filter = ('status', 'sponsor', 'loaded_by')
+    list_display = ('title', 'load_date', 'loaded_by', 'sponsor')
     search_fields = ('title',)
     autocomplete_fields = ('locales',)
-    pass
 
 
 class DocumentAdmin(admin.ModelAdmin):

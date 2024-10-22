@@ -7,12 +7,7 @@ from django.http import JsonResponse, Http404
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 
-from ohmg.georeference.models import (
-    LayerV1,
-    Document as DocumentOld,
-    ItemBase,
-    LayerSetCategory,
-)
+from ohmg.georeference.models import LayerSetCategory
 from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.core.models import (
     Map,
@@ -26,14 +21,9 @@ from ohmg.core.api.schemas import (
     MapResourcesSchema,
     PlaceFullSchema,
     LayerSetSchema,
-    SessionLockSchema,
-    DocumentFullSchema,
-    RegionFullSchema,
-    LayerFullSchema,
     ResourceFullSchema,
 )
-from ohmg.georeference.models import SessionLock
-from ohmg.loc_insurancemaps.models import Volume, find_volume
+from ohmg.loc_insurancemaps.models import Volume
 from ohmg.loc_insurancemaps.tasks import load_docs_as_task, load_map_documents_as_task
 
 logger = logging.getLogger(__name__)
@@ -152,40 +142,6 @@ class ResourceSummary(View):
                     "MAP": map_json,
                     "LOCALE": locale_json,
                     "RESOURCE": resource_json,
-                }
-            }
-        )
-
-
-class VirtualResourceView(View):
-
-    def get(self, request, pk):
-
-        resource = get_object_or_404(ItemBase, pk=pk)
-        if resource.type == 'document':
-            resource = DocumentOld.objects.get(pk=pk)
-        elif resource.type == 'layer':
-            resource = LayerV1.objects.get(pk=pk)
-
-        split_summary = resource.get_split_summary()
-        georeference_summary = resource.get_georeference_summary()
-        resource_json = resource.serialize()
-
-        volume = find_volume(resource)
-        volume_json = None
-        if volume is not None:
-            volume_json = volume.serialize()
-
-        return render(
-            request,
-            "content/resource.html",
-            context={
-                'resource_params': {
-                    "CONTEXT": generate_ohmg_context(request),
-                    'RESOURCE': resource_json,
-                    'VOLUME': volume_json,
-                    "SPLIT_SUMMARY": split_summary,
-                    "GEOREFERENCE_SUMMARY": georeference_summary,
                 }
             }
         )

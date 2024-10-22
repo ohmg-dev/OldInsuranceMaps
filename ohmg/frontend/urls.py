@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.views.generic import TemplateView, RedirectView
+from django.views.defaults import page_not_found, server_error
 from django.urls import path
 
 from ohmg.frontend.views import (
@@ -10,6 +11,13 @@ from ohmg.frontend.views import (
     ActivityView,
     Viewer,
 )
+
+def debug_page_not_found(request):
+    return page_not_found(request, None)
+
+# this one doesn't work yet
+def debug_server_error(request):
+    return server_error(request)
 
 urlpatterns = [
     path('', HomePage.as_view(), name='home'),
@@ -29,4 +37,10 @@ if settings.ENABLE_NEWSLETTER:
     urlpatterns += [
         path('news/', NewsList.as_view(), name="news"),
         path('news/<str:slug>/', NewsArticle.as_view(), name="article"),
+    ]
+
+if settings.DEBUG:
+    urlpatterns += [
+        path("404/", debug_page_not_found),
+        path("500/", debug_server_error),
     ]
