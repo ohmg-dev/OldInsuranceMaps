@@ -88,7 +88,7 @@ button.button.is-icon:disabled {
         inset -1px -1px 1px 1px rgb(145, 145, 145);
 }
 
-button.button.is-icon:active {
+button.button.is-icon:enabled:active {
     box-shadow:
         inset 1px 1px 1px 1px rgb(145, 145, 145),
         inset -1px -1px 1px 1px rgb(234, 234, 234);
