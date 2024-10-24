@@ -32,8 +32,6 @@
             doubleEncode: true,
         });
         ll = getCenter(RESOURCE.extent);
-        gcpsGeojsonUrl = `/mrm/${RESOURCE.slug}?resource=gcps-geojson`;
-        gcpsPointsUrl = `/mrm/${RESOURCE.slug}?resource=points`;
     } else {
         // this is a document resource
         jpegUrl = RESOURCE.urls.image;
@@ -41,8 +39,6 @@
     if (RESOURCE.layer) {
         // this is a document resource that DOES have a layer (i.e. has been georeferenced)
         cogUrl = RESOURCE.layer.urls.cog;
-        gcpsGeojsonUrl = `/mrm/${RESOURCE.layer.slug}?resource=gcps-geojson`;
-        gcpsPointsUrl = `/mrm/${RESOURCE.layer.slug}?resource=points`;
         xyzUrl = makeTitilerXYZUrl({
             host: CONTEXT.titiler_host,
             url: RESOURCE.layer.urls.cog,
@@ -93,8 +89,8 @@
     <tr>
         <td>Ground Control Points</td>
         <td>
-            {#if gcpsGeojsonUrl}
-            <Link href={gcpsGeojsonUrl} title="Download GCPs in GeoJSON format" download={`${RESOURCE.slug}.geojson`}>GeoJSON</Link>
+            {#if gcpsGeojsonUrl || gcpsPointsUrl}
+            <!-- <Link href={gcpsGeojsonUrl} title="Download GCPs in GeoJSON format" download={`${RESOURCE.slug}.geojson`}>GeoJSON</Link> -->
             <!--&bullet;
             <Link href={gcpsPointsUrl} title="Download GCPs in .points format (QGIS)" download={`${RESOURCE.slug}.points`}>.points</Link>-->
             {:else}

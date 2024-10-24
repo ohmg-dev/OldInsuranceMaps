@@ -27,11 +27,20 @@ export let CONTEXT;
 export let RESOURCE;
 export let MAP;
 export let LOCALE;
-export let SPLIT_SUMMARY;
 export let GEOREFERENCE_SUMMARY;
 
-// console.log(MAP)
+// console.log(CONTEXT)
 // console.log(RESOURCE)
+
+const userCanUndoPrep = (
+    RESOURCE.status == "prepared" ||
+    RESOURCE.status == "split"
+  )
+  && !RESOURCE.regions.some(e => e.georeferenced)
+  && (
+    CONTEXT.user.is_staff ||
+    CONTEXT.user.username ==  RESOURCE.prep_sessions[0].user.username
+  )
 
 const EXTENT = RESOURCE.type == "layer" ? RESOURCE.extent : [0, -RESOURCE.image_size[1], RESOURCE.image_size[0], 0]
 const LAYER_URL = RESOURCE.type == "layer" ? RESOURCE.urls.cog : RESOURCE.urls.image
@@ -89,8 +98,6 @@ let undoBtnTitle = "Undo this determination";
 let georeferenceBtnEnable = false;
 let georeferenceBtnTitle = "Create Control Points";
 
-let splitNeeded;
-let undoBtnEnabled;
 let processing;
 
 let filterParamsList = ['sort=oldest_first']
@@ -101,8 +108,6 @@ $: upperCaseType = RESOURCE.type[0].toUpperCase()+RESOURCE.type.substring(1,RESO
 
 $: {
   processing = RESOURCE.status == "splitting" || RESOURCE.status == "georeferencing"
-  splitNeeded = SPLIT_SUMMARY ? SPLIT_SUMMARY.split_needed : "unknown";
-  undoBtnEnabled = SPLIT_SUMMARY ? SPLIT_SUMMARY.allow_reset : false;
   switch(RESOURCE.status) {
     case "unprepared":
       if (CONTEXT.user.is_authenticated) {
@@ -113,9 +118,6 @@ $: {
       sectionVis['download'] = false;
       georeferenceBtnEnable = false;
       break
-    case "splitting":
-      undoBtnEnabled = false;
-      break;
     case "prepared":
       splitBtnEnabled = false;
       noSplitBtnEnabled = false;
@@ -129,20 +131,39 @@ $: {
   }
 }
 
-function setSplit(operation) {
-
-  let data = JSON.stringify({
-    "operation": operation,
-  });
-
+function postNoSplit() {
   fetch(RESOURCE.urls.split, {
       method: 'POST',
       headers: CONTEXT.ohmg_post_headers,
-      body: data,
+      body: JSON.stringify({"operation": "no_split"}),
     })
     .then(response => response.json())
     .then(result => {
-      window.location = window.location
+      if (result.success) {
+        window.location = window.location
+      } else {
+        alert(result.message)
+      }
+    });
+}
+
+function postUndoPrep() {
+  fetch("/session/", {
+      method: 'POST',
+      headers: CONTEXT.ohmg_post_headers,
+      body: JSON.stringify({"operation": "undo", "sessionid": RESOURCE.prep_sessions[0].id}),
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        if (RESOURCE.type == "document") {
+          window.location = window.location
+        } else if (RESOURCE.type == "region") {
+          window.location = `/document/${RESOURCE.document.id}`
+        }
+      } else {
+        alert(result.message)
+      }
     });
 }
 
@@ -284,27 +305,21 @@ function goToRegion() {
           title="Split this document"
           disabled={!splitBtnEnabled}
           action={() => {window.location.href=RESOURCE.urls.split}}>
-          <!-- class="control-btn{splitNeeded == true ? ' btn-chosen': ''}"> -->
           <Scissors /> Split
         </ToolUIButton>
         <ToolUIButton
           onlyIcon={false}
           title="This document does not need to be split"
           disabled={!noSplitBtnEnabled}
-          action={() => {setSplit("no_split")}}>
-          <!-- class="control-btn{splitNeeded == false ? ' btn-chosen': ''}"> -->
+          action={postNoSplit}>
           <CheckSquareOffset /> No split needed
         </ToolUIButton>
-        <!-- DISABLE UNDO OPERATIONS TEMPORARILY
-        {#if CONTEXT.user.is_authenticated}
         <ToolUIButton
           title={undoBtnTitle}
-          disabled={!undoBtnEnabled}
-          action={() => {setSplit("undo")}}>
+          disabled={!userCanUndoPrep}
+          action={postUndoPrep}>
           <ArrowCounterClockwise />
         </ToolUIButton>
-        {/if}
-        -->
       </div>
       <div class="section-body">
         {#if RESOURCE.prep_sessions.length > 0 }

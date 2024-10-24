@@ -1,4 +1,5 @@
 import os
+from http import HTTPStatus
 import json
 from datetime import datetime
 import logging
@@ -11,18 +12,10 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.core.utils import time_this
 from ohmg.georeference.tasks import (
-    # these are the old commands, retain for now
-    run_georeference_session,
-    run_preparation_session,
-    # these are the new commands, use from now on
     run_georeferencing_as_task,
     run_preparation_as_task,
-    # this is a temporary task used to create and link a new layer
-    # to a new georef session
-    patch_new_layer_to_session,
 )
 from ohmg.georeference.models import (
-    Document as DocumentOld,
     GCPGroup,
     PrepSession,
     GeorefSession,
@@ -45,10 +38,27 @@ from ohmg.georeference.operations.sessions import run_preparation
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.georeference.tasks import delete_preview_vrt
+from ohmg.georeference.operations.sessions import undo_preparation
 
 logger = logging.getLogger(__name__)
 
 BadPostRequest = HttpResponseBadRequest("invalid post content")
+
+NotFoundJsonResponse = JsonResponse(
+    {"success": False , "message": "object not found"},
+    status=HTTPStatus.NOT_FOUND,
+)
+
+BadRequestJsonResponse = JsonResponse(
+    {"success": False , "message": "malformed request body"},
+    status=HTTPStatus.BAD_REQUEST,
+)
+
+UnauthorizedJsonResponse = JsonResponse(
+    {"success": False , "message": "unauthorized"},
+    status=HTTPStatus.UNAUTHORIZED,
+)
+
 
 class SplitView(View):
 
@@ -157,18 +167,6 @@ class SplitView(View):
         elif operation == "extend-session":
 
             sesh.extend_locks2()
-            return JsonResponse({"success":True})
-
-        elif operation == "undo":
-            try:
-                sesh = PrepSession.objects.get(doc=document)
-            except Exception as e:
-                return JsonResponse({"success":False, "message": str(e)})
-            try:
-                sesh.undo()
-                sesh.doc2.map.update_item_lookup()
-            except Exception as e:
-                return JsonResponse({"success":False, "message": str(e)})
             return JsonResponse({"success":True})
 
         else:
@@ -469,3 +467,35 @@ class LayerSetView(View):
 
 
         return JsonResponse(response)
+
+
+class SessionView(View):
+
+    def post(self, request):
+
+        if not request.body:
+            return BadRequestJsonResponse
+
+        if not request.user.is_authenticated:
+            return UnauthorizedJsonResponse
+
+        body = json.loads(request.body)
+        operation = body.get("operation")
+        sessionid = body.get("sessionid")
+
+        session = None
+        if sessionid:
+            try:
+                session = PrepSession.objects.get(pk=sessionid)
+            except PrepSession.DoesNotExist:
+                return NotFoundJsonResponse
+
+        if operation == "undo" and session:
+            try:
+                undo_preparation(session)
+            except Exception as e:
+                return JsonResponse({"success": False, "message": str(e)})
+            return JsonResponse({"success":True})
+
+        else:
+            return BadRequestJsonResponse

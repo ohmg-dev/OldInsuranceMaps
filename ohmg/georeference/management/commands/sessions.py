@@ -16,7 +16,6 @@ class Command(BaseCommand):
             choices=[
                 "run",
                 "undo",
-                "redo",
                 "list",
                 "delete-expired",
             ],
@@ -66,14 +65,6 @@ class Command(BaseCommand):
                     run_preparation(session)
                 elif bs.type == "g":
                     run_georeferencing(session)
-            elif operation == "redo":
-                if bs.type == "p":
-                    session.undo(keep_session=True)
-                    session.run()
-                else:
-                    # this is the same as run for georeference sessions
-                    # because all previous outputs are reliably overwritten
-                    session.run()
             elif operation == "undo":
                 if bs.type == "p":
                     undo_preparation(session)
