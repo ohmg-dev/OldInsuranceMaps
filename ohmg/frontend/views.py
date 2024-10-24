@@ -12,7 +12,6 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.core.utils import full_reverse
 from ohmg.core.models import Map
-from ohmg.georeference.models import LayerV1
 from ohmg.core.api.schemas import (
     LayerSetSchema,
     MapFullSchema,
@@ -114,68 +113,6 @@ class ActivityView(View):
             context=context_dict
         )
 
-def get_layer_mrm_urls(layerid):
-
-    return {
-        "geotiff": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=geotiff",
-        "jpg": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=jpg",
-        "points": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=points",
-        "gcps-geojson": full_reverse("mrm_get_resource", args=(layerid,)).rstrip("/") + "?resource=gcps-geojson",
-    }
-
-class MRMEndpointList(View):
-
-    def get(self, request):
-
-        output = {}
-        for lyr in LayerV1.objects.all().order_by("slug"):
-            output[lyr.slug] = get_layer_mrm_urls(lyr.slug)
-
-        return JsonResponse(output)
-
-class MRMEndpointLayer(View):
-
-    def get(self, request, layerid):
-
-        if layerid.startswith("geonode:"):
-            layerid = layerid.replace("geonode:", "")
-
-        layer = get_object_or_404(LayerV1, slug=layerid)
-        item = request.GET.get("resource", None)
-
-        if item is None:
-            return JsonResponse(get_layer_mrm_urls(layerid))
-
-        elif item == "geotiff":
-            if layer.file:
-                with open(layer.file.path, 'rb') as fh:
-                    response = HttpResponse(fh.read(), content_type="image/tiff")
-                    response['Content-Disposition'] = f'inline; filename={layerid}.tiff'
-                    return response
-            raise Http404
-
-        elif item == "gcps-geojson":
-            response = layer.get_document().gcp_group.as_geojson
-            response['warning'] = 'ATTENTION: this endpoint will be retired very soon. please get in touch with hello@oldinsurancemaps.net if you are interested in a replacement for it! Also just to say hi!'
-            return JsonResponse(response)
-
-        elif item == "points":
-            content = layer.get_document().gcp_group.as_points_file()
-            response = HttpResponse(content, content_type='text/plain')
-            response['Content-Disposition'] = f'attachment; filename={layerid}.points'
-            return response
-
-        elif item == "jpg":
-            doc_path = layer.get_document().file.path
-            if os.path.exists(doc_path):
-                with open(doc_path, 'rb') as fh:
-                    response = HttpResponse(fh.read(), content_type="image/jpg")
-                    response['Content-Disposition'] = f'inline; filename={layerid}.jpg'
-                    return response
-            raise Http404
-
-        else:
-            raise Http404
 
 class NewsList(View):
 

@@ -161,38 +161,23 @@ This will start a container running TiTiler and expose it to `localhost:8008`.
 
 Make sure you have `TITILER_HOST=http://localhost:8008` in `.env`.
 
-### Nginx
+### Static file server
 
-One hitch during development is that the Django dev server [does not serve range requests](https://code.djangoproject.com/ticket/22479), meaning that TiTiler will need to be fed urls to local files that are running behind Apache or Nginx, not just the Django dev server.
+During development, a separate HTTP server must be used to supply Titiler with COG endpoints, because the Django dev server does not serve HTTP range requests (more on this [here](https://code.djangoproject.com/ticket/22479) and [here](https://github.com/python/cpython/issues/86809)). The easiest workaround is to use node's [http-server](https://www.npmjs.com/package/http-server).
 
-```bash
-sudo apt install nginx
+From within the repository root (alongside the `uploaded` directory) run:
+
+```
+npx http-server .
 ```
 
-Once nginx is running, make sure the default server config includes an alias that points directly to the same directory that your Django app will use for `MEDIA_ROOT`.
+All COGs will now be accessible at `http://localhost:8080/uploaded/`.
 
-`/etc/nginx/sites-enabled/default`
+---
 
-```bash
-server {
-    ...
-    location /uploaded {
-        alias /home/ohmg/uploaded;
-    }
-    ...
-}
-```
+Make sure you have `MEDIA_HOST=http://localhost:8080` in `.env`. `MEDIA_HOST` is a prefix that will be prepended to any uploaded media paths that are passed to TiTiler.
 
-Finally, make sure that the following environment variables are set, `MEDIA_HOST` being a prefix that is appended to any uploaded media paths that are passed to TiTiler.
-
-`.env`
-
-```bash
-MEDIA_HOST=http://localhost
-MEDIA_ROOT=/home/ohmg/uploaded
-```
-
-In production, you will already be using Nginx, so these steps would be redundant. If there is no `MEDIA_ROOT` environment variable set locally, it will default to `SITEURL`.
+In production, you will already be using a webserver for static files so you will not need to use `http-server`. In this case, remove `MEDIA_HOST` from `.env` or set it to `''`.
 
 ## Running Tests
 

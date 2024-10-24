@@ -7,7 +7,6 @@ from ohmg.georeference.models import (
     GeorefSession,
 )
 from ohmg.georeference.operations.sessions import run_preparation, run_georeferencing, undo_preparation
-from ohmg.loc_insurancemaps.models import find_volume
 
 class Command(BaseCommand):
     help = 'Command line access point for the internal georeferencing utilities.'

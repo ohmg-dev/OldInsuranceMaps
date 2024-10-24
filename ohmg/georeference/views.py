@@ -46,8 +46,6 @@ from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.georeference.tasks import delete_preview_vrt
 
-from ohmg.loc_insurancemaps.models import find_volume
-
 logger = logging.getLogger(__name__)
 
 BadPostRequest = HttpResponseBadRequest("invalid post content")
@@ -198,9 +196,6 @@ class GeoreferenceView(View):
             session.start()
 
         region_json = RegionFullSchema.from_orm(region).dict()
-
-        # volume = find_volume(doc)
-        # volume_json = volume.serialize()
 
         map_json = MapFullSchema.from_orm(region.map).dict()
 
