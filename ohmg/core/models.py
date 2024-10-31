@@ -736,7 +736,7 @@ class Layer(models.Model):
         urls = self._base_urls
         doc = self.get_document()
         urls.update({
-            "resource": full_reverse("resource_detail", args=(self.pk, )),
+            "resource": f"/layer/{self.pk}",
             # remove detail and progress_page urls once InfoPanel has been fully
             # deprecated and volume summary has been updated.
             # note the geonode: prefix is still necessary until non-geonode
