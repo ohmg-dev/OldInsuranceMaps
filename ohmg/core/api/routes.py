@@ -239,11 +239,7 @@ def regions(request, filters: FilterRegionSchema = Query(...)):
 @beta2.get('layers/', response=List[LayerSchema], url_name="layers")
 def layer(request, map: str):
 
-    vol = Volume.objects.get(pk=map).serialize()
-    layer_ids = [i['slug'] for i in vol['items']['layers']]
-    layers = LayerV1.objects.filter(slug__in=layer_ids).prefetch_related('vrs')
-
-    return layers
+    return Layer.objects.filter(region__document__map_id=map)
 
 ## SESSION LOCKS
 @beta2.get('session-locks/', response=List[SessionLockSchema], url_name="session_locks")
