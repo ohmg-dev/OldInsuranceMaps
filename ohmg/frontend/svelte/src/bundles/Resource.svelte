@@ -131,62 +131,62 @@ $: {
   }
 }
 
-function postNoSplit() {
-  fetch(RESOURCE.urls.split, {
-      method: 'POST',
-      headers: CONTEXT.ohmg_post_headers,
-      body: JSON.stringify({"operation": "no_split"}),
-    })
-    .then(response => response.json())
-    .then(result => {
-      if (result.success) {
-        window.location = window.location
-      } else {
-        alert(result.message)
-      }
-    });
-}
+// function postNoSplit() {
+//   fetch(RESOURCE.urls.split, {
+//       method: 'POST',
+//       headers: CONTEXT.ohmg_post_headers,
+//       body: JSON.stringify({"operation": "no_split"}),
+//     })
+//     .then(response => response.json())
+//     .then(result => {
+//       if (result.success) {
+//         window.location = window.location
+//       } else {
+//         alert(result.message)
+//       }
+//     });
+// }
 
-function postUndoPrep() {
-  fetch("/session/", {
-      method: 'POST',
-      headers: CONTEXT.ohmg_post_headers,
-      body: JSON.stringify({"operation": "undo", "sessionid": RESOURCE.prep_sessions[0].id}),
-    })
-    .then(response => response.json())
-    .then(result => {
-      if (result.success) {
-        if (RESOURCE.type == "document") {
-          window.location = window.location
-        } else if (RESOURCE.type == "region") {
-          window.location = `/document/${RESOURCE.document.id}`
-        }
-      } else {
-        alert(result.message)
-      }
-    });
-}
+// function postUndoPrep() {
+//   fetch("/session/", {
+//       method: 'POST',
+//       headers: CONTEXT.ohmg_post_headers,
+//       body: JSON.stringify({"operation": "undo", "sessionid": RESOURCE.prep_sessions[0].id}),
+//     })
+//     .then(response => response.json())
+//     .then(result => {
+//       if (result.success) {
+//         if (RESOURCE.type == "document") {
+//           window.location = window.location
+//         } else if (RESOURCE.type == "region") {
+//           window.location = `/document/${RESOURCE.document.id}`
+//         }
+//       } else {
+//         alert(result.message)
+//       }
+//     });
+// }
 
-function unGeoreference() {
+// function unGeoreference() {
 
-  let data = JSON.stringify({
-    "operation": "ungeoreference",
-  });
+//   let data = JSON.stringify({
+//     "operation": "ungeoreference",
+//   });
 
-  fetch(RESOURCE.urls.georeference, {
-      method: 'POST',
-      headers: CONTEXT.ohmg_post_headers,
-      body: data,
-    })
-    .then(response => response.json())
-    .then(result => {
-      if (RESOURCE.type == "layer") {
-        window.location = RESOURCE.document.urls.resource
-      } else {
-        window.location = window.location
-      }
-    });
-}
+//   fetch(RESOURCE.urls.georeference, {
+//       method: 'POST',
+//       headers: CONTEXT.ohmg_post_headers,
+//       body: data,
+//     })
+//     .then(response => response.json())
+//     .then(result => {
+//       if (RESOURCE.type == "layer") {
+//         window.location = RESOURCE.document.urls.resource
+//       } else {
+//         window.location = window.location
+//       }
+//     });
+// }
 
 const iconLinks = [
   {
@@ -299,7 +299,7 @@ function goToRegion() {
     </button>
     {#if sectionVis['prep']}
     <div transition:slide>
-      <div class="control-btn-group">
+      <!-- <div class="control-btn-group">
         <ToolUIButton
           onlyIcon={false}
           title="Split this document"
@@ -320,7 +320,7 @@ function goToRegion() {
           action={postUndoPrep}>
           <ArrowCounterClockwise />
         </ToolUIButton>
-      </div>
+      </div> -->
       <div class="section-body">
         {#if RESOURCE.prep_sessions.length > 0 }
         Initial preparation by <a href="{RESOURCE.prep_sessions[0].user.profile}">{RESOURCE.prep_sessions[0].user.username}</a>: Split needed? <strong>{RESOURCE.prep_sessions[0].data.split_needed ? `Yes: ${RESOURCE.document.title} has been split into ${RESOURCE.regions.length} regions.` : "No."}</strong>

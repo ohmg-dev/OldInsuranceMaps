@@ -37,6 +37,7 @@ import Styles from '@lib/ol-styles';
 
 import Modal, {getModal} from '@components/base/Modal.svelte';
 import ToolUIButton from '@components/base/ToolUIButton.svelte';
+import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
 
 const styles = new Styles();
 
@@ -370,18 +371,10 @@ function cleanup () {
       getModal('modal-cancel').close()}
     }>No - keep working</button>
 </Modal>
-<Modal id="modal-confirm-no-split">
-	<p>Are you sure this document does not need to be split?</p>
-  <button class="button is-success"
-    on:click={() => {
-      process("no_split");
-      getModal('modal-confirm-no-split').close()
-    }}>Yes - it only contains one map</button>
-  <button class="button is-danger"
-    on:click={() => {
-      getModal('modal-confirm-no-split').close()}
-    }>Cancel</button>
-</Modal>
+<ConfirmNoSplitModal documentId={DOCUMENT.id} {CONTEXT} callback={() => {
+    leaveOkay = true;
+    window.location.href = `/map/${DOCUMENT.map}`
+  }}/>
 <div style="height:25px">
   {currentTxt} <Link href="https://about.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link>
 </div>

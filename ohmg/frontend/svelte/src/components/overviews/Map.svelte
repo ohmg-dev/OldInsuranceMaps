@@ -1,10 +1,16 @@
 <script>
 import { slide } from 'svelte/transition';
 
-import { makeTitilerXYZUrl } from "@lib/utils"
+import { makeTitilerXYZUrl, makePostOptions } from "@lib/utils"
 
 import ArrowRight from "phosphor-svelte/lib/ArrowRight";
+import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
+import DownloadSimple from "phosphor-svelte/lib/DownloadSimple";
+import FileText from "phosphor-svelte/lib/FileText";
+import MapPin from "phosphor-svelte/lib/MapPin";
+import MapTrifold from "phosphor-svelte/lib/MapTrifold";
 import Question from "phosphor-svelte/lib/Question";
+import Scissors from "phosphor-svelte/lib/Scissors";
 import Wrench from "phosphor-svelte/lib/Wrench";
 
 import {getCenter} from 'ol/extent';
@@ -31,6 +37,10 @@ import DownloadSectionModal from './modals/ItemDownloadSectionModal.svelte';
 import MapDetails from './sections/MapDetails.svelte';
     import SigninReminder from '../layout/SigninReminder.svelte';
 	import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
+    import { ArrowCounterClockwise } from 'phosphor-svelte';
+
+	import ConfirmNoSplitModal from '../interfaces/modals/ConfirmNoSplitModal.svelte';
+	import ConfirmUngeoreferenceModal from '../interfaces/modals/ConfirmUngeoreferenceModal.svelte';
 
 export let CONTEXT;
 export let MAP;
@@ -39,8 +49,7 @@ export let SESSION_SUMMARY;
 export let ANNOTATION_SETS;
 export let ANNOTATION_SET_OPTIONS;
 
-// console.log(MAP)
-// console.log(ANNOTATION_SETS)
+console.log(MAP)
 
 const sessionLocks = {"docs": {}, "regs": {}, "lyrs": {}}
 $: {
@@ -277,19 +286,35 @@ function fetchAnnotationSets() {
 	});
 }
 
-function postGeoref(url, operation, status) {
+function postRegionCategory(regionId, newCategory) {
 	const data = JSON.stringify({
-		"operation": operation,
-		"status": status,
+		"operation": "set-category",
+		"payload": {"new-category": newCategory},
 	});
-	fetch(url, {
-		method: 'POST',
-		headers: CONTEXT.ohmg_post_headers,
-		body: data,
-	})
+	fetch(`/region/${regionId}`, makePostOptions(CONTEXT.ohmg_post_headers, data))
 	.then(response => response.json())
 	.then(result => {
-		pollMapSummary();
+		if (result.success) {
+			pollMapSummary();
+		} else {
+			alert("Error: " + result["message"])
+		}
+	});
+}
+
+function postDocumentUnprepare(regionId) {
+	const data = JSON.stringify({
+		"operation": "unprepare",
+		"payload": {},
+	});
+	fetch(`/document/${regionId}`, makePostOptions(CONTEXT.ohmg_post_headers, data))
+	.then(response => response.json())
+	.then(result => {
+		if (result.success) {
+			pollMapSummary();
+		} else {
+			alert("Error: " + result["message"])
+		}
 	});
 }
 
@@ -299,7 +324,10 @@ let reinitModalMap = [{}]
 
 let modalIsGeospatial = false;
 let modalLyrUrl = "";
-let modalExtent = []
+let modalExtent = [];
+
+let splitDocumentId;
+let undoGeorefLayerId;
 
 </script>
 <MapPreviewModal id={"modal-preview-map"} placeName={LOCALE.display_name} viewerUrl={MAP.urls.viewer}/>
@@ -315,6 +343,8 @@ let modalExtent = []
 	<SimpleViewer {CONTEXT} LAYER_URL={modalLyrUrl} EXTENT={modalExtent} GEOSPATIAL={modalIsGeospatial} />
 {/each}
 </Modal>
+<ConfirmNoSplitModal documentId={splitDocumentId} {CONTEXT} callback={pollMapSummary} />
+<ConfirmUngeoreferenceModal layerId={undoGeorefLayerId} {CONTEXT} callback={pollMapSummary} />
 <main>
 	<section class="breadcrumbs">
 		{#each LOCALE.breadcrumbs as bc, n}
@@ -447,7 +477,18 @@ let modalExtent = []
 								</ul>
 								{:else if userCanEdit}
 								<ul>
-									<li><Link href={document.urls.split} title="Prepare this document">prepare &rarr;</Link></li>
+									<li><button
+											class="is-text-link"
+											title="This document does not need to be split"
+											on:click={() => {
+												splitDocumentId = document.id;
+												getModal('modal-confirm-no-split').open()
+											}}>
+											<CheckSquareOffset/> no split needed
+										</button>
+									</li>
+									<li><Link href={document.urls.split} title="Split this document">
+										<Scissors/> split this document</Link></li>
 								</ul>
 								{/if}
 							</div>
@@ -497,8 +538,23 @@ let modalExtent = []
 								</ul>
 								{:else if userCanEdit}
 								<ul>
-									<li><Link href={region.urls.georeference} title="georeference this document">georeference &rarr;</Link></li>
-									<li><button class="is-text-link" title="click to move this document to the non-map section" on:click={() => {postGeoref(region.urls.georeference, "set-status", "nonmap")}}>set as non-map</button></li>
+									<li><Link href={region.urls.georeference} title="georeference this document">
+										<MapPin /> georeference
+									</Link></li>
+									<li><button
+										disabled={!CONTEXT.user.is_staff}
+										class="is-text-link"
+										title="undo this preparation"
+										style="display:flex; align-items:center;"
+										on:click={() => {postDocumentUnprepare(region.document_id)}}>
+										<ArrowCounterClockwise/> unprepare
+									</button></li>
+									<li>
+										<button
+										class="is-text-link"
+										title="click to move this document to the non-map section"
+										on:click={() => {postRegionCategory(region.id, "non-map")}}>
+										<FileText /> set as non-map</button></li>
 								</ul>
 								{/if}
 							</div>
@@ -573,8 +629,24 @@ let modalExtent = []
 								</ul>
 								{:else if userCanEdit}
 								<ul>
-									<li><Link href={layer.urls.georeference} title="edit georeferencing">edit georeferencing &rarr;</Link></li>
-									<li><Link href={layer.urls.resource} title="edit georeferencing">downloads & web services &rarr;</Link></li>
+									<li>
+										<Link href={layer.urls.georeference} title="edit georeferencing">
+											<MapPin/> edit georeferencing
+										</Link>
+									</li>
+									<li><button
+										disabled={!CONTEXT.user.is_staff}
+										class="is-text-link"
+										title="This document does not need to be split"
+										on:click={() => {
+											undoGeorefLayerId = layer.id;
+											getModal('modal-confirm-ungeoreference').open()
+										}}>
+										<ArrowCounterClockwise/> ungeoreference
+									</button></li>
+									<li><Link href={layer.urls.resource} title="downloads and web services">
+										<DownloadSimple /> downloads & web services</Link>
+									</li>
 								</ul>
 								{/if}
 								{#if classifyingLayers}
@@ -624,7 +696,12 @@ let modalExtent = []
 							{#if userCanEdit}
 							<div>
 								<ul>
-									<li><button class="is-text-link" on:click={() => {postGeoref(nonmap.urls.georeference, "set-status", "prepared")}} title="click to set this document back to 'prepared' so it can be georeferenced">this <em>is</em> a map</button></li>
+									<li><button
+										class="is-text-link"
+										on:click={() => {postRegionCategory(nonmap.id, "map")}}
+										title="click to set this document back to 'prepared' so it can be georeferenced">
+										<MapTrifold /> this <em>is</em> a map
+									</button></li>
 								</ul>
 							</div>
 							{/if}
