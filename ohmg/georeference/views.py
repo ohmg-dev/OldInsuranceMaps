@@ -7,9 +7,11 @@ import logging
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.views import View
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
 
 from ohmg.core.context_processors import generate_ohmg_context
+from ohmg.core.http import JsonResponseBadRequest, JsonResponseNotFound, validate_post_request
 from ohmg.core.utils import time_this
 from ohmg.georeference.tasks import (
     run_georeferencing_as_task,
@@ -41,23 +43,6 @@ from ohmg.georeference.tasks import delete_preview_vrt
 from ohmg.georeference.operations.sessions import undo_preparation
 
 logger = logging.getLogger(__name__)
-
-BadPostRequest = HttpResponseBadRequest("invalid post content")
-
-NotFoundJsonResponse = JsonResponse(
-    {"success": False , "message": "object not found"},
-    status=HTTPStatus.NOT_FOUND,
-)
-
-BadRequestJsonResponse = JsonResponse(
-    {"success": False , "message": "malformed request body"},
-    status=HTTPStatus.BAD_REQUEST,
-)
-
-UnauthorizedJsonResponse = JsonResponse(
-    {"success": False , "message": "unauthorized"},
-    status=HTTPStatus.UNAUTHORIZED,
-)
 
 
 class SplitView(View):
@@ -95,10 +80,8 @@ class SplitView(View):
             },
         )
 
+    # @method_decorator(validate_post_request(operations=[]))
     def post(self, request, docid):
-
-        if not request.body:
-            return BadPostRequest
 
         document = get_object_or_404(Document, pk=docid)
 
@@ -133,28 +116,6 @@ class SplitView(View):
             # )
             return JsonResponse({"success":True})
 
-        elif operation == "no_split":
-
-            # sesh could be None if this post has been made directly from an overview page,
-            # not from the split interface where a session will have already been made.
-            if sesh is None:
-                sesh = PrepSession.objects.create(
-                    doc2=document,
-                    user=request.user,
-                    user_input_duration=0,
-                )
-                sesh.start()
-
-            sesh.data['split_needed'] = False
-            sesh.save(update_fields=["data"])
-            # sesh.run()
-            new_region = run_preparation(sesh)[0]
-
-            return JsonResponse({
-                "success":True,
-                "region_id": new_region.pk,
-            })
-
         elif operation == "cancel":
 
             if sesh.stage != "input":
@@ -170,7 +131,7 @@ class SplitView(View):
             return JsonResponse({"success":True})
 
         else:
-            return BadPostRequest
+            return JsonResponseBadRequest()
 
 
 class GeoreferenceView(View):
@@ -223,9 +184,6 @@ class GeoreferenceView(View):
         """
         Runs the georeferencing process for this document.
         """
-
-        if not request.body:
-            return BadPostRequest
 
         region = get_object_or_404(Region, pk=docid)
 
@@ -398,15 +356,13 @@ class GeoreferenceView(View):
             return JsonResponse({"success":True})
 
         else:
-            return BadPostRequest
+            return JsonResponseBadRequest()
 
 
 class LayerSetView(View):
 
+    # @method_decorator(validate_post_request(operations=[]))
     def post(self, request):
-
-        if not request.body:
-            return BadPostRequest
 
         body = json.loads(request.body)
         operation = body.get("operation")
@@ -471,13 +427,8 @@ class LayerSetView(View):
 
 class SessionView(View):
 
+    # @method_decorator(validate_post_request(operations=[]))
     def post(self, request):
-
-        if not request.body:
-            return BadRequestJsonResponse
-
-        if not request.user.is_authenticated:
-            return UnauthorizedJsonResponse
 
         body = json.loads(request.body)
         operation = body.get("operation")
@@ -488,7 +439,7 @@ class SessionView(View):
             try:
                 session = PrepSession.objects.get(pk=sessionid)
             except PrepSession.DoesNotExist:
-                return NotFoundJsonResponse
+                return JsonResponseNotFound
 
         if operation == "undo" and session:
             try:
@@ -498,4 +449,4 @@ class SessionView(View):
             return JsonResponse({"success":True})
 
         else:
-            return BadRequestJsonResponse
+            return JsonResponseBadRequest()

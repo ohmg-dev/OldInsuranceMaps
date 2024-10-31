@@ -240,8 +240,9 @@ def undo_preparation(session: PrepSession, keep_session=False):
 
     downstream = any([hasattr(i, 'layer') for i in session.doc2.regions.all()])
     if downstream:
-        logger.warning("can't undo prep session with downstream georeferencing")
-        return
+        msg = "can't undo prep session with downstream georeferencing"
+        logger.warning(msg)
+        return {"success": False, "message": msg}
 
     for region in session.doc2.regions.all():
         region.delete()
@@ -252,3 +253,5 @@ def undo_preparation(session: PrepSession, keep_session=False):
 
     if not keep_session:
         session.delete()
+
+    return {"success": True, "message": "session undo completed"}

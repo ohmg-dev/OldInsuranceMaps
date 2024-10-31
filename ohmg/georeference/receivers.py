@@ -62,3 +62,12 @@ def update_item_lookup(sender, instance, **kwargs):
             instance.document.map.update_item_lookup()
         if sender == Layer:
             instance.region.document.map.update_item_lookup()
+
+
+@receiver([signals.pre_delete], sender=Layer)
+def clean_layer_from_multimask(sender, instance, **kwargs):
+    if instance.layerset:
+        if instance.layerset.multimask:
+            if instance.slug in instance.layerset.multimask:
+                del instance.layerset.multimask[instance.slug]
+                instance.layerset.save()
