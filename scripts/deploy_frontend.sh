@@ -20,7 +20,3 @@ $VIRTUAL_ENV/bin/python $PROJECT_ROOT/manage.py collectstatic --noinput
 
 echo "update build number"
 $VIRTUAL_ENV/bin/python $PROJECT_ROOT/manage.py update_build
-
-echo "reset uwsgi service"
-touch $PROJECT_ROOT/ohmg/wsgi.py
-
