@@ -37,6 +37,7 @@ import DownloadSectionModal from './modals/ItemDownloadSectionModal.svelte';
 import MapDetails from './sections/MapDetails.svelte';
     import SigninReminder from '../layout/SigninReminder.svelte';
 	import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
+    import LoadingMask from '../base/LoadingMask.svelte';
     import { ArrowCounterClockwise } from 'phosphor-svelte';
 
 	import ConfirmNoSplitModal from '../interfaces/modals/ConfirmNoSplitModal.svelte';
@@ -303,6 +304,7 @@ function postRegionCategory(regionId, newCategory) {
 }
 
 function postDocumentUnprepare(regionId) {
+	processing = true
 	const data = JSON.stringify({
 		"operation": "unprepare",
 		"payload": {},
@@ -310,6 +312,7 @@ function postDocumentUnprepare(regionId) {
 	fetch(`/document/${regionId}`, makePostOptions(CONTEXT.ohmg_post_headers, data))
 	.then(response => response.json())
 	.then(result => {
+		processing = false
 		if (result.success) {
 			pollMapSummary();
 		} else {
@@ -329,6 +332,8 @@ let modalExtent = [];
 let splitDocumentId;
 let undoGeorefLayerId;
 
+let processing = false;
+
 </script>
 <MapPreviewModal id={"modal-preview-map"} placeName={LOCALE.display_name} viewerUrl={MAP.urls.viewer}/>
 <GeoreferenceOverviewModal id={"modal-georeference-overview"} />
@@ -345,6 +350,9 @@ let undoGeorefLayerId;
 </Modal>
 <ConfirmNoSplitModal documentId={splitDocumentId} {CONTEXT} callback={pollMapSummary} />
 <ConfirmUngeoreferenceModal layerId={undoGeorefLayerId} {CONTEXT} callback={pollMapSummary} />
+{#if processing}
+<LoadingMask />
+{/if}
 <main>
 	<section class="breadcrumbs">
 		{#each LOCALE.breadcrumbs as bc, n}
@@ -517,7 +525,9 @@ let undoGeorefLayerId;
 					<div class="documents-column">
 						{#each MAP.item_lookup.prepared as region}
 						<div class="document-item">
-							<div><p><Link href={region.urls.resource} title={region.title}>{region.title}</Link></p></div>
+							<div><p><Link href={region.urls.resource} title={region.title}>
+								{MAP.document_page_type} {region.page_number}{region.division_number ? ` [${region.division_number}]`:""}
+							</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
 								modalLyrUrl=region.urls.image;
 								modalExtent=[0, -region.image_size[1], region.image_size[0], 0];
