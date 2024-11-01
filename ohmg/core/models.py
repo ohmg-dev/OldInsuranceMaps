@@ -656,9 +656,6 @@ class Region(models.Model):
             if self.division_number:
                 display_name += f" [{self.division_number}]"
             self.slug = slugify(display_name, join_char="_")
-
-        if hasattr(self, 'layer'):
-            self.georeferenced = True
         
         self.title = self.document.title
         if self.division_number:

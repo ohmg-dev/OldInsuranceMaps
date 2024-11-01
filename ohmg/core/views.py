@@ -238,4 +238,5 @@ class LayerView(GenericResourceView):
             layer.region.georeferenced = False
             layer.region.save()
             layer.delete()
+            logger.debug(f"Layer {pk} removed through ungeoreference process.")
             return JsonResponseSuccess(f"Layer {pk} removed.")
