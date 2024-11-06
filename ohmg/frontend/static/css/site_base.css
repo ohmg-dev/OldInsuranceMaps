@@ -200,6 +200,10 @@ button.is-text-link {
 	text-decoration: underline;
 }
 
+button.is-text-link:disabled {
+	color: grey;
+}
+
 button.is-icon-link {
     background: none;
     border: none;

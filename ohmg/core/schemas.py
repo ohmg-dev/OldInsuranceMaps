@@ -135,7 +135,7 @@ class DocumentSchema(Schema):
 
     @staticmethod
     def resolve_detail_url(obj):
-        return reverse("resource_detail", args=(obj.pk, ))
+        return f"/document/{obj.pk}"
 
 
 class LayerSchema(Schema):
@@ -156,7 +156,7 @@ class LayerSchema(Schema):
 
     @staticmethod
     def resolve_detail_url(obj):
-        return reverse("resource_detail", args=(obj.pk, ))
+        return f"/layer/{obj.pk}"
 
     @staticmethod
     def resolve_mask(obj):

@@ -30,6 +30,14 @@ import MapboxVector from 'ol/layer/MapboxVector';
 import Crop from 'ol-ext/filter/Crop';
 import { extendFlatCoordinates, containsXY } from 'ol/extent';
 
+export function makePostOptions(headers, body) {
+	return {
+		method: 'POST',
+		headers: headers,
+		body: body,
+	}
+}
+
 export function makeTitilerXYZUrl (options) {
 	// options must be an object with the following properties:
 	// {

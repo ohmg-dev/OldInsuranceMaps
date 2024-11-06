@@ -175,6 +175,7 @@ class DocumentSchema(Schema):
 
 class RegionSchema(Schema):
     id: int
+    document_id: int
     title: str
     slug: str
     file: Optional[str]

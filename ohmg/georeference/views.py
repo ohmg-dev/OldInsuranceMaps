@@ -1,4 +1,5 @@
 import os
+from http import HTTPStatus
 import json
 from datetime import datetime
 import logging
@@ -6,23 +7,17 @@ import logging
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.views import View
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
 
 from ohmg.core.context_processors import generate_ohmg_context
+from ohmg.core.http import JsonResponseBadRequest, JsonResponseNotFound, validate_post_request
 from ohmg.core.utils import time_this
 from ohmg.georeference.tasks import (
-    # these are the old commands, retain for now
-    run_georeference_session,
-    run_preparation_session,
-    # these are the new commands, use from now on
     run_georeferencing_as_task,
     run_preparation_as_task,
-    # this is a temporary task used to create and link a new layer
-    # to a new georef session
-    patch_new_layer_to_session,
 )
 from ohmg.georeference.models import (
-    Document as DocumentOld,
     GCPGroup,
     PrepSession,
     GeorefSession,
@@ -45,10 +40,10 @@ from ohmg.georeference.operations.sessions import run_preparation
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.georeference.tasks import delete_preview_vrt
+from ohmg.georeference.operations.sessions import undo_preparation
 
 logger = logging.getLogger(__name__)
 
-BadPostRequest = HttpResponseBadRequest("invalid post content")
 
 class SplitView(View):
 
@@ -85,10 +80,8 @@ class SplitView(View):
             },
         )
 
+    # @method_decorator(validate_post_request(operations=[]))
     def post(self, request, docid):
-
-        if not request.body:
-            return BadPostRequest
 
         document = get_object_or_404(Document, pk=docid)
 
@@ -123,28 +116,6 @@ class SplitView(View):
             # )
             return JsonResponse({"success":True})
 
-        elif operation == "no_split":
-
-            # sesh could be None if this post has been made directly from an overview page,
-            # not from the split interface where a session will have already been made.
-            if sesh is None:
-                sesh = PrepSession.objects.create(
-                    doc2=document,
-                    user=request.user,
-                    user_input_duration=0,
-                )
-                sesh.start()
-
-            sesh.data['split_needed'] = False
-            sesh.save(update_fields=["data"])
-            # sesh.run()
-            new_region = run_preparation(sesh)[0]
-
-            return JsonResponse({
-                "success":True,
-                "region_id": new_region.pk,
-            })
-
         elif operation == "cancel":
 
             if sesh.stage != "input":
@@ -159,20 +130,8 @@ class SplitView(View):
             sesh.extend_locks2()
             return JsonResponse({"success":True})
 
-        elif operation == "undo":
-            try:
-                sesh = PrepSession.objects.get(doc=document)
-            except Exception as e:
-                return JsonResponse({"success":False, "message": str(e)})
-            try:
-                sesh.undo()
-                sesh.doc2.map.update_item_lookup()
-            except Exception as e:
-                return JsonResponse({"success":False, "message": str(e)})
-            return JsonResponse({"success":True})
-
         else:
-            return BadPostRequest
+            return JsonResponseBadRequest()
 
 
 class GeoreferenceView(View):
@@ -225,9 +184,6 @@ class GeoreferenceView(View):
         """
         Runs the georeferencing process for this document.
         """
-
-        if not request.body:
-            return BadPostRequest
 
         region = get_object_or_404(Region, pk=docid)
 
@@ -400,15 +356,13 @@ class GeoreferenceView(View):
             return JsonResponse({"success":True})
 
         else:
-            return BadPostRequest
+            return JsonResponseBadRequest()
 
 
 class LayerSetView(View):
 
+    # @method_decorator(validate_post_request(operations=[]))
     def post(self, request):
-
-        if not request.body:
-            return BadPostRequest
 
         body = json.loads(request.body)
         operation = body.get("operation")
@@ -469,3 +423,30 @@ class LayerSetView(View):
 
 
         return JsonResponse(response)
+
+
+class SessionView(View):
+
+    # @method_decorator(validate_post_request(operations=[]))
+    def post(self, request):
+
+        body = json.loads(request.body)
+        operation = body.get("operation")
+        sessionid = body.get("sessionid")
+
+        session = None
+        if sessionid:
+            try:
+                session = PrepSession.objects.get(pk=sessionid)
+            except PrepSession.DoesNotExist:
+                return JsonResponseNotFound
+
+        if operation == "undo" and session:
+            try:
+                undo_preparation(session)
+            except Exception as e:
+                return JsonResponse({"success": False, "message": str(e)})
+            return JsonResponse({"success":True})
+
+        else:
+            return JsonResponseBadRequest()
