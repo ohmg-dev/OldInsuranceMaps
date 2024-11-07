@@ -39,6 +39,8 @@ import Modal, {getModal} from '@components/base/Modal.svelte';
 import ToolUIButton from '@components/base/ToolUIButton.svelte';
 import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
 
+import { makePostOptions } from "@lib/utils";
+
 const styles = new Styles();
 
 export let CONTEXT;
@@ -286,7 +288,7 @@ function handleKeydown(event) {
 
 function process(operation) {
 
-  if (operation == "split" || operation == "no_split" || operation == "cancel") {
+  if (operation == "cancel") {
     disableReason = operation;
     leaveOkay = true;
     disableInterface = true;
@@ -321,6 +323,31 @@ function process(operation) {
         window.location.href = `/map/${DOCUMENT.map}`;
       }
     });
+}
+
+function submitSplit() {
+
+  disableReason = "split";
+  leaveOkay = true;
+  disableInterface = true;
+
+  let data = JSON.stringify({
+    "operation": "split",
+    "payload": {
+      "sessionId": session_id,
+      "lines": cutLines,
+    }
+  });
+
+fetch(`/document/${DOCUMENT.id}`, makePostOptions(CONTEXT.ohmg_post_headers, data))
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      window.location.href = `/map/${DOCUMENT.map}`;
+    } else {
+      alert(result.message)
+    }
+  });
 }
 
 function previewSplit() { if ( cutLines.length > 0) { process("preview") } };
@@ -415,7 +442,7 @@ function cleanup () {
     </div>
     
     <div class="control-btn-group">
-      <ToolUIButton action={() => {process("split")}} title="Run split operation" disabled={divisions.length<=1 || !enableButtons}>
+      <ToolUIButton action={submitSplit} title="Run split operation" disabled={divisions.length<=1 || !enableButtons}>
         <Scissors />
       </ToolUIButton>
       <ToolUIButton action={() => { getModal('modal-confirm-no-split').open() }} title="No split needed" disabled={divisions.length>0 || !enableButtons}>

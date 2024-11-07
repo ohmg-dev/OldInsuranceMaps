@@ -26,7 +26,14 @@ from ohmg.core.api.schemas import (
     ResourceFullSchema,
 )
 from ohmg.loc_insurancemaps.models import Volume
-from ohmg.loc_insurancemaps.tasks import load_docs_as_task, load_map_documents_as_task
+from ohmg.loc_insurancemaps.tasks import (
+    load_docs_as_task,
+    load_map_documents_as_task,
+)
+from ohmg.georeference.tasks import (
+    run_georeferencing_as_task,
+    run_preparation_as_task,
+)
 
 from .http import (
     validate_post_request,
@@ -172,10 +179,15 @@ class DocumentView(GenericResourceView):
             sesh.save(update_fields=["data"])
 
             new_region = run_preparation(sesh)[0]
-            return JsonResponseSuccess(f"no split, new_region created: {new_region.pk}")
+            return JsonResponseSuccess(f"no split, new region created: {new_region.pk}")
 
         if operation == "split":
-            pass
+            sesh.data['split_needed'] = True
+            sesh.data['cutlines'] = payload.get('lines')
+            sesh.save(update_fields=["data"])
+            logger.info(f"{sesh.__str__()} | begin run() as task")
+            run_preparation_as_task.apply_async((sesh.pk,))
+            return JsonResponse({"success":True})
 
         if operation == "unprepare":
             sesh = PrepSession.objects.get(doc2=document)
@@ -232,9 +244,19 @@ class LayerView(GenericResourceView):
 
         body = json.loads(request.body)
         operation = body.get("operation")
+        payload = body.get("payload")
+
+        # typically this is done in bulk with a different endpoint,
+        # so this operation may not actually be needed...
         if operation == "set-layerset":
-            # move "submit" operation on ohmg.georeference.views.LayerSetView here
-            pass
+            target_category = payload.get('layerset-category')
+            layerset = layer.region.document.map.get_layerset(target_category, create=True)
+            try:
+                layer.set_layerset(layerset)
+                return JsonResponseSuccess(f"Layer {layer.pk} added to {target_category} LayerSet {layerset.pk}")
+            except Exception as e:
+                logger.error(e)
+                return JsonResponseFail(e)
 
         if operation == "ungeoreference":
             from ohmg.georeference.models import GeorefSession

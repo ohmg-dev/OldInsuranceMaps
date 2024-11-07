@@ -495,7 +495,7 @@ let processing = false;
 											<CheckSquareOffset/> no split needed
 										</button>
 									</li>
-									<li><Link href={document.urls.split} title="Split this document">
+									<li><Link href={`/split/${document.id}`} title="Split this document">
 										<Scissors/> split this document</Link></li>
 								</ul>
 								{/if}

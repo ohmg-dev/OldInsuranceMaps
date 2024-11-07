@@ -104,18 +104,6 @@ class SplitView(View):
             divisions = s.generate_divisions(cutlines)
             return JsonResponse({"success": True, "divisions": divisions})
 
-        elif operation == "split":
-
-            sesh.data['split_needed'] = True
-            sesh.data['cutlines'] = cutlines
-            sesh.save(update_fields=["data"])
-            logger.info(f"{sesh.__str__()} | begin run() as task")
-            run_preparation_as_task.apply_async((sesh.pk,))
-            # run_preparation_session.apply_async((sesh.pk,),
-            #     link=run_preparation_as_task.s()
-            # )
-            return JsonResponse({"success":True})
-
         elif operation == "cancel":
 
             if sesh.stage != "input":
@@ -259,28 +247,6 @@ class GeoreferenceView(View):
                 response["message"] = str(e)
             return JsonResponse(response)
 
-        elif operation == "ungeoreference":
-
-            if not request.user.is_staff:
-                return JsonResponse({
-                    "success":False,
-                    "message": "user not authorized for this operation"
-                })
-            
-            sessions = GeorefSession.objects.filter(reg2=region)
-            for s in sessions:
-                s.delete()
-            if hasattr(region, 'layer'):
-                region.layer.delete()
-            try:
-                gcp_group = GCPGroup.objects.get(region=region)
-                gcp_group.delete()
-            except GCPGroup.DoesNotExist:
-                pass
-            region.georeferenced = False
-            region.save()
-            return JsonResponse({"success":True})
-
         elif operation == "submit":
 
             sesh = _get_georef_session(sesh_id)
@@ -307,27 +273,6 @@ class GeoreferenceView(View):
 
             else:
                 return SESSION_NOT_FOUND_RESPONSE
-
-        elif operation == "set-status":
-            # TODO: this functionality should be moved somewhere else.
-            if request.user.is_authenticated:
-                change_to = body.get("status", None)
-                if change_to == "nonmap":
-                    region.is_map = False
-                    region.save()
-                if change_to == "prepared":
-                    region.is_map = True
-                    region.save()
-                return JsonResponse({
-                    "success": True,
-                    "message": "all good",
-                })
-
-            else:
-                return JsonResponse({
-                    "success": False,
-                    "message": "must be authenticated to perform this operation",
-                })
 
         elif operation == "extend-session":
 
