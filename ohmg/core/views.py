@@ -146,10 +146,15 @@ class DocumentView(GenericResourceView):
         body = json.loads(request.body)
         operation = body.get("operation")
         payload = body.get("payload")
+
         sessionid = payload.get('sessionId')
         sesh = None
         if sessionid:
             sesh = PrepSession.objects.get(pk=sessionid)
+
+        if operation in ['split', 'no-split']:
+            if Region.objects.filter(document=document).exists():
+                return JsonResponseFail(f"This document {document} ({document.pk}) has already been prepared.")
 
         if operation == "no-split":
 
