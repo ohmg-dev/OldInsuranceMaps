@@ -91,10 +91,6 @@ function toggleSection(sectionId) {
 	sectionVis[sectionId] = !sectionVis[sectionId];
 }
 
-let splitBtnEnabled = false;
-let noSplitBtnEnabled = false;
-let undoBtnTitle = "Undo this determination";
-
 let georeferenceBtnEnable = false;
 let georeferenceBtnTitle = "Create Control Points";
 
@@ -110,17 +106,11 @@ $: {
   processing = RESOURCE.status == "splitting" || RESOURCE.status == "georeferencing"
   switch(RESOURCE.status) {
     case "unprepared":
-      if (CONTEXT.user.is_authenticated) {
-        splitBtnEnabled = true;
-        noSplitBtnEnabled = true;
-      }
       sectionVis['georef'] = false;
       sectionVis['download'] = false;
       georeferenceBtnEnable = false;
       break
     case "prepared":
-      splitBtnEnabled = false;
-      noSplitBtnEnabled = false;
       georeferenceBtnEnable = true;
       break;
     case "georeferenced":
@@ -130,63 +120,6 @@ $: {
       break;
   }
 }
-
-// function postNoSplit() {
-//   fetch(RESOURCE.urls.split, {
-//       method: 'POST',
-//       headers: CONTEXT.ohmg_post_headers,
-//       body: JSON.stringify({"operation": "no_split"}),
-//     })
-//     .then(response => response.json())
-//     .then(result => {
-//       if (result.success) {
-//         window.location = window.location
-//       } else {
-//         alert(result.message)
-//       }
-//     });
-// }
-
-// function postUndoPrep() {
-//   fetch("/session/", {
-//       method: 'POST',
-//       headers: CONTEXT.ohmg_post_headers,
-//       body: JSON.stringify({"operation": "undo", "sessionid": RESOURCE.prep_sessions[0].id}),
-//     })
-//     .then(response => response.json())
-//     .then(result => {
-//       if (result.success) {
-//         if (RESOURCE.type == "document") {
-//           window.location = window.location
-//         } else if (RESOURCE.type == "region") {
-//           window.location = `/document/${RESOURCE.document.id}`
-//         }
-//       } else {
-//         alert(result.message)
-//       }
-//     });
-// }
-
-// function unGeoreference() {
-
-//   let data = JSON.stringify({
-//     "operation": "ungeoreference",
-//   });
-
-//   fetch(RESOURCE.urls.georeference, {
-//       method: 'POST',
-//       headers: CONTEXT.ohmg_post_headers,
-//       body: data,
-//     })
-//     .then(response => response.json())
-//     .then(result => {
-//       if (RESOURCE.type == "layer") {
-//         window.location = RESOURCE.document.urls.resource
-//       } else {
-//         window.location = window.location
-//       }
-//     });
-// }
 
 const iconLinks = [
   {
@@ -299,28 +232,6 @@ function goToRegion() {
     </button>
     {#if sectionVis['prep']}
     <div transition:slide>
-      <!-- <div class="control-btn-group">
-        <ToolUIButton
-          onlyIcon={false}
-          title="Split this document"
-          disabled={!splitBtnEnabled}
-          action={() => {window.location.href=RESOURCE.urls.split}}>
-          <Scissors /> Split
-        </ToolUIButton>
-        <ToolUIButton
-          onlyIcon={false}
-          title="This document does not need to be split"
-          disabled={!noSplitBtnEnabled}
-          action={postNoSplit}>
-          <CheckSquareOffset /> No split needed
-        </ToolUIButton>
-        <ToolUIButton
-          title={undoBtnTitle}
-          disabled={!userCanUndoPrep}
-          action={postUndoPrep}>
-          <ArrowCounterClockwise />
-        </ToolUIButton>
-      </div> -->
       <div class="section-body">
         {#if RESOURCE.prep_sessions.length > 0 }
         Initial preparation by <a href="{RESOURCE.prep_sessions[0].user.profile}">{RESOURCE.prep_sessions[0].user.username}</a>: Split needed? <strong>{RESOURCE.prep_sessions[0].data.split_needed ? `Yes: ${RESOURCE.document.title} has been split into ${RESOURCE.regions.length} regions.` : "No."}</strong>
@@ -349,14 +260,6 @@ function goToRegion() {
             <Link href={RESOURCE.document.urls.resource} title="{RESOURCE.document.title}">p{RESOURCE.document.page_number}</Link>
           </div>
           <img src={RESOURCE.document.urls.thumbnail} alt={RESOURCE.document.title} title={RESOURCE.document.title}>
-          <!-- <div>
-            <ul>
-              <li><strong>Georeferenced?</strong> {region.georeferenced ? "Yes." : "Not yet..."}</li>
-              <li><Link href={region.urls.georeference} title="Georeference this region">
-                {region.georeferenced ? "edit georeferencing" : "georeference"} &rarr;
-              </Link></li>
-            </ul>
-          </div> -->
         </div>
         {/if}
         </div>
@@ -379,19 +282,8 @@ function goToRegion() {
           action={() => {window.location.href=RESOURCE.urls.georeference}}>
           <MapPin />{georeferenceBtnTitle}
         </ToolUIButton>
-        <!-- DISABLE UNDO OPERATIONS TEMPORARILY
-        {#if CONTEXT.user.is_authenticated && CONTEXT.user.is_staff}
-        <ToolUIButton
-          title="Remove all georeferencing for this resource"
-          disabled={RESOURCE.status != "georeferenced"}
-          action={unGeoreference}>
-          <Trash />
-        </ToolUIButton>
-        {/if}
-        -->
       </div>
       <div class="section-body">
-        <!-- {#if GEOREFERENCE_SUMMARY.gcp_geojson} -->
         {#if GEOREFERENCE_SUMMARY}
         <table>
           <caption>{GEOREFERENCE_SUMMARY.gcp_geojson.features.length} Control Points</caption>
