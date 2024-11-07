@@ -1,38 +1,24 @@
 <script>
     import Modal, {getModal} from '@components/base/Modal.svelte';
-    import LoadingMask from '../../base/LoadingMask.svelte';
-    import { makePostOptions } from "@lib/utils"
+    import { submitPostRequest } from "@lib/utils"
 
     export let CONTEXT;
     export let documentId;
+    export let processing;
     export let callback = null;
-
-    let processing = false;
 
     function postNoSplit() {
       processing = true
-      const data = JSON.stringify({
-          "operation": "no-split",
-          "payload": {},
-      });
-      const options = makePostOptions(CONTEXT.ohmg_post_headers, data)
-      fetch(`/document/${documentId}`, options)
-      .then(response => response.json())
-      .then(result => {
-          processing = false
-          if (result.success) {
-            if (callback) {callback()}
-          } else {
-              alert("Error: " + result.message)
-          }
-      });
+      submitPostRequest(
+        `/document/${documentId}`,
+        CONTEXT.ohmg_post_headers,
+        "no-split",
+        {},
+        callback,
+      )
     }
-
 </script>
 
-{#if processing}
-<LoadingMask />
-{/if}
 <Modal id="modal-confirm-no-split">
 	<p>Are you sure this document does not need to be split?</p>
   <button class="button is-success"

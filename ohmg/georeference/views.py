@@ -11,7 +11,13 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 
 from ohmg.core.context_processors import generate_ohmg_context
-from ohmg.core.http import JsonResponseBadRequest, JsonResponseNotFound, validate_post_request
+from ohmg.core.http import (
+    JsonResponseSuccess,
+    JsonResponseFail,
+    JsonResponseBadRequest,
+    JsonResponseNotFound,
+    validate_post_request,
+)
 from ohmg.core.utils import time_this
 from ohmg.georeference.tasks import (
     run_georeferencing_as_task,
@@ -306,65 +312,57 @@ class GeoreferenceView(View):
 
 class LayerSetView(View):
 
-    # @method_decorator(validate_post_request(operations=[]))
+    @method_decorator(validate_post_request(operations=[
+        "bulk-classify-layers", "check-for-existing-mask", "set-mask"
+    ]))
     def post(self, request):
 
         body = json.loads(request.body)
         operation = body.get("operation")
-        resource_id = body.get("resourceId")
-        volume_id = body.get("volumeId")
-        category = body.get("categorySlug")
-        multimask_geojson = body.get('multimaskGeoJSON')
-        update_list = body.get('updateList', [])
+        payload = body.get('payload', {})
 
-        response = {
-            "status": "",
-            "message": ""
-        }
-
-        if operation == "update":
-            for resource_id, category in update_list:
-                map = get_object_or_404(Map, pk=volume_id)
-                layer = get_object_or_404(Layer, pk=resource_id)
-
+        if operation == "bulk-classify-layers":
+            errors = []
+            for lyr_id, cat in payload.get('update-list'):
+                map = get_object_or_404(Map, pk=payload.get('map-id'))
+                layer = get_object_or_404(Layer, pk=lyr_id)
                 try:
-                    layerset = map.get_layerset(category, create=True)
+                    layerset = map.get_layerset(cat, create=True)
                     layer.set_layerset(layerset)
-                    response['status'] = "success"
-                    response['message'] = f"{resource_id} added to {category} layerset"
-
                 except Exception as e:
                     logger.error(e)
-                    response['status'] = "fail"
-                    response['message'] = str(e)
+                    errors.append(e)
+
+            if errors:
+                return JsonResponseFail("; ".join(errors))
+            else:
+                return JsonResponseSuccess("Layers classified successfully.")
 
         if operation == "check-for-existing-mask":
 
-            r = get_object_or_404(Layer, pk=resource_id)
+            r = get_object_or_404(Layer, pk=payload.get("resource-id"))
 
             if r.layerset:
-                if not r.layerset.category.slug == category:
+                if not r.layerset.category.slug == payload.get("category"):
                     if r.layerset.multimask and r.slug in r.layerset.multimask:
-                        response['status'] = "fail"
-                        response['message'] = f"Layer already in {r.layerset.category} multimask."
-                        return JsonResponse(response)
+                        return JsonResponseFail(
+                            f"Layer already in {r.layerset.category} multimask.",
+                            payload=payload
+                        )
 
-            response['status'] = "success"
-            return JsonResponse(response)
+            return JsonResponseSuccess(payload=payload)
 
         if operation == "set-mask":
 
             try:
-                layerset = LayerSet.objects.get(map_id=volume_id, category__slug=category)
-                errors = layerset.update_multimask_from_geojson(multimask_geojson)
+                layerset = LayerSet.objects.get(map_id=payload['map-id'], category__slug=payload['category'])
+                errors = layerset.update_multimask_from_geojson(payload['multimask-geojson'])
                 if errors:
-                    response["status"] = "fail"
-                    response["message"] = errors
+                    return JsonResponseFail("; ".join(errors))
                 else:
-                    response["status"] = "success"
+                    return JsonResponseSuccess()
             except LayerSet.DoesNotExist:
-                response["status"] = "fail"
-                response["message"] = f"can't find this layerset: map_id={volume_id}, category={category}"
+                return JsonResponseNotFound()
 
 
         return JsonResponse(response)

@@ -39,7 +39,7 @@ import Modal, {getModal} from '@components/base/Modal.svelte';
 import ToolUIButton from '@components/base/ToolUIButton.svelte';
 import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
 
-import { makePostOptions } from "@lib/utils";
+import { submitPostRequest } from "@lib/utils";
 
 const styles = new Styles();
 
@@ -325,29 +325,29 @@ function process(operation) {
     });
 }
 
+function handleSubmitSplitResponse(response) {
+  if (response.success) {
+      window.location.href = `/map/${DOCUMENT.map}`;
+    } else {
+      alert(response.message)
+    }
+}
 function submitSplit() {
 
   disableReason = "split";
   leaveOkay = true;
   disableInterface = true;
 
-  let data = JSON.stringify({
-    "operation": "split",
-    "payload": {
+  submitPostRequest(
+    `/document/${DOCUMENT.id}`,
+    CONTEXT.ohmg_post_headers,
+    "split",
+    {
       "sessionId": session_id,
       "lines": cutLines,
-    }
-  });
-
-fetch(`/document/${DOCUMENT.id}`, makePostOptions(CONTEXT.ohmg_post_headers, data))
-  .then(response => response.json())
-  .then(result => {
-    if (result.success) {
-      window.location.href = `/map/${DOCUMENT.map}`;
-    } else {
-      alert(result.message)
-    }
-  });
+    },
+    handleSubmitSplitResponse
+  )
 }
 
 function previewSplit() { if ( cutLines.length > 0) { process("preview") } };

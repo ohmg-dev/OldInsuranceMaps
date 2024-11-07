@@ -17,8 +17,6 @@ import XYZ from 'ol/source/XYZ';
 
 import {transformExtent} from 'ol/proj';
 
-import {createEmpty, extend} from 'ol/extent';
-
 import Feature from 'ol/Feature';
 
 import GeoJSON from 'ol/format/GeoJSON';
@@ -40,7 +38,7 @@ import Stroke from 'ol/style/Stroke';
 import ToolUIButton from '@components/base/ToolUIButton.svelte';
 import ExpandElement from './buttons/ExpandElement.svelte';
 
-import { makeTitilerXYZUrl, makeBasemaps, makeModifyInteraction } from "@lib/utils"
+import { makeTitilerXYZUrl, makeBasemaps, makeModifyInteraction, submitPostRequest } from "@lib/utils"
 import Styles from '@lib/ol-styles';
 
 const styles = new Styles();
@@ -50,11 +48,7 @@ export let ANNOTATION_SET;
 export let DISABLED;
 export let resetMosaic;
 
-console.log(CONTEXT)
-
 let currentLayer = null;
-
-let leaveOkay = true;
 
 let unchanged = true;
 let mapView;
@@ -253,6 +247,18 @@ $: {
   }
 }
 
+function handleMultimaskSubmitResponse(response) {
+  if (response.success) {
+      window.alert("Masks saved successfully.")
+      unchanged = true;
+      resetMosaic()
+    } else {
+      let errMsg = "Error! MultiMask not saved."
+      errMsg += "\nYou must remove and remake the following masks:"
+      errMsg += response.message
+      alert(errMsg)
+    }
+}
 function submitMultiMask() {
   if (DISABLED) {
     window.alert("You do not have edit permissions for this multimask.");
@@ -271,30 +277,18 @@ function submitMultiMask() {
       outGeoJSON.features.push(featureGeoJSON);
     }
   })
-  fetch(CONTEXT.urls.post_annotation_set, {
-    method: 'POST',
-    headers: CONTEXT.ohmg_post_headers,
-    body: JSON.stringify({
-      "operation": "set-mask",
-      "multimaskGeoJSON": outGeoJSON,
-      "volumeId": ANNOTATION_SET.volume_id,
-      "categorySlug": ANNOTATION_SET.id,
-    }),
-  }).then(response => response.json())
-    .then(result => {
-    if (result.status == "success") {
-      window.alert("Masks saved successfully.")
-      unchanged = true;
-      resetMosaic()
-    } else {
-      let errMsg = "Error! MultiMask not saved."
-      errMsg += "\nYou must remove and remake the following masks:"
-      result.message.forEach((e) => {
-        errMsg += `\n${e[0]}\n  Reason: ${e[1]}`
-      })
-      window.alert(errMsg)
-    }
-  })
+
+  submitPostRequest(
+    "/layerset/",
+    CONTEXT.ohmg_post_headers,
+    "set-mask",
+    {
+      "multimask-geojson": outGeoJSON,
+      "map-id": ANNOTATION_SET.volume_id,
+      "category": ANNOTATION_SET.id,
+    },
+    handleMultimaskSubmitResponse,
+  )
 }
 
 function zoomToLayer(layer) {

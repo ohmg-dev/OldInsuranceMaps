@@ -1,7 +1,7 @@
 <script>
 import { slide } from 'svelte/transition';
 
-import { makeTitilerXYZUrl, makePostOptions } from "@lib/utils"
+import { makeTitilerXYZUrl, submitPostRequest } from "@lib/utils"
 
 import ArrowRight from "phosphor-svelte/lib/ArrowRight";
 import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
@@ -152,50 +152,6 @@ $: sheetsLoading = MAP.status == "initializing...";
 
 let hash = window.location.hash.substr(1);
 
-function checkForExistingMask(category, layerId) {
-
-	const postData = JSON.stringify({
-		operation: "check-for-existing-mask",
-        resourceId: layerId,
-        volumeId: MAP.identifier,
-		categorySlug: category,
-	})
-
-	fetch(CONTEXT.urls.post_annotation_set, {
-		method: 'POST',
-		headers: CONTEXT.ohmg_post_headers,
-		body: postData,
-	})
-	.then(response => response.json())
-	.then(result => {
-		if (result.status == "fail") {
-			const msg = "This layer is already included in the multimask for its current classification, and that mask will be deleted if you continue with this change.<br>Set the layer back to its original classification to stop the change."
-			if (confirm(msg)) {annotationsToUpdate[layerId] = category};
-		} else {
-			annotationsToUpdate[layerId] = category
-		}
-	});
-}
-
-function updateAnnotationSets() {
-
-	const postData = JSON.stringify({
-		operation: "update",
-		volumeId: MAP.identifier,
-		updateList: Object.entries(annotationsToUpdate)
-	})
-
-	fetch(CONTEXT.urls.post_annotation_set, {
-		method: 'POST',
-		headers: CONTEXT.ohmg_post_headers,
-		body: postData,
-	})
-	.then(response => response.json())
-	.then(result => {
-		fetchAnnotationSets()
-	});
-}
-
 const sectionVis = {
 	"summary": (!hash && MAP.item_lookup.georeferenced.length == 0) || hash == "summary",
 	"preview": (!hash && MAP.item_lookup.georeferenced.length > 0) || hash == "preview",
@@ -240,6 +196,7 @@ function pollMapSummary() {
 			fetchAnnotationSets();
 		}
 		MAP = result;
+		processing = false
 	});
 }
 
@@ -284,41 +241,73 @@ function fetchAnnotationSets() {
 	.then(response => response.json())
 	.then(result => {
 		resetAnnotationSets(result)
+		processing = false;
 	});
+}
+
+function pollMapSummaryIfSuccess(response) {
+	if (response.success) { pollMapSummary() } else { alert(response.message) }
+	processing = false
+}
+function postDocumentUnprepare(documentId) {
+	processing = true;
+	submitPostRequest(
+		`/document/${documentId}`,
+		CONTEXT.ohmg_post_headers,
+		"unprepare",
+		{},
+		pollMapSummaryIfSuccess,
+	)
 }
 
 function postRegionCategory(regionId, newCategory) {
-	const data = JSON.stringify({
-		"operation": "set-category",
-		"payload": {"new-category": newCategory},
-	});
-	fetch(`/region/${regionId}`, makePostOptions(CONTEXT.ohmg_post_headers, data))
-	.then(response => response.json())
-	.then(result => {
-		if (result.success) {
-			pollMapSummary();
-		} else {
-			alert("Error: " + result["message"])
-		}
-	});
+	processing = true;
+	submitPostRequest(
+		`/region/${regionId}`,
+		CONTEXT.ohmg_post_headers,
+		"set-category",
+		{"new-category": newCategory},
+		pollMapSummaryIfSuccess,
+	)
 }
 
-function postDocumentUnprepare(regionId) {
-	processing = true
-	const data = JSON.stringify({
-		"operation": "unprepare",
-		"payload": {},
-	});
-	fetch(`/document/${regionId}`, makePostOptions(CONTEXT.ohmg_post_headers, data))
-	.then(response => response.json())
-	.then(result => {
-		processing = false
-		if (result.success) {
-			pollMapSummary();
-		} else {
-			alert("Error: " + result["message"])
-		}
-	});
+function fetchAnnotationSetsIfSuccess(response) {
+	if (response.success) { fetchAnnotationSets() } else { alert(response.message) }
+	processing = false
+}
+function updateLayerSets() {
+	processing = true;
+	submitPostRequest(
+		`/layerset/`,
+		CONTEXT.ohmg_post_headers,
+		"bulk-classify-layers",
+		{"map-id": MAP.identifier, "update-list": Object.entries(annotationsToUpdate)},
+		fetchAnnotationSetsIfSuccess,
+	)
+}
+
+function handleExistingMaskResponse(response) {
+	if (response.success) {
+		annotationsToUpdate[response.payload['resource-id']] = response.payload['category']
+	} else {
+		const msg = "This layer is already included in the multimask for its " +
+					"current classification, and that mask will be deleted if "+
+					"you continue with this change. Set the layer back to its " +
+					"original classification to stop the change."
+		if (confirm(msg)) {annotationsToUpdate[response.payload['resource-id']] = response.payload['category']};
+	}
+}
+function checkForExistingMask(category, layerId) {
+	submitPostRequest(
+		`/layerset/`,
+		CONTEXT.ohmg_post_headers,
+		"check-for-existing-mask",
+		{
+			"resource-id": layerId,
+			"category": category,
+		},
+		handleExistingMaskResponse,
+	)
 }
 
 let classifyingLayers = false;
@@ -335,6 +324,7 @@ let undoGeorefLayerId;
 let processing = false;
 
 </script>
+
 <MapPreviewModal id={"modal-preview-map"} placeName={LOCALE.display_name} viewerUrl={MAP.urls.viewer}/>
 <GeoreferenceOverviewModal id={"modal-georeference-overview"} />
 <UnpreparedSectionModal id={'modal-unprepared'} />
@@ -348,8 +338,8 @@ let processing = false;
 	<SimpleViewer {CONTEXT} LAYER_URL={modalLyrUrl} EXTENT={modalExtent} GEOSPATIAL={modalIsGeospatial} />
 {/each}
 </Modal>
-<ConfirmNoSplitModal documentId={splitDocumentId} {CONTEXT} callback={pollMapSummary} />
-<ConfirmUngeoreferenceModal layerId={undoGeorefLayerId} {CONTEXT} callback={pollMapSummary} />
+<ConfirmNoSplitModal bind:processing {CONTEXT} documentId={splitDocumentId} callback={pollMapSummaryIfSuccess} />
+<ConfirmUngeoreferenceModal bind:processing {CONTEXT} layerId={undoGeorefLayerId} callback={pollMapSummaryIfSuccess} />
 {#if processing}
 <LoadingMask />
 {/if}
@@ -603,7 +593,7 @@ let processing = false;
 						{#if classifyingLayers}
 						<button class="button is-success"
 							disabled={Object.keys(annotationsToUpdate).length === 0} on:click={() => {
-							updateAnnotationSets();
+							updateLayerSets();
 							classifyingLayers = false;
 							annotationsToUpdate = {};
 							reinitMultimask();

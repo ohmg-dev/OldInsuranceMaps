@@ -28,14 +28,21 @@ import LayerGroup from 'ol/layer/Group';
 import MapboxVector from 'ol/layer/MapboxVector';
 
 import Crop from 'ol-ext/filter/Crop';
-import { extendFlatCoordinates, containsXY } from 'ol/extent';
 
-export function makePostOptions(headers, body) {
-	return {
+export function submitPostRequest(url, headers, operation, payload, callback) {
+	const body = JSON.stringify({
+		"operation": operation,
+		"payload": payload,
+	});
+	fetch(url, {
 		method: 'POST',
 		headers: headers,
 		body: body,
-	}
+	})
+	.then(response => response.json())
+	.then(result => {
+		if (callback) {callback(result)}
+	});
 }
 
 export function makeTitilerXYZUrl (options) {
