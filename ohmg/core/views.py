@@ -2,7 +2,6 @@ import json
 import logging
 from datetime import datetime
 
-from django.db.models import F
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import View
@@ -31,15 +30,14 @@ from ohmg.loc_insurancemaps.tasks import (
     load_map_documents_as_task,
 )
 from ohmg.georeference.tasks import (
-    run_georeferencing_as_task,
-    run_preparation_as_task,
+    run_georeference_session,
+    run_preparation_session,
 )
 
 from .http import (
     validate_post_request,
     JsonResponseSuccess,
     JsonResponseFail,
-    JsonResponseBadRequest,
     JsonResponseNotFound,
 )
 
@@ -145,7 +143,6 @@ class DocumentView(GenericResourceView):
     ]))
     def post(self, request, pk):
         from ohmg.georeference.models import PrepSession
-        from ohmg.georeference.operations.sessions import run_preparation, undo_preparation
         document = self._get_object(pk)
         if document is None:
             return JsonResponseNotFound()
@@ -178,7 +175,7 @@ class DocumentView(GenericResourceView):
             sesh.data['split_needed'] = False
             sesh.save(update_fields=["data"])
 
-            new_region = run_preparation(sesh)[0]
+            new_region = sesh.run()[0]
             return JsonResponseSuccess(f"no split, new region created: {new_region.pk}")
 
         if operation == "split":
@@ -186,12 +183,12 @@ class DocumentView(GenericResourceView):
             sesh.data['cutlines'] = payload.get('lines')
             sesh.save(update_fields=["data"])
             logger.info(f"{sesh.__str__()} | begin run() as task")
-            run_preparation_as_task.apply_async((sesh.pk,))
+            run_preparation_session.apply_async((sesh.pk,))
             return JsonResponse({"success":True})
 
         if operation == "unprepare":
             sesh = PrepSession.objects.get(doc2=document)
-            result = undo_preparation(sesh)
+            result = sesh.undo()
             if result['success']:
                 return JsonResponseSuccess(result["message"])
             else:
@@ -265,5 +262,5 @@ class LayerView(GenericResourceView):
             layer.region.georeferenced = False
             layer.region.save()
             layer.delete()
-            logger.debug(f"Layer {pk} removed through ungeoreference process.")
-            return JsonResponseSuccess(f"Layer {pk} removed.")
+            logger.debug((msg := f"Layer {pk} removed through ungeoreference process."))
+            return JsonResponseSuccess(msg)
