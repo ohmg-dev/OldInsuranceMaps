@@ -9,16 +9,13 @@ from natsort import natsorted
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import transaction
-from django.db.models import Q, F
+from django.db.models import Q
 from django.utils.functional import cached_property
-from django.urls import reverse
 
 from ohmg.core.utils import (
-    full_reverse,
     slugify,
     get_jpg_from_jp2_url,
     MONTH_CHOICES,

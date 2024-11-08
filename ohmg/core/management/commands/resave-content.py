@@ -3,11 +3,7 @@ from django.core.management.base import BaseCommand
 
 from ohmg.georeference.models import LayerSet
 from ohmg.core.models import (
-    MapGroup,
     Map,
-    Document,
-    Region,
-    Layer,
 )
 
 

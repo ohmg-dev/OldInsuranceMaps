@@ -15,7 +15,6 @@ from ohmg.accounts.models import (
     APIKey,
 )
 from ohmg.core.models import (
-    MapGroup,
     Map,
     Document,
     Region,

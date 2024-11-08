@@ -19,7 +19,6 @@ from ohmg.core.models import (
 )
 from ohmg.georeference.models import (
     GCPGroup,
-    ItemBase,
     Document,
     LayerV1,
     DocumentLink

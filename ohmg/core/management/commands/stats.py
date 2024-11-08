@@ -8,9 +8,9 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
 from ohmg.core.models import Map, Document, Region, Layer
-from ohmg.georeference.models import SessionBase, GCP, GCPGroup
+from ohmg.georeference.models import SessionBase, GCP
 
-from ohmg.loc_insurancemaps.models import find_volume, Volume
+from ohmg.loc_insurancemaps.models import Volume
 
 logger = logging.getLogger(__name__)
 

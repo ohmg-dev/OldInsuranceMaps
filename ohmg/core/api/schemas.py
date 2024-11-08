@@ -14,7 +14,6 @@ from ninja import (
 from avatar.templatetags.avatar_tags import avatar_url
 
 from ohmg.core.models import (
-    Map,
     Document,
     Region,
     Layer,
@@ -23,7 +22,6 @@ from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,
     SessionLock,
-    SessionBase,
 )
 
 logger = logging.getLogger(__name__)

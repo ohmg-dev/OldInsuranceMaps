@@ -1,5 +1,4 @@
 import os
-from http import HTTPStatus
 import json
 from datetime import datetime
 import logging
@@ -21,10 +20,8 @@ from ohmg.core.http import (
 from ohmg.core.utils import time_this
 from ohmg.georeference.tasks import (
     run_georeference_session,
-    run_preparation_session,
 )
 from ohmg.georeference.models import (
-    GCPGroup,
     SessionBase,
     PrepSession,
     GeorefSession,
@@ -34,7 +31,6 @@ from ohmg.core.api.schemas import (
     DocumentFullSchema,
     LayerSetSchema,
     MapFullSchema,
-    MapListSchema,
     RegionFullSchema,
 )
 from ohmg.core.models import (

@@ -30,7 +30,6 @@ from ohmg.loc_insurancemaps.tasks import (
     load_map_documents_as_task,
 )
 from ohmg.georeference.tasks import (
-    run_georeference_session,
     run_preparation_session,
 )
 
