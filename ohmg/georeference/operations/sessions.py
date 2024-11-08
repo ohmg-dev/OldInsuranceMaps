@@ -66,7 +66,7 @@ def run_georeferencing(session: Union[int, GeorefSession]):
         session.note = f"{e}"
         session.save()
 
-        session.unlock_resources2()
+        session.unlock_resources()
         return None
 
     session.update_status("warping")
@@ -141,7 +141,7 @@ def run_georeferencing(session: Union[int, GeorefSession]):
     session.update_status("success", save=False)
     session.save()
 
-    session.unlock_resources2()
+    session.unlock_resources()
 
     processing_time = timezone.now() - session.date_run
     session.send_email_notification(
@@ -217,7 +217,7 @@ def run_preparation(session: Union[int, PrepSession]):
     session.doc2.prepared = True
     session.doc2.save()
 
-    session.unlock_resources2()
+    session.unlock_resources()
 
     processing_time = timezone.now() - session.date_run
     session.send_email_notification(

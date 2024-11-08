@@ -210,15 +210,7 @@ class SessionBase(models.Model):
     )
 
     def start(self):
-        # if self.type == "p":
-        #     self.doc.set_status("splitting")
-        # elif self.type == "g":
-        #     self.doc.set_status("georeferencing")
-        #     if self.lyr:
-        #         self.lyr.set_status("georeferencing")
-
-        # self.lock_resources()
-        self.lock_resources2()
+        self.lock_resources()
 
     def run(self):
         raise NotImplementedError("Must be implemented in proxy models.")
@@ -229,26 +221,11 @@ class SessionBase(models.Model):
     def lock_resources(self):
         """Calls the add_lock method on this session's resources, passing this
         session in to supply the details for the lock."""
-        if self.doc:
-            self.doc.add_lock(self)
-        if self.lyr:
-            self.lyr.add_lock(self)
-
-    def unlock_resources(self):
-        """Calls the remove_lock method on this session's resources."""
-        if self.doc:
-            self.doc.remove_lock()
-        if self.lyr:
-            self.lyr.remove_lock()
-
-    def lock_resources2(self):
-        """Calls the add_lock method on this session's resources, passing this
-        session in to supply the details for the lock."""
         for obj in [self.doc2, self.reg2, self.lyr2]:
             if obj:
                 add_lock(self, obj)
 
-    def unlock_resources2(self):
+    def unlock_resources(self):
         """Calls the remove_lock method on this session's resources."""
         for obj in [self.doc2, self.reg2, self.lyr2]:
             if obj:
