@@ -1,12 +1,10 @@
-from datetime import datetime
 import logging
-from typing import List, Optional
+from typing import List
 
 from django.conf import settings
-from django.contrib.gis.geos import Polygon, MultiPolygon
+from django.contrib.gis.geos import Polygon
 from django.db.models import F
 from django.shortcuts import get_object_or_404
-from django.urls import reverse
 
 from ninja import NinjaAPI, Query
 from ninja.pagination import paginate
@@ -23,11 +21,9 @@ from ohmg.core.models import (
     Region,
     Layer,
 )
-from ohmg.loc_insurancemaps.models import Volume
 from ohmg.georeference.models import (
     SessionBase,
     LayerSet,
-    LayerV1,
     SessionLock,
 )
 from ohmg.places.models import Place

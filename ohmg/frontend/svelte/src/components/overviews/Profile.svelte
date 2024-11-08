@@ -30,7 +30,7 @@
 			{#if CONTEXT.user.api_keys.length > 0}
 			<h4>Api Keys</h4>
 			{#each CONTEXT.user.api_keys as key}
-			<pre>key</pre>
+			<pre>{key}</pre>
 			{/each}
 			{/if}
 		</div>
