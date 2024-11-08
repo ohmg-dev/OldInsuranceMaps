@@ -16,13 +16,13 @@ from ohmg.georeference.models import (
 class LayerSetAdmin(admin.ModelAdmin):
     raw_id_fields = ("map", "volume")
     readonly_fields = (
-        'annotation_display_list',
         'layer_display_list',
         'extent',
         'multimask_extent',
         'multimask',
     )
-    search_fields = ('volume__city',)
+    search_fields = ('map', )
+    list_filter = ('category', )
 
 admin.site.register(LayerSet, LayerSetAdmin)
 

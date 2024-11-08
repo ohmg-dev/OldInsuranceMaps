@@ -5,16 +5,6 @@
     "fields": {
       "slug": "main-content",
       "display_name": "Main Content",
-      "is_geospatial": true
-    }
-  },
-  {
-    "model": "georeference.layersetcategory",
-    "pk": 1,
-    "fields": {
-      "slug": "non-map-content",
-      "display_name": "Non-Map Content",
-      "is_geospatial": false
     }
   }
 ]

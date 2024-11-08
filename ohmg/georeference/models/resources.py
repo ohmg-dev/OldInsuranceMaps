@@ -866,32 +866,14 @@ class LayerSet(models.Model):
     )
 
     def __str__(self):
-        return f"{self.volume} - {self.category}"
-
-    # TODO: deprecate this once the new layers are implemented
-    def annotation_display_list(self):
-        """For display in the admin interface only."""
-        li = [f"<li><a href='/admin/georeference/itembase/{i.pk}/change'>{i.slug}</a></li>" for i in self.annotations]
-        return mark_safe("<ul>"+"".join(li)+"</ul>")
+        return f"{self.map} - {self.category}"
 
     def layer_display_list(self):
         """For display in the admin interface only."""
         li = [f"<li><a href='/admin/core/layer/{i.pk}/change'>{i}</a></li>" for i in self.layers.all()]
         return mark_safe("<ul>"+"".join(li)+"</ul>")
 
-    annotation_display_list.short_description = 'Annotations'
     layer_display_list.short_description = 'Layers'
-
-    @property
-    def is_geospatial(self):
-        return True if self.category and self.category.is_geospatial else False
-
-    @property
-    def annotations(self):
-        if self.is_geospatial:
-            return LayerV1.objects.filter(vrs=self)
-        else:
-            return Document.objects.filter(vrs=self)
 
     @property
     def mosaic_cog_url(self):
@@ -911,27 +893,12 @@ class LayerSet(models.Model):
             url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_json.url
         return url
 
-    # @property
-    # def extent(self):
-    #     """Calculate an extent based on all layers in this annotation set. If
-    #     this is not a spatial annotation set, or there are no layers, return None."""
-    #     extent = None
-    #     if self.is_geospatial:
-    #         layer_extent_polygons = []
-    #         for v in self.annotations:
-    #             extent_poly = Polygon.from_bbox(v.extent)
-    #             layer_extent_polygons.append(extent_poly)
-    #         if len(layer_extent_polygons) > 0:
-    #             extent = MultiPolygon(layer_extent_polygons, srid=4326).extent
-    #     return extent
-
     @property
     def multimask_extent(self):
-        """Calculate an extent based on all layers in this annotation set's
-        multimask. If this is not a spatial annotation set, or there is no
-        multimask, return None."""
+        """Calculate an extent based on all layers in this layerset's
+        multimask. If there is no multimask, return None."""
         extent = None
-        if self.is_geospatial and self.multimask:
+        if self.multimask:
             feature_polygons = []
             for v in self.multimask.values():
                 poly = Polygon(v['geometry']['coordinates'][0])
@@ -990,7 +957,6 @@ class LayerSet(models.Model):
         if layer_extents:
             combined = MultiPolygon(layer_extents)
             self.extent = combined.extent
-            # print(combined.envelope)
 
         return super(self.__class__, self).save(*args, **kwargs)
 

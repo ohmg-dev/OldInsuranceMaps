@@ -58,8 +58,8 @@ class MapView(View):
 
         locale_json = PlaceFullSchema.from_orm(map.get_locale()).dict()
 
-        annotation_sets = [LayerSetSchema.from_orm(i).dict() for i in map.layerset_set.all()]
-        annotation_set_options = list(LayerSetCategory.objects.filter(is_geospatial=True).values("slug", "display_name"))
+        layersets = [LayerSetSchema.from_orm(i).dict() for i in map.layerset_set.all()]
+        layerset_categories = list(LayerSetCategory.objects.all().values("slug", "display_name"))
 
         context_dict = {
             "svelte_params": {
@@ -67,8 +67,8 @@ class MapView(View):
                 "MAP": map_json,
                 "LOCALE": locale_json,
                 "SESSION_SUMMARY": session_summary,
-                "ANNOTATION_SETS": annotation_sets,
-                "ANNOTATION_SET_OPTIONS": annotation_set_options,
+                "ANNOTATION_SETS": layersets,
+                "ANNOTATION_SET_OPTIONS": layerset_categories,
             }
         }
 

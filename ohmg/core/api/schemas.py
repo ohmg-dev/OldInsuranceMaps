@@ -423,7 +423,6 @@ class LayerSetSchema(Schema):
     id: str
     name: str
     volume_id: str
-    is_geospatial: bool
     layers: List[LayerSetLayer]
     multimask_geojson: Optional[dict]
     extent: Optional[tuple]
@@ -442,10 +441,6 @@ class LayerSetSchema(Schema):
     @staticmethod
     def resolve_name(obj):
         return str(obj.category)
-
-    @staticmethod
-    def resolve_is_geospatial(obj):
-        return obj.category.is_geospatial
 
 
 class PlaceSchema(Schema):
