@@ -4,7 +4,7 @@
 
   export let CONTEXT;
   export let REGION;
-  export let VOLUME;
+  export let MAP;
   export let MAIN_LAYERSET;
   export let KEYMAP_LAYERSET;
 
@@ -27,12 +27,12 @@
       visible: true,
       enabled: true,
       iconClass: 'volume',
-      alt: 'Go to volume: ' + VOLUME.title,
-      url: VOLUME.urls.summary,
+      alt: 'Go to volume: ' + MAP.title,
+      url: MAP.urls.summary,
     }
   ]
 
 </script>
 
 <TitleBar TITLE={REGION.title} ICON_LINKS={iconLinks}/>
-<Georeferencer {CONTEXT} {REGION} {VOLUME} {MAIN_LAYERSET} {KEYMAP_LAYERSET} />
+<Georeferencer {CONTEXT} {REGION} {MAP} {MAIN_LAYERSET} {KEYMAP_LAYERSET} />

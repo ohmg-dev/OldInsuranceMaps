@@ -61,7 +61,7 @@ import ExtendSessionModal from "./modals/ExtendSessionModal.svelte";
 
 export let CONTEXT;
 export let REGION;
-export let VOLUME;
+export let MAP;
 export let MAIN_LAYERSET;
 export let KEYMAP_LAYERSET;
 
@@ -522,8 +522,8 @@ function MapViewer (elementId) {
       map.getView().setRotation(0);
       if (REGION.gcps_geojson) {
         map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
-      } else if (VOLUME.extent) {
-        const extent3857 = transformExtent(VOLUME.extent, "EPSG:4326", "EPSG:3857");
+      } else if (MAP.extent) {
+        const extent3857 = transformExtent(MAP.extent, "EPSG:4326", "EPSG:3857");
         map.getView().fit(extent3857);
       } else {
         // show the entire US

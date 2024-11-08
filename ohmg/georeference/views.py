@@ -155,7 +155,7 @@ class GeoreferenceView(View):
         georeference_params = {
             "CONTEXT": generate_ohmg_context(request),
             "REGION": region_json,
-            "VOLUME": map_json,
+            "MAP": map_json,
             "MAIN_LAYERSET": main_layerset,
             "KEYMAP_LAYERSET": keymap_layerset,
         }
