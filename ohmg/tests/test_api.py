@@ -38,7 +38,7 @@ class APITestCase(OHMGTestCase):
 
     def test_places_endpoint(self):
 
-        response = get_api_client().get("/api/beta/places/")
+        response = get_api_client().get("/api/beta2/places/")
         self.assertEqual(response.status_code, 200)
     
     def test_places_geojson_endpoint(self):
@@ -46,7 +46,7 @@ class APITestCase(OHMGTestCase):
         for v in Volume.objects.all():
             v.update_status("ready")
             v.refresh_lookups()
-        response = get_api_client().get("/api/beta/places/geojson/")
+        response = get_api_client().get("/api/beta2/places/geojson/")
         self.assertEqual(response.status_code, 200)
 
     def test_maps_endpoint(self):
@@ -54,8 +54,8 @@ class APITestCase(OHMGTestCase):
         for v in Volume.objects.all():
             v.update_status("ready")
             v.refresh_lookups()
-        response = get_api_client().get("/api/beta/maps/")
+        response = get_api_client().get("/api/beta2/maps/")
         self.assertEqual(response.status_code, 200)
 
-        response = get_api_client().get("/api/beta/maps/", {"locale": "alexandria-la"})
+        response = get_api_client().get("/api/beta2/maps/", {"locale": "alexandria-la"})
         self.assertEqual(response.status_code, 200)
