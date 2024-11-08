@@ -25,6 +25,7 @@ from ohmg.georeference.tasks import (
 )
 from ohmg.georeference.models import (
     GCPGroup,
+    SessionBase,
     PrepSession,
     GeorefSession,
     LayerSet,
@@ -117,11 +118,6 @@ class SplitView(View):
                 logger.warn(f"{sesh.__str__()} | {msg}")
                 return JsonResponse({"success":True, "message": msg})
             sesh.delete()
-            return JsonResponse({"success":True})
-
-        elif operation == "extend-session":
-
-            sesh.extend_locks2()
             return JsonResponse({"success":True})
 
         else:
@@ -280,18 +276,6 @@ class GeoreferenceView(View):
             else:
                 return SESSION_NOT_FOUND_RESPONSE
 
-        elif operation == "extend-session":
-
-            sesh = _get_georef_session(sesh_id)
-            if sesh:
-                ## extend the lock expiration time on doc and lyr instance 
-                ## attached to this session
-                sesh.extend_locks()
-                sesh.extend_locks2()
-                return JsonResponse({"success":True})
-            else:
-                return SESSION_NOT_FOUND_RESPONSE
-
         elif operation == "cancel":
 
             sesh = _get_georef_session(sesh_id)
@@ -365,31 +349,33 @@ class LayerSetView(View):
                 return JsonResponseNotFound()
 
 
-        return JsonResponse(response)
-
-
 class SessionView(View):
 
-    # @method_decorator(validate_post_request(operations=[]))
-    def post(self, request):
+    @method_decorator(validate_post_request(operations=[
+        "undo", "cancel", "extend"
+    ]))
+    def post(self, request, sessionid):
 
         body = json.loads(request.body)
         operation = body.get("operation")
-        sessionid = body.get("sessionid")
 
-        session = None
-        if sessionid:
-            try:
-                session = PrepSession.objects.get(pk=sessionid)
-            except PrepSession.DoesNotExist:
-                return JsonResponseNotFound
+        try:
+            session = SessionBase.objects.get(pk=sessionid)
+        except SessionBase.DoesNotExist:
+            return JsonResponseNotFound()
 
-        if operation == "undo" and session:
+        ## currently this operation is not used, in favor of document/<pk> 'unprepare'
+        if operation == "undo":
+            if session.type == "p":
+                try:
+                    undo_preparation(session)
+                except Exception as e:
+                    return JsonResponseFail(e)
+                return JsonResponseSuccess()
+
+        if operation == "extend":
             try:
-                undo_preparation(session)
+                session.extend_locks()
             except Exception as e:
-                return JsonResponse({"success": False, "message": str(e)})
-            return JsonResponse({"success":True})
-
-        else:
-            return JsonResponseBadRequest()
+                return JsonResponseFail(e)
+            return JsonResponseSuccess()

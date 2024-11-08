@@ -241,14 +241,6 @@ class SessionBase(models.Model):
         if self.lyr:
             self.lyr.remove_lock()
 
-    def extend_locks(self):
-        """Extends the expiration time for all of the locks on this session's.
-        Quiet fail if the resources are not currently locked."""
-        if self.doc:
-            self.doc.extend_lock()
-        if self.lyr:
-            self.lyr.extend_lock()
-
     def lock_resources2(self):
         """Calls the add_lock method on this session's resources, passing this
         session in to supply the details for the lock."""
@@ -262,10 +254,10 @@ class SessionBase(models.Model):
             if obj:
                 remove_lock(self, obj)
 
-    def extend_locks2(self):
+    def extend_locks(self):
         """Extends the expiration time for all of the locks on this session's.
         Quiet fail if the resources are not currently locked."""
-        for lock in self.locks:
+        for lock in self.locks.all():
             lock.extend()
 
     def serialize(self):
@@ -491,8 +483,6 @@ class PrepSession(SessionBase):
 
     def save(self, *args, **kwargs):
         self.type = 'p'
-        if not self.doc:
-            logger.warn(f"{self.__str__()} has no Document.")
         if not self.pk:
             self.data = get_default_session_data(self.type)
         if self.stage == "finished":
@@ -700,8 +690,6 @@ class GeorefSession(SessionBase):
 
     def save(self, *args, **kwargs):
         self.type = 'g'
-        if not self.doc:
-            logger.warn(f"{self.__str__()} has no Document.")
         if not self.pk:
             self.data = get_default_session_data(self.type)
         if self.stage == "finished" and self.status == "success":
