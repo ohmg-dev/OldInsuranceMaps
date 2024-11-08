@@ -34,26 +34,6 @@ from ohmg.core.utils import (
 
 logger = logging.getLogger(__name__)
 
-def delete_expired_sessions():
-    """ Look at all currently locked resources, and if a resource's session is
-    due to expire, delete that session which will in turn unlock the resource.
-    """
-    locked_items = ItemBase.objects.filter(lock_enabled=True)
-    if locked_items.count() > 0:
-        logger.info(f"{locked_items.count()} locked item(s)")
-    now = timezone.now().timestamp()
-    for resource in locked_items:
-        if now > resource.lock_details['expiration']:
-            try:
-                session = SessionBase.objects.get(pk=resource.lock_details['session_id'])
-                # only delete a session if it hasn't been submitted.
-                if session.stage == "input":
-                    logger.info(f"deleting session {session.pk} to unlock resource {resource.pk}")
-                    session.delete()
-            except SessionBase.DoesNotExist:
-                logger.warn(f"error during session cleanup. can't find SessionBase object for resource {resource.pk}. unlocking.")
-                resource.remove_lock()
-
 def delete_expired_session_locks():
     """ Look at all current SessionLocks, and if one is expired and it's session is
     still on the "input" stage, then delete the session (the lock will be deleted as well)

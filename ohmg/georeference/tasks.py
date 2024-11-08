@@ -5,7 +5,6 @@ from ohmg.celeryapp import app
 from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,
-    delete_expired_sessions,
     delete_expired_session_locks,
 )
 
@@ -24,11 +23,7 @@ def run_georeference_session(sessionid):
     return session.pk
 
 @app.task
-def delete_expired():
-    delete_expired_sessions()
-
-@app.task
-def remove_stale_sessions():
+def delete_stale_sessions():
     delete_expired_session_locks()
 
 @app.task
