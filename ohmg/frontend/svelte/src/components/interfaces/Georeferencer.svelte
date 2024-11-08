@@ -62,8 +62,8 @@ import ExtendSessionModal from "./modals/ExtendSessionModal.svelte";
 export let CONTEXT;
 export let REGION;
 export let VOLUME;
-export let ANNOSET_MAIN;
-export let ANNOSET_KEYMAP;
+export let MAIN_LAYERSET;
+export let KEYMAP_LAYERSET;
 
 // console.log(REGION)
 
@@ -208,15 +208,15 @@ mapGCPSource.on(['addfeature'], function (e) {
 
 let kmLayerGroup;
 let kmLayerGroup50;
-if (ANNOSET_KEYMAP) {
+if (KEYMAP_LAYERSET) {
   kmLayerGroup = makeLayerGroupFromLayerSet({
-    annotationSet: ANNOSET_KEYMAP,
+    layerSet: KEYMAP_LAYERSET,
     zIndex: 10,
     titilerHost: CONTEXT.titiler_host,
     applyMultiMask: true,
   })
   kmLayerGroup50 = makeLayerGroupFromLayerSet({
-    annotationSet: ANNOSET_KEYMAP,
+    layerSet: KEYMAP_LAYERSET,
     zIndex: 11,
     titilerHost: CONTEXT.titiler_host,
     applyMultiMask: true,
@@ -225,14 +225,14 @@ if (ANNOSET_KEYMAP) {
 }
 
 const mainLayerGroup = makeLayerGroupFromLayerSet({
-  annotationSet: ANNOSET_MAIN,
+  layerSet: MAIN_LAYERSET,
   zIndex: 12,
   titilerHost: CONTEXT.titiler_host,
   applyMultiMask: true,
   excludeLayerId: REGION.layer ? REGION.layer.slug : '',
 })
 const mainLayerGroup50 = makeLayerGroupFromLayerSet({
-  annotationSet: ANNOSET_MAIN,
+  layerSet: MAIN_LAYERSET,
   zIndex: 13,
   titilerHost: CONTEXT.titiler_host,
   applyMultiMask: true,

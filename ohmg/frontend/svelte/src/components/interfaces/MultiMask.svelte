@@ -44,7 +44,7 @@ import Styles from '@lib/ol-styles';
 const styles = new Styles();
 
 export let CONTEXT;
-export let ANNOTATION_SET;
+export let LAYERSET;
 export let DISABLED;
 export let resetMosaic;
 
@@ -75,8 +75,8 @@ function updateLayerArr(){
 }
 
 function addIncomingMasks() {
-  if (ANNOTATION_SET.multimask_geojson) {
-    const feats = new GeoJSON().readFeatures(ANNOTATION_SET.multimask_geojson, {
+  if (LAYERSET.multimask_geojson) {
+    const feats = new GeoJSON().readFeatures(LAYERSET.multimask_geojson, {
       featureProjection: "EPSG:3857"
     })
     feats.forEach( function (f) {
@@ -88,7 +88,7 @@ function addIncomingMasks() {
   function createLayerLookup() {
     layerLookup = {};
     trimShapeSource.clear()
-    ANNOTATION_SET.layers.forEach( function(layerDef) {
+    LAYERSET.layers.forEach( function(layerDef) {
       let newLayer = new TileLayer({
         source: new XYZ({
           url: makeTitilerXYZUrl({
@@ -224,8 +224,8 @@ function MapViewer (elementId) {
 
 function setMapExtent() {
 	if (mapView) {
-    if (ANNOTATION_SET.extent) {
-      const extent3857 = transformExtent(ANNOTATION_SET.extent, "EPSG:4326", "EPSG:3857");
+    if (LAYERSET.extent) {
+      const extent3857 = transformExtent(LAYERSET.extent, "EPSG:4326", "EPSG:3857");
 			mapView.map.getView().fit(extent3857);
 		} else {
 			mapView.map.getView().setCenter([0,0]);
@@ -284,8 +284,8 @@ function submitMultiMask() {
     "set-mask",
     {
       "multimask-geojson": outGeoJSON,
-      "map-id": ANNOTATION_SET.volume_id,
-      "category": ANNOTATION_SET.id,
+      "map-id": LAYERSET.volume_id,
+      "category": LAYERSET.id,
     },
     handleMultimaskSubmitResponse,
   )

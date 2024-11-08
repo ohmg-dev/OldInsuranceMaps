@@ -8,7 +8,7 @@
     export let CONTEXT;
     export let MAP;
     export let SESSION_SUMMARY;
-    export let ANNOTATION_SETS = [];
+    export let LAYERSETS = [];
 
 </script>
 
@@ -52,16 +52,16 @@
     <p style="font-size:.9em;"><em>
         Only layers that have been trimmed in the <strong>MultiMask</strong> will appear in the mosaic. You can access untrimmed layers individually through the <strong>Georeferenced</strong> section.
     </em></p>
-    {#each ANNOTATION_SETS as annoSet}
-    {#if annoSet.layers.length > 1}
-        <h4>{annoSet.name}</h4>
-        {#if annoSet.mosaicUrl}
+    {#each LAYERSETS as ls}
+    {#if ls.layers.length > 1}
+        <h4>{ls.name}</h4>
+        {#if ls.mosaicUrl}
         <table>
             <tr>
                 <td>XYZ Tiles URL</td>
                 <td>
-                    {#if annoSet.mosaicUrl}
-                    <pre style="margin:0;">{annoSet.mosaicUrl}</pre>
+                    {#if ls.mosaicUrl}
+                    <pre style="margin:0;">{ls.mosaicUrl}</pre>
                     {:else}
                     n/a
                     {/if}
@@ -70,8 +70,8 @@
             <tr>
                 <td>OHM</td>
                 <td>
-                    {#if annoSet.ohmUrl}
-                    <Link href="{annoSet.ohmUrl}" title="Open mosaic in OHM Editor" external={true}>Open in OpenHistoricalMap iD editor</Link>
+                    {#if ls.ohmUrl}
+                    <Link href="{ls.ohmUrl}" title="Open mosaic in OHM Editor" external={true}>Open in OpenHistoricalMap iD editor</Link>
                     {:else}
                     n/a
                     {/if}</td>
@@ -79,8 +79,8 @@
             <tr>
                 <td>GeoTIFF</td>
                 <td>
-                    {#if annoSet.mosaic_cog_url}
-                    <Link href={annoSet.mosaic_cog_url} title="Download mosaic geotiff file">Download GeoTIFF (direct download)</Link>
+                    {#if ls.mosaic_cog_url}
+                    <Link href={ls.mosaic_cog_url} title="Download mosaic geotiff file">Download GeoTIFF (direct download)</Link>
                     {:else}
                     n/a
                     {/if}

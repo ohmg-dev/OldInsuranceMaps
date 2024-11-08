@@ -148,18 +148,18 @@ class GeoreferenceView(View):
 
         map_json = MapFullSchema.from_orm(region.map).dict()
 
-        annoset_main = LayerSetSchema.from_orm(region.document.map.get_layerset('main-content')).dict()
-        annoset_keymap = None
+        main_layerset = LayerSetSchema.from_orm(region.document.map.get_layerset('main-content')).dict()
+        keymap_layerset = None
         akm = region.document.map.get_layerset('key-map')
         if akm:
-            annoset_keymap = LayerSetSchema.from_orm(akm).dict()
+            keymap_layerset = LayerSetSchema.from_orm(akm).dict()
 
         georeference_params = {
             "CONTEXT": generate_ohmg_context(request),
             "REGION": region_json,
             "VOLUME": map_json,
-            "ANNOSET_MAIN": annoset_main,
-            "ANNOSET_KEYMAP": annoset_keymap,
+            "MAIN_LAYERSET": main_layerset,
+            "KEYMAP_LAYERSET": keymap_layerset,
         }
 
         return render(

@@ -14,7 +14,7 @@ models="accounts.user
 	georeference.itembase
 	georeference.sessionbase
 	georeference.layersetcategory
-	georeference.annotationset
+	georeference.layerset
 	georeference.documentlink
 	georeference.gcpgroup
 	georeference.gcp

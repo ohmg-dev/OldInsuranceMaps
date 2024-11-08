@@ -67,8 +67,8 @@ class MapView(View):
                 "MAP": map_json,
                 "LOCALE": locale_json,
                 "SESSION_SUMMARY": session_summary,
-                "ANNOTATION_SETS": layersets,
-                "ANNOTATION_SET_OPTIONS": layerset_categories,
+                "LAYERSETS": layersets,
+                "LAYERSET_CATEGORIES": layerset_categories,
             }
         }
 

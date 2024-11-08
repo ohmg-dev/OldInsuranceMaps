@@ -47,8 +47,8 @@ export let CONTEXT;
 export let MAP;
 export let LOCALE;
 export let SESSION_SUMMARY;
-export let ANNOTATION_SETS;
-export let ANNOTATION_SET_OPTIONS;
+export let LAYERSETS;
+export let LAYERSET_CATEGORIES;
 
 console.log(MAP)
 
@@ -82,59 +82,59 @@ function reinitPreview() {
 }
 
 
-let currentAnnotationSet = "main-content";
-let annotationSetLookup = {};
-let layerAnnotationLookup = {};
-let origLayerAnnotationLookup = {};
-let annotationsToUpdate = {};
-function resetAnnotationSets(newAnnotationSets) {
-	annotationSetLookup = {}
-	layerAnnotationLookup = {}
-	newAnnotationSets.forEach(function (annoSet) {
-		annotationSetLookup[annoSet.id] = annoSet;
-		annoSet.layers.forEach(function (anno) {
-			layerAnnotationLookup[anno.slug] = annoSet.id;
-			origLayerAnnotationLookup[anno.slug] = annoSet.id;
+let currentLayerSet = "main-content";
+let layerSetLookup = {};
+let layerToLayerSetLookup = {};
+let layerToLayerSetLookupOrig = {};
+let layersToUpdate = {};
+function resetLayerSets(newLayerSets) {
+	layerSetLookup = {}
+	layerToLayerSetLookup = {}
+	newLayerSets.forEach(function (ls) {
+		layerSetLookup[ls.id] = ls;
+		ls.layers.forEach(function (lyr) {
+			layerToLayerSetLookup[lyr.slug] = ls.id;
+			layerToLayerSetLookupOrig[lyr.slug] = ls.id;
 		})
 
 		let mosaicUrl;
 		let ohmUrl;
-		if (annoSet.mosaic_json_url) {
+		if (ls.mosaic_json_url) {
 			mosaicUrl = makeTitilerXYZUrl({
 				host: CONTEXT.titiler_host,
-				url: annoSet.mosaic_json_url
+				url: ls.mosaic_json_url
 			})
 			// make the OHM url here
 			const mosaicUrlEncoded = makeTitilerXYZUrl({
 				host: CONTEXT.titiler_host,
-				url: annoSet.mosaic_json_url,
+				url: ls.mosaic_json_url,
 				doubleEncode: true
 			})
-			const ll = getCenter(annoSet.extent);
+			const ll = getCenter(ls.extent);
 			ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
 		}
-		if (annoSet.mosaic_cog_url) {
+		if (ls.mosaic_cog_url) {
 			mosaicUrl = makeTitilerXYZUrl({
 				host: CONTEXT.titiler_host,
-				url: annoSet.mosaic_cog_url
+				url: ls.mosaic_cog_url
 			})
 			// make the OHM url here
 			const mosaicUrlEncoded = makeTitilerXYZUrl({
 				host: CONTEXT.titiler_host,
-				url: annoSet.mosaic_cog_url,
+				url: ls.mosaic_cog_url,
 				doubleEncode: true
 			})
-			const ll = getCenter(annoSet.extent);
+			const ll = getCenter(ls.extent);
 			ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`
 		}
-		annoSet.mosaicUrl = mosaicUrl;
-		annoSet.ohmUrl = ohmUrl;
+		ls.mosaicUrl = mosaicUrl;
+		ls.ohmUrl = ohmUrl;
 	})
-	ANNOTATION_SETS = newAnnotationSets;
+	LAYERSETS = newLayerSets;
 	reinitMultimask();
 	reinitPreview();
 }
-resetAnnotationSets(ANNOTATION_SETS)
+resetLayerSets(LAYERSETS)
 
 let userCanEdit = false;
 userCanEdit = CONTEXT.user.is_staff || (MAP.access == "any" && CONTEXT.user.is_authenticated) || (MAP.access == "sponsor" && MAP.sponsor == CONTEXT.user.username)
@@ -193,7 +193,7 @@ function pollMapSummary() {
 			MAP.item_lookup.prepared.length != result.item_lookup.prepared.length ||
 			MAP.item_lookup.georeferenced.length != result.item_lookup.georeferenced.length
 		) {
-			fetchAnnotationSets();
+			fetchLayerSets();
 		}
 		MAP = result;
 		processing = false
@@ -217,14 +217,12 @@ function postOperation(operation) {
 	})
 	.then(response => response.json())
 	.then(result => {
-		// need to trigger a reinit of the MapPreview/Multimask components
-		// with new annotationsets
 		if (
 			MAP.item_lookup.unprepared.length != result.item_lookup.unprepared.length ||
 			MAP.item_lookup.prepared.length != result.item_lookup.prepared.length ||
 			MAP.item_lookup.georeferenced.length != result.item_lookup.georeferenced.length
 		) {
-			fetchAnnotationSets();
+			fetchLayerSets();
 		}
 		MAP = result;
 		sheetsLoading = MAP.status == "initializing...";
@@ -234,13 +232,13 @@ function postOperation(operation) {
 	});
 }
 
-function fetchAnnotationSets() {
+function fetchLayerSets() {
 	fetch(`${CONTEXT.urls.get_layersets}?map=${MAP.identifier}`, {
 		headers: CONTEXT.ohmg_api_headers
 	})
 	.then(response => response.json())
 	.then(result => {
-		resetAnnotationSets(result)
+		resetLayerSets(result)
 		processing = false;
 	});
 }
@@ -271,8 +269,8 @@ function postRegionCategory(regionId, newCategory) {
 	)
 }
 
-function fetchAnnotationSetsIfSuccess(response) {
-	if (response.success) { fetchAnnotationSets() } else { alert(response.message) }
+function fetchLayerSetsIfSuccess(response) {
+	if (response.success) { fetchLayerSets() } else { alert(response.message) }
 	processing = false
 }
 function updateLayerSets() {
@@ -281,20 +279,20 @@ function updateLayerSets() {
 		`/layerset/`,
 		CONTEXT.ohmg_post_headers,
 		"bulk-classify-layers",
-		{"map-id": MAP.identifier, "update-list": Object.entries(annotationsToUpdate)},
-		fetchAnnotationSetsIfSuccess,
+		{"map-id": MAP.identifier, "update-list": Object.entries(layersToUpdate)},
+		fetchLayerSetsIfSuccess,
 	)
 }
 
 function handleExistingMaskResponse(response) {
 	if (response.success) {
-		annotationsToUpdate[response.payload['resource-id']] = response.payload['category']
+		layersToUpdate[response.payload['resource-id']] = response.payload['category']
 	} else {
 		const msg = "This layer is already included in the multimask for its " +
 					"current classification, and that mask will be deleted if "+
 					"you continue with this change. Set the layer back to its " +
 					"original classification to stop the change."
-		if (confirm(msg)) {annotationsToUpdate[response.payload['resource-id']] = response.payload['category']};
+		if (confirm(msg)) {layersToUpdate[response.payload['resource-id']] = response.payload['category']};
 	}
 }
 function checkForExistingMask(category, layerId) {
@@ -374,7 +372,7 @@ let processing = false;
 		</div>
 		{#if sectionVis['summary']}
 		<div style="margin-bottom:10px;" transition:slide>
-			<MapDetails {CONTEXT} {MAP} {SESSION_SUMMARY} {ANNOTATION_SETS}/>
+			<MapDetails {CONTEXT} {MAP} {SESSION_SUMMARY} {LAYERSETS}/>
 		</div>
 		{/if}
 	</section>
@@ -390,7 +388,7 @@ let processing = false;
 		{#if sectionVis['preview']}
 		<div class="section-content" transition:slide>
 			{#key previewKey}
-				<MapPreview {CONTEXT} {ANNOTATION_SETS} />
+				<MapPreview {CONTEXT} {LAYERSETS} />
 			{/key}
 		</div>
 		{/if}
@@ -592,17 +590,17 @@ let processing = false;
 						{/if}
 						{#if classifyingLayers}
 						<button class="button is-success"
-							disabled={Object.keys(annotationsToUpdate).length === 0} on:click={() => {
+							disabled={Object.keys(layersToUpdate).length === 0} on:click={() => {
 							updateLayerSets();
 							classifyingLayers = false;
-							annotationsToUpdate = {};
+							layersToUpdate = {};
 							reinitMultimask();
 						}}>Save</button>
 						<button class="button is-danger"
 							on:click={() => {
 							classifyingLayers = false;
-							annotationsToUpdate = {};
-							Object.keys(origLayerAnnotationLookup).forEach(function(k) {layerAnnotationLookup[k] = origLayerAnnotationLookup[k]})
+							layersToUpdate = {};
+							Object.keys(layerToLayerSetLookupOrig).forEach(function(k) {layerToLayerSetLookup[k] = layerToLayerSetLookupOrig[k]})
 						}}>Cancel</button>
 						{/if}
 					</div>
@@ -650,12 +648,11 @@ let processing = false;
 								</ul>
 								{/if}
 								{#if classifyingLayers}
-								<select bind:value={layerAnnotationLookup[layer.slug]} on:change={(e) => {
+								<select bind:value={layerToLayerSetLookup[layer.slug]} on:change={(e) => {
 										checkForExistingMask(e.target.options[e.target.selectedIndex].value, layer.id)
-										// updateAnnotationSet(e.target.options[e.target.selectedIndex].value, layer.id);
 									}}>
-									{#each ANNOTATION_SET_OPTIONS as annoOpt}
-									<option value={annoOpt.slug}>{annoOpt.display_name}</option>
+									{#each LAYERSET_CATEGORIES as opt}
+									<option value={opt.slug}>{opt.display_name}</option>
 									{/each}
 								</select>
 								{/if}
@@ -727,28 +724,28 @@ let processing = false;
 			{#if !CONTEXT.user.is_authenticated}
 				<SigninReminder csrfToken={CONTEXT.csrf_token} />
 			{/if}
-			<select class="item-select" bind:value={currentAnnotationSet} on:change={(e) => {
+			<select class="item-select" bind:value={currentLayerSet} on:change={(e) => {
 					reinitMultimask();
 				}}>
-				{#each ANNOTATION_SETS as annoSet}
-				{#if annoSet.layers}
-				<option value={annoSet.id}>{annoSet.name}</option>
+				{#each LAYERSETS as ls}
+				{#if ls.layers}
+				<option value={ls.id}>{ls.name}</option>
 				{/if}
 				{/each}
 			</select>
 			<span>
 				Masked layers: 
-				{#if annotationSetLookup[currentAnnotationSet].multimask_geojson}
-				{annotationSetLookup[currentAnnotationSet].multimask_geojson.features.length}/{annotationSetLookup[currentAnnotationSet].layers.length}
+				{#if layerSetLookup[currentLayerSet].multimask_geojson}
+				{layerSetLookup[currentLayerSet].multimask_geojson.features.length}/{layerSetLookup[currentLayerSet].layers.length}
 				{:else}
-				0/{annotationSetLookup[currentAnnotationSet].layers.length}
+				0/{layerSetLookup[currentLayerSet].layers.length}
 				{/if}
 			</span>
 			<span>
 				<em>&mdash; <strong>Important:</strong> Do not work on a multimask while there is other work in progress on this map (you could lose work).</em>
 			</span>
 			{#key multimaskKey}
-			<MultiMask ANNOTATION_SET={annotationSetLookup[currentAnnotationSet]}
+			<MultiMask LAYERSET={layerSetLookup[currentLayerSet]}
 				{CONTEXT}
 				DISABLED={!userCanEdit}
 				resetMosaic={reinitPreview}

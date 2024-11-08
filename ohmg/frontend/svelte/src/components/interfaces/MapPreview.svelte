@@ -29,7 +29,7 @@ import {
 } from '@lib/utils';
 
 export let CONTEXT;
-export let ANNOTATION_SETS;
+export let LAYERSETS;
 
 let map;
 
@@ -94,7 +94,7 @@ const zIndexLookup = {
 	"congested-district-map": 20,
 	"main-content": 25,
 }
-ANNOTATION_SETS.sort((a, b) => zIndexLookup[a.id] - zIndexLookup[b.id]);
+LAYERSETS.sort((a, b) => zIndexLookup[a.id] - zIndexLookup[b.id]);
 
 let currentZoom = '';
 class MapPreviewViewer {
@@ -135,12 +135,12 @@ class MapPreviewViewer {
 	}
 };
 
-const annotationSets = {};
-let annotationSetList = [];
+const layerSets = {};
+let layerSetList = [];
 
 $: {
-	Object.entries(annotationSets).forEach( function ([key, item]) {
-		setVisibility(item.layerGroup, item.opacity)
+	Object.entries(layerSets).forEach( function ([key, ls]) {
+		setVisibility(ls.layerGroup, ls.opacity)
 	})
 }
 
@@ -148,30 +148,30 @@ const fullExtent = createEmpty();
 
 function createLayerGroups() {
 
-	ANNOTATION_SETS.forEach( function( aSet ){
-		if (aSet.layers.length > 0) {
+	LAYERSETS.forEach( function( ls ){
+		if (ls.layers.length > 0) {
 			const layerGroup = makeLayerGroupFromLayerSet({
-				annotationSet: aSet,
-				zIndex: zIndexLookup[aSet.id],
+				layerSet: ls,
+				zIndex: zIndexLookup[ls.id],
 				titilerHost: CONTEXT.titiler_host,
 				applyMultiMask: true,
 			})
 			let extent3857;
-			if (aSet.extent) {
-				extent3857 = transformExtent(aSet.extent, "EPSG:4326", "EPSG:3857")
+			if (ls.extent) {
+				extent3857 = transformExtent(ls.extent, "EPSG:4326", "EPSG:3857")
 				extend(fullExtent, extent3857)
 			}
 			const setDef = {
-				id: aSet.id,
-				name: aSet.name,
+				id: ls.id,
+				name: ls.name,
 				layerGroup: layerGroup,
-				sortOrder: zIndexLookup[aSet.id],
+				sortOrder: zIndexLookup[ls.id],
 				opacity: 100,
-				layerCt: aSet.layers.length,
+				layerCt: ls.layers.length,
 				extent: extent3857
 			}
-			annotationSets[aSet.id] = setDef
-			annotationSetList.push(aSet.id)
+			layerSets[ls.id] = setDef
+			layerSetList.push(ls.id)
 			map.addLayer(setDef.layerGroup)
 		}
 	})
@@ -213,19 +213,19 @@ onMount(() => {
 			<div class="layer-section-subheader">
 				{currentBasemap == 'satellite' ? 'Mapbox Imagery' : 'Open Street Map'}
 			</div>
-			{#each annotationSetList as id}
-				{#if annotationSets[id].layerCt > 0}
+			{#each layerSetList as id}
+				{#if layerSets[id].layerCt > 0}
 				<div class="layer-section-header">
-					<button class="layer-entry" on:click={() => map.getView().fit(annotationSets[id].extent)} on:focus={null}>
-						<span>{annotationSets[id].name}</span>
+					<button class="layer-entry" on:click={() => map.getView().fit(layerSets[id].extent)} on:focus={null}>
+						<span>{layerSets[id].name}</span>
 					</button>
-					<span style="color:grey">({annotationSets[id].layerCt})</span>
+					<span style="color:grey">({layerSets[id].layerCt})</span>
 				</div>
 				<div class="layer-section-subheader">
 					<div style="display:flex; align-items:center;">
-						<input class="slider" type=range bind:value={annotationSets[id].opacity} min=0 max=100>
-						<button class="transparency-toggle" on:click={() => {annotationSets[id].opacity = toggleTransparency(annotationSets[id].opacity)}}>
-							<i class="{getClass(annotationSets[id].opacity)}" />
+						<input class="slider" type=range bind:value={layerSets[id].opacity} min=0 max=100>
+						<button class="transparency-toggle" on:click={() => {layerSets[id].opacity = toggleTransparency(layerSets[id].opacity)}}>
+							<i class="{getClass(layerSets[id].opacity)}" />
 						</button>
 					</div>
 				</div>

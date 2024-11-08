@@ -5,8 +5,8 @@
   export let CONTEXT;
   export let REGION;
   export let VOLUME;
-  export let ANNOSET_MAIN;
-  export let ANNOSET_KEYMAP;
+  export let MAIN_LAYERSET;
+  export let KEYMAP_LAYERSET;
 
   const iconLinks = [
     {
@@ -35,4 +35,4 @@
 </script>
 
 <TitleBar TITLE={REGION.title} ICON_LINKS={iconLinks}/>
-<Georeferencer {CONTEXT} {REGION} {VOLUME} {ANNOSET_MAIN} {ANNOSET_KEYMAP} />
+<Georeferencer {CONTEXT} {REGION} {VOLUME} {MAIN_LAYERSET} {KEYMAP_LAYERSET} />
