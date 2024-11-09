@@ -809,17 +809,12 @@ class LayerSetCategory(models.Model):
     slug = models.CharField(max_length=50)
     description = models.CharField(max_length=200, null=True, blank=True)
     display_name = models.CharField(max_length=50)
-    is_geospatial = models.BooleanField(default=False)
 
     def __str__(self):
         return self.display_name if self.display_name else self.slug
 
 class LayerSet(models.Model):
 
-    volume = models.ForeignKey(
-        "loc_insurancemaps.Volume",
-        on_delete=models.CASCADE,
-    )
     map = models.ForeignKey(
         "core.map",
         null=True,

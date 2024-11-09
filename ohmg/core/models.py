@@ -289,8 +289,6 @@ class Map(models.Model):
             if create:
                 category = LayerSetCategory.objects.get(slug=cat_slug)
                 layerset = LayerSet.objects.create(
-                    # TODO: remove once Volume objects have been fully deprecated
-                    volume_id=self.identifier,
                     map=self,
                     category=category
                 )

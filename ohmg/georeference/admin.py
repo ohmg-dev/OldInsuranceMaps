@@ -14,7 +14,7 @@ from ohmg.georeference.models import (
 )
 
 class LayerSetAdmin(admin.ModelAdmin):
-    raw_id_fields = ("map", "volume")
+    raw_id_fields = ("map", )
     readonly_fields = (
         'layer_display_list',
         'extent',

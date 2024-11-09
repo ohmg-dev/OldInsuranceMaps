@@ -420,7 +420,7 @@ class LayerSetSchema(Schema):
 
     id: str
     name: str
-    volume_id: str
+    map_id: str
     layers: List[LayerSetLayer]
     multimask_geojson: Optional[dict]
     extent: Optional[tuple]

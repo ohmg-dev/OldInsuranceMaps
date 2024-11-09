@@ -284,7 +284,7 @@ function submitMultiMask() {
     "set-mask",
     {
       "multimask-geojson": outGeoJSON,
-      "map-id": LAYERSET.volume_id,
+      "map-id": LAYERSET.map_id,
       "category": LAYERSET.id,
     },
     handleMultimaskSubmitResponse,
