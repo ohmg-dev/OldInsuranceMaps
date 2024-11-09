@@ -7,27 +7,25 @@ import requests
 from datetime import datetime
 
 from django.conf import settings
-from django.urls import reverse
 
 from ohmg.core.utils import (
     full_capitalize,
     STATE_ABBREV,
 )
-from ohmg.loc_insurancemaps.models import Volume
-
 from ohmg.core.importers.base import BaseImporter
+from ohmg.places.models import Place
 from ohmg.core.utils import (
     STATE_CHOICES,
 )
 
 logger = logging.getLogger(__name__)
 
-# format for the city name misspelling lookup is
-#   {
-#       "state name": {
-#           "wrong name": "right name",
-#       }
-#   }
+## format for the city name misspelling lookup is
+##   {
+##       "state name": {
+##           "wrong name": "right name",
+##       }
+##   }
 LOC_SANBORN_CITY_MISSPELLINGS = {
     "louisiana": {
         "Jeannerette": "Jeanerette",
@@ -42,11 +40,11 @@ LOC_SANBORN_CITY_MISSPELLINGS = {
     
 class LOCImporter(BaseImporter):
     """LOC Importer
-------------
-Load items from the Library of Congress Sanborn map collection. Required args are:
-    
-    identifier:   the LOC id for the item, looks like 'sanborn04339_026'
-    locale:       slug for the locale to attach to the new map that is created
+    ------------
+    Load items from the Library of Congress Sanborn map collection. Required args are:
+        
+        identifier:   the LOC id for the item, looks like 'sanborn04339_026'
+        locale:       slug for the locale to attach to the new map that is created
     """
 
     required_input = [
@@ -57,6 +55,12 @@ Load items from the Library of Congress Sanborn map collection. Required args ar
     def parse(self):
 
         identifier = self.input_data['identifier']
+        locale_slug = self.input_data['locale']
+        try:
+            Place.objects.get(slug=locale_slug)
+        except Place.DoesNotExist as e:
+            raise e
+
         lc = LOCConnection(delay=0, verbose=True)
 
         no_cache = self.input_data.get('no-cache', "false")
@@ -68,19 +72,20 @@ Load items from the Library of Congress Sanborn map collection. Required args ar
         
         item = response['item']
         item["lc_resources"] = response['resources']
+        file_list = response['resources'][0]['files']
 
-        parsed = LOCParser(item=item)
-        volume_kwargs = parsed.volume_kwargs()
-        volume_kwargs['locale'] = self.input_data['locale']
+        parsed_loc = LOCParser(item=item)
 
-        ## fake values to pass validation for now
-        volume_kwargs['title']= ""
-        volume_kwargs['creator']= ""
-        lc_item = volume_kwargs.get('lc_item')
-        files = lc_item['lc_resources'][0]['files']
-        volume_kwargs['document_sources']= files
-
-        return volume_kwargs
+        self.parsed_data = {
+            "identifier": identifier,
+            "title": parsed_loc.title,
+            "creator": "Sanborn Map Company",
+            "year": parsed_loc.year,
+            "month": parsed_loc.month,
+            "locale": self.input_data['locale'],
+            "document_sources": file_list,
+            "volume_number": parsed_loc.volume_no,
+        }
 
 
 class LOCParser(object):
@@ -96,7 +101,7 @@ class LOCParser(object):
             self.parse_sheet_count()
             self.parse_date_info()
             self.parse_manifest_url()
-            self.create_item_title()
+            self.parse_title()
 
         # passing in a fileset will automatically parse it
         if fileset:
@@ -186,8 +191,7 @@ class LOCParser(object):
         # print leftover tags
         location_tags = [i for i in location_tags if i not in used_tags]
         if len(location_tags) > 0:
-            msg = f"WARNING: unparsed location tags - {self.identifier} - {title} - {location_tags}"
-            logger.warning(msg)
+            logger.warning( f"unparsed location tags - {self.identifier} - {title} - {location_tags}")
 
         self.extra_location_tags = location_tags
 
@@ -242,58 +246,13 @@ class LOCParser(object):
     def parse_manifest_url(self):
         self.lc_manifest_url = f'{self.item["url"]}manifest.json'
 
-    def create_item_title(self):
-
-        seg1 = str(self.year)
-        if self.volume_no:
-            seg1 += f" (vol. {self.volume_no})"
-        seg2 = f"{self.city}"
-        seg3 = f"{self.sheet_ct} Sheet{'s' if self.sheet_ct != 1 else ''}"
-
-        self.title = " | ".join([seg2, seg1, seg3])
-
-    def set_map_title(self):
+    def parse_title(self):
 
         title = f"{self.city}, {STATE_ABBREV[self.state]} | {self.year}"
         if self.volume_no is not None:
             title += f" | Vol. {self.volume_no}"
 
         self.title = title
-
-    def serialize_to_volume(self):
-
-        try:
-            v = Volume.objects.get(identifier=self.identifier)
-            status = v.status
-        except Volume.DoesNotExist:
-            status = "not started"
-
-        return {
-            "identifier": self.identifier,
-            "city": self.city,
-            "state": self.state,
-            "year": self.year,
-            "month": self.month,
-            "volume_no": self.volume_no,
-            "lc_item": self.item,
-            "lc_manifest_url": self.lc_manifest_url,
-            "lc_resources": self.item['lc_resources'],
-            "extra_location_tags": self.extra_location_tags,
-            "sheet_ct": self.sheet_ct,
-            "title": self.title,
-            "status": status,
-            "urls": {
-                "summary": reverse("map_summary", args=(self.identifier,)),
-            },
-        }
-
-    def volume_kwargs(self):
-
-        data = self.serialize_to_volume()
-        del data["status"]
-        del data["urls"]
-        del data["title"]
-        return data
 
     def parse_fileset(self):
         """this could be much improved to take better advantage of IIIF service
