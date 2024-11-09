@@ -8,29 +8,46 @@ from django.http import JsonResponse
 class JsonResponseNotFound(JsonResponse):
     def __init__(self, message="object not found"):
         self.status_code = HTTPStatus.NOT_FOUND
-        super().__init__({"success": False , "message": message})
+        super().__init__({
+            "success": False,
+            "message": message,
+        })
 
 
 class JsonResponseUnauthorized(JsonResponse):
     def __init__(self, message="unauthorized"):
         self.status_code = HTTPStatus.NOT_FOUND
-        super().__init__({"success": False , "message": message})
+        super().__init__({
+            "success": False,
+            "message": message,
+        })
 
 
 class JsonResponseBadRequest(JsonResponse):
     def __init__(self, message="bad request"):
         self.status_code = HTTPStatus.NOT_FOUND
-        super().__init__({"success": False , "message": message})
+        super().__init__({
+            "success": False,
+            "message": message,
+        })
 
 
 class JsonResponseFail(JsonResponse):
-    def __init__(self, message="fail"):
-        super().__init__({"success": False , "message": message})
+    def __init__(self, message="fail", payload={}):
+        super().__init__({
+            "success": False,
+            "message": message,
+            "payload": payload,
+        })
 
 
 class JsonResponseSuccess(JsonResponse):
-    def __init__(self, message="ok"):
-        super().__init__({"success": True , "message": message})
+    def __init__(self, message="ok", payload={}):
+        super().__init__({
+            "success": True,
+            "message": message,
+            "payload": payload,
+        })
 
 
 ## ~~ DECORATORS

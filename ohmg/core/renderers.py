@@ -42,7 +42,7 @@ def get_image_size(file_path: Path):
             size = img.size
             img.close()
         except Exception as e:
-            logger.warn(f"error opening file {file_path}: {e}")
+            logger.warning(f"error opening file {file_path}: {e}")
     return size
 
 def generate_document_thumbnail_content(image_file_path):

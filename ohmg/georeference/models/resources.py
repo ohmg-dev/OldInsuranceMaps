@@ -216,14 +216,6 @@ class GCPGroup(models.Model):
         logger.info(f"GCPGroup {group.pk} | GCPs ct: {gcps_ct}, new: {gcps_new}, mod: {gcps_mod}, del: {gcps_del}")
         return group
 
-    def save_from_annotation(self, annotation, region):
-
-        m = "georeference-ground-control-points"
-        georef_annos = [i for i in annotation['items'] if i['motivation'] == m]
-        anno = georef_annos[0]
-
-        self.save_from_geojson(anno['body'], region, "poly1")
-
 
 class DocumentManager(models.Manager):
 
@@ -422,7 +414,7 @@ class ItemBase(models.Model):
             self.lock_details['expiration'] = new_dt.timestamp()
             self.save(update_fields=["lock_details", "lock_enabled"])
         else:
-            logger.warn(f"{self.type} resource ({self.pk}): no existing lock to extend.")
+            logger.warning(f"{self.type} resource ({self.pk}): no existing lock to extend.")
 
     def set_thumbnail(self):
         if self.file is not None:
@@ -482,7 +474,7 @@ class ItemBase(models.Model):
             if self.vrs.multimask and self.slug in self.vrs.multimask:
                 del self.vrs.multimask[self.slug]
                 self.vrs.save(update_fields=["multimask"])
-                logger.warn(f"{self.pk} removed layer from existing multimask in vrs {self.vrs.pk}")
+                logger.warning(f"{self.pk} removed layer from existing multimask in vrs {self.vrs.pk}")
         self.vrs = vrs
         self.save(update_fields=["vrs"])
         logger.info(f"{self.pk} added to vrs {self.vrs.pk}")
@@ -524,7 +516,7 @@ class Document(ItemBase):
                 size = img.size
                 img.close()
             except Exception as e:
-                logger.warn(f"error opening file {self.file}: {e}")
+                logger.warning(f"error opening file {self.file}: {e}")
         return size
 
     @property
@@ -552,7 +544,7 @@ class Document(ItemBase):
             else:
                 return None
         except PrepSession.MultipleObjectsReturned:
-            logger.warn(f"Multiple PrepSessions found for Document {self.id}")
+            logger.warning(f"Multiple PrepSessions found for Document {self.id}")
             return list(PrepSession.objects.filter(doc=self))[0]
 
     @property
@@ -817,17 +809,12 @@ class LayerSetCategory(models.Model):
     slug = models.CharField(max_length=50)
     description = models.CharField(max_length=200, null=True, blank=True)
     display_name = models.CharField(max_length=50)
-    is_geospatial = models.BooleanField(default=False)
 
     def __str__(self):
         return self.display_name if self.display_name else self.slug
 
 class LayerSet(models.Model):
 
-    volume = models.ForeignKey(
-        "loc_insurancemaps.Volume",
-        on_delete=models.CASCADE,
-    )
     map = models.ForeignKey(
         "core.map",
         null=True,
@@ -866,32 +853,14 @@ class LayerSet(models.Model):
     )
 
     def __str__(self):
-        return f"{self.volume} - {self.category}"
-
-    # TODO: deprecate this once the new layers are implemented
-    def annotation_display_list(self):
-        """For display in the admin interface only."""
-        li = [f"<li><a href='/admin/georeference/itembase/{i.pk}/change'>{i.slug}</a></li>" for i in self.annotations]
-        return mark_safe("<ul>"+"".join(li)+"</ul>")
+        return f"{self.map} - {self.category}"
 
     def layer_display_list(self):
         """For display in the admin interface only."""
         li = [f"<li><a href='/admin/core/layer/{i.pk}/change'>{i}</a></li>" for i in self.layers.all()]
         return mark_safe("<ul>"+"".join(li)+"</ul>")
 
-    annotation_display_list.short_description = 'Annotations'
     layer_display_list.short_description = 'Layers'
-
-    @property
-    def is_geospatial(self):
-        return True if self.category and self.category.is_geospatial else False
-
-    @property
-    def annotations(self):
-        if self.is_geospatial:
-            return LayerV1.objects.filter(vrs=self)
-        else:
-            return Document.objects.filter(vrs=self)
 
     @property
     def mosaic_cog_url(self):
@@ -911,27 +880,12 @@ class LayerSet(models.Model):
             url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_json.url
         return url
 
-    # @property
-    # def extent(self):
-    #     """Calculate an extent based on all layers in this annotation set. If
-    #     this is not a spatial annotation set, or there are no layers, return None."""
-    #     extent = None
-    #     if self.is_geospatial:
-    #         layer_extent_polygons = []
-    #         for v in self.annotations:
-    #             extent_poly = Polygon.from_bbox(v.extent)
-    #             layer_extent_polygons.append(extent_poly)
-    #         if len(layer_extent_polygons) > 0:
-    #             extent = MultiPolygon(layer_extent_polygons, srid=4326).extent
-    #     return extent
-
     @property
     def multimask_extent(self):
-        """Calculate an extent based on all layers in this annotation set's
-        multimask. If this is not a spatial annotation set, or there is no
-        multimask, return None."""
+        """Calculate an extent based on all layers in this layerset's
+        multimask. If there is no multimask, return None."""
         extent = None
-        if self.is_geospatial and self.multimask:
+        if self.multimask:
             feature_polygons = []
             for v in self.multimask.values():
                 poly = Polygon(v['geometry']['coordinates'][0])
@@ -990,7 +944,6 @@ class LayerSet(models.Model):
         if layer_extents:
             combined = MultiPolygon(layer_extents)
             self.extent = combined.extent
-            # print(combined.envelope)
 
         return super(self.__class__, self).save(*args, **kwargs)
 
@@ -1195,7 +1148,7 @@ class LayerSet(models.Model):
 
                 img = gdal.Open(out_path, 1)
                 if img is None:
-                    logger.warn(f"{self.vol.identifier} | file was not properly created, omitting: {file_name}")
+                    logger.warning(f"{self.vol.identifier} | file was not properly created, omitting: {file_name}")
                     continue   
                 logger.debug(f"{self.vol.identifier} | building overview: {file_name}")
                 gdal.SetConfigOption("COMPRESS_OVERVIEW", "LZW")

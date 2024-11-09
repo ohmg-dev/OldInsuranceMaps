@@ -63,21 +63,21 @@
 			</td>
 			<td style="">
 				<div>
-				{p.load_ct}{#if p.volumes.length > 0}&nbsp;&mdash;{/if}
-				{#each p.volumes as v, n}
+				{p.load_ct}{#if p.maps.length > 0}&nbsp;&mdash;{/if}
+				{#each p.maps as v, n}
 					{#if n <= 2}
-					<Link href={v.url}>{v.title}</Link>{#if n != p.volumes.length - 1},&nbsp;{/if}
+					<Link href={`/map/${v.identifier}`}>{v.title}</Link>{#if n != p.maps.length - 1},&nbsp;{/if}
 					{/if}
 				{/each}
-				{#if p.volumes.length > 3}
+				{#if p.maps.length > 3}
 				<button id="{p.username}-btn" on:click={() => toggleList(p.username)}>show all</button>
 				{/if}
 				</div>
-				{#if p.volumes.length > 3}
+				{#if p.maps.length > 3}
 				<div id="{p.username}" class="full-volume-list">
 					<ul>
-					{#each p.volumes as v}
-					<li><Link href={v.url}>{v.title}</Link></li>
+					{#each p.maps as v}
+					<li><Link href={`/map/${v.identifier}`}>{v.title}</Link></li>
 					{/each}
 					</ul>
 				</div>

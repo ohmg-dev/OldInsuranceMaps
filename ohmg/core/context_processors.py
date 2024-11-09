@@ -28,6 +28,7 @@ def user_info_from_request(request):
         user = None
     if user and user.is_authenticated:
         user_info = UserSchema.from_orm(user).dict()
+        user_info['api_keys'] = user.api_keys
         user_info['is_authenticated'] = True
         user_info['is_staff'] = user.is_staff
     else:

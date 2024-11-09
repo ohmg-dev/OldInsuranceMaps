@@ -57,12 +57,13 @@ import Link from '@components/base/Link.svelte';
 import ToolUIButton from '../base/ToolUIButton.svelte';
 
 import ExpandElement from "./buttons/ExpandElement.svelte";
+import ExtendSessionModal from "./modals/ExtendSessionModal.svelte";
 
 export let CONTEXT;
 export let REGION;
-export let VOLUME;
-export let ANNOSET_MAIN;
-export let ANNOSET_KEYMAP;
+export let MAP;
+export let MAIN_LAYERSET;
+export let KEYMAP_LAYERSET;
 
 // console.log(REGION)
 
@@ -108,7 +109,7 @@ $: {
   }
 }
 
-const session_id = REGION.lock ? REGION.lock.session_id : null;
+const sessionId = REGION.lock ? REGION.lock.session_id : null;
 
 let disableInterface = REGION.lock && (REGION.lock.user.username != CONTEXT.user.username);
 let disableReason;
@@ -120,15 +121,15 @@ if (REGION.lock && (REGION.lock.user.username == CONTEXT.user.username)) {
 }
 $: enableSave = gcpList.length >= 3 && enableButtons;
 
-// show the extend session prompt 15 seconds before the session expires
-setTimeout(promptRefresh, (CONTEXT.session_length*1000) - 15000)
+// show the extend session prompt 10 seconds before the session expires
+setTimeout(promptRefresh, (CONTEXT.session_length*1000) - 10000)
 
 let autoRedirect;
 function promptRefresh() {
   if (!leaveOkay) {
-    getModal('modal-expiration').open()
+    getModal('modal-extend-session').open()
     leaveOkay = true;
-    autoRedirect = setTimeout(cancelAndRedirectToDetail, 15000);
+    autoRedirect = setTimeout(cancelAndRedirectToDetail, 10000);
   }
 }
 
@@ -207,15 +208,15 @@ mapGCPSource.on(['addfeature'], function (e) {
 
 let kmLayerGroup;
 let kmLayerGroup50;
-if (ANNOSET_KEYMAP) {
+if (KEYMAP_LAYERSET) {
   kmLayerGroup = makeLayerGroupFromLayerSet({
-    annotationSet: ANNOSET_KEYMAP,
+    layerSet: KEYMAP_LAYERSET,
     zIndex: 10,
     titilerHost: CONTEXT.titiler_host,
     applyMultiMask: true,
   })
   kmLayerGroup50 = makeLayerGroupFromLayerSet({
-    annotationSet: ANNOSET_KEYMAP,
+    layerSet: KEYMAP_LAYERSET,
     zIndex: 11,
     titilerHost: CONTEXT.titiler_host,
     applyMultiMask: true,
@@ -224,14 +225,14 @@ if (ANNOSET_KEYMAP) {
 }
 
 const mainLayerGroup = makeLayerGroupFromLayerSet({
-  annotationSet: ANNOSET_MAIN,
+  layerSet: MAIN_LAYERSET,
   zIndex: 12,
   titilerHost: CONTEXT.titiler_host,
   applyMultiMask: true,
   excludeLayerId: REGION.layer ? REGION.layer.slug : '',
 })
 const mainLayerGroup50 = makeLayerGroupFromLayerSet({
-  annotationSet: ANNOSET_MAIN,
+  layerSet: MAIN_LAYERSET,
   zIndex: 13,
   titilerHost: CONTEXT.titiler_host,
   applyMultiMask: true,
@@ -521,8 +522,8 @@ function MapViewer (elementId) {
       map.getView().setRotation(0);
       if (REGION.gcps_geojson) {
         map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
-      } else if (VOLUME.extent) {
-        const extent3857 = transformExtent(VOLUME.extent, "EPSG:4326", "EPSG:3857");
+      } else if (MAP.extent) {
+        const extent3857 = transformExtent(MAP.extent, "EPSG:4326", "EPSG:3857");
         map.getView().fit(extent3857);
       } else {
         // show the entire US
@@ -826,18 +827,12 @@ function process(operation){
     disableReason = operation;
   };
 
-  if (operation == "extend-session") {
-    leaveOkay = false;
-    clearTimeout(autoRedirect)
-    setTimeout(promptRefresh, (CONTEXT.session_length*1000) - 10000)
-  }
-
   const body = {
     "gcp_geojson": asGeoJSON(),
     "transformation": currentTransformation,
     "projection": currentTargetProjection,
     "operation": operation,
-    "sesh_id": session_id,
+    "sesh_id": sessionId,
     "cleanup_preview": previewUrl,
   }
 
@@ -930,23 +925,23 @@ function cleanup () {
   process('cancel')
 }
 
+function handleExtendSession(response) {
+  leaveOkay = false;
+  clearTimeout(autoRedirect)
+  setTimeout(promptRefresh, (CONTEXT.session_length*1000) - 10000)
+}
+
 </script>
+
+<ExtendSessionModal {CONTEXT} {sessionId} callback={handleExtendSession} />
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 <div style="height:25px;">
   Create 3 or more ground control points to georeference this document. <Link href="https://about.oldinsurancemaps.net/guides/georeferencing/" external={true}>Learn more</Link>
 </div>
 
-<Modal id="modal-expiration">
-  <p>This georeferencing session is expiring, and will be cancelled soon.</p>
-  <button class="button is-success"
-    on:click={() => {
-    process("extend-session");
-    getModal('modal-expiration').close()}
-    }>Give me more time!</button>
-</Modal>
 <Modal id="modal-anonymous">
-  <p>Feel free to experiment with the interface, but submit your work you must 
+  <p>Feel free to experiment with the interface, but to submit your work you must 
     <Link href="/account/login">sign in</Link> or
     <Link href="/account/signup">sign up</Link>.
   </p>

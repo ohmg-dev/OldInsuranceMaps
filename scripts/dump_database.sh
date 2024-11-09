@@ -13,8 +13,8 @@ models="accounts.user
 	places.place
 	georeference.itembase
 	georeference.sessionbase
-	georeference.setcategory
-	georeference.annotationset
+	georeference.layersetcategory
+	georeference.layerset
 	georeference.documentlink
 	georeference.gcpgroup
 	georeference.gcp

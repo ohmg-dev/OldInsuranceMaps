@@ -4,8 +4,7 @@
     "pk": 101,
     "fields": {
       "slug": "key-map",
-      "display_name": "Key Map",
-      "is_geospatial": true
+      "display_name": "Key Map"
     }
   },
   {
@@ -13,8 +12,7 @@
     "pk": 102,
     "fields": {
       "slug": "congested-district-map",
-      "display_name": "Congested District Map",
-      "is_geospatial": true
+      "display_name": "Congested District Map"
     }
   },
   {
@@ -22,8 +20,7 @@
     "pk": 103,
     "fields": {
       "slug": "graphic-map-of-volumes",
-      "display_name": "Graphic Map of Volumes",
-      "is_geospatial": true
+      "display_name": "Graphic Map of Volumes"
     }
   },
   {
@@ -31,26 +28,7 @@
     "pk": 104,
     "fields": {
       "slug": "skeleton-map",
-      "display_name": "Skeleton Map",
-      "is_geospatial": true
-    }
-  },
-  {
-    "model": "georeference.layersetcategory",
-    "pk": 105,
-    "fields": {
-      "slug": "title-page",
-      "display_name": "Title Page",
-      "is_geospatial": false
-    }
-  },
-  {
-    "model": "georeference.layersetcategory",
-    "pk": 106,
-    "fields": {
-      "slug": "index",
-      "display_name": "Index",
-      "is_geospatial": false
+      "display_name": "Skeleton Map"
     }
   }
 ]

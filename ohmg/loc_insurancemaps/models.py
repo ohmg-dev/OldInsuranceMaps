@@ -77,7 +77,7 @@ class Sheet(models.Model):
         logger.info(f"{log_prefix} start load")
 
         if self.jp2_url is None:
-            logger.warn(f"{log_prefix} jp2_url - cancelling download")
+            logger.warning(f"{log_prefix} jp2_url - cancelling download")
             return
 
         try:
@@ -474,7 +474,7 @@ class Volume(models.Model):
         elif str(document).isdigit():
             data = Document.objects.get(pk=document).serialize(serialize_layer=False, include_sessions=True)
         else:
-            logger.warn(f"cannot update_doc_lookup with this input: {document} ({type(document)}")
+            logger.warning(f"cannot update_doc_lookup with this input: {document} ({type(document)}")
             return
 
         # hacky method for pulling out the sheet number from the title
@@ -499,7 +499,7 @@ class Volume(models.Model):
             try:
                 data = LayerV1.objects.get(slug=layer).serialize(serialize_document=False, include_sessions=True)
             except Exception as e:
-                logger.warn(f"{e} | cannot update_lyr_lookup with this input: {layer} ({type(layer)}")
+                logger.warning(f"{e} | cannot update_lyr_lookup with this input: {layer} ({type(layer)}")
                 return
 
         # hacky method for pulling out the sheet number from the title
@@ -519,12 +519,12 @@ class Volume(models.Model):
                     n2 = s[1].rstrip("]")
                     data['sort_order'] = float(f"{n1}.{n2}")
                 except Exception as e:
-                    logger.warn(f"error making sort_order for {data['title']}: {e}")
+                    logger.warning(f"error making sort_order for {data['title']}: {e}")
                     data['sort_order'] = 0
             else:
                 data['sort_order'] = 0
         except Exception as e:
-            logger.warn(e)
+            logger.warning(e)
             data['sort_order'] = 0
 
         self.layer_lookup[data['slug']] = data

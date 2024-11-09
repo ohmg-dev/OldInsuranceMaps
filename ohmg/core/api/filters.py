@@ -1,5 +1,4 @@
 from typing import List, Optional
-from django.db.models import Q
 from ninja import (
     Field,
     FilterSchema,

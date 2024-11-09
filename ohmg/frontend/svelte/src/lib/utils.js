@@ -28,14 +28,21 @@ import LayerGroup from 'ol/layer/Group';
 import MapboxVector from 'ol/layer/MapboxVector';
 
 import Crop from 'ol-ext/filter/Crop';
-import { extendFlatCoordinates, containsXY } from 'ol/extent';
 
-export function makePostOptions(headers, body) {
-	return {
+export function submitPostRequest(url, headers, operation, payload, callback) {
+	const body = JSON.stringify({
+		"operation": operation,
+		"payload": payload,
+	});
+	fetch(url, {
 		method: 'POST',
 		headers: headers,
 		body: body,
-	}
+	})
+	.then(response => response.json())
+	.then(result => {
+		if (callback) {callback(result)}
+	});
 }
 
 export function makeTitilerXYZUrl (options) {
@@ -156,68 +163,18 @@ export function makeModifyInteraction(hitDetection, source, targetElement, style
 	return modify
 }
 
-export function makeLayerGroupFromAnnotationSet (options) {
-	// options must be an object with the following properties:
-	// {
-	//	annotationSet: serialized item (this includes layers, extent, etc.)
-	//	titilerHost: full address to titiler instance, e.g. https://titiler.oldinsurancemaps.net
-	//	zIndex: optional zIndex to apply to the returned LayerGroup
-	//	excludeLayerId: the id of a single layer that should be omitted from the LayerGroup
-	//  applyMultiMask: if a MultiMask is present in the Annotation Set, apply it
-	// }
-
-	const lyrGroup = new LayerGroup();
-	options.annotationSet.annotations.forEach( function(annotation) {
-		if (annotation.slug != options.excludeLayerId && annotation.extent) {
-
-			const lyrExtent = transformExtent(annotation.extent, "EPSG:4326", "EPSG:3857")
-
-			// create the actual ol layers and add to group.
-			let newLayer = new TileLayer({
-				source: new XYZ({
-				url: makeTitilerXYZUrl({
-						host: options.titilerHost,
-						url: annotation.urls.cog,
-					}),
-				}),
-				extent: lyrExtent
-			});
-
-			lyrGroup.getLayers().push(newLayer)
-
-			if (options.applyMultiMask && options.annotationSet.multimask_geojson) {
-				options.annotationSet.multimask_geojson.features.forEach( function(f) {
-					if (f.properties.layer == annotation.slug) {
-						const feature = new GeoJSON().readFeature(f.geometry)
-						feature.getGeometry().transform("EPSG:4326", "EPSG:3857")
-						const crop = new Crop({
-							feature: feature,
-							wrapX: true,
-							inner: false
-						});
-						newLayer.addFilter(crop);
-					}
-				});
-			}
-		}
-	});
-
-	options.zIndex && lyrGroup.setZIndex(options.zIndex)
-	return lyrGroup
-}
-
 export function makeLayerGroupFromLayerSet (options) {
 	// options must be an object with the following properties:
 	// {
-	//	annotationSet: serialized item (this includes layers, extent, etc.)
+	//	layerSet: serialized item (this includes layers, extent, etc.)
 	//	titilerHost: full address to titiler instance, e.g. https://titiler.oldinsurancemaps.net
 	//	zIndex: optional zIndex to apply to the returned LayerGroup
 	//	excludeLayerId: the id of a single layer that should be omitted from the LayerGroup
-	//  applyMultiMask: if a MultiMask is present in the Annotation Set, apply it
+	//  applyMultiMask: if a MultiMask is present in the LayerSet, apply it
 	// }
 
 	const lyrGroup = new LayerGroup();
-	options.annotationSet.layers.forEach( function(layer) {
+	options.layerSet.layers.forEach( function(layer) {
 		if (layer.slug != options.excludeLayerId && layer.extent) {
 
 			const lyrExtent = transformExtent(layer.extent, "EPSG:4326", "EPSG:3857")
@@ -235,8 +192,8 @@ export function makeLayerGroupFromLayerSet (options) {
 
 			lyrGroup.getLayers().push(newLayer)
 
-			if (options.applyMultiMask && options.annotationSet.multimask_geojson) {
-				options.annotationSet.multimask_geojson.features.forEach( function(f) {
+			if (options.applyMultiMask && options.layerSet.multimask_geojson) {
+				options.layerSet.multimask_geojson.features.forEach( function(f) {
 					if (f.properties.layer == layer.slug) {
 						const feature = new GeoJSON().readFeature(f.geometry)
 						feature.getGeometry().transform("EPSG:4326", "EPSG:3857")

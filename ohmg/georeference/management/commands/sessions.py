@@ -6,7 +6,6 @@ from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,
 )
-from ohmg.georeference.operations.sessions import run_preparation, run_georeferencing, undo_preparation
 
 class Command(BaseCommand):
     help = 'Command line access point for the internal georeferencing utilities.'
@@ -54,20 +53,16 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         operation = options['operation']
-        if operation in ['run', 'run2', 'undo', 'redo']:
+        if operation in ['run', 'undo']:
 
             bs = SessionBase.objects.get(pk=options['pk'])
             model = self._model_from_type(bs.type)
             session = model.objects.get(pk=options['pk'])
 
             if operation == "run":
-                if bs.type == "p":
-                    run_preparation(session)
-                elif bs.type == "g":
-                    run_georeferencing(session)
+                session.run()
             elif operation == "undo":
-                if bs.type == "p":
-                    undo_preparation(session)
+                session.undo()
 
         elif operation == "list":
 

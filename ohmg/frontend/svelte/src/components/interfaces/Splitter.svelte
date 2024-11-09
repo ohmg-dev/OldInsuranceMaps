@@ -39,6 +39,9 @@ import Modal, {getModal} from '@components/base/Modal.svelte';
 import ToolUIButton from '@components/base/ToolUIButton.svelte';
 import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
 
+import { submitPostRequest } from "@lib/utils";
+    import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
+
 const styles = new Styles();
 
 export let CONTEXT;
@@ -55,7 +58,7 @@ let currentInteraction = 'draw';
 
 let unchanged = true;
 
-const session_id = DOCUMENT.lock ? DOCUMENT.lock.session_id : null;
+const sessionId = DOCUMENT.lock ? DOCUMENT.lock.session_id : null;
 
 let disableInterface = DOCUMENT.lock && (DOCUMENT.lock.user.username != CONTEXT.user.username);
 let disableReason;
@@ -72,7 +75,7 @@ setTimeout(promptRefresh, (CONTEXT.session_length*1000) - 10000)
 let autoRedirect;
 function promptRefresh() {
   if (!leaveOkay) {
-    getModal('modal-expiration').open()
+    getModal('modal-extend-session').open()
     leaveOkay = true;
     autoRedirect = setTimeout(cancelAndRedirectToDetail, 10000);
   }
@@ -286,22 +289,16 @@ function handleKeydown(event) {
 
 function process(operation) {
 
-  if (operation == "split" || operation == "no_split" || operation == "cancel") {
+  if (operation == "cancel") {
     disableReason = operation;
     leaveOkay = true;
     disableInterface = true;
   };
 
-  if (operation == "extend-session") {
-    leaveOkay = false;
-    clearTimeout(autoRedirect)
-    setTimeout(promptRefresh, (CONTEXT.session_length*1000) - 10000)
-  }
-
   let data = JSON.stringify({
     "lines": cutLines,
     "operation": operation,
-    "sesh_id": session_id,
+    "sesh_id": sessionId,
   });
 
   fetch(DOCUMENT.urls.split, {
@@ -323,6 +320,31 @@ function process(operation) {
     });
 }
 
+function handleSubmitSplitResponse(response) {
+  if (response.success) {
+      window.location.href = `/map/${DOCUMENT.map}`;
+    } else {
+      alert(response.message)
+    }
+}
+function submitSplit() {
+
+  disableReason = "split";
+  leaveOkay = true;
+  disableInterface = true;
+
+  submitPostRequest(
+    `/document/${DOCUMENT.id}`,
+    CONTEXT.ohmg_post_headers,
+    "split",
+    {
+      "sessionId": sessionId,
+      "lines": cutLines,
+    },
+    handleSubmitSplitResponse
+  )
+}
+
 function previewSplit() { if ( cutLines.length > 0) { process("preview") } };
 
 function confirmLeave () {
@@ -338,17 +360,16 @@ function cleanup () {
   }
 }
 
+function handleExtendSession(response) {
+  leaveOkay = false;
+  clearTimeout(autoRedirect)
+  setTimeout(promptRefresh, (CONTEXT.session_length*1000) - 10000)
+}
+
 </script>
 <svelte:window on:keydown={handleKeydown} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 
-<Modal id="modal-expiration">
-  <p>This preparation session is expiring, and will be cancelled soon.</p>
-  <button class="button is-success" on:click={() => {
-    process("extend-session");
-    getModal('modal-expiration').close()}
-    }>Give me more time!</button>
-</Modal>
-
+<ExtendSessionModal {CONTEXT} {sessionId} callback={handleExtendSession} />
 <Modal id="modal-anonymous">
   <p>Feel free to experiment with the interface, but to submit your work you must 
     <Link href={"/account/login"}>sign in</Link> or
@@ -415,13 +436,13 @@ function cleanup () {
     </div>
     
     <div class="control-btn-group">
-      <ToolUIButton action={() => {process("split")}} title="Run split operation" disabled={divisions.length<=1 || !enableButtons}>
+      <ToolUIButton action={submitSplit} title="Run split operation" disabled={divisions.length<=1 || !enableButtons}>
         <Scissors />
       </ToolUIButton>
       <ToolUIButton action={() => { getModal('modal-confirm-no-split').open() }} title="No split needed" disabled={divisions.length>0 || !enableButtons}>
         <CheckSquareOffset />
       </ToolUIButton>
-      <ToolUIButton action={() => { getModal('modal-cancel').open() }} title="Cancel this preparation" disabled={session_id == null || !enableButtons}>
+      <ToolUIButton action={() => { getModal('modal-cancel').open() }} title="Cancel this preparation" disabled={sessionId == null || !enableButtons}>
         <X />
       </ToolUIButton>
       <ToolUIButton action={resetInterface} title="Reset interface" disabled={unchanged}>

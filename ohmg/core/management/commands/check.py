@@ -1,12 +1,5 @@
-import os
 import copy
-import sys
-
-from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.template.loader import render_to_string
-from django.test.client import RequestFactory
-from django.contrib.sessions.middleware import SessionMiddleware
 
 from ohmg.core.models import Layer
 from ohmg.georeference.models import LayerSet

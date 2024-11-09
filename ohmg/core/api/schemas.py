@@ -6,10 +6,8 @@ from typing import List, Optional, Any, Literal
 from natsort import natsorted
 
 from django.conf import settings
-from django.db.models import Q
 from django.urls import reverse
 from ninja import (
-    Field,
     Schema,
 )
 
@@ -20,15 +18,19 @@ from ohmg.core.models import (
     Region,
     Layer,
 )
-from ohmg.loc_insurancemaps.models import Volume
 from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,
     SessionLock,
-    SessionBase,
 )
 
 logger = logging.getLogger(__name__)
+
+
+class MapListSchema(Schema):
+    identifier: str
+    title: str
+    year: str
 
 
 class UserSchema(Schema):
@@ -38,22 +40,9 @@ class UserSchema(Schema):
     gsesh_ct: int
     total_ct: int = 0
     gcp_ct: int
-    volumes: list
+    maps: List[MapListSchema]
     load_ct: int
     image_url: str
-    api_keys: List[str]
-
-    @staticmethod
-    def resolve_volumes(obj):
-        """overrride the volumes property on the model in order to 
-        create a super light-weight acquisition of volume info"""
-        values = Volume.objects.filter(loaded_by=obj) \
-            .order_by('city', 'year') \
-            .values('identifier', 'city', 'year', 'volume_no')
-        for i in values:
-            i['url'] = reverse('map_summary', args=(i['identifier'], ))
-            i['title'] = f"{i['city']} {i['year']}{' vol. ' + i['volume_no'] if i['volume_no'] else ''}"
-        return values
 
     @staticmethod
     def resolve_total_ct(obj):
@@ -301,10 +290,10 @@ class LayerSchema(Schema):
     @staticmethod
     def resolve_gcps_geojson(obj):
         if not obj.region:
-            logger.warn(f"[WARNING] Layer {obj.pk} has no associated region")
+            logger.warning(f"[WARNING] Layer {obj.pk} has no associated region")
             return None
         elif not obj.region.gcp_group:
-            logger.warn(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
+            logger.warning(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
             return None
         return obj.region.gcp_group.as_geojson
     
@@ -347,10 +336,10 @@ class LayerFullSchema(Schema):
     @staticmethod
     def resolve_gcps_geojson(obj):
         if not obj.region:
-            logger.warn(f"[WARNING] Layer {obj.pk} has no associated region")
+            logger.warning(f"[WARNING] Layer {obj.pk} has no associated region")
             return None
         elif not obj.region.gcp_group:
-            logger.warn(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
+            logger.warning(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
             return None
         return obj.region.gcp_group.as_geojson
 
@@ -431,8 +420,7 @@ class LayerSetSchema(Schema):
 
     id: str
     name: str
-    volume_id: str
-    is_geospatial: bool
+    map_id: str
     layers: List[LayerSetLayer]
     multimask_geojson: Optional[dict]
     extent: Optional[tuple]
@@ -451,10 +439,6 @@ class LayerSetSchema(Schema):
     @staticmethod
     def resolve_name(obj):
         return str(obj.category)
-
-    @staticmethod
-    def resolve_is_geospatial(obj):
-        return obj.category.is_geospatial
 
 
 class PlaceSchema(Schema):

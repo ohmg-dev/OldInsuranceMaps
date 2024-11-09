@@ -2,7 +2,6 @@ import json
 import logging
 from datetime import datetime
 
-from django.db.models import F
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import View
@@ -25,14 +24,17 @@ from ohmg.core.api.schemas import (
     LayerSetSchema,
     ResourceFullSchema,
 )
-from ohmg.loc_insurancemaps.models import Volume
-from ohmg.loc_insurancemaps.tasks import load_docs_as_task, load_map_documents_as_task
+from ohmg.core.tasks import (
+    load_map_documents_as_task,
+)
+from ohmg.georeference.tasks import (
+    run_preparation_session,
+)
 
 from .http import (
     validate_post_request,
     JsonResponseSuccess,
     JsonResponseFail,
-    JsonResponseBadRequest,
     JsonResponseNotFound,
 )
 
@@ -51,8 +53,8 @@ class MapView(View):
 
         locale_json = PlaceFullSchema.from_orm(map.get_locale()).dict()
 
-        annotation_sets = [LayerSetSchema.from_orm(i).dict() for i in map.layerset_set.all()]
-        annotation_set_options = list(LayerSetCategory.objects.filter(is_geospatial=True).values("slug", "display_name"))
+        layersets = [LayerSetSchema.from_orm(i).dict() for i in map.layerset_set.all()]
+        layerset_categories = list(LayerSetCategory.objects.all().values("slug", "display_name"))
 
         context_dict = {
             "svelte_params": {
@@ -60,8 +62,8 @@ class MapView(View):
                 "MAP": map_json,
                 "LOCALE": locale_json,
                 "SESSION_SUMMARY": session_summary,
-                "ANNOTATION_SETS": annotation_sets,
-                "ANNOTATION_SET_OPTIONS": annotation_set_options,
+                "LAYERSETS": layersets,
+                "LAYERSET_CATEGORIES": layerset_categories,
             }
         }
 
@@ -78,19 +80,12 @@ class MapView(View):
         operation = body.get("operation", None)
 
         if operation == "initialize":
-            volume = Volume.objects.get(pk=identifier)
-            if volume.loaded_by is None:
-                volume.loaded_by = request.user
-                volume.load_date = datetime.now()
-                volume.save(update_fields=["loaded_by", "load_date"])
             map = Map.objects.get(pk=identifier)
             if map.loaded_by is None:
                 map.loaded_by = request.user
                 map.load_date = datetime.now()
                 map.save(update_fields=["loaded_by", "load_date"])
-            load_map_documents_as_task.apply_async((identifier,),
-                link=load_docs_as_task.s()
-            )
+            load_map_documents_as_task.apply_async((identifier,))
             map_json = MapFullSchema.from_orm(map).dict()
             map_json["status"] = "initializing..."
             return JsonResponse(map_json)
@@ -138,7 +133,6 @@ class DocumentView(GenericResourceView):
     ]))
     def post(self, request, pk):
         from ohmg.georeference.models import PrepSession
-        from ohmg.georeference.operations.sessions import run_preparation, undo_preparation
         document = self._get_object(pk)
         if document is None:
             return JsonResponseNotFound()
@@ -146,10 +140,15 @@ class DocumentView(GenericResourceView):
         body = json.loads(request.body)
         operation = body.get("operation")
         payload = body.get("payload")
+
         sessionid = payload.get('sessionId')
         sesh = None
         if sessionid:
             sesh = PrepSession.objects.get(pk=sessionid)
+
+        if operation in ['split', 'no-split']:
+            if Region.objects.filter(document=document).exists():
+                return JsonResponseFail(f"This document {document} ({document.pk}) has already been prepared.")
 
         if operation == "no-split":
 
@@ -166,15 +165,20 @@ class DocumentView(GenericResourceView):
             sesh.data['split_needed'] = False
             sesh.save(update_fields=["data"])
 
-            new_region = run_preparation(sesh)[0]
-            return JsonResponseSuccess(f"no split, new_region created: {new_region.pk}")
+            new_region = sesh.run()[0]
+            return JsonResponseSuccess(f"no split, new region created: {new_region.pk}")
 
         if operation == "split":
-            pass
+            sesh.data['split_needed'] = True
+            sesh.data['cutlines'] = payload.get('lines')
+            sesh.save(update_fields=["data"])
+            logger.info(f"{sesh.__str__()} | begin run() as task")
+            run_preparation_session.apply_async((sesh.pk,))
+            return JsonResponse({"success":True})
 
         if operation == "unprepare":
             sesh = PrepSession.objects.get(doc2=document)
-            result = undo_preparation(sesh)
+            result = sesh.undo()
             if result['success']:
                 return JsonResponseSuccess(result["message"])
             else:
@@ -227,9 +231,19 @@ class LayerView(GenericResourceView):
 
         body = json.loads(request.body)
         operation = body.get("operation")
+        payload = body.get("payload")
+
+        # typically this is done in bulk with a different endpoint,
+        # so this operation may not actually be needed...
         if operation == "set-layerset":
-            # move "submit" operation on ohmg.georeference.views.LayerSetView here
-            pass
+            target_category = payload.get('layerset-category')
+            layerset = layer.region.document.map.get_layerset(target_category, create=True)
+            try:
+                layer.set_layerset(layerset)
+                return JsonResponseSuccess(f"Layer {layer.pk} added to {target_category} LayerSet {layerset.pk}")
+            except Exception as e:
+                logger.error(e)
+                return JsonResponseFail(e)
 
         if operation == "ungeoreference":
             from ohmg.georeference.models import GeorefSession
@@ -238,5 +252,5 @@ class LayerView(GenericResourceView):
             layer.region.georeferenced = False
             layer.region.save()
             layer.delete()
-            logger.debug(f"Layer {pk} removed through ungeoreference process.")
-            return JsonResponseSuccess(f"Layer {pk} removed.")
+            logger.debug((msg := f"Layer {pk} removed through ungeoreference process."))
+            return JsonResponseSuccess(msg)

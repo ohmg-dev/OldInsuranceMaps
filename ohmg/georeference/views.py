@@ -1,5 +1,4 @@
 import os
-from http import HTTPStatus
 import json
 from datetime import datetime
 import logging
@@ -11,14 +10,19 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 
 from ohmg.core.context_processors import generate_ohmg_context
-from ohmg.core.http import JsonResponseBadRequest, JsonResponseNotFound, validate_post_request
+from ohmg.core.http import (
+    JsonResponseSuccess,
+    JsonResponseFail,
+    JsonResponseBadRequest,
+    JsonResponseNotFound,
+    validate_post_request,
+)
 from ohmg.core.utils import time_this
 from ohmg.georeference.tasks import (
-    run_georeferencing_as_task,
-    run_preparation_as_task,
+    run_georeference_session,
 )
 from ohmg.georeference.models import (
-    GCPGroup,
+    SessionBase,
     PrepSession,
     GeorefSession,
     LayerSet,
@@ -27,7 +31,6 @@ from ohmg.core.api.schemas import (
     DocumentFullSchema,
     LayerSetSchema,
     MapFullSchema,
-    MapListSchema,
     RegionFullSchema,
 )
 from ohmg.core.models import (
@@ -36,11 +39,9 @@ from ohmg.core.models import (
     Layer,
     Map,
 )
-from ohmg.georeference.operations.sessions import run_preparation
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.georeference.tasks import delete_preview_vrt
-from ohmg.georeference.operations.sessions import undo_preparation
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +96,7 @@ class SplitView(View):
             try:
                 sesh = PrepSession.objects.get(pk=sesh_id)
             except PrepSession.DoesNotExist:
-                logger.warn(f"can't find PrepSession ({sesh_id}), expected for Document {document.pk}")
+                logger.warning(f"can't find PrepSession ({sesh_id}), expected for Document {document.pk}")
                 return JsonResponse({"success":False, "message": "no session found"})
 
         if operation == "preview":
@@ -104,30 +105,13 @@ class SplitView(View):
             divisions = s.generate_divisions(cutlines)
             return JsonResponse({"success": True, "divisions": divisions})
 
-        elif operation == "split":
-
-            sesh.data['split_needed'] = True
-            sesh.data['cutlines'] = cutlines
-            sesh.save(update_fields=["data"])
-            logger.info(f"{sesh.__str__()} | begin run() as task")
-            run_preparation_as_task.apply_async((sesh.pk,))
-            # run_preparation_session.apply_async((sesh.pk,),
-            #     link=run_preparation_as_task.s()
-            # )
-            return JsonResponse({"success":True})
-
         elif operation == "cancel":
 
             if sesh.stage != "input":
                 msg = "can't cancel session that is past the input stage"
-                logger.warn(f"{sesh.__str__()} | {msg}")
+                logger.warning(f"{sesh.__str__()} | {msg}")
                 return JsonResponse({"success":True, "message": msg})
             sesh.delete()
-            return JsonResponse({"success":True})
-
-        elif operation == "extend-session":
-
-            sesh.extend_locks2()
             return JsonResponse({"success":True})
 
         else:
@@ -158,18 +142,18 @@ class GeoreferenceView(View):
 
         map_json = MapFullSchema.from_orm(region.map).dict()
 
-        annoset_main = LayerSetSchema.from_orm(region.document.map.get_layerset('main-content')).dict()
-        annoset_keymap = None
+        main_layerset = LayerSetSchema.from_orm(region.document.map.get_layerset('main-content')).dict()
+        keymap_layerset = None
         akm = region.document.map.get_layerset('key-map')
         if akm:
-            annoset_keymap = LayerSetSchema.from_orm(akm).dict()
+            keymap_layerset = LayerSetSchema.from_orm(akm).dict()
 
         georeference_params = {
             "CONTEXT": generate_ohmg_context(request),
             "REGION": region_json,
-            "VOLUME": map_json,
-            "ANNOSET_MAIN": annoset_main,
-            "ANNOSET_KEYMAP": annoset_keymap,
+            "MAP": map_json,
+            "MAIN_LAYERSET": main_layerset,
+            "KEYMAP_LAYERSET": keymap_layerset,
         }
 
         return render(
@@ -205,7 +189,7 @@ class GeoreferenceView(View):
             try:
                 ip_val = request.META.get('REMOTE_ADDR', '0.0.0.0.').replace(".", "-")
             except Exception as e:
-                logger.warn(e)
+                logger.warning(e)
                 ip_val = "000000000"
 
             sesh_val = 0
@@ -259,28 +243,6 @@ class GeoreferenceView(View):
                 response["message"] = str(e)
             return JsonResponse(response)
 
-        elif operation == "ungeoreference":
-
-            if not request.user.is_staff:
-                return JsonResponse({
-                    "success":False,
-                    "message": "user not authorized for this operation"
-                })
-            
-            sessions = GeorefSession.objects.filter(reg2=region)
-            for s in sessions:
-                s.delete()
-            if hasattr(region, 'layer'):
-                region.layer.delete()
-            try:
-                gcp_group = GCPGroup.objects.get(region=region)
-                gcp_group.delete()
-            except GCPGroup.DoesNotExist:
-                pass
-            region.georeferenced = False
-            region.save()
-            return JsonResponse({"success":True})
-
         elif operation == "submit":
 
             sesh = _get_georef_session(sesh_id)
@@ -294,10 +256,7 @@ class GeoreferenceView(View):
                 sesh.data['transformation'] = transformation
                 sesh.save(update_fields=["data"])
                 logger.info(f"{sesh.__str__()} | begin run() as task")
-                run_georeferencing_as_task.apply_async((sesh.pk,))
-                # run_georeference_session.apply_async((sesh.pk,),
-                #     link=patch_new_layer_to_session.s()
-                # )
+                run_georeference_session.apply_async((sesh.pk,))
 
                 _cleanup_preview(region, cleanup_preview)
                 return JsonResponse({
@@ -308,46 +267,13 @@ class GeoreferenceView(View):
             else:
                 return SESSION_NOT_FOUND_RESPONSE
 
-        elif operation == "set-status":
-            # TODO: this functionality should be moved somewhere else.
-            if request.user.is_authenticated:
-                change_to = body.get("status", None)
-                if change_to == "nonmap":
-                    region.is_map = False
-                    region.save()
-                if change_to == "prepared":
-                    region.is_map = True
-                    region.save()
-                return JsonResponse({
-                    "success": True,
-                    "message": "all good",
-                })
-
-            else:
-                return JsonResponse({
-                    "success": False,
-                    "message": "must be authenticated to perform this operation",
-                })
-
-        elif operation == "extend-session":
-
-            sesh = _get_georef_session(sesh_id)
-            if sesh:
-                ## extend the lock expiration time on doc and lyr instance 
-                ## attached to this session
-                sesh.extend_locks()
-                sesh.extend_locks2()
-                return JsonResponse({"success":True})
-            else:
-                return SESSION_NOT_FOUND_RESPONSE
-
         elif operation == "cancel":
 
             sesh = _get_georef_session(sesh_id)
             if sesh:
                 if sesh.stage != "input":
                     msg = "can't cancel session that is past the input stage"
-                    logger.warn(f"{sesh.__str__()} | {msg}")
+                    logger.warning(f"{sesh.__str__()} | {msg}")
                     return JsonResponse({"success":True, "message": msg})
 
                 sesh.delete()
@@ -361,92 +287,91 @@ class GeoreferenceView(View):
 
 class LayerSetView(View):
 
-    # @method_decorator(validate_post_request(operations=[]))
+    @method_decorator(validate_post_request(operations=[
+        "bulk-classify-layers", "check-for-existing-mask", "set-mask"
+    ]))
     def post(self, request):
 
         body = json.loads(request.body)
         operation = body.get("operation")
-        resource_id = body.get("resourceId")
-        volume_id = body.get("volumeId")
-        category = body.get("categorySlug")
-        multimask_geojson = body.get('multimaskGeoJSON')
-        update_list = body.get('updateList', [])
+        payload = body.get('payload', {})
 
-        response = {
-            "status": "",
-            "message": ""
-        }
-
-        if operation == "update":
-            for resource_id, category in update_list:
-                map = get_object_or_404(Map, pk=volume_id)
-                layer = get_object_or_404(Layer, pk=resource_id)
-
+        if operation == "bulk-classify-layers":
+            errors = []
+            for lyr_id, cat in payload.get('update-list'):
+                map = get_object_or_404(Map, pk=payload.get('map-id'))
+                layer = get_object_or_404(Layer, pk=lyr_id)
                 try:
-                    layerset = map.get_layerset(category, create=True)
+                    layerset = map.get_layerset(cat, create=True)
                     layer.set_layerset(layerset)
-                    response['status'] = "success"
-                    response['message'] = f"{resource_id} added to {category} layerset"
-
                 except Exception as e:
                     logger.error(e)
-                    response['status'] = "fail"
-                    response['message'] = str(e)
+                    errors.append(e)
+
+            if errors:
+                return JsonResponseFail("; ".join(errors))
+            else:
+                return JsonResponseSuccess("Layers classified successfully.")
 
         if operation == "check-for-existing-mask":
 
-            r = get_object_or_404(Layer, pk=resource_id)
+            r = get_object_or_404(Layer, pk=payload.get("resource-id"))
 
             if r.layerset:
-                if not r.layerset.category.slug == category:
+                if not r.layerset.category.slug == payload.get("category"):
                     if r.layerset.multimask and r.slug in r.layerset.multimask:
-                        response['status'] = "fail"
-                        response['message'] = f"Layer already in {r.layerset.category} multimask."
-                        return JsonResponse(response)
+                        return JsonResponseFail(
+                            f"Layer already in {r.layerset.category} multimask.",
+                            payload=payload
+                        )
 
-            response['status'] = "success"
-            return JsonResponse(response)
+            return JsonResponseSuccess(payload=payload)
 
         if operation == "set-mask":
 
             try:
-                layerset = LayerSet.objects.get(map_id=volume_id, category__slug=category)
-                errors = layerset.update_multimask_from_geojson(multimask_geojson)
+                layerset = LayerSet.objects.get(map_id=payload['map-id'], category__slug=payload['category'])
+                errors = layerset.update_multimask_from_geojson(payload['multimask-geojson'])
                 if errors:
-                    response["status"] = "fail"
-                    response["message"] = errors
+                    return JsonResponseFail("; ".join(errors))
                 else:
-                    response["status"] = "success"
+                    return JsonResponseSuccess()
             except LayerSet.DoesNotExist:
-                response["status"] = "fail"
-                response["message"] = f"can't find this layerset: map_id={volume_id}, category={category}"
-
-
-        return JsonResponse(response)
+                return JsonResponseNotFound()
 
 
 class SessionView(View):
 
-    # @method_decorator(validate_post_request(operations=[]))
-    def post(self, request):
+    def _get_session(self, sessionid):
+        try:
+            bs = SessionBase.objects.get(pk=sessionid)
+            if bs.type == "p":
+                return PrepSession.objects.get(pk=sessionid)
+            elif bs.type == "g":
+                return GeorefSession.objects.get(pk=sessionid)
+        except (SessionBase.DoesNotExist, PrepSession.DoesNotExist, GeorefSession.DoesNotExist):
+            return JsonResponseNotFound()
 
+    @method_decorator(validate_post_request(operations=[
+        "undo", "cancel", "extend"
+    ]))
+    def post(self, request, sessionid):
+
+        session = self._get_session(sessionid)
         body = json.loads(request.body)
         operation = body.get("operation")
-        sessionid = body.get("sessionid")
 
-        session = None
-        if sessionid:
+        ## currently this operation is not used, in favor of document/<pk> 'unprepare'
+        if operation == "undo":
             try:
-                session = PrepSession.objects.get(pk=sessionid)
-            except PrepSession.DoesNotExist:
-                return JsonResponseNotFound
-
-        if operation == "undo" and session:
-            try:
-                undo_preparation(session)
+                session.undo()
             except Exception as e:
-                return JsonResponse({"success": False, "message": str(e)})
-            return JsonResponse({"success":True})
+                return JsonResponseFail(e)
+            return JsonResponseSuccess()
 
-        else:
-            return JsonResponseBadRequest()
+        if operation == "extend":
+            try:
+                session.extend_locks()
+            except Exception as e:
+                return JsonResponseFail(e)
+            return JsonResponseSuccess()

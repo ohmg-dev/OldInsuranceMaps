@@ -120,7 +120,7 @@ MAPS.forEach( function (vol, n) {
 			mosaicType = "gt";
 		} else {
 			mainGroup = makeLayerGroupFromLayerSet({
-				annotationSet: vol.main_layerset,
+				layerSet: vol.main_layerset,
 				zIndex: 400+n,
 				titilerHost: CONTEXT.titiler_host,
 				applyMultiMask: true,

@@ -1,23 +1,19 @@
-import os
 import logging
 
 from natsort import natsorted
 
 from django.conf import settings
-from django.http import JsonResponse, Http404, HttpResponse
+from django.http import Http404
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from ohmg.core.context_processors import generate_ohmg_context
-from ohmg.core.utils import full_reverse
 from ohmg.core.models import Map
 from ohmg.core.api.schemas import (
     LayerSetSchema,
     MapFullSchema,
 )
-
-from ohmg.loc_insurancemaps.models import Volume
 
 from ohmg.places.models import Place
 
@@ -65,7 +61,7 @@ class HomePage(View):
                     "NEWSLETTER_SLUG": newsletter_slug,
                     "USER_SUBSCRIBED": user_subscribed,
                     "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
-                    "MAP_CT": Volume.objects.all().exclude(loaded_by=None).count(),
+                    "MAP_CT": Map.objects.all().exclude(loaded_by=None).count(),
                 }
             },
         }
@@ -86,7 +82,7 @@ class Browse(View):
                 "PAGE_NAME": 'browse',
                 "PARAMS": {
                     "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
-                    "MAP_CT": Volume.objects.all().exclude(loaded_by=None).count(),
+                    "MAP_CT": Map.objects.all().exclude(loaded_by=None).count(),
                 }
             }
         }

@@ -53,13 +53,13 @@ def make_cacheable_request(url, delay=0, no_cache=False):
             response = requests.get(url)
             if response.status_code in [500, 503]:
                 msg = f"{response.status_code} error, retrying in 5 seconds..."
-                logger.warn(msg)
+                logger.warning(msg)
                 time.sleep(5)
                 response = requests.get(url)
         except (ConnectionError, ConnectionRefusedError, ConnectionAbortedError, ConnectionResetError) as e:
             msg = f"API Error: {e}"
             print(msg)
-            logger.warn(e)
+            logger.warning(e)
             return
         
         data = json.loads(response.content)
@@ -81,11 +81,11 @@ def download_image(url: str, out_path: Path, retries: int=3, use_cache: bool=Tru
                 shutil.copyfileobj(response.raw, out_file)
             return out_path
         else:
-            logger.warn(f"response code: {response.status_code} retries left: {retries}")
+            logger.warning(f"response code: {response.status_code} retries left: {retries}")
             time.sleep(5)
             retries -= 1
             if retries == 0:
-                logger.warn("request failed, cancelling")
+                logger.warning("request failed, cancelling")
                 return None
 
 def save_file_to_object(target, file_path: Path=None, source_object=None):

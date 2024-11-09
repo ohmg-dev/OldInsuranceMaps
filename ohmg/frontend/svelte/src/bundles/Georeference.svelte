@@ -4,9 +4,9 @@
 
   export let CONTEXT;
   export let REGION;
-  export let VOLUME;
-  export let ANNOSET_MAIN;
-  export let ANNOSET_KEYMAP;
+  export let MAP;
+  export let MAIN_LAYERSET;
+  export let KEYMAP_LAYERSET;
 
   const iconLinks = [
     {
@@ -27,12 +27,12 @@
       visible: true,
       enabled: true,
       iconClass: 'volume',
-      alt: 'Go to volume: ' + VOLUME.title,
-      url: VOLUME.urls.summary,
+      alt: 'Go to volume: ' + MAP.title,
+      url: MAP.urls.summary,
     }
   ]
 
 </script>
 
 <TitleBar TITLE={REGION.title} ICON_LINKS={iconLinks}/>
-<Georeferencer {CONTEXT} {REGION} {VOLUME} {ANNOSET_MAIN} {ANNOSET_KEYMAP} />
+<Georeferencer {CONTEXT} {REGION} {MAP} {MAIN_LAYERSET} {KEYMAP_LAYERSET} />

@@ -9,16 +9,13 @@ from natsort import natsorted
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import transaction
-from django.db.models import Q, F
+from django.db.models import Q
 from django.utils.functional import cached_property
-from django.urls import reverse
 
 from ohmg.core.utils import (
-    full_reverse,
     slugify,
     get_jpg_from_jp2_url,
     MONTH_CHOICES,
@@ -292,8 +289,6 @@ class Map(models.Model):
             if create:
                 category = LayerSetCategory.objects.get(slug=cat_slug)
                 layerset = LayerSet.objects.create(
-                    # TODO: remove once Volume objects have been fully deprecated
-                    volume_id=self.identifier,
                     map=self,
                     category=category
                 )
@@ -491,7 +486,7 @@ class Document(models.Model):
         logger.info(f"{log_prefix} start load")
 
         if not self.source_url:
-            logger.warn(f"{log_prefix} no source_url - cancelling download")
+            logger.warning(f"{log_prefix} no source_url - cancelling download")
             return
 
         if not self.file:
@@ -787,7 +782,7 @@ class Layer(models.Model):
             if self.layerset.multimask and self.slug in self.layerset.multimask:
                 del self.layerset.multimask[self.slug]
                 self.layerset.save(update_fields=["multimask"])
-                logger.warn(f"{self.pk} removed layer from existing multimask in layerset {self.layerset.pk}")
+                logger.warning(f"{self.pk} removed layer from existing multimask in layerset {self.layerset.pk}")
         self.layerset = layerset
         self.save(update_fields=["layerset"])
         logger.info(f"{self.pk} added to layerset {self.layerset} ({self.layerset.pk})")

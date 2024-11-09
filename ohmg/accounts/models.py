@@ -5,10 +5,9 @@ from django.db import models
 from django.urls import reverse
 from django.utils.functional import cached_property
 
+from ohmg.core.models import Map
 from ohmg.georeference.models import SessionBase
 from ohmg.georeference.models import GCP
-
-from ohmg.loc_insurancemaps.models import Volume
 
 class User(AbstractUser):
     class Meta:
@@ -19,7 +18,7 @@ class User(AbstractUser):
 
     @cached_property
     def load_ct(self):
-        return Volume.objects.filter(loaded_by=self).count()
+        return Map.objects.filter(loaded_by=self).count()
 
     @cached_property
     def psesh_ct(self):
@@ -34,8 +33,8 @@ class User(AbstractUser):
         return GCP.objects.filter(created_by=self).count()
 
     @cached_property
-    def volumes(self):
-        return Volume.objects.filter(loaded_by=self).order_by("city")
+    def maps(self):
+        return Map.objects.filter(loaded_by=self).order_by("title")
 
     @cached_property
     def profile_url(self):
