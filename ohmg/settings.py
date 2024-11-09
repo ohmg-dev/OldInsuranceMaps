@@ -275,7 +275,7 @@ DEFAULT_EXCHANGE = Exchange('default', type='topic')
 CELERY_TASK_QUEUES = (
     Queue('split', DEFAULT_EXCHANGE, routing_key='split', priority=0),
     Queue('georeference', DEFAULT_EXCHANGE, routing_key='georeference', priority=0),
-    Queue('volume', DEFAULT_EXCHANGE, routing_key='volume', priority=0),
+    Queue('map', DEFAULT_EXCHANGE, routing_key='map', priority=0),
     Queue('mosaic', DEFAULT_EXCHANGE, routing_key='mosaic', priority=0),
     Queue('housekeeping', DEFAULT_EXCHANGE, routing_key='housekeeping', priority=0),
 )
@@ -285,8 +285,7 @@ CELERY_TASK_ROUTES = {
     'ohmg.georeference.tasks.run_georeference_session': {'queue': 'georeference'},
     'ohmg.georeference.tasks.delete_stale_sessions': {'queue': 'housekeeping'},
     'ohmg.georeference.tasks.delete_preview_vrt': {'queue': 'housekeeping'},
-    'ohmg.loc_insurancemaps.tasks.load_docs_as_task': {'queue': 'volume'},
-    'ohmg.loc_insurancemaps.tasks.load_map_documents_as_task': {'queue': 'volume'},
+    'ohmg.core.tasks.load_map_documents_as_task': {'queue': 'map'},
 }
 
 # empty celery beat schedule of default GeoNode jobs

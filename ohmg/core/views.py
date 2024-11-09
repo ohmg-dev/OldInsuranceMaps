@@ -24,9 +24,7 @@ from ohmg.core.api.schemas import (
     LayerSetSchema,
     ResourceFullSchema,
 )
-from ohmg.loc_insurancemaps.models import Volume
-from ohmg.loc_insurancemaps.tasks import (
-    load_docs_as_task,
+from ohmg.core.tasks import (
     load_map_documents_as_task,
 )
 from ohmg.georeference.tasks import (
@@ -82,19 +80,12 @@ class MapView(View):
         operation = body.get("operation", None)
 
         if operation == "initialize":
-            volume = Volume.objects.get(pk=identifier)
-            if volume.loaded_by is None:
-                volume.loaded_by = request.user
-                volume.load_date = datetime.now()
-                volume.save(update_fields=["loaded_by", "load_date"])
             map = Map.objects.get(pk=identifier)
             if map.loaded_by is None:
                 map.loaded_by = request.user
                 map.load_date = datetime.now()
                 map.save(update_fields=["loaded_by", "load_date"])
-            load_map_documents_as_task.apply_async((identifier,),
-                link=load_docs_as_task.s()
-            )
+            load_map_documents_as_task.apply_async((identifier,))
             map_json = MapFullSchema.from_orm(map).dict()
             map_json["status"] = "initializing..."
             return JsonResponse(map_json)
