@@ -41,7 +41,7 @@ class Command(BaseCommand):
         if options.pk:
             ls = LayerSet.objects.get(pk=options.pk)
         else:
-            ls = LayerSet.objects.get(volume__identifier=options.identifier, category__slug=options.category)
+            ls = LayerSet.objects.get(map__identifier=options.identifier, category__slug=options.category)
 
         if options.operation == "inspect":
             print(ls.multimask_extent)
