@@ -96,7 +96,7 @@ class SplitView(View):
             try:
                 sesh = PrepSession.objects.get(pk=sesh_id)
             except PrepSession.DoesNotExist:
-                logger.warn(f"can't find PrepSession ({sesh_id}), expected for Document {document.pk}")
+                logger.warning(f"can't find PrepSession ({sesh_id}), expected for Document {document.pk}")
                 return JsonResponse({"success":False, "message": "no session found"})
 
         if operation == "preview":
@@ -109,7 +109,7 @@ class SplitView(View):
 
             if sesh.stage != "input":
                 msg = "can't cancel session that is past the input stage"
-                logger.warn(f"{sesh.__str__()} | {msg}")
+                logger.warning(f"{sesh.__str__()} | {msg}")
                 return JsonResponse({"success":True, "message": msg})
             sesh.delete()
             return JsonResponse({"success":True})
@@ -189,7 +189,7 @@ class GeoreferenceView(View):
             try:
                 ip_val = request.META.get('REMOTE_ADDR', '0.0.0.0.').replace(".", "-")
             except Exception as e:
-                logger.warn(e)
+                logger.warning(e)
                 ip_val = "000000000"
 
             sesh_val = 0
@@ -273,7 +273,7 @@ class GeoreferenceView(View):
             if sesh:
                 if sesh.stage != "input":
                     msg = "can't cancel session that is past the input stage"
-                    logger.warn(f"{sesh.__str__()} | {msg}")
+                    logger.warning(f"{sesh.__str__()} | {msg}")
                     return JsonResponse({"success":True, "message": msg})
 
                 sesh.delete()

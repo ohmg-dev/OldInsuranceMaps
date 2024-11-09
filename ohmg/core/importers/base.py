@@ -51,7 +51,7 @@ class BaseImporter():
         for arg in self.required_input:
             if arg not in kwargs:
                 error = f"Import operation missing required argument: {arg}"
-                logger.warn(error)
+                logger.warning(error)
                 errors.append(error)
         return errors
     

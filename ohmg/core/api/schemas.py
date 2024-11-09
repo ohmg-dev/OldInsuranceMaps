@@ -290,10 +290,10 @@ class LayerSchema(Schema):
     @staticmethod
     def resolve_gcps_geojson(obj):
         if not obj.region:
-            logger.warn(f"[WARNING] Layer {obj.pk} has no associated region")
+            logger.warning(f"[WARNING] Layer {obj.pk} has no associated region")
             return None
         elif not obj.region.gcp_group:
-            logger.warn(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
+            logger.warning(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
             return None
         return obj.region.gcp_group.as_geojson
     
@@ -336,10 +336,10 @@ class LayerFullSchema(Schema):
     @staticmethod
     def resolve_gcps_geojson(obj):
         if not obj.region:
-            logger.warn(f"[WARNING] Layer {obj.pk} has no associated region")
+            logger.warning(f"[WARNING] Layer {obj.pk} has no associated region")
             return None
         elif not obj.region.gcp_group:
-            logger.warn(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
+            logger.warning(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
             return None
         return obj.region.gcp_group.as_geojson
 

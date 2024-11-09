@@ -30,7 +30,7 @@ def delete_stale_sessions():
 def delete_preview_vrt(base_file_path, preview_url_to_remove):
 
     if not preview_url_to_remove.endswith(".vrt"):
-        logger.warn("will not delete non-VRT")
+        logger.warning("will not delete non-VRT")
         return
     prev_file = os.path.basename(preview_url_to_remove)
     prev_file_path = os.path.join(os.path.dirname(base_file_path), prev_file)
@@ -38,4 +38,4 @@ def delete_preview_vrt(base_file_path, preview_url_to_remove):
         if os.path.exists(prev_file_path):
             os.remove(prev_file_path)
     except Exception as e:
-        logger.warn(f"error while deleting preview VRT: {e}")
+        logger.warning(f"error while deleting preview VRT: {e}")

@@ -414,7 +414,7 @@ class ItemBase(models.Model):
             self.lock_details['expiration'] = new_dt.timestamp()
             self.save(update_fields=["lock_details", "lock_enabled"])
         else:
-            logger.warn(f"{self.type} resource ({self.pk}): no existing lock to extend.")
+            logger.warning(f"{self.type} resource ({self.pk}): no existing lock to extend.")
 
     def set_thumbnail(self):
         if self.file is not None:
@@ -474,7 +474,7 @@ class ItemBase(models.Model):
             if self.vrs.multimask and self.slug in self.vrs.multimask:
                 del self.vrs.multimask[self.slug]
                 self.vrs.save(update_fields=["multimask"])
-                logger.warn(f"{self.pk} removed layer from existing multimask in vrs {self.vrs.pk}")
+                logger.warning(f"{self.pk} removed layer from existing multimask in vrs {self.vrs.pk}")
         self.vrs = vrs
         self.save(update_fields=["vrs"])
         logger.info(f"{self.pk} added to vrs {self.vrs.pk}")
@@ -516,7 +516,7 @@ class Document(ItemBase):
                 size = img.size
                 img.close()
             except Exception as e:
-                logger.warn(f"error opening file {self.file}: {e}")
+                logger.warning(f"error opening file {self.file}: {e}")
         return size
 
     @property
@@ -544,7 +544,7 @@ class Document(ItemBase):
             else:
                 return None
         except PrepSession.MultipleObjectsReturned:
-            logger.warn(f"Multiple PrepSessions found for Document {self.id}")
+            logger.warning(f"Multiple PrepSessions found for Document {self.id}")
             return list(PrepSession.objects.filter(doc=self))[0]
 
     @property
@@ -1153,7 +1153,7 @@ class LayerSet(models.Model):
 
                 img = gdal.Open(out_path, 1)
                 if img is None:
-                    logger.warn(f"{self.vol.identifier} | file was not properly created, omitting: {file_name}")
+                    logger.warning(f"{self.vol.identifier} | file was not properly created, omitting: {file_name}")
                     continue   
                 logger.debug(f"{self.vol.identifier} | building overview: {file_name}")
                 gdal.SetConfigOption("COMPRESS_OVERVIEW", "LZW")

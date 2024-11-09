@@ -488,7 +488,7 @@ class Document(models.Model):
         logger.info(f"{log_prefix} start load")
 
         if not self.source_url:
-            logger.warn(f"{log_prefix} no source_url - cancelling download")
+            logger.warning(f"{log_prefix} no source_url - cancelling download")
             return
 
         if not self.file:
@@ -784,7 +784,7 @@ class Layer(models.Model):
             if self.layerset.multimask and self.slug in self.layerset.multimask:
                 del self.layerset.multimask[self.slug]
                 self.layerset.save(update_fields=["multimask"])
-                logger.warn(f"{self.pk} removed layer from existing multimask in layerset {self.layerset.pk}")
+                logger.warning(f"{self.pk} removed layer from existing multimask in layerset {self.layerset.pk}")
         self.layerset = layerset
         self.save(update_fields=["layerset"])
         logger.info(f"{self.pk} added to layerset {self.layerset} ({self.layerset.pk})")

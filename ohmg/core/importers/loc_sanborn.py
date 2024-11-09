@@ -148,7 +148,7 @@ class LOCParser(object):
                     used_tags.append(lt)
                     break
         else:
-            logger.warn(f"BAD STATE IN TITLE: {state_seg}")
+            logger.warning(f"BAD STATE IN TITLE: {state_seg}")
 
         # get city
         location_tags = [i for i in location_tags if i not in used_tags]
@@ -187,7 +187,7 @@ class LOCParser(object):
         location_tags = [i for i in location_tags if i not in used_tags]
         if len(location_tags) > 0:
             msg = f"WARNING: unparsed location tags - {self.identifier} - {title} - {location_tags}"
-            logger.warn(msg)
+            logger.warning(msg)
 
         self.extra_location_tags = location_tags
 
@@ -404,7 +404,7 @@ class LOCConnection(object):
                 response = requests.get(url)
                 if response.status_code in [500, 503]:
                     msg = f"{response.status_code} error, retrying in 5 seconds..."
-                    logger.warn(msg)
+                    logger.warning(msg)
                     if self.verbose:
                         print(msg)
                     time.sleep(5)
@@ -414,7 +414,7 @@ class LOCConnection(object):
             except (ConnectionError, ConnectionRefusedError, ConnectionAbortedError, ConnectionResetError) as e:
                 msg = f"API Error: {e}"
                 print(msg)
-                logger.warn(e)
+                logger.warning(e)
                 return
             
             self.data = json.loads(response.content)
