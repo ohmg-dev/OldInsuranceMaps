@@ -420,12 +420,12 @@ let processing = false;
 					{:else if MAP.progress.loaded_pages == 0}
 					No sheets loaded yet...
 					{:else if MAP.progress.loaded_pages < MAP.progress.total_pages }
-					{MAP.progress.loaded_pages} of {MAP.progress.total_pages} sheet{#if MAP.progress.total_pages != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
+					{MAP.progress.loaded_pages} of {MAP.progress.total_pages} sheet{#if MAP.progress.total_pages != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Documents</strong> to retry)
 					{/if}
 					</em>
 				</span>
 				{#if MAP.progress.loaded_pages < MAP.progress.total_pages && userCanEdit && !sheetsLoading}
-					<button class="button is-primary is-small" style="margin-left:10px;" on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({MAP.progress.total_pages} sheet{#if MAP.progress.total_pages != 1}s{/if})</button>
+					<button class="button is-primary is-small" style="margin-left:10px;" on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Documents ({MAP.document_sources.length})</button>
 				{/if}
 			</div>
 			{#if !CONTEXT.user.is_authenticated}
@@ -462,7 +462,7 @@ let processing = false;
 								}} >
 								<img style="cursor:zoom-in"
 									src={document.urls.thumbnail}
-									alt={document.title}
+									alt="{MAP.document_page_type} {document.page_number}"
 									/>
 							</button>
 							<div>
