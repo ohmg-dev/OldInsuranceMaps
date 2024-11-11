@@ -298,26 +298,33 @@ class Map(models.Model):
         return layerset
 
     def create_documents(self, get_files=False):
-        """ TODO: This method is still 100% reliant on having LOC content in the
-        document_sources field. """
+        """ Iterates the list of items in self.document_sources and create Document
+        objects for each one. If get_files=True, load files from their path.
+
+        A document source entry should look like:
+        {
+            path: <url (required)>
+            iiif_info: <url to iiif info.json document (optional)>
+            page_number: <str for page id (optional but must be unique across all documents in list)>
+        }
+        """
         self.set_status("initializing...")
-        if self.document_sources:
-            from ohmg.core.importers.loc_sanborn import LOCParser
-            for fileset in self.document_sources:
-                parsed = LOCParser(fileset=fileset)
-                docs = Document.objects.filter(map=self)
-                for d in docs:
-                    print(d.__dict__)
-                document, created = Document.objects.get_or_create(
-                    map=self,
-                    page_number=parsed.sheet_number,
-                )
-                document.source_url = parsed.jp2_url
-                document.iiif_info = parsed.iiif_service
-                document.save()
-                logger.debug(f"created new? {created} {document} ({document.pk})")
-                if get_files:
-                    document.download_file()
+        for source in self.document_sources:
+            document, created = Document.objects.get_or_create(
+                map=self,
+                page_number=source["page_number"],
+            )
+            document.source_url = source["path"]
+            document.iiif_info = source["iiif_info"]
+            document.save()
+            if created:
+                logger.debug(f"{document} ({document.pk}) created.")
+
+        logger.debug(f"Map {self.title} ({self.pk}) has {len(self.documents.all())} Documents")
+        if get_files:
+            for document in natsorted(self.documents.all(), key=lambda k: k.title):
+                document.download_file()
+
         self.set_status("ready")
 
     def remove_sheets(self):
@@ -352,7 +359,7 @@ class Map(models.Model):
         from ohmg.core.api.schemas import (DocumentSchema, RegionSchema, LayerSchema)
         regions = self.regions
         items = {
-            "unprepared": [DocumentSchema.from_orm(i).dict() for i in self.documents.filter(prepared=False)],
+            "unprepared": [DocumentSchema.from_orm(i).dict() for i in self.documents.filter(prepared=False).exclude(file="")],
             "prepared": [RegionSchema.from_orm(i).dict() for i in regions.filter(georeferenced=False, is_map=True)],
             "georeferenced": [LayerSchema.from_orm(i).dict() for i in self.layers],
             "nonmaps": [RegionSchema.from_orm(i).dict() for i in regions.filter(is_map=False)],
@@ -592,14 +599,14 @@ class Region(models.Model):
     @cached_property
     def image_size(self):
         return get_image_size(Path(self.file.path)) if self.file else None
-    
+
     @property
     def tranformation(self):
         if self.gcp_group:
             return self.gcp_group.transformation
         else:
             return None
-    
+
     @property
     def gcps_geojson(self):
         if self.gcp_group:

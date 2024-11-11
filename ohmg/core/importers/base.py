@@ -65,7 +65,7 @@ class BaseImporter():
         }
         missing = [i for i in output_schema.keys() if i not in self.parsed_data.keys()]
         if missing:
-            errors.append(f"missing parsed output: {missing}")
+            errors.append(f"ERROR: missing parsed output: {missing}")
 
         for k, v in self.parsed_data.items():
             try:
@@ -73,6 +73,20 @@ class BaseImporter():
                    errors.append(f"incorrect value for parsed output {k}: {v}") 
             except KeyError:
                 pass
+
+        document_sources = self.parsed_data.get("document_sources", [])
+
+        all_paths = [i["path"] for i in document_sources]
+        dupe_paths = list(set([i for i in all_paths if all_paths.count(i) != 1]))
+        for dp in dupe_paths:
+            print("\n".join(all_paths))
+            errors.append(f"ERROR: Document path appears twice in the resources list - {dp}")
+
+        all_numbers = [i["page_number"] for i in document_sources]
+        dupe_numbers = list(set([i for i in all_numbers if all_numbers.count(i) != 1]))
+        for dp in dupe_numbers:
+            errors.append(f"ERROR: Document page number appears twice in the resources list - {dp}")
+
         return errors
 
     def parse(self):
@@ -103,9 +117,11 @@ class BaseImporter():
             document_sources=self.parsed_data.get("document_sources", []),
         )
         map.locales.set((locale,))
-        map.update_item_lookup()
         map.update_place_counts()
         map.get_layerset('main-content', create=True)
+
+        map.create_documents()
+        map.update_item_lookup()
 
         return map
 
