@@ -371,6 +371,18 @@ LOGGING = {
             'filename': os.path.join(LOG_DIR, 'info.log'),
             'formatter': 'moderate',
         },
+        'warning': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'warning.log'),
+            'formatter': 'moderate',
+        },
+        'error': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(LOG_DIR, 'error.log'),
+            'formatter': 'moderate',
+        },
         'ohmg-debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
@@ -383,22 +395,14 @@ LOGGING = {
             'filename': os.path.join(LOG_DIR, 'georeference-debug.log'),
             'formatter': 'verbose',
         },
-        'loc_insurancemaps-debug': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(LOG_DIR, 'loc_insurancemaps-debug.log'),
-            'formatter': 'verbose',
-        },
     },
     "loggers": {
         "django": {
             "handlers": ["console"], "level": "ERROR", },
         "ohmg.georeference": {
-            "handlers": ["info", "georeference-debug"], "level": "DEBUG", },
-        "ohmg.loc_insurancemaps": {
-            "handlers": ["info", "loc_insurancemaps-debug"], "level": "DEBUG", },
+            "handlers": ["georeference-debug"], "level": "DEBUG", },
         "ohmg": {
-            "handlers": ["ohmg-debug"], "level": "DEBUG", },
+            "handlers": ["ohmg-debug", "info", "warning", "error"], "level": "DEBUG", },
     },
 }
 
@@ -408,7 +412,6 @@ if DEBUG:
     celery_log_level = 'DEBUG'
     LOGGING['loggers']['ohmg']['handlers'].append('console')
     LOGGING['loggers']['ohmg.georeference']['handlers'].append('console')
-    LOGGING['loggers']['ohmg.loc_insurancemaps']['handlers'].append('console')
 else:
     celery_log_level = 'INFO'
 
