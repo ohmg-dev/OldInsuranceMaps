@@ -452,7 +452,7 @@ let processing = false;
 					<div class="documents-column">
 						{#each MAP.item_lookup.unprepared as document}
 						<div class="document-item">
-							<div><p><Link href={document.urls.resource} title={document.title}>{MAP.document_page_type} {document.page_number}</Link></p></div>
+							<div><p><Link href={document.urls.resource} title={document.title}>{document.nickname}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
 								modalLyrUrl=document.urls.image;
 								modalExtent=[0, -document.image_size[1], document.image_size[0], 0];
@@ -462,7 +462,7 @@ let processing = false;
 								}} >
 								<img style="cursor:zoom-in"
 									src={document.urls.thumbnail}
-									alt="{MAP.document_page_type} {document.page_number}"
+									alt="{document.title}"
 									/>
 							</button>
 							<div>
@@ -513,9 +513,7 @@ let processing = false;
 					<div class="documents-column">
 						{#each MAP.item_lookup.prepared as region}
 						<div class="document-item">
-							<div><p><Link href={region.urls.resource} title={region.title}>
-								{MAP.document_page_type} {region.page_number}{region.division_number ? ` [${region.division_number}]`:""}
-							</Link></p></div>
+							<div><p><Link href={region.urls.resource} title={region.title}>{region.nickname}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
 								modalLyrUrl=region.urls.image;
 								modalExtent=[0, -region.image_size[1], region.image_size[0], 0];
@@ -607,7 +605,7 @@ let processing = false;
 					<div class="documents-column">
 						{#each MAP.item_lookup.georeferenced as layer}
 						<div class="document-item">
-							<div><p><Link href={layer.urls.resource} title={layer.title}>{layer.title}</Link></p></div>
+							<div><p><Link href={layer.urls.resource} title={layer.title}>{layer.nickname}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
 								modalLyrUrl=layer.urls.cog;
 								modalExtent=layer.extent;

@@ -145,6 +145,7 @@ class DocumentFullSchema(Schema):
 class DocumentSchema(Schema):
     id: int
     title: str
+    nickname: str
     slug: str
     page_number: Optional[str]
     file: Optional[str]
@@ -166,6 +167,7 @@ class RegionSchema(Schema):
     id: int
     document_id: int
     title: str
+    nickname: str
     slug: str
     file: Optional[str]
     thumbnail: Optional[str]
@@ -257,6 +259,7 @@ class RegionFullSchema(Schema):
 class LayerSchema(Schema):
     id: int
     title: str
+    nickname: str
     slug: str
     image_url: Optional[str]
     mask: Optional[dict]
@@ -389,7 +392,7 @@ class LayerSetLayer(Schema):
 
     id: int
     title: str
-    local_title: str
+    nickname: str
     slug: str
     urls: dict
     extent: Optional[list]
@@ -403,18 +406,6 @@ class LayerSetLayer(Schema):
             "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
             "georeference": f"/georeference/{obj.region.pk}/",
         }
-
-    @staticmethod
-    def resolve_local_title(obj):
-        # TODO: this should probably be saved onto the model itself
-        if obj.region:
-            lt = obj.region.document.page_number
-            if obj.region.division_number:
-                lt = f"{lt} [{obj.region.division_number}]"
-        else:
-            lt = obj.title.split(" ")[-1]
-        return lt
-
 
 class LayerSetSchema(Schema):
 
@@ -515,7 +506,7 @@ class MapFullSchema(Schema):
     year: int = 0
     loaded_by: Optional[UserSchemaLite]
     status: str = ""
-    access: str
+    access: str = ""
     document_sources: list
     documents: List[DocumentSchema]
     item_lookup: dict

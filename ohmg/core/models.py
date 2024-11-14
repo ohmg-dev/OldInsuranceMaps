@@ -456,6 +456,14 @@ class Document(models.Model):
         return self.title
 
     @cached_property
+    def nickname(self) -> str:
+        if self.page_number:
+            nickname = f"{self.map.document_page_type} {self.page_number}"
+        else:
+            nickname = self.map.title
+        return nickname
+
+    @cached_property
     def image_size(self):
         return get_image_size(Path(self.file.path)) if self.file else None
     
@@ -593,6 +601,13 @@ class Region(models.Model):
         return self.title
 
     @cached_property
+    def nickname(self) -> str:
+        nickname = self.document.nickname
+        if self.division_number:
+            nickname += f" [{self.division_number}]"
+        return nickname
+
+    @cached_property
     def map(self) -> Map:
         return self.document.map
 
@@ -715,6 +730,10 @@ class Layer(models.Model):
 
     def __str__(self):
         return self.title
+
+    @cached_property
+    def nickname(self) -> str:
+        return self.region.nickname
 
     @cached_property
     def map(self) -> Map:

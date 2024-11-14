@@ -214,6 +214,7 @@ class GCPGroup(models.Model):
                     gcps_mod += 1
         gcps_ct = len(geojson['features'])
         logger.info(f"GCPGroup {group.pk} | GCPs ct: {gcps_ct}, new: {gcps_new}, mod: {gcps_mod}, del: {gcps_del}")
+        group.save()
         return group
 
 

@@ -566,6 +566,7 @@ class GeorefSession(SessionBase):
         )
         self.reg2.gcp_group = gcp_group
         self.reg2.save()
+        self.reg2.map.update_item_lookup()
 
         self.update_stage("finished", save=False)
         self.update_status("success", save=False)
