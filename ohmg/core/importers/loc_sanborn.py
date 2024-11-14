@@ -38,7 +38,7 @@ LOC_SANBORN_CITY_MISSPELLINGS = {
     }
 }
     
-class LOCImporter(BaseImporter):
+class LOCSanbornImporter(BaseImporter):
     """LOC Importer
     ------------
     Load items from the Library of Congress Sanborn map collection. Required args are:

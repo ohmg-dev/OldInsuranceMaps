@@ -328,8 +328,8 @@ LOCALE_PATHS = (
 
 OHMG_IMPORTERS = {
     'map': {
-        'single-file': 'ohmg.core.importers.base.SingleFileImporter',
-        'loc-sanborn': 'ohmg.core.importers.loc_sanborn.LOCImporter',
+        'single-file': 'ohmg.core.importers.single_file.SingleFileImporter',
+        'loc-sanborn': 'ohmg.core.importers.loc_sanborn.LOCSanbornImporter',
     }
 }
 
