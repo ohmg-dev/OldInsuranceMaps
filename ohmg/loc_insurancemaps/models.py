@@ -29,7 +29,7 @@ from ohmg.georeference.models import (
 from ohmg.georeference.storage import OverwriteStorage
 from ohmg.places.models import Place
 from ohmg.core.utils import (
-    get_jpg_from_jp2_url,
+    # get_jpg_from_jp2_url,
     STATE_CHOICES,
     STATE_ABBREV,
     MONTH_CHOICES,

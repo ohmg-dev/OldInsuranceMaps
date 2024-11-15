@@ -9,9 +9,16 @@ class SingleFileImporter(BaseImporter):
 Use this importer to create a new Map object with a single file in it. The following
 opts are supported:
 
-    file_name: path/to/file.tif
-    (incomplete list so far...\)
+    file-path: path/to/file.tif
+    year: year of publication
+
 """
+
+    required_input = [
+        "file-path",
+        "year",
+        "locale",
+    ]
     
     def parse(self):
 
@@ -28,7 +35,7 @@ opts are supported:
         else:
             id = random_alnum().upper()
 
-        file_path = self.input_data.get('file_path')
+        file_path = self.input_data.get('file-path')
         title = self.input_data.get('title', "test map")
         year = self.input_data.get('year')
         if year:
@@ -36,7 +43,11 @@ opts are supported:
         creator = self.input_data.get('creator')
         locale = self.input_data.get('locale')
 
-        print(file_path)
+        document_sources = [{
+            "path": file_path,
+            "iiif_info": None,
+            "page_number": None,
+        }]
         
         self.parsed_data = {
             'identifier': id,
@@ -44,5 +55,5 @@ opts are supported:
             'year': year,
             'creator': creator,
             'locale': locale,
-            'document_sources': [file_path],
+            'document_sources': document_sources,
         }

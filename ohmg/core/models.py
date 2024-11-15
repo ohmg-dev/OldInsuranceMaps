@@ -17,7 +17,9 @@ from django.utils.functional import cached_property
 
 from ohmg.core.utils import (
     slugify,
-    get_jpg_from_jp2_url,
+    download_image,
+    copy_local_file_to_cache,
+    convert_img_format,
     MONTH_CHOICES,
     DAY_CHOICES,
 )
@@ -27,7 +29,6 @@ from ohmg.core.renderers import (
     get_extent_from_file,
     generate_document_thumbnail_content,
     generate_layer_thumbnail_content,
-    convert_img_to_pyramidal_tiff,
 )
 from ohmg.places.models import Place
 
@@ -323,7 +324,7 @@ class Map(models.Model):
         logger.debug(f"Map {self.title} ({self.pk}) has {len(self.documents.all())} Documents")
         if get_files:
             for document in natsorted(self.documents.all(), key=lambda k: k.title):
-                document.download_file()
+                document.load_file_from_source()
 
         self.set_status("ready")
 
@@ -481,21 +482,7 @@ class Document(models.Model):
         else:
             return None
 
-    def create_from_file(self, file_path: Path, volume=None, sheet_no=None):
-
-        tif_path = convert_img_to_pyramidal_tiff(file_path)
-
-        sheet = Document(
-            volume=volume,
-            source=file_path,
-        )
-        sheet.save()
-
-        with open(tif_path, "rb") as openf:
-            sheet.file.save(Path(tif_path).name, File(openf))
-        return sheet
-
-    def download_file(self):
+    def load_file_from_source(self, overwrite=False):
 
         log_prefix = f"{self.__str__()} |"
         logger.info(f"{log_prefix} start load")
@@ -504,10 +491,30 @@ class Document(models.Model):
             logger.warning(f"{log_prefix} no source_url - cancelling download")
             return
 
-        if not self.file:
-            jpg_path = get_jpg_from_jp2_url(self.source_url)
-            with open(jpg_path, "rb") as new_file:
-                self.file.save(f"{self.slug}.jpg", File(new_file))
+        if self.file != "" and not overwrite:
+            logger.warning(f"{log_prefix} won't overwrite existing file")
+            return
+
+        src_path = Path(self.source_url)
+        tmp_path = Path(settings.CACHE_DIR, "images", src_path.name)
+
+        if self.source_url.startswith("http"):
+            out_file = download_image(self.source_url, tmp_path)
+            if out_file is None:
+                logger.error(f"can't get {self.source_url} -- skipping")
+                return
+        else:
+            copy_local_file_to_cache(src_path, tmp_path)
+
+        if not self.source_url.endswith(".jpg"):
+            tmp_path = convert_img_format(tmp_path, force=True)
+
+        if not tmp_path.exists():
+            logger.error(f"{log_prefix} can't retrieve source: {self.source_url}. Moving to next Document.")
+            return
+
+        with open(tmp_path, "rb") as new_file:
+            self.file.save(f"{self.slug}{tmp_path.suffix}", File(new_file))
 
         self.load_date = datetime.now()
         self.save()
@@ -673,7 +680,7 @@ class Region(models.Model):
             if self.division_number:
                 display_name += f" [{self.division_number}]"
             self.slug = slugify(display_name, join_char="_")
-        
+
         self.title = self.document.title
         if self.division_number:
             self.title += f" [{self.division_number}]"
@@ -779,7 +786,7 @@ class Layer(models.Model):
 
     def get_georeference_summary(self):
         return self.get_document().get_georeference_summary()
-    
+
     def set_thumbnail(self):
         if self.file is not None:
             if self.thumbnail:

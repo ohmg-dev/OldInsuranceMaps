@@ -44,13 +44,13 @@ class BaseImporter():
 
     def validate_input(self, **kwargs):
 
-        errors = []
+        missing = []
         for arg in self.required_input:
             if arg not in kwargs:
-                error = f"Import operation missing required argument: {arg}"
+                error = f"Import operation missing required argumemmnt: {arg}"
                 logger.warning(error)
-                errors.append(error)
-        return errors
+                missing.append(arg)
+        return missing
     
     def validate_parsed(self):
 
@@ -129,9 +129,9 @@ class BaseImporter():
         """ Import a single map using the kwargs provided. These keywords are supplied to the
         self.acquire_data(). """
 
-        errors = self.validate_input(**kwargs)
-        if errors:
-            raise Exception("Import operation missing required arg(s), check logs for more info.")
+        missing = self.validate_input(**kwargs)
+        if missing:
+            raise Exception(f"Import operation missing required arg(s): {missing}")
 
         self.input_data = kwargs
         self.parse()

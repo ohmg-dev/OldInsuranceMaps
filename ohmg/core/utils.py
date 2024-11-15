@@ -8,6 +8,7 @@ import requests
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Union
 
 from django.conf import settings
 from django.urls import reverse
@@ -88,6 +89,10 @@ def download_image(url: str, out_path: Path, retries: int=3, use_cache: bool=Tru
                 logger.warning("request failed, cancelling")
                 return None
 
+def copy_local_file_to_cache(path: str, out_path: Path,  use_cache: bool=True):
+    if not out_path.exists() or not use_cache:
+        shutil.copyfile(path, out_path)
+
 def save_file_to_object(target, file_path: Path=None, source_object=None):
     if file_path:
         source_path = file_path
@@ -100,7 +105,7 @@ def save_file_to_object(target, file_path: Path=None, source_object=None):
     with open(source_path, "rb") as openf:
         target.file.save(source_path.name, File(openf))
 
-def convert_img_format(input_img: Path, format: str="JPEG", force: bool=False):
+def convert_img_format(input_img: Path, format: str="JPEG", force: bool=False) -> Path:
 
     ext_map = {"PNG":".png", "JPEG":".jpg", "TIFF": ".tif"}
     outpath = input_img.with_suffix(ext_map[format])
@@ -112,22 +117,6 @@ def convert_img_format(input_img: Path, format: str="JPEG", force: bool=False):
     img.save(outpath, format=format)
 
     return outpath
-
-def get_jpg_from_jp2_url(jp2_url: str, use_cache: bool=True, force_convert: bool=False):
-
-    temp_img_dir = Path(settings.CACHE_DIR, "images")
-    temp_img_dir.mkdir(exist_ok=True)
-
-    tmp_path = Path(temp_img_dir, jp2_url.split("/")[-1])
-
-    tmp_path = download_image(jp2_url, tmp_path, use_cache=use_cache)
-    if tmp_path is None:
-        return
-
-    # convert the downloaded jp2 to jpeg (needed for OpenLayers static image)
-    jpg_path = convert_img_format(tmp_path, force=force_convert)
-
-    return jpg_path
 
 def full_capitalize(in_str):
     return " ".join([i.capitalize() for i in in_str.split(" ")])
