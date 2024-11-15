@@ -182,7 +182,7 @@ main {
 
 main > div {
 	margin-top: 40px;
-	padding: 15px;
+	padding: 20px;
 }
 
 main p {
