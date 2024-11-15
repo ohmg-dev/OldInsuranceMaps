@@ -137,7 +137,7 @@
 		</div>
 	</div>
 
-	<div class="homepage-section">
+	<div class="homepage-section" style="height:750px;">
 		<div>
 			<div class="level" style="margin-bottom:0;">
 				<div class="level-left">
@@ -176,13 +176,13 @@ main {
 	flex-direction: column;
 	margin-right: -15px;
 	margin-left: -15px;
-	background: linear-gradient(0deg, rgba(255 255 255 / 60%), rgba(255 255 255 / 60%)), url(/static/img/no-1885-snippet1-reduce-50qual.jpg) -700px -200px;
-	background-attachment: fixed;
+	background: linear-gradient(0deg, rgba(255 255 255 / 60%), rgba(255 255 255 / 60%)), url(/static/img/old-basin-canal-tall-50qual-crop.jpg);
+	background-size: 100% 100%;
 }
 
 main > div {
 	margin-top: 40px;
-	padding: 20px;
+	padding: 0 20px;
 }
 
 main p {
