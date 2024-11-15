@@ -3,7 +3,7 @@
 
     export let id;
 
-    let modalContent = `When contributors complete a step in the georeferencing process, it is stored as a session, either a "preparation" session (P) or "georeference" sessions (G). (MultiMask trimming is not stored in sessions, for now.)
+    let modalContent = `When users complete a step in the georeferencing process, it is stored as a session, either a "preparation" session (P) or "georeference" sessions (G). (MultiMask trimming is not stored in sessions, for now.)
 
 If you are looking for a list of the most recently added items (volumes), go to the [items page](/search#items)</a> and sort the table by **Load date**.
 

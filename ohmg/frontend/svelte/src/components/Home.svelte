@@ -21,13 +21,15 @@
 
 </script>
 
-<main>
-	<div>
-		<h1>OldInsuranceMaps.net</h1>
-		<p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. See <Link href="/#how-it-works">how it works</Link> or visit the <Link href="https://about.oldinsurancemaps.net?utm_source=hero" external={true}>about</Link> or <Link href="https://about.oldinsurancemaps.net/faq?utm_source=hero">FAQ</Link> pages to learn more.</p>
-	</div>
 
-	<div class="hero-banner2 img-bg-3">
+<main>
+	<div class="homepage-section">
+		<div>
+			<h1>OldInsuranceMaps.net</h1>
+			<p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. See <Link href="/#how-it-works">how it works</Link> or visit the <Link href="https://about.oldinsurancemaps.net?utm_source=hero" external={true}>about</Link> or <Link href="https://about.oldinsurancemaps.net/faq?utm_source=hero">FAQ</Link> pages to learn more.</p>
+		</div>
+	</div>
+	<div class="homepage-section">
 		<div style="padding:0;">
 			<div style="padding:5px;">
 				<h3>Explore georeferenced maps from {PLACES_CT} locations...</h3>
@@ -40,7 +42,7 @@
 		</div>
 	</div>
 
-	<div class="hero-banner img-bg-2">
+	<div class="homepage-section">
 		<div class="hero-banner-inner">
 			<div>
 			<h3>Recently Added Maps</h3>
@@ -57,23 +59,36 @@
 				<span><em>To request more maps, <Link href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link" external={true}>fill out this form</Link> or <Link href="/contact">get in touch</Link>.</em></span>
 			</div>
 		</div>
-		{#if NEWSLETTER_SLUG}
+	</div>
+	{#if NEWSLETTER_SLUG}
+	<div class="homepage-section">
 		<div>
+			<div class="level" style="margin-bottom:0;">
+				<div class="level-left">
+					<div class="level-item">
+						<h3>Newsletter</h3>
+					</div>
+				</div>
+				<div class="level-right">
+					<div class="level-item">
+						<Link href="/newsletter/{NEWSLETTER_SLUG}/archive/">view the archive &rarr;</Link>
+					</div>
+				</div>
+			</div>
 			<form enctype="multipart/form-data"  method="post" action="/newsletter/{NEWSLETTER_SLUG}/subscribe/">
 				<input type="hidden" name="csrfmiddlewaretoken" value={CONTEXT.csrf_token}>
-				<label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe to the newsletter:</label> <input type="email" name="email_field" required="" id="id_email_field" value="{CONTEXT.user.email}" disabled={USER_SUBSCRIBED}>
+				<label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe:</label> <input type="email" name="email_field" required="" id="id_email_field" disabled={USER_SUBSCRIBED}>
 				{#if USER_SUBSCRIBED}
 				<Link href="/newsletter/{NEWSLETTER_SLUG}?utm_source=index">manage subscription</Link>
 				{:else}
 				<button id="id_submit" name="submit" value="Subscribe" type="submit">Subscribe</button>
 				{/if}
 			</form>
-			<Link href="/newsletter/{NEWSLETTER_SLUG}/archive/">newsletter archive</Link>
 		</div>
-		{/if}
 	</div>
+	{/if}
 
-	<div id="how-it-works" class="hero-banner2 img-bg-1">
+	<div id="how-it-works" class="homepage-section">
 		<div>
 			<h3>How it Works</h3>
 			<div id="step-list">
@@ -82,7 +97,7 @@
 						<SVGIcon icon="volume" size="lg" />
 					</div>
 					<p>
-						Digital scans of Sanborn maps are available through the <Link href="https://loc.gov/collections/sanborn-maps" external={true}>Library of Congress</Link> and are pulled into this site through the LOC <Link href="https://www.loc.gov/apis/json-and-yaml/requests/" external={true}>JSON API</Link>, generating a "Volume Summary" page (<Link href="/map/sanborn03275_001/?utm_source=index">Baton Rouge, 1885</Link>).
+						Digital scans of Sanborn maps are available through the <Link href="https://loc.gov/collections/sanborn-maps" external={true}>Library of Congress</Link> and are pulled into this site through the LOC <Link href="https://www.loc.gov/apis/json-and-yaml/requests/" external={true}>JSON API</Link>, generating a "Map Summary" page (<Link href="/map/sanborn03275_001/?utm_source=index">Baton Rouge, 1885</Link>).
 					</p>
 				</div>
 				<div>
@@ -90,7 +105,7 @@
 						<SVGIcon icon="document" size="lg" />
 					</div>
 					<p>
-						Contributors <Link href="/split/244/">prepare each sheet</Link> in the volume, sometimes splitting it into multiple documents, each to be georeferenced individually (<Link href="/resource/244?utm_source=index">Baton Rouge, 1885, page 1</Link>).
+						Users <Link href="/split/244/">prepare each sheet</Link> in the volume, sometimes splitting it into multiple documents, each to be georeferenced individually (<Link href="/document/244?utm_source=index">Baton Rouge, 1885, page 1</Link>).
 					</p>
 				</div>
 				<div>
@@ -98,7 +113,7 @@
 						<SVGIcon icon="layer" size="lg" />
 					</div>
 					<p>
-						Next, each document must be georeferenced by <Link href="/georeference/387?utm_source=index">creating ground control points</Link>, linking features on the old map with latitude/longitude coordinates to create a geospatial layer (<Link href="/resource/389?utm_source=index">Baton Rouge, 1885, page 1, part 3</Link>).
+						Next, each document must be georeferenced by <Link href="/georeference/3097?utm_source=index">creating ground control points</Link>, linking features on the old map with latitude/longitude coordinates to create a geospatial layer (<Link href="/layer/389?utm_source=index">Baton Rouge, 1885, page 1, part 3</Link>).
 					</p>
 				</div>
 				<div>
@@ -122,19 +137,31 @@
 		</div>
 	</div>
 
-	<div class="hero-banner2 img-bg-3">
+	<div class="homepage-section">
 		<div>
-			<h3>Latest activity</h3>
-			<p><Link href="/activity">all activity</Link></p>
-			<SessionList {CONTEXT} limit={"10"} showThumbs={true} paginate={false} />
+			<div class="level" style="margin-bottom:0;">
+				<div class="level-left">
+					<div class="level-item">
+						<h3>Latest activity</h3>
+					</div>
+				</div>
+				<div class="level-right">
+					<div class="level-item">
+						<Link href="/activity">all activity &rarr;</Link>
+					</div>
+				</div>
+			</div>
+			<SessionList {CONTEXT} limit={"10"} showThumbs={true} />
 		</div>
 	</div>
 
-	<div class="hero-banner2" style="font-size:1.15em;">
+	<div class="homepage-section" style="font-size:1.15em;">
 		<div>
-			<SvelteMarkdown source={`OldInsuranceMaps.net is funded in part by the National Institutes of Health (National Institute on Aging: [R01AG080401](https://reporter.nih.gov/search/bCrnkRo-rkWJJXyXqsj44g/project-details/10582012)) through a partnership with University of Michigan [Institute for Social Research](https://isr.umich.edu/), University of Richmond [Digital Scholarship Lab](https://dsl.richmond.edu/), and the [National Community Reinvestment Coalition](https://ncrc.org). Read more in the [ISR press release](https://isr.umich.edu/news-events/news-releases/grant-to-enable-creation-of-new-data-resources-for-studying-structural-racism/).
+			<SvelteMarkdown source={`_OldInsuranceMaps.net_ is funded in part by the National Institutes of Health (National Institute on Aging: [R01AG080401](https://reporter.nih.gov/search/bCrnkRo-rkWJJXyXqsj44g/project-details/10582012)) through a partnership with University of Michigan [Institute for Social Research](https://isr.umich.edu/), University of Richmond [Digital Scholarship Lab](https://dsl.richmond.edu/), and the [National Community Reinvestment Coalition](https://ncrc.org). Read more in the [ISR press release](https://isr.umich.edu/news-events/news-releases/grant-to-enable-creation-of-new-data-resources-for-studying-structural-racism/).
 
-Many thanks also to our individual sponsors: Kevin H., Andrew M., Peter M., Pete Z., and Chris P.
+We have also worked in partnership with [OpenHistoricalMap](https://openhistoricalmap.org), [HistoryForge](https://historyforge.net), [Midlo Center for New Orleans Studies](https://www.uno.edu/academics/colaehd/la/history/midlo), [The Ohio State University Libraries](https://www.uno.edu/research/centers-and-institutes/midlo), and numerous other individuals who have found this while on their own quest to georeference Sanborn Maps.
+
+A special thanks also to those who have donated: Kevin H., Andrew M., Peter M., Pete Z., and Chris P.
 
 To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
 `} />
@@ -149,14 +176,13 @@ main {
 	flex-direction: column;
 	margin-right: -15px;
 	margin-left: -15px;
+	background: linear-gradient(0deg, rgba(255 255 255 / 60%), rgba(255 255 255 / 60%)), url(/static/img/no-1885-snippet1-reduce-50qual.jpg) -700px -200px;
+	background-attachment: fixed;
 }
 
 main > div {
-	margin-top: 35px;
-	background-color: rgba(255, 255, 255, .5);
+	margin-top: 40px;
 	padding: 15px;
-	border-top: 1px solid grey;
-	border-bottom: 1px solid grey;
 }
 
 main p {
@@ -171,37 +197,8 @@ main p {
 	text-align: center;
 }
 
-.img-bg-1 {
-	background: linear-gradient(0deg, rgba(255 255 255 / 60%), rgba(255 255 255 / 60%)), url(/static/img/no-1885-snippet1-reduce-50qual.jpg);
-}
-
-.img-bg-2 {
-	background: linear-gradient(0deg, rgba(255 255 255 / 60%), rgba(255 255 255 / 60%)), url(/static/img/no-1885-snippet1-reduce-50qual.jpg) -700px -200px;
-}
-
-.img-bg-3 {
-	background: linear-gradient(0deg, rgba(255 255 255 / 60%), rgba(255 255 255 / 60%)), url(/static/img/no-1885-snippet1-reduce-50qual.jpg) -700px -400px;
-}
-
-.hero-banner2 > div {
-	background: rgba(255,255,255, .7);
-	border: 2px solid black;
-	border-radius: 4px;
-	padding: 10px;
-	margin-bottom: 10px;
-}
-
-.hero-banner {
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	background-repeat: no-repeat;
-	background-position: center;
-	background-size: cover;
-}
-
-.hero-banner > div {
-	background: rgba(255,255,255, .6);
+.homepage-section > div {
+	background: rgba(255,255,255, .85);
 	border: 2px solid black;
 	border-radius: 4px;
 	padding: 10px;
@@ -256,14 +253,6 @@ button.link-btn {
 @media only screen and (max-width: 760px) {
 	main {
 		max-width: none;
-	}
-
-	.hero-banner {
-		flex-direction: column;
-	}
-
-	.hero-banner > div {
-		width: 100%;
 	}
 
 	.hero-banner-inner {

@@ -13,9 +13,9 @@
         {#if item.access == "none"}
         Only admins can georeference this item's content.
         {:else if item.access == "sponsor"}
-        Only contributors linked to this item's sponsor can georeference it's content.
+        Only users linked to this item's sponsor can georeference it's content.
         {:else if item.access == "any"}
-        Any logged in contributors can georeference this item's content.
+        Any logged in users can georeference this item's content.
         {/if}
     </em></p>
     
