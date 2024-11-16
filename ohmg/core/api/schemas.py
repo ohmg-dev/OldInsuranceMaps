@@ -170,6 +170,7 @@ class RegionSchema(Schema):
     nickname: str
     slug: str
     file: Optional[str]
+    created_by: str
     thumbnail: Optional[str]
     boundary: Optional[dict]
     georeferenced: bool
@@ -193,10 +194,14 @@ class RegionSchema(Schema):
             return json.loads(obj.boundary.geojson)
         else:
             return None
-        
+
     @staticmethod
     def resolve_page_number(obj):
         return obj.document.page_number
+
+    @staticmethod
+    def resolve_created_by(obj):
+        return obj.created_by.username
 
 
 class RegionFullSchema(Schema):
@@ -261,6 +266,8 @@ class LayerSchema(Schema):
     title: str
     nickname: str
     slug: str
+    created_by: str
+    last_updated_by: str
     image_url: Optional[str]
     mask: Optional[dict]
     gcps_geojson: Optional[dict]
@@ -299,7 +306,14 @@ class LayerSchema(Schema):
             logger.warning(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
             return None
         return obj.region.gcp_group.as_geojson
-    
+
+    @staticmethod
+    def resolve_created_by(obj):
+        return obj.created_by.username
+
+    @staticmethod
+    def resolve_last_updated_by(obj):
+        return obj.last_updated_by.username
 
 class LayerFullSchema(Schema):
     id: int

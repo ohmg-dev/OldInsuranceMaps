@@ -538,9 +538,13 @@ let processing = false;
 										<MapPin /> georeference
 									</Link></li>
 									<li><button
-										disabled={!CONTEXT.user.is_staff}
+										disabled={!CONTEXT.user.is_staff && CONTEXT.user.username != region.created_by}
 										class="is-text-link"
-										title="undo this preparation"
+										title={
+											!CONTEXT.user.is_staff && CONTEXT.user.username != region.created_by ?
+											`Only ${region.created_by} or an admin and can undo this preparation.` :
+											"Undo all preparation."
+										}
 										style="display:flex; align-items:center;"
 										on:click={() => {postDocumentUnprepare(region.document_id)}}>
 										<ArrowCounterClockwise/> unprepare
@@ -551,6 +555,7 @@ let processing = false;
 										title="click to move this document to the non-map section"
 										on:click={() => {postRegionCategory(region.id, "non-map")}}>
 										<FileText /> set as non-map</button></li>
+									<li><em>{region.created_by}</em></li>
 								</ul>
 								{/if}
 							</div>
@@ -631,9 +636,13 @@ let processing = false;
 										</Link>
 									</li>
 									<li><button
-										disabled={!CONTEXT.user.is_staff}
+										disabled={!CONTEXT.user.is_staff && CONTEXT.user.username != layer.created_by}
 										class="is-text-link"
-										title="This document does not need to be split"
+										title={
+											!CONTEXT.user.is_staff && CONTEXT.user.username != layer.created_by ?
+											`Only ${layer.created_by} or an admin and can undo this layer.` :
+											"Undo all georeferencing for this layer."
+										}
 										on:click={() => {
 											undoGeorefLayerId = layer.id;
 											getModal('modal-confirm-ungeoreference').open()
@@ -643,6 +652,7 @@ let processing = false;
 									<li><Link href={layer.urls.resource} title="downloads and web services">
 										<DownloadSimple /> downloads & web services</Link>
 									</li>
+									<li><em>{layer.created_by}{#if layer.created_by != layer.last_updated_by}&nbsp;+ {layer.last_updated_by}{/if}</em></li>
 								</ul>
 								{/if}
 								{#if classifyingLayers}
