@@ -6,7 +6,23 @@ from PIL import Image
 from django.conf import settings
 from django.urls import reverse
 
-## ~~ IIIF support ~~
+from ohmg.core.utils import full_reverse
+
+def region_as_iiif_resource(region):
+    return {
+        "id": full_reverse("iiif_resource_view", args=(region.pk,)),
+        "type": "Annotation",
+        "@context": [
+            "http://iiif.io/api/extension/georef/1/context.json",
+            "http://iiif.io/api/presentation/3/context.json",
+        ],
+        "created": "<timestamp>",
+        "modified": "<timestamp>",
+        "motivation": "georeferencing",
+        "target": ""
+    }
+
+## ~~ IIIF support (Old content) ~~
 
 def document_as_iiif_resource(document, iiif_server=False):
 

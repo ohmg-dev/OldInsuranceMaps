@@ -13,6 +13,7 @@ urlpatterns = [
     path('', include('ohmg.frontend.urls')),
     path('', include('ohmg.accounts.urls')),
     path('', include('ohmg.georeference.urls')),
+    path('', include('ohmg.iiif.urls')),
     path('admin/', admin.site.urls, name="admin"),
     path('account/', include("allauth.urls")),
     path('avatar/', include('avatar.urls')),

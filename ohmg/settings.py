@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     'ohmg.georeference',
     'ohmg.loc_insurancemaps',
     'ohmg.places',
+    'ohmg.iiif',
 ]
 
 MARKDOWNX_IMAGE_MAX_SIZE = { 'size': (800,0), 'quality': 90 }
