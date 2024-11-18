@@ -253,8 +253,7 @@ function handleMultimaskSubmitResponse(response) {
       unchanged = true;
       resetMosaic()
     } else {
-      let errMsg = "Error! MultiMask not saved."
-      errMsg += "\nYou must remove and remake the following masks:"
+      let errMsg = "Error! MultiMask not saved. You must remove and remake the following masks:\n"
       errMsg += response.message
       alert(errMsg)
     }
