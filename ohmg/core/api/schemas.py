@@ -201,8 +201,10 @@ class RegionSchema(Schema):
 
     @staticmethod
     def resolve_created_by(obj):
-        return obj.created_by.username
-
+        if obj.created_by:
+            return obj.created_by.username
+        else:
+            return ""
 
 class RegionFullSchema(Schema):
     id: int
@@ -309,11 +311,17 @@ class LayerSchema(Schema):
 
     @staticmethod
     def resolve_created_by(obj):
-        return obj.created_by.username
+        if obj.created_by:
+            return obj.created_by.username
+        else:
+            return ""
 
     @staticmethod
     def resolve_last_updated_by(obj):
-        return obj.last_updated_by.username
+        if obj.last_updated_by:
+            return obj.last_updated_by.username
+        else:
+            return ""
 
 class LayerFullSchema(Schema):
     id: int
