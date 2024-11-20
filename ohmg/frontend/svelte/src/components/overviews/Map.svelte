@@ -413,20 +413,20 @@ let processing = false;
 		</div>
 		<div>
 			<div style="display:flex; align-items:center;">
+				{#if MAP.progress.loaded_pages < MAP.progress.total_pages && userCanEdit && !sheetsLoading}
+					<button class="button is-primary is-small" style="margin-left:10px; margin-right:10px;" on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Documents ({MAP.document_sources.length})</button>
+				{/if}
 				<span>
 					<em>
 					{#if sheetsLoading}
 					Loading sheet {MAP.progress.loaded_pages+1}/{MAP.progress.total_pages}... (you can safely leave this page).
 					{:else if MAP.progress.loaded_pages == 0}
-					No sheets loaded yet...
+					No content loaded yet...
 					{:else if MAP.progress.loaded_pages < MAP.progress.total_pages }
 					{MAP.progress.loaded_pages} of {MAP.progress.total_pages} sheet{#if MAP.progress.total_pages != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Documents</strong> to retry)
 					{/if}
 					</em>
 				</span>
-				{#if MAP.progress.loaded_pages < MAP.progress.total_pages && userCanEdit && !sheetsLoading}
-					<button class="button is-primary is-small" style="margin-left:10px;" on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Documents ({MAP.document_sources.length})</button>
-				{/if}
 			</div>
 			{#if !CONTEXT.user.is_authenticated}
 			<SigninReminder csrfToken={CONTEXT.csrf_token} />

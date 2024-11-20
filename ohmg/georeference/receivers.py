@@ -38,7 +38,10 @@ def handle_layer_deletion(sender, instance, **kwargs):
     instance.region.save()
 
     # delete GCP Group attached to the region
-    instance.region.gcp_group.delete()
+    try:
+        instance.region.gcp_group.delete()
+    except Exception as e:
+        logger.warning(f"instance.region.gcp_group.delete(): {e}")
 
     # remove layer mask from layerset if present
     if instance.layerset:

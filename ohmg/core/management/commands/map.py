@@ -21,13 +21,6 @@ class Command(BaseCommand):
                 "create-documents",
                 "create-lookups",
                 "refresh-lookups",
-
-                "make-sheets",
-                "generate-mosaic-cog",
-                "generate-mosaic-json",
-                "generate-thumbnails",
-                "set-extent",
-                "warp-layers",
             ],
             help="the operation to perform",
         ),
@@ -56,11 +49,6 @@ class Command(BaseCommand):
             action="store_true",
             default=False,
             help="overwrite existing content with new input",
-        ),
-        parser.add_argument(
-            "--load-documents",
-            action="store_true",
-            help="boolean to indicate whether documents should be made for the sheets",
         ),
         parser.add_argument(
             "--background",
@@ -117,12 +105,12 @@ class Command(BaseCommand):
 
                     key, value = opt.split("=")
                     importer_kwargs[key] = value
-    
+
                 importer.run_import(**importer_kwargs)
 
             elif options['csv-file']:
                 importer.run_bulk_import(options['csv-file'])
-        
+
         if operation == "remove":
             try:
                 map = Map.objects.get(pk=options["pk"])
@@ -135,7 +123,7 @@ class Command(BaseCommand):
             for d in documents:
                 regions += list(d.regions.all())
             layers = [i.layer for i in regions if i.layer]
-            gcp_groups = [i.region.gcp_group for i in layers]
+            gcp_groups = [i.region.gcp_group for i in layers if i.region.gcp_group]
             gcps = []
             for gcp_group in gcp_groups:
                 gcps += list(gcp_group.gcps.all())
@@ -180,11 +168,11 @@ class Command(BaseCommand):
         if operation == "refresh-lookups":
             if options['pk']:
                 maps = [Map.objects.get(pk=options["pk"])]
-            elif not options['skip_existing']:
+            elif options['skip_existing']:
                 maps = Map.objects.all().filter(item_lookup__isnull=True)
             else:
                 maps = Map.objects.all()
-            
+
             for map in maps:
                 print(map)
                 map.update_item_lookup()
