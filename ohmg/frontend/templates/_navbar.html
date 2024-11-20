@@ -123,8 +123,8 @@
 						<label for="id_password2">Password (again):</label>
 						<input type="password" name="password2" placeholder="Password (again)" autocomplete="new-password" required="" id="id_password2">
 					</p>
-					<!-- <p><label style="width:100%;"> I understand that all work I perform on this site will be licensed <a href="https://creativecommons.org/licenses/by/4.0/deed.en">CC BY 4.0</a>.<input type="checkbox" bind:value={agreementCheck} /></label></p> -->
-					<button class="button is-primary" type="submit">Sign Up</button>
+					<p><label style="width:100%;"><input id="agreement-check" type="checkbox" onclick="handleAgreementCheck()" checked=false /> I have read and understand the <a href="/data-agreement" target="_blank">Data Agreement &nearr;</a>.</label></p>
+					<button id="submit-button" class="button is-primary" type="submit" disabled>Sign Up</button>
 				</form>
 			</div>
 		</div>
@@ -159,5 +159,8 @@
 		document.getElementById('topModal').style.visibility = 'hidden'
 
 		document.body.style.overflow="" 
+	}
+	function handleAgreementCheck() {
+		document.getElementById("submit-button").disabled = !document.getElementById("agreement-check").checked;
 	}
 </script>
