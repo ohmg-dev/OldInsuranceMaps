@@ -70,6 +70,8 @@ class MapListSchema(Schema):
     mj_exists: bool
     gt_exists: bool
     urls: dict
+    featured: bool
+    hidden: bool
 
     @staticmethod
     def resolve_load_date(obj):
@@ -529,6 +531,8 @@ class MapFullSchema(Schema):
     loaded_by: Optional[UserSchemaLite]
     status: str = ""
     access: str = ""
+    featured: bool
+    hidden: bool
     document_sources: list
     documents: List[DocumentSchema]
     item_lookup: dict

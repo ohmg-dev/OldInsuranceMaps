@@ -13,6 +13,7 @@
 	export let USER_SUBSCRIBED;
 	export let PLACES_CT;
 	export let MAP_CT;
+	export let FEATURED_MAPS = [];
 
 	let showBrowseMap = !CONTEXT.on_mobile;
 	$: showBrowseMapBtnLabel = showBrowseMap ? "Hide map finder" : "Show map finder";
@@ -43,20 +44,32 @@
 	</div>
 
 	<div class="homepage-section">
-		<div class="hero-banner-inner">
-			<div>
-			<h3>Recently Added Maps</h3>
-			<LatestAdditions {CONTEXT}/>
-			<span><em>Want to see more? View <Link href="/search/#items">all items</Link> and sort by <strong>Load date</strong>.</em></span>
-		</div>
-			<div id="link-list">
-				<h3>Search All Maps</h3>
-				<ul>
-					<li><Link href="/search/#map">By location ({PLACES_CT})</Link></li>
-					<li><Link href="/search/#places">By place name ({PLACES_CT})</Link></li>
-					<li><Link href="/search/#places">By item ({MAP_CT})</Link></li>
-				</ul>
-				<span><em>To request more maps, <Link href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link" external={true}>fill out this form</Link> or <Link href="/contact">get in touch</Link>.</em></span>
+		<div>
+			<div class="hero-banner-inner">
+				{#if FEATURED_MAPS}
+				<div>
+					<h3>Featured</h3>
+					<ul>
+						{#each FEATURED_MAPS as map}
+						<li><Link href={`/map/${map.id}`}>{map.title}</Link></li>
+						{/each}
+					</ul>
+				</div>
+				{/if}
+				<div>
+					<h3>Recently added</h3>
+					<LatestAdditions {CONTEXT}/>
+					<span><em>Want to see more? View <Link href="/search/#items">all items</Link> and sort by <strong>Load date</strong>.</em></span>
+				</div>
+				<div >
+					<h3>Browse all</h3>
+					<ul>
+						<li><Link href="/search/#map">By location ({PLACES_CT})</Link></li>
+						<li><Link href="/search/#places">By place name ({PLACES_CT})</Link></li>
+						<li><Link href="/search/#places">By item ({MAP_CT})</Link></li>
+					</ul>
+					<span><em><Link href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link" external={true}>request more LOC maps</Link></em></span>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -193,10 +206,6 @@ main p {
 	scroll-margin-top: 40px;
 }
 
-#link-list {
-	text-align: center;
-}
-
 .homepage-section > div {
 	background: rgba(255,255,255, .85);
 	border: 2px solid black;
@@ -256,11 +265,7 @@ button.link-btn {
 	}
 
 	.hero-banner-inner {
-		flex-direction: column-reverse;
-	}
-
-	#link-list {
-		width: 100%;
+		flex-direction: column;
 	}
 }
 

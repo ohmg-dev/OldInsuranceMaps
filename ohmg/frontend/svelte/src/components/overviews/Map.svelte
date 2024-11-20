@@ -416,6 +416,9 @@ let processing = false;
 				{#if MAP.progress.loaded_pages < MAP.progress.total_pages && userCanEdit && !sheetsLoading}
 					<button class="button is-primary is-small" style="margin-left:10px; margin-right:10px;" on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Documents ({MAP.document_sources.length})</button>
 				{/if}
+				{#if MAP.status == "load document error"}
+					<span>Error loading documents, please contact admin: <a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a>.</span>
+				{/if}
 				<span>
 					<em>
 					{#if sheetsLoading}
@@ -628,8 +631,9 @@ let processing = false;
 									<li><em>session in progress...</em></li>
 									<li>user: {sessionLocks.lyrs[layer.id].user.username}</li>
 								</ul>
-								{:else if userCanEdit}
+								{:else}
 								<ul>
+									{#if userCanEdit}
 									<li>
 										<Link href={layer.urls.georeference} title="edit georeferencing">
 											<MapPin/> edit georeferencing
@@ -649,9 +653,12 @@ let processing = false;
 										}}>
 										<ArrowCounterClockwise/> ungeoreference
 									</button></li>
+									{/if}
+									{#if !MAP.hidden}
 									<li><Link href={layer.urls.resource} title="downloads and web services">
 										<DownloadSimple /> downloads & web services</Link>
 									</li>
+									{/if}
 									<li><em>{layer.created_by}{#if layer.created_by != layer.last_updated_by}&nbsp;+ {layer.last_updated_by}{/if}</em></li>
 								</ul>
 								{/if}

@@ -108,10 +108,11 @@ def list_maps(request,
         locale_inclusive: bool = False,
     ):
     # overall, not really optimized. should refactor at some point...
+    maps = Map.objects.exclude(hidden=True)
     if sort == "load_date":
-        maps = Map.objects.all().order_by('-load_date')
+        maps = maps.order_by('-load_date')
     else:
-        maps = Map.objects.all().order_by('title')
+        maps = maps.order_by('title')
     
     if locale:
         place = Place.objects.get(slug=locale)

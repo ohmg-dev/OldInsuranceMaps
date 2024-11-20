@@ -73,6 +73,7 @@ class Map(models.Model):
     STATUS_CHOICES = (
         ("not started", "not started"),
         ("initializing...", "initializing..."),
+        ("document load error", "document load error"),
         ("ready", "ready"),
     )
 
@@ -161,6 +162,8 @@ class Map(models.Model):
         blank=True,
         default=dict,
     )
+    featured = models.BooleanField(default=False, help_text="show in featured section")
+    hidden = models.BooleanField(default=False, help_text="this map will be excluded from api calls (but url available directly)")
     locales = models.ManyToManyField(
         Place,
         blank=True,
@@ -310,22 +313,26 @@ class Map(models.Model):
         }
         """
         self.set_status("initializing...")
-        for source in self.document_sources:
-            document, created = Document.objects.get_or_create(
-                map=self,
-                page_number=source["page_number"],
-            )
-            document.source_url = source["path"]
-            document.iiif_info = source["iiif_info"]
-            document.save()
-            if created:
-                logger.debug(f"{document} ({document.pk}) created.")
+        try:
+            for source in self.document_sources:
+                document, created = Document.objects.get_or_create(
+                    map=self,
+                    page_number=source["page_number"],
+                )
+                document.source_url = source["path"]
+                document.iiif_info = source["iiif_info"]
+                document.save()
+                if created:
+                    logger.debug(f"{document} ({document.pk}) created.")
 
-        logger.debug(f"Map {self.title} ({self.pk}) has {len(self.documents.all())} Documents")
-        if get_files:
-            for document in natsorted(self.documents.all(), key=lambda k: k.title):
-                document.load_file_from_source()
-
+            logger.debug(f"Map {self.title} ({self.pk}) has {len(self.documents.all())} Documents")
+            if get_files:
+                for document in natsorted(self.documents.all(), key=lambda k: k.title):
+                    document.load_file_from_source()
+        except Exception as e:
+            logger.error(e)
+            self.set_status("document load error")
+            raise e
         self.set_status("ready")
 
     def remove_sheets(self):
