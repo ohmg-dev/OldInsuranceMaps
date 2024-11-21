@@ -6,7 +6,6 @@ import logging
 from django.conf import settings
 
 from ohmg.core.models import Map
-from ohmg.core.utils import random_alnum
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
@@ -105,17 +104,25 @@ class BaseImporter():
             print(json.dumps(self.parsed_data, indent=2))
             return None
 
-        map = Map.objects.create(
-            title=self.parsed_data.get("title"),
-            identifier=self.parsed_data.get("identifier"),
-            creator=self.parsed_data.get("creator"),            
-            publisher=self.parsed_data.get("publisher"),            
-            year=self.parsed_data.get("year"),
-            month=self.parsed_data.get("month"),
-            volume_number=self.parsed_data.get("volume_number"),
-            document_page_type=self.parsed_data.get('document_page_type', "page"),
-            document_sources=self.parsed_data.get("document_sources", []),
-        )
+        if self.overwrite:
+            map, created = Map.objects.get_or_create(
+                identifier=self.parsed_data.get("identifier")
+            )
+        else:
+            map = Map.objects.create(
+                identifier=self.parsed_data.get("identifier"),
+            )
+
+        map.title=self.parsed_data.get("title")
+        map.creator=self.parsed_data.get("creator")
+        map.publisher=self.parsed_data.get("publisher")
+        map.year=self.parsed_data.get("year")
+        map.month=self.parsed_data.get("month")
+        map.volume_number=self.parsed_data.get("volume_number")
+        map.document_page_type=self.parsed_data.get('document_page_type', "page")
+        map.document_sources=self.parsed_data.get("document_sources", [])
+        map.save()
+
         map.locales.set((locale,))
         map.update_place_counts()
         map.get_layerset('main-content', create=True)

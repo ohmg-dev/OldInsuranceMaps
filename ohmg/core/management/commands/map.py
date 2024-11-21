@@ -108,8 +108,8 @@ class Command(BaseCommand):
 
                 importer.run_import(**importer_kwargs)
 
-            elif options['csv-file']:
-                importer.run_bulk_import(options['csv-file'])
+            elif options['csv_file']:
+                importer.run_bulk_import(options['csv_file'])
 
         if operation == "remove":
             try:

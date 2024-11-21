@@ -19,7 +19,7 @@ opts are supported:
         "year",
         "locale",
     ]
-    
+
     def parse(self):
 
         print(self.input_data)
@@ -35,7 +35,7 @@ opts are supported:
         else:
             id = random_alnum().upper()
 
-        file_path = self.input_data.get('file-path')
+        file_paths = self.input_data.get('file-path').split(";")
         title = self.input_data.get('title', "test map")
         year = self.input_data.get('year')
         if year:
@@ -44,11 +44,11 @@ opts are supported:
         locale = self.input_data.get('locale')
 
         document_sources = [{
-            "path": file_path,
+            "path": fp,
             "iiif_info": None,
-            "page_number": None,
-        }]
-        
+            "page_number": None if len(file_paths) == 1 else i,
+        } for i, fp in enumerate(file_paths, start=1)]
+
         self.parsed_data = {
             'identifier': id,
             'title': title,
