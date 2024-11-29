@@ -607,6 +607,7 @@ class MapResourcesSchema(Schema):
     identifier: str
     title: str
     year: int = 0
+    hidden: bool
     documents: List[DocumentSchema]
     regions: List[RegionSchema]
     volume_number: Optional[str]

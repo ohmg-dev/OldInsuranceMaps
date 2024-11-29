@@ -206,7 +206,7 @@ function goToRegion() {
     </button>
     {#if sectionVis['summary']}
     <div transition:slide>
-      <ResourceDetails {CONTEXT} {RESOURCE} />
+      <ResourceDetails {CONTEXT} {RESOURCE} {MAP} />
     </div>
     {/if}
   </section>
