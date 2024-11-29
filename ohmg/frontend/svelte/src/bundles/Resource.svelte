@@ -185,7 +185,7 @@ function goToRegion() {
 		<select class="item-select" bind:value={currentDoc} on:change={goToDocument}>
 			<option value="---" disabled>go to...</option>
 			{#each MAP.documents as d}
-			<option value={d.id}>p{d.page_number}</option>
+			<option value={d.id}>{d.nickname}</option>
 			{/each}
 		</select>
     {#if MAP.regions.length > 0}
@@ -193,7 +193,7 @@ function goToRegion() {
     <select class="item-select" bind:value={currentReg} on:change={goToRegion}>
 			<option value="---" disabled>go to...</option>
 			{#each MAP.regions as r}
-			<option value={r.id}>p{r.page_number}{r.division_number ? ` [${r.division_number}]` : ''}</option>
+			<option value={r.id}>{r.nickname}</option>
 			{/each}
 		</select>
     {/if}
@@ -206,7 +206,7 @@ function goToRegion() {
     </button>
     {#if sectionVis['summary']}
     <div transition:slide>
-      <ResourceDetails {CONTEXT} {RESOURCE} />
+      <ResourceDetails {CONTEXT} {RESOURCE} {MAP} />
     </div>
     {/if}
   </section>

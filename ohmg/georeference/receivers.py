@@ -26,8 +26,9 @@ def update_item_lookup(sender, instance, **kwargs):
 
 @receiver([signals.post_save], sender=Layer)
 def set_georeferenced_on_region(sender, instance, **kwargs):
-    instance.region.georeferenced = True
-    instance.region.save()
+    if not hasattr(instance, 'skip_map_lookup_update') or instance.skip_map_lookup_update is False:
+        instance.region.georeferenced = True
+        instance.region.save()
 
 
 @receiver([signals.post_delete], sender=Layer)
@@ -38,7 +39,10 @@ def handle_layer_deletion(sender, instance, **kwargs):
     instance.region.save()
 
     # delete GCP Group attached to the region
-    instance.region.gcp_group.delete()
+    try:
+        instance.region.gcp_group.delete()
+    except Exception as e:
+        logger.warning(f"instance.region.gcp_group.delete(): {e}")
 
     # remove layer mask from layerset if present
     if instance.layerset:

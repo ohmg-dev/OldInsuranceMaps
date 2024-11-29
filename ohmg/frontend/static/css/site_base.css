@@ -108,22 +108,7 @@ input[type="range"] {
 	background: var(--secondary-background-color);
 	box-shadow: gray 0px 0px 5px;
 	min-height:calc(100vh - 105px)
-  }
-  @media (min-width: 768px) {
-	.container {
-	  width: 750px;
-	}
-  }
-  @media (min-width: 992px) {
-	.container {
-	  width: 970px;
-	}
-  }
-  @media (min-width: 1200px) {
-	.container {
-	  width: 1170px;
-	}
-  }
+}
 
 a {
 	color: var(--theme-highlight-color);

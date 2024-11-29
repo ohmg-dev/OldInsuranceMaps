@@ -17,7 +17,9 @@ from django.utils.functional import cached_property
 
 from ohmg.core.utils import (
     slugify,
-    get_jpg_from_jp2_url,
+    download_image,
+    copy_local_file_to_cache,
+    convert_img_format,
     MONTH_CHOICES,
     DAY_CHOICES,
 )
@@ -27,7 +29,6 @@ from ohmg.core.renderers import (
     get_extent_from_file,
     generate_document_thumbnail_content,
     generate_layer_thumbnail_content,
-    convert_img_to_pyramidal_tiff,
 )
 from ohmg.places.models import Place
 
@@ -72,6 +73,7 @@ class Map(models.Model):
     STATUS_CHOICES = (
         ("not started", "not started"),
         ("initializing...", "initializing..."),
+        ("document load error", "document load error"),
         ("ready", "ready"),
     )
 
@@ -160,6 +162,8 @@ class Map(models.Model):
         blank=True,
         default=dict,
     )
+    featured = models.BooleanField(default=False, help_text="show in featured section")
+    hidden = models.BooleanField(default=False, help_text="this map will be excluded from api calls (but url available directly)")
     locales = models.ManyToManyField(
         Place,
         blank=True,
@@ -298,26 +302,37 @@ class Map(models.Model):
         return layerset
 
     def create_documents(self, get_files=False):
-        """ TODO: This method is still 100% reliant on having LOC content in the
-        document_sources field. """
+        """ Iterates the list of items in self.document_sources and create Document
+        objects for each one. If get_files=True, load files from their path.
+
+        A document source entry should look like:
+        {
+            path: <url (required)>
+            iiif_info: <url to iiif info.json document (optional)>
+            page_number: <str for page id (optional but must be unique across all documents in list)>
+        }
+        """
         self.set_status("initializing...")
-        if self.document_sources:
-            from ohmg.core.importers.loc_sanborn import LOCParser
-            for fileset in self.document_sources:
-                parsed = LOCParser(fileset=fileset)
-                docs = Document.objects.filter(map=self)
-                for d in docs:
-                    print(d.__dict__)
+        try:
+            for source in self.document_sources:
                 document, created = Document.objects.get_or_create(
                     map=self,
-                    page_number=parsed.sheet_number,
+                    page_number=source["page_number"],
                 )
-                document.source_url = parsed.jp2_url
-                document.iiif_info = parsed.iiif_service
+                document.source_url = source["path"]
+                document.iiif_info = source["iiif_info"]
                 document.save()
-                logger.debug(f"created new? {created} {document} ({document.pk})")
-                if get_files:
-                    document.download_file()
+                if created:
+                    logger.debug(f"{document} ({document.pk}) created.")
+
+            logger.debug(f"Map {self.title} ({self.pk}) has {len(self.documents.all())} Documents")
+            if get_files:
+                for document in natsorted(self.documents.all(), key=lambda k: k.title):
+                    document.load_file_from_source()
+        except Exception as e:
+            logger.error(e)
+            self.set_status("document load error")
+            raise e
         self.set_status("ready")
 
     def remove_sheets(self):
@@ -352,7 +367,7 @@ class Map(models.Model):
         from ohmg.core.api.schemas import (DocumentSchema, RegionSchema, LayerSchema)
         regions = self.regions
         items = {
-            "unprepared": [DocumentSchema.from_orm(i).dict() for i in self.documents.filter(prepared=False)],
+            "unprepared": [DocumentSchema.from_orm(i).dict() for i in self.documents.filter(prepared=False).exclude(file="")],
             "prepared": [RegionSchema.from_orm(i).dict() for i in regions.filter(georeferenced=False, is_map=True)],
             "georeferenced": [LayerSchema.from_orm(i).dict() for i in self.layers],
             "nonmaps": [RegionSchema.from_orm(i).dict() for i in regions.filter(is_map=False)],
@@ -449,6 +464,14 @@ class Document(models.Model):
         return self.title
 
     @cached_property
+    def nickname(self) -> str:
+        if self.page_number:
+            nickname = f"{self.map.document_page_type} {self.page_number}"
+        else:
+            nickname = self.map.title
+        return nickname
+
+    @cached_property
     def image_size(self):
         return get_image_size(Path(self.file.path)) if self.file else None
     
@@ -466,21 +489,7 @@ class Document(models.Model):
         else:
             return None
 
-    def create_from_file(self, file_path: Path, volume=None, sheet_no=None):
-
-        tif_path = convert_img_to_pyramidal_tiff(file_path)
-
-        sheet = Document(
-            volume=volume,
-            source=file_path,
-        )
-        sheet.save()
-
-        with open(tif_path, "rb") as openf:
-            sheet.file.save(Path(tif_path).name, File(openf))
-        return sheet
-
-    def download_file(self):
+    def load_file_from_source(self, overwrite=False):
 
         log_prefix = f"{self.__str__()} |"
         logger.info(f"{log_prefix} start load")
@@ -489,10 +498,30 @@ class Document(models.Model):
             logger.warning(f"{log_prefix} no source_url - cancelling download")
             return
 
-        if not self.file:
-            jpg_path = get_jpg_from_jp2_url(self.source_url)
-            with open(jpg_path, "rb") as new_file:
-                self.file.save(f"{self.slug}.jpg", File(new_file))
+        if self.file != "" and not overwrite:
+            logger.warning(f"{log_prefix} won't overwrite existing file")
+            return
+
+        src_path = Path(self.source_url)
+        tmp_path = Path(settings.CACHE_DIR, "images", src_path.name)
+
+        if self.source_url.startswith("http"):
+            out_file = download_image(self.source_url, tmp_path)
+            if out_file is None:
+                logger.error(f"can't get {self.source_url} -- skipping")
+                return
+        else:
+            copy_local_file_to_cache(src_path, tmp_path)
+
+        if not self.source_url.endswith(".jpg"):
+            tmp_path = convert_img_format(tmp_path, force=True)
+
+        if not tmp_path.exists():
+            logger.error(f"{log_prefix} can't retrieve source: {self.source_url}. Moving to next Document.")
+            return
+
+        with open(tmp_path, "rb") as new_file:
+            self.file.save(f"{self.slug}{tmp_path.suffix}", File(new_file))
 
         self.load_date = datetime.now()
         self.save()
@@ -586,20 +615,27 @@ class Region(models.Model):
         return self.title
 
     @cached_property
+    def nickname(self) -> str:
+        nickname = self.document.nickname
+        if self.division_number:
+            nickname += f" [{self.division_number}]"
+        return nickname
+
+    @cached_property
     def map(self) -> Map:
         return self.document.map
 
     @cached_property
     def image_size(self):
         return get_image_size(Path(self.file.path)) if self.file else None
-    
+
     @property
     def tranformation(self):
         if self.gcp_group:
             return self.gcp_group.transformation
         else:
             return None
-    
+
     @property
     def gcps_geojson(self):
         if self.gcp_group:
@@ -651,7 +687,7 @@ class Region(models.Model):
             if self.division_number:
                 display_name += f" [{self.division_number}]"
             self.slug = slugify(display_name, join_char="_")
-        
+
         self.title = self.document.title
         if self.division_number:
             self.title += f" [{self.division_number}]"
@@ -710,6 +746,10 @@ class Layer(models.Model):
         return self.title
 
     @cached_property
+    def nickname(self) -> str:
+        return self.region.nickname
+
+    @cached_property
     def map(self) -> Map:
         return self.region.document.map
 
@@ -753,7 +793,7 @@ class Layer(models.Model):
 
     def get_georeference_summary(self):
         return self.get_document().get_georeference_summary()
-    
+
     def set_thumbnail(self):
         if self.file is not None:
             if self.thumbnail:

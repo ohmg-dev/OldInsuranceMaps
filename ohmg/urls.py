@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
 from django.contrib.sitemaps.views import sitemap
+from django.views.generic import TemplateView
 
 from ohmg.core.api.routes import beta2
 from .sitemap import sitemaps
@@ -13,6 +14,8 @@ urlpatterns = [
     path('', include('ohmg.frontend.urls')),
     path('', include('ohmg.accounts.urls')),
     path('', include('ohmg.georeference.urls')),
+    path('', include('ohmg.iiif.urls')),
+    path('forum-embed-test/', TemplateView.as_view(template_name="forum-embed.html")),
     path('admin/', admin.site.urls, name="admin"),
     path('account/', include("allauth.urls")),
     path('avatar/', include('avatar.urls')),

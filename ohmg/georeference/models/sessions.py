@@ -526,6 +526,8 @@ class GeorefSession(SessionBase):
 
             existing_file_path = None
         else:
+            layer.last_updated_by = self.user
+            layer.save()
             logger.debug(f"updating existing layer, {layer} ({layer.pk})")
             existing_file_path = layer.file.path if layer.file else None
 
@@ -566,6 +568,7 @@ class GeorefSession(SessionBase):
         )
         self.reg2.gcp_group = gcp_group
         self.reg2.save()
+        self.reg2.map.update_item_lookup()
 
         self.update_stage("finished", save=False)
         self.update_status("success", save=False)

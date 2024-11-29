@@ -70,6 +70,8 @@ class MapListSchema(Schema):
     mj_exists: bool
     gt_exists: bool
     urls: dict
+    featured: bool
+    hidden: bool
 
     @staticmethod
     def resolve_load_date(obj):
@@ -145,6 +147,7 @@ class DocumentFullSchema(Schema):
 class DocumentSchema(Schema):
     id: int
     title: str
+    nickname: str
     slug: str
     page_number: Optional[str]
     file: Optional[str]
@@ -166,8 +169,10 @@ class RegionSchema(Schema):
     id: int
     document_id: int
     title: str
+    nickname: str
     slug: str
     file: Optional[str]
+    created_by: str
     thumbnail: Optional[str]
     boundary: Optional[dict]
     georeferenced: bool
@@ -191,11 +196,17 @@ class RegionSchema(Schema):
             return json.loads(obj.boundary.geojson)
         else:
             return None
-        
+
     @staticmethod
     def resolve_page_number(obj):
         return obj.document.page_number
 
+    @staticmethod
+    def resolve_created_by(obj):
+        if obj.created_by:
+            return obj.created_by.username
+        else:
+            return ""
 
 class RegionFullSchema(Schema):
     id: int
@@ -257,7 +268,10 @@ class RegionFullSchema(Schema):
 class LayerSchema(Schema):
     id: int
     title: str
+    nickname: str
     slug: str
+    created_by: str
+    last_updated_by: str
     image_url: Optional[str]
     mask: Optional[dict]
     gcps_geojson: Optional[dict]
@@ -296,7 +310,20 @@ class LayerSchema(Schema):
             logger.warning(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
             return None
         return obj.region.gcp_group.as_geojson
-    
+
+    @staticmethod
+    def resolve_created_by(obj):
+        if obj.created_by:
+            return obj.created_by.username
+        else:
+            return ""
+
+    @staticmethod
+    def resolve_last_updated_by(obj):
+        if obj.last_updated_by:
+            return obj.last_updated_by.username
+        else:
+            return ""
 
 class LayerFullSchema(Schema):
     id: int
@@ -389,7 +416,7 @@ class LayerSetLayer(Schema):
 
     id: int
     title: str
-    local_title: str
+    nickname: str
     slug: str
     urls: dict
     extent: Optional[list]
@@ -403,18 +430,6 @@ class LayerSetLayer(Schema):
             "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
             "georeference": f"/georeference/{obj.region.pk}/",
         }
-
-    @staticmethod
-    def resolve_local_title(obj):
-        # TODO: this should probably be saved onto the model itself
-        if obj.region:
-            lt = obj.region.document.page_number
-            if obj.region.division_number:
-                lt = f"{lt} [{obj.region.division_number}]"
-        else:
-            lt = obj.title.split(" ")[-1]
-        return lt
-
 
 class LayerSetSchema(Schema):
 
@@ -515,7 +530,9 @@ class MapFullSchema(Schema):
     year: int = 0
     loaded_by: Optional[UserSchemaLite]
     status: str = ""
-    access: str
+    access: str = ""
+    featured: bool
+    hidden: bool
     document_sources: list
     documents: List[DocumentSchema]
     item_lookup: dict
@@ -590,6 +607,7 @@ class MapResourcesSchema(Schema):
     identifier: str
     title: str
     year: int = 0
+    hidden: bool
     documents: List[DocumentSchema]
     regions: List[RegionSchema]
     volume_number: Optional[str]

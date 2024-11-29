@@ -253,8 +253,7 @@ function handleMultimaskSubmitResponse(response) {
       unchanged = true;
       resetMosaic()
     } else {
-      let errMsg = "Error! MultiMask not saved."
-      errMsg += "\nYou must remove and remake the following masks:"
+      let errMsg = "Error! MultiMask not saved. You must remove and remake the following masks:\n"
       errMsg += response.message
       alert(errMsg)
     }
@@ -409,7 +408,7 @@ function layerRemoveMask(layer, confirm) {
               {/if}
               &nbsp;
               <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
-                <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.local_title}</span>
+                <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">{layer.layerDef.nickname}</span>
               </button>
             </div>
           {:else}
@@ -434,7 +433,7 @@ function layerRemoveMask(layer, confirm) {
               {/if}
               &nbsp;
               <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
-                <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">sheet {layer.layerDef.local_title}</span>
+                <span style="{currentLayer == layer.layerDef.slug ? 'color:red' : ''}">{layer.layerDef.nickname}</span>
               </button>
             </div>
           {:else}

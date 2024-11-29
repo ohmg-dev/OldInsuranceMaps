@@ -332,8 +332,9 @@ class LayerSetView(View):
             try:
                 layerset = LayerSet.objects.get(map_id=payload['map-id'], category__slug=payload['category'])
                 errors = layerset.update_multimask_from_geojson(payload['multimask-geojson'])
+                print(errors)
                 if errors:
-                    return JsonResponseFail("; ".join(errors))
+                    return JsonResponseFail("; ".join([f"\n-- {i[0]}: {i[1]}" for i in errors]))
                 else:
                     return JsonResponseSuccess()
             except LayerSet.DoesNotExist:

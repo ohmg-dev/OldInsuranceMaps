@@ -6,7 +6,6 @@ import logging
 from django.conf import settings
 
 from ohmg.core.models import Map
-from ohmg.core.utils import random_alnum
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
@@ -44,13 +43,13 @@ class BaseImporter():
 
     def validate_input(self, **kwargs):
 
-        errors = []
+        missing = []
         for arg in self.required_input:
             if arg not in kwargs:
-                error = f"Import operation missing required argument: {arg}"
+                error = f"Import operation missing required argumemmnt: {arg}"
                 logger.warning(error)
-                errors.append(error)
-        return errors
+                missing.append(arg)
+        return missing
     
     def validate_parsed(self):
 
@@ -65,7 +64,7 @@ class BaseImporter():
         }
         missing = [i for i in output_schema.keys() if i not in self.parsed_data.keys()]
         if missing:
-            errors.append(f"missing parsed output: {missing}")
+            errors.append(f"ERROR: missing parsed output: {missing}")
 
         for k, v in self.parsed_data.items():
             try:
@@ -73,6 +72,20 @@ class BaseImporter():
                    errors.append(f"incorrect value for parsed output {k}: {v}") 
             except KeyError:
                 pass
+
+        document_sources = self.parsed_data.get("document_sources", [])
+
+        all_paths = [i["path"] for i in document_sources]
+        dupe_paths = list(set([i for i in all_paths if all_paths.count(i) != 1]))
+        for dp in dupe_paths:
+            print("\n".join(all_paths))
+            errors.append(f"ERROR: Document path appears twice in the resources list - {dp}")
+
+        all_numbers = [i["page_number"] for i in document_sources]
+        dupe_numbers = list(set([i for i in all_numbers if all_numbers.count(i) != 1]))
+        for dp in dupe_numbers:
+            errors.append(f"ERROR: Document page number appears twice in the resources list - {dp}")
+
         return errors
 
     def parse(self):
@@ -91,21 +104,31 @@ class BaseImporter():
             print(json.dumps(self.parsed_data, indent=2))
             return None
 
-        map = Map.objects.create(
-            title=self.parsed_data.get("title"),
-            identifier=self.parsed_data.get("identifier"),
-            creator=self.parsed_data.get("creator"),            
-            publisher=self.parsed_data.get("publisher"),            
-            year=self.parsed_data.get("year"),
-            month=self.parsed_data.get("month"),
-            volume_number=self.parsed_data.get("volume_number"),
-            document_page_type=self.parsed_data.get('document_page_type', "page"),
-            document_sources=self.parsed_data.get("document_sources", []),
-        )
+        if self.overwrite:
+            map, created = Map.objects.get_or_create(
+                identifier=self.parsed_data.get("identifier")
+            )
+        else:
+            map = Map.objects.create(
+                identifier=self.parsed_data.get("identifier"),
+            )
+
+        map.title=self.parsed_data.get("title")
+        map.creator=self.parsed_data.get("creator")
+        map.publisher=self.parsed_data.get("publisher")
+        map.year=self.parsed_data.get("year")
+        map.month=self.parsed_data.get("month")
+        map.volume_number=self.parsed_data.get("volume_number")
+        map.document_page_type=self.parsed_data.get('document_page_type', "page")
+        map.document_sources=self.parsed_data.get("document_sources", [])
+        map.save()
+
         map.locales.set((locale,))
-        map.update_item_lookup()
         map.update_place_counts()
         map.get_layerset('main-content', create=True)
+
+        map.create_documents()
+        map.update_item_lookup()
 
         return map
 
@@ -113,9 +136,9 @@ class BaseImporter():
         """ Import a single map using the kwargs provided. These keywords are supplied to the
         self.acquire_data(). """
 
-        errors = self.validate_input(**kwargs)
-        if errors:
-            raise Exception("Import operation missing required arg(s), check logs for more info.")
+        missing = self.validate_input(**kwargs)
+        if missing:
+            raise Exception(f"Import operation missing required arg(s): {missing}")
 
         self.input_data = kwargs
         self.parse()
@@ -140,48 +163,3 @@ class BaseImporter():
 
         for item in items:
             self.run_import(**item)
-
-
-class SingleFileImporter(BaseImporter):
-    """Single File Importer
--------------
-Use this importer to create a new Map object with a single file in it. The following
-opts are supported:
-
-    file_name: path/to/file.tif
-    (incomplete list so far...\)
-"""
-    
-    def parse(self):
-
-        print(self.input_data)
-
-        id = self.input_data.get('identifier')
-        if id:
-            try:
-                Map.objects.get(pk=id)
-                if not self.overwrite:
-                    raise Exception("A map with the specified identifier already exists.")
-            except Map.DoesNotExist:
-                pass
-        else:
-            id = random_alnum().upper()
-
-        file_path = self.input_data.get('file_path')
-        title = self.input_data.get('title', "test map")
-        year = self.input_data.get('year')
-        if year:
-            year = int(year)
-        creator = self.input_data.get('creator')
-        locale = self.input_data.get('locale')
-
-        print(file_path)
-        
-        self.parsed_data = {
-            'identifier': id,
-            'title': title,
-            'year': year,
-            'creator': creator,
-            'locale': locale,
-            'document_sources': [file_path],
-        }

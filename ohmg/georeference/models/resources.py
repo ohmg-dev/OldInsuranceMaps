@@ -214,6 +214,7 @@ class GCPGroup(models.Model):
                     gcps_mod += 1
         gcps_ct = len(geojson['features'])
         logger.info(f"GCPGroup {group.pk} | GCPs ct: {gcps_ct}, new: {gcps_new}, mod: {gcps_mod}, del: {gcps_del}")
+        group.save()
         return group
 
 
@@ -904,7 +905,7 @@ class LayerSet(models.Model):
             return multimask_geojson
         else:
             return None
-        
+
     def validate_multimask_geojson(self, multimask_geojson):
         errors = []
         for feature in multimask_geojson['features']:
@@ -913,18 +914,18 @@ class LayerSet(models.Model):
                 geom_str = json.dumps(feature['geometry'])
                 g = GEOSGeometry(geom_str)
                 if not g.valid:
-                    logger.error(f"{self} | invalid mask: {lyr} - {g.valid_reason}")
+                    logger.warning(f"{self} | invalid mask: {lyr} - {g.valid_reason}")
                     errors.append((lyr, g.valid_reason))
             except Exception as e:
-                logger.error(f"{self} | improper GeoJSON in multimask")
+                logger.warning(f"{self} | improper GeoJSON in multimask")
                 errors.append((lyr, e))
         return errors
-    
+
     def update_multimask_from_geojson(self, multimask_geojson):
         errors = self.validate_multimask_geojson(multimask_geojson)
         if errors:
             return errors
-        
+
         if multimask_geojson['features']:
             self.multimask = {}
             for feature in multimask_geojson['features']:

@@ -413,20 +413,23 @@ let processing = false;
 		</div>
 		<div>
 			<div style="display:flex; align-items:center;">
+				{#if MAP.progress.loaded_pages < MAP.progress.total_pages && userCanEdit && !sheetsLoading}
+					<button class="button is-primary is-small" style="margin-left:10px; margin-right:10px;" on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Documents ({MAP.document_sources.length})</button>
+				{/if}
+				{#if MAP.status == "load document error"}
+					<span>Error loading documents, please contact admin: <a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a>.</span>
+				{/if}
 				<span>
 					<em>
 					{#if sheetsLoading}
 					Loading sheet {MAP.progress.loaded_pages+1}/{MAP.progress.total_pages}... (you can safely leave this page).
 					{:else if MAP.progress.loaded_pages == 0}
-					No sheets loaded yet...
+					No content loaded yet...
 					{:else if MAP.progress.loaded_pages < MAP.progress.total_pages }
-					{MAP.progress.loaded_pages} of {MAP.progress.total_pages} sheet{#if MAP.progress.total_pages != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Volume</strong> to retry)
+					{MAP.progress.loaded_pages} of {MAP.progress.total_pages} sheet{#if MAP.progress.total_pages != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Documents</strong> to retry)
 					{/if}
 					</em>
 				</span>
-				{#if MAP.progress.loaded_pages < MAP.progress.total_pages && userCanEdit && !sheetsLoading}
-					<button class="button is-primary is-small" style="margin-left:10px;" on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Volume ({MAP.progress.total_pages} sheet{#if MAP.progress.total_pages != 1}s{/if})</button>
-				{/if}
 			</div>
 			{#if !CONTEXT.user.is_authenticated}
 			<SigninReminder csrfToken={CONTEXT.csrf_token} />
@@ -452,7 +455,7 @@ let processing = false;
 					<div class="documents-column">
 						{#each MAP.item_lookup.unprepared as document}
 						<div class="document-item">
-							<div><p><Link href={document.urls.resource} title={document.title}>{MAP.document_page_type} {document.page_number}</Link></p></div>
+							<div><p><Link href={document.urls.resource} title={document.title}>{document.nickname}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
 								modalLyrUrl=document.urls.image;
 								modalExtent=[0, -document.image_size[1], document.image_size[0], 0];
@@ -462,7 +465,7 @@ let processing = false;
 								}} >
 								<img style="cursor:zoom-in"
 									src={document.urls.thumbnail}
-									alt={document.title}
+									alt="{document.title}"
 									/>
 							</button>
 							<div>
@@ -513,9 +516,7 @@ let processing = false;
 					<div class="documents-column">
 						{#each MAP.item_lookup.prepared as region}
 						<div class="document-item">
-							<div><p><Link href={region.urls.resource} title={region.title}>
-								{MAP.document_page_type} {region.page_number}{region.division_number ? ` [${region.division_number}]`:""}
-							</Link></p></div>
+							<div><p><Link href={region.urls.resource} title={region.title}>{region.nickname}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
 								modalLyrUrl=region.urls.image;
 								modalExtent=[0, -region.image_size[1], region.image_size[0], 0];
@@ -540,9 +541,13 @@ let processing = false;
 										<MapPin /> georeference
 									</Link></li>
 									<li><button
-										disabled={!CONTEXT.user.is_staff}
+										disabled={!CONTEXT.user.is_staff && CONTEXT.user.username != region.created_by}
 										class="is-text-link"
-										title="undo this preparation"
+										title={
+											!CONTEXT.user.is_staff && CONTEXT.user.username != region.created_by ?
+											`Only ${region.created_by} or an admin and can undo this preparation.` :
+											"Undo all preparation."
+										}
 										style="display:flex; align-items:center;"
 										on:click={() => {postDocumentUnprepare(region.document_id)}}>
 										<ArrowCounterClockwise/> unprepare
@@ -553,6 +558,7 @@ let processing = false;
 										title="click to move this document to the non-map section"
 										on:click={() => {postRegionCategory(region.id, "non-map")}}>
 										<FileText /> set as non-map</button></li>
+									<li><em>{region.created_by}</em></li>
 								</ul>
 								{/if}
 							</div>
@@ -607,7 +613,7 @@ let processing = false;
 					<div class="documents-column">
 						{#each MAP.item_lookup.georeferenced as layer}
 						<div class="document-item">
-							<div><p><Link href={layer.urls.resource} title={layer.title}>{layer.title}</Link></p></div>
+							<div><p><Link href={layer.urls.resource} title={layer.title}>{layer.nickname}</Link></p></div>
 							<button class="thumbnail-btn" on:click={() => {
 								modalLyrUrl=layer.urls.cog;
 								modalExtent=layer.extent;
@@ -625,26 +631,35 @@ let processing = false;
 									<li><em>session in progress...</em></li>
 									<li>user: {sessionLocks.lyrs[layer.id].user.username}</li>
 								</ul>
-								{:else if userCanEdit}
+								{:else}
 								<ul>
+									{#if userCanEdit}
 									<li>
 										<Link href={layer.urls.georeference} title="edit georeferencing">
 											<MapPin/> edit georeferencing
 										</Link>
 									</li>
 									<li><button
-										disabled={!CONTEXT.user.is_staff}
+										disabled={!CONTEXT.user.is_staff && CONTEXT.user.username != layer.created_by}
 										class="is-text-link"
-										title="This document does not need to be split"
+										title={
+											!CONTEXT.user.is_staff && CONTEXT.user.username != layer.created_by ?
+											`Only ${layer.created_by} or an admin and can undo this layer.` :
+											"Undo all georeferencing for this layer."
+										}
 										on:click={() => {
 											undoGeorefLayerId = layer.id;
 											getModal('modal-confirm-ungeoreference').open()
 										}}>
 										<ArrowCounterClockwise/> ungeoreference
 									</button></li>
+									{/if}
+									{#if !MAP.hidden}
 									<li><Link href={layer.urls.resource} title="downloads and web services">
 										<DownloadSimple /> downloads & web services</Link>
 									</li>
+									{/if}
+									<li><em>{layer.created_by}{#if layer.created_by != layer.last_updated_by}&nbsp;+ {layer.last_updated_by}{/if}</em></li>
 								</ul>
 								{/if}
 								{#if classifyingLayers}

@@ -10,6 +10,7 @@ from ohmg.georeference.models import (
     GeorefSession,
     ItemBase,
     LayerSet,
+    LayerSetCategory,
     SessionLock,
 )
 
@@ -84,3 +85,5 @@ class SessionLockAdmin(admin.ModelAdmin):
     raw_id_fields = ['session']
 
 admin.site.register(SessionLock, SessionLockAdmin)
+
+admin.site.register(LayerSetCategory)

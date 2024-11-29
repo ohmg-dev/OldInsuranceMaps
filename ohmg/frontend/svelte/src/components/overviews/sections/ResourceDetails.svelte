@@ -9,6 +9,7 @@
 
     export let CONTEXT;
     export let RESOURCE;
+    export let MAP;
 
     let xyzUrl;
     let ohmUrl;
@@ -69,6 +70,7 @@
         <td>{RESOURCE.status}</td>
     </tr>
 </table>
+{#if !MAP.hidden}
 <div class="header-bar">
     <h3>Downloads & Web Services</h3>
     <button class="is-icon-link" on:click={() => {getModal('download-section-modal').open()}} ><Question /></button>
@@ -118,6 +120,7 @@
             {/if}</td>
     </tr>
 </table>
+{/if}
 
 <style>
     table {

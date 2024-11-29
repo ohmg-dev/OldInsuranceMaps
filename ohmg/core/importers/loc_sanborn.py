@@ -38,7 +38,7 @@ LOC_SANBORN_CITY_MISSPELLINGS = {
     }
 }
     
-class LOCImporter(BaseImporter):
+class LOCSanbornImporter(BaseImporter):
     """LOC Importer
     ------------
     Load items from the Library of Congress Sanborn map collection. Required args are:
@@ -69,30 +69,26 @@ class LOCImporter(BaseImporter):
         response = lc.get_item(identifier, no_cache=no_cache)
         if response.get("status") == 404:
             raise ValueError("Can't get this resource from LC")
-        
-        item = response['item']
-        item["lc_resources"] = response['resources']
-        file_list = response['resources'][0]['files']
 
-        parsed_loc = LOCParser(item=item)
+        parsed_item = LOCParser(item=response['item'])
+        parsed_resources = LOCParser(resources=response['resources'])
 
         self.parsed_data = {
             "identifier": identifier,
-            "title": parsed_loc.title,
+            "title": parsed_item.title,
             "creator": "Sanborn Map Company",
-            "year": parsed_loc.year,
-            "month": parsed_loc.month,
+            "year": parsed_item.year,
+            "month": parsed_item.month,
             "locale": self.input_data['locale'],
-            "document_sources": file_list,
-            "volume_number": parsed_loc.volume_no,
+            "document_sources": parsed_resources.document_sources,
+            "volume_number": parsed_item.volume_no,
         }
 
 
 class LOCParser(object):
 
-    def __init__(self, item=None, fileset=None):
+    def __init__(self, item=None, resources=None):
 
-        # passing in an item will automatically parse it as a volume
         if item:
             self.item = item
             self.parse_item_identifier()
@@ -103,10 +99,9 @@ class LOCParser(object):
             self.parse_manifest_url()
             self.parse_title()
 
-        # passing in a fileset will automatically parse it
-        if fileset:
-            self.fileset = fileset
-            self.parse_fileset()
+        if resources:
+            self.resources = resources
+            self.parse_document_sources()
 
     def parse_item_identifier(self):
         self.identifier = self.item["id"].rstrip("/").split("/")[-1]
@@ -254,26 +249,38 @@ class LOCParser(object):
 
         self.title = title
 
-    def parse_fileset(self):
-        """this could be much improved to take better advantage of IIIF service
-        returns."""
+    def get_page_number_from_url(self, url):
+        filename = url.split("/")[-1]
+        name = os.path.splitext(filename)[0]
+        page_number = name.split("-")[-1].lstrip("0")
+        if page_number == "":
+            page_number = "0"
 
-        for f in self.fileset:
-            if f['mimetype'] == "image/jp2":
-                self.jp2_url = f['url']
-                filename = f['url'].split("/")[-1]
-                name = os.path.splitext(filename)[0]
-                self.sheet_number = name.split("-")[-1].lstrip("0")
-            if 'image-services' in f['url'] and '/full/' in f['url']:
-                self.iiif_service = f['url'].split("/full/")[0]
+        return page_number
 
-    def serialize_to_fileset(self):
+    def parse_document_sources(self):
 
-        return {
-            "jp2_url": self.jp2_url,
-            "sheet_number": self.sheet_number,
-            "iiif_service": self.iiif_service,
-        }
+        self.document_sources = []
+
+        file_list = self.resources[0]['files']
+
+        for file_set in file_list:
+            source = {
+                "path": None,
+                "iiif_info": None,
+                "page_number": None,
+            }
+            for entry in file_set:
+                if entry["mimetype"] == "image/jp2":
+                    source["path"] = (url := entry.get("url"))
+                    source["page_number"] = self.get_page_number_from_url(url)
+                    source["iiif_info"] = entry.get("info")
+            if source["path"]:
+                self.document_sources.append(source)
+            else:
+                print(json.dumps(file_set, indent=2))
+                raise Exception("No jp2 urls in this fileset. Cannot load this Map.")
+
 
 class LOCConnection(object):
 

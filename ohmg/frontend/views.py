@@ -53,6 +53,7 @@ class HomePage(View):
         else:
             newsletter_slug, user_subscribed = None, False
 
+        ft = [{"title":i[0], "id":i[1]} for i in Map.objects.filter(featured=True).values_list("title", "identifier")]
         context_dict = {
             "params": {
                 "CONTEXT": generate_ohmg_context(request),
@@ -62,6 +63,7 @@ class HomePage(View):
                     "USER_SUBSCRIBED": user_subscribed,
                     "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
                     "MAP_CT": Map.objects.all().exclude(loaded_by=None).count(),
+                    "FEATURED_MAPS": ft,
                 }
             },
         }
