@@ -16,6 +16,7 @@ class Command(BaseCommand):
             "operation",
             choices=[
                 "backfill-document-sources",
+                "resave-content",
             ],
             help="Choose what operation to run."
         )
@@ -64,3 +65,43 @@ class Command(BaseCommand):
                 map.document_sources = new_ds_list
                 map.save()
 #                print(map, len(map.document_sources), map.documents.all().count())
+
+        ## generally helpful operation during development to go though and run
+        ## save() on all objects in the core data model
+        if options["operation"] == "resave_content":
+            maps = Map.objects.all()
+            maps_ct = maps.count()
+            for n, map in enumerate(maps, start=1):
+                print(map.title, map.pk, f"({n}/{maps_ct})")
+                print("re-saving Documents...")
+                docs = map.documents.all()
+                docs_ct = docs.count()
+                for ct, document in enumerate(docs, start=1):
+                    print(f"{ct}/{docs_ct} (doc: {document.pk})")
+                    document.save(skip_map_lookup_update=True)
+                if all([i.file is not None for i in docs]):
+                    map.set_status("ready")
+
+
+                print("re-saving Regions...")
+                regs = map.regions.all()
+                regs_ct = regs.count()
+                for ct, region in enumerate(regs, start=1):
+                    print(f"{ct}/{regs_ct} (reg: {region.pk})")
+                    region.save(skip_map_lookup_update=True)
+
+                print("re-saving Layers...")
+                lyrs = map.layers.all()
+                lyrs_ct = lyrs.count()
+                for ct, layer in enumerate(lyrs, start=1):
+                    print(f"{ct}/{lyrs_ct} (lyr: {layer.pk})")
+                    layer.save(skip_map_lookup_update=True)
+
+                print("re-saving LayerSets...")
+                layersets = LayerSet.objects.filter(map=map)
+                for ct, layerset in enumerate(layersets, start=1):
+                    print(f"{layerset} (ls: {layerset.pk})")
+                    layerset.save()
+
+                print("updating item lookups...")
+                map.update_item_lookup()
