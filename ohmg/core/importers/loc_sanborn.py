@@ -34,15 +34,16 @@ LOC_SANBORN_CITY_MISSPELLINGS = {
         "Keatchie": "Keachi",
         "Saint Rose": "St. Rose",
         "Saint Martinville": "St. Martinville",
-        "Saint Francisville": "St. Francisville"
+        "Saint Francisville": "St. Francisville",
     }
 }
-    
+
+
 class LOCSanbornImporter(BaseImporter):
     """LOC Importer
     ------------
     Load items from the Library of Congress Sanborn map collection. Required args are:
-        
+
         identifier:   the LOC id for the item, looks like 'sanborn04339_026'
         locale:       slug for the locale to attach to the new map that is created
     """
@@ -53,9 +54,8 @@ class LOCSanbornImporter(BaseImporter):
     ]
 
     def parse(self):
-
-        identifier = self.input_data['identifier']
-        locale_slug = self.input_data['locale']
+        identifier = self.input_data["identifier"]
+        locale_slug = self.input_data["locale"]
         try:
             Place.objects.get(slug=locale_slug)
         except Place.DoesNotExist as e:
@@ -63,15 +63,15 @@ class LOCSanbornImporter(BaseImporter):
 
         lc = LOCConnection(delay=0, verbose=True)
 
-        no_cache = self.input_data.get('no-cache', "false")
+        no_cache = self.input_data.get("no-cache", "false")
         if no_cache.lower() == "true":
             no_cache = True
         response = lc.get_item(identifier, no_cache=no_cache)
         if response.get("status") == 404:
             raise ValueError("Can't get this resource from LC")
 
-        parsed_item = LOCParser(item=response['item'])
-        parsed_resources = LOCParser(resources=response['resources'])
+        parsed_item = LOCParser(item=response["item"])
+        parsed_resources = LOCParser(resources=response["resources"])
 
         self.parsed_data = {
             "identifier": identifier,
@@ -79,16 +79,14 @@ class LOCSanbornImporter(BaseImporter):
             "creator": "Sanborn Map Company",
             "year": parsed_item.year,
             "month": parsed_item.month,
-            "locale": self.input_data['locale'],
+            "locale": self.input_data["locale"],
             "document_sources": parsed_resources.document_sources,
             "volume_number": parsed_item.volume_no,
         }
 
 
 class LOCParser(object):
-
     def __init__(self, item=None, resources=None):
-
         if item:
             self.item = item
             self.parse_item_identifier()
@@ -114,7 +112,6 @@ class LOCParser(object):
         self.sheet_ct = sheet_ct
 
     def parse_location_info(self):
-
         self.city = None
         self.county_equivalent = None
         self.state = None
@@ -125,14 +122,16 @@ class LOCParser(object):
         # {'bexar county': 'https://www.loc.gov/search/?at=item&fa=location:bexar+county&fo=json'}
         # while other times each location tag is just a string.
         location_tags = []
-        for lyr in self.item['location']:
+        for lyr in self.item["location"]:
             if isinstance(lyr, dict):
                 location_tags.append(list(lyr.keys())[0])
             else:
                 location_tags.append(lyr)
 
         # split the title of the item which has a lot of geographic info in it
-        title = self.item["item"]["title"].replace("Sanborn Fire Insurance Map from ", "").rstrip(".")
+        title = (
+            self.item["item"]["title"].replace("Sanborn Fire Insurance Map from ", "").rstrip(".")
+        )
         title_segs = [i.lstrip() for i in title.split(",")]
 
         used_tags = []
@@ -186,12 +185,14 @@ class LOCParser(object):
         # print leftover tags
         location_tags = [i for i in location_tags if i not in used_tags]
         if len(location_tags) > 0:
-            logger.warning( f"unparsed location tags - {self.identifier} - {title} - {location_tags}")
+            logger.warning(
+                f"unparsed location tags - {self.identifier} - {title} - {location_tags}"
+            )
 
         self.extra_location_tags = location_tags
 
     def parse_date_info(self):
-        """ Parse the date tag from LOC item. If any errors, or missing date tag, use Battle of Agincourt."""
+        """Parse the date tag from LOC item. If any errors, or missing date tag, use Battle of Agincourt."""
 
         self.year = None
         self.month = None
@@ -223,7 +224,6 @@ class LOCParser(object):
             self.month = d.month
 
     def parse_volume_number(self):
-
         volume_no = None
         created_published = self.item["item"].get("created_published", "")
         if isinstance(created_published, list):
@@ -237,12 +237,11 @@ class LOCParser(object):
             volume_no = b[0].rstrip(",")
 
         self.volume_no = volume_no
-    
+
     def parse_manifest_url(self):
         self.lc_manifest_url = f'{self.item["url"]}manifest.json'
 
     def parse_title(self):
-
         title = f"{self.city}, {STATE_ABBREV[self.state]} | {self.year}"
         if self.volume_no is not None:
             title += f" | Vol. {self.volume_no}"
@@ -259,10 +258,9 @@ class LOCParser(object):
         return page_number
 
     def parse_document_sources(self):
-
         self.document_sources = []
 
-        file_list = self.resources[0]['files']
+        file_list = self.resources[0]["files"]
 
         for file_set in file_list:
             source = {
@@ -283,9 +281,7 @@ class LOCParser(object):
 
 
 class LOCConnection(object):
-
     def __init__(self, verbose=False, delay=5):
-
         self.baseurl = "https://www.loc.gov"
         self.data = None
         self.results = []
@@ -298,11 +294,10 @@ class LOCConnection(object):
         self.results = []
 
     def make_cache_path(self, url=None):
-
         if url is None:
             url = self.query_url
 
-        cache_dir = settings.CACHE_DIR / 'requests'
+        cache_dir = settings.CACHE_DIR / "requests"
         if not os.path.isdir(cache_dir):
             os.mkdir(cache_dir)
         file_name = url.replace("/", "__") + ".json"
@@ -311,7 +306,6 @@ class LOCConnection(object):
         return cache_path
 
     def initialize_query(self, collection=None, identifier=None):
-
         if collection:
             self.query_url = f"{self.baseurl}/collections/{collection}"
             # set returned attributes
@@ -327,30 +321,25 @@ class LOCConnection(object):
         self.query_url += "&fo=json&c=100"
 
     def add_location_param(self, locations=[]):
-
         fa_qry = "&fa=" + "|".join([f"location:{i}" for i in locations])
         self.query_url += fa_qry
 
     def add_date_param(self, date):
-
         date_qry = "&dates=" + date
         self.query_url += date_qry
 
     def load_cache(self, url):
-
         path = self.make_cache_path(url)
         if os.path.isfile(path):
             with open(path, "r") as op:
                 self.data = json.loads(op.read())
 
     def save_cache(self, url):
-
         path = self.make_cache_path(url)
         with open(path, "w") as op:
             json.dump(self.data, op, indent=1)
 
     def perform_search(self, no_cache=False, page=1):
-
         # empty data property to start new search
         self.data = None
 
@@ -377,12 +366,17 @@ class LOCConnection(object):
                     if self.verbose:
                         print("making request")
                     response = requests.get(url)
-            except (ConnectionError, ConnectionRefusedError, ConnectionAbortedError, ConnectionResetError) as e:
+            except (
+                ConnectionError,
+                ConnectionRefusedError,
+                ConnectionAbortedError,
+                ConnectionResetError,
+            ) as e:
                 msg = f"API Error: {e}"
                 print(msg)
                 logger.warning(e)
                 return
-            
+
             self.data = json.loads(response.content)
             self.save_cache(url)
         else:
@@ -394,7 +388,6 @@ class LOCConnection(object):
             self.results += self.data["results"]
 
     def get_item(self, identifier, no_cache=False):
-
         ## during identifier queries, a single dict is returned and stored in self.data
         ## the dict has 'item' and 'resources' keys.
         self.initialize_query(identifier=identifier)

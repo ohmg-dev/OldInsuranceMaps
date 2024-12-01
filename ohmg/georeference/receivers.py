@@ -11,12 +11,13 @@ from ohmg.core.models import (
 
 logger = logging.getLogger(__name__)
 
+
 @receiver([signals.post_delete, signals.post_save], sender=Document)
 @receiver([signals.post_delete, signals.post_save], sender=Region)
 @receiver([signals.post_delete, signals.post_save], sender=Layer)
 def update_item_lookup(sender, instance, **kwargs):
-    if not hasattr(instance, 'skip_map_lookup_update') or instance.skip_map_lookup_update is False:
-        if sender == Document :
+    if not hasattr(instance, "skip_map_lookup_update") or instance.skip_map_lookup_update is False:
+        if sender == Document:
             instance.map.update_item_lookup()
         if sender == Region:
             instance.document.map.update_item_lookup()
@@ -26,14 +27,13 @@ def update_item_lookup(sender, instance, **kwargs):
 
 @receiver([signals.post_save], sender=Layer)
 def set_georeferenced_on_region(sender, instance, **kwargs):
-    if not hasattr(instance, 'skip_map_lookup_update') or instance.skip_map_lookup_update is False:
+    if not hasattr(instance, "skip_map_lookup_update") or instance.skip_map_lookup_update is False:
         instance.region.georeferenced = True
         instance.region.save()
 
 
 @receiver([signals.post_delete], sender=Layer)
 def handle_layer_deletion(sender, instance, **kwargs):
-
     # set the Region's georeferenced status to False
     instance.region.georeferenced = False
     instance.region.save()

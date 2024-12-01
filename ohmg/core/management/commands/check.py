@@ -4,15 +4,15 @@ from django.core.management.base import BaseCommand
 from ohmg.core.models import Layer
 from ohmg.georeference.models import LayerSet
 
-class Command(BaseCommand):
 
+class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "operation",
             choices=[
                 "multimasks",
             ],
-            help="Choose what check to run."
+            help="Choose what check to run.",
         )
         parser.add_argument(
             "--fix",
@@ -21,12 +21,11 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-
         def fix_layer_slug(slug, valid_slugs):
-            """ Return the input slug if it's valid, or a fixed one if it can
-            be figured out. Return None if no fix can be found. """
+            """Return the input slug if it's valid, or a fixed one if it can
+            be figured out. Return None if no fix can be found."""
 
-            if (ct := valid_slugs.count(slug))  == 1:
+            if (ct := valid_slugs.count(slug)) == 1:
                 return slug
             elif ct == 0:
                 # handle the shreveport 1963 volume with a bad date in the slugs
@@ -52,7 +51,7 @@ class Command(BaseCommand):
             else:
                 return None
 
-        if options['operation'] == "multimasks":
+        if options["operation"] == "multimasks":
             valid_slugs = list(Layer.objects.all().values_list("slug", flat=True))
             layersets = LayerSet.objects.exclude(multimask=None).order_by("map_id")
             to_save = set()
@@ -66,7 +65,7 @@ class Command(BaseCommand):
                     elif newslug != k:
                         print(f"{k} -> {newslug}")
                         new_mm[newslug] = new_mm.pop(k)
-                        new_mm[newslug]['properties'] = {'layer': newslug}
+                        new_mm[newslug]["properties"] = {"layer": newslug}
                         to_save.add(ls)
                 ls.multimask = new_mm
 
@@ -75,7 +74,7 @@ class Command(BaseCommand):
             print(f"{len(errors)} layer slugs have errors")
 
             print(f"{len(to_save)} multimasks to fix")
-            if options['fix']:
+            if options["fix"]:
                 for ls in to_save:
                     print(f"saving {ls}")
                     ls.save()

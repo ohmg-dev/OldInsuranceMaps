@@ -6,6 +6,14 @@ from .views import (
 )
 
 urlpatterns = [
-    path("iiif/resource/<str:regionid>/", IIIFResourceView.as_view(), name="iiif_resource_view"),
-    path("iiif/canvas/<str:mapid>/<str:layerset_category>/", IIIFCanvasView.as_view(), name="iiif_canvas_view")
+    path(
+        "iiif/resource/<str:regionid>/",
+        IIIFResourceView.as_view(),
+        name="iiif_resource_view",
+    ),
+    path(
+        "iiif/canvas/<str:mapid>/<str:layerset_category>/",
+        IIIFCanvasView.as_view(),
+        name="iiif_canvas_view",
+    ),
 ]

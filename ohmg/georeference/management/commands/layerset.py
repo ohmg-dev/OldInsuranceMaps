@@ -2,8 +2,9 @@ from argparse import Namespace
 from django.core.management.base import BaseCommand
 from ohmg.georeference.models import LayerSet
 
+
 class Command(BaseCommand):
-    help = 'command to search the Library of Congress API.'
+    help = "command to search the Library of Congress API."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -16,11 +17,13 @@ class Command(BaseCommand):
             help="the operation to perform",
         )
         parser.add_argument(
-            "-i", "--identifier",
+            "-i",
+            "--identifier",
             help="the identifier of map that holds this layerset",
         )
         parser.add_argument(
-            "-c", "--category",
+            "-c",
+            "--category",
             default="main-content",
             help="category of the layerset to work with",
         )
@@ -35,13 +38,14 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-
         options = Namespace(**options)
 
         if options.pk:
             ls = LayerSet.objects.get(pk=options.pk)
         else:
-            ls = LayerSet.objects.get(map__identifier=options.identifier, category__slug=options.category)
+            ls = LayerSet.objects.get(
+                map__identifier=options.identifier, category__slug=options.category
+            )
 
         if options.operation == "inspect":
             print(ls.multimask_extent)

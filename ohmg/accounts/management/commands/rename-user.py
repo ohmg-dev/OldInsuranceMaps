@@ -8,8 +8,9 @@ from ohmg.georeference.models import GeorefSession
 
 logger = logging.getLogger(__name__)
 
+
 class Command(BaseCommand):
-    help = 'command to search the Library of Congress API.'
+    help = "command to search the Library of Congress API."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -22,9 +23,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-
-        old_name = options['old-username']
-        new_name = options['new-username']
+        old_name = options["old-username"]
+        new_name = options["new-username"]
 
         # lazy username.lower() query operation.
         user = None
@@ -44,19 +44,19 @@ class Command(BaseCommand):
         for s in GeorefSession.objects.all():
             if not s.data:
                 continue
-            if 'features' not in s.data['gcps']:
+            if "features" not in s.data["gcps"]:
                 continue
-            gcp_users = set([u['properties']['username'] for u in s.data['gcps']['features']])
+            gcp_users = set([u["properties"]["username"] for u in s.data["gcps"]["features"]])
             if old_name in gcp_users:
                 seshct += 1
                 try:
                     with transaction.atomic():
-                        for gcp in s.data['gcps']['features']:
-                            if gcp['properties']['username'] == old_name:
-                                gcp['properties']['username'] = new_name
+                        for gcp in s.data["gcps"]["features"]:
+                            if gcp["properties"]["username"] == old_name:
+                                gcp["properties"]["username"] = new_name
                                 ptct += 1
                         s.save(update_fields=["data"])
                 except Exception as e:
                     logger.error(e)
-                    raise(e)
+                    raise (e)
         logger.info(f"updated {ptct} GCPs across {seshct} sessions.")

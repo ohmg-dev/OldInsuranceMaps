@@ -7,22 +7,16 @@ from ohmg.places.models import Place
 
 
 class PlaceView(View):
-
     def get(self, request, place_slug):
-
         p = get_object_or_404(Place.objects.prefetch_related(), slug=place_slug)
 
         context_dict = {
             "params": {
                 "CONTEXT": generate_ohmg_context(request),
-                "PAGE_NAME": 'place',
+                "PAGE_NAME": "place",
                 "PARAMS": {
                     "PLACE": PlaceFullSchema.from_orm(p).dict(),
-                }
+                },
             }
         }
-        return render(
-            request,
-            "index.html",
-            context=context_dict
-        )
+        return render(request, "index.html", context=context_dict)

@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.http import JsonResponse
 from django.views import View
 
@@ -6,8 +5,6 @@ from ohmg.core.models import Map, Region
 from ohmg.core.utils import full_reverse
 from .utils import (
     region_as_iiif_resource,
-    document_as_iiif_canvas,
-    document_as_iiif_manifest,
 )
 
 # Create your views here.
@@ -16,7 +13,7 @@ from .utils import (
 #     """ create a iiif v2 manifest, canvas, resource, or info.json object for a
 #     document image. info.json is not possible if an IIIF server is not enabled.
 #     """
-    
+
 
 #     IIIF_SERVER_ENABLED = getattr(settings, "IIIF_SERVER_ENABLED", False)
 
@@ -64,21 +61,23 @@ from .utils import (
 #                 "404.html", context={
 #                 }, request=request), status=404)
 
-class IIIFResourceView(View):
 
+class IIIFResourceView(View):
     def get(self, request, regionid):
         region = Region.objects.get(pk=regionid)
         return JsonResponse(region_as_iiif_resource(region))
 
-class IIIFCanvasView(View):
 
+class IIIFCanvasView(View):
     def get(self, request, mapid, layerset_category):
         ls = Map.objects.get(pk=mapid).get_layerset(layerset_category)
         print(ls)
         print(ls.layers.all())
-        return JsonResponse({
-            "id": full_reverse("iiif_canvas_view", args=(mapid, layerset_category)),
-            "type": "AnnotationPage",
-            "@context": "http://www.w3.org/ns/anno.jsonld",
-            "items": [region_as_iiif_resource(i) for i in [k.region for k in ls.layers.all()]],
-        })
+        return JsonResponse(
+            {
+                "id": full_reverse("iiif_canvas_view", args=(mapid, layerset_category)),
+                "type": "AnnotationPage",
+                "@context": "http://www.w3.org/ns/anno.jsonld",
+                "items": [region_as_iiif_resource(i) for i in [k.region for k in ls.layers.all()]],
+            }
+        )

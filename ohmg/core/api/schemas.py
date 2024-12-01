@@ -86,7 +86,7 @@ class MapListSchema(Schema):
         if obj.volume_number is not None:
             year_vol = f"{obj.year} vol. {obj.volume_number}"
         return str(year_vol)
-    
+
     @staticmethod
     def resolve_sheet_ct(obj):
         return len(obj.document_sources)
@@ -96,6 +96,7 @@ class MapListSchema(Schema):
         return {
             "summary": f"/map/{obj.identifier}",
         }
+
 
 class DocumentFullSchema(Schema):
     id: int
@@ -127,12 +128,12 @@ class DocumentFullSchema(Schema):
     @staticmethod
     def resolve_map(obj):
         return obj.map.pk
-    
+
     @staticmethod
     def resolve_cutlines(obj):
         prep = PrepSession.objects.filter(doc2=obj)
         if prep.exists():
-            return prep[0].data['cutlines']
+            return prep[0].data["cutlines"]
         else:
             return []
 
@@ -164,6 +165,7 @@ class DocumentSchema(Schema):
             "image": obj.file.url if obj.file else "",
             "split": f"/split/{obj.pk}/",
         }
+
 
 class RegionSchema(Schema):
     id: int
@@ -208,6 +210,7 @@ class RegionSchema(Schema):
         else:
             return ""
 
+
 class RegionFullSchema(Schema):
     id: int
     title: str
@@ -247,7 +250,7 @@ class RegionFullSchema(Schema):
 
     @staticmethod
     def resolve_layer(obj):
-        if hasattr(obj, 'layer'):
+        if hasattr(obj, "layer"):
             return obj.layer
         else:
             return None
@@ -264,6 +267,7 @@ class RegionFullSchema(Schema):
             return "georeferenced"
         else:
             return "prepared"
+
 
 class LayerSchema(Schema):
     id: int
@@ -307,7 +311,9 @@ class LayerSchema(Schema):
             logger.warning(f"[WARNING] Layer {obj.pk} has no associated region")
             return None
         elif not obj.region.gcp_group:
-            logger.warning(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
+            logger.warning(
+                f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup"
+            )
             return None
         return obj.region.gcp_group.as_geojson
 
@@ -324,6 +330,7 @@ class LayerSchema(Schema):
             return obj.last_updated_by.username
         else:
             return ""
+
 
 class LayerFullSchema(Schema):
     id: int
@@ -366,13 +373,14 @@ class LayerFullSchema(Schema):
             logger.warning(f"[WARNING] Layer {obj.pk} has no associated region")
             return None
         elif not obj.region.gcp_group:
-            logger.warning(f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup")
+            logger.warning(
+                f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup"
+            )
             return None
         return obj.region.gcp_group.as_geojson
 
 
 class SessionSchema(Schema):
-
     id: int
     type: str
     user: UserSchemaLite
@@ -388,14 +396,11 @@ class SessionSchema(Schema):
 
     @staticmethod
     def resolve_date_created(obj):
-        d = {
-            'date': obj.date_created.strftime("%Y-%m-%d"),
-            'relative': ''
-        }
+        d = {"date": obj.date_created.strftime("%Y-%m-%d"), "relative": ""}
         diff = datetime.now() - obj.date_created
 
         if diff.days > 0:
-            n, u = diff.days, 'day'
+            n, u = diff.days, "day"
         else:
             seconds = diff.total_seconds()
             hours = seconds // 3600
@@ -408,19 +413,17 @@ class SessionSchema(Schema):
             else:
                 n, u = seconds, "second"
         n = int(n)
-        d['relative'] = f"{n} {u}{'' if n == 1 else 's'} ago"
+        d["relative"] = f"{n} {u}{'' if n == 1 else 's'} ago"
         return d
 
 
 class LayerSetLayer(Schema):
-
     id: int
     title: str
     nickname: str
     slug: str
     urls: dict
     extent: Optional[list]
-
 
     @staticmethod
     def resolve_urls(obj):
@@ -431,8 +434,8 @@ class LayerSetLayer(Schema):
             "georeference": f"/georeference/{obj.region.pk}/",
         }
 
-class LayerSetSchema(Schema):
 
+class LayerSetSchema(Schema):
     id: str
     name: str
     map_id: str
@@ -457,7 +460,7 @@ class LayerSetSchema(Schema):
 
 
 class PlaceSchema(Schema):
-    """ very lightweight serialization of a Place with its Maps"""
+    """very lightweight serialization of a Place with its Maps"""
 
     display_name: str
     slug: str
@@ -466,14 +469,19 @@ class PlaceSchema(Schema):
 
     @staticmethod
     def resolve_maps(obj):
-        return obj.map_set.all().order_by('year', 'title', 'volume_number').values("identifier", "title", "year", "volume_number")
+        return (
+            obj.map_set.all()
+            .order_by("year", "title", "volume_number")
+            .values("identifier", "title", "year", "volume_number")
+        )
 
     @staticmethod
     def resolve_url(obj):
-        return reverse('viewer', args=(obj.slug, ))
+        return reverse("viewer", args=(obj.slug,))
+
 
 class PlaceFullSchema(Schema):
-    """ Full serialization of a Place to drive heirarchy search. """
+    """Full serialization of a Place to drive heirarchy search."""
 
     display_name: str
     slug: str
@@ -488,8 +496,12 @@ class PlaceFullSchema(Schema):
 
     @staticmethod
     def resolve_maps(obj):
-        return obj.map_set.all().order_by('year', 'title', 'volume_number').values("identifier", "title", "year", "volume_number")
-    
+        return (
+            obj.map_set.all()
+            .order_by("year", "title", "volume_number")
+            .values("identifier", "title", "year", "volume_number")
+        )
+
     @staticmethod
     def resolve_select_lists(obj):
         return obj.get_select_lists()
@@ -500,8 +512,8 @@ class PlaceFullSchema(Schema):
 
     @staticmethod
     def resolve_url(obj):
-        return reverse('viewer', args=(obj.slug, ))
-    
+        return reverse("viewer", args=(obj.slug,))
+
     @staticmethod
     def resolve_parents(obj):
         return obj.direct_parents.all()
@@ -512,7 +524,6 @@ class PlaceFullSchema(Schema):
 
 
 class SessionLockSchema(Schema):
-
     session_id: int
     target_id: int
     target_type: str
@@ -524,7 +535,6 @@ class SessionLockSchema(Schema):
 
 
 class MapFullSchema(Schema):
-
     identifier: str
     title: str
     year: int = 0
@@ -548,7 +558,7 @@ class MapFullSchema(Schema):
     @staticmethod
     def resolve_extent(obj):
         return obj.extent
-    
+
     @staticmethod
     def resolve_urls(obj):
         viewer_url = ""
@@ -562,10 +572,9 @@ class MapFullSchema(Schema):
 
     @staticmethod
     def resolve_progress(obj):
-
-        unprep_ct = len(obj.item_lookup.get('unprepared', []))
-        prep_ct = len(obj.item_lookup.get('prepared', []))
-        georef_ct = len(obj.item_lookup.get('georeferenced', []))
+        unprep_ct = len(obj.item_lookup.get("unprepared", []))
+        prep_ct = len(obj.item_lookup.get("prepared", []))
+        georef_ct = len(obj.item_lookup.get("georeferenced", []))
         percent = 0
         if georef_ct > 0:
             percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
@@ -578,32 +587,33 @@ class MapFullSchema(Schema):
             "georef_ct": georef_ct,
             "percent": percent,
         }
-    
+
     @staticmethod
     def resolve_locale(obj):
         return obj.get_locale()
-    
+
     @staticmethod
     def resolve_loaded_by(obj):
         loaded_by = {"name": "", "profile": "", "date": ""}
         if obj.loaded_by is not None:
             loaded_by["name"] = obj.loaded_by.username
-            loaded_by["profile"] = reverse("profile_detail", args=(obj.loaded_by.username, ))
+            loaded_by["profile"] = reverse("profile_detail", args=(obj.loaded_by.username,))
             loaded_by["date"] = obj.load_date.strftime("%Y-%m-%d")
         return loaded_by
-    
+
     @staticmethod
     def resolve_locks(obj):
-        locks = [i for i in SessionLock.objects.all().prefetch_related() if i.target.map.pk == obj.pk]
+        locks = [
+            i for i in SessionLock.objects.all().prefetch_related() if i.target.map.pk == obj.pk
+        ]
         return locks
-    
+
     @staticmethod
     def resolve_documents(obj):
         return natsorted(obj.documents.all(), key=lambda k: k.title)
 
 
 class MapResourcesSchema(Schema):
-
     identifier: str
     title: str
     year: int = 0
@@ -628,7 +638,7 @@ class MapResourcesSchema(Schema):
     @staticmethod
     def resolve_documents(obj):
         return natsorted(obj.documents.all(), key=lambda k: k.title)
-    
+
     @staticmethod
     def resolve_regions(obj):
         return natsorted(obj.regions.all(), key=lambda k: k.title)
@@ -646,7 +656,7 @@ class ResourceFullSchema(Schema):
     id: int
     title: str
     slug: str
-    type: Literal['document', 'region', 'layer']
+    type: Literal["document", "region", "layer"]
     status: str
     page_number: Optional[str]
     file: Optional[str]
@@ -719,17 +729,17 @@ class ResourceFullSchema(Schema):
             return obj.document.regions.all()
         elif restype == "document":
             return obj.regions.all()
-    
+
     @staticmethod
     def resolve_layers(obj):
         restype = _get_type_lookup(obj)
         if restype == "layer":
             return [obj]
         elif restype == "region":
-            return [obj.layer] if hasattr(obj, 'layer') and obj.layer else []
+            return [obj.layer] if hasattr(obj, "layer") and obj.layer else []
         elif restype == "document":
             return obj.layers.all()
-    
+
     @staticmethod
     def resolve_prep_sessions(obj):
         restype = _get_type_lookup(obj)

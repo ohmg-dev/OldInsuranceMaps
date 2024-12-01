@@ -16,53 +16,58 @@ TRANSFORMATION_LOOKUP = {
         "id": "tps",
         "gdal_code": -1,
         "name": "Thin Plate Spline",
-        "desc": "max distortion"
+        "desc": "max distortion",
     },
     "poly": {
         "id": "poly",
         "gdal_code": 0,
         "name": "Highest Possible Polynomial",
-        "desc": "uses highest possible polynomial order based on GCP count"
+        "desc": "uses highest possible polynomial order based on GCP count",
     },
     "poly1": {
         "id": "poly1",
         "gdal_code": 1,
         "name": "Polynomial 1",
-        "desc": "uses polynomial 1"
+        "desc": "uses polynomial 1",
     },
     "poly2": {
         "id": "poly2",
         "gdal_code": 2,
         "name": "Polynomial 2",
-        "desc": "uses polynomial 2, requires 6 GCPs"
+        "desc": "uses polynomial 2, requires 6 GCPs",
     },
     "poly3": {
         "id": "poly3",
         "gdal_code": 3,
         "name": "Polynomial 3",
-        "desc": "uses polynomial 3, requires 10 GCPs (not recommended in GDAL docs)"
-    }
+        "desc": "uses polynomial 3, requires 10 GCPs (not recommended in GDAL docs)",
+    },
 }
+
 
 class CapturingStdout(list):
     def __enter__(self):
         self._stdout = sys.stdout
         sys.stdout = self._stringio = StringIO()
         return self
+
     def __exit__(self, *args):
         self.extend(self._stringio.getvalue().splitlines())
-        del self._stringio    # free up some memory
+        del self._stringio  # free up some memory
         sys.stdout = self._stdout
+
 
 class CapturingStderr(list):
     def __enter__(self):
         self._stderr = sys.stderr
         sys.stderr = self._stringio = StringIO()
         return self
+
     def __exit__(self, *args):
         self.extend(self._stringio.getvalue().splitlines())
-        del self._stringio    # free up some memory
+        del self._stringio  # free up some memory
         sys.stderr = self._stderr
+
 
 ## DEPRECATED - this was a fun idea, but polynomial 2 and beyond create
 ## crazy results, so only polynomial 1 is used throughout the app for now.
@@ -86,6 +91,7 @@ def anticipate_polynomial_order(gcp_count):
         ## though there are enough GCPs for poly3
         return "poly3"
 
+
 def get_path_variant(original_path, variant, outdir=None):
     """Used to standardize the derivative names of Document files created
     during the georeferencing process"""
@@ -104,12 +110,12 @@ def get_path_variant(original_path, variant, outdir=None):
         filename = basename.replace(ext, "_modified.tif")
     else:
         raise Exception(f"unsupported derivative type: {variant}")
-    
+
     return os.path.join(outdir, filename)
 
-def retrieve_srs_wkt(code):
 
-    srs_cache_dir = os.path.join(settings.CACHE_DIR, 'srs_wkt')
+def retrieve_srs_wkt(code):
+    srs_cache_dir = os.path.join(settings.CACHE_DIR, "srs_wkt")
     if not os.path.isdir(srs_cache_dir):
         os.makedirs(srs_cache_dir, exist_ok=True)
     cache_path = os.path.join(srs_cache_dir, f"{code}-wkt.txt")
@@ -125,20 +131,18 @@ def retrieve_srs_wkt(code):
 
     return wkt
 
+
 class Georeferencer:
-
-    def __init__(self,
-            crs="EPGS:3857",
-            transformation="poly1",
-
-            # three different ways to add GCPs, one must be provided
-            gcps_gdal=None,
-            gcps_geojson=None,
-            gcps_points_file=None,
-
-            verbose=False,
-        ):
-
+    def __init__(
+        self,
+        crs="EPGS:3857",
+        transformation="poly1",
+        # three different ways to add GCPs, one must be provided
+        gcps_gdal=None,
+        gcps_geojson=None,
+        gcps_points_file=None,
+        verbose=False,
+    ):
         # handle CRS input. crs will be used to set self.crs_code, self.crs_wkt, and self.crs_sr
         if ":" not in crs:
             raise Exception("Invalid CRS format, must be 'AUTHORITY:CODE', e.g. 'EPSG:3857'")
@@ -173,10 +177,9 @@ class Georeferencer:
         self.verbose = verbose
 
         if self.verbose:
-            print('initialized')
+            print("initialized")
 
     def _load_gcps_from_file(self, file_path):
-
         z = 0
         with open(file_path, "r") as f:
             for line in f.readlines():
@@ -195,12 +198,11 @@ class Georeferencer:
                     z,
                     float(pixel_x),
                     # need to take the absolute value of this pixel coord
-                    abs(float(pixel_y))
+                    abs(float(pixel_y)),
                 )
                 self.gcps.append(gcp)
 
     def _load_gcps_from_geojson(self, geo_json):
-
         # geo_json is assumed to be WGS84, so it must be transformed to the
         # CRS of this Georeferencer instance
         self.gcps = []
@@ -209,10 +211,9 @@ class Georeferencer:
         wgs84.ImportFromEPSG(4326)
         ct = osr.CoordinateTransformation(wgs84, self.crs_sr)
 
-        for feature in geo_json['features']:
-
-            lat = feature['geometry']['coordinates'][1]
-            lng = feature['geometry']['coordinates'][0]
+        for feature in geo_json["features"]:
+            lat = feature["geometry"]["coordinates"][1]
+            lng = feature["geometry"]["coordinates"][0]
             point = ogr.CreateGeometryFromWkt(f"POINT ({lat} {lng})")
             point.Transform(ct)
 
@@ -220,13 +221,12 @@ class Georeferencer:
                 float(point.GetX()),
                 float(point.GetY()),
                 0,
-                float(feature['properties']['image'][0]),
-                float(feature['properties']['image'][1])
+                float(feature["properties"]["image"][0]),
+                float(feature["properties"]["image"][1]),
             )
             self.gcps.append(gcp)
 
     def set_workspace(self, directory):
-
         if not os.path.isdir(directory):
             os.mkdir(directory)
         self.workspace = directory
@@ -263,7 +263,7 @@ class Georeferencer:
             creationOptions=[
                 "BLOCKXSIZE=512",
                 "BLOCKYSIZE=512",
-            ]
+            ],
         )
         try:
             gdal.Translate(vrt_with_gcps_path, src_path, options=to)
@@ -288,23 +288,23 @@ class Georeferencer:
 
         wo = gdal.WarpOptions(
             creationOptions=[
-            #     "NUM_THREADS=ALL_CPUS",
-            #     ## originally used this set of flags used
-            #     # "COMPRESS=DEFLATE",
-            #     ## should have been used PREDICTOR=2 with DEFLATE but didn't know about it
-            #     # "PREDICTOR=2"
-            #     ## useful in general but not needed when using COG driver
+                #     "NUM_THREADS=ALL_CPUS",
+                #     ## originally used this set of flags used
+                #     # "COMPRESS=DEFLATE",
+                #     ## should have been used PREDICTOR=2 with DEFLATE but didn't know about it
+                #     # "PREDICTOR=2"
+                #     ## useful in general but not needed when using COG driver
                 "BLOCKXSIZE=512",
                 "BLOCKYSIZE=512",
-            #     ## advisable if using JPEG with GTiff, but not supported in COG
-            #     # "JPEG_QUALITY=75",
-            #     # "PHOTOMETRIC=YCBCR",
-            #     ## Use JPEG, as recommended by Paul Ramsey article:
-            #     ## https://blog.cleverelephant.ca/2015/02/geotiff-compression-for-dummies.html
+                #     ## advisable if using JPEG with GTiff, but not supported in COG
+                #     # "JPEG_QUALITY=75",
+                #     # "PHOTOMETRIC=YCBCR",
+                #     ## Use JPEG, as recommended by Paul Ramsey article:
+                #     ## https://blog.cleverelephant.ca/2015/02/geotiff-compression-for-dummies.html
                 # "COMPRESS=JPEG",
             ],
-            transformerOptions = [
-                f'DST_SRS={self.crs_wkt}',
+            transformerOptions=[
+                f"DST_SRS={self.crs_wkt}",
                 f'MAX_GCP_ORDER={self.transformation["gdal_code"]}',
             ],
             format="VRT",
@@ -312,12 +312,12 @@ class Georeferencer:
             # srcNodata=src_nodata,
             # srcAlpha=True,
             dstAlpha=True,
-            resampleAlg='nearest',
+            resampleAlg="nearest",
         )
 
         warped_vrt_path = get_path_variant(src_path, "VRT", outdir=output_directory)
         if preview_id:
-            warped_vrt_path = warped_vrt_path.replace('.vrt', f'_{preview_id}.vrt')
+            warped_vrt_path = warped_vrt_path.replace(".vrt", f"_{preview_id}.vrt")
 
         gdal.Warp(warped_vrt_path, vrt_with_gcps_path, options=wo)
 
@@ -331,21 +331,21 @@ class Georeferencer:
 
         b = time.time()
         logger.debug(f"{fname} | translating to COG: {dst_path}")
-        to  = gdal.TranslateOptions(
+        to = gdal.TranslateOptions(
             # format="GTiff",
             format="COG",
             # maskBand="mask",
             creationOptions=[
                 # 'COMPRESS=DEFLATE',
                 # 'PREDICTOR=2',
-                'COMPRESS=JPEG',
+                "COMPRESS=JPEG",
                 # 'TILED=YES',
                 # 'BLOCKXSIZE=512',
                 # 'BLOCKYSIZE=512',
                 # "PHOTOMETRIC=YCBCR",
-                'TILING_SCHEME=GoogleMapsCompatible',
+                "TILING_SCHEME=GoogleMapsCompatible",
             ],
-            resampleAlg="nearest"
+            resampleAlg="nearest",
         )
         gdal.Translate(dst_path, warped_vrt_path, options=to)
 

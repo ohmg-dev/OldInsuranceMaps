@@ -17,12 +17,7 @@ from ohmg.core.models import (
     Region,
     Layer,
 )
-from ohmg.georeference.models import (
-    GCPGroup,
-    Document,
-    LayerV1,
-    DocumentLink
-)
+from ohmg.georeference.models import GCPGroup, Document, LayerV1, DocumentLink
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.core.utils import (
@@ -33,8 +28,9 @@ from ohmg.core.utils import (
 
 logger = logging.getLogger(__name__)
 
+
 def delete_expired_session_locks():
-    """ Look at all current SessionLocks, and if one is expired and it's session is
+    """Look at all current SessionLocks, and if one is expired and it's session is
     still on the "input" stage, then delete the session (the lock will be deleted as well)
     """
     locks = SessionLock.objects.all()
@@ -50,6 +46,7 @@ def delete_expired_session_locks():
     if stale:
         logger.info(f"deleting {len(stale)} stale session(s): {','.join([str(i) for i in stale])}")
         SessionBase.objects.filter(pk__in=stale).delete()
+
 
 def get_default_session_data(session_type):
     """Return a dict of the keys/types for a sessions's data field.
@@ -74,46 +71,51 @@ def get_default_session_data(session_type):
     else:
         raise Exception(f"Invalid session type: {session_type}")
 
-class PrepSessionManager(models.Manager):
 
-    _type = 'p'
+class PrepSessionManager(models.Manager):
+    _type = "p"
 
     def get_queryset(self):
         return super(PrepSessionManager, self).get_queryset().filter(type=self._type)
 
     def create(self, **kwargs):
-        kwargs.update({
-            'type': self._type,
-            'data': get_default_session_data(self._type),
-        })
+        kwargs.update(
+            {
+                "type": self._type,
+                "data": get_default_session_data(self._type),
+            }
+        )
         return super(PrepSessionManager, self).create(**kwargs)
 
-class GeorefSessionManager(models.Manager):
 
-    _type = 'g'
+class GeorefSessionManager(models.Manager):
+    _type = "g"
 
     def get_queryset(self):
         return super(GeorefSessionManager, self).get_queryset().filter(type=self._type)
 
     def create(self, **kwargs):
-        kwargs.update({
-            'type': self._type,
-            'data': get_default_session_data(self._type),
-        })
+        kwargs.update(
+            {
+                "type": self._type,
+                "data": get_default_session_data(self._type),
+            }
+        )
         return super(GeorefSessionManager, self).create(**kwargs)
 
+
 SESSION_TYPES = (
-    ('p', 'Preparation'),
-    ('g', 'Georeference'),
+    ("p", "Preparation"),
+    ("g", "Georeference"),
 )
 SESSION_STAGES = (
-    ('input', 'input'),
-    ('processing', 'processing'),
-    ('finished', 'finished'),
+    ("input", "input"),
+    ("processing", "processing"),
+    ("finished", "finished"),
 )
 
-class SessionBase(models.Model):
 
+class SessionBase(models.Model):
     type = models.CharField(
         max_length=1,
         choices=SESSION_TYPES,
@@ -143,19 +145,19 @@ class SessionBase(models.Model):
         related_name="lyr",
     )
     doc2 = models.ForeignKey(
-        'core.Document',
+        "core.Document",
         models.SET_NULL,
         null=True,
         blank=True,
     )
     reg2 = models.ForeignKey(
-        'core.Region',
+        "core.Region",
         models.SET_NULL,
         null=True,
         blank=True,
     )
     lyr2 = models.ForeignKey(
-        'core.Layer',
+        "core.Layer",
         models.SET_NULL,
         null=True,
         blank=True,
@@ -219,7 +221,6 @@ class SessionBase(models.Model):
             lock.extend()
 
     def serialize(self):
-
         # handle the non- js-serializable attributes
         doc_id, layer_alt, d_create, d_mod, d_run = None, None, None, None, None
         d_run_d, d_run_t = None, None
@@ -247,7 +248,7 @@ class SessionBase(models.Model):
             "data": self.data,
             "user": {
                 "name": self.user.username,
-                "profile": full_reverse("profile_detail", args=(self.user.username, )),
+                "profile": full_reverse("profile_detail", args=(self.user.username,)),
             },
             "date_created": d_create,
             "date_modified": d_mod,
@@ -278,7 +279,9 @@ class SessionBase(models.Model):
             if k not in lookup.keys():
                 raise KeyError(f"{self.__str__()} data | Invalid key: {k}")
             if not isinstance(v, type(lookup[k])):
-                raise TypeError(f"{self.__str__()} data | Invalid type: {k} is {type(v)}, must be {type(lookup[k])}")
+                raise TypeError(
+                    f"{self.__str__()} data | Invalid type: {k} is {type(v)}, must be {type(lookup[k])}"
+                )
 
     def save(self, *args, **kwargs):
         self.validate_data()
@@ -320,7 +323,7 @@ class PrepSession(SessionBase):
     def get_child_docs(self):
         child_ids = DocumentLink.objects.filter(source=self.doc).values_list("target_id", flat=True)
         return list(Document.objects.filter(pk__in=child_ids))
-    
+
     def output_regions(self):
         if self.doc2:
             return self.doc2.regions.all()
@@ -344,11 +347,11 @@ class PrepSession(SessionBase):
         self.update_stage("processing")
 
         output = []
-        if self.data['split_needed'] is False:
+        if self.data["split_needed"] is False:
             # create Region that matches this document
             w, h = self.doc2.image_size
             region = Region.objects.create(
-                boundary = Polygon([[0,0], [0,h], [w,h], [w,0], [0,0]]),
+                boundary=Polygon([[0, 0], [0, h], [w, h], [w, 0], [0, 0]]),
                 document=self.doc2,
                 created_by=self.user,
             )
@@ -358,7 +361,7 @@ class PrepSession(SessionBase):
         else:
             self.update_status("splitting document image")
             s = Splitter(image_file=self.doc2.file.path)
-            self.data['divisions'] = s.generate_divisions(self.data['cutlines'])
+            self.data["divisions"] = s.generate_divisions(self.data["cutlines"])
             new_images = s.split_image()
 
             for div_no, file_path in enumerate(new_images, start=1):
@@ -366,10 +369,10 @@ class PrepSession(SessionBase):
 
                 # get division by index in the original list that was passed to the splitter
                 # would be better to have these returned with the new_images, ultimately
-                div = self.data['divisions'][div_no-1]
+                div = self.data["divisions"][div_no - 1]
                 div_polygon = Polygon(div)
                 region = Region.objects.create(
-                    boundary = div_polygon,
+                    boundary=div_polygon,
                     document=self.doc2,
                     division_number=div_no,
                     created_by=self.user,
@@ -397,17 +400,16 @@ class PrepSession(SessionBase):
     • result: {self.note}
     • user input duration: {self.user_input_duration}
     • processing time: {processing_time.seconds}
-    """
+    """,
         )
 
         return output
 
     def undo(self, keep_session=False):
-
         if not self.doc2:
             return
 
-        downstream = any([hasattr(i, 'layer') for i in self.doc2.regions.all()])
+        downstream = any([hasattr(i, "layer") for i in self.doc2.regions.all()])
         if downstream:
             msg = "can't undo prep session with downstream georeferencing"
             logger.warning(msg)
@@ -426,8 +428,7 @@ class PrepSession(SessionBase):
         return {"success": True, "message": "session undo completed"}
 
     def generate_final_status_note(self):
-
-        if self.data['split_needed'] is False:
+        if self.data["split_needed"] is False:
             n = "no split needed"
         else:
             pks = [str(i.pk) for i in self.output_regions()]
@@ -435,7 +436,7 @@ class PrepSession(SessionBase):
         return n
 
     def save(self, *args, **kwargs):
-        self.type = 'p'
+        self.type = "p"
         if not self.pk:
             self.data = get_default_session_data(self.type)
         if self.stage == "finished":
@@ -456,19 +457,17 @@ class GeorefSession(SessionBase):
         return f"Georeference Session ({self.pk})"
 
     def generate_final_status_note(self):
-
         try:
-            gcp_ct = len(self.data['gcps']['features'])
+            gcp_ct = len(self.data["gcps"]["features"])
             n = f"{gcp_ct} GCPs used"
         except KeyError:
             n = "error reading GCPs"
         return n
 
     def run(self):
-
         existing_file_path = None
         layer = None
-        if hasattr(self.reg2, 'layer'):
+        if hasattr(self.reg2, "layer"):
             layer = self.reg2.layer
 
         self.date_run = timezone.now()
@@ -487,8 +486,8 @@ class GeorefSession(SessionBase):
             crs_code = f"EPSG:{self.data['epsg']}"
             g = Georeferencer(
                 crs=crs_code,
-                transformation=self.data['transformation'],
-                gcps_geojson=self.data['gcps'],
+                transformation=self.data["transformation"],
+                gcps_geojson=self.data["gcps"],
             )
         except Exception as e:
             self.update_stage("finished", save=False)
@@ -549,7 +548,7 @@ class GeorefSession(SessionBase):
         self.lyr2 = layer
 
         # add the layer to the main-content LayerSet
-        layer.layerset = layer.map.get_layerset('main-content', create=True)
+        layer.layerset = layer.map.get_layerset("main-content", create=True)
         layer.save()
 
         # saving the layerset now will update its extent
@@ -562,9 +561,9 @@ class GeorefSession(SessionBase):
 
         # save the successful gcps to the canonical GCPGroup for the document
         gcp_group = GCPGroup().save_from_geojson(
-            self.data['gcps'],
+            self.data["gcps"],
             self.reg2,
-            self.data['transformation'],
+            self.data["transformation"],
         )
         self.reg2.gcp_group = gcp_group
         self.reg2.save()
@@ -585,23 +584,21 @@ class GeorefSession(SessionBase):
     • result: {self.note}
     • user input duration: {self.user_input_duration}
     • processing time: {processing_time.seconds}
-    """
+    """,
         )
 
         return layer
 
     def save(self, *args, **kwargs):
-        self.type = 'g'
+        self.type = "g"
         if not self.pk:
             self.data = get_default_session_data(self.type)
         if self.stage == "finished" and self.status == "success":
             self.note = self.generate_final_status_note()
         return super(GeorefSession, self).save(*args, **kwargs)
-    
-def add_lock(
-    session: Union[PrepSession, GeorefSession],
-    obj: Union[Document, Region, Layer]
-):
+
+
+def add_lock(session: Union[PrepSession, GeorefSession], obj: Union[Document, Region, Layer]):
     ct = ContentType.objects.get_for_model(obj)
     SessionLock.objects.create(
         session=session,
@@ -610,15 +607,15 @@ def add_lock(
         user=session.user,
     )
 
-def remove_lock(
-    session: Union[PrepSession, GeorefSession],
-    obj: Union[Document, Region, Layer]
-):
+
+def remove_lock(session: Union[PrepSession, GeorefSession], obj: Union[Document, Region, Layer]):
     ct = ContentType.objects.get_for_model(obj)
     session.locks.filter(target_type=ct, target_id=obj.pk).delete()
 
+
 def default_expiration_time():
     return timezone.now() + timedelta(seconds=settings.GEOREFERENCE_SESSION_LENGTH)
+
 
 class SessionLock(models.Model):
     """Used to lock a resource attached to a given session."""
@@ -626,17 +623,12 @@ class SessionLock(models.Model):
     session = models.ForeignKey(
         SessionBase,
         on_delete=models.CASCADE,
-        related_name='locks',
+        related_name="locks",
     )
-    target_type = models.ForeignKey(
-        ContentType,
-        on_delete=models.CASCADE
-    )
+    target_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     target_id = models.PositiveIntegerField()
-    target = GenericForeignKey('target_type', 'target_id')
-    expiration = models.DateTimeField(
-        default=default_expiration_time
-    )
+    target = GenericForeignKey("target_type", "target_id")
+    expiration = models.DateTimeField(default=default_expiration_time)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -647,8 +639,10 @@ class SessionLock(models.Model):
         verbose_name_plural = "Session Locks"
 
     def __str__(self):
-        return f"{self.session} --> {self.target._meta.object_name} ({self.target} {self.target_id})"
-    
+        return (
+            f"{self.session} --> {self.target._meta.object_name} ({self.target} {self.target_id})"
+        )
+
     def extend(self):
         self.expiration += timedelta(seconds=settings.GEOREFERENCE_SESSION_LENGTH)
         self.save()

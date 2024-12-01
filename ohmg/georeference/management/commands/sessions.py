@@ -7,8 +7,10 @@ from ohmg.georeference.models import (
     GeorefSession,
 )
 
+
 class Command(BaseCommand):
-    help = 'Command line access point for the internal georeferencing utilities.'
+    help = "Command line access point for the internal georeferencing utilities."
+
     def add_arguments(self, parser):
         parser.add_argument(
             "operation",
@@ -51,13 +53,11 @@ class Command(BaseCommand):
             return GeorefSession
 
     def handle(self, *args, **options):
-
-        operation = options['operation']
-        if operation in ['run', 'undo']:
-
-            bs = SessionBase.objects.get(pk=options['pk'])
+        operation = options["operation"]
+        if operation in ["run", "undo"]:
+            bs = SessionBase.objects.get(pk=options["pk"])
             model = self._model_from_type(bs.type)
-            session = model.objects.get(pk=options['pk'])
+            session = model.objects.get(pk=options["pk"])
 
             if operation == "run":
                 session.run()
@@ -65,18 +65,15 @@ class Command(BaseCommand):
                 session.undo()
 
         elif operation == "list":
-
             if options["type"]:
-                model = self._model_from_type(options['type'])
-                for s in model.objects.filter(doc2_id=options['docid']):
+                model = self._model_from_type(options["type"])
+                for s in model.objects.filter(doc2_id=options["docid"]):
                     print(s)
             else:
-                for ps in PrepSession.objects.filter(doc2_id=options['docid']):
+                for ps in PrepSession.objects.filter(doc2_id=options["docid"]):
                     print(ps)
-                for gs in GeorefSession.objects.filter(doc2_id=options['docid']):
+                for gs in GeorefSession.objects.filter(doc2_id=options["docid"]):
                     print(gs)
 
-
-        elif operation == 'delete-expired':
-
+        elif operation == "delete-expired":
             delete_expired_session_locks()
