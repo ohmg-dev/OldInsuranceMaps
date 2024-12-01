@@ -8,62 +8,71 @@ from ohmg.georeference.models import PrepSession, GeorefSession
 
 
 class Command(BaseCommand):
-    help = 'management command to handle map object operations'
+    help = "management command to handle map object operations"
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            "operation",
-            choices=[
-                "add",
-                "remove",
-                "list-importers",
-                "add-document",
-                "create-documents",
-                "create-lookups",
-                "refresh-lookups",
-            ],
-            help="the operation to perform",
-        ),
-        parser.add_argument(
-            "--pk",
-            help="id of map",
-        ),
-        parser.add_argument(
-            "--csv-file",
-            help="path to file for bulk import",
-        ),
-        parser.add_argument(
-            "--dry-run",
-            action="store_true",
-            default=False,
-            help="perform a dry-run of the operation",
-        ),
-        parser.add_argument(
-            "--get-files",
-            action="store_true",
-            default=False,
-            help="Will download all files to documents, during the create-documents operation",
-        ),
-        parser.add_argument(
-            "--overwrite",
-            action="store_true",
-            default=False,
-            help="overwrite existing content with new input",
-        ),
+        (
+            parser.add_argument(
+                "operation",
+                choices=[
+                    "add",
+                    "remove",
+                    "list-importers",
+                    "add-document",
+                    "create-documents",
+                    "create-lookups",
+                    "refresh-lookups",
+                ],
+                help="the operation to perform",
+            ),
+        )
+        (
+            parser.add_argument(
+                "--pk",
+                help="id of map",
+            ),
+        )
+        (
+            parser.add_argument(
+                "--csv-file",
+                help="path to file for bulk import",
+            ),
+        )
+        (
+            parser.add_argument(
+                "--dry-run",
+                action="store_true",
+                default=False,
+                help="perform a dry-run of the operation",
+            ),
+        )
+        (
+            parser.add_argument(
+                "--get-files",
+                action="store_true",
+                default=False,
+                help="Will download all files to documents, during the create-documents operation",
+            ),
+        )
+        (
+            parser.add_argument(
+                "--overwrite",
+                action="store_true",
+                default=False,
+                help="overwrite existing content with new input",
+            ),
+        )
         parser.add_argument(
             "--background",
             action="store_true",
-            help="run the operation in the background with celery"
+            help="run the operation in the background with celery",
         )
-        parser.add_argument(
-            "--username",
-            help="username to use for load operation"
-        )
+        parser.add_argument("--username", help="username to use for load operation")
         parser.add_argument(
             "--skip-existing",
             action="store_true",
             default=False,
-            help="Used during Map lookup refresh; skip any Maps that don't have null lookups."
+            help="Used during Map lookup refresh; skip any Maps that don't have null lookups.",
         )
         parser.add_argument(
             "--force",
@@ -73,7 +82,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--importer",
             default="single-file",
-            help="id of importer class to use, from list of options in settings.IMPORTERS['map']"
+            help="id of importer class to use, from list of options in settings.IMPORTERS['map']",
         )
         parser.add_argument(
             "--opts",
@@ -82,24 +91,27 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        operation = options["operation"]
 
-        operation = options['operation']
-
-        if options['username']:
-            username = options['username']
+        if options["username"]:
+            username = options["username"]
         else:
             username = "admin"
         user = get_user_model().objects.get(username=username)
 
         if operation == "add":
-            if options['importer'] not in settings.OHMG_IMPORTERS['map']:
+            if options["importer"] not in settings.OHMG_IMPORTERS["map"]:
                 raise NotImplementedError("no entry in settings.OHMG_IMPORTERS for this importer")
 
-            importer = get_importer(options['importer'], dry_run=options['dry_run'], overwrite=options['overwrite'])
+            importer = get_importer(
+                options["importer"],
+                dry_run=options["dry_run"],
+                overwrite=options["overwrite"],
+            )
 
             importer_kwargs = {}
-            if options['opts']:
-                for opt in options['opts']:
+            if options["opts"]:
+                for opt in options["opts"]:
                     if "=" not in opt:
                         raise ValueError(f"{opt} is a malformed opt. Format must be key=value.")
 
@@ -108,8 +120,8 @@ class Command(BaseCommand):
 
                 importer.run_import(**importer_kwargs)
 
-            elif options['csv_file']:
-                importer.run_bulk_import(options['csv_file'])
+            elif options["csv_file"]:
+                importer.run_bulk_import(options["csv_file"])
 
         if operation == "remove":
             try:
@@ -142,7 +154,16 @@ class Command(BaseCommand):
 
             prompt = "Delete all of these objects? y/N "
             if options["force"] or input(prompt).lower().startswith("y"):
-                for i in prep_sessions + georef_sessions + gcps + gcp_groups + layers + regions + documents + [map]:
+                for i in (
+                    prep_sessions
+                    + georef_sessions
+                    + gcps
+                    + gcp_groups
+                    + layers
+                    + regions
+                    + documents
+                    + [map]
+                ):
                     print(i)
                     i.delete()
 
@@ -157,18 +178,18 @@ class Command(BaseCommand):
             except Map.DoesNotExist:
                 print("this map does not exist in the database")
                 exit()
-            map.create_documents(get_files=options['get_files'])
+            map.create_documents(get_files=options["get_files"])
 
         if operation == "list-importers":
-            for name in settings.OHMG_IMPORTERS['map'].keys():
+            for name in settings.OHMG_IMPORTERS["map"].keys():
                 print(f"id: {name}")
                 importer = get_importer(name)
                 print(importer.__doc__)
 
         if operation == "refresh-lookups":
-            if options['pk']:
+            if options["pk"]:
                 maps = [Map.objects.get(pk=options["pk"])]
-            elif options['skip_existing']:
+            elif options["skip_existing"]:
                 maps = Map.objects.all().filter(item_lookup__isnull=True)
             else:
                 maps = Map.objects.all()

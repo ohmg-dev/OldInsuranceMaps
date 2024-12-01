@@ -1,18 +1,18 @@
-
 from ..utils import random_alnum
 from ..models import Map
 from .base import BaseImporter
 
+
 class SingleFileImporter(BaseImporter):
     """Single File Importer
--------------
-Use this importer to create a new Map object with a single file in it. The following
-opts are supported:
+    -------------
+    Use this importer to create a new Map object with a single file in it. The following
+    opts are supported:
 
-    file-path: path/to/file.tif
-    year: year of publication
+        file-path: path/to/file.tif
+        year: year of publication
 
-"""
+    """
 
     required_input = [
         "file-path",
@@ -21,10 +21,9 @@ opts are supported:
     ]
 
     def parse(self):
-
         print(self.input_data)
 
-        id = self.input_data.get('identifier')
+        id = self.input_data.get("identifier")
         if id:
             try:
                 Map.objects.get(pk=id)
@@ -35,25 +34,28 @@ opts are supported:
         else:
             id = random_alnum().upper()
 
-        file_paths = self.input_data.get('file-path').split(";")
-        title = self.input_data.get('title', "test map")
-        year = self.input_data.get('year')
+        file_paths = self.input_data.get("file-path").split(";")
+        title = self.input_data.get("title", "test map")
+        year = self.input_data.get("year")
         if year:
             year = int(year)
-        creator = self.input_data.get('creator')
-        locale = self.input_data.get('locale')
+        creator = self.input_data.get("creator")
+        locale = self.input_data.get("locale")
 
-        document_sources = [{
-            "path": fp,
-            "iiif_info": None,
-            "page_number": None if len(file_paths) == 1 else i,
-        } for i, fp in enumerate(file_paths, start=1)]
+        document_sources = [
+            {
+                "path": fp,
+                "iiif_info": None,
+                "page_number": None if len(file_paths) == 1 else i,
+            }
+            for i, fp in enumerate(file_paths, start=1)
+        ]
 
         self.parsed_data = {
-            'identifier': id,
-            'title': title,
-            'year': year,
-            'creator': creator,
-            'locale': locale,
-            'document_sources': document_sources,
+            "identifier": id,
+            "title": title,
+            "year": year,
+            "creator": creator,
+            "locale": locale,
+            "document_sources": document_sources,
         }

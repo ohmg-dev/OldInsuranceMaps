@@ -8,8 +8,9 @@ from ohmg.places.utils import reset_volume_counts
 
 logger = logging.getLogger(__name__)
 
+
 class Command(BaseCommand):
-    help = 'Helper operations for management of Place objects.'
+    help = "Helper operations for management of Place objects."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -30,13 +31,13 @@ class Command(BaseCommand):
             help="The slug for the parent Place to attach to.",
         )
         parser.add_argument(
-            "-c", "--category",
+            "-c",
+            "--category",
             default="other",
             help="Category for the new Place.",
         )
 
     def handle(self, *args, **options):
-
         ## STASHING
         # these are misspellings from the census data vs.
         # what was stored in the Volume objects for city,
@@ -51,21 +52,20 @@ class Command(BaseCommand):
         # }
 
         print(options)
-        if options['operation'] == "create":
+        if options["operation"] == "create":
             self.create_new_place(
-                name=options['name'],
-                parent_slug=options['parent'],
-                category=options['category'],
+                name=options["name"],
+                parent_slug=options["parent"],
+                category=options["category"],
             )
 
-        elif options['operation'] == "import-all":
+        elif options["operation"] == "import-all":
             self.import_all_places()
 
-        elif options['operation'] == "reset-volume-counts":
+        elif options["operation"] == "reset-volume-counts":
             self.reset_all_counts()
 
     def create_new_place(self, name, parent_slug, category):
-
         parent = Place.objects.get(slug=parent_slug)
 
         place = Place(
@@ -78,7 +78,6 @@ class Command(BaseCommand):
         print(place)
 
     def import_all_places(self):
-
         datadir = Path(Path(__file__).parent.parent.parent, "reference_data")
         Place.objects.all().delete()
 
@@ -88,5 +87,4 @@ class Command(BaseCommand):
         Place().bulk_load_from_csv(Path(datadir, "place_other.csv"))
 
     def reset_all_counts(self):
-
         reset_volume_counts(verbose=True)

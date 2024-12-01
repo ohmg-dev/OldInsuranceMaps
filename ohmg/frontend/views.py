@@ -28,8 +28,8 @@ if settings.ENABLE_NEWSLETTER:
 
 logger = logging.getLogger(__name__)
 
-def newsletter_context(request):
 
+def newsletter_context(request):
     newsletter_slug = None
     user_subscribed = False
     newsletter = None
@@ -45,77 +45,62 @@ def newsletter_context(request):
 
 
 class HomePage(View):
-
     def get(self, request):
-
         if settings.ENABLE_NEWSLETTER:
             newsletter_slug, user_subscribed = newsletter_context(request)
         else:
             newsletter_slug, user_subscribed = None, False
 
-        ft = [{"title":i[0], "id":i[1]} for i in Map.objects.filter(featured=True).values_list("title", "identifier")]
+        ft = [
+            {"title": i[0], "id": i[1]}
+            for i in Map.objects.filter(featured=True).values_list("title", "identifier")
+        ]
         context_dict = {
             "params": {
                 "CONTEXT": generate_ohmg_context(request),
-                "PAGE_NAME": 'home',
-                'PARAMS': {
+                "PAGE_NAME": "home",
+                "PARAMS": {
                     "NEWSLETTER_SLUG": newsletter_slug,
                     "USER_SUBSCRIBED": user_subscribed,
                     "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
                     "MAP_CT": Map.objects.all().exclude(loaded_by=None).count(),
                     "FEATURED_MAPS": ft,
-                }
+                },
             },
         }
 
-        return render(
-            request,
-            "index.html",
-            context=context_dict
-        )
+        return render(request, "index.html", context=context_dict)
+
 
 class Browse(View):
-
     def get(self, request):
-
         context_dict = {
             "params": {
                 "CONTEXT": generate_ohmg_context(request),
-                "PAGE_NAME": 'browse',
+                "PAGE_NAME": "browse",
                 "PARAMS": {
                     "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
                     "MAP_CT": Map.objects.all().exclude(loaded_by=None).count(),
-                }
+                },
             }
         }
-        return render(
-            request,
-            "index.html",
-            context=context_dict
-        )
+        return render(request, "index.html", context=context_dict)
+
 
 class ActivityView(View):
-
     def get(self, request):
-
         context_dict = {
             "params": {
                 "CONTEXT": generate_ohmg_context(request),
-                "PAGE_NAME": 'activity',
+                "PAGE_NAME": "activity",
             }
         }
 
-        return render(
-            request,
-            "index.html",
-            context=context_dict
-        )
+        return render(request, "index.html", context=context_dict)
 
 
 class NewsList(View):
-
     def get(self, request):
-
         newsletter_slug, user_subscribed = newsletter_context(request)
 
         submissions = Submission.objects.filter(publish=True).order_by("-publish_date")
@@ -133,16 +118,11 @@ class NewsList(View):
             "USER_SUBSCRIBED": user_subscribed,
         }
 
-        return render(
-            request,
-            "news/list.html",
-            context=context_dict
-        )
+        return render(request, "news/list.html", context=context_dict)
+
 
 class NewsArticle(View):
-
     def get(self, request, slug):
-
         message = get_object_or_404(Message, slug=slug)
         submissions = Submission.objects.filter(message=message).order_by("-publish_date")
         if not submissions.exists():
@@ -153,17 +133,12 @@ class NewsArticle(View):
             "publish_date": submissions[0].publish_date,
         }
 
-        return render(
-            request,
-            "news/article.html",
-            context=context_dict
-        )
+        return render(request, "news/article.html", context=context_dict)
+
 
 class Viewer(View):
-
     @xframe_options_sameorigin
     def get(self, request, place_slug):
-
         place_data = {}
         maps = []
 
@@ -176,10 +151,12 @@ class Viewer(View):
         place_data = place.serialize()
         for map in Map.objects.filter(locales__id__exact=place.id).prefetch_related():
             map_json = MapFullSchema.from_orm(map).dict()
-            map_json['main_layerset'] = LayerSetSchema.from_orm(map.get_layerset('main-content')).dict()
+            map_json["main_layerset"] = LayerSetSchema.from_orm(
+                map.get_layerset("main-content")
+            ).dict()
             maps.append(map_json)
 
-        maps_sorted = natsorted(maps, key=lambda x: x['title'], reverse=True)
+        maps_sorted = natsorted(maps, key=lambda x: x["title"], reverse=True)
 
         context_dict = {
             "svelte_params": {
@@ -188,8 +165,4 @@ class Viewer(View):
                 "MAPS": maps_sorted,
             }
         }
-        return render(
-            request,
-            "viewer.html",
-            context=context_dict
-        )
+        return render(request, "viewer.html", context=context_dict)

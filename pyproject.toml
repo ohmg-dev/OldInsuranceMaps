@@ -56,3 +56,6 @@ dev = [
 packages = [
     "ohmg"
 ]
+
+[tool.ruff]
+line-length = 100

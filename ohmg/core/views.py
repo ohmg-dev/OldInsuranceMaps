@@ -10,12 +10,7 @@ from django.contrib.auth.decorators import login_required
 
 from ohmg.georeference.models import LayerSetCategory
 from ohmg.core.context_processors import generate_ohmg_context
-from ohmg.core.models import (
-    Map,
-    Document,
-    Region,
-    Layer
-)
+from ohmg.core.models import Map, Document, Region, Layer
 from ohmg.core.utils import time_this
 from ohmg.core.api.schemas import (
     MapFullSchema,
@@ -42,10 +37,8 @@ logger = logging.getLogger(__name__)
 
 
 class MapView(View):
-
     @time_this
     def get(self, request, identifier):
-
         map = get_object_or_404(Map.objects.prefetch_related(), pk=identifier)
         map_json = MapFullSchema.from_orm(map).dict()
 
@@ -67,15 +60,10 @@ class MapView(View):
             }
         }
 
-        return render(
-            request,
-            "content/map.html",
-            context=context_dict
-        )
+        return render(request, "content/map.html", context=context_dict)
 
     @method_decorator(login_required)
     def post(self, request, identifier):
-
         body = json.loads(request.body)
         operation = body.get("operation", None)
 
@@ -105,7 +93,7 @@ class GenericResourceView(View):
         try:
             return self.model.objects.get(pk=pk)
         except self.model.DoesNotExist:
-            return None 
+            return None
 
     @time_this
     def get(self, request, pk):
@@ -114,13 +102,13 @@ class GenericResourceView(View):
             request,
             "content/resource.html",
             context={
-                'resource_params': {
+                "resource_params": {
                     "CONTEXT": generate_ohmg_context(request),
                     "MAP": MapResourcesSchema.from_orm(resource.map).dict(),
                     "LOCALE": PlaceFullSchema.from_orm(resource.map.get_locale()).dict(),
                     "RESOURCE": ResourceFullSchema.from_orm(resource).dict(),
                 }
-            }
+            },
         )
 
 
@@ -128,11 +116,10 @@ class DocumentView(GenericResourceView):
     model = Document
 
     @method_decorator(login_required)
-    @method_decorator(validate_post_request(operations=[
-        "no-split", "split", "unprepare"
-    ]))
+    @method_decorator(validate_post_request(operations=["no-split", "split", "unprepare"]))
     def post(self, request, pk):
         from ohmg.georeference.models import PrepSession
+
         document = self._get_object(pk)
         if document is None:
             return JsonResponseNotFound()
@@ -141,17 +128,18 @@ class DocumentView(GenericResourceView):
         operation = body.get("operation")
         payload = body.get("payload")
 
-        sessionid = payload.get('sessionId')
+        sessionid = payload.get("sessionId")
         sesh = None
         if sessionid:
             sesh = PrepSession.objects.get(pk=sessionid)
 
-        if operation in ['split', 'no-split']:
+        if operation in ["split", "no-split"]:
             if Region.objects.filter(document=document).exists():
-                return JsonResponseFail(f"This document {document} ({document.pk}) has already been prepared.")
+                return JsonResponseFail(
+                    f"This document {document} ({document.pk}) has already been prepared."
+                )
 
         if operation == "no-split":
-
             # sesh could be None if this post has been made directly from an overview page,
             # not from the split interface where a session will have already been made.
             if sesh is None:
@@ -162,36 +150,38 @@ class DocumentView(GenericResourceView):
                 )
                 sesh.start()
 
-            sesh.data['split_needed'] = False
+            sesh.data["split_needed"] = False
             sesh.save(update_fields=["data"])
 
             new_region = sesh.run()[0]
             return JsonResponseSuccess(f"no split, new region created: {new_region.pk}")
 
         if operation == "split":
-            sesh.data['split_needed'] = True
-            sesh.data['cutlines'] = payload.get('lines')
+            sesh.data["split_needed"] = True
+            sesh.data["cutlines"] = payload.get("lines")
             sesh.save(update_fields=["data"])
             logger.info(f"{sesh.__str__()} | begin run() as task")
             run_preparation_session.apply_async((sesh.pk,))
-            return JsonResponse({"success":True})
+            return JsonResponse({"success": True})
 
         if operation == "unprepare":
             sesh = PrepSession.objects.get(doc2=document)
             result = sesh.undo()
-            if result['success']:
+            if result["success"]:
                 return JsonResponseSuccess(result["message"])
             else:
-                return JsonResponseFail(result["message"]) 
+                return JsonResponseFail(result["message"])
 
 
 class RegionView(GenericResourceView):
     model = Region
 
     @method_decorator(login_required)
-    @method_decorator(validate_post_request(
-        operations=['set-category', 'georeference'],
-    ))
+    @method_decorator(
+        validate_post_request(
+            operations=["set-category", "georeference"],
+        )
+    )
     def post(self, request, pk):
         region = self._get_object(pk)
         if region is None:
@@ -221,9 +211,7 @@ class LayerView(GenericResourceView):
     model = Layer
 
     @method_decorator(login_required)
-    @method_decorator(validate_post_request(operations=[
-        'set-layerset', 'ungeoreference'
-    ]))
+    @method_decorator(validate_post_request(operations=["set-layerset", "ungeoreference"]))
     def post(self, request, pk):
         layer = self._get_object(pk)
         if layer is None:
@@ -236,17 +224,20 @@ class LayerView(GenericResourceView):
         # typically this is done in bulk with a different endpoint,
         # so this operation may not actually be needed...
         if operation == "set-layerset":
-            target_category = payload.get('layerset-category')
+            target_category = payload.get("layerset-category")
             layerset = layer.region.document.map.get_layerset(target_category, create=True)
             try:
                 layer.set_layerset(layerset)
-                return JsonResponseSuccess(f"Layer {layer.pk} added to {target_category} LayerSet {layerset.pk}")
+                return JsonResponseSuccess(
+                    f"Layer {layer.pk} added to {target_category} LayerSet {layerset.pk}"
+                )
             except Exception as e:
                 logger.error(e)
                 return JsonResponseFail(e)
 
         if operation == "ungeoreference":
             from ohmg.georeference.models import GeorefSession
+
             sessions = GeorefSession.objects.filter(lyr2=layer)
             sessions.delete()
             layer.region.georeferenced = False

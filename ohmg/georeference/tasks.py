@@ -10,11 +10,13 @@ from ohmg.georeference.models import (
 
 logger = logging.getLogger(__name__)
 
+
 @app.task
 def run_preparation_session(sessionid):
     session = PrepSession.objects.get(pk=sessionid)
     session.run()
     return session.pk
+
 
 @app.task
 def run_georeference_session(sessionid):
@@ -22,13 +24,14 @@ def run_georeference_session(sessionid):
     session.run()
     return session.pk
 
+
 @app.task
 def delete_stale_sessions():
     delete_expired_session_locks()
 
+
 @app.task
 def delete_preview_vrt(base_file_path, preview_url_to_remove):
-
     if not preview_url_to_remove.endswith(".vrt"):
         logger.warning("will not delete non-VRT")
         return

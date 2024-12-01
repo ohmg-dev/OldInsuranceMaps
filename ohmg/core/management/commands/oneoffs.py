@@ -3,13 +3,11 @@ import json
 from django.core.management.base import BaseCommand
 
 from ohmg.georeference.models import LayerSet
-from ohmg.core.models import (
-    Layer, Map, Document, Region
-)
-from ohmg.georeference.models import GeorefSession, LayerSet
+from ohmg.core.models import Map
+
 
 class Command(BaseCommand):
-    help = 'add oneoff operations to this command as needed.'
+    help = "add oneoff operations to this command as needed."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -18,11 +16,10 @@ class Command(BaseCommand):
                 "backfill-document-sources",
                 "resave-content",
             ],
-            help="Choose what operation to run."
+            help="Choose what operation to run.",
         )
 
     def handle(self, *args, **options):
-
         ## 11/20/2024 this operation created to update all existing Map.document_sources fields
         ## after the shape of that field had been changed (page number now stored within each entry)
         if options["operation"] == "backfill_document_sources":
@@ -64,7 +61,7 @@ class Command(BaseCommand):
                 print(json.dumps(new_ds_list, indent=2))
                 map.document_sources = new_ds_list
                 map.save()
-#                print(map, len(map.document_sources), map.documents.all().count())
+        #                print(map, len(map.document_sources), map.documents.all().count())
 
         ## generally helpful operation during development to go though and run
         ## save() on all objects in the core data model
@@ -81,7 +78,6 @@ class Command(BaseCommand):
                     document.save(skip_map_lookup_update=True)
                 if all([i.file is not None for i in docs]):
                     map.set_status("ready")
-
 
                 print("re-saving Regions...")
                 regs = map.regions.all()

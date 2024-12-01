@@ -1,21 +1,10 @@
-from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.core.handlers.wsgi import WSGIHandler
-from django.core.handlers.asgi import ASGIHandler
-from django.core.management import call_command
-from django.test import tag, Client
-
-from ohmg.core.importers.base import get_importer, SingleFileImporter
-from ohmg.places.models import Place
 from ohmg.places.management.utils import reset_volume_counts
-from ohmg.loc_insurancemaps.models import Volume, Sheet
-from ohmg.georeference.models import Document, PrepSession, GeorefSession, DocumentLink
+from ohmg.loc_insurancemaps.models import Volume
 
 from .base import OHMGTestCase, get_api_client
 
 
 class APITestCase(OHMGTestCase):
-
     fixtures = [
         OHMGTestCase.fixture_default_layerset_categories,
         OHMGTestCase.fixture_sanborn_layerset_categories,
@@ -37,10 +26,9 @@ class APITestCase(OHMGTestCase):
     ]
 
     def test_places_endpoint(self):
-
         response = get_api_client().get("/api/beta2/places/")
         self.assertEqual(response.status_code, 200)
-    
+
     def test_places_geojson_endpoint(self):
         reset_volume_counts()
         for v in Volume.objects.all():

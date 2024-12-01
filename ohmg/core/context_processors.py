@@ -6,12 +6,13 @@ from django.urls import reverse
 
 from ohmg.core.api.schemas import UserSchema
 
+
 def on_mobile(request):
-    """ determine if user on mobile device or not """
-    MOBILE_AGENT_RE=re.compile(r".*(iphone|mobile|androidtouch)",re.IGNORECASE)
+    """determine if user on mobile device or not"""
+    MOBILE_AGENT_RE = re.compile(r".*(iphone|mobile|androidtouch)", re.IGNORECASE)
 
     on_mobile = False
-    user_agent = request.META.get('HTTP_USER_AGENT')
+    user_agent = request.META.get("HTTP_USER_AGENT")
     if user_agent and MOBILE_AGENT_RE.match(user_agent):
         on_mobile = True
 
@@ -19,8 +20,9 @@ def on_mobile(request):
         "on_mobile": on_mobile,
     }
 
+
 def user_info_from_request(request):
-    """ Return a set of info for the current user in the request. """
+    """Return a set of info for the current user in the request."""
 
     try:
         user = request.user
@@ -28,35 +30,36 @@ def user_info_from_request(request):
         user = None
     if user and user.is_authenticated:
         user_info = UserSchema.from_orm(user).dict()
-        user_info['api_keys'] = user.api_keys
-        user_info['is_authenticated'] = True
-        user_info['is_staff'] = user.is_staff
+        user_info["api_keys"] = user.api_keys
+        user_info["is_authenticated"] = True
+        user_info["is_staff"] = user.is_staff
     else:
         user_info = {
-            'is_authenticated': False,
-            'is_staff': False,
+            "is_authenticated": False,
+            "is_staff": False,
         }
     return user_info
 
+
 def generate_ohmg_context(request):
-    """ Returns a dictionary containing config information
+    """Returns a dictionary containing config information
     that is generally needed on most pages. It allows a more streamlined approach
     to passing this context to Svelte components. It should typically be called
-    via views.py, rather than as an actual context processor. """
+    via views.py, rather than as an actual context processor."""
 
     internal_urls = {
         "get_layerset": reverse("api-beta2:layerset"),
         "get_layersets": reverse("api-beta2:layersets"),
         "post_annotation_set": reverse("layerset_view"),
         "get_places_geojson": reverse("api-beta2:places_geojson"),
-        "change_avatar": reverse('avatar_change'),
-        "get_map": reverse('api-beta2:map'),
+        "change_avatar": reverse("avatar_change"),
+        "get_map": reverse("api-beta2:map"),
         "get_maps": reverse("api-beta2:map_list"),
         "get_users": reverse("api-beta2:user_list"),
         "get_place": reverse("api-beta2:place"),
         "get_places": reverse("api-beta2:place_list"),
         "get_sessions": reverse("api-beta2:session_list"),
-        "get_session_locks": reverse('api-beta2:session_locks')
+        "get_session_locks": reverse("api-beta2:session_locks"),
     }
 
     csrf_token = csrf.get_token(request)
@@ -64,25 +67,26 @@ def generate_ohmg_context(request):
         "titiler_host": settings.TITILER_HOST,
         "mapbox_api_token": settings.MAPBOX_API_TOKEN,
         "ohmg_api_headers": {
-            'X-API-Key': settings.OHMG_API_KEY,
+            "X-API-Key": settings.OHMG_API_KEY,
         },
         "ohmg_post_headers": {
-            'Content-Type': 'application/json;charset=utf-8',
-            'X-CSRFToken': csrf_token,
+            "Content-Type": "application/json;charset=utf-8",
+            "X-CSRFToken": csrf_token,
         },
         "csrf_token": csrf_token,
         "session_length": settings.GEOREFERENCE_SESSION_LENGTH,
-        "on_mobile": on_mobile(request)['on_mobile'],
+        "on_mobile": on_mobile(request)["on_mobile"],
         "user": user_info_from_request(request),
         "urls": internal_urls,
     }
 
+
 def site_info(request):
-    """ Return site name, build number, etc. """
+    """Return site name, build number, etc."""
 
     site = Site.objects.get_current()
     return {
-        'SITE_NAME': site.name,
-        'SITE_DOMAIN': site.domain,
-        'BUILD_NUMBER': settings.BUILD_NUMBER,
+        "SITE_NAME": site.name,
+        "SITE_DOMAIN": site.domain,
+        "BUILD_NUMBER": settings.BUILD_NUMBER,
     }

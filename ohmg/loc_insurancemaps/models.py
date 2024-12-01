@@ -11,7 +11,6 @@ from pygments.lexers.data import JsonLexer
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon, MultiPolygon
-from django.core.files import File
 from django.db import transaction
 from django.contrib.gis.db import models
 from django.utils.safestring import mark_safe
@@ -29,12 +28,13 @@ from ohmg.georeference.models import (
 from ohmg.georeference.storage import OverwriteStorage
 from ohmg.places.models import Place
 from ohmg.core.utils import (
-    # get_jpg_from_jp2_url,
     STATE_CHOICES,
     STATE_ABBREV,
     MONTH_CHOICES,
 )
+
 logger = logging.getLogger(__name__)
+
 
 def format_json_display(data):
     """very nice from here:
@@ -43,14 +43,14 @@ def format_json_display(data):
     content = json.dumps(data, indent=2)
 
     # format it with pygments and highlight it
-    formatter = HtmlFormatter(style='colorful')
+    formatter = HtmlFormatter(style="colorful")
 
     # for some reason this isn't displaying correctly, the newlines and indents are gone.
     # tried JsonLdLexer(stripnl=False, stripall=False) so far but no luck.
     # must have to do with existing styles in GeoNode or something.
     # https://pygments.org/docs/lexers/?highlight=new%20line
     response = highlight(content, JsonLexer(stripnl=False, stripall=False), formatter)
-    
+
     # include the style sheet
     style = "<style>" + formatter.get_style_defs() + "</style><br/>"
 
@@ -62,6 +62,7 @@ class Sheet(models.Model):
     It can store fields (like sheet number) that could conceivably be
     attached to the Document, but avoids the need for actually inheriting
     that model (and all of the signals, etc. that come along with it)."""
+
     doc = models.ForeignKey(Document, on_delete=models.SET_NULL, null=True, blank=True)
     volume = models.ForeignKey("Volume", on_delete=models.CASCADE)
     sheet_no = models.CharField(max_length=10, null=True, blank=True)
@@ -71,8 +72,7 @@ class Sheet(models.Model):
     def __str__(self):
         return f"{self.volume.__str__()} p{self.sheet_no}"
 
-    def load_doc(self, user=None, force_reload: bool=True):
-
+    def load_doc(self, user=None, force_reload: bool = True):
         log_prefix = f"{self.volume} p{self.sheet_no} |"
         logger.info(f"{log_prefix} start load")
 
@@ -83,7 +83,9 @@ class Sheet(models.Model):
         try:
             document = Document.objects.get(title=self.__str__())
         except Document.MultipleObjectsReturned:
-            logger.error(f"{self.__str__()} - multiple Documents exist. Delete one and rerun operation.")
+            logger.error(
+                f"{self.__str__()} - multiple Documents exist. Delete one and rerun operation."
+            )
             return
         except Document.DoesNotExist:
             document = Document.objects.create(title=self.__str__())
@@ -92,10 +94,12 @@ class Sheet(models.Model):
         self.doc = document
         self.save()
 
-        if not self.doc.file:
-            jpg_path = get_jpg_from_jp2_url(self.jp2_url, use_cache=not force_reload, force_convert=force_reload)
-            with open(jpg_path, "rb") as new_file:
-                self.doc.file.save(f"{self.doc.slug}.jpg", File(new_file))
+        # if not self.doc.file:
+        #     jpg_path = get_jpg_from_jp2_url(
+        #         self.jp2_url, use_cache=not force_reload, force_convert=force_reload
+        #     )
+        #     with open(jpg_path, "rb") as new_file:
+        #         self.doc.file.save(f"{self.doc.slug}.jpg", File(new_file))
 
         month = 1 if self.volume.month is None else int(self.volume.month)
         date = datetime(self.volume.year, month, 1, 12, 0)
@@ -133,15 +137,22 @@ class Sheet(models.Model):
             "doc_id": self.doc.pk,
         }
 
+
 def default_ordered_layers_dict():
     return {"layers": [], "index_layers": []}
 
+
 def default_sorted_layers_dict():
-    return {"main": [], "key_map": [], "congested_district": [], "graphic_map_of_volumes": []}
+    return {
+        "main": [],
+        "key_map": [],
+        "congested_district": [],
+        "graphic_map_of_volumes": [],
+    }
+
 
 class Volume(models.Model):
-
-    YEAR_CHOICES = [(r,r) for r in range(1867, 1970)]
+    YEAR_CHOICES = [(r, r) for r in range(1867, 1970)]
     STATUS_CHOICES = (
         ("not started", "not started"),
         ("initializing...", "initializing..."),
@@ -162,8 +173,8 @@ class Volume(models.Model):
     volume_no = models.CharField(max_length=5, null=True, blank=True)
     lc_item = models.JSONField(default=None, null=True, blank=True)
     lc_resources = models.JSONField(default=None, null=True, blank=True)
-    lc_manifest_url = models.CharField(max_length=200, null=True, blank=True,
-        verbose_name="LC Manifest URL"
+    lc_manifest_url = models.CharField(
+        max_length=200, null=True, blank=True, verbose_name="LC Manifest URL"
     )
     extra_location_tags = models.JSONField(null=True, blank=True, default=list)
     sheet_ct = models.IntegerField(null=True, blank=True)
@@ -173,15 +184,11 @@ class Volume(models.Model):
         blank=True,
         null=True,
         on_delete=models.CASCADE,
-        related_name="loaded_by"
+        related_name="loaded_by",
     )
     load_date = models.DateTimeField(null=True, blank=True)
     # DEPRECATE: marking this field for removal
-    ordered_layers = models.JSONField(
-        null=True,
-        blank=True,
-        default=default_ordered_layers_dict
-    )
+    ordered_layers = models.JSONField(null=True, blank=True, default=default_ordered_layers_dict)
     document_lookup = models.JSONField(
         null=True,
         blank=True,
@@ -204,7 +211,7 @@ class Volume(models.Model):
     )
     ## after migration to LayerSets ~4/13/24, this field is obsolete and can be removed.
     mosaic_geotiff = models.FileField(
-        upload_to='mosaics',
+        upload_to="mosaics",
         null=True,
         blank=True,
         max_length=255,
@@ -212,7 +219,7 @@ class Volume(models.Model):
     )
     ## after migration to LayerSets ~4/13/24, this field is obsolete and can be removed.
     mosaic_json = models.FileField(
-        upload_to='mosaics',
+        upload_to="mosaics",
         null=True,
         blank=True,
         max_length=255,
@@ -220,8 +227,8 @@ class Volume(models.Model):
     )
     ## after migration to LayerSets ~4/13/24, this field is obsolete and can be removed.
     mosaic_preference = models.CharField(
-        choices=(('mosaicjson', 'MosaicJSON'), ('geotiff', 'GeoTIFF')),
-        default='mosaicjson',
+        choices=(("mosaicjson", "MosaicJSON"), ("geotiff", "GeoTIFF")),
+        default="mosaicjson",
         max_length=20,
     )
     extent = models.PolygonField(
@@ -229,11 +236,7 @@ class Volume(models.Model):
         blank=True,
         srid=4326,
     )
-    access = models.CharField(
-        max_length=50,
-        choices=ACCESS_CHOICES,
-        default="any"
-    )
+    access = models.CharField(max_length=50, choices=ACCESS_CHOICES, default="any")
     sponsor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
@@ -270,30 +273,30 @@ class Volume(models.Model):
 
     @property
     def gt_exists(self):
-        return True if self.get_annotation_set('main-content').mosaic_geotiff else False
+        return True if self.get_annotation_set("main-content").mosaic_geotiff else False
 
     @property
     def mj_exists(self):
-        return True if self.get_annotation_set('main-content').mosaic_json else False
+        return True if self.get_annotation_set("main-content").mosaic_json else False
 
     @property
     def stats(self):
         items = self.sort_lookups()
-        unprep_ct = len(items['unprepared'])
-        prep_ct = len(items['prepared'])
-        georef_ct = len(items['georeferenced'])
+        unprep_ct = len(items["unprepared"])
+        prep_ct = len(items["prepared"])
+        georef_ct = len(items["georeferenced"])
         percent = 0
         if georef_ct > 0:
             percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
 
         main_lyrs_ct = 0
-        main_anno = self.get_annotation_set('main-content')
+        main_anno = self.get_annotation_set("main-content")
         if main_anno.annotations:
             main_lyrs_ct = len(main_anno.annotations)
         mm_ct, mm_todo, mm_percent = 0, 0, 0
         if main_lyrs_ct != 0:
             # make sure 0/0 appears at the very bottom, then 0/1, 0/2, etc.
-            mm_percent = main_lyrs_ct * .000001
+            mm_percent = main_lyrs_ct * 0.000001
         mm_display = f"0/{main_lyrs_ct}"
         if main_anno.multimask is not None:
             mm_ct = len(main_anno.multimask)
@@ -301,7 +304,7 @@ class Volume(models.Model):
             if mm_ct > 0 and main_lyrs_ct > 0:
                 mm_display = f"{mm_ct}/{main_lyrs_ct}"
                 mm_percent = mm_ct / main_lyrs_ct
-                mm_percent += main_lyrs_ct * .000001
+                mm_percent += main_lyrs_ct * 0.000001
 
         return {
             "unprepared_ct": unprep_ct,
@@ -314,7 +317,7 @@ class Volume(models.Model):
         }
 
     def get_locale(self, serialized=False):
-        """ Returns the first locale in the list of related locales.
+        """Returns the first locale in the list of related locales.
         This is a patch in use until the frontend is ready for multiple
         locales per item."""
         if len(self.locales.all()) > 0:
@@ -328,46 +331,46 @@ class Volume(models.Model):
 
     def lc_item_formatted(self):
         return format_json_display(self.lc_item)
-    lc_item_formatted.short_description = 'LC Item'
+
+    lc_item_formatted.short_description = "LC Item"
 
     def lc_resources_formatted(self):
         return format_json_display(self.lc_resources)
-    lc_resources_formatted.short_description = 'LC Resources'
+
+    lc_resources_formatted.short_description = "LC Resources"
 
     def document_lookup_formatted(self):
         return format_json_display(self.document_lookup)
-    document_lookup_formatted.short_description = 'Document Lookup'
+
+    document_lookup_formatted.short_description = "Document Lookup"
 
     def layer_lookup_formatted(self):
         return format_json_display(self.layer_lookup)
-    layer_lookup_formatted.short_description = 'Layer Lookup'
 
-    def get_annotation_set(self, cat_slug:str, create:bool=False):
+    layer_lookup_formatted.short_description = "Layer Lookup"
+
+    def get_annotation_set(self, cat_slug: str, create: bool = False):
         try:
             annoset = LayerSet.objects.get(volume=self, category__slug=cat_slug)
         except LayerSet.DoesNotExist:
             if create:
                 category = LayerSetCategory.objects.get(slug=cat_slug)
-                annoset = LayerSet.objects.create(
-                    volume=self,
-                    category=category
-                )
+                annoset = LayerSet.objects.create(volume=self, category=category)
                 logger.debug(f"created new LayerSet: {self.pk} - {cat_slug}")
             else:
                 annoset = None
         return annoset
 
-    def get_annotation_sets(self, geospatial:bool=False):
+    def get_annotation_sets(self, geospatial: bool = False):
         sets = LayerSet.objects.filter(volume=self)
         if geospatial:
             sets = sets.filter(category__is_geospatial=True)
         return sets
 
     def make_sheets(self):
-
         from ohmg.core.importers.loc_sanborn import LOCParser
 
-        files_to_import = self.lc_resources[0]['files']
+        files_to_import = self.lc_resources[0]["files"]
         for fileset in files_to_import:
             parsed = LOCParser(fileset=fileset)
             sheet, created = Sheet.objects.get_or_create(
@@ -379,7 +382,6 @@ class Volume(models.Model):
             sheet.save()
 
     def load_sheet_docs(self, force_reload=False):
-
         self.make_sheets()
         self.update_status("initializing...")
         for sheet in self.sheets:
@@ -389,17 +391,15 @@ class Volume(models.Model):
         self.refresh_lookups()
 
     def remove_sheets(self):
-
         for s in self.sheets:
             s.delete()
 
     def update_status(self, status):
         self.status = status
-        self.save(update_fields=['status'])
+        self.save(update_fields=["status"])
         logger.info(f"{self.__str__()} | status: {self.status}")
 
     def update_place_counts(self):
-
         locale = self.get_locale()
         if locale is not None:
             with transaction.atomic():
@@ -422,10 +422,9 @@ class Volume(models.Model):
         return all_documents
 
     def get_urls(self):
-
-        loc_item = f"https://loc.gov/item/{self.identifier}",
+        loc_item = (f"https://loc.gov/item/{self.identifier}",)
         try:
-            resource_url = self.lc_item['resources'][0]['url']
+            resource_url = self.lc_item["resources"][0]["url"]
             if self.sheet_ct > 1:
                 resource_url += "?st=gallery"
         except IndexError:
@@ -433,7 +432,9 @@ class Volume(models.Model):
 
         viewer_url = ""
         if self.get_locale():
-            viewer_url = reverse("viewer", args=(self.get_locale().slug,)) + f"?{self.identifier}=100"
+            viewer_url = (
+                reverse("viewer", args=(self.get_locale().slug,)) + f"?{self.identifier}=100"
+            )
 
         return {
             "loc_item": loc_item,
@@ -470,24 +471,32 @@ class Volume(models.Model):
             # failure, because of DocumentLinks not properly finding their targets.
             # DocumentLinks will be removed sooner than later, so leaving this as temp solution for now.
             serialize_parent = False if os.environ.get("TESTING") == "True" else True
-            data = document.serialize(serialize_layer=False, serialize_parent=serialize_parent, include_sessions=True)
+            data = document.serialize(
+                serialize_layer=False,
+                serialize_parent=serialize_parent,
+                include_sessions=True,
+            )
         elif str(document).isdigit():
-            data = Document.objects.get(pk=document).serialize(serialize_layer=False, include_sessions=True)
+            data = Document.objects.get(pk=document).serialize(
+                serialize_layer=False, include_sessions=True
+            )
         else:
-            logger.warning(f"cannot update_doc_lookup with this input: {document} ({type(document)}")
+            logger.warning(
+                f"cannot update_doc_lookup with this input: {document} ({type(document)}"
+            )
             return
 
         # hacky method for pulling out the sheet number from the title
         try:
-            data["page_str"] = data['title'].split("|")[-1].split("p")[1]
+            data["page_str"] = data["title"].split("|")[-1].split("p")[1]
         except IndexError:
-            data["page_str"] = data['title']
+            data["page_str"] = data["title"]
 
-        self.document_lookup[data['id']] = data
+        self.document_lookup[data["id"]] = data
         self.save(update_fields=["document_lookup"])
 
-        if update_layer is True and data['layer']:
-            self.update_lyr_lookup(data['layer'])
+        if update_layer is True and data["layer"]:
+            self.update_lyr_lookup(data["layer"])
 
     def update_lyr_lookup(self, layer):
         """Serialize the input layer id (pk), and save it into
@@ -497,37 +506,41 @@ class Volume(models.Model):
             data = layer.serialize(serialize_document=False, include_sessions=True)
         else:
             try:
-                data = LayerV1.objects.get(slug=layer).serialize(serialize_document=False, include_sessions=True)
+                data = LayerV1.objects.get(slug=layer).serialize(
+                    serialize_document=False, include_sessions=True
+                )
             except Exception as e:
-                logger.warning(f"{e} | cannot update_lyr_lookup with this input: {layer} ({type(layer)}")
+                logger.warning(
+                    f"{e} | cannot update_lyr_lookup with this input: {layer} ({type(layer)}"
+                )
                 return
 
         # hacky method for pulling out the sheet number from the title
         try:
-            data["page_str"] = data['title'].split("|")[-1].split("p")[1]
+            data["page_str"] = data["title"].split("|")[-1].split("p")[1]
         except IndexError:
-            data["page_str"] = data['title']
+            data["page_str"] = data["title"]
 
         # even more hacky method of creating a sort order from this page_str
         try:
-            data['sort_order'] = float(data['page_str'])
+            data["sort_order"] = float(data["page_str"])
         except ValueError:
-            if "[" in data['page_str']:
-                s = data['page_str'].split("[")
+            if "[" in data["page_str"]:
+                s = data["page_str"].split("[")
                 try:
-                    n1 = int(s[0].replace("R","").replace("L",""))
+                    n1 = int(s[0].replace("R", "").replace("L", ""))
                     n2 = s[1].rstrip("]")
-                    data['sort_order'] = float(f"{n1}.{n2}")
+                    data["sort_order"] = float(f"{n1}.{n2}")
                 except Exception as e:
                     logger.warning(f"error making sort_order for {data['title']}: {e}")
-                    data['sort_order'] = 0
+                    data["sort_order"] = 0
             else:
-                data['sort_order'] = 0
+                data["sort_order"] = 0
         except Exception as e:
             logger.warning(e)
-            data['sort_order'] = 0
+            data["sort_order"] = 0
 
-        self.layer_lookup[data['slug']] = data
+        self.layer_lookup[data["slug"]] = data
         self.save(update_fields=["layer_lookup"])
 
         self.set_extent()
@@ -539,16 +552,15 @@ class Volume(models.Model):
 
         layer_extent_polygons = []
         for lyr in self.layer_lookup.values():
-            if lyr['extent']:
-                poly = Polygon.from_bbox(lyr['extent'])
+            if lyr["extent"]:
+                poly = Polygon.from_bbox(lyr["extent"])
                 layer_extent_polygons.append(poly)
         if len(layer_extent_polygons) > 0:
             multi = MultiPolygon(layer_extent_polygons)
             self.extent = Polygon.from_bbox(multi.extent)
-            self.save(update_fields=['extent'])
+            self.save(update_fields=["extent"])
 
     def sort_lookups(self):
-
         sorted_items = {
             "unprepared": [],
             "prepared": [],
@@ -558,59 +570,61 @@ class Volume(models.Model):
                 "unprep": 0,
                 "prep": 0,
                 "geo_trim": 0,
-            }
+            },
         }
         for v in self.document_lookup.values():
-            if v['status'] in ["unprepared", "splitting"]:
-                sorted_items['unprepared'].append(v)
-                if v['status'] == "splitting":
-                    sorted_items['processing']['unprep'] += 1
-            if v['status'] in ["prepared", "georeferencing"]:
-                sorted_items['prepared'].append(v)
-                if v['status'] == "georeferencing":
-                    sorted_items['processing']['prep'] += 1
-            if v['status'] in ["georeferenced", "trimming", "trimmed"]:
-                sorted_items['georeferenced'].append(v)
-                if v['status'] == "trimming":
-                    sorted_items['processing']['geo_trim'] += 1
-            if v['status'] == "nonmap":
-                sorted_items['nonmaps'].append(v)
+            if v["status"] in ["unprepared", "splitting"]:
+                sorted_items["unprepared"].append(v)
+                if v["status"] == "splitting":
+                    sorted_items["processing"]["unprep"] += 1
+            if v["status"] in ["prepared", "georeferencing"]:
+                sorted_items["prepared"].append(v)
+                if v["status"] == "georeferencing":
+                    sorted_items["processing"]["prep"] += 1
+            if v["status"] in ["georeferenced", "trimming", "trimmed"]:
+                sorted_items["georeferenced"].append(v)
+                if v["status"] == "trimming":
+                    sorted_items["processing"]["geo_trim"] += 1
+            if v["status"] == "nonmap":
+                sorted_items["nonmaps"].append(v)
 
-        sorted_items['layers'] = list(self.layer_lookup.values())
+        sorted_items["layers"] = list(self.layer_lookup.values())
 
-        sorted_items['unprepared'].sort(key=lambda item: item.get("slug"))
-        sorted_items['prepared'].sort(key=lambda item: item.get("slug"))
-        sorted_items['georeferenced'].sort(key=lambda item: item.get("slug"))
-        sorted_items['layers'].sort(key=lambda item: item.get("slug"))
-        sorted_items['nonmaps'].sort(key=lambda item: item.get("slug"))
+        sorted_items["unprepared"].sort(key=lambda item: item.get("slug"))
+        sorted_items["prepared"].sort(key=lambda item: item.get("slug"))
+        sorted_items["georeferenced"].sort(key=lambda item: item.get("slug"))
+        sorted_items["layers"].sort(key=lambda item: item.get("slug"))
+        sorted_items["nonmaps"].sort(key=lambda item: item.get("slug"))
 
         return sorted_items
 
     def get_user_activity_summary(self):
-
         def _get_session_user_summary(session_dict):
-            users = [i['user']['name'] for i in session_dict.values()]
-            user_info = [{
-                "ct": users.count(i),
-                "name": i,
-                "profile": reverse('profile_detail', args=(i, ))
-            } for i in set(users)]
+            users = [i["user"]["name"] for i in session_dict.values()]
+            user_info = [
+                {
+                    "ct": users.count(i),
+                    "name": i,
+                    "profile": reverse("profile_detail", args=(i,)),
+                }
+                for i in set(users)
+            ]
             user_info.sort(key=lambda item: item.get("ct"), reverse=True)
             return user_info
 
         prep_sessions, georef_sessions = {}, {}
         for item in list(self.document_lookup.values()) + list(self.layer_lookup.values()):
-            for sesh in item['session_data']:
-                if sesh['type'] == "Preparation":
-                    prep_sessions[sesh['id']] = sesh
-                elif sesh['type'] == "Georeference":
-                    georef_sessions[sesh['id']] = sesh
+            for sesh in item["session_data"]:
+                if sesh["type"] == "Preparation":
+                    prep_sessions[sesh["id"]] = sesh
+                elif sesh["type"] == "Georeference":
+                    georef_sessions[sesh["id"]] = sesh
 
         return {
-            'prep_ct': len(prep_sessions),
-            'prep_contributors': _get_session_user_summary(prep_sessions),
-            'georef_ct': len(georef_sessions),
-            'georef_contributors': _get_session_user_summary(georef_sessions),
+            "prep_ct": len(prep_sessions),
+            "prep_contributors": _get_session_user_summary(prep_sessions),
+            "georef_ct": len(georef_sessions),
+            "georef_contributors": _get_session_user_summary(georef_sessions),
         }
 
     def serialize(self, include_session_info=False):
@@ -625,9 +639,9 @@ class Volume(models.Model):
         # now sort all of the lookups (by status) into a single set of items
         items = self.sort_lookups()
 
-        unprep_ct = len(items['unprepared'])
-        prep_ct = len(items['prepared'])
-        georef_ct = len(items['georeferenced'])
+        unprep_ct = len(items["unprepared"])
+        prep_ct = len(items["prepared"])
+        georef_ct = len(items["georeferenced"])
         percent = 0
         if georef_ct > 0:
             percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
@@ -636,7 +650,7 @@ class Volume(models.Model):
         loaded_by = {"name": "", "profile": "", "date": ""}
         if self.loaded_by is not None:
             loaded_by["name"] = self.loaded_by.username
-            loaded_by["profile"] = reverse("profile_detail", args=(self.loaded_by.username, ))
+            loaded_by["profile"] = reverse("profile_detail", args=(self.loaded_by.username,))
             loaded_by["date"] = self.load_date.strftime("%Y-%m-%d")
 
         data = {
@@ -666,6 +680,6 @@ class Volume(models.Model):
         }
 
         if include_session_info:
-            data['sessions'] = self.get_user_activity_summary()
+            data["sessions"] = self.get_user_activity_summary()
 
         return data

@@ -9,9 +9,10 @@ from ohmg.core.models import Map
 from ohmg.georeference.models import SessionBase
 from ohmg.georeference.models import GCP
 
+
 class User(AbstractUser):
     class Meta:
-        db_table = 'auth_user'
+        db_table = "auth_user"
 
     def __str__(self):
         return self.username
@@ -38,18 +39,18 @@ class User(AbstractUser):
 
     @cached_property
     def profile_url(self):
-        return reverse('profile_detail', args=(self.username, ))
+        return reverse("profile_detail", args=(self.username,))
 
     @cached_property
     def api_keys(self):
-        return [i for i in APIKey.objects.filter(account=self).values_list('value', flat=True)]
+        return [i for i in APIKey.objects.filter(account=self).values_list("value", flat=True)]
+
 
 def generate_key():
     return secrets.token_urlsafe(16)
 
 
 class APIKey(models.Model):
-
     class Meta:
         verbose_name = "API Key"
 
@@ -66,11 +67,8 @@ class APIKey(models.Model):
     active = models.BooleanField(
         default=True,
     )
-    request_count = models.IntegerField(
-        default=0,
-        editable=False
-    )
+    request_count = models.IntegerField(default=0, editable=False)
 
     def increment_count(self):
         self.request_count += 1
-        self.save(update_fields=['request_count'])
+        self.save(update_fields=["request_count"])

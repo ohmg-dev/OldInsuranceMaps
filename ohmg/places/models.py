@@ -7,11 +7,11 @@ from ohmg.core.utils import (
     STATE_ABBREV,
     STATE_POSTAL,
 )
+
 logger = logging.getLogger(__name__)
 
 
 class Place(models.Model):
-
     PLACE_CATEGORIES = (
         ("state", "State"),
         ("county", "County"),
@@ -26,30 +26,30 @@ class Place(models.Model):
     )
 
     name = models.CharField(
-        max_length = 200,
+        max_length=200,
     )
     category = models.CharField(
         max_length=20,
         choices=PLACE_CATEGORIES,
     )
     display_name = models.CharField(
-        max_length = 250,
+        max_length=250,
         editable=False,
         null=True,
         blank=True,
     )
     slug = models.CharField(
-        max_length = 250,
+        max_length=250,
         null=True,
         blank=True,
         editable=False,
     )
     volume_count = models.IntegerField(
-        default = 0,
+        default=0,
         help_text="Number of volumes attached to this place",
     )
     volume_count_inclusive = models.IntegerField(
-        default = 0,
+        default=0,
         help_text="Number of volumes attached to this place and any of its descendants",
     )
     direct_parents = models.ManyToManyField("Place")
@@ -114,7 +114,7 @@ class Place(models.Model):
             name += f" {self.get_category_display()}"
         breadcrumbs.append({"name": name, "slug": self.slug})
         return breadcrumbs
-    
+
     def get_select_lists(self):
         """
         Returns a dictionary with 4 levels of lists, these are used to populate
@@ -152,10 +152,10 @@ class Place(models.Model):
         The value --- is used to signify a non-selection in a given category,
         so for the Wisconsin Place instance, the 3rd and 4th entry above would
         have selection: "---".
-        
+
         Note that the selected value will be a slug, while the options
         list contains dictionaries with the following key/values:
-        
+
         "pk", "slug", "display_name", "volume_count_inclusive"
         """
 
@@ -180,37 +180,57 @@ class Place(models.Model):
 
         # take the requested place, and prefill list selections based on its breadcrumbs
         for n, i in enumerate(self.get_breadcrumbs(), start=1):
-            lists[n]['selected'] = i['slug']
-        
+            lists[n]["selected"] = i["slug"]
+
         # at this point, at least a country will be selected, get its pk
         top_pk = Place.objects.get(slug=lists[1]["selected"]).pk
 
         # always give all of the country options
-        all_lvl1 = list(Place.objects.filter(direct_parents=None).values("pk", "slug", "display_name", "volume_count_inclusive"))
+        all_lvl1 = list(
+            Place.objects.filter(direct_parents=None).values(
+                "pk", "slug", "display_name", "volume_count_inclusive"
+            )
+        )
         lists[1]["options"] = all_lvl1
 
         # set level 2 (state) options to only those in this country
-        all_lvl2 = list(Place.objects.filter(direct_parents=top_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
+        all_lvl2 = list(
+            Place.objects.filter(direct_parents=top_pk).values(
+                "pk", "slug", "display_name", "volume_count_inclusive"
+            )
+        )
         lists[2]["options"] = all_lvl2
 
         # if a state is selected, set options to all other states in the same country
         # also, set county/parish and city options for everything within the state
-        if lists[2]['selected'] != "---":
+        if lists[2]["selected"] != "---":
             state_pk = Place.objects.get(slug=lists[2]["selected"]).pk
-            all_lvl3 = list(Place.objects.filter(direct_parents=state_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
+            all_lvl3 = list(
+                Place.objects.filter(direct_parents=state_pk).values(
+                    "pk", "slug", "display_name", "volume_count_inclusive"
+                )
+            )
             lists[3]["options"] = all_lvl3
-            lvl3_pks = [i['pk'] for i in all_lvl3]
-            all_lvl4 = list(Place.objects.filter(direct_parents__in=lvl3_pks).values("pk", "slug", "display_name", "volume_count_inclusive"))
+            lvl3_pks = [i["pk"] for i in all_lvl3]
+            all_lvl4 = list(
+                Place.objects.filter(direct_parents__in=lvl3_pks).values(
+                    "pk", "slug", "display_name", "volume_count_inclusive"
+                )
+            )
             lists[4]["options"] = all_lvl4
 
         # if a county/parish is selected, narrow cities to only those in the county
-        if lists[3]['selected'] != "---":
+        if lists[3]["selected"] != "---":
             ce_pk = Place.objects.get(slug=lists[3]["selected"]).pk
-            all_lvl4 = list(Place.objects.filter(direct_parents=ce_pk).values("pk", "slug", "display_name", "volume_count_inclusive"))
+            all_lvl4 = list(
+                Place.objects.filter(direct_parents=ce_pk).values(
+                    "pk", "slug", "display_name", "volume_count_inclusive"
+                )
+            )
             lists[4]["options"] = all_lvl4
 
         for k, v in lists.items():
-            v['options'].sort(key=lambda k : k['display_name'])
+            v["options"].sort(key=lambda k: k["display_name"])
 
         return lists
 
@@ -226,42 +246,51 @@ class Place(models.Model):
         return pks
 
     def serialize(self):
-        """ TO DEPRECATE: remove this once the Map model schema has been implemented, that's 
-        the only place it is used. """
+        """TO DEPRECATE: remove this once the Map model schema has been implemented, that's
+        the only place it is used."""
         return {
             "pk": self.pk,
             "name": self.name,
             "display_name": self.display_name,
             "category": self.get_category_display(),
-            "parents": [{
-                "display_name": i.display_name,
-                "slug": i.slug,
-            } for i in self.direct_parents.all()],
-            "descendants": [{
-                "display_name": i.display_name,
-                "slug": i.slug,
-                "volume_count": i.volume_count,
-                "volume_count_inclusive": i.volume_count_inclusive,
-                # "has_descendant_maps": i.has_descendant_maps if self.has_descendant_maps else False,
-            } for i in self.get_descendants()],
-            "states": [{
-                "display_name": i.display_name,
-                "slug": i.slug,
-            } for i in self.states],
+            "parents": [
+                {
+                    "display_name": i.display_name,
+                    "slug": i.slug,
+                }
+                for i in self.direct_parents.all()
+            ],
+            "descendants": [
+                {
+                    "display_name": i.display_name,
+                    "slug": i.slug,
+                    "volume_count": i.volume_count,
+                    "volume_count_inclusive": i.volume_count_inclusive,
+                    # "has_descendant_maps": i.has_descendant_maps if self.has_descendant_maps else False,
+                }
+                for i in self.get_descendants()
+            ],
+            "states": [
+                {
+                    "display_name": i.display_name,
+                    "slug": i.slug,
+                }
+                for i in self.states
+            ],
             "slug": self.slug,
             "breadcrumbs": self.get_breadcrumbs(),
             "select_lists": self.get_select_lists(),
             "volume_count": self.volume_count,
             "volume_count_inclusive": self.volume_count_inclusive,
-            "volumes": [{
-                "identifier": i[0],
-                "year": i[1],
-                "volume_no":i[2]
-            } for i in self.map_set.all().order_by('year', 'title').values_list("identifier", "year", "volume_number")],
+            "volumes": [
+                {"identifier": i[0], "year": i[1], "volume_no": i[2]}
+                for i in self.map_set.all()
+                .order_by("year", "title")
+                .values_list("identifier", "year", "volume_number")
+            ],
         }
 
     def save(self, set_slug=True, *args, **kwargs):
-
         if set_slug is True or (not self.slug or not self.display_name):
             state_postal = self.get_state_postal()
             state_abbrev = self.get_state_abbrev()

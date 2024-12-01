@@ -14,75 +14,104 @@ from ohmg.georeference.models import (
     SessionLock,
 )
 
+
 class LayerSetAdmin(admin.ModelAdmin):
-    raw_id_fields = ("map", )
+    raw_id_fields = ("map",)
     readonly_fields = (
-        'layer_display_list',
-        'extent',
-        'multimask_extent',
-        'multimask',
+        "layer_display_list",
+        "extent",
+        "multimask_extent",
+        "multimask",
     )
-    search_fields = ('map', )
-    list_filter = ('category', )
+    search_fields = ("map",)
+    list_filter = ("category",)
+
 
 admin.site.register(LayerSet, LayerSetAdmin)
+
 
 class ItemBaseAdmin(admin.ModelAdmin):
     raw_id_fields = ("vrs",)
 
+
 admin.site.register(ItemBase, ItemBaseAdmin)
 
+
 class GCPAdmin(admin.ModelAdmin):
-    readonly_fields = ('last_modified',)
-    list_display = ('id', 'gcp_group')
+    readonly_fields = ("last_modified",)
+    list_display = ("id", "gcp_group")
+
 
 admin.site.register(GCP, GCPAdmin)
 admin.site.register(GCPGroup)
 
+
 class SessionAdmin(admin.ModelAdmin):
     raw_id_fields = ("doc", "lyr", "doc2", "reg2", "lyr2")
-    readonly_fields = ('date_created', 'date_modified', 'date_run')
-    list_display = ['__str__', 'doc', 'lyr', 'user', 'stage', 'status', 'note', 'date_created', 'date_modified', 'date_run']
-    list_filter = ('stage', )
+    readonly_fields = ("date_created", "date_modified", "date_run")
+    list_display = [
+        "__str__",
+        "doc",
+        "lyr",
+        "user",
+        "stage",
+        "status",
+        "note",
+        "date_created",
+        "date_modified",
+        "date_run",
+    ]
+    list_filter = ("stage",)
+
 
 class PrepSessionAdmin(SessionAdmin):
-    exclude = ('type', 'layer')
+    exclude = ("type", "layer")
     list_display = [i for i in SessionAdmin.list_display if i != "layer"]
 
+
 class GeorefSessionAdmin(SessionAdmin):
-    exclude = ('type', )
+    exclude = ("type",)
+
 
 class TrimSessionAdmin(SessionAdmin):
-    exclude = ('type', 'document')
+    exclude = ("type", "document")
     list_display = [i for i in SessionAdmin.list_display if i != "document"]
+
 
 admin.site.register(PrepSession, PrepSessionAdmin)
 admin.site.register(GeorefSession, GeorefSessionAdmin)
 
+
 class DocumentAdmin(admin.ModelAdmin):
-    search_fields = ('title', 'status')
-    list_display = ('title', 'status', 'lock_enabled')
-    exclude = ('type', 'layer_file', 'bbox_polygon')
-    list_filter = ('lock_enabled', 'status')
+    search_fields = ("title", "status")
+    list_display = ("title", "status", "lock_enabled")
+    exclude = ("type", "layer_file", "bbox_polygon")
+    list_filter = ("lock_enabled", "status")
     raw_id_fields = ("vrs",)
 
+
 class LayerAdmin(admin.ModelAdmin):
-    search_fields = ('title', 'status')
-    exclude = ('type', 'document_file')
-    list_filter = ('lock_enabled', )
+    search_fields = ("title", "status")
+    exclude = ("type", "document_file")
+    list_filter = ("lock_enabled",)
     raw_id_fields = ("vrs",)
+
 
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(LayerV1, LayerAdmin)
 
+
 class DocumentLinkAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'source', 'target', 'link_type']
-    list_filter = ('link_type', )
+    list_display = ["pk", "source", "target", "link_type"]
+    list_filter = ("link_type",)
+
 
 admin.site.register(DocumentLink, DocumentLinkAdmin)
 
+
 class SessionLockAdmin(admin.ModelAdmin):
-    raw_id_fields = ['session']
+    raw_id_fields = ["session"]
+
 
 admin.site.register(SessionLock, SessionLockAdmin)
 

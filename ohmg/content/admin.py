@@ -5,7 +5,7 @@ from ohmg.content.models import Page
 
 
 class PageAdmin(MarkdownxModelAdmin):
-    readonly_fields = ['slug']
+    readonly_fields = ["slug"]
 
 
 admin.site.register(Page, PageAdmin)

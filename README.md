@@ -9,7 +9,7 @@ At present, the system is structured around the Sanborn Map Collection at the Li
 
 ---
 
-Please don't hesitate to [open a ticket](https://github.com/mradamcox/loc-insurancemaps/issues/new/choose) if you have trouble with the site, find a bug, or have suggestions otherwise.
+Please don't hesitate to [open a ticket](https://github.com/ohmg-dev/OldInsuranceMaps/issues/new/choose) if you have trouble with the site, find a bug, or have suggestions otherwise.
 
 ---
 
@@ -31,7 +31,7 @@ This is a Django project, with a frontend built (mostly) with [Svelte](https://s
 
 ## Development Installation
 
-Running the application requires a number of components to be installed and configured properly. This aspect of the application is not optimized, but getting it documented is the first step.
+Running the application requires a number of components to be installed and configured properly.
 
 ### Create database
 
@@ -60,14 +60,25 @@ Install GDAL bindings. These must match exactly the version of GDAL you have on 
 pip install gdal=="`gdal-config --version`.*"
 ```
 
-Install the ohmg Python package and dependencies
+Clone the repo and enter the local directory
 
 ```bash
-git clone https://github.com/mradamcox/ohmg && cd ohmg
+git clone https://github.com/ohmg-dev/OldInsuranceMaps && cd OldInsuranceMaps
+```
+
+Install the package into your virtual environment
+
+```bash
 pip install -e .[dev]
 ```
 
-Set environment variables
+Install pre-commit hook
+
+```bash
+pre-commit install
+```
+
+Copy example environment variables file, and update this file as needed (more instruction each )
 
 ```bash
 cp .env.example .env

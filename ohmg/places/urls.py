@@ -5,5 +5,5 @@ from .views import (
 )
 
 urlpatterns = [
-    path('<str:place_slug>/', PlaceView.as_view(), name='place'),
+    path("<str:place_slug>/", PlaceView.as_view(), name="place"),
 ]
