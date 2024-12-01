@@ -6,7 +6,7 @@ from ohmg.tests.base import OHMGTestCase, copy_files_to_media_root
 from ohmg.loc_insurancemaps.models import Volume, Sheet
 from ohmg.georeference.models.resources import ItemBase, LayerSet, GCP, GCPGroup
 from ohmg.georeference.models.sessions import SessionBase
-# from ohmg.places.management.utils import reset_volume_counts
+from ohmg.places.utils import reset_volume_counts
 
 
 class Command(BaseCommand):

@@ -29,12 +29,13 @@ from ohmg.georeference.models import (
 from ohmg.georeference.storage import OverwriteStorage
 from ohmg.places.models import Place
 from ohmg.core.utils import (
-    # get_jpg_from_jp2_url,
     STATE_CHOICES,
     STATE_ABBREV,
     MONTH_CHOICES,
 )
+
 logger = logging.getLogger(__name__)
+
 
 def format_json_display(data):
     """very nice from here:
@@ -92,10 +93,12 @@ class Sheet(models.Model):
         self.doc = document
         self.save()
 
-        if not self.doc.file:
-            jpg_path = get_jpg_from_jp2_url(self.jp2_url, use_cache=not force_reload, force_convert=force_reload)
-            with open(jpg_path, "rb") as new_file:
-                self.doc.file.save(f"{self.doc.slug}.jpg", File(new_file))
+        # if not self.doc.file:
+        #     jpg_path = get_jpg_from_jp2_url(
+        #         self.jp2_url, use_cache=not force_reload, force_convert=force_reload
+        #     )
+        #     with open(jpg_path, "rb") as new_file:
+        #         self.doc.file.save(f"{self.doc.slug}.jpg", File(new_file))
 
         month = 1 if self.volume.month is None else int(self.volume.month)
         date = datetime(self.volume.year, month, 1, 12, 0)
