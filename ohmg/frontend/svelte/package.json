@@ -28,6 +28,7 @@
     "ol-hashed": "^2.1.0",
     "sirv-cli": "^1.0.0",
     "svelte-markdown": "^0.2.3",
+    "svelte-select": "^5.8.3",
     "svelte-tablesort": "^1.1.0"
   }
 }
