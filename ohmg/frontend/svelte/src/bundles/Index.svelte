@@ -23,16 +23,20 @@
     USER_SUBSCRIBED={PARAMS.USER_SUBSCRIBED}
     PLACES_CT={PARAMS.PLACES_CT}
     MAP_CT={PARAMS.MAP_CT}
-    FEATURED_MAPS={PARAMS.FEATURED_MAPS} />
+    FEATURED_MAPS={PARAMS.FEATURED_MAPS}
+    MAP_FILTER_LIST={PARAMS.MAP_FILTER_LIST}
+ />
 {:else if PAGE_NAME == 'profile'}
 <TitleBar TITLE={PARAMS.PROFILE_USER.username} IMG_URL={PARAMS.PROFILE_USER.image_url} />
 <Profile
     {CONTEXT}
-    PROFILE_USER={PARAMS.PROFILE_USER} />
+    PROFILE_USER={PARAMS.PROFILE_USER}
+    MAP_FILTER_LIST={PARAMS.MAP_FILTER_LIST} />
 {:else if PAGE_NAME == 'activity'}
-<TitleBar TITLE={"All activity"} />
+<TitleBar TITLE={"Activity"} />
 <SessionList
     {CONTEXT}
+    mapFilterItems={PARAMS.MAP_FILTER_LIST}
     limit={"25"} showThumbs={true}/>
 {:else if PAGE_NAME == 'profiles'}
 <TitleBar TITLE={"Participants"} />

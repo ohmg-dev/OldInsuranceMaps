@@ -6,6 +6,7 @@
 	
 	export let CONTEXT;
 	export let PROFILE_USER;
+	export let MAP_FILTER_LIST;
 
 	let myProfile = CONTEXT.user.username === PROFILE_USER.username;
 
@@ -47,7 +48,7 @@
 			</button>
 		</div>
 		{#if showSessions}
-		<SessionList {CONTEXT} FILTER_PARAM={sessionFilterParam} showUser={false}/>
+		<SessionList {CONTEXT} FILTER_PARAM={sessionFilterParam} {MAP_FILTER_LIST} showUser={false}/>
 		{/if}
 	</section>
 </main>
