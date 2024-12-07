@@ -58,8 +58,7 @@ $: formattedEndDate = formatDate(endDate);
 
 $: {
 	loading = true;
-	console.log(startDate)
-	console.log(formattedStartDate)
+	items = [];
 	let fetchUrl = `${CONTEXT.urls.get_sessions}?offset=${offset}`
 	if (limit != 0 && useLimit) {
 		fetchUrl = `${fetchUrl}&limit=${useLimit}`
