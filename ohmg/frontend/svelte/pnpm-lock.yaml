@@ -11,6 +11,12 @@ dependencies:
   '@rollup/plugin-alias':
     specifier: ^5.1.0
     version: 5.1.0(rollup@2.79.1)
+  '@svelte-plugins/datepicker':
+    specifier: ^1.0.9
+    version: 1.0.9
+  date-fns:
+    specifier: ^4.1.0
+    version: 4.1.0
   ol:
     specifier: ^6.15.1
     version: 6.15.1
@@ -528,6 +534,10 @@ packages:
       picomatch: 2.3.1
     dev: true
 
+  /@svelte-plugins/datepicker@1.0.9:
+    resolution: {integrity: sha512-HagVB8jLUwNFbwfAcJBNURN1QMQ+qAQQjLJPH97GMqI6auo7jIxOMiSIEWpx7SxTDewHJAlH1izQy3cwBVV8oQ==}
+    dev: false
+
   /@types/estree@0.0.39:
     resolution: {integrity: sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==}
     dev: true
@@ -754,6 +764,10 @@ packages:
     engines: {node: '>=4'}
     hasBin: true
     dev: true
+
+  /date-fns@4.1.0:
+    resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
+    dev: false
 
   /debug@4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}

@@ -1,6 +1,7 @@
 <script>
 import {TableSort} from 'svelte-tablesort';
 import Select from 'svelte-select';
+import { format } from 'date-fns';
 
 import CaretDoubleLeft from 'phosphor-svelte/lib/CaretDoubleLeft'
 import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight'
@@ -11,6 +12,7 @@ import Link from '@components/base/Link.svelte';
 import SessionListModal from './modals/SessionListModal.svelte';
     import { getModal } from '../base/Modal.svelte';
 	import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
+	import DatePicker from './buttons/DatePicker.svelte';
 
 export let CONTEXT;
 export let FILTER_PARAM = '';
@@ -35,16 +37,29 @@ let loading = false;
 
 let items = [];
 
+let startDate;
+let endDate;
+
 let offset = 0;
-let total = 0
+let total = 0;
+const locale = document.documentElement.lang || 'en'
+$: formattedTotal = total.toLocaleString(locale)
 
 let limitOptions = [10, 25, 50, 100]
 let currentLimit = limit;
 $: useLimit = typeof currentLimit == "string" ? currentLimit : currentLimit.value
 $: limitInt = parseInt(useLimit)
 
+let dateFormat = 'yyyy-MM-dd';
+const formatDate = (dateString) => dateString && format(new Date(dateString), dateFormat) || '';
+
+$: formattedStartDate = formatDate(startDate);
+$: formattedEndDate = formatDate(endDate);
+
 $: {
 	loading = true;
+	console.log(startDate)
+	console.log(formattedStartDate)
 	let fetchUrl = `${CONTEXT.urls.get_sessions}?offset=${offset}`
 	if (limit != 0 && useLimit) {
 		fetchUrl = `${fetchUrl}&limit=${useLimit}`
@@ -57,6 +72,9 @@ $: {
 	}
 	if (mapFilter) {
 		fetchUrl += `&map=${mapFilter.id}`
+	}
+	if (startDate && endDate) {
+		fetchUrl += `&start_date=${formattedStartDate}&end_date=${formattedEndDate}`
 	}
 	fetch(fetchUrl, { headers: CONTEXT.ohmg_api_headers })
 		.then(response => response.json())
@@ -93,6 +111,7 @@ $: {
 				on:change={() => {offset = 0}}
 			/>
 			{/if}
+			<DatePicker bind:startDate bind:endDate />
 		</div>
 		<div class="level-right">
 			{#if limit != 0}
@@ -110,18 +129,14 @@ $: {
 			{#if paginate}
 			<div class="level-item">
 				<button class="is-icon-link" disabled={offset < limitInt || loading || offset == 0} on:click={() => {offset = offset - limitInt}}><CaretDoubleLeft /></button>
-				<span>{offset} - {offset + limit < total ? offset + limitInt : total} ({total})</span>
+				<span>{offset} - {offset + limit < total ? offset + limitInt : total} ({formattedTotal})</span>
 				<button class="is-icon-link" disabled={offset + limitInt >= total || loading} on:click={() => {offset = offset + limitInt}}><CaretDoubleRight /></button>
 			</div>
 			{/if}
 		</div>
 	</div>
 	<div style="height: 100%; overflow-y:auto; border:1px solid #ddd; border-radius:4px; background:white;">
-		{#if loading}
-		<div style="display:flex;">
-			<LoadingEllipsis />
-		</div>
-		{:else}
+		{#if items.length > 0}
 		<TableSort {items}>
 			<tr slot="thead">
 				<th title="Session Id">Id</th>
@@ -191,6 +206,16 @@ $: {
 				<td title="{s.date_created.date}">{s.date_created.relative}</td>
 			</tr>
 		</TableSort>
+		{:else}
+		<div class="level">
+			<div class="level-item">
+				{#if loading}
+				<LoadingEllipsis />
+				{:else}
+				<em>no results</em>
+				{/if}
+			</div>
+		</div>
 		{/if}
 	</div>
 </div>
