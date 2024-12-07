@@ -56,6 +56,8 @@ const formatDate = (dateString) => dateString && format(new Date(dateString), da
 $: formattedStartDate = formatDate(startDate);
 $: formattedEndDate = formatDate(endDate);
 
+$: dqParam = formattedStartDate && formattedEndDate ?`&date_range=${formattedStartDate},${formattedEndDate}` : ""
+
 $: {
 	loading = true;
 	items = [];
@@ -72,8 +74,8 @@ $: {
 	if (mapFilter) {
 		fetchUrl += `&map=${mapFilter.id}`
 	}
-	if (startDate && endDate) {
-		fetchUrl += `&start_date=${formattedStartDate}&end_date=${formattedEndDate}`
+	if (dqParam) {
+		fetchUrl += dqParam
 	}
 	fetch(fetchUrl, { headers: CONTEXT.ohmg_api_headers })
 		.then(response => response.json())

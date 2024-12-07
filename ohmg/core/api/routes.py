@@ -73,20 +73,20 @@ beta2 = NinjaAPI(
 
 @beta2.get("sessions/", response=List[SessionSchema], url_name="session_list")
 @paginate
-def list_sessions(request, filters: FilterSessionSchema = Query(...)):
+def list_sessions(request, filters: FilterSessionSchema = Query(...), date_range: str = ""):
     sort = request.GET.get("sort", "")
-    if sort == "oldest_first":
-        queryset = (
-            SessionBase.objects.all()
-            .order_by("date_created")
-            .select_related("doc2", "reg2", "lyr2")
-        )
+    if date_range:
+        start, end = date_range.split(",")
+        if start == end:
+            sessions = SessionBase.objects.filter(date_created__contains=start)
+        else:
+            sessions = SessionBase.objects.filter(date_created__range=[start, end])
     else:
-        queryset = (
-            SessionBase.objects.all()
-            .order_by("-date_created")
-            .select_related("doc2", "reg2", "lyr2")
-        )
+        sessions = SessionBase.objects.all()
+    if sort == "oldest_first":
+        queryset = sessions.order_by("date_created").select_related("doc2", "reg2", "lyr2")
+    else:
+        queryset = sessions.order_by("-date_created").select_related("doc2", "reg2", "lyr2")
     queryset = filters.filter(queryset)
     return queryset
 
