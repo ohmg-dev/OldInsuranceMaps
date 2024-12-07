@@ -124,7 +124,7 @@
     {/each}
     <h3>Work History</h3>
     <div>
-        <SessionList {CONTEXT} FILTER_PARAM={`map=${MAP.identifier}`} showResource={false} paginate={true} limit={"100"}/>
+        <SessionList {CONTEXT} FILTER_PARAM={`map=${MAP.identifier}`} showResource={false} paginate={true} limit=100/>
     </div>
 </section>
 

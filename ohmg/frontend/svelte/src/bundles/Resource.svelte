@@ -318,7 +318,7 @@ function goToRegion() {
     </button>
     {#if sectionVis['history']}
     <div transition:slide>
-      <SessionList {CONTEXT} FILTER_PARAM={filterParam} showResource={false} paginate={false} limit={"0"} allowRefresh={false}/>
+      <SessionList {CONTEXT} FILTER_PARAM={filterParam} showResource={false} paginate={false} limit=0 allowRefresh={false}/>
     </div>
     {/if}
   </section>

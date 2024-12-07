@@ -165,7 +165,7 @@
 					</div>
 				</div>
 			</div>
-			<SessionList {CONTEXT} limit={"10"} showThumbs={true} mapFilterItems={MAP_FILTER_LIST} />
+			<SessionList {CONTEXT} showThumbs={true} mapFilterItems={MAP_FILTER_LIST} />
 		</div>
 	</div>
 
