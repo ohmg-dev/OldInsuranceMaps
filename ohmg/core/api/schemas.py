@@ -58,6 +58,11 @@ class UserSchemaLite(Schema):
     profile_url: str
 
 
+class MapSchemaLite(Schema):
+    identifier: str
+    title: str
+
+
 class MapListSchema(Schema):
     identifier: str
     title: str
@@ -388,6 +393,7 @@ class SessionSchema(Schema):
     doc2: Optional[DocumentSchema]
     reg2: Optional[RegionSchema]
     lyr2: Optional[LayerSchema]
+    map: Optional[MapSchemaLite]
     status: str
     stage: str
     data: dict
@@ -415,6 +421,15 @@ class SessionSchema(Schema):
         n = int(n)
         d["relative"] = f"{n} {u}{'' if n == 1 else 's'} ago"
         return d
+
+    @staticmethod
+    def resolve_map(obj):
+        if obj.doc2:
+            return obj.doc2.map
+        if obj.reg2:
+            return obj.reg2.map
+        if obj.lyr2:
+            return obj.lyr2.map
 
 
 class LayerSetLayer(Schema):

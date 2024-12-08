@@ -73,14 +73,22 @@ beta2 = NinjaAPI(
 
 @beta2.get("sessions/", response=List[SessionSchema], url_name="session_list")
 @paginate
-def list_sessions(request, filters: FilterSessionSchema = Query(...)):
+def list_sessions(request, filters: FilterSessionSchema = Query(...), date_range: str = ""):
     sort = request.GET.get("sort", "")
-    if sort == "oldest_first":
-        queryset = SessionBase.objects.all().order_by("date_created")
+    if date_range:
+        start, end = date_range.split(",")
+        if start == end:
+            sessions = SessionBase.objects.filter(date_created__contains=start)
+        else:
+            sessions = SessionBase.objects.filter(date_created__range=[start, end])
     else:
-        queryset = SessionBase.objects.all().order_by("-date_created")
+        sessions = SessionBase.objects.all()
+    if sort == "oldest_first":
+        queryset = sessions.order_by("date_created").select_related("doc2", "reg2", "lyr2")
+    else:
+        queryset = sessions.order_by("-date_created").select_related("doc2", "reg2", "lyr2")
     queryset = filters.filter(queryset)
-    return list(queryset)
+    return queryset
 
 
 @beta2.get("session/", response=SessionSchema, url_name="session_detail")
@@ -91,7 +99,7 @@ def session_details(request, id: int):
 @beta2.get("users/", response=List[UserSchema], url_name="user_list")
 def list_users(request):
     queryset = User.objects.all().exclude(username="AnonymousUser").order_by("username")
-    return list(queryset)
+    return queryset
 
 
 # @beta2.get('map/session-summary', response=SessionSummarySchema, url_name="map_session_summary"):
@@ -138,7 +146,7 @@ def list_maps(
 
     if limit:
         maps = maps[:limit]
-    return list(maps)
+    return maps
 
 
 @beta2.get("layerset/", response=LayerSetSchema, url_name="layerset")
@@ -166,7 +174,7 @@ def place(request, slug: str):
 @beta2.get("places/", response=List[PlaceSchema], url_name="place_list")
 def list_places(request):
     queryset = Place.objects.all().exclude(volume_count=0).order_by("name")
-    return list(queryset)
+    return queryset
 
 
 @beta2.get("places/geojson/", url_name="places_geojson")
