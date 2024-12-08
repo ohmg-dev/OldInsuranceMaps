@@ -13,6 +13,7 @@ import SessionListModal from './modals/SessionListModal.svelte';
     import { getModal } from '../base/Modal.svelte';
 	import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
 	import DatePicker from './buttons/DatePicker.svelte';
+    import PaginationButtons from './buttons/PaginationButtons.svelte';
 
 export let CONTEXT;
 export let FILTER_PARAM = '';
@@ -42,13 +43,9 @@ let endDate;
 
 let offset = 0;
 let total = 0;
-const locale = document.documentElement.lang || 'en'
-$: formattedTotal = total.toLocaleString(locale)
 
-let limitOptions = [10, 25, 50, 100]
 let currentLimit = limit;
 $: useLimit = typeof currentLimit == "string" ? currentLimit : currentLimit.value
-$: limitInt = parseInt(useLimit)
 
 let dateFormat = 'yyyy-MM-dd';
 const formatDate = (dateString) => dateString && format(new Date(dateString), dateFormat) || '';
@@ -115,24 +112,13 @@ $: {
 			<DatePicker bind:startDate bind:endDate />
 		</div>
 		<div class="level-right">
-			{#if limit != 0}
+			{#if paginate}
 			<div class="level-item">
-				<Select items={limitOptions} bind:value={currentLimit}
-					searchable={false}
-					clearable={false}
-					containerStyles="width:65px;"
-				/>
+				<PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit />
 			</div>
 			{/if}
 			{#if allowRefresh}
 			<button class="is-icon-link" disabled={loading} on:click={() => {offset = 1000; offset=0}}><ArrowsClockwise /></button>
-			{/if}
-			{#if paginate}
-			<div class="level-item">
-				<button class="is-icon-link" disabled={offset < limitInt || loading || offset == 0} on:click={() => {offset = offset - limitInt}}><CaretDoubleLeft /></button>
-				<span>{offset} - {offset + limit < total ? offset + limitInt : total} ({formattedTotal})</span>
-				<button class="is-icon-link" disabled={offset + limitInt >= total || loading} on:click={() => {offset = offset + limitInt}}><CaretDoubleRight /></button>
-			</div>
 			{/if}
 		</div>
 	</div>
