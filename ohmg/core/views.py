@@ -2,6 +2,9 @@ import json
 import logging
 from datetime import datetime
 
+from natsort import natsorted
+
+from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views import View
@@ -49,6 +52,12 @@ class MapView(View):
         layersets = [LayerSetSchema.from_orm(i).dict() for i in map.layerset_set.all()]
         layerset_categories = list(LayerSetCategory.objects.all().values("slug", "display_name"))
 
+        users = get_user_model().objects.all()
+        user_filter_list = natsorted(
+            [{"title": i, "id": i} for i in users.values_list("username", flat=True)],
+            key=lambda k: k.id,
+        )
+
         context_dict = {
             "svelte_params": {
                 "CONTEXT": generate_ohmg_context(request),
@@ -57,6 +66,7 @@ class MapView(View):
                 "SESSION_SUMMARY": session_summary,
                 "LAYERSETS": layersets,
                 "LAYERSET_CATEGORIES": layerset_categories,
+                "userFilterItems": user_filter_list,
             }
         }
 

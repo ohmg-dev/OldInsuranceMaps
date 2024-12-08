@@ -9,6 +9,7 @@
     export let MAP;
     export let SESSION_SUMMARY;
     export let LAYERSETS = [];
+    export let userFilterItems;
 
 </script>
 
@@ -124,7 +125,7 @@
     {/each}
     <h3>Work History</h3>
     <div>
-        <SessionList {CONTEXT} FILTER_PARAM={`map=${MAP.identifier}`} showMap={false} paginate={true} limit=100/>
+        <SessionList {CONTEXT} {userFilterItems} mapFilter={{id: MAP.identifier}} showMap={false} paginate={true} limit=100/>
     </div>
 </section>
 

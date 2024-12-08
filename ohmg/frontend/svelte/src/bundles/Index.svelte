@@ -37,6 +37,7 @@
 <SessionList
     {CONTEXT}
     mapFilterItems={PARAMS.MAP_FILTER_LIST}
+    userFilterItems={PARAMS.USER_FILTER_LIST}
     limit=25 showThumbs={true}/>
 {:else if PAGE_NAME == 'profiles'}
 <TitleBar TITLE={"Participants"} />

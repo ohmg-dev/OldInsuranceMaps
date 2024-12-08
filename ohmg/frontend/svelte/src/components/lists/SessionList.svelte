@@ -20,6 +20,8 @@ export let FILTER_PARAM = '';
 export let limit = "10";
 export let showThumbs = false;
 export let showUser = true;
+export let userFilterItems;
+export let userFilter;
 export let showResource = true;
 export let paginate = true;
 export let allowRefresh = true;
@@ -62,6 +64,7 @@ $: {
 	if (limit != 0 && useLimit) {
 		fetchUrl = `${fetchUrl}&limit=${useLimit}`
 	}
+	// ultimately should deprecate this and move its functionality into this component
 	if (FILTER_PARAM) {
 		fetchUrl += `&${FILTER_PARAM}`
 	}
@@ -73,6 +76,9 @@ $: {
 	}
 	if (dqParam) {
 		fetchUrl += dqParam
+	}
+	if (userFilter) {
+		fetchUrl += `&username=${userFilter.id}`
 	}
 	fetch(fetchUrl, { headers: CONTEXT.ohmg_api_headers })
 		.then(response => response.json())
@@ -110,6 +116,15 @@ $: {
 			/>
 			{/if}
 			<DatePicker bind:startDate bind:endDate />
+			{#if userFilterItems}
+			<Select items={userFilterItems} bind:value={userFilter}
+				id="id"
+				label="title"
+				placeholder="Filter by user..."
+				containerStyles="width:150px;"
+				on:change={() => {offset = 0}}
+			/>
+			{/if}
 		</div>
 		<div class="level-right">
 			{#if paginate}

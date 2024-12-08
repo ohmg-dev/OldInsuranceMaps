@@ -48,7 +48,7 @@
 			</button>
 		</div>
 		{#if showSessions}
-		<SessionList {CONTEXT} FILTER_PARAM={sessionFilterParam} {MAP_FILTER_LIST} showUser={false}/>
+		<SessionList {CONTEXT} {MAP_FILTER_LIST} showUser={false} userFilter={{id: PROFILE_USER.username}}/>
 		{/if}
 	</section>
 </main>
