@@ -5,17 +5,15 @@
 
     let modalContent = `## Activity by sessions
 
-When users complete a step in the georeferencing process, it is stored as a session, either a **Prep** (preparation) session or **Georef** (georeferencing) session. (For now, MultiMask trimming is not stored in sessions.)
+When users complete a step in the georeferencing process, it is stored as a session, either a **Prep** (preparation) session or **Georef** (georeferencing) session. (For now, MultiMask trimming is not stored in sessions.) 
 
-This panel allows you to view all sessions that have been performed on _OldInsuranceMaps.net_ since the project began in early 2022. There are a few filtering methods you can use. Note that this session list appears in different contexts across the platform, and some filter methods are hidden in certain contexts.
+Each session is performed on a specific resource (document, region, or layer) within a map.
 
-- **Map** - All sessions across all resources within a specific map.
-- **Type** - Only show Prep or Georef sessions (by default all are shown)
-- **Date range** - spe
+This panel allows you to view all sessions that have been performed on _OldInsuranceMaps.net_ since the project began in early 2022. You can filter by **map**, **type**, **date range**, and/or **username** to get a more specific picture of work completed.
 
-If you are looking for a list of the most recently added items (volumes), go to the [items page](/search#items)</a> and sort the table by **Load date**.
+Note that this session list appears in more than one place across the platform, so some filter methods and columns are hidden in certain contexts where they would be redundant.
 
-*More sophisticated filter and sort capabilities for this list are in the works. This data is also accessible via the [beta API](/api/beta/docs). Please [get in touch](/contact) if you would like a key for the API.*`
+If you are looking for a list of the most recently added items (volumes), go to the [items page](/search#items)</a> and sort the table by **Load date**.`
 </script>
 
 <Modal id={id} mdContent={modalContent} />
