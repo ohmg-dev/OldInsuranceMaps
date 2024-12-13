@@ -49,6 +49,7 @@ export let LOCALE;
 export let SESSION_SUMMARY;
 export let LAYERSETS;
 export let LAYERSET_CATEGORIES;
+export let userFilterItems;
 
 console.log(MAP)
 
@@ -372,7 +373,7 @@ let processing = false;
 		</div>
 		{#if sectionVis['summary']}
 		<div style="margin-bottom:10px;" transition:slide>
-			<MapDetails {CONTEXT} {MAP} {SESSION_SUMMARY} {LAYERSETS}/>
+			<MapDetails {CONTEXT} {MAP} {SESSION_SUMMARY} {LAYERSETS} {userFilterItems}/>
 		</div>
 		{/if}
 	</section>

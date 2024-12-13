@@ -6,7 +6,8 @@
 	export let LOCALE;
 	export let SESSION_SUMMARY;
 	export let LAYERSETS;
-	export let LAYERSET_CATEGORIES
+	export let LAYERSET_CATEGORIES;
+	export let userFilterItems;
 </script>
 
-<Map {CONTEXT} {MAP} {LOCALE} {SESSION_SUMMARY} {LAYERSETS} {LAYERSET_CATEGORIES} />
+<Map {CONTEXT} {MAP} {LOCALE} {SESSION_SUMMARY} {LAYERSETS} {LAYERSET_CATEGORIES} {userFilterItems} />

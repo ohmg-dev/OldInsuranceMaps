@@ -3,6 +3,7 @@ import logging
 from natsort import natsorted
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404
 from django.views import View
@@ -51,9 +52,13 @@ class HomePage(View):
         else:
             newsletter_slug, user_subscribed = None, False
 
-        ft = [
+        all_maps = Map.objects.exclude(hidden=True).order_by("title")
+        filter_list = [
+            {"title": i[0], "id": i[1]} for i in all_maps.values_list("title", "identifier")
+        ]
+        featured_list = [
             {"title": i[0], "id": i[1]}
-            for i in Map.objects.filter(featured=True).values_list("title", "identifier")
+            for i in all_maps.filter(featured=True).values_list("title", "identifier")
         ]
         context_dict = {
             "params": {
@@ -64,7 +69,8 @@ class HomePage(View):
                     "USER_SUBSCRIBED": user_subscribed,
                     "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
                     "MAP_CT": Map.objects.all().exclude(loaded_by=None).count(),
-                    "FEATURED_MAPS": ft,
+                    "FEATURED_MAPS": featured_list,
+                    "MAP_FILTER_LIST": filter_list,
                 },
             },
         }
@@ -89,10 +95,23 @@ class Browse(View):
 
 class ActivityView(View):
     def get(self, request):
+        all_maps = Map.objects.exclude(hidden=True).order_by("title")
+        map_filter_list = [
+            {"title": i[0], "id": i[1]} for i in all_maps.values_list("title", "identifier")
+        ]
+        users = get_user_model().objects.all()
+        user_filter_list = natsorted(
+            [{"title": i, "id": i} for i in users.values_list("username", flat=True)],
+            key=lambda k: k["id"],
+        )
         context_dict = {
             "params": {
                 "CONTEXT": generate_ohmg_context(request),
                 "PAGE_NAME": "activity",
+                "PARAMS": {
+                    "MAP_FILTER_LIST": map_filter_list,
+                    "USER_FILTER_LIST": user_filter_list,
+                },
             }
         }
 

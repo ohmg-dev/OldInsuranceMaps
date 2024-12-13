@@ -3,11 +3,17 @@
 
     export let id;
 
-    let modalContent = `When users complete a step in the georeferencing process, it is stored as a session, either a "preparation" session (P) or "georeference" sessions (G). (MultiMask trimming is not stored in sessions, for now.)
+    let modalContent = `## Activity by sessions
 
-If you are looking for a list of the most recently added items (volumes), go to the [items page](/search#items)</a> and sort the table by **Load date**.
+When users complete a step in the georeferencing process, it is stored as a session, either a **Prep** (preparation) session or **Georef** (georeferencing) session. (For now, MultiMask trimming is not stored in sessions.) 
 
-*More sophisticated filter and sort capabilities for this list are in the works. This data is also accessible via the [beta API](/api/beta/docs). Please [get in touch](/contact) if you would like a key for the API.*`
+Each session is performed on a specific resource (document, region, or layer) within a map.
+
+This panel allows you to view all sessions that have been performed on _OldInsuranceMaps.net_ since the project began in early 2022. You can filter by **map**, **type**, **date range**, and/or **username** to get a more specific picture of work completed.
+
+Note that this session list appears in more than one place across the platform, so some filter methods and columns are hidden in certain contexts where they would be redundant.
+
+If you are looking for a list of the most recently added items (volumes), go to the [items page](/search#items)</a> and sort the table by **Load date**.`
 </script>
 
 <Modal id={id} mdContent={modalContent} />

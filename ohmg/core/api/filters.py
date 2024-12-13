@@ -20,8 +20,6 @@ class FilterSessionSchema(FilterSchema):
     region: Optional[List[int]] = Field(q=["reg2_id__in", "lyr2__region_id__in"])
     layer: Optional[List[int]] = Field(q=["lyr2_id__in"])
     type: Optional[str]
-    start_date: Optional[str] = Field(q="date_created__gte")
-    end_date: Optional[str] = Field(q="date_created__lte")
 
 
 class FilterDocumentSchema(FilterSchema):
