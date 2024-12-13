@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views import View
 
 from ohmg.core.api.schemas import PlaceFullSchema
-from ohmg.core.context_processors import generate_ohmg_context
+from ohmg.core.http import generate_ohmg_context
 from ohmg.places.models import Place
 
 
