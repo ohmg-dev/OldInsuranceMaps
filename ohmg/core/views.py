@@ -55,7 +55,7 @@ class MapView(View):
         users = get_user_model().objects.all()
         user_filter_list = natsorted(
             [{"title": i, "id": i} for i in users.values_list("username", flat=True)],
-            key=lambda k: k.id,
+            key=lambda k: k["id"],
         )
 
         context_dict = {
