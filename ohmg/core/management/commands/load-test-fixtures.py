@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
-from ohmg.tests.base import OHMGTestCase, copy_files_to_media_root
+from tests.base import OHMGTestCase, copy_files_to_media_root
 from ohmg.loc_insurancemaps.models import Volume, Sheet
 from ohmg.georeference.models.resources import ItemBase, LayerSet, GCP, GCPGroup
 from ohmg.georeference.models.sessions import SessionBase
