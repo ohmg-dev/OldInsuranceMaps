@@ -1,4 +1,4 @@
-from ohmg.places.management.utils import reset_volume_counts
+from ohmg.places.utils import reset_volume_counts
 from ohmg.loc_insurancemaps.models import Volume
 
 from .base import OHMGTestCase, get_api_client

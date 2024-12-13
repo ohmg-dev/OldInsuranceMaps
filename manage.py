@@ -10,13 +10,12 @@ settings_module = "ohmg.settings"
 
 is_testing = "test" in sys.argv
 if is_testing:
-    settings_module = "ohmg.tests.settings_test"
+    settings_module = "tests.settings_test"
 
 if is_testing:
     import coverage
 
     os.environ["TESTING"] = "True"
-
     cov = coverage.coverage(source=["ohmg"], omit=["*/tests/*", "*/migrations/*"])
     cov.set_option("report:show_missing", True)
     cov.set_option("report:skip_covered", True)

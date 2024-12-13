@@ -7,7 +7,6 @@ from .base import OHMGTestCase
 class LoadPlacesTest(OHMGTestCase):
     def test_load_places(self):
         csv_dir = self.DATA_DIR / "fixtures" / "places" / "csv"
-
         Place().bulk_load_from_csv(Path(csv_dir, "place_countries.csv"))
         Place().bulk_load_from_csv(Path(csv_dir, "place_states.csv"))
         Place().bulk_load_from_csv(Path(csv_dir, "place_counties.csv"))
