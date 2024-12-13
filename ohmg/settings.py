@@ -112,7 +112,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "ohmg.core.context_processors.site_info",
+                "ohmg.context_processors.site_info",
             ],
             "debug": DEBUG,
         },
