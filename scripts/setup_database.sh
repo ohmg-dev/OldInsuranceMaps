@@ -11,3 +11,5 @@ psql -U postgres -c "CREATE DATABASE "$DATABASE_NAME" WITH OWNER "$DATABASE_USER
 psql -U postgres -d $DATABASE_NAME -c "CREATE EXTENSION PostGIS;"
 
 python manage.py migrate
+
+python manage.py loaddata default-layerset-categories
