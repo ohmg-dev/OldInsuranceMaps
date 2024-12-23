@@ -23,7 +23,7 @@ class LayerSetAdmin(admin.ModelAdmin):
         "multimask_extent",
         "multimask",
     )
-    search_fields = ("map",)
+    search_fields = ("map__title",)
     list_filter = ("category",)
 
 
