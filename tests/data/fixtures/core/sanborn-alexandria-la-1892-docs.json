@@ -1,0 +1,50 @@
+[
+{
+  "model": "core.document",
+  "pk": 1,
+  "fields": {
+    "title": "Alexandria, La. | 1892 p1",
+    "slug": "alexandria_la_1892_p1",
+    "map": "sanborn03267_002",
+    "page_number": "1",
+    "prepared": false,
+    "file": "documents/alexandria_la_1892_p1.jpg",
+    "thumbnail": "documents/alexandria_la_1892_p1-doc-thumb.jpg",
+    "source_url": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0001.jp2",
+    "iiif_info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0001/info.json",
+    "load_date": null
+  }
+},
+{
+  "model": "core.document",
+  "pk": 2,
+  "fields": {
+    "title": "Alexandria, La. | 1892 p2",
+    "slug": "alexandria_la_1892_p2",
+    "map": "sanborn03267_002",
+    "page_number": "2",
+    "prepared": false,
+    "file": "documents/alexandria_la_1892_p2.jpg",
+    "thumbnail": "documents/alexandria_la_1892_p2-doc-thumb.jpg",
+    "source_url": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0002.jp2",
+    "iiif_info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0002/info.json",
+    "load_date": null
+  }
+},
+{
+  "model": "core.document",
+  "pk": 3,
+  "fields": {
+    "title": "Alexandria, La. | 1892 p3",
+    "slug": "alexandria_la_1892_p3",
+    "map": "sanborn03267_002",
+    "page_number": "3",
+    "prepared": false,
+    "file": "documents/alexandria_la_1892_p3.jpg",
+    "thumbnail": "documents/alexandria_la_1892_p3-doc-thumb.jpg",
+    "source_url": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0003.jp2",
+    "iiif_info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0003/info.json",
+    "load_date": null
+  }
+}
+]

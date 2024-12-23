@@ -1,0 +1,59 @@
+[
+{
+  "model": "core.region",
+  "pk": 1,
+  "fields": {
+    "title": "Alexandria, La. | 1892 p3",
+    "slug": "alexandria_la_1892_p3",
+    "boundary": "SRID=4326;POLYGON ((0 0, 0 7650, 6450 7650, 6450 0, 0 0))",
+    "document": 3,
+    "division_number": null,
+    "is_map": true,
+    "georeferenced": false,
+    "created_by": 1,
+    "created": "2024-12-23T13:41:51.193",
+    "last_updated": "2024-12-23T13:41:51.706",
+    "file": "regions/alexandria_la_1892_p3.jpg",
+    "thumbnail": "thumbnails/alexandria_la_1892_p3-reg-thumb.jpg",
+    "gcp_group": null
+  }
+},
+{
+  "model": "core.region",
+  "pk": 2,
+  "fields": {
+    "title": "Alexandria, La. | 1892 p2 [1]",
+    "slug": "alexandria_la_1892_p2_1",
+    "boundary": "SRID=4326;POLYGON ((0 0, 0 7650, 2508 7650, 2523 0, 0 0))",
+    "document": 2,
+    "division_number": 1,
+    "is_map": true,
+    "georeferenced": false,
+    "created_by": 1,
+    "created": "2024-12-23T13:40:33.834",
+    "last_updated": "2024-12-23T13:40:34.058",
+    "file": "regions/alexandria_la_1892_p2__1.jpg",
+    "thumbnail": "thumbnails/alexandria_la_1892_p2__1-reg-thumb.jpg",
+    "gcp_group": null
+  }
+},
+{
+  "model": "core.region",
+  "pk": 3,
+  "fields": {
+    "title": "Alexandria, La. | 1892 p2 [2]",
+    "slug": "alexandria_la_1892_p2_2",
+    "boundary": "SRID=4326;POLYGON ((2508 7650, 6450 7650, 6450 0, 2523 0, 2508 7650))",
+    "document": 2,
+    "division_number": 2,
+    "is_map": true,
+    "georeferenced": false,
+    "created_by": 1,
+    "created": "2024-12-23T13:40:34.069",
+    "last_updated": "2024-12-23T13:40:34.391",
+    "file": "regions/alexandria_la_1892_p2__2.jpg",
+    "thumbnail": "thumbnails/alexandria_la_1892_p2__2-reg-thumb.jpg",
+    "gcp_group": null
+  }
+}
+]

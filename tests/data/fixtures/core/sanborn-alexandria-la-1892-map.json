@@ -1,0 +1,60 @@
+[
+{
+  "model": "core.map",
+  "pk": "sanborn03267_002",
+  "fields": {
+    "slug": "alexandria_la_1892",
+    "title": "Alexandria, La. | 1892",
+    "year": 1892,
+    "month": 6,
+    "day": null,
+    "creator": "Sanborn Map Company",
+    "publisher": null,
+    "volume_number": null,
+    "document_page_type": "page",
+    "iiif_manifest": null,
+    "status": "ready",
+    "create_date": "2024-12-23T13:04:47.715",
+    "load_date": null,
+    "document_sources": [
+      {
+        "path": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0001.jp2",
+        "iiif_info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0001/info.json",
+        "page_number": "1"
+      },
+      {
+        "path": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0002.jp2",
+        "iiif_info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0002/info.json",
+        "page_number": "2"
+      },
+      {
+        "path": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014am/g032671892/03267_1892-0003.jp2",
+        "iiif_info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014am:g032671892:03267_1892-0003/info.json",
+        "page_number": "3"
+      }
+    ],
+    "document_lookup": {},
+    "layer_lookup": {},
+    "item_lookup": {
+      "nonmaps": [],
+      "prepared": [],
+      "processing": {
+        "prep": 0,
+        "unprep": 0,
+        "geo_trim": 0
+      },
+      "unprepared": [],
+      "georeferenced": []
+    },
+    "featured": false,
+    "hidden": false,
+    "mapgroup": null,
+    "access": "any",
+    "sponsor": null,
+    "loaded_by": null,
+    "locales": [
+      20949
+    ]
+  }
+}
+]

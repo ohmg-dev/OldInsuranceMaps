@@ -4,13 +4,18 @@ import filecmp
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIHandler
 from django.core.handlers.asgi import ASGIHandler
-from django.core.management import call_command
-from django.test import tag
+from django.test import tag, Client
 
-from ohmg.core.importers.base import get_importer, SingleFileImporter
+from ohmg.core.importers.base import get_importer
+from ohmg.core.importers.single_file import SingleFileImporter
+from ohmg.core.models import (
+    Map,
+    Document,
+    Region,
+    Layer,
+)
 from ohmg.places.models import Place
-from ohmg.loc_insurancemaps.models import Volume, Sheet
-from ohmg.georeference.models import Document, PrepSession, GeorefSession, DocumentLink
+from ohmg.georeference.models import PrepSession, GeorefSession
 
 from .base import OHMGTestCase
 
@@ -25,6 +30,10 @@ class BasicTests(OHMGTestCase):
         from ohmg.asgi import application
 
         self.assertIsInstance(application, ASGIHandler)
+
+    def test_sitemap(self):
+        response = Client().get("/sitemap.xml/")
+        self.assertEqual(response.status_code, 200)
 
 
 class ImportersTestCase(OHMGTestCase):
@@ -51,7 +60,7 @@ class LOCImporterTestCase(OHMGTestCase):
         importer = get_importer("loc-sanborn")
 
         identifier = "sanborn03267_002"
-        volume = importer.run_import(
+        map = importer.run_import(
             **{
                 "identifier": identifier,
                 "locale": "alexandria-la",
@@ -59,26 +68,17 @@ class LOCImporterTestCase(OHMGTestCase):
             }
         )
 
-        self.assertEqual(Volume.objects.filter(pk=volume.pk).count(), 1)
+        self.assertEqual(Map.objects.filter(pk=map.pk).count(), 1)
+        self.assertEqual(len(map.document_sources), 3)
 
         locale = Place.objects.get(slug="alexandria-la")
         self.assertEqual(locale.volume_count, 1)
 
-    def test_loc_sanborn_jp2_load(self):
-        call_command("loaddata", self.fixture_alexandria_volume)
+        map.create_documents(get_files=True)
 
-        volume = Volume.objects.get(identifier="sanborn03267_002")
+        doc_p1 = Document.objects.get(map=map, page_number=1)
 
-        volume.make_sheets()
-        self.assertEqual(len(volume.sheets), 3)
-
-        volume.load_sheet_docs(force_reload=True)
-
-        sheet_p1 = Sheet.objects.get(volume=volume, sheet_no=1)
-
-        self.assertTrue(
-            filecmp.cmp(self.image_alex_p1_original, sheet_p1.doc.file.path, shallow=False)
-        )
+        self.assertTrue(filecmp.cmp(self.image_alex_p1_original, doc_p1.file.path, shallow=False))
 
 
 class MapTestCase(OHMGTestCase):
@@ -87,30 +87,16 @@ class MapTestCase(OHMGTestCase):
         OHMGTestCase.fixture_sanborn_layerset_categories,
         OHMGTestCase.fixture_admin_user,
         OHMGTestCase.fixture_alexandria_place,
-        OHMGTestCase.fixture_alexandria_volume,
+        OHMGTestCase.fixture_alexandria_map,
     ]
 
-    def test_volume_make_sheets(self):
-        volume = Volume.objects.get(identifier="sanborn03267_002")
+    def test_create_documents(self):
+        map = Map.objects.get(identifier="sanborn03267_002")
 
-        self.assertEqual(Sheet.objects.all().count(), 0)
-        volume.make_sheets()
+        self.assertEqual(Document.objects.all().count(), 0)
+        map.create_documents()
 
-        self.assertEqual(len(volume.sheets), 3)
-
-    def test_volume_load_docs(self):
-        volume = Volume.objects.get(identifier="sanborn03267_002")
-
-        volume.make_sheets()
-        self.assertEqual(len(volume.sheets), 3)
-
-        volume.load_sheet_docs()
-
-        sheet_p1 = Sheet.objects.get(volume=volume, sheet_no=1)
-
-        self.assertTrue(
-            filecmp.cmp(self.image_alex_p1_original, sheet_p1.doc.file.path, shallow=False)
-        )
+        self.assertEqual(len(map.documents.all()), 3)
 
 
 @tag("sessions")
@@ -120,9 +106,8 @@ class PreparationSessionTestCase(OHMGTestCase):
         OHMGTestCase.fixture_sanborn_layerset_categories,
         OHMGTestCase.fixture_admin_user,
         OHMGTestCase.fixture_alexandria_place,
-        OHMGTestCase.fixture_alexandria_volume,
+        OHMGTestCase.fixture_alexandria_map,
         OHMGTestCase.fixture_alexandria_docs,
-        OHMGTestCase.fixture_alexandria_sheets,
     ]
 
     def test_prepsession_no_split(self):
@@ -130,14 +115,17 @@ class PreparationSessionTestCase(OHMGTestCase):
         user = get_user_model().objects.get(username="admin")
 
         session = PrepSession.objects.create(
-            doc=document,
+            doc2=document,
             user=user,
         )
         session.data["split_needed"] = False
         session.save(update_fields=["data"])
         session.run()
 
-        self.assertEqual(document.status, "prepared")
+        self.assertTrue(document.prepared)
+
+        region = Region.objects.filter(document=document)
+        self.assertEqual(region.count(), 1)
 
     def test_prepsession_split(self):
         document = Document.objects.get(pk=2)
@@ -146,7 +134,7 @@ class PreparationSessionTestCase(OHMGTestCase):
         cutlines = [[[2507.8125, 7650], [2522.75390625, 0]]]
 
         session = PrepSession.objects.create(
-            doc=document,
+            doc2=document,
             user=user,
         )
 
@@ -156,16 +144,13 @@ class PreparationSessionTestCase(OHMGTestCase):
         session.save(update_fields=["data"])
         session.run()
 
-        self.assertEqual(document.status, "split")
-        self.assertEqual(DocumentLink.objects.filter(link_type="split", source=document).count(), 2)
+        self.assertTrue(document.prepared)
 
-        # need to delete this cached_property so it is properly recalculated
-        del document.children
-        children = document.children
-        self.assertEqual(len(children), 2)
+        regions = Region.objects.filter(document=document)
+        self.assertEqual(regions.count(), 2)
 
-        for child in children:
-            file_path = Path(child.file.path)
+        for region in regions:
+            file_path = Path(region.file.path)
             control_file_path = self.DATA_DIR / "files/split_images" / file_path.name
 
             self.assertTrue(filecmp.cmp(control_file_path, file_path, shallow=False))
@@ -178,21 +163,19 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
         OHMGTestCase.fixture_sanborn_layerset_categories,
         OHMGTestCase.fixture_admin_user,
         OHMGTestCase.fixture_alexandria_place,
-        OHMGTestCase.fixture_alexandria_volume,
+        OHMGTestCase.fixture_alexandria_map,
         OHMGTestCase.fixture_alexandria_docs,
-        OHMGTestCase.fixture_alexandria_sheets,
         OHMGTestCase.fixture_session_prep_no_split,
         OHMGTestCase.fixture_session_prep_split,
-        OHMGTestCase.fixture_document_split_results,
-        OHMGTestCase.fixture_document_links_split,
+        OHMGTestCase.fixture_alexandria_regs,
     ]
 
     def test_georef_session(self):
-        document = Document.objects.get(pk=5)
+        region = Region.objects.get(pk=3)
         user = get_user_model().objects.get(username="admin")
 
         session = GeorefSession.objects.create(
-            doc=document,
+            reg2=region,
             user=user,
         )
 
@@ -249,18 +232,25 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
         session.save(update_fields=["data"])
         session.run()
 
-        self.assertEqual(document.status, "georeferenced")
+        self.assertTrue(region.georeferenced)
 
-        layer = document.get_layer()
-        self.assertIsNotNone(layer)
+        layers = Layer.objects.filter(region=region)
+        self.assertEqual(layers.count(), 1)
+        layer = layers[0]
 
         self.assertTrue(filecmp.cmp(self.image_alex_p2__2_lyr, layer.file.path, shallow=False))
 
-        del document.gcp_group
-        self.assertIsNotNone(document.gcp_group)
-        self.assertEqual(len(document.gcp_group.gcps), 3)
+        self.assertIsNotNone(region.gcp_group)
+        self.assertEqual(len(region.gcp_group.gcps), 3)
 
         # need to delete listId before comparison as it is not returned by as_geojson
         for i in input_gcp_geojson["features"]:
             del i["properties"]["listId"]
-        self.assertEqual(document.gcp_group.as_geojson, input_gcp_geojson)
+        self.assertEqual(region.gcp_group.as_geojson, input_gcp_geojson)
+
+        # import sys
+        # from django.core.management import call_command
+        # sysout = sys.stdout
+        # sys.stdout = open('filename.json', 'w')
+        # call_command("dumpdata", "core.Layer", "--indent=2")
+        # sys.stdout = sysout

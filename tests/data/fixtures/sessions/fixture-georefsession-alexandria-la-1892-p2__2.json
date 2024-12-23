@@ -6,8 +6,8 @@
     "type": "g",
     "stage": "finished",
     "status": "success",
-    "doc": 5,
-    "lyr": 6,
+    "reg2": 3,
+    "lyr2": 1,
     "data": {
       "epsg": 3857,
       "gcps": {

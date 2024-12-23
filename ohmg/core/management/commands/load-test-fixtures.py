@@ -54,10 +54,9 @@ class Command(BaseCommand):
             OHMGTestCase.fixture_default_layerset_categories,
             OHMGTestCase.fixture_sanborn_layerset_categories,
             OHMGTestCase.fixture_alexandria_place,
-            OHMGTestCase.fixture_alexandria_volume,
+            OHMGTestCase.fixture_alexandria_map,
             OHMGTestCase.fixture_alexandria_main_layerset,
             OHMGTestCase.fixture_alexandria_docs,
-            OHMGTestCase.fixture_alexandria_sheets,
         ]:
             call_command("loaddata", fixture)
 
@@ -78,8 +77,6 @@ class Command(BaseCommand):
             for fixture in [
                 OHMGTestCase.fixture_session_prep_no_split,
                 OHMGTestCase.fixture_session_prep_split,
-                OHMGTestCase.fixture_document_split_results,
-                OHMGTestCase.fixture_document_links_split,
             ]:
                 call_command("loaddata", fixture)
 
@@ -99,11 +96,9 @@ class Command(BaseCommand):
 
         if options["with_georef_sessions"]:
             for fixture in [
-                OHMGTestCase.fixture_document_georef_results_lyr,
                 OHMGTestCase.fixture_document_georef_results_gcpgroup,
                 OHMGTestCase.fixture_document_georef_results_gcps,
                 OHMGTestCase.fixture_session_georef,
-                OHMGTestCase.fixture_document_links_georef,
             ]:
                 call_command("loaddata", fixture)
 

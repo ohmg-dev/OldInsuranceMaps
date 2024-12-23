@@ -20,6 +20,8 @@ STATIC_ROOT.mkdir(exist_ok=True)
 MEDIA_ROOT = BASE_DIR / "uploaded"
 MEDIA_ROOT.mkdir(exist_ok=True)
 
+ENABLE_DEBUG_TOOLBAR = True
+
 # set all file handlers to use the test log directory
 for handler in LOGGING["handlers"].values():  # noqa: F405
     if handler["class"] == "logging.FileHandler":
