@@ -1,10 +1,10 @@
 [
   {
     "model": "georeference.layersetcategory",
-    "pk": 0,
+    "pk": 1,
     "fields": {
       "slug": "main-content",
-      "display_name": "Main Content",
+      "display_name": "Main Content"
     }
   }
 ]
