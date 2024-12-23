@@ -93,12 +93,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         operation = options["operation"]
 
-        if options["username"]:
-            username = options["username"]
-        else:
-            username = "admin"
-        user = get_user_model().objects.get(username=username)
-
         if operation == "add":
             if options["importer"] not in settings.OHMG_IMPORTERS["map"]:
                 raise NotImplementedError("no entry in settings.OHMG_IMPORTERS for this importer")
@@ -171,6 +165,12 @@ class Command(BaseCommand):
             print("done")
 
         if operation == "create-documents":
+            if options["username"]:
+                username = options["username"]
+            else:
+                username = "admin"
+            user = get_user_model().objects.get(username=username)
+
             try:
                 map = Map.objects.get(pk=options["pk"])
                 map.loaded_by = user
