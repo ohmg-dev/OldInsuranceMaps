@@ -38,7 +38,7 @@ class BasicTests(OHMGTestCase):
 
 class ImportersTestCase(OHMGTestCase):
     fixtures = [
-        OHMGTestCase.fixture_default_layerset_categories,
+        OHMGTestCase.Fixtures.layerset_categories,
     ]
 
     def test_single_file_importer(self):
@@ -50,20 +50,20 @@ class ImportersTestCase(OHMGTestCase):
 @tag("loc")
 class LOCImporterTestCase(OHMGTestCase):
     fixtures = [
-        OHMGTestCase.fixture_default_layerset_categories,
-        OHMGTestCase.fixture_sanborn_layerset_categories,
-        OHMGTestCase.fixture_admin_user,
-        OHMGTestCase.fixture_alexandria_place,
+        OHMGTestCase.Fixtures.layerset_categories,
+        OHMGTestCase.Fixtures.layerset_categories_sanborn,
+        OHMGTestCase.Fixtures.admin_user,
+        OHMGTestCase.Fixtures.new_iberia_place,
     ]
 
     def test_loc_importer(self):
         importer = get_importer("loc-sanborn")
 
-        identifier = "sanborn03267_002"
+        identifier = "sanborn03375_001"
         map = importer.run_import(
             **{
                 "identifier": identifier,
-                "locale": "alexandria-la",
+                "locale": "new-iberia-la",
                 "no-cache": "true",
             }
         )
@@ -71,27 +71,29 @@ class LOCImporterTestCase(OHMGTestCase):
         self.assertEqual(Map.objects.filter(pk=map.pk).count(), 1)
         self.assertEqual(len(map.document_sources), 3)
 
-        locale = Place.objects.get(slug="alexandria-la")
+        locale = Place.objects.get(slug="new-iberia-la")
         self.assertEqual(locale.volume_count, 1)
 
         map.create_documents(get_files=True)
 
         doc_p1 = Document.objects.get(map=map, page_number=1)
 
-        self.assertTrue(filecmp.cmp(self.image_alex_p1_original, doc_p1.file.path, shallow=False))
+        self.assertTrue(
+            filecmp.cmp(self.Files.new_iberia_p1_original, doc_p1.file.path, shallow=False)
+        )
 
 
 class MapTestCase(OHMGTestCase):
     fixtures = [
-        OHMGTestCase.fixture_default_layerset_categories,
-        OHMGTestCase.fixture_sanborn_layerset_categories,
-        OHMGTestCase.fixture_admin_user,
-        OHMGTestCase.fixture_alexandria_place,
-        OHMGTestCase.fixture_alexandria_map,
+        OHMGTestCase.Fixtures.layerset_categories,
+        OHMGTestCase.Fixtures.layerset_categories_sanborn,
+        OHMGTestCase.Fixtures.admin_user,
+        OHMGTestCase.Fixtures.new_iberia_place,
+        OHMGTestCase.Fixtures.new_iberia_map,
     ]
 
     def test_create_documents(self):
-        map = Map.objects.get(identifier="sanborn03267_002")
+        map = Map.objects.get(identifier="sanborn03375_001")
 
         self.assertEqual(Document.objects.all().count(), 0)
         map.create_documents()
@@ -102,36 +104,31 @@ class MapTestCase(OHMGTestCase):
 @tag("sessions")
 class PreparationSessionTestCase(OHMGTestCase):
     fixtures = [
-        OHMGTestCase.fixture_default_layerset_categories,
-        OHMGTestCase.fixture_sanborn_layerset_categories,
-        OHMGTestCase.fixture_admin_user,
-        OHMGTestCase.fixture_alexandria_place,
-        OHMGTestCase.fixture_alexandria_map,
-        OHMGTestCase.fixture_alexandria_docs,
+        OHMGTestCase.Fixtures.layerset_categories,
+        OHMGTestCase.Fixtures.layerset_categories_sanborn,
+        OHMGTestCase.Fixtures.admin_user,
+        OHMGTestCase.Fixtures.new_iberia_place,
+        OHMGTestCase.Fixtures.new_iberia_map,
+        OHMGTestCase.Fixtures.new_iberia_docs,
     ]
 
-    def test_prepsession_no_split(self):
-        document = Document.objects.get(pk=3)
-        user = get_user_model().objects.get(username="admin")
-
-        session = PrepSession.objects.create(
-            doc2=document,
-            user=user,
-        )
-        session.data["split_needed"] = False
-        session.save(update_fields=["data"])
-        session.run()
-
-        self.assertTrue(document.prepared)
-
-        region = Region.objects.filter(document=document)
-        self.assertEqual(region.count(), 1)
-
     def test_prepsession_split(self):
-        document = Document.objects.get(pk=2)
+        document = Document.objects.get(pk=1)
         user = get_user_model().objects.get(username="admin")
 
-        cutlines = [[[2507.8125, 7650], [2522.75390625, 0]]]
+        cutlines = [
+            [
+                [6450, 5627.483165856904],
+                [5284.7586517694235, 5597.601228404641],
+                [5332.569751693044, 2442.0686334457364],
+                [6450, 2442.068633445737],
+            ],
+            [
+                [5332.569751693044, 2442.0686334457364],
+                [3557.5826670286597, 2442.0686334457364],
+                [4366.846593904307, -110.92198113880431],
+            ],
+        ]
 
         session = PrepSession.objects.create(
             doc2=document,
@@ -147,31 +144,48 @@ class PreparationSessionTestCase(OHMGTestCase):
         self.assertTrue(document.prepared)
 
         regions = Region.objects.filter(document=document)
-        self.assertEqual(regions.count(), 2)
+        self.assertEqual(regions.count(), 3)
 
         for region in regions:
             file_path = Path(region.file.path)
-            control_file_path = self.DATA_DIR / "files/split_images" / file_path.name
+            control_file_path = self.DATA_DIR / "files/regions" / file_path.name
 
             self.assertTrue(filecmp.cmp(control_file_path, file_path, shallow=False))
+
+    def test_prepsession_no_split(self):
+        document = Document.objects.get(pk=2)
+        user = get_user_model().objects.get(username="admin")
+
+        session = PrepSession.objects.create(
+            doc2=document,
+            user=user,
+        )
+        session.data["split_needed"] = False
+        session.save(update_fields=["data"])
+        session.run()
+
+        self.assertTrue(document.prepared)
+
+        region = Region.objects.filter(document=document)
+        self.assertEqual(region.count(), 1)
 
 
 @tag("sessions")
 class GeoreferenceSessionTestCase(OHMGTestCase):
     fixtures = [
-        OHMGTestCase.fixture_default_layerset_categories,
-        OHMGTestCase.fixture_sanborn_layerset_categories,
-        OHMGTestCase.fixture_admin_user,
-        OHMGTestCase.fixture_alexandria_place,
-        OHMGTestCase.fixture_alexandria_map,
-        OHMGTestCase.fixture_alexandria_docs,
-        OHMGTestCase.fixture_session_prep_no_split,
-        OHMGTestCase.fixture_session_prep_split,
-        OHMGTestCase.fixture_alexandria_regs,
+        OHMGTestCase.Fixtures.layerset_categories,
+        OHMGTestCase.Fixtures.layerset_categories_sanborn,
+        OHMGTestCase.Fixtures.admin_user,
+        OHMGTestCase.Fixtures.new_iberia_place,
+        OHMGTestCase.Fixtures.new_iberia_map,
+        OHMGTestCase.Fixtures.new_iberia_docs,
+        OHMGTestCase.Fixtures.prepsession_new_iberia_p1_split,
+        OHMGTestCase.Fixtures.prepsession_new_iberia_p2_no_split,
+        OHMGTestCase.Fixtures.new_iberia_regs,
     ]
 
     def test_georef_session(self):
-        region = Region.objects.get(pk=3)
+        region = Region.objects.get(pk=2)
         user = get_user_model().objects.get(username="admin")
 
         session = GeorefSession.objects.create(
@@ -186,12 +200,12 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
                     "type": "Feature",
                     "geometry": {
                         "type": "Point",
-                        "coordinates": [-92.44538695899614, 31.312902143444333],
+                        "coordinates": [-91.82465678442605, 30.010823076580564],
                     },
                     "properties": {
-                        "id": "1d613210-4114-4b58-8d28-839b26867c68",
+                        "id": "395fb4f8-eebc-4acb-94ff-8875e534fcbe",
                         "note": "",
-                        "image": [3547, 3173],
+                        "image": [317, 420],
                         "listId": 1,
                         "username": "admin",
                     },
@@ -200,12 +214,12 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
                     "type": "Feature",
                     "geometry": {
                         "type": "Point",
-                        "coordinates": [-92.44657641570406, 31.311858470117244],
+                        "coordinates": [-91.81695598033974, 30.00258275089672],
                     },
                     "properties": {
-                        "id": "80a64c7f-85e6-40f8-bc29-5709681e03d8",
+                        "id": "66809cb3-d7ac-4743-9ff1-e844342a2975",
                         "note": "",
-                        "image": [3564, 6276],
+                        "image": [363, 2765],
                         "listId": 2,
                         "username": "admin",
                     },
@@ -214,13 +228,27 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
                     "type": "Feature",
                     "geometry": {
                         "type": "Point",
-                        "coordinates": [-92.44718721779732, 31.312339110585995],
+                        "coordinates": [-91.81834687446985, 30.005931842820672],
                     },
                     "properties": {
-                        "id": "fab611f5-cf0d-4409-81a2-ebb59b7acfba",
+                        "id": "0bdb4504-d5d9-4f62-9846-313abf1196c8",
                         "note": "",
-                        "image": [2004, 6243],
+                        "image": [608, 2012],
                         "listId": 3,
+                        "username": "admin",
+                    },
+                },
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [-91.82244394175576, 30.01248456544343],
+                    },
+                    "properties": {
+                        "id": "f781ccf3-7f9e-4c44-a9c2-ef33de528c7e",
+                        "note": "",
+                        "image": [871, 404],
+                        "listId": 4,
                         "username": "admin",
                     },
                 },
@@ -238,19 +266,14 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
         self.assertEqual(layers.count(), 1)
         layer = layers[0]
 
-        self.assertTrue(filecmp.cmp(self.image_alex_p2__2_lyr, layer.file.path, shallow=False))
+        self.assertTrue(
+            filecmp.cmp(self.Files.new_iberia_p1__1_lyr, layer.file.path, shallow=False)
+        )
 
         self.assertIsNotNone(region.gcp_group)
-        self.assertEqual(len(region.gcp_group.gcps), 3)
+        self.assertEqual(len(region.gcp_group.gcps), 4)
 
         # need to delete listId before comparison as it is not returned by as_geojson
         for i in input_gcp_geojson["features"]:
             del i["properties"]["listId"]
         self.assertEqual(region.gcp_group.as_geojson, input_gcp_geojson)
-
-        # import sys
-        # from django.core.management import call_command
-        # sysout = sys.stdout
-        # sys.stdout = open('filename.json', 'w')
-        # call_command("dumpdata", "core.Layer", "--indent=2")
-        # sys.stdout = sysout

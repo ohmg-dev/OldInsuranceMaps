@@ -1,0 +1,62 @@
+[
+{
+  "model": "georeference.gcp",
+  "pk": "0bdb4504-d5d9-4f62-9846-313abf1196c8",
+  "fields": {
+    "pixel_x": 608,
+    "pixel_y": 2012,
+    "geom": "SRID=4326;POINT (30.005931842820672 -91.81834687446985)",
+    "note": "",
+    "gcp_group": 1,
+    "created": "2024-12-30T14:09:22.926",
+    "created_by": 1,
+    "last_modified": "2024-12-30T14:09:22.927",
+    "last_modified_by": 1
+  }
+},
+{
+  "model": "georeference.gcp",
+  "pk": "395fb4f8-eebc-4acb-94ff-8875e534fcbe",
+  "fields": {
+    "pixel_x": 317,
+    "pixel_y": 420,
+    "geom": "SRID=4326;POINT (30.010823076580564 -91.82465678442605)",
+    "note": "",
+    "gcp_group": 1,
+    "created": "2024-12-30T14:09:22.921",
+    "created_by": 1,
+    "last_modified": "2024-12-30T14:09:22.922",
+    "last_modified_by": 1
+  }
+},
+{
+  "model": "georeference.gcp",
+  "pk": "66809cb3-d7ac-4743-9ff1-e844342a2975",
+  "fields": {
+    "pixel_x": 363,
+    "pixel_y": 2765,
+    "geom": "SRID=4326;POINT (30.00258275089672 -91.81695598033974)",
+    "note": "",
+    "gcp_group": 1,
+    "created": "2024-12-30T14:09:22.924",
+    "created_by": 1,
+    "last_modified": "2024-12-30T14:09:22.925",
+    "last_modified_by": 1
+  }
+},
+{
+  "model": "georeference.gcp",
+  "pk": "f781ccf3-7f9e-4c44-a9c2-ef33de528c7e",
+  "fields": {
+    "pixel_x": 871,
+    "pixel_y": 404,
+    "geom": "SRID=4326;POINT (30.01248456544343 -91.82244394175576)",
+    "note": "",
+    "gcp_group": 1,
+    "created": "2024-12-30T14:09:22.928",
+    "created_by": 1,
+    "last_modified": "2024-12-30T14:09:22.929",
+    "last_modified_by": 1
+  }
+}
+]

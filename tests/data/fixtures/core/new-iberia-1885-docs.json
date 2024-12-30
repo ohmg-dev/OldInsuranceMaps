@@ -1,0 +1,50 @@
+[
+{
+  "model": "core.document",
+  "pk": 1,
+  "fields": {
+    "title": "New Iberia, La. | 1885 p1",
+    "slug": "new_iberia_la_1885_p1",
+    "map": "sanborn03375_001",
+    "page_number": "1",
+    "prepared": false,
+    "file": "documents/new_iberia_la_1885_p1.jpg",
+    "thumbnail": "thumbnails/new_iberia_la_1885_p1-doc-thumb.jpg",
+    "source_url": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014nm/g033751885/03375_1885-0001.jp2",
+    "iiif_info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014nm:g033751885:03375_1885-0001/info.json",
+    "load_date": "2024-12-30T12:44:53.131"
+  }
+},
+{
+  "model": "core.document",
+  "pk": 2,
+  "fields": {
+    "title": "New Iberia, La. | 1885 p2",
+    "slug": "new_iberia_la_1885_p2",
+    "map": "sanborn03375_001",
+    "page_number": "2",
+    "prepared": false,
+    "file": "documents/new_iberia_la_1885_p2.jpg",
+    "thumbnail": "thumbnails/new_iberia_la_1885_p2-doc-thumb.jpg",
+    "source_url": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014nm/g033751885/03375_1885-0002.jp2",
+    "iiif_info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014nm:g033751885:03375_1885-0002/info.json",
+    "load_date": "2024-12-30T12:44:59.187"
+  }
+},
+{
+  "model": "core.document",
+  "pk": 3,
+  "fields": {
+    "title": "New Iberia, La. | 1885 p3",
+    "slug": "new_iberia_la_1885_p3",
+    "map": "sanborn03375_001",
+    "page_number": "3",
+    "prepared": false,
+    "file": "documents/new_iberia_la_1885_p3.jpg",
+    "thumbnail": "thumbnails/new_iberia_la_1885_p3-doc-thumb.jpg",
+    "source_url": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014nm/g033751885/03375_1885-0003.jp2",
+    "iiif_info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014nm:g033751885:03375_1885-0003/info.json",
+    "load_date": "2024-12-30T12:45:05.130"
+  }
+}
+]

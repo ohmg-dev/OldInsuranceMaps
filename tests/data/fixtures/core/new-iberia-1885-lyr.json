@@ -1,0 +1,24 @@
+[
+{
+  "model": "core.layer",
+  "pk": 1,
+  "fields": {
+    "title": "New Iberia, La. | 1885 p1 [1]",
+    "slug": "new_iberia_la_1885_p1_1",
+    "region": 2,
+    "created_by": 1,
+    "last_updated_by": 1,
+    "created": "2024-12-30T14:14:29.248",
+    "last_updated": "2024-12-30T14:14:30.835",
+    "extent": [
+      -91.82785034179688,
+      29.998949050206093,
+      -91.81137084960938,
+      30.015598098308676
+    ],
+    "file": "layers/new_iberia_la_1885_p1_1__Q1M2E7_00.tif",
+    "thumbnail": "thumbnails/new_iberia_la_1885_p1_1__Q1M2E7_00-lyr-thumb.jpg",
+    "layerset": 1
+  }
+}
+]

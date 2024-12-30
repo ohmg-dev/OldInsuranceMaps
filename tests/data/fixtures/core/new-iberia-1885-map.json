@@ -1,0 +1,121 @@
+[
+{
+  "model": "core.map",
+  "pk": "sanborn03375_001",
+  "fields": {
+    "slug": "new_iberia_la_1885",
+    "title": "New Iberia, La. | 1885",
+    "year": 1885,
+    "month": 7,
+    "day": null,
+    "creator": "Sanborn Map Company",
+    "publisher": null,
+    "volume_number": null,
+    "document_page_type": "page",
+    "iiif_manifest": null,
+    "status": "ready",
+    "create_date": "2024-12-30T12:38:34.364",
+    "load_date": "2024-12-30T12:44:47.067",
+    "document_sources": [
+      {
+        "path": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014nm/g033751885/03375_1885-0001.jp2",
+        "iiif_info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014nm:g033751885:03375_1885-0001/info.json",
+        "page_number": "1"
+      },
+      {
+        "path": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014nm/g033751885/03375_1885-0002.jp2",
+        "iiif_info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014nm:g033751885:03375_1885-0002/info.json",
+        "page_number": "2"
+      },
+      {
+        "path": "https://tile.loc.gov/storage-services/service/gmd/gmd401m/g4014m/g4014nm/g033751885/03375_1885-0003.jp2",
+        "iiif_info": "https://tile.loc.gov/image-services/iiif/service:gmd:gmd401m:g4014m:g4014nm:g033751885:03375_1885-0003/info.json",
+        "page_number": "3"
+      }
+    ],
+    "document_lookup": {},
+    "layer_lookup": {},
+    "item_lookup": {
+      "nonmaps": [],
+      "prepared": [],
+      "processing": {
+        "prep": 0,
+        "unprep": 0,
+        "geo_trim": 0
+      },
+      "unprepared": [
+        {
+          "id": 1,
+          "file": "/uploaded/documents/new_iberia_la_1885_p1.jpg",
+          "slug": "new_iberia_la_1885_p1",
+          "urls": {
+            "image": "/uploaded/documents/new_iberia_la_1885_p1.jpg",
+            "split": "/split/1/",
+            "resource": "/document/1",
+            "thumbnail": "/uploaded/thumbnails/new_iberia_la_1885_p1-doc-thumb.jpg"
+          },
+          "title": "New Iberia, La. | 1885 p1",
+          "nickname": "page 1",
+          "prepared": false,
+          "thumbnail": "/uploaded/thumbnails/new_iberia_la_1885_p1-doc-thumb.jpg",
+          "image_size": [
+            6450,
+            7650
+          ],
+          "page_number": "1"
+        },
+        {
+          "id": 2,
+          "file": "/uploaded/documents/new_iberia_la_1885_p2.jpg",
+          "slug": "new_iberia_la_1885_p2",
+          "urls": {
+            "image": "/uploaded/documents/new_iberia_la_1885_p2.jpg",
+            "split": "/split/2/",
+            "resource": "/document/2",
+            "thumbnail": "/uploaded/thumbnails/new_iberia_la_1885_p2-doc-thumb.jpg"
+          },
+          "title": "New Iberia, La. | 1885 p2",
+          "nickname": "page 2",
+          "prepared": false,
+          "thumbnail": "/uploaded/thumbnails/new_iberia_la_1885_p2-doc-thumb.jpg",
+          "image_size": [
+            6450,
+            7650
+          ],
+          "page_number": "2"
+        },
+        {
+          "id": 3,
+          "file": "/uploaded/documents/new_iberia_la_1885_p3.jpg",
+          "slug": "new_iberia_la_1885_p3",
+          "urls": {
+            "image": "/uploaded/documents/new_iberia_la_1885_p3.jpg",
+            "split": "/split/3/",
+            "resource": "/document/3",
+            "thumbnail": "/uploaded/thumbnails/new_iberia_la_1885_p3-doc-thumb.jpg"
+          },
+          "title": "New Iberia, La. | 1885 p3",
+          "nickname": "page 3",
+          "prepared": false,
+          "thumbnail": "/uploaded/thumbnails/new_iberia_la_1885_p3-doc-thumb.jpg",
+          "image_size": [
+            6450,
+            7650
+          ],
+          "page_number": "3"
+        }
+      ],
+      "georeferenced": []
+    },
+    "featured": false,
+    "hidden": false,
+    "mapgroup": null,
+    "access": "any",
+    "sponsor": null,
+    "loaded_by": 1,
+    "locales": [
+      17223
+    ]
+  }
+}
+]

@@ -1,9 +1,13 @@
+import sys
 from pathlib import Path
 import shutil
 from typing import List
 
 from django.conf import settings
 from django.test import TestCase, Client
+from django.core.management import call_command
+
+# DATA_DIR = Path(__file__).parent / "data"
 
 
 def copy_files_to_media_root(file_paths: List[Path], sub_dir: str = ""):
@@ -13,55 +17,66 @@ def copy_files_to_media_root(file_paths: List[Path], sub_dir: str = ""):
         shutil.copy2(src, dest)
 
 
-def get_api_client():
-    api_auth_header = {"HTTP_X_API_KEY": settings.OHMG_API_KEY}
-    return Client(**api_auth_header)
-
-
 class OHMGTestCase(TestCase):
     DATA_DIR = Path(__file__).parent / "data"
 
-    fixture_default_layerset_categories = Path(
-        "ohmg/georeference/fixtures/default-layerset-categories.json"
-    )
-    fixture_sanborn_layerset_categories = Path(
-        "ohmg/georeference/fixtures/sanborn-layerset-categories.json"
-    )
-    fixture_admin_user = (DATA_DIR / "fixtures/auth/admin-user.json",)
-    fixture_alexandria_place = DATA_DIR / "fixtures/places/alexandria-la-and-parents.json"
+    class Fixtures:
+        DATA_DIR = Path(__file__).parent / "data"
 
-    fixture_alexandria_map = DATA_DIR / "fixtures/core/sanborn-alexandria-la-1892-map.json"
-    fixture_alexandria_docs = DATA_DIR / "fixtures/core/sanborn-alexandria-la-1892-docs.json"
-    fixture_alexandria_regs = DATA_DIR / "fixtures/core/sanborn-alexandria-la-1892-regs.json"
-    fixture_alexandria_lyr = DATA_DIR / "fixtures/core/sanborn-alexandria-la-1892-lyr.json"
-    fixture_alexandria_main_layerset = (
-        DATA_DIR / "fixtures/georeference/sanborn-alexandria-la-1892-main-layerset.json"
-    )
+        admin_user = DATA_DIR / "fixtures/auth/admin-user.json"
 
-    fixture_session_prep_no_split = (
-        DATA_DIR / "fixtures/sessions/fixture-prepsession-alexandria-la-1892-p3-no-split.json"
-    )
-    fixture_session_prep_split = (
-        DATA_DIR / "fixtures/sessions/fixture-prepsession-alexandria-la-1892-p2-split.json"
-    )
+        layerset_categories = Path("ohmg/georeference/fixtures/default-layerset-categories.json")
+        layerset_categories_sanborn = Path(
+            "ohmg/georeference/fixtures/sanborn-layerset-categories.json"
+        )
 
-    fixture_session_georef = (
-        DATA_DIR / "fixtures/sessions/fixture-georefsession-alexandria-la-1892-p2__2.json"
-    )
-    fixture_document_georef_results_gcpgroup = (
-        DATA_DIR / "fixtures/georeference/fixture-alexandria-la-1892-p2__2-gcpgroup.json"
-    )
-    fixture_document_georef_results_gcps = (
-        DATA_DIR / "fixtures/georeference/fixture-alexandria-la-1892-p2__2-gcps.json"
-    )
+        new_iberia_place = DATA_DIR / "fixtures/places/new-iberia-la-and-parents.json"
 
-    image_alex_p1_original = DATA_DIR / "files/source_images/alexandria_la_1892_p1.jpg"
-    image_alex_p2_original = DATA_DIR / "files/source_images/alexandria_la_1892_p2.jpg"
-    image_alex_p3_original = DATA_DIR / "files/source_images/alexandria_la_1892_p3.jpg"
+        new_iberia_map = DATA_DIR / "fixtures/core/new-iberia-1885-map.json"
+        new_iberia_docs = DATA_DIR / "fixtures/core/new-iberia-1885-docs.json"
+        new_iberia_regs = DATA_DIR / "fixtures/core/new-iberia-1885-regs.json"
+        new_iberia_lyr = DATA_DIR / "fixtures/core/new-iberia-1885-lyr.json"
+        new_iberia_main_layerset = (
+            DATA_DIR / "fixtures/georeference/new-iberia-1885-main-content-layerset.json"
+        )
 
-    image_alex_p2__1 = DATA_DIR / "files/split_images/alexandria_la_1892_p2__1.jpg"
-    image_alex_p2__2 = DATA_DIR / "files/split_images/alexandria_la_1892_p2__2.jpg"
+        prepsession_new_iberia_p1_split = (
+            DATA_DIR / "fixtures/sessions/prepsession-new-iberia-1885-p1-split.json"
+        )
+        prepsession_new_iberia_p2_no_split = (
+            DATA_DIR / "fixtures/sessions/prepsession-new-iberia-1885-p2-no-split.json"
+        )
 
-    image_alex_p2__2_lyr = DATA_DIR / "files/layer_tifs/alexandria_la_1892_p2_2__FzWrFg_00.tif"
+        georef_session_new_iberia_p1__1 = (
+            DATA_DIR / "fixtures/sessions/georefsesssion-new-iberia-1885-p1__1.json"
+        )
+        gcps_new_iberia_p1__1 = DATA_DIR / "fixtures/georeference/new-iberia-1885-p1__1-gcps.json"
+        gcpgroup_new_iberia_p1__1 = (
+            DATA_DIR / "fixtures/georeference/new-iberia-1885-p1__1-gcpgroup.json"
+        )
 
-    thumbnail_dir = DATA_DIR / "files/thumbnails"
+    class Files:
+        DATA_DIR = Path(__file__).parent / "data"
+
+        new_iberia_p1_original = DATA_DIR / "files/source_images/new_iberia_la_1885_p1.jpg"
+        new_iberia_p2_original = DATA_DIR / "files/source_images/new_iberia_la_1885_p2.jpg"
+        new_iberia_p3_original = DATA_DIR / "files/source_images/new_iberia_la_1885_p3.jpg"
+
+        new_iberia_p1__1 = DATA_DIR / "files/regions/new_iberia_la_1885_p1__1.jpg"
+        new_iberia_p1__2 = DATA_DIR / "files/regions/new_iberia_la_1885_p1__2.jpg"
+        new_iberia_p1__3 = DATA_DIR / "files/regions/new_iberia_la_1885_p1__3.jpg"
+        new_iberia_p2_region = DATA_DIR / "files/regions/new_iberia_la_1885_p2.jpg"
+
+        new_iberia_p1__1_lyr = DATA_DIR / "files/layers/new_iberia_la_1885_p1_1__seTn7p_00.tif"
+
+    def get_api_client(self) -> Client:
+        api_auth_header = {"HTTP_X_API_KEY": settings.OHMG_API_KEY}
+        return Client(**api_auth_header)
+
+    def dump_data(self, model_label: str, outfile: str):
+        """Helper function to dump db content to a fixture JSON file during test runs."""
+
+        sysout = sys.stdout
+        sys.stdout = open(outfile, "w")
+        call_command("dumpdata", model_label, "--indent=2")
+        sys.stdout = sysout

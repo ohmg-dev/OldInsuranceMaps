@@ -29,12 +29,12 @@
     },
     {
         "model": "places.place",
-        "pk": 1889,
+        "pk": 1551,
         "fields": {
-            "name": "Rapides",
+            "name": "Iberia",
             "category": "parish",
-            "display_name": "Rapides Parish, La.",
-            "slug": "rapides-parish-la",
+            "display_name": "Iberia Parish, La.",
+            "slug": "iberia-parish-la",
             "volume_count": 0,
             "volume_count_inclusive": 0,
             "direct_parents": [
@@ -44,16 +44,16 @@
     },
     {
         "model": "places.place",
-        "pk": 20949,
+        "pk": 17223,
         "fields": {
-            "name": "Alexandria",
+            "name": "New Iberia",
             "category": "other",
-            "display_name": "Alexandria, La.",
-            "slug": "alexandria-la",
+            "display_name": "New Iberia, La.",
+            "slug": "new-iberia-la",
             "volume_count": 0,
             "volume_count_inclusive": 0,
             "direct_parents": [
-                1889
+                1551
             ]
         }
     }
