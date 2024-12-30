@@ -11,25 +11,6 @@ from ohmg.places.models import Place
 logger = logging.getLogger(__name__)
 
 
-def get_importer(name, dry_run=False, overwrite=False):
-    """Creates an instance of an importer from the class specified in
-    settings.py corresponding to the name provided to this function.
-    Any kwargs passed to this function are pass directly to the new importer
-    instance that is returned."""
-
-    if name not in settings.OHMG_IMPORTERS["map"]:
-        return None
-
-    full_path = settings.OHMG_IMPORTERS["map"][name]
-    module_path = ".".join(full_path.split(".")[:-1])
-    class_name = full_path.split(".")[-1]
-    module = importlib.import_module(module_path)
-    importer_class = getattr(module, class_name)
-    importer_instance = importer_class(dry_run=dry_run, overwrite=overwrite)
-
-    return importer_instance
-
-
 class BaseImporter:
     required_input = []
 
@@ -92,7 +73,7 @@ class BaseImporter:
             "This method must be implemented on each " "importer class that inherits from this one."
         )
 
-    def create_map(self):
+    def create_map(self) -> Map:
         locale = None
         if "locale" in self.parsed_data:
             locale = Place.objects.get(slug=self.parsed_data.pop("locale"))
@@ -127,7 +108,7 @@ class BaseImporter:
 
         return map
 
-    def run_import(self, **kwargs):
+    def run_import(self, **kwargs) -> Map:
         """Import a single map using the kwargs provided. These keywords are supplied to the
         self.acquire_data()."""
 
@@ -158,3 +139,22 @@ class BaseImporter:
 
         for item in items:
             self.run_import(**item)
+
+
+def get_importer(name, dry_run=False, overwrite=False) -> BaseImporter:
+    """Creates an instance of an importer from the class specified in
+    settings.py corresponding to the name provided to this function.
+    Any kwargs passed to this function are pass directly to the new importer
+    instance that is returned."""
+
+    if name not in settings.OHMG_IMPORTERS["map"]:
+        return None
+
+    full_path = settings.OHMG_IMPORTERS["map"][name]
+    module_path = ".".join(full_path.split(".")[:-1])
+    class_name = full_path.split(".")[-1]
+    module = importlib.import_module(module_path)
+    importer_class = getattr(module, class_name)
+    importer_instance = importer_class(dry_run=dry_run, overwrite=overwrite)
+
+    return importer_instance
