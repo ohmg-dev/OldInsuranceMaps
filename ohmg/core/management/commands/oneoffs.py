@@ -1,9 +1,12 @@
 import os
 import json
+from pathlib import Path
+
 from django.core.management.base import BaseCommand
+from django.conf import settings
 
 from ohmg.georeference.models import LayerSet
-from ohmg.core.models import Map
+from ohmg.core.models import Map, Document, Region, Layer
 
 
 class Command(BaseCommand):
@@ -15,6 +18,7 @@ class Command(BaseCommand):
             choices=[
                 "backfill-document-sources",
                 "resave-content",
+                "clean-uploaded-files",
             ],
             help="Choose what operation to run.",
         )
@@ -22,7 +26,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         ## 11/20/2024 this operation created to update all existing Map.document_sources fields
         ## after the shape of that field had been changed (page number now stored within each entry)
-        if options["operation"] == "backfill_document_sources":
+        if options["operation"] == "backfill-document-sources":
 
             def get_page_number_from_url(url):
                 filename = url.split("/")[-1]
@@ -65,7 +69,7 @@ class Command(BaseCommand):
 
         ## generally helpful operation during development to go though and run
         ## save() on all objects in the core data model
-        if options["operation"] == "resave_content":
+        if options["operation"] == "resave-content":
             maps = Map.objects.all()
             maps_ct = maps.count()
             for n, map in enumerate(maps, start=1):
@@ -101,3 +105,41 @@ class Command(BaseCommand):
 
                 print("updating item lookups...")
                 map.update_item_lookup()
+
+        ## 12/30/2024 needed this command to clean up disk space on the prod server
+        if options["operation"] == "clean-uploaded-files":
+            media_dir = Path(settings.MEDIA_ROOT)
+            files_on_disk = [str(i) for i in media_dir.glob("documents/*") if i.is_file()]
+            files_on_disk += [str(i) for i in media_dir.glob("regions/*") if i.is_file()]
+            files_on_disk += [str(i) for i in media_dir.glob("layers/*") if i.is_file()]
+            files_on_disk += [str(i) for i in media_dir.glob("mosaics/*") if i.is_file()]
+            files_on_disk += [str(i) for i in media_dir.glob("thumbnails/*") if i.is_file()]
+
+            all_real_paths = [i.file.path for i in Document.objects.all() if i.file]
+            all_real_paths += [i.thumbnail.path for i in Document.objects.all() if i.thumbnail]
+            all_real_paths += [i.file.path for i in Region.objects.all() if i.file]
+            all_real_paths += [i.thumbnail.path for i in Region.objects.all() if i.thumbnail]
+            all_real_paths += [i.file.path for i in Layer.objects.all() if i.file]
+            all_real_paths += [i.thumbnail.path for i in Layer.objects.all() if i.thumbnail]
+            all_real_paths += [
+                i.mosaic_geotiff.path for i in LayerSet.objects.all() if i.mosaic_geotiff
+            ]
+
+            rm_paths = []
+            match_paths = []
+            for path in files_on_disk:
+                if path not in all_real_paths:
+                    rm_paths.append(path)
+                    print(f"to delete: {path}")
+                else:
+                    match_paths.append(path)
+
+            print(f"files to delete: {len(rm_paths)}")
+            print(f"files will be retained: {len(match_paths)}")
+
+            if input("continue? Y/n ").lower().startswith("n"):
+                print("-- cancelling operation.")
+                exit()
+
+            for rm in rm_paths:
+                os.remove(rm)
