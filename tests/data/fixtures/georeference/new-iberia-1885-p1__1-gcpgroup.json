@@ -3,7 +3,6 @@
   "model": "georeference.gcpgroup",
   "pk": 1,
   "fields": {
-    "doc": null,
     "crs_epsg": 3857,
     "transformation": "poly1"
   }

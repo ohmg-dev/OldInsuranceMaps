@@ -180,8 +180,11 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
         OHMGTestCase.Fixtures.new_iberia_map,
         OHMGTestCase.Fixtures.new_iberia_docs,
         OHMGTestCase.Fixtures.prepsession_new_iberia_p1_split,
+        OHMGTestCase.Fixtures.new_iberia_reg_1__1,
+        OHMGTestCase.Fixtures.new_iberia_reg_1__2,
+        OHMGTestCase.Fixtures.new_iberia_reg_1__3,
         OHMGTestCase.Fixtures.prepsession_new_iberia_p2_no_split,
-        OHMGTestCase.Fixtures.new_iberia_regs,
+        OHMGTestCase.Fixtures.new_iberia_reg_2,
     ]
 
     def test_georef_session(self):

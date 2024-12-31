@@ -34,7 +34,12 @@ class OHMGTestCase(TestCase):
 
         new_iberia_map = DATA_DIR / "fixtures/core/new-iberia-1885-map.json"
         new_iberia_docs = DATA_DIR / "fixtures/core/new-iberia-1885-docs.json"
-        new_iberia_regs = DATA_DIR / "fixtures/core/new-iberia-1885-regs.json"
+        # new_iberia_regs = DATA_DIR / "fixtures/core/new-iberia-1885-regs.json"
+        new_iberia_reg_1__1 = DATA_DIR / "fixtures/core/new-iberia-1885-reg-1__1.json"
+        new_iberia_reg_1__1_georef = DATA_DIR / "fixtures/core/new-iberia-1885-reg-1__1-georef.json"
+        new_iberia_reg_1__2 = DATA_DIR / "fixtures/core/new-iberia-1885-reg-1__2.json"
+        new_iberia_reg_1__3 = DATA_DIR / "fixtures/core/new-iberia-1885-reg-1__3.json"
+        new_iberia_reg_2 = DATA_DIR / "fixtures/core/new-iberia-1885-reg-2.json"
         new_iberia_lyr = DATA_DIR / "fixtures/core/new-iberia-1885-lyr.json"
         new_iberia_main_layerset = (
             DATA_DIR / "fixtures/georeference/new-iberia-1885-main-content-layerset.json"
