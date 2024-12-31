@@ -16,6 +16,7 @@ urlpatterns = [
     path("", include("ohmg.georeference.urls")),
     path("", include("ohmg.iiif.urls")),
     path("forum-embed-test/", TemplateView.as_view(template_name="forum-embed.html")),
+    path("grappelli/", include("grappelli.urls")),
     path("admin/", admin.site.urls, name="admin"),
     path("account/", include("allauth.urls")),
     path("avatar/", include("avatar.urls")),
