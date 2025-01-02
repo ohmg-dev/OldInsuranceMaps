@@ -1,0 +1,60 @@
+[
+    {
+        "model": "places.place",
+        "pk": 22,
+        "fields": {
+            "name": "Louisiana",
+            "category": "state",
+            "display_name": "Louisiana",
+            "slug": "louisiana",
+            "volume_count": 0,
+            "volume_count_inclusive": 0,
+            "direct_parents": [
+                100
+            ]
+        }
+    },
+    {
+        "model": "places.place",
+        "pk": 100,
+        "fields": {
+            "name": "United States",
+            "category": "country",
+            "display_name": "United States",
+            "slug": "united-states",
+            "volume_count": 0,
+            "volume_count_inclusive": 0,
+            "direct_parents": []
+        }
+    },
+    {
+        "model": "places.place",
+        "pk": 1551,
+        "fields": {
+            "name": "Iberia",
+            "category": "parish",
+            "display_name": "Iberia Parish, La.",
+            "slug": "iberia-parish-la",
+            "volume_count": 0,
+            "volume_count_inclusive": 0,
+            "direct_parents": [
+                22
+            ]
+        }
+    },
+    {
+        "model": "places.place",
+        "pk": 17223,
+        "fields": {
+            "name": "New Iberia",
+            "category": "other",
+            "display_name": "New Iberia, La.",
+            "slug": "new-iberia-la",
+            "volume_count": 0,
+            "volume_count_inclusive": 0,
+            "direct_parents": [
+                1551
+            ]
+        }
+    }
+]

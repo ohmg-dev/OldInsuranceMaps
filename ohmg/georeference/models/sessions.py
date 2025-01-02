@@ -509,6 +509,17 @@ class GeorefSession(SessionBase):
             self.save()
             return None
 
+        self.update_status("saving control points")
+
+        # save the successful gcps to the canonical GCPGroup for the document
+        gcp_group = GCPGroup().save_from_geojson(
+            self.data["gcps"],
+            self.reg2,
+            self.data["transformation"],
+        )
+        self.reg2.gcp_group = gcp_group
+        self.reg2.save()
+
         self.update_status("creating layer")
 
         ## if there was no existing layer, create a new object by copying
@@ -557,16 +568,6 @@ class GeorefSession(SessionBase):
         self.reg2.georeferenced = True
         self.reg2.save()
 
-        self.update_status("saving control points")
-
-        # save the successful gcps to the canonical GCPGroup for the document
-        gcp_group = GCPGroup().save_from_geojson(
-            self.data["gcps"],
-            self.reg2,
-            self.data["transformation"],
-        )
-        self.reg2.gcp_group = gcp_group
-        self.reg2.save()
         self.reg2.map.update_item_lookup()
 
         self.update_stage("finished", save=False)

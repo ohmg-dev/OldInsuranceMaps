@@ -9,13 +9,13 @@ from django.views import View
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 
-from ohmg.core.context_processors import generate_ohmg_context
 from ohmg.core.http import (
     JsonResponseSuccess,
     JsonResponseFail,
     JsonResponseBadRequest,
     JsonResponseNotFound,
     validate_post_request,
+    generate_ohmg_context,
 )
 from ohmg.core.utils import time_this
 from ohmg.georeference.tasks import (

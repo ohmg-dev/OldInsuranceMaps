@@ -52,6 +52,7 @@ for d in [LOG_DIR, CACHE_DIR, TEMP_DIR]:
 LANGUAGE_CODE = os.getenv("LANGUAGE_CODE", "en")
 
 INSTALLED_APPS = [
+    "grappelli",
     "ohmg.accounts",
     "django.contrib.contenttypes",
     "django.contrib.auth",
@@ -68,7 +69,6 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "pinax.announcements",
     "storages",
-    "tinymce",
     "django_extensions",
     "avatar",
     "compressor",
@@ -112,7 +112,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "ohmg.core.context_processors.site_info",
+                "ohmg.context_processors.site_info",
             ],
             "debug": DEBUG,
         },
@@ -187,22 +187,7 @@ if ENABLE_NEWSLETTER:
     NEWSLETTER_CONFIRM_EMAIL_SUBSCRIBE = True
     NEWSLETTER_CONFIRM_EMAIL_UNSUBSCRIBE = False
     NEWSLETTER_CONFIRM_EMAIL_UPDATE = False
-    NEWSLETTER_RICHTEXT_WIDGET = "tinymce.widgets.TinyMCE"
-
-    TINYMCE_DEFAULT_CONFIG = {
-        "theme": "silver",
-        "height": 500,
-        "menubar": False,
-        "plugins": "advlist,autolink,lists,link,image,charmap,print,preview,anchor,"
-        "searchreplace,visualblocks,code,fullscreen,insertdatetime,media,table,paste,"
-        "code,help,wordcount",
-        "toolbar": "undo redo | formatselect | image link | "
-        "bold italic backcolor | alignleft aligncenter "
-        "alignright alignjustify | bullist numlist outdent indent | "
-        "removeformat | help",
-        "relative_urls": False,
-        "convert_urls": False,
-    }
+    NEWSLETTER_RICHTEXT_WIDGET = "markdownx.widgets.AdminMarkdownxWidget"
 
 # gravatar settings
 AUTO_GENERATE_AVATAR_SIZES = (20, 30, 32, 40, 50, 65, 70, 80, 100, 140, 200, 240)

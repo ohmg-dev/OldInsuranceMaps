@@ -1,0 +1,21 @@
+[
+{
+  "model": "core.region",
+  "pk": 2,
+  "fields": {
+    "title": "New Iberia, La. | 1885 p1 [1]",
+    "slug": "new_iberia_la_1885_p1_1",
+    "boundary": "SRID=4326;POLYGON ((6450 5627, 6450 2442, 5333 2442, 5285 5598, 6450 5627))",
+    "document": 1,
+    "division_number": 1,
+    "is_map": true,
+    "georeferenced": false,
+    "created_by": 1,
+    "created": "2024-12-30T13:10:22.934",
+    "last_updated": "2024-12-30T13:10:23.001",
+    "file": "regions/new_iberia_la_1885_p1__1.jpg",
+    "thumbnail": "thumbnails/new_iberia_la_1885_p1__1-reg-thumb.jpg",
+    "gcp_group": null
+  }
+}
+]

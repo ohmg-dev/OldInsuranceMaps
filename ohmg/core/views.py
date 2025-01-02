@@ -11,8 +11,7 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 
-from ohmg.georeference.models import LayerSetCategory
-from ohmg.core.context_processors import generate_ohmg_context
+from ohmg.core.http import generate_ohmg_context
 from ohmg.core.models import Map, Document, Region, Layer
 from ohmg.core.utils import time_this
 from ohmg.core.api.schemas import (
@@ -25,6 +24,7 @@ from ohmg.core.api.schemas import (
 from ohmg.core.tasks import (
     load_map_documents_as_task,
 )
+from ohmg.georeference.models import LayerSetCategory
 from ohmg.georeference.tasks import (
     run_preparation_session,
 )

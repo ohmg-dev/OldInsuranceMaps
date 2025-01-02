@@ -1,0 +1,78 @@
+[
+{
+  "model": "core.region",
+  "pk": 1,
+  "fields": {
+    "title": "New Iberia, La. | 1885 p2",
+    "slug": "new_iberia_la_1885_p2",
+    "boundary": "SRID=4326;POLYGON ((0 0, 0 7650, 6450 7650, 6450 0, 0 0))",
+    "document": 2,
+    "division_number": null,
+    "is_map": true,
+    "georeferenced": false,
+    "created_by": 1,
+    "created": "2024-12-30T13:10:20.882",
+    "last_updated": "2024-12-30T13:10:21.389",
+    "file": "regions/new_iberia_la_1885_p2.jpg",
+    "thumbnail": "thumbnails/new_iberia_la_1885_p2-reg-thumb.jpg",
+    "gcp_group": null
+  }
+},
+{
+  "model": "core.region",
+  "pk": 2,
+  "fields": {
+    "title": "New Iberia, La. | 1885 p1 [1]",
+    "slug": "new_iberia_la_1885_p1_1",
+    "boundary": "SRID=4326;POLYGON ((6450 5627, 6450 2442, 5333 2442, 5285 5598, 6450 5627))",
+    "document": 1,
+    "division_number": 1,
+    "is_map": true,
+    "georeferenced": false,
+    "created_by": 1,
+    "created": "2024-12-30T13:10:22.934",
+    "last_updated": "2024-12-30T13:10:23.001",
+    "file": "regions/new_iberia_la_1885_p1__1.jpg",
+    "thumbnail": "thumbnails/new_iberia_la_1885_p1__1-reg-thumb.jpg",
+    "gcp_group": null
+  }
+},
+{
+  "model": "core.region",
+  "pk": 3,
+  "fields": {
+    "title": "New Iberia, La. | 1885 p1 [2]",
+    "slug": "new_iberia_la_1885_p1_2",
+    "boundary": "SRID=4326;POLYGON ((0 0, 0 7650, 6450 7650, 6450 5627, 5285 5598, 5333 2442, 3558 2442, 4331.826086956522 0, 0 0))",
+    "document": 1,
+    "division_number": 2,
+    "is_map": true,
+    "georeferenced": false,
+    "created_by": 1,
+    "created": "2024-12-30T13:10:23.011",
+    "last_updated": "2024-12-30T13:10:23.501",
+    "file": "regions/new_iberia_la_1885_p1__2.jpg",
+    "thumbnail": "thumbnails/new_iberia_la_1885_p1__2-reg-thumb.jpg",
+    "gcp_group": null
+  }
+},
+{
+  "model": "core.region",
+  "pk": 4,
+  "fields": {
+    "title": "New Iberia, La. | 1885 p1 [3]",
+    "slug": "new_iberia_la_1885_p1_3",
+    "boundary": "SRID=4326;POLYGON ((5333 2442, 5343 2442, 6450 2442, 6450 0, 4331.826086956522 0, 3558 2442, 5333 2442))",
+    "document": 1,
+    "division_number": 3,
+    "is_map": true,
+    "georeferenced": false,
+    "created_by": 1,
+    "created": "2024-12-30T13:10:23.515",
+    "last_updated": "2024-12-30T13:10:23.622",
+    "file": "regions/new_iberia_la_1885_p1__3.jpg",
+    "thumbnail": "thumbnails/new_iberia_la_1885_p1__3-reg-thumb.jpg",
+    "gcp_group": null
+  }
+}
+]

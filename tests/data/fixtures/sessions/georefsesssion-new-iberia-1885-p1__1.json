@@ -1,0 +1,285 @@
+[
+{
+  "model": "georeference.sessionbase",
+  "pk": 1,
+  "fields": {
+    "type": "p",
+    "stage": "finished",
+    "status": "success",
+    "doc": null,
+    "lyr": null,
+    "doc2": 2,
+    "reg2": null,
+    "lyr2": null,
+    "data": {
+      "cutlines": [],
+      "divisions": [],
+      "split_needed": false
+    },
+    "user": 1,
+    "user_input_duration": 0,
+    "date_created": "2024-12-30T13:07:06.602",
+    "date_modified": "2024-12-30T13:07:07.132",
+    "date_run": "2024-12-30T13:07:06.604",
+    "note": "no split needed"
+  }
+},
+{
+  "model": "georeference.sessionbase",
+  "pk": 2,
+  "fields": {
+    "type": "p",
+    "stage": "finished",
+    "status": "success",
+    "doc": null,
+    "lyr": null,
+    "doc2": 1,
+    "reg2": null,
+    "lyr2": null,
+    "data": {
+      "cutlines": [
+        [
+          [
+            6450,
+            5627.483165856904
+          ],
+          [
+            5284.7586517694235,
+            5597.601228404641
+          ],
+          [
+            5332.569751693044,
+            2442.0686334457364
+          ],
+          [
+            6450,
+            2442.068633445737
+          ]
+        ],
+        [
+          [
+            5332.569751693044,
+            2442.0686334457364
+          ],
+          [
+            3557.5826670286597,
+            2442.0686334457364
+          ],
+          [
+            4366.846593904307,
+            -110.92198113880431
+          ]
+        ]
+      ],
+      "divisions": [
+        [
+          [
+            6450.0,
+            5627.0
+          ],
+          [
+            6450.0,
+            2442.0
+          ],
+          [
+            5333.0,
+            2442.0
+          ],
+          [
+            5285.0,
+            5598.0
+          ],
+          [
+            6450.0,
+            5627.0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            7650.0
+          ],
+          [
+            6450.0,
+            7650.0
+          ],
+          [
+            6450.0,
+            5627.0
+          ],
+          [
+            5285.0,
+            5598.0
+          ],
+          [
+            5333.0,
+            2442.0
+          ],
+          [
+            3558.0,
+            2442.0
+          ],
+          [
+            4331.826086956522,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          [
+            5333.0,
+            2442.0
+          ],
+          [
+            5343.0,
+            2442.0
+          ],
+          [
+            6450.0,
+            2442.0
+          ],
+          [
+            6450.0,
+            0.0
+          ],
+          [
+            4331.826086956522,
+            0.0
+          ],
+          [
+            3558.0,
+            2442.0
+          ],
+          [
+            5333.0,
+            2442.0
+          ]
+        ]
+      ],
+      "split_needed": true
+    },
+    "user": 1,
+    "user_input_duration": 0,
+    "date_created": "2024-12-30T13:07:07.151",
+    "date_modified": "2024-12-30T13:07:09.443",
+    "date_run": "2024-12-30T13:07:07.152",
+    "note": "split into 3 new docs (2, 3, 4)"
+  }
+},
+{
+  "model": "georeference.sessionbase",
+  "pk": 3,
+  "fields": {
+    "type": "g",
+    "stage": "finished",
+    "status": "success",
+    "doc": null,
+    "lyr": null,
+    "doc2": null,
+    "reg2": 2,
+    "lyr2": 1,
+    "data": {
+      "epsg": 3857,
+      "gcps": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                -91.82465678442605,
+                30.010823076580564
+              ]
+            },
+            "properties": {
+              "id": "395fb4f8-eebc-4acb-94ff-8875e534fcbe",
+              "note": "",
+              "image": [
+                317,
+                420
+              ],
+              "listId": 1,
+              "username": "admin"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                -91.81695598033974,
+                30.00258275089672
+              ]
+            },
+            "properties": {
+              "id": "66809cb3-d7ac-4743-9ff1-e844342a2975",
+              "note": "",
+              "image": [
+                363,
+                2765
+              ],
+              "listId": 2,
+              "username": "admin"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                -91.81834687446985,
+                30.005931842820672
+              ]
+            },
+            "properties": {
+              "id": "0bdb4504-d5d9-4f62-9846-313abf1196c8",
+              "note": "",
+              "image": [
+                608,
+                2012
+              ],
+              "listId": 3,
+              "username": "admin"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                -91.82244394175576,
+                30.01248456544343
+              ]
+            },
+            "properties": {
+              "id": "f781ccf3-7f9e-4c44-a9c2-ef33de528c7e",
+              "note": "",
+              "image": [
+                871,
+                404
+              ],
+              "listId": 4,
+              "username": "admin"
+            }
+          }
+        ]
+      },
+      "transformation": "poly1"
+    },
+    "user": 1,
+    "user_input_duration": 0,
+    "date_created": "2024-12-30T14:30:44.464",
+    "date_modified": "2024-12-30T14:30:46.702",
+    "date_run": "2024-12-30T14:30:44.466",
+    "note": "4 GCPs used"
+  }
+}
+]

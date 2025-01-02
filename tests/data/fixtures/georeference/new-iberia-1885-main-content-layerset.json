@@ -1,0 +1,14 @@
+[
+{
+  "model": "georeference.layerset",
+  "pk": 1,
+  "fields": {
+    "map": "sanborn03375_001",
+    "category": 1,
+    "multimask": null,
+    "mosaic_geotiff": "",
+    "mosaic_json": "",
+    "extent": "[\"-91.82785034179688\", \"29.998949050206093\", \"-91.81137084960938\", \"30.015598098308676\"]"
+  }
+}
+]

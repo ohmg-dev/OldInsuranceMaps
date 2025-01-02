@@ -1,0 +1,27 @@
+[
+{
+  "model": "georeference.sessionbase",
+  "pk": 1,
+  "fields": {
+    "type": "p",
+    "stage": "finished",
+    "status": "success",
+    "doc": null,
+    "lyr": null,
+    "doc2": 2,
+    "reg2": null,
+    "lyr2": null,
+    "data": {
+      "cutlines": [],
+      "divisions": [],
+      "split_needed": false
+    },
+    "user": 1,
+    "user_input_duration": 0,
+    "date_created": "2024-12-30T13:07:06.602",
+    "date_modified": "2024-12-30T13:07:07.132",
+    "date_run": "2024-12-30T13:07:06.604",
+    "note": "no split needed"
+  }
+}
+]

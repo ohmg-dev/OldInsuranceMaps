@@ -178,7 +178,7 @@ During development, a separate HTTP server must be used to supply Titiler with C
 
 From within the repository root (alongside the `uploaded` directory) run:
 
-```
+```bash
 npx http-server .
 ```
 
@@ -194,12 +194,12 @@ In production, you will already be using a webserver for static files so you wil
 
 All tests are stored in ohmg/tests. Make sure you have installed dev requirements, then run:
 
-```
-python manage.py test ohmg/tests
+```bash
+python manage.py test
 ```
 
 To skip the tests that make external calls to the LOC API, use the following command. Keep in mind that coverage numbers will be lower when you skip tests.
 
-```
-python manage.py test ohmg/tests --exclude-tag=loc
+```bash
+python manage.py test --exclude-tag=loc
 ```

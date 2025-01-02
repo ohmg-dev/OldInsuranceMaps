@@ -21,7 +21,7 @@ dependencies = [
     "django-allauth==0.55.2",
     "django-markdownx==4.0.7",
     "django-newsletter==0.9.1",
-    "django-tinymce==3.6.1",
+    "django-grappelli==2.15.7",
     "django-ninja==0.21.0",
     "psycopg2==2.9.5",
     "pygments==2.14.0",
