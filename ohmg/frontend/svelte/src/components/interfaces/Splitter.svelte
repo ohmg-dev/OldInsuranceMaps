@@ -28,7 +28,6 @@ import MousePosition from 'ol/control/MousePosition';
 import {createStringXY} from 'ol/coordinate';
 
 import Draw from 'ol/interaction/Draw';
-import Select from 'ol/interaction/Select';
 import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 import LineString from 'ol/geom/LineString';
@@ -142,7 +141,7 @@ function DocViewer(elementId) {
   const mousePositionControl = new MousePosition({
     coordinateFormat: createStringXY(0),
     projection: projection,
-    undefinedHTML: '&nbsp;',
+    placeholder: 'n/a',
   });
 
   const map = new Map({
@@ -194,12 +193,7 @@ function DocViewer(elementId) {
   });
   map.addInteraction(draw);
 
-  const selectInteraction = new Select({
-    layers: [cutLayer],
-  });
-
   const modify = new Modify({
-    hitDetection: cutLayer,
     source: cutLayerSource,
     style: styles.polyModify,
   });

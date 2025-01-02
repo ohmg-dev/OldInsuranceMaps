@@ -289,9 +289,8 @@ $: {
 }
 
 // this Modify interaction is created individually for each map panel
-function makeModifyInteraction(hitDetection, source, targetElement) {
+function makeModifyInteraction(source, targetElement) {
   const modify = new Modify({
-    hitDetection: hitDetection,
     source: source,
     style: styles.gcpHover,
   });
@@ -386,7 +385,7 @@ function DocumentViewer (elementId) {
   const draw = makeDrawInteraction(docGCPSource, drawWithinDocCondition);
   map.addInteraction(draw)
 
-  const modify = makeModifyInteraction(gcpLayer, docGCPSource, targetElement)
+  const modify = makeModifyInteraction(docGCPSource, targetElement)
   modify.setActive(true);
   map.addInteraction(modify)
 
@@ -403,7 +402,7 @@ function DocumentViewer (elementId) {
       }
     },
     projection: docProjection,
-    undefinedHTML: 'n/a',
+    placeholder: 'n/a',
   });
   map.addControl(mousePositionControl);
 
@@ -470,7 +469,7 @@ function MapViewer (elementId) {
     const draw = makeDrawInteraction(mapGCPSource);
     map.addInteraction(draw)
 
-    const modify = makeModifyInteraction(gcpLayer, mapGCPSource, targetElement)
+    const modify = makeModifyInteraction(mapGCPSource, targetElement)
     modify.setActive(true)
     map.addInteraction(modify)
 
@@ -478,7 +477,7 @@ function MapViewer (elementId) {
     let mousePositionControl = new MousePosition({
       projection: 'EPSG:4326',
       coordinateFormat: createStringXY(6),
-      undefinedHTML: 'n/a',
+      placeholder: 'n/a',
     });
     map.addControl(mousePositionControl);
 

@@ -30,7 +30,7 @@ import Crop from 'ol-ext/filter/Crop';
 import MousePosition from 'ol/control/MousePosition';
 import {createStringXY} from 'ol/coordinate';
 
-import {Draw, Snap} from 'ol/interaction';
+import {Draw, Snap, Modify} from 'ol/interaction';
 
 import Style from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
@@ -38,7 +38,7 @@ import Stroke from 'ol/style/Stroke';
 import ToolUIButton from '@components/base/ToolUIButton.svelte';
 import ExpandElement from './buttons/ExpandElement.svelte';
 
-import { makeTitilerXYZUrl, makeBasemaps, makeModifyInteraction, submitPostRequest } from "@lib/utils"
+import { makeTitilerXYZUrl, makeBasemaps, submitPostRequest } from "@lib/utils"
 import Styles from '@lib/ol-styles';
 
 const styles = new Styles();
@@ -179,6 +179,15 @@ function MapViewer (elementId) {
     })
   });
 
+  map.on("pointermove", function (e) {
+    if (e.dragging) {return}
+    trimShapeLayer.getFeatures(e.pixel).then(function (features) {
+      features.length > 0 ? 
+        targetElement.style.cursor ='pointer' :
+        targetElement.style.cursor = 'default'
+    });
+  })
+
   layerLookupArr.forEach( function(layer) {
     map.addLayer(layer.olLayer)
   });
@@ -194,7 +203,13 @@ function MapViewer (elementId) {
   });
   map.addInteraction(draw)
 
-  const modify = makeModifyInteraction(trimShapeLayer, trimShapeSource, targetElement, styles.mmModify)
+  const modify = new Modify({
+    source: trimShapeSource,
+    style: styles.mmModify,
+  });
+  modify.on('modifystart', function (e) {
+		targetElement.style.cursor = 'grabbing';
+	});
   modify.on('modifyend', function (e) {
 		unchanged = false;
 	});
@@ -210,7 +225,7 @@ function MapViewer (elementId) {
   let mousePositionControl = new MousePosition({
     projection: 'EPSG:4326',
     coordinateFormat: createStringXY(6),
-    undefinedHTML: 'n/a',
+    placeholder: 'n/a',
   });
   map.addControl(mousePositionControl);
 
@@ -341,10 +356,10 @@ function layerApplyMask(feature) {
     if (layerLookup[currentLayer].crop) {
       layerLookup[currentLayer].crop = null;
     }
-    const crop = new Crop({ 
-        feature: feature, 
-        wrapX: true,
-        inner: false
+    const crop = new Crop({
+      feature: feature,
+      wrapX: true,
+      inner: false
     });
     layerLookup[currentLayer].olLayer.addFilter(crop);
     layerLookup[currentLayer].crop = crop;

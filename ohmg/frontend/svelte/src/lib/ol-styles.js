@@ -43,7 +43,7 @@ const browseMapCircle = new Style({
 // this is the white outline cross that sits behind every gcp style
 const gcpOutline = new Style({
   image: new RegularShape({
-    radius1: 10,
+    radius: 10,
     radius2: 0,
     points: 4,
     rotation: .79,
@@ -58,7 +58,7 @@ const gcpOutline = new Style({
 // on top of the outline.
 const gcpDefault = new Style({
   image: new RegularShape({
-    radius1: 10,
+    radius: 10,
     radius2: 0,
     points: 4,
     rotation: .79,
@@ -69,7 +69,7 @@ const gcpDefault = new Style({
 })
 const gcpHover = new Style({
   image: new RegularShape({
-    radius1: 10,
+    radius: 10,
     radius2: 0,
     points: 4,
     rotation: .79,
@@ -80,7 +80,7 @@ const gcpHover = new Style({
 })
 const gcpHighlight = new Style({
   image: new RegularShape({
-    radius1: 10,
+    radius: 10,
     radius2: 0,
     points: 4,
     rotation: .79,

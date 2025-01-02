@@ -25,7 +25,6 @@ import {Modify} from 'ol/interaction';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import LayerGroup from 'ol/layer/Group';
-import MapboxVector from 'ol/layer/MapboxVector';
 
 import Crop from 'ol-ext/filter/Crop';
 
@@ -98,28 +97,6 @@ export function makeSatelliteLayer (apiKey) {
 	});
 }
 
-// EXPERIMENTAL vector basemap, not in use
-export function makeMapboxStreetsLayer (apiKey) {
-	//return new TileLayer({
-	//	source: new XYZ({
-	//		url: 'https://api.mapbox.com/styles/v1/legiongis/ckihiobcu0m3319sz4i5djtaj/tiles/{z}/{x}/{y}?access_token='+apiKey,
-	//		tileSize: 512,
-	//		attributions: [
-	//			`© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>`
-	//	]
-	//})
-	//	});
-	return new MapboxVector({
-	//		styleUrl: 'mapbox://styles/legiongis/ckihiobcu0m3319sz4i5djtaj',
-		styleUrl: 'mapbox://styles/mapbox/streets-v11',
-		accessToken: apiKey,
-		zIndex: 0,
-		// declutter false keeps the labels with the rest of the style instead of
-		// placing them above all other layers. However, it causes a lot of clutter.
-		declutter: false,
-	})
-}
-	
 export function makeOSMLayer () {
 	return new TileLayer({
 		source: new OSM({
@@ -143,24 +120,6 @@ export function makeBasemaps (mapboxKey) {
 			label: "Streets+Satellite"
 		},
 	]
-}
-
-export function makeModifyInteraction(hitDetection, source, targetElement, style) {
-	const modify = new Modify({
-		hitDetection: hitDetection,
-		source: source,
-		style: style,
-	});
-
-	modify.on(['modifystart', 'modifyend'], function (e) {
-		targetElement.style.cursor = e.type === 'modifystart' ? 'grabbing' : 'pointer';
-	});
-
-	let overlaySource = modify.getOverlay().getSource();
-	overlaySource.on(['addfeature', 'removefeature'], function (e) {
-		targetElement.style.cursor = e.type === 'addfeature' ? 'pointer' : '';
-	});
-	return modify
 }
 
 export function makeLayerGroupFromLayerSet (options) {
@@ -221,7 +180,7 @@ export function generateFullMaskLayer (map) {
 		[projExtent[2], projExtent[3]],
 		[projExtent[0], projExtent[3]],
 		[projExtent[0], projExtent[1]],
-	]])	
+	]])
 	const layer = new VectorLayer({
 		source: new VectorSource({
 			features: [ new Feature({ geometry: polygon }) ]
@@ -239,7 +198,7 @@ export function makeRotateCenterLayer () {
 	const feature = new Feature()
 	const pointStyle = new Style({
 		image: new RegularShape({
-			radius1: 10,
+			radius: 10,
 			radius2: 1,
 			points: 4,
 			rotateWithView: true,
