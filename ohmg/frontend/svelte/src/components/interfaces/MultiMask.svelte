@@ -27,9 +27,6 @@ import VectorLayer from 'ol/layer/Vector';
 
 import Crop from 'ol-ext/filter/Crop';
 
-import MousePosition from 'ol/control/MousePosition';
-import {createStringXY} from 'ol/coordinate';
-
 import {Draw, Snap, Modify} from 'ol/interaction';
 
 import Style from 'ol/style/Style';
@@ -39,6 +36,7 @@ import ToolUIButton from '@components/base/ToolUIButton.svelte';
 import ExpandElement from './buttons/ExpandElement.svelte';
 
 import { makeTitilerXYZUrl, makeBasemaps, submitPostRequest } from "@lib/utils"
+import { LyrMousePosition } from "@lib/controls";
 import Styles from '@lib/ol-styles';
 
 const styles = new Styles();
@@ -222,12 +220,7 @@ function MapViewer (elementId) {
   map.addInteraction(snap)
 
   // create controls
-  let mousePositionControl = new MousePosition({
-    projection: 'EPSG:4326',
-    coordinateFormat: createStringXY(6),
-    placeholder: 'n/a',
-  });
-  map.addControl(mousePositionControl);
+  map.addControl(new LyrMousePosition(null, 'ol-mouse-position'));
 
   // expose properties as necessary
   this.map = map;

@@ -17,8 +17,6 @@ import 'ol/ol.css';
 import Map from 'ol/Map';
 import {createEmpty, extend} from 'ol/extent';
 import {transformExtent} from 'ol/proj';
-import MousePosition from 'ol/control/MousePosition';
-    import {createStringXY} from 'ol/coordinate';
 
 import {ZoomToExtent, defaults as defaultControls} from 'ol/control.js';
 
@@ -27,6 +25,7 @@ import {
 	makeLayerGroupFromLayerSet,
 	makeBasemaps,
 } from '@lib/utils';
+import { LyrMousePosition } from "@lib/controls";
 
 export let CONTEXT;
 export let LAYERSETS;
@@ -113,18 +112,11 @@ class MapPreviewViewer {
 			]
 		});
 
-		let mousePositionControl = new MousePosition({
-			projection: 'EPSG:4326',
-			coordinateFormat: createStringXY(6),
-			placeholder: 'n/a',
-			target: document.getElementById('pointer-coords-preview'),
-			className: null,
-		});
-		map.addControl(mousePositionControl);
-
 		// Object.entries(layerSets).forEach( function ([key, item]) {
 		// 	map.addLayer(item.layerGroup)
 		// })
+
+		map.addControl(new LyrMousePosition('pointer-coords-preview', null));
 
 		map.getView().on('change:resolution', () => {
 			const z = map.getView().getZoom()

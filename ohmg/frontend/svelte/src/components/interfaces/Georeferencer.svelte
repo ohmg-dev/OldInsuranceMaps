@@ -31,10 +31,7 @@ import LayerGroup from 'ol/layer/Group';
 
 import Projection from 'ol/proj/Projection';
 import {transformExtent} from 'ol/proj';
-
-import MousePosition from 'ol/control/MousePosition';
-import ScaleLine from 'ol/control/ScaleLine';
-import {createStringXY} from 'ol/coordinate';
+import { containsXY } from 'ol/extent';
 
 import Draw from 'ol/interaction/Draw';
 import Modify from 'ol/interaction/Modify';
@@ -51,6 +48,7 @@ import {
   showRotateCenter,
   removeRotateCenter,
 } from '@lib/utils';
+import { DocMousePosition, LyrMousePosition, MapScaleLine } from '@lib/controls';
 
 import Modal, {getModal} from '@components/base/Modal.svelte';
 import Link from '@components/base/Link.svelte';
@@ -367,20 +365,9 @@ function DocumentViewer (elementId) {
   docFullMaskLayer = generateFullMaskLayer(map)
   map.addLayer(docFullMaskLayer)
 
-  function coordWithinDoc (coordinate) {
-    const x = coordinate[0];
-    const y = -coordinate[1];
-    // set n/a if the mouse is outside of the document image itself
-    if (x < 0 || x > imgWidth || y < 0 || y > imgHeight) {
-      return false
-    } else {
-      return true
-    }
-  }
-
   // create interactions
   function drawWithinDocCondition (mapBrowserEvent) {
-    return coordWithinDoc(mapBrowserEvent.coordinate)
+    return containsXY(docExtent, mapBrowserEvent.coordinate[0], mapBrowserEvent.coordinate[1])
   }
   const draw = makeDrawInteraction(docGCPSource, drawWithinDocCondition);
   map.addInteraction(draw)
@@ -389,26 +376,11 @@ function DocumentViewer (elementId) {
   modify.setActive(true);
   map.addInteraction(modify)
 
-  // create controls
-  const mousePositionControl = new MousePosition({
-    coordinateFormat: function(coordinate) {
-      // set n/a if the mouse is outside of the document image itself
-      if (coordWithinDoc(coordinate)) {
-        const x = Math.round(coordinate[0]);
-        const y = -Math.round(coordinate[1]);
-        return `${x}, ${y}`
-      } else {
-        return 'n/a'
-      }
-    },
-    projection: docProjection,
-    placeholder: 'n/a',
-  });
-  map.addControl(mousePositionControl);
+  // add control
+  map.addControl(new DocMousePosition(docExtent, null, 'ol-mouse-position'));
 
   docRotate = makeRotateCenterLayer();
   map.addLayer(docRotate.layer);
-
 
   // add some click actions to the map
   map.on("click", function(e) {
@@ -474,17 +446,8 @@ function MapViewer (elementId) {
     map.addInteraction(modify)
 
     // create controls
-    let mousePositionControl = new MousePosition({
-      projection: 'EPSG:4326',
-      coordinateFormat: createStringXY(6),
-      placeholder: 'n/a',
-    });
-    map.addControl(mousePositionControl);
-
-    let scaleLine = new ScaleLine({
-      units: 'us',
-    });
-    map.addControl(scaleLine)
+    map.addControl(new LyrMousePosition(null, 'ol-mouse-position'))
+    map.addControl(new MapScaleLine())
 
     // add some click actions to the map
     map.on("click", function(e) {

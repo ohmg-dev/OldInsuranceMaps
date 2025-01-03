@@ -1,22 +1,23 @@
 import MousePosition from 'ol/control/MousePosition';
+import ScaleLine from 'ol/control/ScaleLine';
 import {createStringXY} from 'ol/coordinate';
-
 import { containsXY } from 'ol/extent';
 
 export class LyrMousePosition {
-	constructor(elementId) {
-		return new MousePosition({
+	constructor(elementId, className) {
+		const control = new MousePosition({
 			projection: 'EPSG:4326',
 			coordinateFormat: createStringXY(6),
 			placeholder: 'n/a',
-			target: document.getElementById(elementId),
-			className: null,
+			className: className,
 		});
+		if (elementId) {control.setTarget(document.getElementById(elementId))}
+		return control
 	}
 }
 
 export class DocMousePosition {
-	constructor(elementId, extent, projection) {
+	constructor(extent, elementId, className) {
 
 		function coordinateFormat(coordinate) {
 			if (containsXY(extent, coordinate[0], coordinate[1])) {  
@@ -27,14 +28,21 @@ export class DocMousePosition {
 				return 'n/a'
 			}
 		}
-
-		return new MousePosition({
+		const control = new MousePosition({
 			coordinateFormat: coordinateFormat,
-			projection: projection,
 			placeholder: 'n/a',
-			target: document.getElementById(elementId),
-			className: null,
+			className: className,
 		});
+		if (elementId) {control.setTarget(document.getElementById(elementId))}
+
+		return control
 	}
 }
 
+export class MapScaleLine {
+	constructor() {
+		return new ScaleLine({
+			units: 'us',
+		})
+	}
+}

@@ -24,9 +24,6 @@ import VectorLayer from 'ol/layer/Vector';
 
 import Projection from 'ol/proj/Projection';
 
-import MousePosition from 'ol/control/MousePosition';
-import {createStringXY} from 'ol/coordinate';
-
 import Draw from 'ol/interaction/Draw';
 import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
@@ -39,6 +36,7 @@ import ToolUIButton from '@components/base/ToolUIButton.svelte';
 import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
 
 import { submitPostRequest } from "@lib/utils";
+import { DocMousePosition } from "@lib/controls";
     import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
 
 const styles = new Styles();
@@ -106,10 +104,11 @@ const borderFeature = new Feature({
   geometry: new Polygon(imgBorderPoly),
 });
 
+const imgExtent = [0, 0, imgWidth, imgHeight];
 const projection = new Projection({
   code: 'whatdoesthismatter',
   units: 'pixels',
-  extent: [0, 0, imgWidth, imgHeight],
+  extent: imgExtent,
 });
 
 function resetInterface() {
@@ -138,24 +137,19 @@ function DocViewer(elementId) {
 
   const targetElement = document.getElementById(elementId);
 
-  const mousePositionControl = new MousePosition({
-    coordinateFormat: createStringXY(0),
-    projection: projection,
-    placeholder: 'n/a',
-  });
-
   const map = new Map({
     target: targetElement,
     view: new View(),
   });
-  map.addControl(mousePositionControl);
+
+  map.addControl(new DocMousePosition(imgExtent, null, 'ol-mouse-position'));
 
   // add layers to map
   const img_layer = new ImageLayer({
     source: new ImageStatic({
       url: DOCUMENT.urls.image,
       projection: projection,
-      imageExtent: projection.getExtent(),
+      imageExtent: imgExtent,
     }),
   })
   map.addLayer(img_layer);

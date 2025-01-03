@@ -4,9 +4,6 @@ import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import TileWMS from 'ol/source/TileWMS';
 
-import MousePosition from 'ol/control/MousePosition';
-import {createStringXY} from 'ol/coordinate';
-
 import GeoJSON from 'ol/format/GeoJSON';
 
 import {transformExtent} from 'ol/proj';

@@ -4,7 +4,7 @@
     import CornersOut from "phosphor-svelte/lib/CornersOut";
 
     import 'ol/ol.css';
-    
+
     import Map from 'ol/Map';
     import View from 'ol/View';
     import {ZoomToExtent, defaults as defaultControls} from 'ol/control.js';
@@ -13,7 +13,7 @@
 
     import {XYZ} from 'ol/source';
     import {Tile as TileLayer} from 'ol/layer';
-    
+
     import {ImageStatic} from 'ol/source';
     import {Image as ImageLayer} from 'ol/layer';
 
@@ -24,7 +24,7 @@
     import { DocMousePosition, LyrMousePosition } from '@lib/controls';
 
     import '@src/css/ol-overrides.css';
-    
+
     export let CONTEXT;
     export let LAYER_URL;
     export let EXTENT;
@@ -44,7 +44,7 @@
 
                 const basemaps = makeBasemaps(CONTEXT.mapbox_api_token);
                 layers.push(basemaps[0].layer)
-                
+
                 const resLayer = new TileLayer({
                     source: new XYZ({
                         url: makeTitilerXYZUrl({
@@ -56,7 +56,7 @@
                 });
                 layers.push(resLayer)
 
-                mousePositionControl = new LyrMousePosition('doc-coords')
+                mousePositionControl = new LyrMousePosition('doc-coords', null)
 
             } else {
                 const projection = new Projection({
@@ -68,7 +68,7 @@
                     zoom: 1,
                     maxZoom: 8,
                 })
-                mousePositionControl = new DocMousePosition('doc-coords', EXTENT, projection)
+                mousePositionControl = new DocMousePosition(EXTENT, 'doc-coords', null)
 
                 layers.push(new ImageLayer({
                         source: new ImageStatic({
