@@ -15,7 +15,8 @@ import {getCenter} from 'ol/extent';
 import Link from '@components/base/Link.svelte';
 import TitleBar from '@components/layout/TitleBar.svelte';
 import SessionList from '@components/lists/SessionList.svelte';
-import SimpleViewer from '@components/interfaces/SimpleViewer.svelte';
+import BasicDocViewer from '@components/interfaces/BasicDocViewer.svelte';
+import BasicLayerViewer from '@components/interfaces/BasicLayerViewer.svelte';
 import ConditionalDoubleChevron from '../components/overviews/buttons/ConditionalDoubleChevron.svelte';
 import ToolUIButton from '@components/base/ToolUIButton.svelte';
 
@@ -219,7 +220,11 @@ function goToRegion() {
     <div transition:slide>
       <div id="map-panel">
         {#each reinitMap as key (key)}
-        <SimpleViewer {CONTEXT} {LAYER_URL} {EXTENT} GEOSPATIAL={RESOURCE.type == "layer"} />
+          {#if RESOURCE.type == "layer"}
+          <BasicLayerViewer {CONTEXT} {LAYER_URL} {EXTENT} />
+          {:else}
+          <BasicDocViewer {LAYER_URL} {EXTENT} />
+          {/if}
         {/each}
       </div>
     </div>
