@@ -38,6 +38,7 @@ import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
 import { submitPostRequest } from "@lib/utils";
 import { DocMousePosition } from "@lib/controls";
     import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
+    import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
 
 const styles = new Styles();
 
@@ -395,20 +396,16 @@ function handleExtendSession(response) {
       <p>Document currently locked for processing by {DOCUMENT.lock.user.username}</p>
       {:else if disableReason == "split"}
       <p>Processing document split... redirecting to document detail.</p>
-      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
       {:else if disableReason == "no_split"}
       <p>Document prepared and ready to georeference.</p>
-      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
       {:else if disableReason == "cancel"}
       <p>Cancelling preparation.</p>
-      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
       {/if}
     </div>
   </div>
   {/if}
   <nav id="hamnav">
     <div id="interaction-options" class="tb-top-item">
-    
     <label>
       <input type=radio bind:group={currentInteraction} value="draw" checked>
       Draw
@@ -422,7 +419,6 @@ function handleExtendSession(response) {
       Show Preview
     </label>
     </div>
-    
     <div class="control-btn-group">
       <ToolUIButton action={submitSplit} title="Run split operation" disabled={divisions.length<=1 || !enableButtons}>
         <Scissors />

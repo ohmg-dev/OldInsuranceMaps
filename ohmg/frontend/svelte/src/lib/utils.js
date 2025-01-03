@@ -25,6 +25,18 @@ import LayerGroup from 'ol/layer/Group';
 
 import Crop from 'ol-ext/filter/Crop';
 
+// generate a uuid, code from here:
+// https://www.cloudhadoop.com/2018/10/guide-to-unique-identifiers-uuid-guid
+export function uuid() {
+	var uuidValue = "", k, randomValue;
+	for (k = 0; k < 32;k++) {
+		randomValue = Math.random() * 16 | 0;
+		if (k == 8 || k == 12 || k == 16 || k == 20) { uuidValue += "-" }
+		uuidValue += (k == 12 ? 4 : (k == 16 ? (randomValue & 3 | 8) : randomValue)).toString(16);
+	}
+	return uuidValue;
+}
+
 export function submitPostRequest(url, headers, operation, payload, callback) {
 	const body = JSON.stringify({
 		"operation": operation,

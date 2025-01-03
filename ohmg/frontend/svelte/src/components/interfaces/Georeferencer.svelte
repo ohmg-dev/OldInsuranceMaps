@@ -47,10 +47,12 @@ import {
   makeRotateCenterLayer,
   showRotateCenter,
   removeRotateCenter,
+  uuid,
 } from '@lib/utils';
 import { DocMousePosition, LyrMousePosition, MapScaleLine } from '@lib/controls';
 
 import Modal, {getModal} from '@components/base/Modal.svelte';
+import LoadingEllipsis from '@components/base/LoadingEllipsis.svelte';
 import Link from '@components/base/Link.svelte';
 import ToolUIButton from '../base/ToolUIButton.svelte';
 
@@ -96,6 +98,8 @@ let mapFullMaskLayer;
 
 let docRotate;
 let mapRotate;
+
+let showLoading;
 
 $: docCursorStyle = inProgress ? 'default' : 'crosshair';
 $: mapCursorStyle = inProgress ? 'crosshair' : 'default';
@@ -150,18 +154,6 @@ const availableProjections = [
   {id: 'EPSG:3857', name: 'Pseudo Mercator'},
   {id: 'ESRI:102009', name: 'Lambert North America'},
 ];
-
-// generate a uuid, code from here:
-// https://www.cloudhadoop.com/2018/10/guide-to-unique-identifiers-uuid-guid
-function uuid() {
-  var uuidValue = "", k, randomValue;
-  for (k = 0; k < 32;k++) {
-    randomValue = Math.random() * 16 | 0;
-    if (k == 8 || k == 12 || k == 16 || k == 20) { uuidValue += "-" }
-    uuidValue += (k == 12 ? 4 : (k == 16 ? (randomValue & 3 | 8) : randomValue)).toString(16);
-  }
-  return uuidValue;
-}
 
 const basemaps = makeBasemaps(CONTEXT.mapbox_api_token);
 let currentBasemap = basemaps[0].id;
@@ -434,6 +426,8 @@ function MapViewer (elementId) {
       view: new View(),
     });
 
+    map.on("rendercomplete", function(event) {showLoading = false})
+
     mapFullMaskLayer = generateFullMaskLayer(map)
     map.addLayer(mapFullMaskLayer)
 
@@ -675,14 +669,9 @@ function setPreviewVisibility(mode) {
     previewLayer.setOpacity(mode == "full" ? 1 : .6);
   } else if (mode == "none" || mode == "n/a") {
     previewLayer.setVisible(false)
-    startloads = 0;
-    endloads = 0;
   }
 }
 $: setPreviewVisibility(previewMode);
-
-$: previewLoading = (previewMode == "transparent" || previewMode == "full") && 
-      ( startloads != endloads) ; 
 
 // Triggered by change of activeGCP
 function displayActiveGCP(activeId) {
@@ -736,9 +725,6 @@ const previewLayer = new TileLayer({
   zIndex: 20,
 });
 
-let startloads = 0;
-let endloads = 0;
-
 function updatePreviewSource (previewUrl) {
   if (previewUrl) {
     const source = new XYZ({
@@ -747,10 +733,7 @@ function updatePreviewSource (previewUrl) {
         url: previewUrl,
       }),
     })
-    source.on("tileloadstart", function (e) { startloads++ })
-    source.on("tileloadend", function (e) { endloads++ })
-    endloads = 0;
-    startloads = 0;
+    showLoading = true;
     previewLayer.setSource(source)
   }
 }
@@ -933,10 +916,10 @@ function handleExtendSession(response) {
       <p>Someone is already georeferencing this document (<Link href="javascript:window.location.reload(true)">refresh</Link>).</p>
       {:else if disableReason == "submit"}
       <p>Saving control points and georeferencing document... redirecting to document detail page.</p>
-      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      <LoadingEllipsis />
       {:else if disableReason == "cancel"}
       <p>Cancelling georeferencing.</p>
-      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      <LoadingEllipsis />
       {/if}
     </div>
   </div>
@@ -960,13 +943,14 @@ function handleExtendSession(response) {
   <div class="map-container">
     <div id="doc-viewer" class="map-item"></div>
     <div id="map-viewer" class="map-item"></div>
-    <div id="preview-loading" style="top: 55px; right: 35px;" class={previewLoading ? 'lds-ellipsis': ''}><div></div><div></div><div></div><div></div></div>
+    {#if showLoading && (previewMode == "transparent" || previewMode == "full")}
+    <div style="top:65px; right:25px; width:80px; height:80px; position:absolute;">
+      <LoadingEllipsis />
+    </div>
+    {/if}
   </div>
   {#if showLayerPanel}
   <nav style="justify-content: end;">
-    <div>
-      <span style="color:lightgray">{startloads}/{endloads}</span>
-    </div>
     <label title="Change preview opacity">
       Preview (p)
       <select title="Set preview (w)" bind:value={previewMode} disabled={previewMode == "n/a"}>
