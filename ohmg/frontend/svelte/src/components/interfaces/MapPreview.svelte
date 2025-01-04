@@ -1,112 +1,111 @@
 <script>
-import {onMount} from 'svelte';
+	import 'ol/ol.css';
+	import '@src/css/map-panel.css';
 
-import CornersOut from 'phosphor-svelte/lib/CornersOut';
-import Article from 'phosphor-svelte/lib/Article';
-import MapTrifold from "phosphor-svelte/lib/MapTrifold";
+	import {onMount} from 'svelte';
 
-import ToolUIButton from "@components/base/ToolUIButton.svelte";
-import {getModal} from "@components/base/Modal.svelte";
+	import CornersOut from 'phosphor-svelte/lib/CornersOut';
+	import Article from 'phosphor-svelte/lib/Article';
+	import MapTrifold from "phosphor-svelte/lib/MapTrifold";
 
-import ExpandElement from "./buttons/ExpandElement.svelte"
-import MapboxLogoLink from "./buttons/MapboxLogoLink.svelte"
+	import ToolUIButton from "@components/base/ToolUIButton.svelte";
+	import {getModal} from "@components/base/Modal.svelte";
 
-import LegendModal from "./modals/LegendModal.svelte"
+	import ExpandElement from "./buttons/ExpandElement.svelte"
+	import MapboxLogoLink from "./buttons/MapboxLogoLink.svelte"
 
-import 'ol/ol.css';
-import {createEmpty, extend} from 'ol/extent';
-import {transformExtent} from 'ol/proj';
+	import LegendModal from "./modals/LegendModal.svelte"
 
-import '@src/css/map-panel.css';
-import { makeLayerGroupFromLayerSet } from '@lib/utils';
-import { LyrMousePosition } from "@lib/controls";
-import { MapViewer } from "@lib/viewers";
+	import {createEmpty, extend} from 'ol/extent';
+	import {transformExtent} from 'ol/proj';
+
+	import { makeLayerGroupFromLayerSet } from '@lib/utils';
+	import { LyrMousePosition } from "@lib/controls";
+	import { MapViewer } from "@lib/viewers";
     import TransparencySlider from './buttons/TransparencySlider.svelte';
 
-export let CONTEXT;
-export let LAYERSETS;
+	export let CONTEXT;
+	export let LAYERSETS;
+	
+	let map;
+	let mapViewer;
+	let currentZoom;
 
-let map;
+	let currentBasemap = 'satellite';
+	const fullExtent = createEmpty();
+	const layerSets = {};
+	let layerSetList = [];
 
-let currentBasemap = 'satellite';
-$: {
-	if (mapViewer) {mapViewer.setBasemap(currentBasemap)}
-}
-
-
-function setVisibility(group, vis) {
-	if (vis == 0) {
-		group.setVisible(false)
-	} else {
-		group.setVisible(true)
-		group.setOpacity(vis/100)
+	function setVisibility(group, vis) {
+		if (vis == 0) {
+			group.setVisible(false)
+		} else {
+			group.setVisible(true)
+			group.setOpacity(vis/100)
+		}
 	}
-}
 
-const zIndexLookup = {
-	"graphic-map-of-volumes": 10,
-	"key-map": 15,
-	"congested-district-map": 20,
-	"main-content": 25,
-}
-LAYERSETS.sort((a, b) => zIndexLookup[a.id] - zIndexLookup[b.id]);
+	const zIndexLookup = {
+		"graphic-map-of-volumes": 10,
+		"key-map": 15,
+		"congested-district-map": 20,
+		"main-content": 25,
+	}
 
-let currentZoom;
-
-const layerSets = {};
-let layerSetList = [];
-
-$: {
-	Object.entries(layerSets).forEach( function ([key, ls]) {
-		setVisibility(ls.layerGroup, ls.opacity)
-	})
-}
-
-const fullExtent = createEmpty();
-const layers = LAYERSETS.map((ls) => {
-	if (ls.layers.length > 0) {
-		const layerGroup = makeLayerGroupFromLayerSet({
-			layerSet: ls,
-			zIndex: zIndexLookup[ls.id],
-			titilerHost: CONTEXT.titiler_host,
-			applyMultiMask: true,
+	$: {
+		Object.entries(layerSets).forEach( function ([key, ls]) {
+			setVisibility(ls.layerGroup, ls.opacity)
 		})
-		let extent3857;
-		if (ls.extent) {
-			extent3857 = transformExtent(ls.extent, "EPSG:4326", "EPSG:3857")
-			extend(fullExtent, extent3857)
-		}
-		const setDef = {
-			id: ls.id,
-			name: ls.name,
-			layerGroup: layerGroup,
-			sortOrder: zIndexLookup[ls.id],
-			opacity: 100,
-			layerCt: ls.layers.length,
-			extent: extent3857
-		}
-		layerSets[ls.id] = setDef
-		layerSetList.push(ls.id)
-		return layerGroup
 	}
-})
 
-let mapViewer;
-onMount(() => {
+	$: {
+		if (mapViewer) {mapViewer.setBasemap(currentBasemap)}
+	}
 
-	mapViewer = new MapViewer('map')
-	mapViewer.addBasemaps(CONTEXT.mapbox_api_token, 'satellite')
-	mapViewer.addControl(new LyrMousePosition('pointer-coords-preview', null));
-	mapViewer.addZoomToExtentControl(fullExtent, 'extent-icon-preview')
-	mapViewer.setDefaultExtent(fullExtent)
-	mapViewer.resetExtent()
-	currentZoom = mapViewer.getZoom()
-	layers.forEach(function(lyr) {mapViewer.addLayer(lyr)})
-
-	mapViewer.map.getView().on('change:resolution', () => {
-		currentZoom = mapViewer.getZoom()
+	const layers = LAYERSETS.map((ls) => {
+		if (ls.layers.length > 0) {
+			const layerGroup = makeLayerGroupFromLayerSet({
+				layerSet: ls,
+				zIndex: zIndexLookup[ls.id],
+				titilerHost: CONTEXT.titiler_host,
+				applyMultiMask: true,
+			})
+			let extent3857;
+			if (ls.extent) {
+				extent3857 = transformExtent(ls.extent, "EPSG:4326", "EPSG:3857")
+				extend(fullExtent, extent3857)
+			}
+			const setDef = {
+				id: ls.id,
+				name: ls.name,
+				layerGroup: layerGroup,
+				sortOrder: zIndexLookup[ls.id],
+				opacity: 100,
+				layerCt: ls.layers.length,
+				extent: extent3857
+			}
+			layerSets[ls.id] = setDef
+			layerSetList.push(ls.id)
+			return layerGroup
+		}
 	})
-});
+	layers.sort((a, b) => zIndexLookup[a.id] - zIndexLookup[b.id]);
+
+	onMount(() => {
+
+		mapViewer = new MapViewer('map')
+		mapViewer.addBasemaps(CONTEXT.mapbox_api_token, 'satellite')
+		mapViewer.addControl(new LyrMousePosition('pointer-coords-preview', null));
+		mapViewer.addZoomToExtentControl(fullExtent, 'extent-icon-preview')
+		mapViewer.setDefaultExtent(fullExtent)
+		mapViewer.resetExtent()
+		currentZoom = mapViewer.getZoom()
+		layers.forEach(function(lyr) {mapViewer.addLayer(lyr)})
+
+		mapViewer.map.getView().on('change:resolution', () => {
+			currentZoom = mapViewer.getZoom()
+		})
+	});
 
 </script>
 
