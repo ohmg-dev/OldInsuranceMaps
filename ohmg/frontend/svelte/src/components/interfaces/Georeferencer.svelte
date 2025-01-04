@@ -75,9 +75,6 @@ let syncPanelWidth = false;
 let docViewer;
 let mapViewer;
 
-let mapViewMap;
-let docViewMap;
-
 let gcpList = [];
 
 let activeGCP = null;
@@ -827,7 +824,7 @@ function handleExtendSession(response) {
         <ToolUIButton action={() => { process("submit") }} title="Save control points" disabled={!enableSave}><Check /></ToolUIButton>
         <ToolUIButton action={() => { getModal('modal-cancel').open() }} title="Cancel georeferencing" disabled={!enableButtons}><X /></ToolUIButton>
         <ToolUIButton action={loadIncomingGCPs} title="Reset/reload original GCPs" disabled={unchanged}><ArrowsClockwise /></ToolUIButton>
-        <ExpandElement elementId={'map-container'} maps={[docViewMap, mapViewMap]} />
+        <ExpandElement elementId={'map-container'} />
     </div>
   </nav>
   <div class="map-container">

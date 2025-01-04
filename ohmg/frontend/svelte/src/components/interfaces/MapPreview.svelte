@@ -26,8 +26,7 @@
 
 	export let CONTEXT;
 	export let LAYERSETS;
-	
-	let map;
+
 	let mapViewer;
 	let currentZoom;
 
@@ -123,7 +122,7 @@
 			<ToolUIButton action={() => {getModal('modal-legend').open()}}>
 				<Article />
 			</ToolUIButton>
-			<ExpandElement elementId={'map-container'} maps={[map]} />
+			<ExpandElement elementId={'map-container'} />
 		</div>
 		<div id="layer-list" style="flex:2;">
 			<div class="layer-section-header">

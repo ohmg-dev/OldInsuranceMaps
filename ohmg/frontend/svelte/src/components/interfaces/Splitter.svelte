@@ -432,7 +432,7 @@ function handleExtendSession(response) {
       <ToolUIButton action={resetInterface} title="Reset interface" disabled={unchanged}>
         <ArrowCounterClockwise />
       </ToolUIButton>
-      <ExpandElement elementId="map-container" maps={[docViewMap]} />
+      <ExpandElement elementId="map-container" />
     </div>
   </nav>
   <div class="map-container" style="border-top: 1.5px solid rgb(150, 150, 150)">

@@ -393,7 +393,7 @@ function layerRemoveMask(layer, confirm) {
         <ToolUIButton action={setMapExtent} title="Go to full extent">
           <CornersOut />
         </ToolUIButton>
-        <ExpandElement elementId={'mm-container'} maps={[map]} />
+        <ExpandElement elementId={'mm-container'} />
       </div>
       <div id="layer-list" style="flex:2;">
         <div class="layer-section-header">
