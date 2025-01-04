@@ -555,9 +555,7 @@ function removeActiveGCP() {
 }
 
 function confirmGCPRemoval(gcpId) {
-  return window.confirm(`Remove GCP #${gcpId}?<br>
-  NOTE: There is currently a bug that may scramble the remaining GCPs.
-  If possible, move this GCP to a new location rather remove it.`);
+  return window.confirm(`Remove GCP #${gcpId}?`);
 }
 
 function removeGCP(gcpListID) {
@@ -582,14 +580,18 @@ function resetListIds() {
   // iterates the features in map and doc and resets all list ids.
   // necessary if any GCP has been deleted that is not the last in the list.
   let newListId = 1;
+  const newIdLookup = {}
+  // first create a lookup to translate old ids to new ids
   mapGCPSource.forEachFeature( function (mapFeat) {
-    docGCPSource.forEachFeature( function (docFeat) {
-      if (mapFeat.getProperties().listId == docFeat.getProperties().listId) {
-        docFeat.setProperties({'listId': newListId});
-        mapFeat.setProperties({'listId': newListId});
-      }
-    });
+    newIdLookup[mapFeat.getProperties().listId] = newListId;
     newListId += 1;
+  })
+  // now update all listIds on both layers using the lookup
+  mapGCPSource.forEachFeature( function (mapFeat) {
+    mapFeat.setProperties({'listId': newIdLookup[mapFeat.getProperties().listId]});
+  })
+  docGCPSource.forEachFeature( function (docFeat) {
+    docFeat.setProperties({'listId': newIdLookup[docFeat.getProperties().listId]});
   })
   syncGCPList();
 };
