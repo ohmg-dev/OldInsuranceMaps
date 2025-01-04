@@ -14,69 +14,25 @@ import MapboxLogoLink from "./buttons/MapboxLogoLink.svelte"
 import LegendModal from "./modals/LegendModal.svelte"
 
 import 'ol/ol.css';
-import Map from 'ol/Map';
 import {createEmpty, extend} from 'ol/extent';
 import {transformExtent} from 'ol/proj';
 
-import {ZoomToExtent, defaults as defaultControls} from 'ol/control.js';
-
 import '@src/css/map-panel.css';
-import {
-	makeLayerGroupFromLayerSet,
-	makeBasemaps,
-} from '@lib/utils';
+import { makeLayerGroupFromLayerSet } from '@lib/utils';
 import { LyrMousePosition } from "@lib/controls";
+import { MapViewer } from "@lib/viewers";
+    import TransparencySlider from './buttons/TransparencySlider.svelte';
 
 export let CONTEXT;
 export let LAYERSETS;
 
 let map;
 
-function getClass(n) {
-	if (n == 100) {
-		return "full-circle"
-	} else if (n == 0) {
-		return "empty-circle"
-	} else {
-		return "half-circle"
-	}
-}
-
-const basemaps = makeBasemaps(CONTEXT.mapbox_api_token);
 let currentBasemap = 'satellite';
-
-function toggleBasemap() {
-  if (currentBasemap === "osm") {
-    currentBasemap = "satellite"
-  } else {
-    currentBasemap = "osm"
-  }
+$: {
+	if (mapViewer) {mapViewer.setBasemap(currentBasemap)}
 }
 
-// triggered by a change in the basemap id
-function setBasemap(basemapId) {
-  if (viewer) {
-    viewer.map.getLayers().removeAt(0);
-    basemaps.forEach( function(item) {
-      if (item.id == basemapId) {
-        viewer.map.getLayers().insertAt(0, item.layer);
-      }
-    });
-  }
-}
-$: setBasemap(currentBasemap);
-
-function toggleTransparency(inTrans) {
-	let outTrans;
-	if (inTrans == 100) {
-		outTrans = 0
-	} else if (inTrans == 0) {
-		outTrans = 50
-	} else {
-		outTrans = 100
-	}
-	return outTrans
-}
 
 function setVisibility(group, vis) {
 	if (vis == 0) {
@@ -95,37 +51,7 @@ const zIndexLookup = {
 }
 LAYERSETS.sort((a, b) => zIndexLookup[a.id] - zIndexLookup[b.id]);
 
-let currentZoom = '';
-class MapPreviewViewer {
-	constructor(elementId) {
-		map = new Map({
-			target: document.getElementById(elementId),
-			maxTilesLoading: 50,
-			controls: defaultControls().extend([
-				new ZoomToExtent({
-					extent: fullExtent,
-					label: document.getElementById('extent-icon-preview'),
-				}),
-			]),
-			layers: [
-				basemaps[1].layer,
-			]
-		});
-
-		// Object.entries(layerSets).forEach( function ([key, item]) {
-		// 	map.addLayer(item.layerGroup)
-		// })
-
-		map.addControl(new LyrMousePosition('pointer-coords-preview', null));
-
-		map.getView().on('change:resolution', () => {
-			const z = map.getView().getZoom()
-			currentZoom = Math.round(z*10)/10
-		})
-
-		this.map = map;
-	}
-};
+let currentZoom;
 
 const layerSets = {};
 let layerSetList = [];
@@ -137,43 +63,49 @@ $: {
 }
 
 const fullExtent = createEmpty();
-
-function createLayerGroups() {
-
-	LAYERSETS.forEach( function( ls ){
-		if (ls.layers.length > 0) {
-			const layerGroup = makeLayerGroupFromLayerSet({
-				layerSet: ls,
-				zIndex: zIndexLookup[ls.id],
-				titilerHost: CONTEXT.titiler_host,
-				applyMultiMask: true,
-			})
-			let extent3857;
-			if (ls.extent) {
-				extent3857 = transformExtent(ls.extent, "EPSG:4326", "EPSG:3857")
-				extend(fullExtent, extent3857)
-			}
-			const setDef = {
-				id: ls.id,
-				name: ls.name,
-				layerGroup: layerGroup,
-				sortOrder: zIndexLookup[ls.id],
-				opacity: 100,
-				layerCt: ls.layers.length,
-				extent: extent3857
-			}
-			layerSets[ls.id] = setDef
-			layerSetList.push(ls.id)
-			map.addLayer(setDef.layerGroup)
+const layers = LAYERSETS.map((ls) => {
+	if (ls.layers.length > 0) {
+		const layerGroup = makeLayerGroupFromLayerSet({
+			layerSet: ls,
+			zIndex: zIndexLookup[ls.id],
+			titilerHost: CONTEXT.titiler_host,
+			applyMultiMask: true,
+		})
+		let extent3857;
+		if (ls.extent) {
+			extent3857 = transformExtent(ls.extent, "EPSG:4326", "EPSG:3857")
+			extend(fullExtent, extent3857)
 		}
-	})
-}
+		const setDef = {
+			id: ls.id,
+			name: ls.name,
+			layerGroup: layerGroup,
+			sortOrder: zIndexLookup[ls.id],
+			opacity: 100,
+			layerCt: ls.layers.length,
+			extent: extent3857
+		}
+		layerSets[ls.id] = setDef
+		layerSetList.push(ls.id)
+		return layerGroup
+	}
+})
 
-let viewer;
+let mapViewer;
 onMount(() => {
-	viewer = new MapPreviewViewer('map');
-	createLayerGroups();
-	map.getView().fit(fullExtent)
+
+	mapViewer = new MapViewer('map')
+	mapViewer.addBasemaps(CONTEXT.mapbox_api_token, 'satellite')
+	mapViewer.addControl(new LyrMousePosition('pointer-coords-preview', null));
+	mapViewer.addZoomToExtentControl(fullExtent, 'extent-icon-preview')
+	mapViewer.setDefaultExtent(fullExtent)
+	mapViewer.resetExtent()
+	currentZoom = mapViewer.getZoom()
+	layers.forEach(function(lyr) {mapViewer.addLayer(lyr)})
+
+	mapViewer.map.getView().on('change:resolution', () => {
+		currentZoom = mapViewer.getZoom()
+	})
 });
 
 </script>
@@ -181,8 +113,7 @@ onMount(() => {
 <LegendModal id={"modal-legend"} legendUrl={"/static/img/key-nola-1940.png"} legendAlt={"Sanborn Map Key"} />
 <div id="map-container" class="map-container"  style="display:flex; justify-content: center; height:550px">
 	<div id="map-panel">
-		<div id="map" style="height: 100%;">
-		</div>
+		<div id="map" style="height: 100%;"></div>
 		<i id='extent-icon-preview'><CornersOut size={'20px'} /></i>
 		{#if currentBasemap == "satellite"}
 			<MapboxLogoLink />
@@ -198,7 +129,7 @@ onMount(() => {
 		<div id="layer-list" style="flex:2;">
 			<div class="layer-section-header">
 				<span>Basemap</span>
-				<ToolUIButton action={toggleBasemap} title="change basemap">
+				<ToolUIButton action={() => {currentBasemap = currentBasemap == "osm" ? "satellite" : "osm"}} title="change basemap">
 					<MapTrifold />
 				</ToolUIButton>
 			</div>
@@ -208,18 +139,13 @@ onMount(() => {
 			{#each layerSetList as id}
 				{#if layerSets[id].layerCt > 0}
 				<div class="layer-section-header">
-					<button class="layer-entry" on:click={() => map.getView().fit(layerSets[id].extent)} on:focus={null}>
+					<button class="layer-entry" on:click={() => mapViewer.setExtent(layerSets[id].extent)} on:focus={null}>
 						<span>{layerSets[id].name}</span>
 					</button>
 					<span style="color:grey">({layerSets[id].layerCt})</span>
 				</div>
 				<div class="layer-section-subheader">
-					<div style="display:flex; align-items:center;">
-						<input class="slider" type=range bind:value={layerSets[id].opacity} min=0 max=100>
-						<button class="transparency-toggle" on:click={() => {layerSets[id].opacity = toggleTransparency(layerSets[id].opacity)}}>
-							<i class="{getClass(layerSets[id].opacity)}" />
-						</button>
-					</div>
+					<TransparencySlider bind:opacity={layerSets[id].opacity} />
 				</div>
 				{/if}
 			{/each}
