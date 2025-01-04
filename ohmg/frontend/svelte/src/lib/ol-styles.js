@@ -32,13 +32,32 @@ const mmModifyVertex = new Circle({
   stroke: new Stroke({ color: "rgba(0,0,0,.8", width: 2, })
 })
 
+const redOutline = new Style({
+  stroke: new Stroke({
+  color: "red",
+    width: 1,
+  }),
+})
+
 const browseMapCircle = new Style({
   image: new Circle({
     fill: new Fill({ color: "#2c689c", }),
     stroke: new Stroke({ color: '#000000', width: 2, }),
     radius: 6,
   })
-}) 
+})
+
+const smallCross = new Style({
+  image: new RegularShape({
+    radius: 5,
+    radius2: 0,
+    points: 4,
+    rotation: 0,
+    stroke: new Stroke({
+      color: 'black', width: 2
+    })
+  })
+})
 
 // this is the white outline cross that sits behind every gcp style
 const gcpOutline = new Style({
@@ -126,6 +145,9 @@ class Styles {
   mmModify = new Style({
     image: mmModifyVertex,
   });
+
+  redOutline = redOutline;
+  smallCross = smallCross;
 
   vertexPoint = new Style({
     image: mmVertex,

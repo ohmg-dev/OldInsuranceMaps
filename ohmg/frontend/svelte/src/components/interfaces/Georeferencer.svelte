@@ -25,6 +25,7 @@ import VectorLayer from 'ol/layer/Vector';
 
 import {transformExtent} from 'ol/proj';
 import { containsXY } from 'ol/extent';
+import { inflateCoordinatesArray } from "ol/geom/flat/inflate"
 
 import Draw from 'ol/interaction/Draw';
 import Modify from 'ol/interaction/Modify';
@@ -42,7 +43,7 @@ import {
   extentFromImageSize,
   projectionFromImageExtent,
 } from '@lib/utils';
-import { makeImageLayer } from '@lib/layers';
+import { makeImageLayer, makePmTilesLayer } from '@lib/layers';
 import { DocMousePosition, LyrMousePosition, MapScaleLine } from '@lib/controls';
 
 import Modal, {getModal} from '@components/base/Modal.svelte';
@@ -60,6 +61,8 @@ export let REGION;
 export let MAP;
 export let MAIN_LAYERSET;
 export let KEYMAP_LAYERSET;
+
+// console.log(MAP)
 
 // console.log(REGION)
 
@@ -92,18 +95,19 @@ let mapRotate;
 let showLoading;
 
 let currentBasemap;
+let currentZoom;
 
-let inputGCPsFeatures;
-if (REGION.gcps_geojson) {
-  inputGCPsFeatures = new GeoJSON().readFeatures(REGION.gcps_geojson, {
-    dataProjection: "EPSG:4326",
-    featureProjection: "EPSG:3857",
-  })
-}
+let PmTilesUrl = MAP.locale.slug == 'san-francisco-ca' ? "https://oldinsurancemaps.net/uploaded/sf_parcels.pmtiles" : null;
+let enableSnapLayer = false;
 
 let defaultExtent;
-if (inputGCPsFeatures) {
-  defaultExtent = new VectorSource({features: inputGCPsFeatures}).getExtent()
+if (REGION.gcps_geojson) {
+  defaultExtent = new VectorSource({
+    features: new GeoJSON().readFeatures(REGION.gcps_geojson, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857",
+    })
+  }).getExtent();
 } else if (MAP.extent) {
   defaultExtent = transformExtent(MAP.extent, "EPSG:4326", "EPSG:3857");
 } else {
@@ -288,6 +292,21 @@ $: {
   })
 }
 
+// SNAP LAYER STUFF
+
+const pmLayer = PmTilesUrl ? makePmTilesLayer(
+    PmTilesUrl,
+    "<a target='_blank' href='https://data.sfgov.org/Geographic-Locations-and-Boundaries/Parcels-Active-and-Retired/acdm-wktn/about_data'>City and County of San Francisco</a>",
+    styles.redOutline
+  ) : null
+const snapSource = new VectorSource({
+  overlaps: false,
+})
+const snapLayer = new VectorLayer({
+  source: snapSource,
+  style: styles.empty,
+})
+
 // MAKING INTERACTIONS
 
 // this Modify interaction is created individually for each map panel
@@ -315,11 +334,11 @@ function makeModifyInteraction(source, targetElement) {
 }
 
 // this Draw interaction is created individually for each map panel
-function makeDrawInteraction(source, condition) {
+function makeDrawInteraction(source, condition, style) {
   const draw = new Draw({
     source: source,
     type: 'Point',
-    style: styles.empty,
+    style: style,
     condition: condition,
   });
   return draw
@@ -357,7 +376,7 @@ onMount(() => {
     return containsXY(docExtent, mapBrowserEvent.coordinate[0], mapBrowserEvent.coordinate[1])
   }
 
-  docViewer.addInteraction('draw', makeDrawInteraction(docGCPSource, drawWithinDocCondition), true)
+  docViewer.addInteraction('draw', makeDrawInteraction(docGCPSource, drawWithinDocCondition, styles.empty), true)
   docViewer.addInteraction('modify', makeModifyInteraction(docGCPSource, docViewer.element), true)
 
   docRotate = makeRotateCenterLayer();
@@ -381,12 +400,13 @@ onMount(() => {
   mapViewer.addControl(new MapScaleLine())
 
   // create interactions
-  mapViewer.addInteraction('draw', makeDrawInteraction(mapGCPSource), false)
+  const mapDrawGCPStyle = PmTilesUrl ? styles.smallCross : styles.empty
+  mapViewer.addInteraction('draw', makeDrawInteraction(mapGCPSource, null, mapDrawGCPStyle), true)
   mapViewer.addInteraction('modify', makeModifyInteraction(mapGCPSource, mapViewer.element), true)
 
   // add some event listening to the map
   mapViewer.map.on("click", selectGCPOnClick);
-  mapViewer.map.on("rendercomplete", function(e) {showLoading = false})
+  mapViewer.map.on("rendercomplete", () => {showLoading = false})
 
   mapRotate = makeRotateCenterLayer()
   mapViewer.addLayer(mapRotate.layer)
@@ -395,6 +415,22 @@ onMount(() => {
   kmLayerGroup50 &&  mapViewer.addLayer(kmLayerGroup50)
   mapViewer.addLayer(mainLayerGroup)
   mapViewer.addLayer(mainLayerGroup50)
+
+  // snap to parcels --- work-in-progress!
+  const snap = new Snap({
+    source: snapSource,
+    edge: false,
+  });
+  mapViewer.addInteraction('parcelSnap', snap, false)
+  // tried map.on('rendercomplete') here but sometimes it would fire constantly,
+  // so using these more specific event listeners
+  mapViewer.map.getView().on('change:resolution', refreshSnapSource)
+  mapViewer.map.on('moveend', refreshSnapSource)
+
+  currentZoom = mapViewer.getZoom()
+  mapViewer.map.getView().on('change:resolution', () => {
+    currentZoom = mapViewer.getZoom()
+  })
 
   // OTHER STUFF
   setPreviewVisibility(previewMode)
@@ -406,10 +442,14 @@ function loadIncomingGCPs() {
   loadingInitial = true;
   docGCPSource.clear();
   mapGCPSource.clear();
-  if (inputGCPsFeatures) {
+  if (REGION.gcps_geojson) {
+    const incomingFeats = new GeoJSON().readFeatures(REGION.gcps_geojson, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857",
+    })
     let listId = 1;
 
-    inputGCPsFeatures.forEach( function(inGCP) {
+    incomingFeats.forEach( function(inGCP) {
 
       inGCP.setProperties({"listId": listId})
       mapGCPSource.addFeature(inGCP);
@@ -553,6 +593,44 @@ $: {
     mapViewer.element.style.cursor = mapCursorStyle;
   }
 }
+
+$: {
+  if (currentZoom < 17) {enableSnapLayer = false}
+}
+
+function refreshSnapSource() {
+  if (!enableSnapLayer) {return}
+  snapSource.clear()
+  const features = pmLayer.getFeaturesInExtent(mapViewer.map.getView().calculateExtent());
+  features.forEach(function (feature) {
+    const lineCoords = inflateCoordinatesArray(
+      feature.getFlatCoordinates(), // flat coordinates
+      0, // offset
+      feature.getEnds(), // geometry end indices
+      2, // stride
+    )
+    const geoJsonGeom = {coordinates: lineCoords, type: "Polygon"};
+    const f = new GeoJSON().readFeature(geoJsonGeom, {
+      dataProjection: "EPSG:3857",
+    })
+    if (!snapSource.hasFeature(f)) {snapSource.addFeature(f)}
+  })
+}
+function toggleSnap(enabled) {
+  if (!mapViewer || !pmLayer) {return}
+  if (enabled) {
+    mapViewer.addLayer(snapLayer)
+    mapViewer.addLayer(pmLayer)
+    mapViewer.interactions['parcelSnap'].setActive(true)
+    mapViewer.map.once('rendercomplete', refreshSnapSource)
+  } else {
+    snapSource.clear()
+    mapViewer.map.removeLayer(snapLayer)
+    mapViewer.map.removeLayer(pmLayer)
+    mapViewer.interactions['parcelSnap'].setActive(false)
+  }
+}
+$: toggleSnap(enableSnapLayer)
 
 function setPreviewVisibility(mode) {
   if (!mapViewer) { return }
@@ -855,6 +933,12 @@ function handleExtendSession(response) {
         {/each}
       </select>
     </label>
+    {#if PmTilesUrl}
+    <label class="checkbox">
+      Snap to Parcels
+      <input type="checkbox" bind:checked={enableSnapLayer} disabled={currentZoom<=17} />
+    </label>
+    {/if}
     <label title="Change basemap">
       Basemap (b)
       <select  style="width:151px;" bind:value={currentBasemap}>

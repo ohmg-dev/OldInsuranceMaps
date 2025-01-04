@@ -13,7 +13,8 @@ export class MapViewer {
     const targetElement = document.getElementById(elementId);
     const map = new Map({
       target: targetElement,
-      maxTilesLoading: 50,
+      maxTilesLoading: 32,
+      pixelRatio: 2,
     });
 
     // add transition actions to the map element, used in Georeferencing interface
