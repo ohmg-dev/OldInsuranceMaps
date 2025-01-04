@@ -1,31 +1,62 @@
 import Map from 'ol/Map';
 import ZoomToExtent from 'ol/control/ZoomToExtent';
+import Draw from 'ol/interaction/Draw';
 
 import { makeBasemaps } from '@lib/utils';
 
 export class MapViewer {
 
+  interactions = {}
+  currentBasemap = null
+
   constructor (elementId) {
     const targetElement = document.getElementById(elementId);
-    this.map = new Map({
+    const map = new Map({
       target: targetElement,
     });
+
+    // add transition actions to the map element, used in Georeferencing interface
+    function updateMapSize() {map.updateSize()}
+    targetElement.style.transition = "width .5s";
+    targetElement.addEventListener("transitionend", updateMapSize)
+
+    this.map = map
+    this.element = targetElement
   }
 
+  setDefaultExtent(extent) {
+    this.defaultExtent = extent;
+  }
+  resetExtent() {
+    this.map.getView().setRotation(0);
+    this.setExtent(this.defaultExtent);
+  }
+  setExtent(extent) {
+    this.map.getView().fit(extent, {padding: [25,25,25,25]})
+  }
   setLayers(layersArr) {
     this.map.setLayers(layersArr)
   }
-  setExtent(extent) {
-    this.map.getView().fit(extent)
-  }
   setView(view) {
     this.map.setView(view)
+  }
+  setBasemap(basemapId) {
+    const useLayer = this.basemaps.filter((item) => item.id == basemapId)
+    if (useLayer) {
+      this.map.getLayers().removeAt(0);
+      this.map.getLayers().insertAt(0, useLayer[0].layer);
+      this.currentBasemap = useLayer;
+    }
+  }
+  toggleBasemap() {
+    this.currentBasemap.id == "satellite" ? this.setBasemap('osm') : this.setBasemap('satellite')
   }
 
   addBasemaps(mapboxApiKey, defaultId) {
     this.basemaps = makeBasemaps(mapboxApiKey)
     const defaultBasemap = defaultId == "satellite" ? this.basemaps[1] : this.basemaps[0]
-    this.addLayer(defaultBasemap.layer)
+    this.map.getLayers().insertAt(0, defaultBasemap.layer);
+    this.currentBasemap = defaultBasemap
   }
   addControl(control) {
     this.map.addControl(control)
@@ -38,6 +69,12 @@ export class MapViewer {
       extent: extent,
       label: document.getElementById(elementId),
     }))
+  }
+
+  addInteraction(id, interaction, isActive) {
+    interaction.setActive(isActive)
+    this.map.addInteraction(interaction)
+    this.interactions[id] = interaction
   }
 
   getZoom() {

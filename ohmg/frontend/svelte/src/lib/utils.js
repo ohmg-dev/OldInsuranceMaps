@@ -7,6 +7,7 @@ import TileWMS from 'ol/source/TileWMS';
 import GeoJSON from 'ol/format/GeoJSON';
 
 import {transformExtent} from 'ol/proj';
+import Projection from 'ol/proj/Projection';
 
 import Feature from 'ol/Feature';
 import Polygon from 'ol/geom/Polygon';
@@ -17,7 +18,6 @@ import Fill from 'ol/style/Fill';
 import Stroke from 'ol/style/Stroke';
 import RegularShape from 'ol/style/RegularShape';
 
-import {Modify} from 'ol/interaction';
 
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
@@ -35,6 +35,19 @@ export function uuid() {
 		uuidValue += (k == 12 ? 4 : (k == 16 ? (randomValue & 3 | 8) : randomValue)).toString(16);
 	}
 	return uuidValue;
+}
+
+// set the extent and projection with 0, 0 at the **top left** of the image
+// this is currently the setup for the Georeference interfance, but not for the Splitter!
+export function extentFromImageSize(imageSize) {
+	return [0, -imageSize[1], imageSize[0], 0];
+}
+
+export function projectionFromImageExtent(extent) {
+	return new Projection({
+		units: 'pixels',
+		extent: extent,
+	});
 }
 
 export function submitPostRequest(url, headers, operation, payload, callback) {
