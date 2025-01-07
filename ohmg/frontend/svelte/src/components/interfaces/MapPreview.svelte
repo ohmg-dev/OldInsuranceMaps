@@ -61,7 +61,7 @@
 		if (mapViewer) {mapViewer.setBasemap(currentBasemap)}
 	}
 
-	const layers = LAYERSETS.map((ls) => {
+	let layers = LAYERSETS.map((ls) => {
 		if (ls.layers.length > 0) {
 			const layerGroup = makeLayerGroupFromLayerSet({
 				layerSet: ls,
@@ -88,6 +88,8 @@
 			return layerGroup
 		}
 	})
+	layers = layers.filter(item => item);
+	console.log(layers)
 	layers.sort((a, b) => zIndexLookup[a.id] - zIndexLookup[b.id]);
 
 	onMount(() => {
