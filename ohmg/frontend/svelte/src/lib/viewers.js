@@ -1,6 +1,7 @@
 import Map from 'ol/Map';
 import ZoomToExtent from 'ol/control/ZoomToExtent';
 import Draw from 'ol/interaction/Draw';
+import Link from 'ol/interaction/Link.js';
 
 import { makeBasemaps } from '@lib/utils';
 
@@ -65,6 +66,9 @@ export class MapViewer {
   }
   addLayer(layer) {
     this.map.addLayer(layer)
+  }
+  addOverlay(overlay) {
+    this.map.addOverlay(overlay)
   }
   addZoomToExtentControl(extent, elementId) {
     this.map.addControl(new ZoomToExtent({

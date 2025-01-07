@@ -1,38 +1,35 @@
 <script>
 import {onMount} from 'svelte';
 
-import {fromLonLat} from 'ol/proj';
 import Overlay from 'ol/Overlay';
 
 import 'ol/ol.css';
-import Map from 'ol/Map';
 import View from 'ol/View';
 
 import GeoJSON from 'ol/format/GeoJSON';
 
-import OSM from 'ol/source/OSM';
 import VectorSource from 'ol/source/Vector';
-
-import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 
 import Styles from '@lib/ol-styles';
+import { MapViewer } from '@lib/viewers';
+
 const styles = new Styles();
 
 export let CONTEXT;
 export let MAP_HEIGHT = '600';
 export let EMBEDDED = false;
 
-const osmLayer = new TileLayer({ source: new OSM() });
-
 let container;
 let content;
 let overlay;
 
+let viewer;
 onMount(async function() {
 
-	const targetElement = document.getElementById('map-viewer');
-	
+	viewer = new MapViewer('map-viewer')
+	viewer.addBasemaps()
+
 	container = document.getElementById('popup');
 	content = document.getElementById('popup-content');
 	overlay = new Overlay({
@@ -44,25 +41,20 @@ onMount(async function() {
 		},
 	});
 
-	// create map
-	const map = new Map({
-		target: targetElement,
-		maxTilesLoading: 50,
-		layers: [osmLayer],
-		overlays: [overlay],
-		view: new View({
-			zoom: 5,
-			// center: fromLonLat([-92.036, 31.16]),
-			center: [ -10728204.02342, 4738596.138147663 ],
-			maxZoom: 15,
-		})
-	});
-	
+	viewer.addOverlay(overlay)
+
+	viewer.setView(new View({
+		zoom: 5,
+		// center: fromLonLat([-92.036, 31.16]),
+		center: [ -10728204.02342, 4738596.138147663 ],
+		maxZoom: 15,
+	}))
+
 	const response = await fetch(CONTEXT.urls.get_places_geojson, {
 		headers: CONTEXT.ohmg_api_headers,
     })
 	const mapGeoJSON = await response.json()
-	
+
 	const placeLayer = new VectorLayer({
 		source: new VectorSource({
 			features: new GeoJSON().readFeatures(mapGeoJSON, {
@@ -73,31 +65,31 @@ onMount(async function() {
 		style: styles.browseMapStyle,
 		zIndex: 500,
 	});
-	map.addLayer(placeLayer)
-	map.getView().fit(placeLayer.getSource().getExtent(), {
+	viewer.addLayer(placeLayer)
+	viewer.map.getView().fit(placeLayer.getSource().getExtent(), {
 		padding: [25,25,25,25],
 		duration: 500,
 	})
 
 
-	map.on('pointermove', function (event) {
+	viewer.map.on('pointermove', function (event) {
 		let hit = false;
-		map.forEachFeatureAtPixel(
+		viewer.map.forEachFeatureAtPixel(
 			event.pixel,
 			function (feature) {
 				if (hit) return // only hover on one point at a time
-				 hit = true;
+				hit = true;
 			},
 			{
 			hitTolerance: 2,
 			}
 		);
-		if (!hit) {document.body.style.cursor = 'default'} else {document.body.style.cursor = 'pointer'}
+		viewer.element.style.cursor = hit ? 'pointer' : 'default'
 	});
 
-	map.on('singleclick', function (event) {
+	viewer.map.on('singleclick', function (event) {
 		let hit = false;
-		map.forEachFeatureAtPixel(
+		viewer.map.forEachFeatureAtPixel(
 			event.pixel,
 			function (feature) {
 				if (hit) return // only hover on one point at a time
@@ -127,7 +119,7 @@ onMount(async function() {
 		);
 		if (!hit) {overlay.setPosition(undefined);}
 	});
-	targetElement.classList.remove('spinner');
+	viewer.element.classList.remove('spinner');
 
 });
 

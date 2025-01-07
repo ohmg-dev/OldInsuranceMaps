@@ -89,7 +89,6 @@
 		}
 	})
 	layers = layers.filter(item => item);
-	console.log(layers)
 	layers.sort((a, b) => zIndexLookup[a.id] - zIndexLookup[b.id]);
 
 	onMount(() => {

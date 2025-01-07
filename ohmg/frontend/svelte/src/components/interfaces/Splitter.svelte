@@ -10,16 +10,13 @@ import Link from "@components/base/Link.svelte";
 import ExpandElement from "./buttons/ExpandElement.svelte"
 
 import 'ol/ol.css';
-import Map from 'ol/Map';
 import View from 'ol/View';
 import Feature from 'ol/Feature';
 
 import Polygon from 'ol/geom/Polygon';
 
-import ImageStatic from 'ol/source/ImageStatic';
 import VectorSource from 'ol/source/Vector';
 
-import ImageLayer from 'ol/layer/Image';
 import VectorLayer from 'ol/layer/Vector';
 
 import Projection from 'ol/proj/Projection';
@@ -36,17 +33,18 @@ import ToolUIButton from '@components/base/ToolUIButton.svelte';
 import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
 
 import { submitPostRequest } from "@lib/utils";
+import { makeImageLayer } from "@lib/layers";
 import { DocMousePosition } from "@lib/controls";
     import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
     import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
+    import { MapViewer } from '@lib/viewers';
 
 const styles = new Styles();
 
 export let CONTEXT;
 export let DOCUMENT;
 
-let docView;
-let docViewMap;
+let viewer;
 let showPreview = true;
 
 let cutLines = [];
@@ -101,10 +99,6 @@ const imgWidth = DOCUMENT.image_size[0];
 const imgHeight = DOCUMENT.image_size[1];
 const imgBorderPoly = [[[0,0], [imgWidth, 0], [imgWidth, imgHeight], [0, imgHeight], [0,0]]];
 
-const borderFeature = new Feature({
-  geometry: new Polygon(imgBorderPoly),
-});
-
 const imgExtent = [0, 0, imgWidth, imgHeight];
 const projection = new Projection({
   code: 'whatdoesthismatter',
@@ -113,80 +107,77 @@ const projection = new Projection({
 });
 
 function resetInterface() {
-  const mapCenter = [imgWidth/2, imgHeight/2];
-  const view = new View({
-    projection: projection,
-    center: mapCenter,
-    zoom: 1.5,
-    maxZoom: 8,
-  })
-  docView.map.setView(view)
 
-  docView.cutLayerSource.clear();
-  docView.previewLayerSource.clear();
+  cutLayerSource.clear();
+  previewLayerSource.clear();
   cutLines = [];
   divisions = [];
   DOCUMENT.cutlines.forEach(function(line) {
-    docView.cutLayerSource.addFeature(
+    cutLayerSource.addFeature(
       new Feature({ geometry: new LineString(line) })
     );
   });
   unchanged = true;
+  viewer.resetExtent();
 }
 
-function DocViewer(elementId) {
+const docLayer = makeImageLayer(DOCUMENT.urls.image, projection, imgExtent)
 
-  const targetElement = document.getElementById(elementId);
+const previewLayerSource = new VectorSource()
+const previewLayer = new VectorLayer({
+  source: previewLayerSource,
+  style: styles.splitPreviewStyle,
+});
 
-  const map = new Map({
-    target: targetElement,
-    view: new View(),
-  });
+const borderLayer = new VectorLayer({
+  source: new VectorSource({
+    features: [
+      new Feature({
+        geometry: new Polygon(imgBorderPoly),
+      })
+    ]
+  }),
+  style: styles.splitBorderStyle,
+});
 
-  map.addControl(new DocMousePosition(imgExtent, null, 'ol-mouse-position'));
+const cutLayerSource = new VectorSource();
+cutLayerSource.on('addfeature', function (e) {
+  cutLines.push(e.feature.getGeometry().getCoordinates())
+  unchanged = false;
+  previewSplit()
+})
+const cutLayer = new VectorLayer({
+  source: cutLayerSource,
+  style: styles.splitBorderStyle,
+});
 
-  // add layers to map
-  const img_layer = new ImageLayer({
-    source: new ImageStatic({
-      url: DOCUMENT.urls.image,
-      projection: projection,
-      imageExtent: imgExtent,
-    }),
-  })
-  map.addLayer(img_layer);
+onMount(() => {
+  // docView = new DocViewer("doc-viewer");
+  viewer = new MapViewer("doc-viewer");
 
-  const previewLayer = new VectorLayer({
-    source: new VectorSource(),
-    style: styles.splitPreviewStyle,
-  });
-  map.addLayer(previewLayer);
+  viewer.setDefaultExtent(imgExtent)
+  viewer.setView(new View({
+    projection: projection,
+    zoom: 1,
+    maxZoom: 8,
+  }))
+  viewer.resetExtent()
 
-  const borderLayer = new VectorLayer({
-    source: new VectorSource(),
-    style: styles.splitBorderStyle,
-  });
-  borderLayer.getSource().addFeature(borderFeature);
-  map.addLayer(borderLayer);
+  // add control
+  viewer.addControl(new DocMousePosition(imgExtent, null, 'ol-mouse-position'));
 
-  const cutLayerSource = new VectorSource();
-  cutLayerSource.on('addfeature', function (e) {
-    cutLines.push(e.feature.getGeometry().getCoordinates())
-    unchanged = false;
-    previewSplit()
-  })
-  const cutLayer = new VectorLayer({
-    source: cutLayerSource,
-    style: styles.splitBorderStyle,
-  });
-  map.addLayer(cutLayer);
+  // add layers
+  viewer.addLayer(docLayer)
+  viewer.addLayer(previewLayer)
+  viewer.addLayer(borderLayer)
+  viewer.addLayer(cutLayer)
 
   // add interactions
-  const draw = new Draw({
+  viewer.addInteraction("draw", new Draw({
     source: cutLayerSource,
     type: 'LineString',
     style: styles.polyDraw,
-  });
-  map.addInteraction(draw);
+  }), true);
 
   const modify = new Modify({
     source: cutLayerSource,
@@ -194,12 +185,12 @@ function DocViewer(elementId) {
   });
 
   modify.on(['modifystart', 'modifyend'], function (evt) {
-    targetElement.style.cursor = evt.type === 'modifystart' ? 'grabbing' : 'grab';
+    viewer.element.style.cursor = evt.type === 'modifystart' ? 'grabbing' : 'grab';
   });
 
   const overlaySource = modify.getOverlay().getSource();
   overlaySource.on(['addfeature', 'removefeature'], function (evt) {
-    targetElement.style.cursor = evt.type === 'addfeature' ? 'grab' : '';
+    viewer.element.style.cursor = evt.type === 'addfeature' ? 'grab' : '';
   });
   modify.on('modifyend', function(e) {
     cutLines = [];
@@ -209,66 +200,54 @@ function DocViewer(elementId) {
     unchanged = false;
     previewSplit()
   });
-  map.addInteraction(modify)
 
-  const snapToCutLines = new Snap({
+  viewer.addInteraction("modify", modify, false)
+
+  viewer.addInteraction('snapToCutlines', new Snap({
     source: cutLayer.getSource(),
-  });
-  const snapToBorder = new Snap({
+  }), true);
+  viewer.addInteraction('snapToBorder', new Snap({
     source: borderLayer.getSource(),
-  })
-  map.addInteraction(snapToCutLines);
-  map.addInteraction(snapToBorder);
+  }), true);
 
-  this.draw = draw;
-  this.modify = modify;
-  this.cutLayerSource = cutLayerSource;
-  this.previewLayerSource = previewLayer.getSource();
-  this.previewLayer = previewLayer;
-  this.map = map;
 
-  docViewMap = map;
-}
+
+  // resetInterface();
+  if (!CONTEXT.user.is_authenticated) { getModal('modal-anonymous').open() }
+});
 
 $: {
-  if (docView) {
-    docView.previewLayerSource.clear();
+    previewLayerSource.clear();
     divisions.forEach(function (item, index) {
       let feature = new Feature({
         geometry: new Polygon([item]),
         name: index
       });
-      docView.previewLayerSource.addFeature(feature);
+      previewLayerSource.addFeature(feature);
     })
+}
+
+$: {
+  if (viewer) {
+    // switch interactions based on the radio buttons
+    if (currentInteraction == "draw") {
+      viewer.interactions['draw'].setActive(true);
+      viewer.interactions['modify'].setActive(false);
+    } else if (currentInteraction == "modify") {
+      viewer.interactions['draw'].setActive(false);
+      viewer.interactions['modify'].setActive(true);
+    }
   }
 }
 
-onMount(() => {
-  docView = new DocViewer("doc-viewer");
-  resetInterface();
-  if (!CONTEXT.user.is_authenticated) { getModal('modal-anonymous').open() }
-});
-
 $: {
-  if (docView) {
-    // switch interactions based on the radio buttons
-    if (currentInteraction == "draw") {
-      docView.draw.setActive(true);
-      docView.modify.setActive(false);
-    } else if (currentInteraction == "modify") {
-      docView.draw.setActive(false);
-      docView.modify.setActive(true);
-    }
-
-    // toggle the visibility of the preview layer based on the checkbox
-    docView.previewLayer.setVisible(showPreview);
-  }
+  previewLayer.setVisible(showPreview);
 }
 
 function handleKeydown(event) {
   const key = event.key;
   if (key == "Escape") {
-    if (docView) { docView.draw.abortDrawing()}
+    if (viewer) { viewer.interactions['draw'].abortDrawing()}
   } else if (key == "a" || key == "A") {
     currentInteraction = "draw"
   } else if (key == "e" || key == "E") {
@@ -298,6 +277,7 @@ function process(operation) {
     .then(response => response.json())
     .then(result => {
       if (operation == "preview") {
+        console.log(result)
         divisions = result['divisions'];
       } else if (operation == "split") {
         window.location.href = `/map/${DOCUMENT.map}`;
