@@ -67,6 +67,12 @@ export class MapViewer {
   addLayer(layer) {
     this.map.addLayer(layer)
   }
+  addLayers(layerArray) {
+    const self = this
+    layerArray.forEach( function(layer) {
+      self.map.addLayer(layer)
+    });
+  }
   addOverlay(overlay) {
     this.map.addOverlay(overlay)
   }

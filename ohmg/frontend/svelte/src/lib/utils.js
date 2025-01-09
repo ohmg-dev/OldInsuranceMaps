@@ -25,6 +25,8 @@ import LayerGroup from 'ol/layer/Group';
 
 import Crop from 'ol-ext/filter/Crop';
 
+export const usaExtent = transformExtent([-125.5, 24.9, -66.9, 49.2], "EPSG:4326", "EPSG:3857")
+
 // generate a uuid, code from here:
 // https://www.cloudhadoop.com/2018/10/guide-to-unique-identifiers-uuid-guid
 export function uuid() {

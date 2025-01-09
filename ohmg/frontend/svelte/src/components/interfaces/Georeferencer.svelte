@@ -42,6 +42,7 @@ import {
   uuid,
   extentFromImageSize,
   projectionFromImageExtent,
+  usaExtent,
 } from '@lib/utils';
 import { makeImageLayer, makePmTilesLayer } from '@lib/layers';
 import { DocMousePosition, LyrMousePosition, MapScaleLine } from '@lib/controls';
@@ -111,7 +112,7 @@ if (REGION.gcps_geojson) {
 } else if (MAP.extent) {
   defaultExtent = transformExtent(MAP.extent, "EPSG:4326", "EPSG:3857");
 } else {
-  defaultExtent = transformExtent([-125.5, 24.9, -66.9, 49.2], "EPSG:4326", "EPSG:3857");
+  defaultExtent = usaExtent;
 }
 
 const sessionId = REGION.lock ? REGION.lock.session_id : null;

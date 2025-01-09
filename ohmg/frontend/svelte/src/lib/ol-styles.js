@@ -32,13 +32,6 @@ const mmModifyVertex = new Circle({
   stroke: new Stroke({ color: "rgba(0,0,0,.8", width: 2, })
 })
 
-const redOutline = new Style({
-  stroke: new Stroke({
-  color: "red",
-    width: 1,
-  }),
-})
-
 const browseMapCircle = new Style({
   image: new Circle({
     fill: new Fill({ color: "#2c689c", }),
@@ -146,7 +139,15 @@ class Styles {
     image: mmModifyVertex,
   });
 
-  redOutline = redOutline;
+  redOutline = new Style({
+    stroke: new Stroke({
+    color: "red",
+      width: 1,
+    }),
+  });
+  redDashedOutline = new Style({
+    stroke: new Stroke({ color: 'red', width: .75, lineDash: [2]}),
+  });
   smallCross = smallCross;
 
   vertexPoint = new Style({
