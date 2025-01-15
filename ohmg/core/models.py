@@ -9,6 +9,7 @@ from natsort import natsorted
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.fields import ArrayField
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import transaction
@@ -420,6 +421,7 @@ class Document(models.Model):
     They represent pages in an atlas or even just a single scan of a map."""
 
     title = models.CharField(max_length=200, default="untitled document")
+    nickname = models.CharField(max_length=200, null=True, blank=True)
     slug = models.SlugField(max_length=100)
     map = models.ForeignKey(Map, on_delete=models.CASCADE, related_name="documents")
     page_number = models.CharField(max_length=10, null=True, blank=True)
@@ -430,6 +432,12 @@ class Document(models.Model):
         blank=True,
         max_length=255,
         storage=OverwriteStorage(),
+    )
+    image_size = ArrayField(
+        models.IntegerField(),
+        size=2,
+        null=True,
+        blank=True,
     )
     thumbnail = models.FileField(
         upload_to="thumbnails",
@@ -450,18 +458,6 @@ class Document(models.Model):
 
     def __str__(self):
         return self.title
-
-    @cached_property
-    def nickname(self) -> str:
-        if self.page_number:
-            nickname = f"{self.map.document_page_type} {self.page_number}"
-        else:
-            nickname = self.map.title
-        return nickname
-
-    @cached_property
-    def image_size(self):
-        return get_image_size(Path(self.file.path)) if self.file else None
 
     @property
     def layers(self):
@@ -553,11 +549,18 @@ class Document(models.Model):
         if self.page_number:
             self.title += f" {self.map.DOCUMENT_PREFIX_ABBREVIATIONS[self.map.document_page_type]}{self.page_number}"
 
+        self.nickname = self.map.title
+        if self.page_number and self.nickname:
+            self.nickname = f"{self.map.document_page_type} {self.page_number}"
+
+        self.image_size = get_image_size(Path(self.file.path)) if self.file else None
+
         return super(self.__class__, self).save(*args, **kwargs)
 
 
 class Region(models.Model):
     title = models.CharField(max_length=200, default="untitled region")
+    nickname = models.CharField(max_length=200, null=True, blank=True)
     slug = models.SlugField(max_length=100)
     boundary = models.PolygonField(
         null=True,
@@ -583,6 +586,12 @@ class Region(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
+    image_size = ArrayField(
+        models.IntegerField(),
+        size=2,
+        null=True,
+        blank=True,
+    )
     thumbnail = models.FileField(
         upload_to="thumbnails",
         null=True,
@@ -601,19 +610,8 @@ class Region(models.Model):
         return self.title
 
     @cached_property
-    def nickname(self) -> str:
-        nickname = self.document.nickname
-        if self.division_number:
-            nickname += f" [{self.division_number}]"
-        return nickname
-
-    @cached_property
     def map(self) -> Map:
         return self.document.map
-
-    @cached_property
-    def image_size(self):
-        return get_image_size(Path(self.file.path)) if self.file else None
 
     @property
     def tranformation(self):
@@ -681,11 +679,18 @@ class Region(models.Model):
         if self.division_number:
             self.title += f" [{self.division_number}]"
 
+        self.nickname = self.document.nickname
+        if self.division_number and self.nickname:
+            self.nickname += f" [{self.division_number}]"
+
+        self.image_size = get_image_size(Path(self.file.path)) if self.file else None
+
         return super(self.__class__, self).save(*args, **kwargs)
 
 
 class Layer(models.Model):
     title = models.CharField(max_length=200, default="untitled layer")
+    nickname = models.CharField(max_length=200, null=True, blank=True)
     slug = models.SlugField(max_length=100)
     region = models.OneToOneField(
         Region,
@@ -707,7 +712,12 @@ class Layer(models.Model):
     )
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     last_updated = models.DateTimeField(auto_now=True, null=True, blank=True)
-    extent = models.JSONField(null=True, blank=True)
+    extent = ArrayField(
+        models.FloatField(),
+        size=4,
+        null=True,
+        blank=True,
+    )
     file = models.FileField(
         upload_to="layers",
         null=True,
@@ -732,10 +742,6 @@ class Layer(models.Model):
 
     def __str__(self):
         return self.title
-
-    @cached_property
-    def nickname(self) -> str:
-        return self.region.nickname
 
     @cached_property
     def map(self) -> Map:
@@ -797,12 +803,6 @@ class Layer(models.Model):
             tname = f"{name}-lyr-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
 
-    def set_extent(self):
-        """https://gis.stackexchange.com/a/201320/28414"""
-        if self.file is not None:
-            self.extent = get_extent_from_file(Path(self.file.path))
-            self.save(update_fields=["extent"])
-
     def set_layerset(self, layerset):
         # if it's the same vrs then do nothing
         if self.layerset == layerset:
@@ -851,5 +851,6 @@ class Layer(models.Model):
             self.extent = get_extent_from_file(Path(self.file.path))
 
         self.title = self.region.title
+        self.nickname = self.region.nickname
 
         return super(self.__class__, self).save(*args, **kwargs)

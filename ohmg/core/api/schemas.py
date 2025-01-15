@@ -153,7 +153,7 @@ class DocumentFullSchema(Schema):
 class DocumentSchema(Schema):
     id: int
     title: str
-    nickname: str
+    nickname: Optional[str]
     slug: str
     page_number: Optional[str]
     file: Optional[str]
@@ -176,7 +176,7 @@ class RegionSchema(Schema):
     id: int
     document_id: int
     title: str
-    nickname: str
+    nickname: Optional[str]
     slug: str
     file: Optional[str]
     created_by: str
@@ -277,7 +277,7 @@ class RegionFullSchema(Schema):
 class LayerSchema(Schema):
     id: int
     title: str
-    nickname: str
+    nickname: Optional[str]
     slug: str
     created_by: str
     last_updated_by: str
@@ -435,7 +435,7 @@ class SessionSchema(Schema):
 class LayerSetLayer(Schema):
     id: int
     title: str
-    nickname: str
+    nickname: Optional[str]
     slug: str
     urls: dict
     extent: Optional[list]

@@ -555,7 +555,7 @@ class GeorefSession(SessionBase):
         if existing_file_path:
             os.remove(existing_file_path)
 
-        layer.save(set_thumbnail=True, set_extent=True)
+        layer.save(set_thumbnail=True)
         self.lyr2 = layer
 
         # add the layer to the main-content LayerSet

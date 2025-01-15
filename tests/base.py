@@ -7,7 +7,8 @@ from django.conf import settings
 from django.test import TestCase, Client
 from django.core.management import call_command
 
-# DATA_DIR = Path(__file__).parent / "data"
+from ohmg.core.models import MapGroup, Map, Document, Region, Layer
+from ohmg.georeference.models import LayerSet
 
 
 def copy_files_to_media_root(file_paths: List[Path], sub_dir: str = ""):
@@ -73,6 +74,15 @@ class OHMGTestCase(TestCase):
         new_iberia_p2_region = DATA_DIR / "files/regions/new_iberia_la_1885_p2.jpg"
 
         new_iberia_p1__1_lyr = DATA_DIR / "files/layers/new_iberia_la_1885_p1_1__seTn7p_00.tif"
+
+    @classmethod
+    def setUpTestData(self):
+        """Even though fixtures have been loaded, need to call save() on each object
+        to properly trigger the creation of derivative fields."""
+
+        for cls in [MapGroup, Map, Document, Region, Layer, LayerSet]:
+            for obj in cls.objects.all():
+                obj.save()
 
     def get_api_client(self) -> Client:
         api_auth_header = {"HTTP_X_API_KEY": settings.OHMG_API_KEY}
