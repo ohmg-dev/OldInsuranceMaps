@@ -9,8 +9,6 @@ import Trash from 'phosphor-svelte/lib/Trash';
 import CornersOut from 'phosphor-svelte/lib/CornersOut';
 
 import 'ol/ol.css';
-import Map from 'ol/Map';
-import View from 'ol/View';
 
 import VectorSource from 'ol/source/Vector';
 import XYZ from 'ol/source/XYZ';
@@ -27,10 +25,7 @@ import VectorLayer from 'ol/layer/Vector';
 
 import Crop from 'ol-ext/filter/Crop';
 
-import MousePosition from 'ol/control/MousePosition';
-import {createStringXY} from 'ol/coordinate';
-
-import {Draw, Snap} from 'ol/interaction';
+import {Draw, Snap, Modify} from 'ol/interaction';
 
 import Style from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
@@ -38,7 +33,9 @@ import Stroke from 'ol/style/Stroke';
 import ToolUIButton from '@components/base/ToolUIButton.svelte';
 import ExpandElement from './buttons/ExpandElement.svelte';
 
-import { makeTitilerXYZUrl, makeBasemaps, makeModifyInteraction, submitPostRequest } from "@lib/utils"
+import { makeTitilerXYZUrl, submitPostRequest, usaExtent } from "@lib/utils"
+import { MapViewer } from '@lib/viewers';
+import { LyrMousePosition } from "@lib/controls";
 import Styles from '@lib/ol-styles';
 
 const styles = new Styles();
@@ -51,12 +48,13 @@ export let resetMosaic;
 let currentLayer = null;
 
 let unchanged = true;
-let mapView;
 
 let layerLookup = {}
 let layerLookupMaskedArr = [];
 let layerLookupUnmaskedArr = [];
 let layerLookupArr = [];
+
+const fullExtent = LAYERSET.extent ? transformExtent(LAYERSET.extent, "EPSG:4326", "EPSG:3857") : usaExtent
 
 function updateLayerArr(){
   layerLookupArr = [];
@@ -125,18 +123,10 @@ function addIncomingMasks() {
     unchanged = true;
   }
 
-const basemaps = makeBasemaps(CONTEXT.mapbox_api_token)
-const osmBasemap = basemaps[0]
-osmBasemap.layer.setZIndex(0)
-
-const redOutline = new Style({
-  stroke: new Stroke({ color: 'red', width: .75, lineDash: [2]}),
-});
-
 function extentLayerStyle (feature, resolution) {
     const prop = feature.getProperties();
     if (prop.show) {
-      return redOutline;
+      return styles.redDashOutline;
     }
     return
 }
@@ -165,26 +155,20 @@ function resetInterface() {
   unchanged = true;
 }
 
-let map;
-function MapViewer (elementId) {
+let viewer;
+onMount(() => {
+  createLayerLookup();
+  viewer = new MapViewer("map-viewer")
+  viewer.setDefaultExtent(fullExtent)
 
-  const targetElement = document.getElementById(elementId);
+  // add layers
+  viewer.addBasemaps(CONTEXT.mapbox_api_token)
+  viewer.addLayers(layerLookupArr.map((item) => item.olLayer))
+  viewer.addLayer(trimShapeLayer)
+  viewer.addLayer(extentLayer)
 
-  // create map
-  map = new Map({
-    target: targetElement,
-    layers: [osmBasemap.layer],
-    view: new View({
-    zoom: 16,
-    })
-  });
-
-  layerLookupArr.forEach( function(layer) {
-    map.addLayer(layer.olLayer)
-  });
-
-  map.addLayer(trimShapeLayer)
-  map.addLayer(extentLayer)
+  // add control
+  viewer.addControl(new LyrMousePosition(null, 'ol-mouse-position'));
 
   // create interactions
   const draw = new Draw({
@@ -192,58 +176,43 @@ function MapViewer (elementId) {
     type: 'Polygon',
     style: styles.mmDraw,
   });
-  map.addInteraction(draw)
+  viewer.addInteraction('draw', draw)
 
-  const modify = makeModifyInteraction(trimShapeLayer, trimShapeSource, targetElement, styles.mmModify)
+  const modify = new Modify({
+    source: trimShapeSource,
+    style: styles.mmModify,
+  });
+  modify.on('modifystart', function (e) {
+		viewer.element.style.cursor = 'grabbing';
+	});
   modify.on('modifyend', function (e) {
 		unchanged = false;
 	});
-  map.addInteraction(modify)
+  viewer.addInteraction('modify', modify)
 
   const snap = new Snap({
     source: trimShapeSource,
     edge: false,
   });
-  map.addInteraction(snap)
+  viewer.addInteraction('snap', snap)
 
-  // create controls
-  let mousePositionControl = new MousePosition({
-    projection: 'EPSG:4326',
-    coordinateFormat: createStringXY(6),
-    undefinedHTML: 'n/a',
-  });
-  map.addControl(mousePositionControl);
+  // add pointer style
+  viewer.map.on("pointermove", function (e) {
+    if (e.dragging) {return}
+    trimShapeLayer.getFeatures(e.pixel).then(function (features) {
+      features.length > 0 ? 
+        viewer.element.style.cursor ='pointer' :
+        viewer.element.style.cursor = 'default'
+    });
+  })
 
-  // expose properties as necessary
-  this.map = map;
-  this.element = targetElement;
-  this.drawInteraction = draw;
-  this.modifyInteraction = modify
-
-}
-
-function setMapExtent() {
-	if (mapView) {
-    if (LAYERSET.extent) {
-      const extent3857 = transformExtent(LAYERSET.extent, "EPSG:4326", "EPSG:3857");
-			mapView.map.getView().fit(extent3857);
-		} else {
-			mapView.map.getView().setCenter([0,0]);
-			mapView.map.getView().setZoom(1)
-		}
-	}
-}
-
-onMount(() => {
-  createLayerLookup();
-  mapView = new MapViewer("map-viewer");
-  setMapExtent()
+  viewer.resetExtent()
 });
 
 $: {
-  if (mapView) {
-    mapView.drawInteraction.setActive(currentLayer != null)
-    mapView.modifyInteraction.setActive(!mapView.drawInteraction.getActive())
+  if (viewer) {
+    viewer.interactions['draw'].setActive(currentLayer != null)
+    viewer.interactions['modify'].setActive(!viewer.interactions['draw'].getActive())
   }
 }
 
@@ -291,9 +260,9 @@ function submitMultiMask() {
 }
 
 function zoomToLayer(layer) {
-  if (mapView) {
+  if (viewer) {
     const extent3857 = transformExtent(layer.layerDef.extent, "EPSG:4326", "EPSG:3857");
-    mapView.map.getView().fit(extent3857)
+    viewer.setExtent(extent3857)
     layerToTop(layer);
   }
   showExtent(layer)
@@ -322,7 +291,7 @@ function layerToTop(layer) {
 }
 
 function addMask(layer){
-  if (mapView) {
+  if (viewer) {
     zoomToLayer(layer);
     // setting the currentLayer activates the draw interaction
     // and when the feature is complete it is used for the crop
@@ -341,10 +310,10 @@ function layerApplyMask(feature) {
     if (layerLookup[currentLayer].crop) {
       layerLookup[currentLayer].crop = null;
     }
-    const crop = new Crop({ 
-        feature: feature, 
-        wrapX: true,
-        inner: false
+    const crop = new Crop({
+      feature: feature,
+      wrapX: true,
+      inner: false
     });
     layerLookup[currentLayer].olLayer.addFilter(crop);
     layerLookup[currentLayer].crop = crop;
@@ -382,17 +351,17 @@ function layerRemoveMask(layer, confirm) {
     </div>
     <div id="layer-panel" style="display: flex;">
       <div class="layer-section-header" style="border-top:none;">
-        <ToolUIButton action={setMapExtent} title="Go to full extent">
+        <ToolUIButton action={() => {if (viewer) {viewer.resetExtent()}}} title="Go to full extent">
           <CornersOut />
         </ToolUIButton>
-        <ExpandElement elementId={'mm-container'} maps={[map]} />
+        <ExpandElement elementId={'mm-container'} />
       </div>
       <div id="layer-list" style="flex:2;">
         <div class="layer-section-header">
           <span>Unmasked</span>
         </div>
         <div class="layer-section-subheader" style="overflow-y:auto">
-          {#each layerLookupUnmaskedArr as layer}		
+          {#each layerLookupUnmaskedArr as layer}
             <div style="display:flex;">
               <ToolUIButton
                 title="add mask for this layer"

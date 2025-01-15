@@ -10,31 +10,22 @@ import GearSix from "phosphor-svelte/lib/GearSix";
 import {onMount} from 'svelte';
 
 import 'ol/ol.css';
-import Map from 'ol/Map';
 import View from 'ol/View';
 import Feature from 'ol/Feature';
 
 import Point from 'ol/geom/Point';
-  
-import ImageStatic from 'ol/source/ImageStatic';
+
 import VectorSource from 'ol/source/Vector';
-import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
-import TileWMS from 'ol/source/TileWMS';
 
 import GeoJSON from 'ol/format/GeoJSON';
 
 import TileLayer from 'ol/layer/Tile';
-import ImageLayer from 'ol/layer/Image';
 import VectorLayer from 'ol/layer/Vector';
-import LayerGroup from 'ol/layer/Group';
 
-import Projection from 'ol/proj/Projection';
 import {transformExtent} from 'ol/proj';
-
-import MousePosition from 'ol/control/MousePosition';
-import ScaleLine from 'ol/control/ScaleLine';
-import {createStringXY} from 'ol/coordinate';
+import { containsXY } from 'ol/extent';
+import { inflateCoordinatesArray } from "ol/geom/flat/inflate"
 
 import Draw from 'ol/interaction/Draw';
 import Modify from 'ol/interaction/Modify';
@@ -45,25 +36,34 @@ const styles = new Styles();
 import {
   makeLayerGroupFromLayerSet,
   makeTitilerXYZUrl,
-  makeBasemaps,
-  generateFullMaskLayer,
   makeRotateCenterLayer,
   showRotateCenter,
   removeRotateCenter,
+  uuid,
+  extentFromImageSize,
+  projectionFromImageExtent,
+  usaExtent,
 } from '@lib/utils';
+import { makeImageLayer, makePmTilesLayer } from '@lib/layers';
+import { DocMousePosition, LyrMousePosition, MapScaleLine } from '@lib/controls';
 
 import Modal, {getModal} from '@components/base/Modal.svelte';
+import LoadingEllipsis from '@components/base/LoadingEllipsis.svelte';
 import Link from '@components/base/Link.svelte';
 import ToolUIButton from '../base/ToolUIButton.svelte';
 
 import ExpandElement from "./buttons/ExpandElement.svelte";
 import ExtendSessionModal from "./modals/ExtendSessionModal.svelte";
 
+import { MapViewer } from "@lib/viewers";
+
 export let CONTEXT;
 export let REGION;
 export let MAP;
 export let MAIN_LAYERSET;
 export let KEYMAP_LAYERSET;
+
+// console.log(MAP)
 
 // console.log(REGION)
 
@@ -76,11 +76,8 @@ let loadingInitial = false;
 let panelFocus = "equal";
 let syncPanelWidth = false;
 
-let docView;
-let mapView;
-
-let mapViewMap;
-let docViewMap;
+let docViewer;
+let mapViewer;
 
 let gcpList = [];
 
@@ -93,20 +90,29 @@ let showLayerPanel = true;
 let showNotePanel = false;
 let showSettingsPanel = false;
 
-let docFullMaskLayer;
-let mapFullMaskLayer;
-
 let docRotate;
 let mapRotate;
 
-$: docCursorStyle = inProgress ? 'default' : 'crosshair';
-$: mapCursorStyle = inProgress ? 'crosshair' : 'default';
+let showLoading;
 
-$: {
-  if (docView && mapView) {
-    docView.element.style.cursor = docCursorStyle;
-    mapView.element.style.cursor = mapCursorStyle;
-  }
+let currentBasemap;
+let currentZoom;
+
+let PmTilesUrl = MAP.locale.slug == 'san-francisco-ca' ? "https://oldinsurancemaps.net/uploaded/sf_parcels.pmtiles" : null;
+let enableSnapLayer = false;
+
+let defaultExtent;
+if (REGION.gcps_geojson) {
+  defaultExtent = new VectorSource({
+    features: new GeoJSON().readFeatures(REGION.gcps_geojson, {
+      dataProjection: "EPSG:4326",
+      featureProjection: "EPSG:3857",
+    })
+  }).getExtent();
+} else if (MAP.extent) {
+  defaultExtent = transformExtent(MAP.extent, "EPSG:4326", "EPSG:3857");
+} else {
+  defaultExtent = usaExtent;
 }
 
 const sessionId = REGION.lock ? REGION.lock.session_id : null;
@@ -153,32 +159,9 @@ const availableProjections = [
   {id: 'ESRI:102009', name: 'Lambert North America'},
 ];
 
-// generate a uuid, code from here:
-// https://www.cloudhadoop.com/2018/10/guide-to-unique-identifiers-uuid-guid
-function uuid() {
-  var uuidValue = "", k, randomValue;
-  for (k = 0; k < 32;k++) {
-    randomValue = Math.random() * 16 | 0;
-    if (k == 8 || k == 12 || k == 16 || k == 20) { uuidValue += "-" }
-    uuidValue += (k == 12 ? 4 : (k == 16 ? (randomValue & 3 | 8) : randomValue)).toString(16);
-  }
-  return uuidValue;
-}
-
-const basemaps = makeBasemaps(CONTEXT.mapbox_api_token);
-let currentBasemap = basemaps[0].id;
-
-function toggleBasemap() {
-  if (currentBasemap === "osm") {
-    currentBasemap = "satellite"
-  } else {
-    currentBasemap = "osm"
-  }
-}
-
+// CREATE GCP LAYERS
 const docGCPSource = new VectorSource();
 docGCPSource.on('addfeature', function (e) {
-
   if (!e.feature.getProperties().listId) {
     e.feature.setProperties({'listId': nextGCP})
   }
@@ -186,6 +169,10 @@ docGCPSource.on('addfeature', function (e) {
   inProgress = true;
   unchanged = false;
 })
+const docGCPLayer = new VectorLayer({
+  source: docGCPSource,
+  style: styles.gcpDefault,
+});
 
 const mapGCPSource = new VectorSource();
 mapGCPSource.on(['addfeature'], function (e) {
@@ -205,7 +192,25 @@ mapGCPSource.on(['addfeature'], function (e) {
   inProgress = false;
   activeGCP = e.feature.getProperties().listId;
 })
+const mapGCPLayer = new VectorLayer({
+  source: mapGCPSource,
+  style: styles.gcpDefault,
+  zIndex: 30,
+});
 
+// CREATE DISPLAY LAYERS
+
+// items needed by layers and map
+const docExtent = extentFromImageSize(REGION.image_size)
+const docProjection = projectionFromImageExtent(docExtent)
+const documentLayer = makeImageLayer(REGION.urls.image, docProjection, docExtent)
+
+const previewLayer = new TileLayer({
+  source: new XYZ(),
+  zIndex: 20,
+});
+
+// REFERENCE LAYER STUFF
 let kmLayerGroup;
 let kmLayerGroup50;
 if (KEYMAP_LAYERSET) {
@@ -288,10 +293,26 @@ $: {
   })
 }
 
+// SNAP LAYER STUFF
+
+const pmLayer = PmTilesUrl ? makePmTilesLayer(
+    PmTilesUrl,
+    "<a target='_blank' href='https://data.sfgov.org/Geographic-Locations-and-Boundaries/Parcels-Active-and-Retired/acdm-wktn/about_data'>City and County of San Francisco</a>",
+    styles.redOutline
+  ) : null
+const snapSource = new VectorSource({
+  overlaps: false,
+})
+const snapLayer = new VectorLayer({
+  source: snapSource,
+  style: styles.empty,
+})
+
+// MAKING INTERACTIONS
+
 // this Modify interaction is created individually for each map panel
-function makeModifyInteraction(hitDetection, source, targetElement) {
+function makeModifyInteraction(source, targetElement) {
   const modify = new Modify({
-    hitDetection: hitDetection,
     source: source,
     style: styles.gcpHover,
   });
@@ -314,259 +335,122 @@ function makeModifyInteraction(hitDetection, source, targetElement) {
 }
 
 // this Draw interaction is created individually for each map panel
-function makeDrawInteraction(source, condition) {
+function makeDrawInteraction(source, condition, style) {
   const draw = new Draw({
     source: source,
     type: 'Point',
-    style: styles.empty,
+    style: style,
     condition: condition,
   });
-  draw.setActive(false);
   return draw
 }
 
-function DocumentViewer (elementId) {
-
-  const targetElement = document.getElementById(elementId);
-
-  const imgWidth = REGION.image_size[0];
-  const imgHeight = REGION.image_size[1];
-
-  // items needed by layers and map
-  // set the extent and projection with 0, 0 at the **top left** of the image
-  const docExtent = [0, -imgHeight, imgWidth, 0];
-  const docProjection = new Projection({
-    units: 'pixels',
-    extent: docExtent,
-  });
-
-  // create layers
-  const docLayer = new ImageLayer({
-    source: new ImageStatic({
-      url: REGION.urls.image,
-      projection: docProjection,
-      imageExtent: docExtent,
-    }),
-  })
-
-  const gcpLayer = new VectorLayer({
-    source: docGCPSource,
-    style: styles.gcpDefault,
-  });
-
-  // create map
-  const map = new Map({
-    target: targetElement,
-    layers: [docLayer, gcpLayer],
-    view: new View({
-      projection: docProjection,
-      zoom: 1,
-      maxZoom: 8,
-    })
-  });
-
-  docFullMaskLayer = generateFullMaskLayer(map)
-  map.addLayer(docFullMaskLayer)
-
-  function coordWithinDoc (coordinate) {
-    const x = coordinate[0];
-    const y = -coordinate[1];
-    // set n/a if the mouse is outside of the document image itself
-    if (x < 0 || x > imgWidth || y < 0 || y > imgHeight) {
-      return false
-    } else {
-      return true
+function selectGCPOnClick (e) {
+  let found = false;
+  e.map.forEachFeatureAtPixel(e.pixel, function(feature) {
+    if (feature.getProperties().listId) {
+      activeGCP = feature.getProperties().listId;
+      found = true;
     }
-  }
-
-  // create interactions
-  function drawWithinDocCondition (mapBrowserEvent) {
-    return coordWithinDoc(mapBrowserEvent.coordinate)
-  }
-  const draw = makeDrawInteraction(docGCPSource, drawWithinDocCondition);
-  map.addInteraction(draw)
-
-  const modify = makeModifyInteraction(gcpLayer, docGCPSource, targetElement)
-  modify.setActive(true);
-  map.addInteraction(modify)
-
-  // create controls
-  const mousePositionControl = new MousePosition({
-    coordinateFormat: function(coordinate) {
-      // set n/a if the mouse is outside of the document image itself
-      if (coordWithinDoc(coordinate)) {
-        const x = Math.round(coordinate[0]);
-        const y = -Math.round(coordinate[1]);
-        return `${x}, ${y}`
-      } else {
-        return 'n/a'
-      }
-    },
-    projection: docProjection,
-    undefinedHTML: 'n/a',
   });
-  map.addControl(mousePositionControl);
-
-  docRotate = makeRotateCenterLayer();
-  map.addLayer(docRotate.layer);
-
-
-  // add some click actions to the map
-  map.on("click", function(e) {
-    let found = false;
-    e.map.forEachFeatureAtPixel(e.pixel, function(feature) {
-      if (feature.getProperties().listId) {
-        activeGCP = feature.getProperties().listId;
-        found = true;
-      }
-    });
-    if (!found && !draw.getActive() && !inProgress) {activeGCP = null}
-  });
-
-  // add transition actions to the map element
-  function updateMapEl() {map.updateSize()}
-  targetElement.style.transition = "width .5s";
-  targetElement.addEventListener("transitionend", updateMapEl)
-
-  // expose properties as necessary
-  this.map = map;
-  this.element = targetElement;
-  this.drawInteraction = draw;
-  this.modifyInteraction = modify;
-
-  docViewMap = map;
-
-  this.resetExtent = function () {
-    map.getView().setRotation(0);
-    map.getView().fit(docExtent, {padding: [10, 10, 10, 10]});
-  }
-}
-
-function MapViewer (elementId) {
-
-    const targetElement = document.getElementById(elementId);
-
-    const gcpLayer = new VectorLayer({
-      source: mapGCPSource,
-      style: styles.gcpDefault,
-      zIndex: 30,
-    });
-
-    // create map
-    const map = new Map({
-      target: targetElement,
-      layers: [
-        basemaps[0].layer,
-        previewLayer,
-        gcpLayer,
-      ],
-      view: new View(),
-    });
-
-    mapFullMaskLayer = generateFullMaskLayer(map)
-    map.addLayer(mapFullMaskLayer)
-
-    // create interactions
-    const draw = makeDrawInteraction(mapGCPSource);
-    map.addInteraction(draw)
-
-    const modify = makeModifyInteraction(gcpLayer, mapGCPSource, targetElement)
-    modify.setActive(true)
-    map.addInteraction(modify)
-
-    // create controls
-    let mousePositionControl = new MousePosition({
-      projection: 'EPSG:4326',
-      coordinateFormat: createStringXY(6),
-      undefinedHTML: 'n/a',
-    });
-    map.addControl(mousePositionControl);
-
-    let scaleLine = new ScaleLine({
-      units: 'us',
-    });
-    map.addControl(scaleLine)
-
-    // add some click actions to the map
-    map.on("click", function(e) {
-      let found = false;
-      e.map.forEachFeatureAtPixel(e.pixel, function(feature) {
-        if (feature.getProperties().listId) {
-          activeGCP = feature.getProperties().listId;
-          found = true;
-        }
-      });
-      if (!found && !draw.getActive()) {activeGCP = null}
-    });
-
-    mapRotate = makeRotateCenterLayer()
-    map.addLayer(mapRotate.layer)
-
-    kmLayerGroup &&  map.addLayer(kmLayerGroup)
-    kmLayerGroup50 &&  map.addLayer(kmLayerGroup50)
-    map.addLayer(mainLayerGroup)
-    map.addLayer(mainLayerGroup50)
-
-    // add transition actions to the map element
-    function updateMapEl() {map.updateSize()}
-    targetElement.style.transition = "width .5s";
-    targetElement.addEventListener("transitionend", updateMapEl)
-
-    // expose properties as necessary
-    this.map = map;
-    mapViewMap = map;
-    this.element = targetElement;
-    this.drawInteraction = draw;
-    this.modifyInteraction = modify;
-    this.resetExtent = function () {
-      map.getView().setRotation(0);
-      if (REGION.gcps_geojson) {
-        map.getView().fit(mapGCPSource.getExtent(), {padding: [100, 100, 100, 100]});
-      } else if (MAP.extent) {
-        const extent3857 = transformExtent(MAP.extent, "EPSG:4326", "EPSG:3857");
-        map.getView().fit(extent3857);
-      } else {
-        // show the entire US
-        map.getView().setCenter( [ -10728204.02342, 4738596.138147663 ]);
-        map.getView().setZoom(5)
-      }
-    }
+  if (!found && !inProgress) {activeGCP = null}
 }
 
 onMount(() => {
-  docView = new DocumentViewer('doc-viewer');
-  mapView = new MapViewer('map-viewer');
+
+  // CREATE THE LEFT-SIDE DOCUMENT INTERFACE
+  docViewer = new MapViewer('doc-viewer')
+  docViewer.setDefaultExtent(docExtent)
+  docViewer.setView(new View({
+    projection: docProjection,
+    zoom: 1,
+    maxZoom: 8,
+  }))
+  docViewer.addLayer(documentLayer)
+  docViewer.addLayer(docGCPLayer)
+
+  // add control
+  docViewer.addControl(new DocMousePosition(docExtent, null, 'ol-mouse-position'));
+
+  // create interactions
+  function drawWithinDocCondition (mapBrowserEvent) {
+    return containsXY(docExtent, mapBrowserEvent.coordinate[0], mapBrowserEvent.coordinate[1])
+  }
+
+  docViewer.addInteraction('draw', makeDrawInteraction(docGCPSource, drawWithinDocCondition, styles.empty), true)
+  docViewer.addInteraction('modify', makeModifyInteraction(docGCPSource, docViewer.element), true)
+
+  docRotate = makeRotateCenterLayer();
+  docViewer.addLayer(docRotate.layer);
+
+  // add some click actions to the map
+  docViewer.map.on("click", selectGCPOnClick);
+
+
+  // CREATE THE RIGHT-SIDE MAP INTERFACE
+  mapViewer = new MapViewer('map-viewer')
+  mapViewer.setDefaultExtent(defaultExtent)
+
+  mapViewer.addBasemaps(CONTEXT.mapbox_api_token)
+  currentBasemap = mapViewer.currentBasemap.id;
+  mapViewer.addLayer(previewLayer)
+  mapViewer.addLayer(mapGCPLayer)
+
+  // create controls
+  mapViewer.addControl(new LyrMousePosition(null, 'ol-mouse-position'))
+  mapViewer.addControl(new MapScaleLine())
+
+  // create interactions
+  const mapDrawGCPStyle = PmTilesUrl ? styles.smallCross : styles.empty
+  mapViewer.addInteraction('draw', makeDrawInteraction(mapGCPSource, null, mapDrawGCPStyle), true)
+  mapViewer.addInteraction('modify', makeModifyInteraction(mapGCPSource, mapViewer.element), true)
+
+  // add some event listening to the map
+  mapViewer.map.on("click", selectGCPOnClick);
+  mapViewer.map.on("rendercomplete", () => {showLoading = false})
+
+  mapRotate = makeRotateCenterLayer()
+  mapViewer.addLayer(mapRotate.layer)
+
+  kmLayerGroup &&  mapViewer.addLayer(kmLayerGroup)
+  kmLayerGroup50 &&  mapViewer.addLayer(kmLayerGroup50)
+  mapViewer.addLayer(mainLayerGroup)
+  mapViewer.addLayer(mainLayerGroup50)
+
+  // snap to parcels --- work-in-progress!
+  const snap = new Snap({
+    source: snapSource,
+    edge: false,
+  });
+  mapViewer.addInteraction('parcelSnap', snap, false)
+  // tried map.on('rendercomplete') here but sometimes it would fire constantly,
+  // so using these more specific event listeners
+  mapViewer.map.getView().on('change:resolution', refreshSnapSource)
+  mapViewer.map.on('moveend', refreshSnapSource)
+
+  currentZoom = mapViewer.getZoom()
+  mapViewer.map.getView().on('change:resolution', () => {
+    currentZoom = mapViewer.getZoom()
+  })
+
+  // OTHER STUFF
   setPreviewVisibility(previewMode)
   loadIncomingGCPs();
-  disabledMap(disableInterface)
-  inProgress = false;
   if (!CONTEXT.user.is_authenticated) { getModal('modal-anonymous').open() }
 });
-
-function disabledMap(disabled) {
-  if (mapView) {
-    mapView.map.getInteractions().forEach(x => x.setActive(!disabled));
-	  mapFullMaskLayer.setVisible(disabled);
-  }
-  if (docView) {
-    docView.map.getInteractions().forEach(x => x.setActive(!disabled));
-	  docFullMaskLayer.setVisible(disabled);
-  }
-}
-$: disabledMap(disableInterface)
 
 function loadIncomingGCPs() {
   loadingInitial = true;
   docGCPSource.clear();
   mapGCPSource.clear();
   if (REGION.gcps_geojson) {
-    let listId = 1;
-    let inGCPs = new GeoJSON().readFeatures(REGION.gcps_geojson, {
+    const incomingFeats = new GeoJSON().readFeatures(REGION.gcps_geojson, {
       dataProjection: "EPSG:4326",
       featureProjection: "EPSG:3857",
-    });
+    })
+    let listId = 1;
 
-    inGCPs.forEach( function(inGCP) {
+    incomingFeats.forEach( function(inGCP) {
 
       inGCP.setProperties({"listId": listId})
       mapGCPSource.addFeature(inGCP);
@@ -586,8 +470,8 @@ function loadIncomingGCPs() {
   }
   currentTransformation = (REGION.transformation ? REGION.transformation : "poly1")
   syncGCPList();
-  docView.resetExtent()
-  mapView.resetExtent()
+  docViewer.resetExtent()
+  mapViewer.resetExtent()
   loadingInitial = false;
   inProgress = false;
   unchanged = true;
@@ -599,9 +483,7 @@ function removeActiveGCP() {
 }
 
 function confirmGCPRemoval(gcpId) {
-  return window.confirm(`Remove GCP #${gcpId}?<br>
-  NOTE: There is currently a bug that may scramble the remaining GCPs.
-  If possible, move this GCP to a new location rather remove it.`);
+  return window.confirm(`Remove GCP #${gcpId}?`);
 }
 
 function removeGCP(gcpListID) {
@@ -626,14 +508,18 @@ function resetListIds() {
   // iterates the features in map and doc and resets all list ids.
   // necessary if any GCP has been deleted that is not the last in the list.
   let newListId = 1;
+  const newIdLookup = {}
+  // first create a lookup to translate old ids to new ids
   mapGCPSource.forEachFeature( function (mapFeat) {
-    docGCPSource.forEachFeature( function (docFeat) {
-      if (mapFeat.getProperties().listId == docFeat.getProperties().listId) {
-        docFeat.setProperties({'listId': newListId});
-        mapFeat.setProperties({'listId': newListId});
-      }
-    });
+    newIdLookup[mapFeat.getProperties().listId] = newListId;
     newListId += 1;
+  })
+  // now update all listIds on both layers using the lookup
+  mapGCPSource.forEachFeature( function (mapFeat) {
+    mapFeat.setProperties({'listId': newIdLookup[mapFeat.getProperties().listId]});
+  })
+  docGCPSource.forEachFeature( function (docFeat) {
+    docFeat.setProperties({'listId': newIdLookup[docFeat.getProperties().listId]});
   })
   syncGCPList();
 };
@@ -682,45 +568,81 @@ function updateNote() {
 
 $: {
   if (syncPanelWidth) {
-    panelFocus = ( inProgress ? "right" : "left" )
+    panelFocus = inProgress ? "right" : "left";
+  } else {
+    panelFocus = "equal";
   }
 }
 
 $: {
-  if (docView && mapView) {
-    docView.drawInteraction.setActive(!inProgress);
-    mapView.drawInteraction.setActive(inProgress);
+  if (docViewer && mapViewer) {
+    docViewer.interactions['draw'].setActive(!inProgress);
+    mapViewer.interactions['draw'].setActive(inProgress);
   }
 }
 
-// triggered by a change in the basemap id
-function setBasemap(basemapId) {
-  if (mapView) {
-    mapView.map.getLayers().removeAt(0);
-    basemaps.forEach( function(item) {
-      if (item.id == basemapId) {
-        mapView.map.getLayers().insertAt(0, item.layer);
-      }
-    });
+$: {
+  if (mapViewer) {mapViewer.setBasemap(currentBasemap)}
+}
+
+$: docCursorStyle = inProgress ? 'default' : 'crosshair';
+$: mapCursorStyle = inProgress ? 'crosshair' : 'default';
+
+$: {
+  if (docViewer && mapViewer) {
+    docViewer.element.style.cursor = docCursorStyle;
+    mapViewer.element.style.cursor = mapCursorStyle;
   }
 }
-$: setBasemap(currentBasemap);
+
+$: {
+  if (currentZoom < 17) {enableSnapLayer = false}
+}
+
+function refreshSnapSource() {
+  if (!enableSnapLayer) {return}
+  snapSource.clear()
+  const features = pmLayer.getFeaturesInExtent(mapViewer.map.getView().calculateExtent());
+  features.forEach(function (feature) {
+    const lineCoords = inflateCoordinatesArray(
+      feature.getFlatCoordinates(), // flat coordinates
+      0, // offset
+      feature.getEnds(), // geometry end indices
+      2, // stride
+    )
+    const geoJsonGeom = {coordinates: lineCoords, type: "Polygon"};
+    const f = new GeoJSON().readFeature(geoJsonGeom, {
+      dataProjection: "EPSG:3857",
+    })
+    if (!snapSource.hasFeature(f)) {snapSource.addFeature(f)}
+  })
+}
+function toggleSnap(enabled) {
+  if (!mapViewer || !pmLayer) {return}
+  if (enabled) {
+    mapViewer.addLayer(snapLayer)
+    mapViewer.addLayer(pmLayer)
+    mapViewer.interactions['parcelSnap'].setActive(true)
+    mapViewer.map.once('rendercomplete', refreshSnapSource)
+  } else {
+    snapSource.clear()
+    mapViewer.map.removeLayer(snapLayer)
+    mapViewer.map.removeLayer(pmLayer)
+    mapViewer.interactions['parcelSnap'].setActive(false)
+  }
+}
+$: toggleSnap(enableSnapLayer)
 
 function setPreviewVisibility(mode) {
-  if (!mapView) { return }
+  if (!mapViewer) { return }
   if (mode == "full" || mode == "transparent") {
     previewLayer.setVisible(true)
     previewLayer.setOpacity(mode == "full" ? 1 : .6);
   } else if (mode == "none" || mode == "n/a") {
     previewLayer.setVisible(false)
-    startloads = 0;
-    endloads = 0;
   }
 }
 $: setPreviewVisibility(previewMode);
-
-$: previewLoading = (previewMode == "transparent" || previewMode == "full") && 
-      ( startloads != endloads) ; 
 
 // Triggered by change of activeGCP
 function displayActiveGCP(activeId) {
@@ -751,31 +673,23 @@ function displayActiveGCP(activeId) {
 $: displayActiveGCP(activeGCP)
 
 $: {
-  if (docView && mapView) {
+  if (docViewer && mapViewer) {
     switch(panelFocus) {
       case "equal":
-        docView.element.style.width = "50%";
-        mapView.element.style.width = "50%";
+        docViewer.element.style.width = "50%";
+        mapViewer.element.style.width = "50%";
         break;
       case "left":
-        docView.element.style.width = "75%";
-        mapView.element.style.width = "25%";
+        docViewer.element.style.width = "75%";
+        mapViewer.element.style.width = "25%";
         break;
       case "right":
-        docView.element.style.width = "25%";
-        mapView.element.style.width = "75%";
+        docViewer.element.style.width = "25%";
+        mapViewer.element.style.width = "75%";
         break
     }
   }
 }
-
-const previewLayer = new TileLayer({
-  source: new XYZ(),
-  zIndex: 20,
-});
-
-let startloads = 0;
-let endloads = 0;
 
 function updatePreviewSource (previewUrl) {
   if (previewUrl) {
@@ -785,10 +699,7 @@ function updatePreviewSource (previewUrl) {
         url: previewUrl,
       }),
     })
-    source.on("tileloadstart", function (e) { startloads++ })
-    source.on("tileloadend", function (e) { endloads++ })
-    endloads = 0;
-    startloads = 0;
+    showLoading = true;
     previewLayer.setSource(source)
   }
 }
@@ -875,7 +786,7 @@ function handleKeydown(e) {
         }
         break;
       case "b": case "B":
-        toggleBasemap();
+        currentBasemap = currentBasemap === "osm" ? "satellite" : "osm";
         break;
       case "r": case "R":
         let currentIndex;
@@ -892,27 +803,27 @@ function handleKeydown(e) {
         break;
     }
   }
-  // toggle the center icon to help with rotation
-  if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = true}
-	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = true}
-	if (keyPressed.shift && keyPressed.alt) {
-    if (mapView && docView) {
-      showRotateCenter(docView.map, docRotate.layer, docRotate.feature)
-      showRotateCenter(mapView.map, mapRotate.layer, mapRotate.feature)
-    }
-	}
+  // // toggle the center icon to help with rotation
+  // if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = true}
+	// if (e.altKey || e.key == "Alt") {keyPressed['alt'] = true}
+	// if (keyPressed.shift && keyPressed.alt) {
+  //   if (mapView && docView) {
+  //     showRotateCenter(docView.map, docRotate.layer, docRotate.feature)
+  //     showRotateCenter(mapView.map, mapRotate.layer, mapRotate.feature)
+  //   }
+	// }
 }
 
 function handleKeyup(e) {
   // remove the center point if rotation is to be disabled
-	if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = false}
-	if (e.altKey || e.key == "Alt") {keyPressed['alt'] = false}
-	if (!keyPressed.shift && !keyPressed.alt) {
-		if (mapView && docView) {
-      removeRotateCenter(docRotate.layer)
-      removeRotateCenter(mapRotate.layer)
-    }
-	}
+	// if (e.shiftKey || e.key == "Shift") {keyPressed['shift'] = false}
+	// if (e.altKey || e.key == "Alt") {keyPressed['alt'] = false}
+	// if (!keyPressed.shift && !keyPressed.alt) {
+	// 	if (mapView && docView) {
+  //     removeRotateCenter(docRotate.layer)
+  //     removeRotateCenter(mapRotate.layer)
+  //   }
+	// }
 };
 
 function confirmLeave () {
@@ -971,10 +882,10 @@ function handleExtendSession(response) {
       <p>Someone is already georeferencing this document (<Link href="javascript:window.location.reload(true)">refresh</Link>).</p>
       {:else if disableReason == "submit"}
       <p>Saving control points and georeferencing document... redirecting to document detail page.</p>
-      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      <LoadingEllipsis />
       {:else if disableReason == "cancel"}
       <p>Cancelling georeferencing.</p>
-      <div id="interface-loading" class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+      <LoadingEllipsis />
       {/if}
     </div>
   </div>
@@ -992,19 +903,20 @@ function handleExtendSession(response) {
         <ToolUIButton action={() => { process("submit") }} title="Save control points" disabled={!enableSave}><Check /></ToolUIButton>
         <ToolUIButton action={() => { getModal('modal-cancel').open() }} title="Cancel georeferencing" disabled={!enableButtons}><X /></ToolUIButton>
         <ToolUIButton action={loadIncomingGCPs} title="Reset/reload original GCPs" disabled={unchanged}><ArrowsClockwise /></ToolUIButton>
-        <ExpandElement elementId={'map-container'} maps={[docViewMap, mapViewMap]} />
+        <ExpandElement elementId={'map-container'} />
     </div>
   </nav>
   <div class="map-container">
     <div id="doc-viewer" class="map-item"></div>
     <div id="map-viewer" class="map-item"></div>
-    <div id="preview-loading" style="top: 55px; right: 35px;" class={previewLoading ? 'lds-ellipsis': ''}><div></div><div></div><div></div><div></div></div>
+    {#if showLoading && (previewMode == "transparent" || previewMode == "full")}
+    <div style="top:65px; right:25px; width:80px; height:80px; position:absolute;">
+      <LoadingEllipsis />
+    </div>
+    {/if}
   </div>
   {#if showLayerPanel}
   <nav style="justify-content: end;">
-    <div>
-      <span style="color:lightgray">{startloads}/{endloads}</span>
-    </div>
     <label title="Change preview opacity">
       Preview (p)
       <select title="Set preview (w)" bind:value={previewMode} disabled={previewMode == "n/a"}>
@@ -1022,12 +934,17 @@ function handleExtendSession(response) {
         {/each}
       </select>
     </label>
+    {#if PmTilesUrl}
+    <label class="checkbox">
+      Snap to Parcels
+      <input type="checkbox" bind:checked={enableSnapLayer} disabled={currentZoom<=17} />
+    </label>
+    {/if}
     <label title="Change basemap">
       Basemap (b)
       <select  style="width:151px;" bind:value={currentBasemap}>
-        {#each basemaps as basemap}
-        <option value={basemap.id}>{basemap.label}</option>
-        {/each}
+        <option value="osm">Streets</option>
+        <option value="satellite">Streets+Satellite</option>
       </select>
     </label>
   </nav>

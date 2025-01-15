@@ -32,7 +32,8 @@ import GeoreferencePermissionsModal from './modals/GeoreferencePermissionsModal.
 import Modal, {getModal} from '@components/base/Modal.svelte';
 
 import MapPreview from "@components/interfaces/MapPreview.svelte";
-import SimpleViewer from '@components/interfaces/SimpleViewer.svelte';
+import BasicDocViewer from '@components/interfaces/BasicDocViewer.svelte';
+import BasicLayerViewer from '@components/interfaces/BasicLayerViewer.svelte';
 import DownloadSectionModal from './modals/ItemDownloadSectionModal.svelte';
 import MapDetails from './sections/MapDetails.svelte';
     import SigninReminder from '../layout/SigninReminder.svelte';
@@ -334,7 +335,11 @@ let processing = false;
 <GeoreferencePermissionsModal id={"modal-permissions"} user={CONTEXT.user.username} userCanEdit={userCanEdit} item={MAP} />
 <Modal id={"modal-simple-viewer"} full={true}>
 {#each reinitModalMap as key (key)}
-	<SimpleViewer {CONTEXT} LAYER_URL={modalLyrUrl} EXTENT={modalExtent} GEOSPATIAL={modalIsGeospatial} />
+	{#if modalIsGeospatial}
+	<BasicLayerViewer {CONTEXT} LAYER_URL={modalLyrUrl} EXTENT={modalExtent} />
+	{:else}
+	<BasicDocViewer LAYER_URL={modalLyrUrl} EXTENT={modalExtent} />
+	{/if}
 {/each}
 </Modal>
 <ConfirmNoSplitModal bind:processing {CONTEXT} documentId={splitDocumentId} callback={pollMapSummaryIfSuccess} />

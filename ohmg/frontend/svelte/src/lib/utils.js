@@ -4,12 +4,10 @@ import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import TileWMS from 'ol/source/TileWMS';
 
-import MousePosition from 'ol/control/MousePosition';
-import {createStringXY} from 'ol/coordinate';
-
 import GeoJSON from 'ol/format/GeoJSON';
 
 import {transformExtent} from 'ol/proj';
+import Projection from 'ol/proj/Projection';
 
 import Feature from 'ol/Feature';
 import Polygon from 'ol/geom/Polygon';
@@ -20,14 +18,39 @@ import Fill from 'ol/style/Fill';
 import Stroke from 'ol/style/Stroke';
 import RegularShape from 'ol/style/RegularShape';
 
-import {Modify} from 'ol/interaction';
 
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import LayerGroup from 'ol/layer/Group';
-import MapboxVector from 'ol/layer/MapboxVector';
 
 import Crop from 'ol-ext/filter/Crop';
+
+export const usaExtent = transformExtent([-125.5, 24.9, -66.9, 49.2], "EPSG:4326", "EPSG:3857")
+
+// generate a uuid, code from here:
+// https://www.cloudhadoop.com/2018/10/guide-to-unique-identifiers-uuid-guid
+export function uuid() {
+	var uuidValue = "", k, randomValue;
+	for (k = 0; k < 32;k++) {
+		randomValue = Math.random() * 16 | 0;
+		if (k == 8 || k == 12 || k == 16 || k == 20) { uuidValue += "-" }
+		uuidValue += (k == 12 ? 4 : (k == 16 ? (randomValue & 3 | 8) : randomValue)).toString(16);
+	}
+	return uuidValue;
+}
+
+// set the extent and projection with 0, 0 at the **top left** of the image
+// this is currently the setup for the Georeference interfance, but not for the Splitter!
+export function extentFromImageSize(imageSize) {
+	return [0, -imageSize[1], imageSize[0], 0];
+}
+
+export function projectionFromImageExtent(extent) {
+	return new Projection({
+		units: 'pixels',
+		extent: extent,
+	});
+}
 
 export function submitPostRequest(url, headers, operation, payload, callback) {
 	const body = JSON.stringify({
@@ -98,28 +121,6 @@ export function makeSatelliteLayer (apiKey) {
 	});
 }
 
-// EXPERIMENTAL vector basemap, not in use
-export function makeMapboxStreetsLayer (apiKey) {
-	//return new TileLayer({
-	//	source: new XYZ({
-	//		url: 'https://api.mapbox.com/styles/v1/legiongis/ckihiobcu0m3319sz4i5djtaj/tiles/{z}/{x}/{y}?access_token='+apiKey,
-	//		tileSize: 512,
-	//		attributions: [
-	//			`© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>`
-	//	]
-	//})
-	//	});
-	return new MapboxVector({
-	//		styleUrl: 'mapbox://styles/legiongis/ckihiobcu0m3319sz4i5djtaj',
-		styleUrl: 'mapbox://styles/mapbox/streets-v11',
-		accessToken: apiKey,
-		zIndex: 0,
-		// declutter false keeps the labels with the rest of the style instead of
-		// placing them above all other layers. However, it causes a lot of clutter.
-		declutter: false,
-	})
-}
-	
 export function makeOSMLayer () {
 	return new TileLayer({
 		source: new OSM({
@@ -143,24 +144,6 @@ export function makeBasemaps (mapboxKey) {
 			label: "Streets+Satellite"
 		},
 	]
-}
-
-export function makeModifyInteraction(hitDetection, source, targetElement, style) {
-	const modify = new Modify({
-		hitDetection: hitDetection,
-		source: source,
-		style: style,
-	});
-
-	modify.on(['modifystart', 'modifyend'], function (e) {
-		targetElement.style.cursor = e.type === 'modifystart' ? 'grabbing' : 'pointer';
-	});
-
-	let overlaySource = modify.getOverlay().getSource();
-	overlaySource.on(['addfeature', 'removefeature'], function (e) {
-		targetElement.style.cursor = e.type === 'addfeature' ? 'pointer' : '';
-	});
-	return modify
 }
 
 export function makeLayerGroupFromLayerSet (options) {
@@ -221,7 +204,7 @@ export function generateFullMaskLayer (map) {
 		[projExtent[2], projExtent[3]],
 		[projExtent[0], projExtent[3]],
 		[projExtent[0], projExtent[1]],
-	]])	
+	]])
 	const layer = new VectorLayer({
 		source: new VectorSource({
 			features: [ new Feature({ geometry: polygon }) ]
@@ -239,7 +222,7 @@ export function makeRotateCenterLayer () {
 	const feature = new Feature()
 	const pointStyle = new Style({
 		image: new RegularShape({
-			radius1: 10,
+			radius: 10,
 			radius2: 1,
 			points: 4,
 			rotateWithView: true,

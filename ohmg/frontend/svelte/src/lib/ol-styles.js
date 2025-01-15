@@ -38,12 +38,24 @@ const browseMapCircle = new Style({
     stroke: new Stroke({ color: '#000000', width: 2, }),
     radius: 6,
   })
-}) 
+})
+
+const smallCross = new Style({
+  image: new RegularShape({
+    radius: 5,
+    radius2: 0,
+    points: 4,
+    rotation: 0,
+    stroke: new Stroke({
+      color: 'black', width: 2
+    })
+  })
+})
 
 // this is the white outline cross that sits behind every gcp style
 const gcpOutline = new Style({
   image: new RegularShape({
-    radius1: 10,
+    radius: 10,
     radius2: 0,
     points: 4,
     rotation: .79,
@@ -58,7 +70,7 @@ const gcpOutline = new Style({
 // on top of the outline.
 const gcpDefault = new Style({
   image: new RegularShape({
-    radius1: 10,
+    radius: 10,
     radius2: 0,
     points: 4,
     rotation: .79,
@@ -69,7 +81,7 @@ const gcpDefault = new Style({
 })
 const gcpHover = new Style({
   image: new RegularShape({
-    radius1: 10,
+    radius: 10,
     radius2: 0,
     points: 4,
     rotation: .79,
@@ -80,7 +92,7 @@ const gcpHover = new Style({
 })
 const gcpHighlight = new Style({
   image: new RegularShape({
-    radius1: 10,
+    radius: 10,
     radius2: 0,
     points: 4,
     rotation: .79,
@@ -126,6 +138,17 @@ class Styles {
   mmModify = new Style({
     image: mmModifyVertex,
   });
+
+  redOutline = new Style({
+    stroke: new Stroke({
+    color: "red",
+      width: 1,
+    }),
+  });
+  redDashedOutline = new Style({
+    stroke: new Stroke({ color: 'red', width: .75, lineDash: [2]}),
+  });
+  smallCross = smallCross;
 
   vertexPoint = new Style({
     image: mmVertex,
