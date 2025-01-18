@@ -175,7 +175,7 @@
 
 We have also worked in partnership with [OpenHistoricalMap](https://openhistoricalmap.org), [HistoryForge](https://historyforge.net), [Midlo Center for New Orleans Studies](https://www.uno.edu/academics/colaehd/la/history/midlo), [The Ohio State University Libraries](https://www.uno.edu/research/centers-and-institutes/midlo), and numerous other individuals who have found this while on their own quest to georeference Sanborn Maps.
 
-A special thanks also to those who have donated: Kevin H., Andrew M., Peter M., Pete Z., and Chris P.
+A special thanks to individuals who have donated: Kevin H., Andrew M., Peter M., Pete Z., Chris P., and Hayden S.
 
 To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
 `} />
