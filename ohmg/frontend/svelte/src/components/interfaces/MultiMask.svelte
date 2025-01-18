@@ -211,8 +211,8 @@ onMount(() => {
 
 $: {
   if (viewer) {
-    viewer.interactions['draw'].setActive(currentLayer != null)
-    viewer.interactions['modify'].setActive(!viewer.interactions['draw'].getActive())
+    viewer.interactions.draw.setActive(currentLayer != null)
+    viewer.interactions.modify.setActive(!viewer.interactions.draw.getActive())
   }
 }
 

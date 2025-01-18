@@ -377,8 +377,8 @@ onMount(() => {
     return containsXY(docExtent, mapBrowserEvent.coordinate[0], mapBrowserEvent.coordinate[1])
   }
 
-  docViewer.addInteraction('draw', makeDrawInteraction(docGCPSource, drawWithinDocCondition, styles.empty), true)
-  docViewer.addInteraction('modify', makeModifyInteraction(docGCPSource, docViewer.element), true)
+  docViewer.addInteraction('draw', makeDrawInteraction(docGCPSource, drawWithinDocCondition, styles.empty))
+  docViewer.addInteraction('modify', makeModifyInteraction(docGCPSource, docViewer.element))
 
   docRotate = makeRotateCenterLayer();
   docViewer.addLayer(docRotate.layer);
@@ -402,8 +402,8 @@ onMount(() => {
 
   // create interactions
   const mapDrawGCPStyle = PmTilesUrl ? styles.smallCross : styles.empty
-  mapViewer.addInteraction('draw', makeDrawInteraction(mapGCPSource, null, mapDrawGCPStyle), true)
-  mapViewer.addInteraction('modify', makeModifyInteraction(mapGCPSource, mapViewer.element), true)
+  mapViewer.addInteraction('draw', makeDrawInteraction(mapGCPSource, null, mapDrawGCPStyle))
+  mapViewer.addInteraction('modify', makeModifyInteraction(mapGCPSource, mapViewer.element))
 
   // add some event listening to the map
   mapViewer.map.on("click", selectGCPOnClick);
@@ -422,7 +422,8 @@ onMount(() => {
     source: snapSource,
     edge: false,
   });
-  mapViewer.addInteraction('parcelSnap', snap, false)
+  mapViewer.addInteraction('parcelSnap', snap)
+  mapViewer.interactions.parcelSnap.setActive(false)
   // tried map.on('rendercomplete') here but sometimes it would fire constantly,
   // so using these more specific event listeners
   mapViewer.map.getView().on('change:resolution', refreshSnapSource)
@@ -576,8 +577,8 @@ $: {
 
 $: {
   if (docViewer && mapViewer) {
-    docViewer.interactions['draw'].setActive(!inProgress);
-    mapViewer.interactions['draw'].setActive(inProgress);
+    docViewer.interactions.draw.setActive(!inProgress);
+    mapViewer.interactions.draw.setActive(inProgress);
   }
 }
 
@@ -622,13 +623,13 @@ function toggleSnap(enabled) {
   if (enabled) {
     mapViewer.addLayer(snapLayer)
     mapViewer.addLayer(pmLayer)
-    mapViewer.interactions['parcelSnap'].setActive(true)
+    mapViewer.interactions.parcelSnap.setActive(true)
     mapViewer.map.once('rendercomplete', refreshSnapSource)
   } else {
     snapSource.clear()
     mapViewer.map.removeLayer(snapLayer)
     mapViewer.map.removeLayer(pmLayer)
-    mapViewer.interactions['parcelSnap'].setActive(false)
+    mapViewer.interactions.parcelSnap.setActive(false)
   }
 }
 $: toggleSnap(enableSnapLayer)
