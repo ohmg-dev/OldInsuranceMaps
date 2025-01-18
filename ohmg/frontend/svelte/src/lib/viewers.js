@@ -83,8 +83,7 @@ export class MapViewer {
     }))
   }
 
-  addInteraction(id, interaction, isActive) {
-    interaction.setActive(isActive)
+  addInteraction(id, interaction) {
     this.map.addInteraction(interaction)
     this.interactions[id] = interaction
   }

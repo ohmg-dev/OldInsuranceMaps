@@ -177,7 +177,7 @@ onMount(() => {
     source: cutLayerSource,
     type: 'LineString',
     style: styles.polyDraw,
-  }), true);
+  }));
 
   const modify = new Modify({
     source: cutLayerSource,
@@ -201,14 +201,15 @@ onMount(() => {
     previewSplit()
   });
 
-  viewer.addInteraction("modify", modify, false)
+  viewer.addInteraction("modify", modify)
+  viewer.interactions.modify.setActive(false)
 
   viewer.addInteraction('snapToCutlines', new Snap({
     source: cutLayer.getSource(),
-  }), true);
+  }));
   viewer.addInteraction('snapToBorder', new Snap({
     source: borderLayer.getSource(),
-  }), true);
+  }));
 
 
 
@@ -231,11 +232,11 @@ $: {
   if (viewer) {
     // switch interactions based on the radio buttons
     if (currentInteraction == "draw") {
-      viewer.interactions['draw'].setActive(true);
-      viewer.interactions['modify'].setActive(false);
+      viewer.interactions.draw.setActive(true);
+      viewer.interactions.modify.setActive(false);
     } else if (currentInteraction == "modify") {
-      viewer.interactions['draw'].setActive(false);
-      viewer.interactions['modify'].setActive(true);
+      viewer.interactions.draw.setActive(false);
+      viewer.interactions.modify.setActive(true);
     }
   }
 }
@@ -247,7 +248,7 @@ $: {
 function handleKeydown(event) {
   const key = event.key;
   if (key == "Escape") {
-    if (viewer) { viewer.interactions['draw'].abortDrawing()}
+    if (viewer) { viewer.interactions.draw.abortDrawing()}
   } else if (key == "a" || key == "A") {
     currentInteraction = "draw"
   } else if (key == "e" || key == "E") {
