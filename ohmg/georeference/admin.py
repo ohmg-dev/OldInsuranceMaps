@@ -47,12 +47,10 @@ admin.site.register(GCPGroup)
 
 
 class SessionAdmin(admin.ModelAdmin):
-    raw_id_fields = ("doc", "lyr", "doc2", "reg2", "lyr2")
+    raw_id_fields = ("doc2", "reg2", "lyr2")
     readonly_fields = ("date_created", "date_modified", "date_run")
     list_display = [
         "__str__",
-        "doc",
-        "lyr",
         "user",
         "stage",
         "status",
@@ -65,17 +63,11 @@ class SessionAdmin(admin.ModelAdmin):
 
 
 class PrepSessionAdmin(SessionAdmin):
-    exclude = ("type", "layer")
-    list_display = [i for i in SessionAdmin.list_display if i != "layer"]
+    exclude = ("type",)
 
 
 class GeorefSessionAdmin(SessionAdmin):
     exclude = ("type",)
-
-
-class TrimSessionAdmin(SessionAdmin):
-    exclude = ("type", "document")
-    list_display = [i for i in SessionAdmin.list_display if i != "document"]
 
 
 admin.site.register(PrepSession, PrepSessionAdmin)

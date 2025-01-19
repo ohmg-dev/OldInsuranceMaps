@@ -130,20 +130,6 @@ class SessionBase(models.Model):
         max_length=50,
         default="getting user input",
     )
-    doc = models.ForeignKey(
-        Document,
-        models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="doc",
-    )
-    lyr = models.ForeignKey(
-        LayerV1,
-        models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="lyr",
-    )
     doc2 = models.ForeignKey(
         "core.Document",
         models.SET_NULL,
