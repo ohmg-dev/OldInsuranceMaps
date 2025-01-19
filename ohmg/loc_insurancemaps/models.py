@@ -57,7 +57,7 @@ def format_json_display(data):
     return mark_safe(style + response)
 
 
-class Sheet(models.Model):
+class Sheet:
     """Sheet serves mainly as a middle model between Volume and Document.
     It can store fields (like sheet number) that could conceivably be
     attached to the Document, but avoids the need for actually inheriting
@@ -151,7 +151,7 @@ def default_sorted_layers_dict():
     }
 
 
-class Volume(models.Model):
+class Volume:
     YEAR_CHOICES = [(r, r) for r in range(1867, 1970)]
     STATUS_CHOICES = (
         ("not started", "not started"),
