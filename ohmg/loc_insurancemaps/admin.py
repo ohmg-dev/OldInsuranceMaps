@@ -1,7 +1,5 @@
 from django.contrib import admin
 
-from ohmg.loc_insurancemaps.models import Volume, Sheet
-
 
 class SheetAdmin(admin.ModelAdmin):
     # search_fields = ('volume', 'sheet_no', 'doc')
@@ -10,7 +8,7 @@ class SheetAdmin(admin.ModelAdmin):
     raw_id_fields = ("volume", "doc")
 
 
-admin.site.register(Sheet, SheetAdmin)
+# admin.site.register(Sheet, SheetAdmin)
 
 
 class VolumeAdmin(admin.ModelAdmin):
@@ -41,4 +39,4 @@ class VolumeAdmin(admin.ModelAdmin):
     autocomplete_fields = ("locales",)
 
 
-admin.site.register(Volume, VolumeAdmin)
+# admin.site.register(Volume, VolumeAdmin)

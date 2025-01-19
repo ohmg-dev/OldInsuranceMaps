@@ -10,8 +10,6 @@ from itertools import chain
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon, GEOSGeometry
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
@@ -82,7 +80,6 @@ class GCPGroup(models.Model):
         verbose_name = "GCP Group"
         verbose_name_plural = "GCP Groups"
 
-    doc = models.ForeignKey("Document", null=True, blank=True, on_delete=models.SET_NULL)
     crs_epsg = models.IntegerField(null=True, blank=True)
     transformation = models.CharField(
         null=True,
@@ -240,7 +237,7 @@ def set_upload_location(instance, filename):
     return os.path.join(f"{instance.type}s", filename)
 
 
-class ItemBase(models.Model):
+class ItemBase:
     GEOREF_STATUS_CHOICES = (
         ("unprepared", "Unprepared"),
         ("needs review", "Needs Review"),
@@ -755,23 +752,6 @@ LINK_TYPE_CHOICES = (
     ("split", "split"),
     ("georeference", "georeference"),
 )
-
-
-class DocumentLink(models.Model):
-    """Holds a linkage between a Document and another item. This model
-    is essentially identical to DocumentResourceLink in GeoNode 3.2."""
-
-    source = models.ForeignKey(Document, related_name="links", on_delete=models.CASCADE)
-    target_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    target_id = models.PositiveIntegerField()
-    target = GenericForeignKey("target_type", "target_id")
-    link_type = models.CharField(
-        choices=LINK_TYPE_CHOICES,
-        max_length=25,
-    )
-
-    def __str__(self):
-        return f"{self.source} --> {self.target}"
 
 
 class LayerSetCategory(models.Model):
