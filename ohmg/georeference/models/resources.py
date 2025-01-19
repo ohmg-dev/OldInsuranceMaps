@@ -237,7 +237,7 @@ def set_upload_location(instance, filename):
     return os.path.join(f"{instance.type}s", filename)
 
 
-class ItemBase(models.Model):
+class ItemBase:
     GEOREF_STATUS_CHOICES = (
         ("unprepared", "Unprepared"),
         ("needs review", "Needs Review"),

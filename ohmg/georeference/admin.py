@@ -29,11 +29,11 @@ class LayerSetAdmin(admin.ModelAdmin):
 admin.site.register(LayerSet, LayerSetAdmin)
 
 
-class ItemBaseAdmin(admin.ModelAdmin):
-    raw_id_fields = ("vrs",)
+# class ItemBaseAdmin(admin.ModelAdmin):
+#     raw_id_fields = ("vrs",)
 
 
-admin.site.register(ItemBase, ItemBaseAdmin)
+# admin.site.register(ItemBase, ItemBaseAdmin)
 
 
 class GCPAdmin(admin.ModelAdmin):
@@ -73,23 +73,23 @@ admin.site.register(PrepSession, PrepSessionAdmin)
 admin.site.register(GeorefSession, GeorefSessionAdmin)
 
 
-class DocumentAdmin(admin.ModelAdmin):
-    search_fields = ("title", "status")
-    list_display = ("title", "status", "lock_enabled")
-    exclude = ("type", "layer_file", "bbox_polygon")
-    list_filter = ("lock_enabled", "status")
-    raw_id_fields = ("vrs",)
+# class DocumentAdmin(admin.ModelAdmin):
+#     search_fields = ("title", "status")
+#     list_display = ("title", "status", "lock_enabled")
+#     exclude = ("type", "layer_file", "bbox_polygon")
+#     list_filter = ("lock_enabled", "status")
+#     raw_id_fields = ("vrs",)
 
 
-class LayerAdmin(admin.ModelAdmin):
-    search_fields = ("title", "status")
-    exclude = ("type", "document_file")
-    list_filter = ("lock_enabled",)
-    raw_id_fields = ("vrs",)
+# class LayerAdmin(admin.ModelAdmin):
+#     search_fields = ("title", "status")
+#     exclude = ("type", "document_file")
+#     list_filter = ("lock_enabled",)
+#     raw_id_fields = ("vrs",)
 
 
-admin.site.register(Document, DocumentAdmin)
-admin.site.register(LayerV1, LayerAdmin)
+# admin.site.register(Document, DocumentAdmin)
+# admin.site.register(LayerV1, LayerAdmin)
 
 
 class SessionLockAdmin(admin.ModelAdmin):
