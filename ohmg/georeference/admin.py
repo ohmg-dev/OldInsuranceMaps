@@ -3,11 +3,8 @@ from django.contrib import admin
 from ohmg.georeference.models import (
     GCP,
     GCPGroup,
-    LayerV1,
-    Document,
     PrepSession,
     GeorefSession,
-    ItemBase,
     LayerSet,
     LayerSetCategory,
     SessionLock,
