@@ -82,7 +82,6 @@ class GCPGroup(models.Model):
         verbose_name = "GCP Group"
         verbose_name_plural = "GCP Groups"
 
-    doc = models.ForeignKey("Document", null=True, blank=True, on_delete=models.SET_NULL)
     crs_epsg = models.IntegerField(null=True, blank=True)
     transformation = models.CharField(
         null=True,
