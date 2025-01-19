@@ -4,7 +4,6 @@ from .resources import Document
 from .resources import LayerV1
 from .resources import GCP
 from .resources import GCPGroup
-from .resources import DocumentLink
 from .resources import LayerSet
 from .resources import LayerSetCategory
 

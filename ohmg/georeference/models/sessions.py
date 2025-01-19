@@ -17,7 +17,7 @@ from ohmg.core.models import (
     Region,
     Layer,
 )
-from ohmg.georeference.models import GCPGroup, Document, LayerV1, DocumentLink
+from ohmg.georeference.models import GCPGroup, Document
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.core.utils import (
@@ -293,22 +293,6 @@ class PrepSession(SessionBase):
 
     def __str__(self):
         return f"Preparation Session ({self.pk})"
-
-    @property
-    def georeferenced_downstream(self):
-        """Returns True if the related document or its children (if it
-        has been split) have already been georeferenced."""
-
-        if self.data["split_needed"] is True:
-            docs_to_check = self.get_child_docs()
-        else:
-            docs_to_check = [self.doc]
-
-        return any([d.status == "georeferenced" for d in docs_to_check])
-
-    def get_child_docs(self):
-        child_ids = DocumentLink.objects.filter(source=self.doc).values_list("target_id", flat=True)
-        return list(Document.objects.filter(pk__in=child_ids))
 
     def output_regions(self):
         if self.doc2:

@@ -5,7 +5,6 @@ from ohmg.georeference.models import (
     GCPGroup,
     LayerV1,
     Document,
-    DocumentLink,
     PrepSession,
     GeorefSession,
     ItemBase,
@@ -91,14 +90,6 @@ class LayerAdmin(admin.ModelAdmin):
 
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(LayerV1, LayerAdmin)
-
-
-class DocumentLinkAdmin(admin.ModelAdmin):
-    list_display = ["pk", "source", "target", "link_type"]
-    list_filter = ("link_type",)
-
-
-admin.site.register(DocumentLink, DocumentLinkAdmin)
 
 
 class SessionLockAdmin(admin.ModelAdmin):
