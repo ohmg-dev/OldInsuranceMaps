@@ -14,10 +14,11 @@ from django.core.mail import send_mass_mail
 from django.utils import timezone
 
 from ohmg.core.models import (
+    Document,
     Region,
     Layer,
 )
-from ohmg.georeference.models import GCPGroup, Document
+from ohmg.georeference.models import GCPGroup
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.core.utils import (
