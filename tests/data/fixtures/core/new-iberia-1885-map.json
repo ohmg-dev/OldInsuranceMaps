@@ -7,7 +7,6 @@
     "title": "New Iberia, La. | 1885",
     "year": 1885,
     "month": 7,
-    "day": null,
     "creator": "Sanborn Map Company",
     "publisher": null,
     "volume_number": null,
@@ -33,8 +32,6 @@
         "page_number": "3"
       }
     ],
-    "document_lookup": {},
-    "layer_lookup": {},
     "item_lookup": {
       "nonmaps": [],
       "prepared": [],

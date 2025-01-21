@@ -22,7 +22,6 @@ from ohmg.core.utils import (
     copy_local_file_to_cache,
     convert_img_format,
     MONTH_CHOICES,
-    DAY_CHOICES,
 )
 from ohmg.core.storages import OverwriteStorage
 from ohmg.core.renderers import (
@@ -101,7 +100,6 @@ class Map(models.Model):
     title = models.CharField(max_length=200)
     year = models.IntegerField(blank=True, null=True)
     month = models.IntegerField(blank=True, null=True, choices=MONTH_CHOICES)
-    day = models.IntegerField(blank=True, null=True, choices=DAY_CHOICES)
     creator = models.CharField(
         max_length=200,
         null=True,
@@ -134,16 +132,6 @@ class Map(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     load_date = models.DateTimeField(null=True, blank=True)
     document_sources = models.JSONField(
-        null=True,
-        blank=True,
-        default=dict,
-    )
-    document_lookup = models.JSONField(
-        null=True,
-        blank=True,
-        default=dict,
-    )
-    layer_lookup = models.JSONField(
         null=True,
         blank=True,
         default=dict,
