@@ -616,13 +616,6 @@ class Region(models.Model):
             return None
 
     @property
-    def _base_urls(self):
-        return {
-            "thumbnail": self.thumbnail.url if self.thumbnail else "",
-            "image": self.file.url if self.file else "",
-        }
-
-    @property
     def lock(self):
         from ohmg.georeference.models import SessionLock
 
@@ -745,41 +738,6 @@ class Layer(models.Model):
             return locks[0]
         else:
             return None
-
-    @property
-    def urls(self):
-        urls = self._base_urls
-        doc = self.get_document()
-        urls.update(
-            {
-                "resource": f"/layer/{self.pk}",
-                # remove detail and progress_page urls once InfoPanel has been fully
-                # deprecated and volume summary has been updated.
-                # note the geonode: prefix is still necessary until non-geonode
-                # layer and document detail pages are created.
-                "detail": f"/layers/geonode:{self.slug}" if self.slug else "",
-                "progress_page": f"/layers/geonode:{self.pk}#georeference" if self.slug else "",
-                # redundant, I know, but a patch for now
-                "cog": settings.MEDIA_HOST.rstrip("/") + urls["image"],
-            }
-        )
-        if doc is not None:
-            urls.update(
-                {
-                    "georeference": doc.urls["georeference"],
-                    "document": doc.urls["image"],
-                }
-            )
-        return urls
-
-    def get_sessions(self, serialize=False):
-        return self.get_document().get_sessions(serialize=serialize)
-
-    def get_split_summary(self):
-        return self.get_document().get_split_summary()
-
-    def get_georeference_summary(self):
-        return self.get_document().get_georeference_summary()
 
     def set_thumbnail(self):
         if self.file is not None:
