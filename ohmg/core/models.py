@@ -45,6 +45,9 @@ logger = logging.getLogger(__name__)
 
 
 class MapGroup(models.Model):
+    class Meta:
+        verbose_name_plural = "      Map Groups"
+
     MAP_PREFIX_CHOICES = (
         ("volume", "volume"),
         ("part", "part"),
@@ -69,14 +72,14 @@ class MapGroup(models.Model):
         help_text="The preferred term for referring to maps within this map group.",
     )
 
-    class Meta:
-        verbose_name_plural = "Map Groups"
-
     def __str__(self):
         return self.title
 
 
 class Map(models.Model):
+    class Meta:
+        verbose_name_plural = "    Maps"
+
     STATUS_CHOICES = (
         ("not started", "not started"),
         ("initializing...", "initializing..."),
@@ -415,6 +418,9 @@ class Document(models.Model):
     """Documents are the individual source files that are directly attached to Maps.
     They represent pages in an atlas or even just a single scan of a map."""
 
+    class Meta:
+        verbose_name_plural = "   Documents"
+
     title = models.CharField(max_length=200, default="untitled document")
     nickname = models.CharField(max_length=200, null=True, blank=True)
     slug = models.SlugField(max_length=100)
@@ -554,6 +560,9 @@ class Document(models.Model):
 
 
 class Region(models.Model):
+    class Meta:
+        verbose_name_plural = "  Regions"
+
     title = models.CharField(max_length=200, default="untitled region")
     nickname = models.CharField(max_length=200, null=True, blank=True)
     slug = models.SlugField(max_length=100)
@@ -677,6 +686,9 @@ class Region(models.Model):
 
 
 class Layer(models.Model):
+    class Meta:
+        verbose_name_plural = " Layers"
+
     title = models.CharField(max_length=200, default="untitled layer")
     nickname = models.CharField(max_length=200, null=True, blank=True)
     slug = models.SlugField(max_length=100)
@@ -817,7 +829,7 @@ class Layer(models.Model):
 
 class LayerSetCategory(models.Model):
     class Meta:
-        verbose_name_plural = "LayerSet Categories"
+        verbose_name_plural = "Layer Set Categories"
 
     slug = models.CharField(max_length=50)
     description = models.CharField(max_length=200, null=True, blank=True)
@@ -829,7 +841,7 @@ class LayerSetCategory(models.Model):
 
 class LayerSet(models.Model):
     class Meta:
-        verbose_name_plural = "LayerSets"
+        verbose_name_plural = "Layer Sets"
 
     map = models.ForeignKey(
         Map,
