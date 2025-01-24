@@ -7,8 +7,7 @@ from django.conf import settings
 from django.test import TestCase, Client
 from django.core.management import call_command
 
-from ohmg.core.models import MapGroup, Map, Document, Region, Layer
-from ohmg.georeference.models import LayerSet
+from ohmg.core.models import MapGroup, Map, Document, Region, Layer, LayerSet
 
 
 def copy_files_to_media_root(file_paths: List[Path], sub_dir: str = ""):
@@ -26,10 +25,8 @@ class OHMGTestCase(TestCase):
 
         admin_user = DATA_DIR / "fixtures/auth/admin-user.json"
 
-        layerset_categories = Path("ohmg/georeference/fixtures/default-layerset-categories.json")
-        layerset_categories_sanborn = Path(
-            "ohmg/georeference/fixtures/sanborn-layerset-categories.json"
-        )
+        layerset_categories = Path("ohmg/core/fixtures/default-layerset-categories.json")
+        layerset_categories_sanborn = Path("ohmg/core/fixtures/sanborn-layerset-categories.json")
 
         new_iberia_place = DATA_DIR / "fixtures/places/new-iberia-la-and-parents.json"
 
@@ -43,7 +40,7 @@ class OHMGTestCase(TestCase):
         new_iberia_reg_2 = DATA_DIR / "fixtures/core/new-iberia-1885-reg-2.json"
         new_iberia_lyr = DATA_DIR / "fixtures/core/new-iberia-1885-lyr.json"
         new_iberia_main_layerset = (
-            DATA_DIR / "fixtures/georeference/new-iberia-1885-main-content-layerset.json"
+            DATA_DIR / "fixtures/core/new-iberia-1885-main-content-layerset.json"
         )
 
         prepsession_new_iberia_p1_split = (

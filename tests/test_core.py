@@ -13,6 +13,7 @@ from ohmg.core.models import (
     Document,
     Region,
     Layer,
+    LayerSet,
 )
 from ohmg.places.models import Place
 from ohmg.georeference.models import PrepSession, GeorefSession
@@ -268,6 +269,9 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
         layers = Layer.objects.filter(region=region)
         self.assertEqual(layers.count(), 1)
         layer = layers[0]
+
+        self.assertEqual(LayerSet.objects.all().count(), 1)
+        self.assertEqual(LayerSet.objects.all()[0], layer.layerset2)
 
         self.assertTrue(
             filecmp.cmp(self.Files.new_iberia_p1__1_lyr, layer.file.path, shallow=False)

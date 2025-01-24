@@ -1,6 +1,6 @@
 [
 {
-  "model": "georeference.layerset",
+  "model": "core.layerset",
   "pk": 1,
   "fields": {
     "map": "sanborn03375_001",
