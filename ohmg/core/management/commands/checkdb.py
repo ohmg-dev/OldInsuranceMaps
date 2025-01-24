@@ -1,8 +1,7 @@
 import copy
 from django.core.management.base import BaseCommand
 
-from ohmg.core.models import Layer
-from ohmg.georeference.models import LayerSet
+from ohmg.core.models import Layer, LayerSet
 
 
 class Command(BaseCommand):

@@ -233,7 +233,7 @@ class Map(models.Model):
             percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
 
         main_layerset = self.get_layerset("main-content")
-        main_lyrs_ct = main_layerset.layers.count()
+        main_lyrs_ct = main_layerset.layer_set.count()
         mm_ct, mm_todo, mm_percent = 0, 0, 0
         if main_lyrs_ct != 0:
             # make sure 0/0 appears at the very bottom, then 0/1, 0/2, etc.
@@ -271,8 +271,6 @@ class Map(models.Model):
             return None
 
     def get_layerset(self, cat_slug: str, create: bool = False):
-        from ohmg.georeference.models import LayerSet, LayerSetCategory
-
         try:
             layerset = LayerSet.objects.get(map=self, category__slug=cat_slug)
         except LayerSet.DoesNotExist:
@@ -766,21 +764,21 @@ class Layer(models.Model):
 
     def set_layerset(self, layerset):
         # if it's the same vrs then do nothing
-        if self.layerset == layerset:
+        if self.layerset2 == layerset:
             logger.debug(f"{self.pk} same as existing layerset, no action")
             return
 
         # make sure to clean up the existing multimask in the current vrs if necessary
-        if self.layerset:
-            if self.layerset.multimask and self.slug in self.layerset.multimask:
-                del self.layerset.multimask[self.slug]
-                self.layerset.save(update_fields=["multimask"])
+        if self.layerset2:
+            if self.layerset2.multimask and self.slug in self.layerset2.multimask:
+                del self.layerset2.multimask[self.slug]
+                self.layerset2.save(update_fields=["multimask"])
                 logger.warning(
-                    f"{self.pk} removed layer from existing multimask in layerset {self.layerset.pk}"
+                    f"{self.pk} removed layer from existing multimask in layerset {self.layerset2.pk}"
                 )
-        self.layerset = layerset
-        self.save(update_fields=["layerset"])
-        logger.info(f"{self.pk} added to layerset {self.layerset} ({self.layerset.pk})")
+        self.layerset2 = layerset
+        self.save(update_fields=["layerset2"])
+        logger.info(f"{self.pk} added to layerset {self.layerset2} ({self.layerset2.pk})")
 
         # little patch in here to make sure the new Map objects get added to the layerset,
         # before everything is shifted away from the Volume model

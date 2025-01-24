@@ -25,7 +25,6 @@ from ohmg.georeference.models import (
     SessionBase,
     PrepSession,
     GeorefSession,
-    LayerSet,
 )
 from ohmg.core.api.schemas import (
     DocumentFullSchema,
@@ -34,10 +33,11 @@ from ohmg.core.api.schemas import (
     RegionFullSchema,
 )
 from ohmg.core.models import (
-    Region,
-    Document,
-    Layer,
     Map,
+    Document,
+    Region,
+    Layer,
+    LayerSet,
 )
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
@@ -298,7 +298,7 @@ class LayerSetView(View):
                     layer.set_layerset(layerset)
                 except Exception as e:
                     logger.error(e)
-                    errors.append(e)
+                    errors.append(str(e))
 
             if errors:
                 return JsonResponseFail("; ".join(errors))
@@ -308,11 +308,11 @@ class LayerSetView(View):
         if operation == "check-for-existing-mask":
             r = get_object_or_404(Layer, pk=payload.get("resource-id"))
 
-            if r.layerset:
-                if not r.layerset.category.slug == payload.get("category"):
-                    if r.layerset.multimask and r.slug in r.layerset.multimask:
+            if r.layerset2:
+                if not r.layerset2.category.slug == payload.get("category"):
+                    if r.layerset2.multimask and r.slug in r.layerset2.multimask:
                         return JsonResponseFail(
-                            f"Layer already in {r.layerset.category} multimask.",
+                            f"Layer already in {r.layerset2.category} multimask.",
                             payload=payload,
                         )
 

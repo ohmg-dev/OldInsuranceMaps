@@ -45,8 +45,8 @@ def handle_layer_deletion(sender, instance, **kwargs):
         logger.warning(f"instance.region.gcp_group.delete(): {e}")
 
     # remove layer mask from layerset if present
-    if instance.layerset:
-        if instance.layerset.multimask:
-            if instance.slug in instance.layerset.multimask:
-                del instance.layerset.multimask[instance.slug]
-                instance.layerset.save()
+    if instance.layerset2:
+        if instance.layerset2.multimask:
+            if instance.slug in instance.layerset2.multimask:
+                del instance.layerset2.multimask[instance.slug]
+                instance.layerset2.save()

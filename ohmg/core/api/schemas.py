@@ -298,8 +298,8 @@ class LayerSchema(Schema):
 
     @staticmethod
     def resolve_mask(obj):
-        if obj.layerset and obj.layerset.multimask and obj.slug in obj.layerset.multimask:
-            return obj.layerset.multimask[obj.slug]
+        if obj.layerset2 and obj.layerset2.multimask and obj.slug in obj.layerset2.multimask:
+            return obj.layerset2.multimask[obj.slug]
         else:
             return None
 
@@ -360,8 +360,8 @@ class LayerFullSchema(Schema):
 
     @staticmethod
     def resolve_mask(obj):
-        if obj.layerset and obj.layerset.multimask and obj.slug in obj.layerset.multimask:
-            return obj.layerset.multimask[obj.slug]
+        if obj.layerset2 and obj.layerset2.multimask and obj.slug in obj.layerset2.multimask:
+            return obj.layerset2.multimask[obj.slug]
         else:
             return None
 
@@ -467,7 +467,7 @@ class LayerSetSchema(Schema):
 
     @staticmethod
     def resolve_layers(obj):
-        return natsorted(obj.layers.all(), key=lambda k: k.title)
+        return natsorted(obj.layer_set.all(), key=lambda k: k.title)
 
     @staticmethod
     def resolve_name(obj):

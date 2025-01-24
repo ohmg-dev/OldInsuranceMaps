@@ -530,11 +530,11 @@ class GeorefSession(SessionBase):
         self.lyr2 = layer
 
         # add the layer to the main-content LayerSet
-        layer.layerset = layer.map.get_layerset("main-content", create=True)
+        layer.layerset2 = layer.map.get_layerset("main-content", create=True)
         layer.save()
 
         # saving the layerset now will update its extent
-        layer.layerset.save()
+        layer.layerset2.save()
 
         self.reg2.georeferenced = True
         self.reg2.save()

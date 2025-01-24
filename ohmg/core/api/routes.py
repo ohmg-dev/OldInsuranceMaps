@@ -19,10 +19,10 @@ from ohmg.core.models import (
     Document,
     Region,
     Layer,
+    LayerSet,
 )
 from ohmg.georeference.models import (
     SessionBase,
-    LayerSet,
     SessionLock,
 )
 from ohmg.places.models import Place

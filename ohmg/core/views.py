@@ -49,7 +49,7 @@ class MapView(View):
 
         locale_json = PlaceFullSchema.from_orm(map.get_locale()).dict()
 
-        layersets = [LayerSetSchema.from_orm(i).dict() for i in map.layerset_old.all()]
+        layersets = [LayerSetSchema.from_orm(i).dict() for i in map.layerset_set.all()]
         layerset_categories = list(LayerSetCategory.objects.all().values("slug", "display_name"))
 
         users = get_user_model().objects.all()

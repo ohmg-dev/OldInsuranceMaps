@@ -72,12 +72,14 @@ class IIIFCanvasView(View):
     def get(self, request, mapid, layerset_category):
         ls = Map.objects.get(pk=mapid).get_layerset(layerset_category)
         print(ls)
-        print(ls.layers.all())
+        print(ls.layer_set.all())
         return JsonResponse(
             {
                 "id": full_reverse("iiif_canvas_view", args=(mapid, layerset_category)),
                 "type": "AnnotationPage",
                 "@context": "http://www.w3.org/ns/anno.jsonld",
-                "items": [region_as_iiif_resource(i) for i in [k.region for k in ls.layers.all()]],
+                "items": [
+                    region_as_iiif_resource(i) for i in [k.region for k in ls.layer_set.all()]
+                ],
             }
         )
