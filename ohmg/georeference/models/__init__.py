@@ -1,8 +1,6 @@
 # ruff: noqa: F401
 from .resources import GCP
 from .resources import GCPGroup
-from .resources import LayerSet
-from .resources import LayerSetCategory
 
 from .sessions import SessionBase
 from .sessions import PrepSession
