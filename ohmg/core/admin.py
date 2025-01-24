@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from ohmg.core.models import MapGroup, Map, Document, Region, Layer, LayerSet, LayerSetCategory
+from ohmg.core.models import MapGroup, Map, Document, Region, Layer, LayerSet
 
 
 class MapAdmin(admin.ModelAdmin):
@@ -48,4 +48,3 @@ class LayerSetAdmin(admin.ModelAdmin):
 
 
 admin.site.register(LayerSet, LayerSetAdmin)
-admin.site.register(LayerSetCategory)
