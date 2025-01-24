@@ -1,6 +1,6 @@
 [
   {
-    "model": "georeference.layersetcategory",
+    "model": "core.layersetcategory",
     "pk": 1,
     "fields": {
       "slug": "main-content",
