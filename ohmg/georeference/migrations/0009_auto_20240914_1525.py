@@ -2,7 +2,7 @@
 
 import django.contrib.postgres.fields
 from django.db import migrations, models
-import ohmg.georeference.models.sessions
+import ohmg.georeference.models
 
 
 class Migration(migrations.Migration):
@@ -20,6 +20,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='sessionlock',
             name='expiration',
-            field=models.DateTimeField(default=ohmg.georeference.models.sessions.default_expiration_time),
+            field=models.DateTimeField(default=ohmg.georeference.models.default_expiration_time),
         ),
     ]

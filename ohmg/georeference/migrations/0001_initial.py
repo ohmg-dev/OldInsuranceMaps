@@ -5,7 +5,7 @@ import django.contrib.gis.db.models.fields
 from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
-import ohmg.georeference.models.resources
+import ohmg.georeference.models
 import ohmg.georeference.storage
 import uuid
 
@@ -67,7 +67,7 @@ class Migration(migrations.Migration):
                 ('share_count', models.IntegerField(default=0)),
                 ('created', models.DateTimeField(auto_now_add=True, null=True)),
                 ('last_updated', models.DateTimeField(auto_now=True, null=True)),
-                ('file', models.FileField(blank=True, max_length=255, null=True, storage=ohmg.georeference.storage.OverwriteStorage(), upload_to=ohmg.georeference.models.resources.set_upload_location)),
+                ('file', models.FileField(blank=True, max_length=255, null=True, storage=ohmg.georeference.storage.OverwriteStorage(), upload_to=ohmg.georeference.models.set_upload_location)),
                 ('thumbnail', models.FileField(blank=True, max_length=255, null=True, storage=ohmg.georeference.storage.OverwriteStorage(), upload_to='thumbnails')),
                 ('lock_enabled', models.BooleanField(default=False)),
                 ('lock_details', models.JSONField(blank=True, null=True)),
