@@ -5,8 +5,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
-from ohmg.georeference.models import LayerSet
-from ohmg.core.models import Map, Document, Region, Layer
+from ohmg.core.models import Map, Document, Region, Layer, LayerSet
 
 
 class Command(BaseCommand):
@@ -19,9 +18,11 @@ class Command(BaseCommand):
                 "backfill-document-sources",
                 "resave-content",
                 "clean-uploaded-files",
+                "copy-layersets",
             ],
             help="Choose what operation to run.",
         )
+        parser.add_argument("--reset", action="store_true")
 
     def handle(self, *args, **options):
         ## 11/20/2024 this operation created to update all existing Map.document_sources fields
@@ -143,3 +144,52 @@ class Command(BaseCommand):
 
             for rm in rm_paths:
                 os.remove(rm)
+
+        ## Jan 23rd, 2025, created during migration of LayerSet from georeference to core app.
+        if options["operation"] == "copy-layersets":
+            from ohmg.core.models import (
+                LayerSet as NewLayerSet,
+                LayerSetCategory as NewLayerSetCategory,
+            )
+            from ohmg.georeference.models import (
+                LayerSet as OldLayerSet,
+                LayerSetCategory as OldLayerSetCategory,
+            )
+
+            if options["reset"]:
+                NewLayerSet.objects.all().delete()
+                NewLayerSetCategory.objects.all().delete()
+
+            cat_lookup = {}
+            for lsc_old in OldLayerSetCategory.objects.all():
+                lsc, created = NewLayerSetCategory.objects.get_or_create(pk=lsc_old.pk)
+                lsc.slug = lsc_old.slug
+                lsc.description = lsc_old.description
+                lsc.display_name = lsc_old.display_name
+                lsc.save()
+                cat_lookup[lsc.pk] = lsc
+
+            ls_lookup = {}
+            ct = OldLayerSet.objects.all().count()
+            for n, ls_old in enumerate(OldLayerSet.objects.all()):
+                ls, created = NewLayerSet.objects.get_or_create(pk=ls_old.pk)
+                ls.map = ls_old.map
+                ls.category = cat_lookup[ls_old.category.pk]
+                ls.multimask = ls_old.multimask
+                ls.mosaic_geotiff = ls_old.mosaic_geotiff
+                ls.mosaic_json = ls_old.mosaic_json
+                ls.extent = ls_old.extent
+                ls.save()
+                ls_lookup[ls.pk] = ls
+                if n % 100 == 0:
+                    print(f"{n}/{ct}")
+
+            ct = Layer.objects.all().count()
+            for n, layer in enumerate(Layer.objects.all()):
+                if not layer.layerset:
+                    print(layer)
+                    continue
+                layer.layerset2 = ls_lookup[layer.layerset.pk]
+                layer.save(skip_map_lookup_update=True)
+                if n % 1000 == 0:
+                    print(f"{n}/{ct}")
