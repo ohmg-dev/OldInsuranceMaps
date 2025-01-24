@@ -24,7 +24,7 @@ class RegionAdmin(admin.ModelAdmin):
 
 class LayerAdmin(admin.ModelAdmin):
     search_fields = ("title",)
-    raw_id_fields = ("region", "layerset", "layerset2")
+    raw_id_fields = ("region", "layerset2")
     readonly_fields = ("title",)
 
 

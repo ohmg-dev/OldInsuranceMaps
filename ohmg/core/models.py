@@ -732,13 +732,6 @@ class Layer(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
-    layerset = models.ForeignKey(
-        "georeference.LayerSet",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="layers",
-    )
     layerset2 = models.ForeignKey(
         "core.LayerSet",
         null=True,
