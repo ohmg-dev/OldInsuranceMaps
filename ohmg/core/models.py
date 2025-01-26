@@ -768,22 +768,33 @@ class Layer(models.Model):
             self.thumbnail.save(tname, ContentFile(content))
 
     def set_layerset(self, layerset):
-        # if it's the same vrs then do nothing
+        # if it's the same LayerSet then do nothing
         if self.layerset2 == layerset:
-            logger.debug(f"{self.pk} same as existing layerset, no action")
+            logger.debug(
+                f"Layer {self.pk} already in LayerSet {layerset} ({layerset.pk}), no action"
+            )
             return
 
         # make sure to clean up the existing multimask in the current vrs if necessary
-        if self.layerset2:
-            if self.layerset2.multimask and self.slug in self.layerset2.multimask:
-                del self.layerset2.multimask[self.slug]
-                self.layerset2.save(update_fields=["multimask"])
-                logger.warning(
-                    f"{self.pk} removed layer from existing multimask in layerset {self.layerset2.pk}"
+        existing_obj = LayerSet.objects.get(pk=self.layerset2.pk) if self.layerset2 else None
+        delete_existing = False
+        if existing_obj:
+            if existing_obj.multimask and self.slug in existing_obj.multimask:
+                del existing_obj.multimask[self.slug]
+                existing_obj.save(update_fields=["multimask"])
+                logger.info(
+                    f"Layer {self.pk} removed from existing multimask in LayerSet {existing_obj.pk}"
                 )
+            if existing_obj.layer_set.all().count() == 1:
+                delete_existing = True
         self.layerset2 = layerset
         self.save(update_fields=["layerset2"])
-        logger.info(f"{self.pk} added to layerset {self.layerset2} ({self.layerset2.pk})")
+        logger.info(f"Layer {self.pk} added to LayerSet {self.layerset2} ({self.layerset2.pk})")
+
+        if delete_existing:
+            msg = f"Emptied LayerSet {existing_obj} ({existing_obj.pk}) deleted"
+            existing_obj.delete()
+            logger.info(msg)
 
         # little patch in here to make sure the new Map objects get added to the layerset,
         # before everything is shifted away from the Volume model
