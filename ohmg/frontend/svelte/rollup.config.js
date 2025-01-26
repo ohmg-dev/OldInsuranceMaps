@@ -32,7 +32,7 @@ function serve() {
 
 function componentExportDetails(componentName) {
 	return {
-    input: `src/bundles/${componentName.toLowerCase()}.js`,
+    input: `src/components/${componentName.toLowerCase()}.js`,
 		output: {
 			sourcemap: true,
 			format: 'iife',
@@ -48,17 +48,14 @@ function componentExportDetails(componentName) {
 				 *
 				 * By doing that this plugin can read different kind of files.
 				 */
-				entries: [{
-						find: "@src",
+				entries: [
+					{
+						find: "@",
 						replacement: path.resolve(__dirname, "src"),
 					},
 					{
 						find: "@lib",
 						replacement: path.resolve(__dirname, "src/lib"),
-					},
-					{
-						find: "@components",
-						replacement: path.resolve(__dirname, "src/components"),
 					},
 				],
 			}),
@@ -115,8 +112,8 @@ function componentExportDetails(componentName) {
 
 let exportable = [];
 
-// Add exportables here. These must match a lowercase file in ./src
-// e.g. ./src/main.js
+// Add exportables here. These must match a lowercase file in ./src/components
+// e.g. ./src/components/main.js
 [
 	"Index",
 	"Georeference",
