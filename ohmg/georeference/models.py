@@ -1,14 +1,18 @@
 import os
+import uuid
+import json
 from datetime import timedelta
 import logging
 from typing import Union
 from pathlib import Path
+from osgeo import gdal
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, Point
 from django.core.files import File
 from django.core.mail import send_mass_mail
 from django.utils import timezone
@@ -18,7 +22,6 @@ from ohmg.core.models import (
     Region,
     Layer,
 )
-from ohmg.georeference.models import GCPGroup
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
 from ohmg.core.utils import (
@@ -28,6 +31,175 @@ from ohmg.core.utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class GCP(models.Model):
+    class Meta:
+        verbose_name = "GCP"
+        verbose_name_plural = "GCPs"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    pixel_x = models.IntegerField(null=True, blank=True)
+    pixel_y = models.IntegerField(null=True, blank=True)
+    geom = models.PointField(null=True, blank=True, srid=4326)
+    note = models.CharField(null=True, blank=True, max_length=255)
+    gcp_group = models.ForeignKey("GCPGroup", on_delete=models.CASCADE)
+
+    created = models.DateTimeField(auto_now_add=True, editable=False, null=False, blank=False)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        related_name="created_by",
+        on_delete=models.CASCADE,
+    )
+    last_modified = models.DateTimeField(auto_now=True, editable=False, null=False, blank=False)
+    last_modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        related_name="modified_by",
+        on_delete=models.CASCADE,
+    )
+
+
+class GCPGroup(models.Model):
+    TRANSFORMATION_CHOICES = (
+        ("tps", "tps"),
+        ("poly1", "poly1"),
+        ("poly2", "poly2"),
+        ("poly3", "poly3"),
+    )
+
+    class Meta:
+        verbose_name = "GCP Group"
+        verbose_name_plural = "GCP Groups"
+
+    crs_epsg = models.IntegerField(null=True, blank=True)
+    transformation = models.CharField(
+        null=True,
+        blank=True,
+        choices=TRANSFORMATION_CHOICES,
+        max_length=20,
+    )
+
+    def __str__(self):
+        if self.doc:
+            return self.doc.title
+        else:
+            return str(self.pk)
+
+    @property
+    def gcps(self):
+        return GCP.objects.filter(gcp_group=self)
+
+    @property
+    def gdal_gcps(self):
+        gcp_list = []
+        for gcp in self.gcps:
+            geom = gcp.geom.clone()
+            geom.transform(self.crs_epsg)
+            p = gdal.GCP(geom.x, geom.y, 0, gcp.pixel_x, gcp.pixel_y)
+            gcp_list.append(p)
+        return gcp_list
+
+    @property
+    def as_geojson(self):
+        geo_json = {"type": "FeatureCollection", "features": []}
+
+        for gcp in self.gcps:
+            coords = json.loads(gcp.geom.geojson)["coordinates"]
+            newcoords = [coords[1], coords[0]]
+            # see note on this variable in settings.py
+            if settings.SWAP_COORDINATE_ORDER is True:
+                newcoords = coords
+            geo_json["features"].append(
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "id": str(gcp.pk),
+                        "image": [gcp.pixel_x, gcp.pixel_y],
+                        "username": gcp.last_modified_by.username,
+                        "note": gcp.note,
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": newcoords,
+                    },
+                }
+            )
+        return geo_json
+
+    def as_points_file(self):
+        content = "mapX,mapY,pixelX,pixelY,enable\n"
+        for gcp in self.gcps:
+            geom = gcp.geom.clone()
+            geom.transform(self.crs_epsg)
+            # pixel_y must be inverted b/c qgis puts origin at top left corner
+            content += f"{geom.x},{geom.y},{gcp.pixel_x},-{gcp.pixel_y},1\n"
+
+        return content
+
+    def save_from_geojson(self, geojson, region, transformation=None):
+        group = region.gcp_group if region.gcp_group else GCPGroup.objects.create()
+
+        group.crs_epsg = 3857  # don't see this changing any time soon...
+        group.transformation = transformation
+        group.save()
+
+        gcps_new, gcps_mod, gcps_del = 0, 0, 0
+
+        # first remove any existing gcps that have been deleted
+        for gcp in group.gcps:
+            if str(gcp.id) not in [i["properties"].get("id") for i in geojson["features"]]:
+                gcps_del += 0
+                gcp.delete()
+
+        for feature in geojson["features"]:
+            id = feature["properties"].get("id", str(uuid.uuid4()))
+            username = feature["properties"].get("username")
+            user = get_user_model().objects.get(username=username)
+            gcp, created = GCP.objects.get_or_create(
+                id=id, defaults={"gcp_group": group, "created_by": user}
+            )
+            if created:
+                gcps_new += 1
+
+            pixel_x = feature["properties"]["image"][0]
+            pixel_y = feature["properties"]["image"][1]
+            new_pixel = (pixel_x, pixel_y)
+            old_pixel = (gcp.pixel_x, gcp.pixel_y)
+            lng = feature["geometry"]["coordinates"][0]
+            lat = feature["geometry"]["coordinates"][1]
+
+            new_geom = Point(lat, lng, srid=4326)
+
+            # only update the point if one of its coordinate pairs have changed,
+            # this also triggered when new GCPs have None for pixels and geom.
+            if (
+                new_pixel != old_pixel
+                or not new_geom.equals(gcp.geom)
+                or gcp.note != feature["properties"]["note"]
+            ):
+                gcp.note = feature["properties"]["note"]
+                gcp.pixel_x = new_pixel[0]
+                gcp.pixel_y = new_pixel[1]
+                gcp.geom = new_geom
+                gcp.last_modified_by = user
+                gcp.save()
+                if not created:
+                    gcps_mod += 1
+        gcps_ct = len(geojson["features"])
+        logger.info(
+            f"GCPGroup {group.pk} | GCPs ct: {gcps_ct}, new: {gcps_new}, mod: {gcps_mod}, del: {gcps_del}"
+        )
+        group.save()
+        return group
+
+
+def set_upload_location(instance, filename):
+    """this function has to return the location to upload the file"""
+    return os.path.join(f"{instance.type}s", filename)
 
 
 def delete_expired_session_locks():

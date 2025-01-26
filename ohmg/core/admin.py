@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from ohmg.core.models import MapGroup, Map, Document, Region, Layer, LayerSet, LayerSetCategory
+from ohmg.core.models import MapGroup, Map, Document, Region, Layer, LayerSet
 
 
 class MapAdmin(admin.ModelAdmin):
@@ -24,7 +24,7 @@ class RegionAdmin(admin.ModelAdmin):
 
 class LayerAdmin(admin.ModelAdmin):
     search_fields = ("title",)
-    raw_id_fields = ("region", "layerset", "layerset2")
+    raw_id_fields = ("region", "layerset2")
     readonly_fields = ("title",)
 
 
@@ -48,4 +48,3 @@ class LayerSetAdmin(admin.ModelAdmin):
 
 
 admin.site.register(LayerSet, LayerSetAdmin)
-admin.site.register(LayerSetCategory)
