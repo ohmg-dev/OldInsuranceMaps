@@ -57,6 +57,8 @@ import ExtendSessionModal from "./modals/ExtendSessionModal.svelte";
 
 import { MapViewer } from "@lib/viewers";
 
+import {parcelLookup} from "@lib/parcelLookup";
+
 export let CONTEXT;
 export let REGION;
 export let MAP;
@@ -98,7 +100,6 @@ let showLoading;
 let currentBasemap;
 let currentZoom;
 
-let PmTilesUrl = MAP.locale.slug == 'san-francisco-ca' ? "https://oldinsurancemaps.net/uploaded/sf_parcels.pmtiles" : null;
 let enableSnapLayer = false;
 
 let defaultExtent;
@@ -294,12 +295,13 @@ $: {
 }
 
 // SNAP LAYER STUFF
-
-const pmLayer = PmTilesUrl ? makePmTilesLayer(
-    PmTilesUrl,
-    "<a target='_blank' href='https://data.sfgov.org/Geographic-Locations-and-Boundaries/Parcels-Active-and-Retired/acdm-wktn/about_data'>City and County of San Francisco</a>",
-    styles.redOutline
-  ) : null
+const parcelEntry = parcelLookup[MAP.locale.slug]
+console.log(parcelEntry)
+const pmLayer = parcelEntry ? makePmTilesLayer(
+  parcelEntry.pmtilesUrl,
+  `<a target="_blank" href="${parcelEntry.attributionUrl}">${parcelEntry.attributionText}</a>`,
+  styles.redOutline
+) : null
 const snapSource = new VectorSource({
   overlaps: false,
 })
@@ -401,7 +403,7 @@ onMount(() => {
   mapViewer.addControl(new MapScaleLine())
 
   // create interactions
-  const mapDrawGCPStyle = PmTilesUrl ? styles.smallCross : styles.empty
+  const mapDrawGCPStyle = pmLayer ? styles.smallCross : styles.empty
   mapViewer.addInteraction('draw', makeDrawInteraction(mapGCPSource, null, mapDrawGCPStyle))
   mapViewer.addInteraction('modify', makeModifyInteraction(mapGCPSource, mapViewer.element))
 
@@ -935,7 +937,7 @@ function handleExtendSession(response) {
         {/each}
       </select>
     </label>
-    {#if PmTilesUrl}
+    {#if pmLayer}
     <label class="checkbox">
       Snap to Parcels
       <input type="checkbox" bind:checked={enableSnapLayer} disabled={currentZoom<=17} />
