@@ -62,31 +62,29 @@
 	}
 
 	let layers = LAYERSETS.map((ls) => {
-		if (ls.layers.length > 0) {
-			const layerGroup = makeLayerGroupFromLayerSet({
-				layerSet: ls,
-				zIndex: zIndexLookup[ls.id],
-				titilerHost: CONTEXT.titiler_host,
-				applyMultiMask: true,
-			})
-			let extent3857;
-			if (ls.extent) {
-				extent3857 = transformExtent(ls.extent, "EPSG:4326", "EPSG:3857")
-				extend(fullExtent, extent3857)
-			}
-			const setDef = {
-				id: ls.id,
-				name: ls.name,
-				layerGroup: layerGroup,
-				sortOrder: zIndexLookup[ls.id],
-				opacity: 100,
-				layerCt: ls.layers.length,
-				extent: extent3857
-			}
-			layerSets[ls.id] = setDef
-			layerSetList.push(ls.id)
-			return layerGroup
+		const layerGroup = makeLayerGroupFromLayerSet({
+			layerSet: ls,
+			zIndex: zIndexLookup[ls.id],
+			titilerHost: CONTEXT.titiler_host,
+			applyMultiMask: true,
+		})
+		let extent3857;
+		if (ls.extent) {
+			extent3857 = transformExtent(ls.extent, "EPSG:4326", "EPSG:3857")
+			extend(fullExtent, extent3857)
 		}
+		const setDef = {
+			id: ls.id,
+			name: ls.name,
+			layerGroup: layerGroup,
+			sortOrder: zIndexLookup[ls.id],
+			opacity: 100,
+			layerCt: ls.layers.length,
+			extent: extent3857
+		}
+		layerSets[ls.id] = setDef
+		layerSetList.push(ls.id)
+		return layerGroup
 	})
 	layers = layers.filter(item => item);
 	layers.sort((a, b) => zIndexLookup[a.id] - zIndexLookup[b.id]);

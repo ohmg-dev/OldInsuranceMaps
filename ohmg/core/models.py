@@ -212,9 +212,12 @@ class Map(models.Model):
 
     @property
     def extent(self):
-        ls = self.get_layerset("main-content")
-        if ls:
-            return ls.extent
+        layerset_extents = []
+        for ls in self.layerset_set.all():
+            poly = Polygon().from_bbox(ls.extent)
+            layerset_extents.append(poly)
+        if layerset_extents:
+            return MultiPolygon(layerset_extents).extent
         else:
             return None
 
