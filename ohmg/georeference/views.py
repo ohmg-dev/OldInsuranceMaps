@@ -134,9 +134,10 @@ class GeoreferenceView(View):
 
         map_json = MapFullSchema.from_orm(region.map).dict()
 
-        main_layerset = LayerSetSchema.from_orm(
-            region.document.map.get_layerset("main-content")
-        ).dict()
+        main_layerset = None
+        mc = region.document.map.get_layerset("main-content")
+        if mc:
+            main_layerset = LayerSetSchema.from_orm(mc).dict()
         keymap_layerset = None
         akm = region.document.map.get_layerset("key-map")
         if akm:

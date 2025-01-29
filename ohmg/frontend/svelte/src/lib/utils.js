@@ -157,6 +157,7 @@ export function makeLayerGroupFromLayerSet (options) {
 	// }
 
 	const lyrGroup = new LayerGroup();
+	if (!options.layerSet) {return lyrGroup}
 	options.layerSet.layers.forEach( function(layer) {
 		if (layer.slug != options.excludeLayerId && layer.extent) {
 

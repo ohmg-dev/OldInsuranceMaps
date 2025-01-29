@@ -50,3 +50,8 @@ def handle_layer_deletion(sender, instance, **kwargs):
             if instance.slug in instance.layerset2.multimask:
                 del instance.layerset2.multimask[instance.slug]
                 instance.layerset2.save()
+
+    # remove layerset if this was the last layer attached to it
+    if instance.layerset2:
+        if instance.layerset2.layer_set.all().count() == 0:
+            instance.layerset2.delete()
