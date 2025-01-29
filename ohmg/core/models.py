@@ -214,8 +214,9 @@ class Map(models.Model):
     def extent(self):
         layerset_extents = []
         for ls in self.layerset_set.all():
-            poly = Polygon().from_bbox(ls.extent)
-            layerset_extents.append(poly)
+            if ls.extent:
+                poly = Polygon().from_bbox(ls.extent)
+                layerset_extents.append(poly)
         if layerset_extents:
             return MultiPolygon(layerset_extents).extent
         else:
