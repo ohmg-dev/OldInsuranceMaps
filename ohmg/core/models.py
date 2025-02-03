@@ -2,7 +2,6 @@ import os
 import glob
 import json
 import logging
-from itertools import chain
 from datetime import datetime
 from pathlib import Path
 
@@ -192,24 +191,6 @@ class Map(models.Model):
     def layers(self):
         return Layer.objects.filter(region__in=self.regions).order_by("title")
 
-    @cached_property
-    def prep_sessions(self):
-        from ohmg.georeference.models.sessions import PrepSession
-
-        sessions = []
-        for document in self.documents:
-            sessions = list(chain(sessions, PrepSession.objects.filter(doc=document)))
-        return sessions
-
-    @cached_property
-    def georef_sessions(self):
-        from ohmg.georeference.models.sessions import GeorefSession
-
-        sessions = []
-        for doc in self.get_all_docs():
-            sessions += list(chain(sessions, GeorefSession.objects.filter(doc=doc)))
-        return sessions
-
     @property
     def extent(self):
         layerset_extents = []
@@ -224,11 +205,20 @@ class Map(models.Model):
 
     @property
     def gt_exists(self):
-        return True if self.get_layerset("main-content").mosaic_geotiff else False
+        return (
+            True
+            if self.get_layerset("main-content")
+            and self.get_layerset("main-content").mosaic_geotiff
+            else False
+        )
 
     @property
     def mj_exists(self):
-        return True if self.get_layerset("main-content").mosaic_json else False
+        return (
+            True
+            if self.get_layerset("main-content") and self.get_layerset("main-content").mosaic_json
+            else False
+        )
 
     @property
     def stats(self):
@@ -240,13 +230,16 @@ class Map(models.Model):
             percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
 
         main_layerset = self.get_layerset("main-content")
-        main_lyrs_ct = main_layerset.layer_set.count()
+        if main_layerset:
+            main_lyrs_ct = main_layerset.layer_set.count()
+        else:
+            main_lyrs_ct = 0
         mm_ct, mm_todo, mm_percent = 0, 0, 0
         if main_lyrs_ct != 0:
             # make sure 0/0 appears at the very bottom, then 0/1, 0/2, etc.
             mm_percent = main_lyrs_ct * 0.000001
         mm_display = f"0/{main_lyrs_ct}"
-        if main_layerset.multimask is not None:
+        if main_layerset and main_layerset.multimask is not None:
             mm_ct = len(main_layerset.multimask)
             mm_todo = main_lyrs_ct - mm_ct
             if mm_ct > 0 and main_lyrs_ct > 0:

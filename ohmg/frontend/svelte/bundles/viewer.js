@@ -1,4 +1,4 @@
-import Viewer from './Viewer.svelte';
+import Viewer from '@/components/Viewer.svelte';
 
 const viewer = new Viewer({
 	target: document.getElementById("viewer-target"),
