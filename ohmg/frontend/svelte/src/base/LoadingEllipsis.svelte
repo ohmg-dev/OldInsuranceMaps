@@ -1,4 +1,13 @@
-<div class='lds-ellipsis'><div></div><div></div><div></div><div></div></div>
+<script>
+    export let color = "black";
+</script>
+
+<div class='lds-ellipsis'>
+    <div style:background={color}></div>
+    <div style:background={color}></div>
+    <div style:background={color}></div>
+    <div style:background={color}></div>
+</div>
 <style>
     /* pure css loading bar */
     /* from https://loading.io/css/ */
@@ -15,7 +24,6 @@
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: #000;
         animation-timing-function: cubic-bezier(0, 1, 1, 0);
     }
     .lds-ellipsis div:nth-child(1) {
