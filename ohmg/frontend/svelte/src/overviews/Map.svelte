@@ -188,7 +188,9 @@
 		})
 		.then(response => response.json())
 		.then(result => {
-			previewRefreshable = MAP.item_lookup.georeferenced.length != result.item_lookup.georeferenced.length
+			if (!previewRefreshable) {
+				previewRefreshable = MAP.item_lookup.georeferenced.length != result.item_lookup.georeferenced.length
+			}
 			MAP = result;
 			processing = false
 		});
