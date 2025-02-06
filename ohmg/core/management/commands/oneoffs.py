@@ -5,7 +5,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
-from ohmg.core.models import Map, Document, Region, Layer, LayerSet
+from ohmg.core.models import Map, Document, Region, Layer
 
 
 class Command(BaseCommand):
@@ -19,6 +19,7 @@ class Command(BaseCommand):
                 "resave-content",
                 "clean-uploaded-files",
                 "copy-layersets",
+                "update-main-content-pk",
             ],
             help="Choose what operation to run.",
         )
@@ -71,6 +72,8 @@ class Command(BaseCommand):
         ## generally helpful operation during development to go though and run
         ## save() on all objects in the core data model
         if options["operation"] == "resave-content":
+            from ohmg.core.models import LayerSet
+
             maps = Map.objects.all()
             maps_ct = maps.count()
             for n, map in enumerate(maps, start=1):
@@ -193,3 +196,34 @@ class Command(BaseCommand):
                 layer.save(skip_map_lookup_update=True)
                 if n % 1000 == 0:
                     print(f"{n}/{ct}")
+
+        ## Feb 5th, 2025, replacing the existing main-content layerset
+        ## category with a duplicate that has pk=1 (because current pk=0
+        ## is invalid)
+        if options["operation"] == "update-main-content-pk":
+            from ohmg.core.models import LayerSet, LayerSetCategory
+
+            ## 1. create the new category with the correct pk
+            ls_main_cat = LayerSetCategory.objects.create(
+                pk=1, slug="new-main-content", display_name="Main Content"
+            )
+
+            ## 2. update all existing main content layersets to use the
+            ## new category
+            all_main_ls = LayerSet.objects.filter(category__pk=0)
+            for ls in all_main_ls:
+                ls.category = ls_main_cat
+            LayerSet.objects.bulk_update(all_main_ls, ["category"])
+
+            ## 3. Delete the now unused original Main Content category
+            matching = LayerSet.objects.filter(category__slug="main-content")
+            print(len(matching))
+            if matching.exists():
+                raise Exception("there should not be any LS with this category...")
+
+            old_main = LayerSetCategory.objects.get(slug="main-content")
+            old_main.delete()
+
+            ## 4. now rename the new category to have the proper slug
+            ls_main_cat.slug = "main-content"
+            ls_main_cat.save()
