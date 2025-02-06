@@ -83,6 +83,8 @@ INSTALLED_APPS = [
     "ohmg.iiif",
 ]
 
+GRAPPELLI_ADMIN_TITLE = "OHMG"
+
 MARKDOWNX_IMAGE_MAX_SIZE = {"size": (800, 0), "quality": 90}
 
 PASSWORD_HASHERS = [
