@@ -1,6 +1,6 @@
 from argparse import Namespace
 from django.core.management.base import BaseCommand
-from ohmg.georeference.models import LayerSet
+from ohmg.core.models import LayerSet
 
 
 class Command(BaseCommand):
