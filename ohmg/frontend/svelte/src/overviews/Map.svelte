@@ -188,12 +188,8 @@
 		})
 		.then(response => response.json())
 		.then(result => {
-			if (
-				MAP.item_lookup.unprepared.length != result.item_lookup.unprepared.length ||
-				MAP.item_lookup.prepared.length != result.item_lookup.prepared.length ||
-				MAP.item_lookup.georeferenced.length != result.item_lookup.georeferenced.length
-			) {
-				fetchLayerSets();
+			if (!previewRefreshable) {
+				previewRefreshable = MAP.item_lookup.georeferenced.length != result.item_lookup.georeferenced.length
 			}
 			MAP = result;
 			processing = false
@@ -269,18 +265,18 @@
 		)
 	}
 
-	function fetchLayerSetsIfSuccess(response) {
-		if (response.success) { fetchLayerSets() } else { alert(response.message) }
-		processing = false
-	}
-	function updateLayerSets() {
+	function submitClassifiedLayers() {
 		processing = true;
 		submitPostRequest(
 			`/layerset/`,
 			CONTEXT.ohmg_post_headers,
 			"bulk-classify-layers",
 			{"map-id": MAP.identifier, "update-list": Object.entries(layersToUpdate)},
-			fetchLayerSetsIfSuccess,
+			(response) => {
+				if (!response.success) { alert(response.message) }
+				previewRefreshable = true;
+				processing = false;
+			}
 		)
 	}
 
@@ -320,6 +316,8 @@
 	let undoGeorefLayerId;
 
 	let processing = false;
+
+	let previewRefreshable = false;
 
 </script>
 
@@ -391,9 +389,7 @@
 		</div>
 		{#if sectionVis['preview']}
 		<div class="section-content" transition:slide>
-			{#key previewKey}
-				<MapPreview {CONTEXT} {LAYERSETS} />
-			{/key}
+			<MapPreview {CONTEXT} mapId={MAP.identifier} mapExtent={MAP.extent} bind:refreshable={previewRefreshable} />
 		</div>
 		{/if}
 	</section>
@@ -601,7 +597,7 @@
 						{#if classifyingLayers}
 						<button class="button is-success"
 							disabled={Object.keys(layersToUpdate).length === 0} on:click={() => {
-							updateLayerSets();
+							submitClassifiedLayers();
 							classifyingLayers = false;
 							layersToUpdate = {};
 							reinitMultimask();

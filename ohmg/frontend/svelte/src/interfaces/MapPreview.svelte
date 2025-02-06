@@ -11,10 +11,11 @@
 	import ToolUIButton from "@/base/ToolUIButton.svelte";
 	import {getModal} from "@/base/Modal.svelte";
 
-	import ExpandElement from "./buttons/ExpandElement.svelte"
-	import MapboxLogoLink from "./buttons/MapboxLogoLink.svelte"
+	import ExpandElement from "./buttons/ExpandElement.svelte";
+	import MapboxLogoLink from "./buttons/MapboxLogoLink.svelte";
+	import RefreshMapButton from './buttons/RefreshMapButton.svelte';
 
-	import LegendModal from "./modals/LegendModal.svelte"
+	import LegendModal from "./modals/LegendModal.svelte";
 
 	import {createEmpty, extend} from 'ol/extent';
 	import {transformExtent} from 'ol/proj';
@@ -25,15 +26,63 @@
     import TransparencySlider from './buttons/TransparencySlider.svelte';
 
 	export let CONTEXT;
-	export let LAYERSETS;
+	export let mapId;
+	export let mapExtent;
+	export let refreshable = false;
 
 	let mapViewer;
 	let currentZoom;
 
+	const mapExtent3857 = transformExtent(mapExtent, "EPSG:4326", "EPSG:3857")
+
 	let currentBasemap = 'satellite';
-	const fullExtent = createEmpty();
-	const layerSets = {};
-	let layerSetList = [];
+	let layerSetLookup = new Object ();
+
+	const zIndexLookup = {
+		"graphic-map-of-volumes": 10,
+		"key-map": 15,
+		"congested-district-map": 20,
+		"skeleton-map": 23,
+		"main-content": 25,
+	}
+
+	$: layerIdList = Object.keys(layerSetLookup).sort((a, b) => zIndexLookup[a] - zIndexLookup[b])
+
+	function updateLayersets(layerSets) {
+		const newExtent = createEmpty();
+		const newLookup = {};
+		layerSets.forEach((ls) => {
+			let extent3857;
+			if (ls.extent) {
+				extent3857 = transformExtent(ls.extent, "EPSG:4326", "EPSG:3857")
+				extend(newExtent, extent3857)
+			}
+			const setDef = {
+				id: ls.id,
+				name: ls.name,
+				layerGroup: makeLayerGroupFromLayerSet({
+					layerSet: ls,
+					zIndex: zIndexLookup[ls.id],
+					titilerHost: CONTEXT.titiler_host,
+					applyMultiMask: true,
+				}),
+				opacity: 100,
+				layerCt: ls.layers.length,
+				extent: extent3857
+			}
+			newLookup[ls.id] = setDef
+		})
+		layerSetLookup = newLookup;
+		updateMapViewer()
+		mapViewer.setDefaultExtent(newExtent)
+	}
+
+	function updateMapViewer() {
+		mapViewer.clearNonBasemapLayers()
+		for (const [key, value] of Object.entries(layerSetLookup)) {
+			mapViewer.addLayer(value.layerGroup);
+		}
+	}
 
 	function setVisibility(group, vis) {
 		if (vis == 0) {
@@ -44,15 +93,8 @@
 		}
 	}
 
-	const zIndexLookup = {
-		"graphic-map-of-volumes": 10,
-		"key-map": 15,
-		"congested-district-map": 20,
-		"main-content": 25,
-	}
-
 	$: {
-		Object.entries(layerSets).forEach( function ([key, ls]) {
+		Object.entries(layerSetLookup).forEach( function ([key, ls]) {
 			setVisibility(ls.layerGroup, ls.opacity)
 		})
 	}
@@ -61,48 +103,31 @@
 		if (mapViewer) {mapViewer.setBasemap(currentBasemap)}
 	}
 
-	let layers = LAYERSETS.map((ls) => {
-		const layerGroup = makeLayerGroupFromLayerSet({
-			layerSet: ls,
-			zIndex: zIndexLookup[ls.id],
-			titilerHost: CONTEXT.titiler_host,
-			applyMultiMask: true,
+	function fetchLayerSets() {
+		fetch(`/api/beta2/layersets/?map=${mapId}`, {
+			headers: CONTEXT.ohmg_api_headers
 		})
-		let extent3857;
-		if (ls.extent) {
-			extent3857 = transformExtent(ls.extent, "EPSG:4326", "EPSG:3857")
-			extend(fullExtent, extent3857)
-		}
-		const setDef = {
-			id: ls.id,
-			name: ls.name,
-			layerGroup: layerGroup,
-			sortOrder: zIndexLookup[ls.id],
-			opacity: 100,
-			layerCt: ls.layers.length,
-			extent: extent3857
-		}
-		layerSets[ls.id] = setDef
-		layerSetList.push(ls.id)
-		return layerGroup
-	})
-	layers = layers.filter(item => item);
-	layers.sort((a, b) => zIndexLookup[a.id] - zIndexLookup[b.id]);
+		.then(response => response.json())
+		.then(result => {
+			updateLayersets(result)
+			refreshable = false;
+		});
+	}
 
 	onMount(() => {
-
 		mapViewer = new MapViewer('map')
-		mapViewer.addBasemaps(CONTEXT.mapbox_api_token, 'satellite')
+		mapViewer.addBasemaps(CONTEXT.mapbox_api_token, 'satellite');
 		mapViewer.addControl(new LyrMousePosition('pointer-coords-preview', null));
-		mapViewer.addZoomToExtentControl(fullExtent, 'extent-icon-preview')
-		mapViewer.setDefaultExtent(fullExtent)
-		mapViewer.resetExtent()
-		currentZoom = mapViewer.getZoom()
-		layers.forEach(function(lyr) {mapViewer.addLayer(lyr)})
+		mapViewer.setDefaultExtent(mapExtent3857);
+		mapViewer.addZoomToExtentControl(mapExtent3857, 'extent-icon-preview');
+		mapViewer.resetExtent();
 
+		currentZoom = mapViewer.getZoom();
 		mapViewer.map.getView().on('change:resolution', () => {
-			currentZoom = mapViewer.getZoom()
+			currentZoom = mapViewer.getZoom();
 		})
+
+		fetchLayerSets()
 	});
 
 </script>
@@ -110,7 +135,10 @@
 <LegendModal id={"modal-legend"} legendUrl={"/static/img/key-nola-1940.png"} legendAlt={"Sanborn Map Key"} />
 <div id="map-container" class="map-container"  style="display:flex; justify-content: center; height:550px">
 	<div id="map-panel">
-		<div id="map" style="height: 100%;"></div>
+		{#if refreshable}
+			<RefreshMapButton handleRefresh={fetchLayerSets} />
+		{/if}
+		<div id="map" style="height: 100%;" style:margin-top={refreshable ? "-2em" : ""}></div>
 		<i id='extent-icon-preview'><CornersOut size={'20px'} /></i>
 		{#if currentBasemap == "satellite"}
 			<MapboxLogoLink />
@@ -133,18 +161,16 @@
 			<div class="layer-section-subheader">
 				{currentBasemap == 'satellite' ? 'Mapbox Imagery' : 'Open Street Map'}
 			</div>
-			{#each layerSetList as id}
-				{#if layerSets[id].layerCt > 0}
+			{#each layerIdList as id}
 				<div class="layer-section-header">
-					<button class="layer-entry" on:click={() => mapViewer.setExtent(layerSets[id].extent)} on:focus={null}>
-						<span>{layerSets[id].name}</span>
+					<button class="layer-entry" on:click={() => mapViewer.setExtent(layerSetLookup[id].extent)} on:focus={null}>
+						<span>{layerSetLookup[id].name}</span>
 					</button>
-					<span style="color:grey">({layerSets[id].layerCt})</span>
+					<span style="color:grey">({layerSetLookup[id].layerCt})</span>
 				</div>
 				<div class="layer-section-subheader">
-					<TransparencySlider bind:opacity={layerSets[id].opacity} />
+					<TransparencySlider bind:opacity={layerSetLookup[id].opacity} />
 				</div>
-				{/if}
 			{/each}
 		</div>
 		<div id="info-box">

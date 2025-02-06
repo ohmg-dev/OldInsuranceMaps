@@ -87,6 +87,14 @@ export class MapViewer {
     this.map.addInteraction(interaction)
     this.interactions[id] = interaction
   }
+  clearNonBasemapLayers() {
+    // iterate down the list of layers (by index number) and remove down to 0
+    const lyrCt = this.map.getLayers().getArray().length
+    Array.from({length: lyrCt}, (e, i)=> i).reverse().forEach((i) => {
+      // don't remove the 0 index layer as that's the basemap
+      if (i != 0 ) {this.map.getLayers().removeAt(i);}
+    })
+  }
 
   getZoom() {
     return Math.round(this.map.getView().getZoom() * 10) / 10

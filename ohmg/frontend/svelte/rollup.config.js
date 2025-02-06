@@ -32,7 +32,7 @@ function serve() {
 
 function componentExportDetails(componentName) {
 	return {
-    input: `src/components/${componentName.toLowerCase()}.js`,
+    input: `./bundles/${componentName.toLowerCase()}.js`,
 		output: {
 			sourcemap: true,
 			format: 'iife',
