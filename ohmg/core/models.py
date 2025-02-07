@@ -600,12 +600,6 @@ class Region(models.Model):
         max_length=255,
         storage=OverwriteStorage(),
     )
-    gcp_group = models.OneToOneField(
-        "georeference.GCPGroup",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-    )
 
     def __str__(self):
         return self.title
