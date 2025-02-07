@@ -277,10 +277,10 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
             filecmp.cmp(self.Files.new_iberia_p1__1_lyr, layer.file.path, shallow=False)
         )
 
-        self.assertIsNotNone(region.gcp_group)
-        self.assertEqual(len(region.gcp_group.gcps), 4)
+        self.assertTrue(hasattr(region, "gcpgroup"))
+        self.assertEqual(len(region.gcpgroup.gcps), 4)
 
         # need to delete listId before comparison as it is not returned by as_geojson
         for i in input_gcp_geojson["features"]:
             del i["properties"]["listId"]
-        self.assertEqual(region.gcp_group.as_geojson, input_gcp_geojson)
+        self.assertEqual(region.gcpgroup.as_geojson, input_gcp_geojson)

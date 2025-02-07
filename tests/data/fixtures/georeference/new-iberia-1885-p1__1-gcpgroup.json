@@ -4,7 +4,8 @@
   "pk": 1,
   "fields": {
     "crs_epsg": 3857,
-    "transformation": "poly1"
+    "transformation": "poly1",
+    "region2": 2
   }
 }
 ]
