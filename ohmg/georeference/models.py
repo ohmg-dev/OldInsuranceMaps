@@ -147,7 +147,11 @@ class GCPGroup(models.Model):
         return content
 
     def save_from_geojson(self, geojson, region, transformation=None):
-        group = region.gcp_group if region.gcp_group else GCPGroup.objects.create()
+        group = (
+            region.gcpgroup
+            if hasattr(region, "gcpgroup")
+            else GCPGroup.objects.create(region2=region)
+        )
 
         group.crs_epsg = 3857  # don't see this changing any time soon...
         group.transformation = transformation
@@ -310,19 +314,19 @@ class SessionBase(models.Model):
         default="getting user input",
     )
     doc2 = models.ForeignKey(
-        "core.Document",
+        Document,
         models.SET_NULL,
         null=True,
         blank=True,
     )
     reg2 = models.ForeignKey(
-        "core.Region",
+        Region,
         models.SET_NULL,
         null=True,
         blank=True,
     )
     lyr2 = models.ForeignKey(
-        "core.Layer",
+        Layer,
         models.SET_NULL,
         null=True,
         blank=True,
@@ -661,13 +665,11 @@ class GeorefSession(SessionBase):
         self.update_status("saving control points")
 
         # save the successful gcps to the canonical GCPGroup for the document
-        gcp_group = GCPGroup().save_from_geojson(
+        GCPGroup().save_from_geojson(
             self.data["gcps"],
             self.reg2,
             self.data["transformation"],
         )
-        self.reg2.gcp_group = gcp_group
-        self.reg2.save()
 
         self.update_status("creating layer")
 

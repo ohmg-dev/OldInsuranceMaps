@@ -129,10 +129,10 @@ class Command(BaseCommand):
             for d in documents:
                 regions += list(d.regions.all())
             layers = [i.layer for i in regions if i.layer]
-            gcp_groups = [i.region.gcp_group for i in layers if i.region.gcp_group]
+            gcpgroups = [i.region.gcpgroup for i in layers if hasattr(i.region, "gcpgroup")]
             gcps = []
-            for gcp_group in gcp_groups:
-                gcps += list(gcp_group.gcps.all())
+            for gcpgroup in gcpgroups:
+                gcps += list(gcpgroup.gcps.all())
 
             prep_sessions = list(PrepSession.objects.filter(doc2__in=documents))
             georef_sessions = list(GeorefSession.objects.filter(reg2__in=regions))
@@ -141,7 +141,7 @@ class Command(BaseCommand):
             print(f"documents {len(documents)}")
             print(f"regions {len(regions)}")
             print(f"layers {len(layers)}")
-            print(f"gcp groups {len(gcp_groups)}")
+            print(f"gcp groups {len(gcpgroups)}")
             print(f"gcps {len(gcps)}")
             print(f"prep sessions {len(prep_sessions)}")
             print(f"georef sessions {len(georef_sessions)}")
@@ -152,7 +152,7 @@ class Command(BaseCommand):
                     prep_sessions
                     + georef_sessions
                     + gcps
-                    + gcp_groups
+                    + gcpgroups
                     + layers
                     + regions
                     + documents

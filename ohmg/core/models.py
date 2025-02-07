@@ -615,16 +615,16 @@ class Region(models.Model):
         return self.document.map
 
     @property
-    def tranformation(self):
-        if self.gcp_group:
-            return self.gcp_group.transformation
+    def transformation(self):
+        if hasattr(self, "gcpgroup"):
+            return self.gcpgroup.transformation
         else:
             return None
 
     @property
     def gcps_geojson(self):
-        if self.gcp_group:
-            return self.gcp_group.as_geojson
+        if hasattr(self, "gcpgroup"):
+            return self.gcpgroup.as_geojson
         else:
             return None
 
@@ -1002,11 +1002,11 @@ class LayerSet(models.Model):
                 extent_poly = Polygon.from_bbox(layer.extent)
                 layer_extent_polygons.append(extent_poly)
 
-            gcp_group = layer.region.gcp_group
+            gcpgroup = layer.region.gcpgroup
             g = Georeferencer(
-                crs=f"EPSG:{gcp_group.crs_epsg}",
-                transformation=gcp_group.transformation,
-                gcps_geojson=gcp_group.as_geojson,
+                crs=f"EPSG:{gcpgroup.crs_epsg}",
+                transformation=gcpgroup.transformation,
+                gcps_geojson=gcpgroup.as_geojson,
             )
             in_path = g.warp(layer.region.file.path, return_vrt=True)
 
