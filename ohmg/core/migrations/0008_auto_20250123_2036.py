@@ -9,7 +9,7 @@ import ohmg.core.storages
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('georeference', '0015_alter_layerset_map'),
+        # ('georeference', '0015_alter_layerset_map'),
         ('core', '0007_auto_20250120_2212'),
     ]
 

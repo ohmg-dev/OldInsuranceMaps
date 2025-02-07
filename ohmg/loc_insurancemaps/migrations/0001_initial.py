@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('georeference', '0001_initial'),
+        # ('georeference', '0001_initial'),
         ('places', '0001_initial'),
     ]
 
