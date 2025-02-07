@@ -8,7 +8,7 @@ import ohmg.georeference.storage
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('loc_insurancemaps', '0004_auto_20240116_1016'),
+        # ('loc_insurancemaps', '0004_auto_20240116_1016'),
         ('georeference', '0002_alter_itembase_status'),
     ]
 

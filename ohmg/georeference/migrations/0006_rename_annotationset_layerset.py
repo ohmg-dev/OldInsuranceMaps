@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('loc_insurancemaps', '0004_auto_20240116_1016'),
+        # ('loc_insurancemaps', '0004_auto_20240116_1016'),
         ('georeference', '0005_auto_20240617_1102'),
     ]
 
