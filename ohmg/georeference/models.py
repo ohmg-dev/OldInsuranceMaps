@@ -82,10 +82,16 @@ class GCPGroup(models.Model):
         choices=TRANSFORMATION_CHOICES,
         max_length=20,
     )
+    region2 = models.OneToOneField(
+        Region,
+        models.CASCADE,
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
-        if self.doc:
-            return self.doc.title
+        if self.region2:
+            return self.region2.title
         else:
             return str(self.pk)
 

@@ -14,8 +14,12 @@ class GCPAdmin(admin.ModelAdmin):
     list_display = ("id", "gcp_group")
 
 
+class GCPGroupAdmin(admin.ModelAdmin):
+    raw_id_fields = ("region2",)
+
+
 admin.site.register(GCP, GCPAdmin)
-admin.site.register(GCPGroup)
+admin.site.register(GCPGroup, GCPGroupAdmin)
 
 
 class SessionAdmin(admin.ModelAdmin):
