@@ -20,6 +20,7 @@ class Command(BaseCommand):
                 "clean-uploaded-files",
                 "copy-layersets",
                 "update-main-content-pk",
+                "reverse-region-gcpgroup-relationship",
             ],
             help="Choose what operation to run.",
         )
@@ -227,3 +228,9 @@ class Command(BaseCommand):
             ## 4. now rename the new category to have the proper slug
             ls_main_cat.slug = "main-content"
             ls_main_cat.save()
+
+        if options["operation"] == "reverse-region-gcpgroup-relationship":
+            for region in Region.objects.all():
+                if region.gcp_group:
+                    region.gcp_group.region2 = region
+                    region.gcp_group.save()
