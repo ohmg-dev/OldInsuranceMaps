@@ -78,7 +78,6 @@ INSTALLED_APPS = [
     "ohmg.content",
     "ohmg.frontend",
     "ohmg.georeference",
-    "ohmg.loc_insurancemaps",
     "ohmg.places",
     "ohmg.iiif",
 ]
