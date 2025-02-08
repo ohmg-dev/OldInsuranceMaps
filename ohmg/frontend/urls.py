@@ -8,6 +8,7 @@ from ohmg.core.views import (
     DocumentView,
     RegionView,
     LayerView,
+    LayerSetView,
 )
 from ohmg.frontend.views import (
     HomePage,
@@ -40,6 +41,7 @@ urlpatterns = [
     path("document/<int:pk>", DocumentView.as_view(), name="document_view"),
     path("region/<int:pk>", RegionView.as_view(), name="region_view"),
     path("layer/<int:pk>", LayerView.as_view(), name="layer_view"),
+    path("layerset/", LayerSetView.as_view(), name="layerset_view"),
     # temporary overlap here, ultimately will remove all /loc/ and /item/ urls
     path(
         "item/<str:identifier>",

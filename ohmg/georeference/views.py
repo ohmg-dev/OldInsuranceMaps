@@ -33,11 +33,8 @@ from ohmg.core.api.schemas import (
     RegionFullSchema,
 )
 from ohmg.core.models import (
-    Map,
     Document,
     Region,
-    Layer,
-    LayerSet,
 )
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
@@ -293,62 +290,6 @@ class GeoreferenceView(View):
 
         else:
             return JsonResponseBadRequest()
-
-
-class LayerSetView(View):
-    @method_decorator(
-        validate_post_request(
-            operations=["bulk-classify-layers", "check-for-existing-mask", "set-mask"]
-        )
-    )
-    def post(self, request):
-        body = json.loads(request.body)
-        operation = body.get("operation")
-        payload = body.get("payload", {})
-
-        if operation == "bulk-classify-layers":
-            errors = []
-            for lyr_id, cat in payload.get("update-list"):
-                map = get_object_or_404(Map, pk=payload.get("map-id"))
-                layer = get_object_or_404(Layer, pk=lyr_id)
-                try:
-                    layerset = map.get_layerset(cat, create=True)
-                    layer.set_layerset(layerset)
-                except Exception as e:
-                    logger.error(e)
-                    errors.append(str(e))
-
-            if errors:
-                return JsonResponseFail("; ".join(errors))
-            else:
-                return JsonResponseSuccess("Layers classified successfully.")
-
-        if operation == "check-for-existing-mask":
-            r = get_object_or_404(Layer, pk=payload.get("resource-id"))
-
-            if r.layerset2:
-                if not r.layerset2.category.slug == payload.get("category"):
-                    if r.layerset2.multimask and r.slug in r.layerset2.multimask:
-                        return JsonResponseFail(
-                            f"Layer already in {r.layerset2.category} multimask.",
-                            payload=payload,
-                        )
-
-            return JsonResponseSuccess(payload=payload)
-
-        if operation == "set-mask":
-            try:
-                layerset = LayerSet.objects.get(
-                    map_id=payload["map-id"], category__slug=payload["category"]
-                )
-                errors = layerset.update_multimask_from_geojson(payload["multimask-geojson"])
-                print(errors)
-                if errors:
-                    return JsonResponseFail("; ".join([f"\n-- {i[0]}: {i[1]}" for i in errors]))
-                else:
-                    return JsonResponseSuccess()
-            except LayerSet.DoesNotExist:
-                return JsonResponseNotFound()
 
 
 class SessionView(View):
