@@ -315,12 +315,12 @@ class LayerSchema(Schema):
         if not obj.region:
             logger.warning(f"[WARNING] Layer {obj.pk} has no associated region")
             return None
-        elif not obj.region.gcp_group:
+        elif not hasattr(obj.region, "gcpgroup"):
             logger.warning(
                 f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup"
             )
             return None
-        return obj.region.gcp_group.as_geojson
+        return obj.region.gcpgroup.as_geojson
 
     @staticmethod
     def resolve_created_by(obj):
@@ -377,12 +377,12 @@ class LayerFullSchema(Schema):
         if not obj.region:
             logger.warning(f"[WARNING] Layer {obj.pk} has no associated region")
             return None
-        elif not obj.region.gcp_group:
+        elif not hasattr(obj.region, "gcpgroup"):
             logger.warning(
                 f"[WARNING] Region {obj.region.pk} attached to Layer {obj.pk} has no associated GCPGroup"
             )
             return None
-        return obj.region.gcp_group.as_geojson
+        return obj.region.gcpgroup.as_geojson
 
 
 class SessionSchema(Schema):

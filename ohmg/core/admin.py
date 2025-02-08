@@ -18,7 +18,7 @@ class DocumentAdmin(admin.ModelAdmin):
 
 class RegionAdmin(admin.ModelAdmin):
     search_fields = ("title",)
-    raw_id_fields = ("document", "gcp_group")
+    raw_id_fields = ("document",)
     readonly_fields = ("georeferenced", "title")
 
 
