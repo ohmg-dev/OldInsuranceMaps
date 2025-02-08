@@ -78,10 +78,10 @@ $: updateFilteredList(filterInput)
 		<tr slot="thead">
 			<th data-sort="title" style="max-width:300px;" title="Title">Title</th>
 			<th data-sort="year_vol" title="Year of publication">Year</th>
-			<th data-sort="sheet_ct" style="width:55px; text-align:center;" title="Number of sheets in publication">Sheets</th>
+			<th data-sort="sheet_ct" style="width:55px; text-align:center;" title="Number of documents in publication">Sheets</th>
 			<th data-sort="loaded_by_name" style="text-align:center;" title="Volume originally loaded by this user">Loaded by</th>
 			<th data-sort="load_date" style="text-align:center;" title="Date this item was loaded">Load date</th>
-			<th data-sort="unprepared_ct" style="width:25px; text-align:center; border-left: 1px solid gray;" title="Number of unprepared sheets">U</th>
+			<th data-sort="unprepared_ct" style="width:25px; text-align:center; border-left: 1px solid gray;" title="Number of unprepared documents">U</th>
 			<th data-sort="prepared_ct" style="width:25px; text-align:center;" title="Number of prepared documents">P</th>
 			<th data-sort="georeferenced_ct" style="width:25px; text-align:center;" title="Number of georeferenced documents">G</th>
 			<th data-sort="percent" style="width:25px; text-align:center; border-left:1px solid gray;" title="Percent complete - G/(U+P+G)">%</th>

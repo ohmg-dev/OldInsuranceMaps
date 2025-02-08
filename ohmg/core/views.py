@@ -75,11 +75,12 @@ class MapView(View):
         return render(request, "content/map.html", context=context_dict)
 
     @method_decorator(login_required)
+    @method_decorator(validate_post_request(operations=["load-documents", "refresh-lookups"]))
     def post(self, request, identifier):
         body = json.loads(request.body)
-        operation = body.get("operation", None)
+        operation = body.get("operation")
 
-        if operation == "initialize":
+        if operation == "load-documents":
             map = Map.objects.get(pk=identifier)
             if map.loaded_by is None:
                 map.loaded_by = request.user

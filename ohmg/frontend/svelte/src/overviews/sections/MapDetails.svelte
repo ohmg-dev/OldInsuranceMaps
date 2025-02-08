@@ -46,14 +46,14 @@
                         <td>Initial load</td>
                         <td>
                             {#if MAP.progress.loaded_pages == MAP.progress.total_pages}
-                            {MAP.progress.loaded_pages} of {MAP.progress.total_pages} sheet{#if MAP.progress.total_pages != 1}s{/if} loaded by <Link href={MAP.loaded_by.profile}>{MAP.loaded_by.name}</Link> - {MAP.loaded_by.date}<br>
+                            {MAP.progress.loaded_pages} of {MAP.progress.total_pages} documents{#if MAP.progress.total_pages != 1}s{/if} loaded by <Link href={MAP.loaded_by.profile}>{MAP.loaded_by.name}</Link> - {MAP.loaded_by.date}<br>
                             {:else}--{/if}
                         </td>
                     </tr>
                     <tr>
                         <td>Prep</td>
                         <td>
-                            {SESSION_SUMMARY.prep_ct} sheet{#if SESSION_SUMMARY.prep_ct != 1}s{/if} prepared{#if SESSION_SUMMARY.prep_ct > 0}&nbsp;by 
+                            {SESSION_SUMMARY.prep_ct} document{#if SESSION_SUMMARY.prep_ct != 1}s{/if} prepared{#if SESSION_SUMMARY.prep_ct > 0}&nbsp;by
                             {#each SESSION_SUMMARY.prep_contributors as c, n}<Link href="/profile/{c.name}">{c.name}</Link> ({c.ct}){#if n != SESSION_SUMMARY.prep_contributors.length-1}, {/if}{/each}{/if}
                         </td>
                     </tr>

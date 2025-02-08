@@ -46,7 +46,7 @@
 		<tr slot="thead">
 			<th data-sort="username" style="max-width:300px;"></th>
 			<th data-sort="username" style="max-width:300px;" title="Name of mapped location">Username</th>
-			<th data-sort="load_ct" title="Number of unprepared sheets">Loaded Volumes</th>
+			<th data-sort="load_ct" title="Maps loaded by this user">Loaded Maps</th>
 			<th data-sort="psesh_ct" style="width:25px; text-align:center; border-left: 1px solid gray;" title="Number of prep sessions">Prep Sessions</th>
 			<th data-sort="gsesh_ct" style="width:25px; text-align:center;" title="Number of georeferencing sessions">Georef. Sessions</th>
 			<th data-sort="total_ct" style="width:25px; text-align:center; border-left:1px solid gray;" title="Percent complete - G/(U+P+G)">Total Sessions</th>

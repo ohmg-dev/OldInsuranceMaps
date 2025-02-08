@@ -309,7 +309,7 @@ class Map(models.Model):
             logger.debug(f"Map {self.title} ({self.pk}) has {len(self.documents.all())} Documents")
             if get_files:
                 for document in natsorted(self.documents.all(), key=lambda k: k.title):
-                    document.load_file_from_source()
+                    document.load_file_from_source(overwrite=True)
         except Exception as e:
             logger.error(e)
             self.set_status("document load error")
@@ -488,7 +488,7 @@ class Document(models.Model):
         tmp_path = Path(settings.CACHE_DIR, "images", src_path.name)
 
         if self.source_url.startswith("http"):
-            out_file = download_image(self.source_url, tmp_path)
+            out_file = download_image(self.source_url, tmp_path, use_cache=not overwrite)
             if out_file is None:
                 logger.error(f"can't get {self.source_url} -- skipping")
                 return

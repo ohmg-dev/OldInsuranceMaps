@@ -149,7 +149,7 @@
 		window.location = "/resource/" + currentDoc
 	}
 
-	$: sheetsLoading = MAP.status == "initializing...";
+	$: documentsLoading = MAP.status == "initializing...";
 
 	let hash = window.location.hash.substr(1);
 
@@ -180,7 +180,7 @@
 			clearInterval(intervalId)
 		}
 	}
-	$: autoReload = sheetsLoading || MAP.locks.length > 0;
+	$: autoReload = documentsLoading || MAP.locks.length > 0;
 	$: manageAutoReload(autoReload)
 
 	function pollMapSummary() {
@@ -198,35 +198,39 @@
 	}
 
 	let refreshingLookups = false;
-	function postOperation(operation) {
-		let indexLayerIds = [];
-		if (operation == "refresh-lookups") {
-			refreshingLookups = true;
-		}
-		const data = JSON.stringify({
-			"operation": operation,
-			"indexLayerIds": indexLayerIds,
-		});
-		fetch(MAP.urls.summary, {
-			method: 'POST',
-			headers: CONTEXT.ohmg_post_headers,
-			body: data,
-		})
-		.then(response => response.json())
-		.then(result => {
-			if (
-				MAP.item_lookup.unprepared.length != result.item_lookup.unprepared.length ||
-				MAP.item_lookup.prepared.length != result.item_lookup.prepared.length ||
-				MAP.item_lookup.georeferenced.length != result.item_lookup.georeferenced.length
-			) {
-				fetchLayerSets();
-			}
-			MAP = result;
-			sheetsLoading = MAP.status == "initializing...";
-			if (operation == "refresh-lookups") {
+	function refreshLookups() {
+		refreshingLookups = true
+		submitPostRequest(
+			MAP.urls.summary,
+			CONTEXT.ohmg_post_headers,
+			"refresh-lookups",
+			{},
+			(result) => {
+				if (
+					MAP.item_lookup.unprepared.length != result.item_lookup.unprepared.length ||
+					MAP.item_lookup.prepared.length != result.item_lookup.prepared.length ||
+					MAP.item_lookup.georeferenced.length != result.item_lookup.georeferenced.length
+				) {
+					fetchLayerSets();
+					previewRefreshable = true;
+				}
+				MAP = result;
 				refreshingLookups = false;
-			}
-		});
+			},
+		)
+	}
+
+	function loadDocuments() {
+		documentsLoading = true;
+		submitPostRequest(
+			MAP.urls.summary,
+			CONTEXT.ohmg_post_headers,
+			"load-documents",
+			{},
+			(result) => {
+				MAP = result;
+			},
+		)
 	}
 
 	function fetchLayerSets() {
@@ -407,27 +411,27 @@
 			{/if}
 			<div style="display:flex; align-items:center;">
 				{#if CONTEXT.user.is_authenticated}
-				<button class="is-icon-link" on:click={() => {postOperation("refresh-lookups")}} title="Regenerate summary (may take a moment)"><Wrench /></button>
+				<button class="is-icon-link" on:click={refreshLookups} title="Regenerate summary (may take a moment)"><Wrench /></button>
 				{/if}
 				<button class="is-icon-link" on:click={() => {getModal('modal-georeference-overview').open()}} ><Question /></button>
 			</div>
 		</div>
 		<div>
 			<div style="display:flex; align-items:center;">
-				{#if MAP.progress.loaded_pages < MAP.progress.total_pages && userCanEdit && !sheetsLoading}
-					<button class="button is-primary is-small" style="margin-left:10px; margin-right:10px;" on:click={() => { postOperation("initialize"); sheetsLoading = true; }}>Load Documents ({MAP.document_sources.length})</button>
+				{#if MAP.progress.loaded_pages < MAP.progress.total_pages && userCanEdit && !documentsLoading}
+					<button class="button is-primary is-small" style="margin-left:10px; margin-right:10px;" on:click={loadDocuments}>Load Documents ({MAP.document_sources.length})</button>
 				{/if}
 				{#if MAP.status == "load document error"}
 					<span>Error loading documents, please contact admin: <a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a>.</span>
 				{/if}
 				<span>
 					<em>
-					{#if sheetsLoading}
-					Loading sheet {MAP.progress.loaded_pages+1}/{MAP.progress.total_pages}... (you can safely leave this page).
+					{#if documentsLoading}
+					Loading document {MAP.progress.loaded_pages+1}/{MAP.progress.total_pages}... (you can safely leave this page).
 					{:else if MAP.progress.loaded_pages == 0}
 					No content loaded yet...
 					{:else if MAP.progress.loaded_pages < MAP.progress.total_pages }
-					{MAP.progress.loaded_pages} of {MAP.progress.total_pages} sheet{#if MAP.progress.total_pages != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Documents</strong> to retry)
+					{MAP.progress.loaded_pages} of {MAP.progress.total_pages} document{#if MAP.progress.total_pages != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Documents</strong> to retry)
 					{/if}
 					</em>
 				</span>
