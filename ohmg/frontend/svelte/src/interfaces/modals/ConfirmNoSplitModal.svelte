@@ -10,7 +10,7 @@
     function postNoSplit() {
       processing = true
       submitPostRequest(
-        `/document/${documentId}`,
+        `/split/${documentId}/`,
         CONTEXT.ohmg_post_headers,
         "no-split",
         {},
