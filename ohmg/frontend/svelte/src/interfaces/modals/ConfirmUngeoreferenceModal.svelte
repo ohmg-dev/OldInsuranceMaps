@@ -1,6 +1,6 @@
 <script>
     import Modal, {getModal} from '@/base/Modal.svelte';
-    import { submitPostRequest } from "@lib/utils";
+    import { submitPostRequest } from '@lib/requests';
 
     export let CONTEXT;
     export let layerId;

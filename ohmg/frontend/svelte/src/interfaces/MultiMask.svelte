@@ -33,7 +33,8 @@ import Stroke from 'ol/style/Stroke';
 import ToolUIButton from '@/base/ToolUIButton.svelte';
 import ExpandElement from './buttons/ExpandElement.svelte';
 
-import { makeTitilerXYZUrl, submitPostRequest, usaExtent } from "@lib/utils"
+import { makeTitilerXYZUrl, usaExtent } from "@lib/utils";
+import { submitPostRequest } from '@lib/requests';
 import { MapViewer } from '@lib/viewers';
 import { LyrMousePosition } from "@lib/controls";
 import Styles from '@lib/ol-styles';

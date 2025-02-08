@@ -1,7 +1,8 @@
 <script>
 	import { slide } from 'svelte/transition';
 
-	import { makeTitilerXYZUrl, submitPostRequest } from "@lib/utils"
+	import { makeTitilerXYZUrl } from "@lib/utils";
+	import { submitPostRequest } from '@lib/requests';
 
 	import ArrowRight from "phosphor-svelte/lib/ArrowRight";
 	import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";

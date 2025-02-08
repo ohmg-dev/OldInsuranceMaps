@@ -32,7 +32,7 @@ import Modal, {getModal} from '@/base/Modal.svelte';
 import ToolUIButton from '@/base/ToolUIButton.svelte';
 import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
 
-import { submitPostRequest } from "@lib/utils";
+import { submitPostRequest } from '@lib/requests';
 import { makeImageLayer } from "@lib/layers";
 import { DocMousePosition } from "@lib/controls";
     import ExtendSessionModal from './modals/ExtendSessionModal.svelte';

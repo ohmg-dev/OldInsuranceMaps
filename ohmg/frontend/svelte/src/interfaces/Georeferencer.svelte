@@ -43,6 +43,7 @@
     projectionFromImageExtent,
     usaExtent,
   } from '@lib/utils';
+  import { submitPostRequest } from '@lib/requests';
   import { makeImageLayer, makePmTilesLayer } from '@lib/layers';
   import { DocMousePosition, LyrMousePosition, MapScaleLine } from '@lib/controls';
 
