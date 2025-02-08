@@ -159,6 +159,7 @@ class GeoreferenceView(View):
             },
         )
 
+    @method_decorator(validate_post_request(operations=["preview", "submit", "cancel"]))
     def post(self, request, docid):
         """
         Runs the georeferencing process for this document.
@@ -167,14 +168,14 @@ class GeoreferenceView(View):
         region = get_object_or_404(Region, pk=docid)
 
         body = json.loads(request.body)
-        gcp_geojson = body.get("gcp_geojson", {})
-        transformation = body.get("transformation", "poly1")
-        projection = body.get("projection", "EPSG:3857")
-        operation = body.get("operation", "preview")
-        sesh_id = body.get("sesh_id", None)
-        cleanup_preview = body.get("cleanup_preview", None)
+        operation = body.get("operation")
+        payload = body.get("payload")
 
-        response = {"status": "", "message": ""}
+        gcp_geojson = payload.get("gcp_geojson", {})
+        transformation = payload.get("transformation", "poly1")
+        projection = payload.get("projection", "EPSG:3857")
+        sesh_id = payload.get("sesh_id", None)
+        cleanup_preview = payload.get("cleanup_preview", None)
 
         def _generate_preview_id(request, sesh_id):
             try:
@@ -202,13 +203,6 @@ class GeoreferenceView(View):
                 sesh = None
             return sesh
 
-        SESSION_NOT_FOUND_RESPONSE = JsonResponse(
-            {
-                "success": False,
-                "message": f"session {sesh_id} not found: {operation} must be called with existing session",
-            }
-        )
-
         # if preview mode, modify/create the vrt for this map.
         # allow this to happen without looking for or using a session
         if operation == "preview":
@@ -225,16 +219,11 @@ class GeoreferenceView(View):
                     os.path.dirname(region.file.url), os.path.basename(out_path)
                 )
                 preview_url = settings.MEDIA_HOST.rstrip("/") + out_path_relative
-                response["status"] = "success"
-                response["message"] = "all good"
-                response["preview_url"] = preview_url
-                # queue clean up of the last preview
                 _cleanup_preview(region, cleanup_preview)
+                return JsonResponseSuccess("all good", {"preview_url": preview_url})
             except Exception as e:
                 logger.error(e)
-                response["status"] = "fail"
-                response["message"] = str(e)
-            return JsonResponse(response)
+                return JsonResponseFail(str(e))
 
         elif operation == "submit":
             sesh = _get_georef_session(sesh_id)
@@ -251,15 +240,12 @@ class GeoreferenceView(View):
                 run_georeference_session.apply_async((sesh.pk,))
 
                 _cleanup_preview(region, cleanup_preview)
-                return JsonResponse(
-                    {
-                        "success": True,
-                        "message": "all good",
-                    }
-                )
+                return JsonResponseSuccess()
 
             else:
-                return SESSION_NOT_FOUND_RESPONSE
+                return JsonResponseNotFound(
+                    f"session {sesh_id} not found: submit must be called with existing session"
+                )
 
         elif operation == "cancel":
             sesh = _get_georef_session(sesh_id)
@@ -267,12 +253,12 @@ class GeoreferenceView(View):
                 if sesh.stage != "input":
                     msg = "can't cancel session that is past the input stage"
                     logger.warning(f"{sesh.__str__()} | {msg}")
-                    return JsonResponse({"success": True, "message": msg})
+                    return JsonResponseFail(msg)
 
                 sesh.delete()
 
             _cleanup_preview(region, cleanup_preview)
-            return JsonResponse({"success": True})
+            return JsonResponseSuccess()
 
         else:
             return JsonResponseBadRequest()
