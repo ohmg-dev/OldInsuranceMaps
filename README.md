@@ -50,11 +50,12 @@ Clone the repo and enter the local directory
 git clone https://github.com/ohmg-dev/OldInsuranceMaps && cd OldInsuranceMaps
 ```
 
-Make virtual env
+Make virtual env & upgrade pip
 
 ```bash
 python3 -m venv env
 source env/bin/activate
+python -m pip install pip --upgrade
 ```
 
 Install GDAL Python bindings. These must match exactly the version of GDAL you have on your system, so use this command:
