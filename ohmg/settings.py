@@ -224,6 +224,12 @@ MIDDLEWARE = (
     "django.middleware.security.SecurityMiddleware",
 )
 
+LOGIN_URL = "/account/login/"
+
+LOGIN_REQUIRED_SITEWIDE = ast.literal_eval(os.getenv("LOGIN_REQUIRED_SITEWIDE", "False"))
+if LOGIN_REQUIRED_SITEWIDE:
+    MIDDLEWARE += ("ohmg.core.middleware.LoginRequiredMiddleware",)
+
 ENABLE_CPROFILER = ast.literal_eval(os.getenv("ENABLE_CPROFILER", False))
 if ENABLE_CPROFILER:
     MIDDLEWARE += ("django_cprofile_middleware.middleware.ProfilerMiddleware",)

@@ -1,24 +1,12 @@
-import re
-
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
 
 
 class LoginRequiredMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        if not request.user.is_authenticated:
-            return redirect_to_login(request.get_full_path())
-            # return login_required(self.get_response)(request)
-
-        return self.get_response(request)
-
-
-class RequireLoginMiddleware(object):
     """
+    Based on: https://stackoverflow.com/a/2164224/3873885,
+    see link for fuller implementation.
+
     Middleware component that wraps the login_required decorator around
     matching URL patterns. To use, add the class to MIDDLEWARE_CLASSES and
     define LOGIN_REQUIRED_URLS and LOGIN_REQUIRED_URLS_EXCEPTIONS in your
@@ -39,26 +27,16 @@ class RequireLoginMiddleware(object):
     define any exceptions (like login and logout URLs).
     """
 
-    def __init__(self):
-        self.required = tuple(re.compile(url) for url in settings.LOGIN_REQUIRED_URLS)
-        self.exceptions = tuple(re.compile(url) for url in settings.LOGIN_REQUIRED_URLS_EXCEPTIONS)
+    def __init__(self, get_response):
+        self.get_response = get_response
 
-    def process_view(self, request, view_func, view_args, view_kwargs):
-        print(request.user)
+    def __call__(self, request):
         # No need to process URLs if user already logged in
-        if request.user.is_authenticated():
-            return None
+        if request.user.is_authenticated:
+            return self.get_response(request)
 
-        # An exception match should immediately return None
-        for url in self.exceptions:
-            if url.match(request.path):
-                return None
+        if request.path == settings.LOGIN_URL:
+            return self.get_response(request)
 
-        # Requests matching a restricted URL pattern are returned
-        # wrapped with the login_required decorator
-        for url in self.required:
-            if url.match(request.path):
-                return login_required(view_func)(request, *view_args, **view_kwargs)
-
-        # Explicitly return None for all non-matching requests
-        return None
+        else:
+            return redirect_to_login(request.get_full_path())
