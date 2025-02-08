@@ -3,17 +3,21 @@
 	import Link from '@/base/Link.svelte';
 	import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
 
+	import { getFromAPI } from "@/lib/requests";
+
 	export let CONTEXT;
 
 	let all_participants = [];
 	let items = []
 
-	fetch(CONTEXT.urls.get_users, { headers: CONTEXT.ohmg_api_headers })
-		.then(response => response.json())
-		.then(result => {
+	getFromAPI(
+		"/api/beta2/users/",
+		CONTEXT.ohmg_api_headers,
+		(result) => {
 			all_participants = result;
 			items = result;
-		});
+		}
+	)
 
 	function updateFilteredList(filterText) {
 		if (filterText && filterText.length > 0) {

@@ -45,6 +45,8 @@
 	import ConfirmNoSplitModal from '../interfaces/modals/ConfirmNoSplitModal.svelte';
 	import ConfirmUngeoreferenceModal from '../interfaces/modals/ConfirmUngeoreferenceModal.svelte';
 
+	import { getFromAPI } from "@/lib/requests";
+
 	export let CONTEXT;
 	export let MAP;
 	export let LOCALE;
@@ -184,17 +186,16 @@
 	$: manageAutoReload(autoReload)
 
 	function pollMapSummary() {
-		fetch(`${CONTEXT.urls.get_map}?map=${MAP.identifier}`, {
-			headers: CONTEXT.ohmg_api_headers,
-		})
-		.then(response => response.json())
-		.then(result => {
-			if (!previewRefreshable) {
-				previewRefreshable = MAP.item_lookup.georeferenced.length != result.item_lookup.georeferenced.length
+		getFromAPI(`/api/beta2/map/?map=${MAP.identifier}`,
+			CONTEXT.ohmg_api_headers,
+			(result) => {
+				if (!previewRefreshable) {
+					previewRefreshable = MAP.item_lookup.georeferenced.length != result.item_lookup.georeferenced.length
+				}
+				MAP = result;
+				processing = false
 			}
-			MAP = result;
-			processing = false
-		});
+		);
 	}
 
 	let refreshingLookups = false;
@@ -234,14 +235,14 @@
 	}
 
 	function fetchLayerSets() {
-		fetch(`${CONTEXT.urls.get_layersets}?map=${MAP.identifier}`, {
-			headers: CONTEXT.ohmg_api_headers
-		})
-		.then(response => response.json())
-		.then(result => {
-			resetLayerSets(result)
-			processing = false;
-		});
+		getFromAPI(
+			`/api/beta2/layersets/?map=${MAP.identifier}`,
+			CONTEXT.ohmg_api_headers,
+			(result) => {
+				resetLayerSets(result)
+				processing = false;
+			}
+		)
 	}
 
 	function pollMapSummaryIfSuccess(response) {

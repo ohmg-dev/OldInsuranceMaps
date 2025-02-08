@@ -50,7 +50,7 @@ onMount(async function() {
 		maxZoom: 15,
 	}))
 
-	const response = await fetch(CONTEXT.urls.get_places_geojson, {
+	const response = await fetch("/api/beta2/places/geojson", {
 		headers: CONTEXT.ohmg_api_headers,
     })
 	const mapGeoJSON = await response.json()

@@ -3,6 +3,8 @@
 	import PlaceBreadcrumbsSelect from '@/layout/PlaceBreadcrumbsSelect.svelte';
 	import Maps from '@/lists/Maps.svelte';
 
+	import { getFromAPI } from "@/lib/requests";
+
 	export let CONTEXT;
 	export let PLACE;
 
@@ -22,15 +24,16 @@
 				place_slug = value.selected;
 			}
 		}
-		fetch(`${CONTEXT.urls.get_place}?slug=${place_slug}`, {
-			headers: CONTEXT.ohmg_api_headers,
-		}).then(response => response.json())
-			.then(result => {
-				PLACE = result;
+		getFromAPI(
+			`/api/beta2/place?slug=${place_slug}`,
+			CONTEXT.ohmg_api_headers,
+			(response) => {
+				PLACE = response;
 				history.pushState({slug:PLACE.slug}, PLACE.display_name, `/${PLACE.slug}`);
 				document.title = PLACE.display_name;
 				reinitList();
-		})
+			}
+		)
 	}
 
 	$: VIEWER_LINK = PLACE.maps.length > 0 ? `/viewer/${PLACE.slug}/` : '';

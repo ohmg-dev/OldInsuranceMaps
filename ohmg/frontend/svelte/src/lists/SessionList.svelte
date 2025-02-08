@@ -15,6 +15,8 @@ import SessionListModal from './modals/SessionListModal.svelte';
 	import DatePicker from './buttons/DatePicker.svelte';
     import PaginationButtons from './buttons/PaginationButtons.svelte';
 
+	import { getFromAPI } from "@/lib/requests";
+
 export let CONTEXT;
 export let FILTER_PARAM = '';
 export let limit = "10";
@@ -60,7 +62,7 @@ $: dqParam = formattedStartDate && formattedEndDate ?`&date_range=${formattedSta
 $: {
 	loading = true;
 	items = [];
-	let fetchUrl = `${CONTEXT.urls.get_sessions}?offset=${offset}`
+	let fetchUrl = `/api/beta2/sessions/?offset=${offset}`
 	if (limit != 0 && useLimit) {
 		fetchUrl = `${fetchUrl}&limit=${useLimit}`
 	}
@@ -80,13 +82,15 @@ $: {
 	if (userFilter) {
 		fetchUrl += `&username=${userFilter.id}`
 	}
-	fetch(fetchUrl, { headers: CONTEXT.ohmg_api_headers })
-		.then(response => response.json())
-		.then(result => {
+	getFromAPI(
+		fetchUrl,
+		CONTEXT.ohmg_api_headers,
+		(result) => {
 			items = result.items;
 			total = result.count;
 			loading = false;
-		});
+		}
+	)
 }
 
 </script>
