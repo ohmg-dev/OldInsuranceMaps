@@ -43,6 +43,7 @@
     projectionFromImageExtent,
     usaExtent,
   } from '@lib/utils';
+  import { submitPostRequest } from '@lib/requests';
   import { makeImageLayer, makePmTilesLayer } from '@lib/layers';
   import { DocMousePosition, LyrMousePosition, MapScaleLine } from '@lib/controls';
 
@@ -136,14 +137,8 @@
     if (!leaveOkay) {
       getModal('modal-extend-session').open()
       leaveOkay = true;
-      autoRedirect = setTimeout(cancelAndRedirectToDetail, 10000);
+      autoRedirect = setTimeout(cancelSession, 10000);
     }
-  }
-
-  const nextPage = `/map/${REGION.map}`;
-  function cancelAndRedirectToDetail() {
-    process("cancel");
-    window.location.href=nextPage;
   }
 
   const noteInputElId = "note-input";
@@ -556,7 +551,7 @@
         "note": props.note,
       });
     });
-    process("preview");
+    getPreview();
   }
 
   function updateNote() {
@@ -728,44 +723,68 @@
     return featureCollection
   }
 
-  function process(operation){
-    if (gcpList.length < 3 && (operation == "preview" || operation == "submit")) {
+  function getPreview() {
+    if (gcpList.length < 3) {
       previewMode = "n/a";
       return
     };
+    submitPostRequest(
+      `/georeference/${REGION.id}/`,
+      CONTEXT.ohmg_post_headers,
+      "preview",
+      {
+        "gcp_geojson": asGeoJSON(),
+        "transformation": currentTransformation,
+        "projection": currentTargetProjection,
+        "sesh_id": sessionId,
+        "cleanup_preview": previewUrl,
+      },
+      (result) => {
+        previewMode = previewMode == "n/a" ? "transparent" : previewMode;
+        // updating this variable will trigger the preview layer to be
+        // updated with the new source url
+        previewUrl = result.payload.preview_url;
+      },
+    )
+  }
 
-    if (operation == "submit" || operation == "cancel") {
-      leaveOkay = true;
-      disableInterface = true;
-      disableReason = operation;
+  function submitSession() {
+    if (gcpList.length < 3) {
+      previewMode = "n/a";
+      return
     };
+    leaveOkay = true;
+    disableInterface = true;
+    disableReason = "submit";
+    submitPostRequest(
+      `/georeference/${REGION.id}/`,
+      CONTEXT.ohmg_post_headers,
+      "submit",
+      {
+        "gcp_geojson": asGeoJSON(),
+        "transformation": currentTransformation,
+        "projection": currentTargetProjection,
+        "sesh_id": sessionId,
+        "cleanup_preview": previewUrl,
+      },
+      () => {window.location.href = `/map/${REGION.map}`},
+    )
+  }
 
-    const body = {
-      "gcp_geojson": asGeoJSON(),
-      "transformation": currentTransformation,
-      "projection": currentTargetProjection,
-      "operation": operation,
-      "sesh_id": sessionId,
-      "cleanup_preview": previewUrl,
-    }
-
-    const data = JSON.stringify(body);
-    fetch(REGION.urls.georeference, {
-        method: 'POST',
-        headers: CONTEXT.ohmg_post_headers,
-        body: data,
-      })
-      .then(response => response.json())
-      .then(result => {
-        if (operation == "preview") {
-          previewMode = previewMode == "n/a" ? "transparent" : previewMode;
-          // updating this variable will trigger the preview layer to be
-          // updated with the new source url
-          previewUrl = result['preview_url'];
-        } else if (operation == "submit" || operation == "cancel") {
-            window.location.href = nextPage;
-        }
-      });
+  function cancelSession() {
+    leaveOkay = true;
+    disableInterface = true;
+    disableReason = "cancel"
+    submitPostRequest(
+      `/georeference/${REGION.id}/`,
+      CONTEXT.ohmg_post_headers,
+      "cancel",
+      {
+        "sesh_id": sessionId,
+        "cleanup_preview": previewUrl,
+      },
+      () => {window.location.href = `/map/${REGION.map}`;},
+    )
   }
 
   let keyPressed = {};
@@ -834,10 +853,6 @@
     return "...";
   }
 
-  function cleanup () {
-    process('cancel')
-  }
-
   function handleExtendSession(response) {
     leaveOkay = false;
     clearTimeout(autoRedirect)
@@ -848,7 +863,7 @@
 
 <ExtendSessionModal {CONTEXT} {sessionId} callback={handleExtendSession} />
 
-<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
+<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cancelSession}/>
 <div style="height:25px;">
   Create 3 or more ground control points to georeference this document. <Link href="https://about.oldinsurancemaps.net/guides/georeferencing/" external={true}>Learn more</Link>
 </div>
@@ -862,7 +877,7 @@
 <Modal id="modal-cancel">
 	<p>Are you sure you want to cancel this session?</p>
   <button class="button is-success" on:click={() => {
-    process("cancel");
+    cancelSession();
     getModal('modal-cancel').close()
     }}>Yes - return to overview</button>
   <button class="button is-danger" on:click={() => {
@@ -902,7 +917,7 @@
       <label><input type=checkbox bind:checked={syncPanelWidth}> autosize</label>
     </div>
     <div class="control-btn-group">
-        <ToolUIButton action={() => { process("submit") }} title="Save control points" disabled={!enableSave}><Check /></ToolUIButton>
+        <ToolUIButton action={submitSession} title="Save control points" disabled={!enableSave}><Check /></ToolUIButton>
         <ToolUIButton action={() => { getModal('modal-cancel').open() }} title="Cancel georeferencing" disabled={!enableButtons}><X /></ToolUIButton>
         <ToolUIButton action={loadIncomingGCPs} title="Reset/reload original GCPs" disabled={unchanged}><ArrowsClockwise /></ToolUIButton>
         <ExpandElement elementId={'map-container'} />
@@ -955,7 +970,7 @@
   <nav style="justify-content: end;">
     <label title="Set georeferencing transformation">
       Transformation:
-      <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={() => { process("preview"); }}>
+      <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={getPreview}>
         {#each transformations as trans}
         <option value={trans.id}>{trans.name}</option>
         {/each}
@@ -1000,7 +1015,7 @@
       <div>
         <label style="margin-top:5px;" title="Set georeferencing transformation">
           Projection:
-          <select class="trans-select" style="width:151px;" bind:value={currentTargetProjection} on:change={() => { process("preview"); }}>
+          <select class="trans-select" style="width:151px;" bind:value={currentTargetProjection} on:change={getPreview}>
             {#each availableProjections as proj}
               <option value={proj.id}>{proj.name}</option>
             {/each}

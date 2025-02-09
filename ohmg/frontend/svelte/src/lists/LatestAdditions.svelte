@@ -2,6 +2,8 @@
     import LoadingEllipsis from "../base/LoadingEllipsis.svelte";
 	import Link from '@/base/Link.svelte';
 
+	import { getFromAPI } from '@/lib/requests';
+
 	export let CONTEXT;
 
 	let loadingItems = false;
@@ -9,14 +11,14 @@
 
 	function getInitialResults() {
 		loadingItems = true;
-		fetch(CONTEXT.urls.get_maps+"?limit=6&sort=load_date", {
-			headers: CONTEXT.ohmg_api_headers,
-		})
-		.then(response => response.json())
-		.then(result => {
-			latestItems = result;
-			loadingItems = false;
-		});
+		getFromAPI(
+			"/api/beta2/maps/?limit=6&sort=load_date",
+			CONTEXT.ohmg_api_headers,
+			(result) => {
+				latestItems = result;
+				loadingItems = false;
+			}
+		)
 	}
 	getInitialResults()
 </script>

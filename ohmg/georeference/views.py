@@ -6,7 +6,6 @@ import logging
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.views import View
-from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 
 from ohmg.core.http import (
@@ -19,6 +18,7 @@ from ohmg.core.http import (
 )
 from ohmg.core.utils import time_this
 from ohmg.georeference.tasks import (
+    run_preparation_session,
     run_georeference_session,
 )
 from ohmg.georeference.models import (
@@ -33,11 +33,8 @@ from ohmg.core.api.schemas import (
     RegionFullSchema,
 )
 from ohmg.core.models import (
-    Map,
     Document,
     Region,
-    Layer,
-    LayerSet,
 )
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
@@ -75,37 +72,68 @@ class SplitView(View):
             context={"split_params": split_params},
         )
 
-    # @method_decorator(validate_post_request(operations=[]))
+    @method_decorator(validate_post_request(operations=["preview", "no-split", "split", "cancel"]))
     def post(self, request, docid):
         document = get_object_or_404(Document, pk=docid)
 
         body = json.loads(request.body)
-        cutlines = body.get("lines")
         operation = body.get("operation")
-        sesh_id = body.get("sesh_id", None)
+        payload = body.get("payload", {})
+
+        cutlines = payload.get("lines")
+        sesh_id = payload.get("sessionId", None)
 
         sesh = None
         if sesh_id is not None:
             try:
                 sesh = PrepSession.objects.get(pk=sesh_id)
             except PrepSession.DoesNotExist:
-                logger.warning(
-                    f"can't find PrepSession ({sesh_id}), expected for Document {document.pk}"
-                )
-                return JsonResponse({"success": False, "message": "no session found"})
+                msg = f"can't find PrepSession ({sesh_id}), expected for Document {document.pk}"
+                logger.warning(msg)
+                return JsonResponseNotFound(msg)
 
         if operation == "preview":
             s = Splitter(image_file=document.file.path)
             divisions = s.generate_divisions(cutlines)
-            return JsonResponse({"success": True, "divisions": divisions})
+            return JsonResponseSuccess(
+                "ok",
+                {
+                    "divisions": divisions,
+                },
+            )
+
+        elif operation == "no-split":
+            # sesh could be None if this post has been made directly from an overview page,
+            # not from the split interface where a session will have already been made.
+            if sesh is None:
+                sesh = PrepSession.objects.create(
+                    doc2=document,
+                    user=request.user,
+                    user_input_duration=0,
+                )
+                sesh.start()
+
+            sesh.data["split_needed"] = False
+            sesh.save(update_fields=["data"])
+
+            new_region = sesh.run()[0]
+            return JsonResponseSuccess(f"no split, new region created: {new_region.pk}")
+
+        elif operation == "split":
+            sesh.data["split_needed"] = True
+            sesh.data["cutlines"] = cutlines
+            sesh.save(update_fields=["data"])
+            logger.info(f"{sesh.__str__()} | begin run() as task")
+            run_preparation_session.apply_async((sesh.pk,))
+            return JsonResponseSuccess()
 
         elif operation == "cancel":
             if sesh.stage != "input":
                 msg = "can't cancel session that is past the input stage"
                 logger.warning(f"{sesh.__str__()} | {msg}")
-                return JsonResponse({"success": True, "message": msg})
+                return JsonResponseFail(msg)
             sesh.delete()
-            return JsonResponse({"success": True})
+            return JsonResponseSuccess()
 
         else:
             return JsonResponseBadRequest()
@@ -159,6 +187,7 @@ class GeoreferenceView(View):
             },
         )
 
+    @method_decorator(validate_post_request(operations=["preview", "submit", "cancel"]))
     def post(self, request, docid):
         """
         Runs the georeferencing process for this document.
@@ -167,14 +196,14 @@ class GeoreferenceView(View):
         region = get_object_or_404(Region, pk=docid)
 
         body = json.loads(request.body)
-        gcp_geojson = body.get("gcp_geojson", {})
-        transformation = body.get("transformation", "poly1")
-        projection = body.get("projection", "EPSG:3857")
-        operation = body.get("operation", "preview")
-        sesh_id = body.get("sesh_id", None)
-        cleanup_preview = body.get("cleanup_preview", None)
+        operation = body.get("operation")
+        payload = body.get("payload")
 
-        response = {"status": "", "message": ""}
+        gcp_geojson = payload.get("gcp_geojson", {})
+        transformation = payload.get("transformation", "poly1")
+        projection = payload.get("projection", "EPSG:3857")
+        sesh_id = payload.get("sesh_id", None)
+        cleanup_preview = payload.get("cleanup_preview", None)
 
         def _generate_preview_id(request, sesh_id):
             try:
@@ -202,13 +231,6 @@ class GeoreferenceView(View):
                 sesh = None
             return sesh
 
-        SESSION_NOT_FOUND_RESPONSE = JsonResponse(
-            {
-                "success": False,
-                "message": f"session {sesh_id} not found: {operation} must be called with existing session",
-            }
-        )
-
         # if preview mode, modify/create the vrt for this map.
         # allow this to happen without looking for or using a session
         if operation == "preview":
@@ -225,16 +247,11 @@ class GeoreferenceView(View):
                     os.path.dirname(region.file.url), os.path.basename(out_path)
                 )
                 preview_url = settings.MEDIA_HOST.rstrip("/") + out_path_relative
-                response["status"] = "success"
-                response["message"] = "all good"
-                response["preview_url"] = preview_url
-                # queue clean up of the last preview
                 _cleanup_preview(region, cleanup_preview)
+                return JsonResponseSuccess("all good", {"preview_url": preview_url})
             except Exception as e:
                 logger.error(e)
-                response["status"] = "fail"
-                response["message"] = str(e)
-            return JsonResponse(response)
+                return JsonResponseFail(str(e))
 
         elif operation == "submit":
             sesh = _get_georef_session(sesh_id)
@@ -251,15 +268,12 @@ class GeoreferenceView(View):
                 run_georeference_session.apply_async((sesh.pk,))
 
                 _cleanup_preview(region, cleanup_preview)
-                return JsonResponse(
-                    {
-                        "success": True,
-                        "message": "all good",
-                    }
-                )
+                return JsonResponseSuccess()
 
             else:
-                return SESSION_NOT_FOUND_RESPONSE
+                return JsonResponseNotFound(
+                    f"session {sesh_id} not found: submit must be called with existing session"
+                )
 
         elif operation == "cancel":
             sesh = _get_georef_session(sesh_id)
@@ -267,71 +281,15 @@ class GeoreferenceView(View):
                 if sesh.stage != "input":
                     msg = "can't cancel session that is past the input stage"
                     logger.warning(f"{sesh.__str__()} | {msg}")
-                    return JsonResponse({"success": True, "message": msg})
+                    return JsonResponseFail(msg)
 
                 sesh.delete()
 
             _cleanup_preview(region, cleanup_preview)
-            return JsonResponse({"success": True})
+            return JsonResponseSuccess()
 
         else:
             return JsonResponseBadRequest()
-
-
-class LayerSetView(View):
-    @method_decorator(
-        validate_post_request(
-            operations=["bulk-classify-layers", "check-for-existing-mask", "set-mask"]
-        )
-    )
-    def post(self, request):
-        body = json.loads(request.body)
-        operation = body.get("operation")
-        payload = body.get("payload", {})
-
-        if operation == "bulk-classify-layers":
-            errors = []
-            for lyr_id, cat in payload.get("update-list"):
-                map = get_object_or_404(Map, pk=payload.get("map-id"))
-                layer = get_object_or_404(Layer, pk=lyr_id)
-                try:
-                    layerset = map.get_layerset(cat, create=True)
-                    layer.set_layerset(layerset)
-                except Exception as e:
-                    logger.error(e)
-                    errors.append(str(e))
-
-            if errors:
-                return JsonResponseFail("; ".join(errors))
-            else:
-                return JsonResponseSuccess("Layers classified successfully.")
-
-        if operation == "check-for-existing-mask":
-            r = get_object_or_404(Layer, pk=payload.get("resource-id"))
-
-            if r.layerset2:
-                if not r.layerset2.category.slug == payload.get("category"):
-                    if r.layerset2.multimask and r.slug in r.layerset2.multimask:
-                        return JsonResponseFail(
-                            f"Layer already in {r.layerset2.category} multimask.",
-                            payload=payload,
-                        )
-
-            return JsonResponseSuccess(payload=payload)
-
-        if operation == "set-mask":
-            try:
-                layerset = LayerSet.objects.get(
-                    map_id=payload["map-id"], category__slug=payload["category"]
-                )
-                errors = layerset.update_multimask_from_geojson(payload["multimask-geojson"])
-                print(errors)
-                if errors:
-                    return JsonResponseFail("; ".join([f"\n-- {i[0]}: {i[1]}" for i in errors]))
-                else:
-                    return JsonResponseSuccess()
-            except LayerSet.DoesNotExist:
-                return JsonResponseNotFound()
 
 
 class SessionView(View):

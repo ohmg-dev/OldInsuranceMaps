@@ -3,17 +3,21 @@
 	import Link from '@/base/Link.svelte';
 	import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
 
+	import { getFromAPI } from "@/lib/requests";
+
 	export let CONTEXT;
 
 	let all_participants = [];
 	let items = []
 
-	fetch(CONTEXT.urls.get_users, { headers: CONTEXT.ohmg_api_headers })
-		.then(response => response.json())
-		.then(result => {
+	getFromAPI(
+		"/api/beta2/users/",
+		CONTEXT.ohmg_api_headers,
+		(result) => {
 			all_participants = result;
 			items = result;
-		});
+		}
+	)
 
 	function updateFilteredList(filterText) {
 		if (filterText && filterText.length > 0) {
@@ -46,7 +50,7 @@
 		<tr slot="thead">
 			<th data-sort="username" style="max-width:300px;"></th>
 			<th data-sort="username" style="max-width:300px;" title="Name of mapped location">Username</th>
-			<th data-sort="load_ct" title="Number of unprepared sheets">Loaded Volumes</th>
+			<th data-sort="load_ct" title="Maps loaded by this user">Loaded Maps</th>
 			<th data-sort="psesh_ct" style="width:25px; text-align:center; border-left: 1px solid gray;" title="Number of prep sessions">Prep Sessions</th>
 			<th data-sort="gsesh_ct" style="width:25px; text-align:center;" title="Number of georeferencing sessions">Georef. Sessions</th>
 			<th data-sort="total_ct" style="width:25px; text-align:center; border-left:1px solid gray;" title="Percent complete - G/(U+P+G)">Total Sessions</th>

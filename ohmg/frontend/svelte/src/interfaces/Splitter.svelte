@@ -32,7 +32,7 @@ import Modal, {getModal} from '@/base/Modal.svelte';
 import ToolUIButton from '@/base/ToolUIButton.svelte';
 import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
 
-import { submitPostRequest } from "@lib/utils";
+import { submitPostRequest } from '@lib/requests';
 import { makeImageLayer } from "@lib/layers";
 import { DocMousePosition } from "@lib/controls";
     import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
@@ -73,12 +73,8 @@ function promptRefresh() {
   if (!leaveOkay) {
     getModal('modal-extend-session').open()
     leaveOkay = true;
-    autoRedirect = setTimeout(cancelAndRedirectToDetail, 10000);
+    autoRedirect = setTimeout(cancelSplit, 10000);
   }
-}
-
-function cancelAndRedirectToDetail() {
-  process("cancel");
 }
 
 let currentTxt;
@@ -144,7 +140,7 @@ const cutLayerSource = new VectorSource();
 cutLayerSource.on('addfeature', function (e) {
   cutLines.push(e.feature.getGeometry().getCoordinates())
   unchanged = false;
-  previewSplit()
+  getPreview()
 })
 const cutLayer = new VectorLayer({
   source: cutLayerSource,
@@ -198,7 +194,7 @@ onMount(() => {
       cutLines.push(feature.getGeometry().getCoordinates())
     });
     unchanged = false;
-    previewSplit()
+    getPreview()
   });
 
   viewer.addInteraction("modify", modify)
@@ -256,47 +252,29 @@ function handleKeydown(event) {
   }
 }
 
-function process(operation) {
+function cancelSplit() {
 
-  if (operation == "cancel") {
-    disableReason = operation;
-    leaveOkay = true;
-    disableInterface = true;
-  };
+  disableReason = "cancel";
+  leaveOkay = true;
+  disableInterface = true;
 
-  let data = JSON.stringify({
-    "lines": cutLines,
-    "operation": operation,
-    "sesh_id": sessionId,
-  });
-
-  fetch(DOCUMENT.urls.split, {
-      method: 'POST',
-      headers: CONTEXT.ohmg_post_headers,
-      body: data,
-    })
-    .then(response => response.json())
-    .then(result => {
-      if (operation == "preview") {
-        console.log(result)
-        divisions = result['divisions'];
-      } else if (operation == "split") {
-        window.location.href = `/map/${DOCUMENT.map}`;
-      } else if (operation == "no_split") {
-        window.location.href = `/georeference/${result.region_id}`;
-      } else if (operation == "cancel") {
-        window.location.href = `/map/${DOCUMENT.map}`;
-      }
-    });
-}
-
-function handleSubmitSplitResponse(response) {
-  if (response.success) {
-      window.location.href = `/map/${DOCUMENT.map}`;
-    } else {
-      alert(response.message)
+  submitPostRequest(
+    `/split/${DOCUMENT.id}/`,
+    CONTEXT.ohmg_post_headers,
+    "cancel",
+    {
+      "sessionId": sessionId,
+    },
+    (result) => {
+      if (result.success) {
+          window.location.href = `/map/${DOCUMENT.map}`;
+        } else {
+          alert(result.message)
+        }
     }
+  )
 }
+
 function submitSplit() {
 
   disableReason = "split";
@@ -304,18 +282,40 @@ function submitSplit() {
   disableInterface = true;
 
   submitPostRequest(
-    `/document/${DOCUMENT.id}`,
+    `/split/${DOCUMENT.id}/`,
     CONTEXT.ohmg_post_headers,
     "split",
     {
       "sessionId": sessionId,
       "lines": cutLines,
     },
-    handleSubmitSplitResponse
+    (result) => {
+      if (result.success) {
+          window.location.href = `/map/${DOCUMENT.map}`;
+        } else {
+          alert(result.message)
+        }
+    }
   )
 }
 
-function previewSplit() { if ( cutLines.length > 0) { process("preview") } };
+function getPreview() {
+
+  if (cutLines.length == 0) {return}
+
+  submitPostRequest(
+    `/split/${DOCUMENT.id}/`,
+    CONTEXT.ohmg_post_headers,
+    "preview",
+    {
+      "sessionId": sessionId,
+      "lines": cutLines,
+    },
+    (result) => {
+      divisions = result.payload.divisions;
+    }
+  )
+}
 
 function confirmLeave () {
   event.preventDefault();
@@ -325,8 +325,8 @@ function confirmLeave () {
 
 function cleanup () {
   // if this is an in-progress session for the current user
-  if (DOCUMENT.lock && (DOCUMENT.lock.user.username == CONTEXT.user.username)) {
-    process("cancel")
+  if ((DOCUMENT.lock && (DOCUMENT.lock.user.username == CONTEXT.user.username)) && !leaveOkay) {
+    cancelSplit()
   }
 }
 
@@ -354,7 +354,7 @@ function handleExtendSession(response) {
 	<p>Are you sure you want to cancel this session?</p>
   <button class="button is-success"
     on:click={() => {
-      process("cancel");
+      cancelSplit();
       getModal('modal-cancel').close()
     }}>Yes</button>
   <button class="button is-danger"

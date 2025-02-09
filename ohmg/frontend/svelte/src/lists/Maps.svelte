@@ -2,6 +2,7 @@
 import {TableSort} from 'svelte-tablesort';
 import Link from '@/base/Link.svelte';
     import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
+	import { getFromAPI } from '@/lib/requests';
 
 export let CONTEXT;
 export let PLACE_SLUG = "";
@@ -12,33 +13,33 @@ let items = [];
 let loading = true
 
 let showAll = false;
-$: url = PLACE_SLUG ? `${CONTEXT.urls.get_maps}?locale=${PLACE_SLUG}&locale_inclusive=${PLACE_INCLUSIVE}&loaded=${!showAll}` : `${CONTEXT.urls.get_maps}?loaded=${!showAll}`
+$: url = PLACE_SLUG ?
+	`/api/beta2/maps/?locale=${PLACE_SLUG}&locale_inclusive=${PLACE_INCLUSIVE}&loaded=${!showAll}`
+	: `/api/beta2/maps/?loaded=${!showAll}`
+
 function handleFetch(url) {
-	fetch(url, { headers: CONTEXT.ohmg_api_headers })
-		.then(response => response.json())
-		.then(result => {
-			fullList = flatten_response(result);
-			items = fullList;
-		});
-	
-	function flatten_response(items_json) {
-		const flattened = []
-		items_json.forEach( function(item) {
-			item.load_date = item.loaded_by ? item.load_date : "---";
-			item.loaded_by_name = item.loaded_by ? item.loaded_by.username : "---";
-			item.loaded_by_profile = item.loaded_by ? item.loaded_by.profile_url : "";
-			item.unprepared_ct = item.stats.unprepared_ct;
-			item.prepared_ct = item.stats.prepared_ct;
-			item.georeferenced_ct = item.stats.georeferenced_ct;
-			item.percent = item.stats.percent;
-			item.mm_ct = item.stats.mm_todo;
-			item.mm_display = item.stats.mm_display;
-			item.mm_percent = item.stats.mm_percent;
-			flattened.push(item)
-		})
-		loading = false
-		return flattened
-	}
+	getFromAPI(
+		url,
+		CONTEXT.ohmg_api_headers,
+		(result) => {
+			const flattened = []
+			result.forEach( function(item) {
+				item.load_date = item.loaded_by ? item.load_date : "---";
+				item.loaded_by_name = item.loaded_by ? item.loaded_by.username : "---";
+				item.loaded_by_profile = item.loaded_by ? item.loaded_by.profile_url : "";
+				item.unprepared_ct = item.stats.unprepared_ct;
+				item.prepared_ct = item.stats.prepared_ct;
+				item.georeferenced_ct = item.stats.georeferenced_ct;
+				item.percent = item.stats.percent;
+				item.mm_ct = item.stats.mm_todo;
+				item.mm_display = item.stats.mm_display;
+				item.mm_percent = item.stats.mm_percent;
+				flattened.push(item)
+			})
+			items = flattened;
+			loading = false
+		}
+	)
 }
 $: handleFetch(url)
 
@@ -78,10 +79,10 @@ $: updateFilteredList(filterInput)
 		<tr slot="thead">
 			<th data-sort="title" style="max-width:300px;" title="Title">Title</th>
 			<th data-sort="year_vol" title="Year of publication">Year</th>
-			<th data-sort="sheet_ct" style="width:55px; text-align:center;" title="Number of sheets in publication">Sheets</th>
+			<th data-sort="sheet_ct" style="width:55px; text-align:center;" title="Number of documents in publication">Sheets</th>
 			<th data-sort="loaded_by_name" style="text-align:center;" title="Volume originally loaded by this user">Loaded by</th>
 			<th data-sort="load_date" style="text-align:center;" title="Date this item was loaded">Load date</th>
-			<th data-sort="unprepared_ct" style="width:25px; text-align:center; border-left: 1px solid gray;" title="Number of unprepared sheets">U</th>
+			<th data-sort="unprepared_ct" style="width:25px; text-align:center; border-left: 1px solid gray;" title="Number of unprepared documents">U</th>
 			<th data-sort="prepared_ct" style="width:25px; text-align:center;" title="Number of prepared documents">P</th>
 			<th data-sort="georeferenced_ct" style="width:25px; text-align:center;" title="Number of georeferenced documents">G</th>
 			<th data-sort="percent" style="width:25px; text-align:center; border-left:1px solid gray;" title="Percent complete - G/(U+P+G)">%</th>

@@ -46,31 +46,18 @@ def user_info_from_request(request):
     return user_info
 
 
-def generate_ohmg_context(request):
-    """Returns a dictionary containing config information
-    that is generally needed on most pages. It allows a more streamlined approach
-    to passing this context to Svelte components. It should typically be called
-    via views.py, rather than as an actual context processor."""
+def generate_ohmg_context(request) -> dict:
+    """Returns a dictionary containing context that is generally needed on most pages,
+    providing a standard approach to passing context to Svelte components."""
 
-    internal_urls = {
-        "get_layerset": reverse("api-beta2:layerset"),
-        "get_layersets": reverse("api-beta2:layersets"),
-        "post_annotation_set": reverse("layerset_view"),
-        "get_places_geojson": reverse("api-beta2:places_geojson"),
-        "change_avatar": reverse("avatar_change"),
-        "get_map": reverse("api-beta2:map"),
-        "get_maps": reverse("api-beta2:map_list"),
-        "get_users": reverse("api-beta2:user_list"),
-        "get_place": reverse("api-beta2:place"),
-        "get_places": reverse("api-beta2:place_list"),
-        "get_sessions": reverse("api-beta2:session_list"),
-        "get_session_locks": reverse("api-beta2:session_locks"),
-    }
-
-    csrf_token = csrf.get_token(request)
     return {
         "titiler_host": settings.TITILER_HOST,
         "mapbox_api_token": settings.MAPBOX_API_TOKEN,
+        "csrf_token": (csrf_token := csrf.get_token(request)),
+        "session_length": settings.GEOREFERENCE_SESSION_LENGTH,
+        "on_mobile": on_mobile(request)["on_mobile"],
+        "user": user_info_from_request(request),
+        "change_avatar_url": reverse("avatar_change"),
         "ohmg_api_headers": {
             "X-API-Key": settings.OHMG_API_KEY,
         },
@@ -78,11 +65,6 @@ def generate_ohmg_context(request):
             "Content-Type": "application/json;charset=utf-8",
             "X-CSRFToken": csrf_token,
         },
-        "csrf_token": csrf_token,
-        "session_length": settings.GEOREFERENCE_SESSION_LENGTH,
-        "on_mobile": on_mobile(request)["on_mobile"],
-        "user": user_info_from_request(request),
-        "urls": internal_urls,
     }
 
 

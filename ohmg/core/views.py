@@ -17,6 +17,7 @@ from ohmg.core.models import (
     Document,
     Region,
     Layer,
+    LayerSet,
     LayerSetCategory,
 )
 from ohmg.core.utils import time_this
@@ -29,9 +30,6 @@ from ohmg.core.api.schemas import (
 )
 from ohmg.core.tasks import (
     load_map_documents_as_task,
-)
-from ohmg.georeference.tasks import (
-    run_preparation_session,
 )
 
 from .http import (
@@ -78,11 +76,12 @@ class MapView(View):
         return render(request, "content/map.html", context=context_dict)
 
     @method_decorator(login_required)
+    @method_decorator(validate_post_request(operations=["load-documents", "refresh-lookups"]))
     def post(self, request, identifier):
         body = json.loads(request.body)
-        operation = body.get("operation", None)
+        operation = body.get("operation")
 
-        if operation == "initialize":
+        if operation == "load-documents":
             map = Map.objects.get(pk=identifier)
             if map.loaded_by is None:
                 map.loaded_by = request.user
@@ -131,7 +130,7 @@ class DocumentView(GenericResourceView):
     model = Document
 
     @method_decorator(login_required)
-    @method_decorator(validate_post_request(operations=["no-split", "split", "unprepare"]))
+    @method_decorator(validate_post_request(operations=["unprepare"]))
     def post(self, request, pk):
         from ohmg.georeference.models import PrepSession
 
@@ -141,43 +140,6 @@ class DocumentView(GenericResourceView):
 
         body = json.loads(request.body)
         operation = body.get("operation")
-        payload = body.get("payload")
-
-        sessionid = payload.get("sessionId")
-        sesh = None
-        if sessionid:
-            sesh = PrepSession.objects.get(pk=sessionid)
-
-        if operation in ["split", "no-split"]:
-            if Region.objects.filter(document=document).exists():
-                return JsonResponseFail(
-                    f"This document {document} ({document.pk}) has already been prepared."
-                )
-
-        if operation == "no-split":
-            # sesh could be None if this post has been made directly from an overview page,
-            # not from the split interface where a session will have already been made.
-            if sesh is None:
-                sesh = PrepSession.objects.create(
-                    doc2=document,
-                    user=request.user,
-                    user_input_duration=0,
-                )
-                sesh.start()
-
-            sesh.data["split_needed"] = False
-            sesh.save(update_fields=["data"])
-
-            new_region = sesh.run()[0]
-            return JsonResponseSuccess(f"no split, new region created: {new_region.pk}")
-
-        if operation == "split":
-            sesh.data["split_needed"] = True
-            sesh.data["cutlines"] = payload.get("lines")
-            sesh.save(update_fields=["data"])
-            logger.info(f"{sesh.__str__()} | begin run() as task")
-            run_preparation_session.apply_async((sesh.pk,))
-            return JsonResponse({"success": True})
 
         if operation == "unprepare":
             sesh = PrepSession.objects.get(doc2=document)
@@ -194,7 +156,7 @@ class RegionView(GenericResourceView):
     @method_decorator(login_required)
     @method_decorator(
         validate_post_request(
-            operations=["set-category", "georeference"],
+            operations=["set-category"],
         )
     )
     def post(self, request, pk):
@@ -216,10 +178,6 @@ class RegionView(GenericResourceView):
                 return JsonResponseFail(f"Invalid category for Region: {cat}")
             region.save()
             return JsonResponseSuccess()
-
-        if operation == "georeference":
-            # move "submit" operation on ohmg.georeference.views.GeoreferenceView here
-            pass
 
 
 class LayerView(GenericResourceView):
@@ -260,3 +218,59 @@ class LayerView(GenericResourceView):
             layer.delete()
             logger.debug((msg := f"Layer {pk} removed through ungeoreference process."))
             return JsonResponseSuccess(msg)
+
+
+class LayerSetView(View):
+    @method_decorator(
+        validate_post_request(
+            operations=["bulk-classify-layers", "check-for-existing-mask", "set-mask"]
+        )
+    )
+    def post(self, request):
+        body = json.loads(request.body)
+        operation = body.get("operation")
+        payload = body.get("payload", {})
+
+        if operation == "bulk-classify-layers":
+            errors = []
+            for lyr_id, cat in payload.get("update-list"):
+                map = get_object_or_404(Map, pk=payload.get("map-id"))
+                layer = get_object_or_404(Layer, pk=lyr_id)
+                try:
+                    layerset = map.get_layerset(cat, create=True)
+                    layer.set_layerset(layerset)
+                except Exception as e:
+                    logger.error(e)
+                    errors.append(str(e))
+
+            if errors:
+                return JsonResponseFail("; ".join(errors))
+            else:
+                return JsonResponseSuccess("Layers classified successfully.")
+
+        if operation == "check-for-existing-mask":
+            r = get_object_or_404(Layer, pk=payload.get("resource-id"))
+
+            if r.layerset2:
+                if not r.layerset2.category.slug == payload.get("category"):
+                    if r.layerset2.multimask and r.slug in r.layerset2.multimask:
+                        return JsonResponseFail(
+                            f"Layer already in {r.layerset2.category} multimask.",
+                            payload=payload,
+                        )
+
+            return JsonResponseSuccess(payload=payload)
+
+        if operation == "set-mask":
+            try:
+                layerset = LayerSet.objects.get(
+                    map_id=payload["map-id"], category__slug=payload["category"]
+                )
+                errors = layerset.update_multimask_from_geojson(payload["multimask-geojson"])
+                print(errors)
+                if errors:
+                    return JsonResponseFail("; ".join([f"\n-- {i[0]}: {i[1]}" for i in errors]))
+                else:
+                    return JsonResponseSuccess()
+            except LayerSet.DoesNotExist:
+                return JsonResponseNotFound()

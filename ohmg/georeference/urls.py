@@ -3,7 +3,6 @@ from django.urls import path
 from .views import (
     SplitView,
     GeoreferenceView,
-    LayerSetView,
     SessionView,
 )
 
@@ -15,5 +14,4 @@ urlpatterns = [
         name="georeference_view",
     ),
     path("session/<int:sessionid>/", SessionView.as_view(), name="session_view"),
-    path("layerset/", LayerSetView.as_view(), name="layerset_view"),
 ]

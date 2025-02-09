@@ -23,6 +23,7 @@
 	import { makeLayerGroupFromLayerSet } from '@lib/utils';
 	import { LyrMousePosition } from "@lib/controls";
 	import { MapViewer } from "@lib/viewers";
+	import { getFromAPI } from "@lib/requests";
     import TransparencySlider from './buttons/TransparencySlider.svelte';
 
 	export let CONTEXT;
@@ -104,14 +105,13 @@
 	}
 
 	function fetchLayerSets() {
-		fetch(`/api/beta2/layersets/?map=${mapId}`, {
-			headers: CONTEXT.ohmg_api_headers
-		})
-		.then(response => response.json())
-		.then(result => {
-			updateLayersets(result)
-			refreshable = false;
-		});
+		getFromAPI(`/api/beta2/layersets/?map=${mapId}`,
+			CONTEXT.ohmg_api_headers,
+			(response) => {
+				updateLayersets(response)
+				refreshable = false;
+			}
+		);
 	}
 
 	onMount(() => {

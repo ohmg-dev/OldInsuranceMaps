@@ -3,19 +3,23 @@
 	import Link from '@/base/Link.svelte';
 	import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
 
+	import { getFromAPI } from "@/lib/requests";
+
 	export let CONTEXT;
 
 	let all_places = [];
 	let items = []
 	let loading = true
 
-	fetch(CONTEXT.urls.get_places, { headers: CONTEXT.ohmg_api_headers })
-		.then(response => response.json())
-		.then(result => {
+	getFromAPI(
+		"/api/beta2/places/",
+		CONTEXT.ohmg_api_headers,
+		(result) => {
 			all_places = result;
 			items = result;
 			loading = false;
-		});
+		}
+	)
 
 	function updateFilteredList(filterText) {
 		if (filterText && filterText.length > 0) {

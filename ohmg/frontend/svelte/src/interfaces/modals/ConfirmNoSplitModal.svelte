@@ -1,6 +1,6 @@
 <script>
     import Modal, {getModal} from '@/base/Modal.svelte';
-    import { submitPostRequest } from "@lib/utils"
+    import { submitPostRequest } from '@lib/requests';
 
     export let CONTEXT;
     export let documentId;
@@ -10,7 +10,7 @@
     function postNoSplit() {
       processing = true
       submitPostRequest(
-        `/document/${documentId}`,
+        `/split/${documentId}/`,
         CONTEXT.ohmg_post_headers,
         "no-split",
         {},
