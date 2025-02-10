@@ -55,5 +55,6 @@
 {:else if PAGE_NAME == 'markdown-page'}
 <MarkdownPage 
     HEADER={PARAMS.HEADER}
-    source={PARAMS.source} />
+    source={PARAMS.source}
+    isHtml={PARAMS.isHtml}/>
 {/if}
