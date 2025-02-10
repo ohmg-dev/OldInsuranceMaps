@@ -15,7 +15,9 @@ class Page(models.Model):
     )
     slug = models.CharField(max_length=200, null=True, blank=True)
     content = MarkdownxField()
+    extra_head = models.CharField(max_length=600, null=True, blank=True)
     published = models.BooleanField(default=False)
+    render_as_html = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title

@@ -14,7 +14,7 @@
     <meta Http-Equiv="Expires" Content="0">
     <meta Http-Equiv="Pragma-directive: no-cache">
     <meta Http-Equiv="Cache-directive: no-cache">
-    
+
     <!-- title is the block used in my own templates -->
     <!-- title is the block used in the django-newsletter templates -->
     <!-- head_title is the block used by the allauth templates -->
@@ -31,9 +31,9 @@
 
     <!-- from: https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css -->
     <link href="{{ STATIC_URL }}plugins/bulma.min.css" rel="stylesheet"/>
-    
-    {% block head %}{% endblock %}
-    
+
+    {% block extra_head %}{% endblock %}
+
     {# compress css #}
     <!-- custom stylesheets -->
     <link href="{{ STATIC_URL }}css/bulma-overrides.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
@@ -44,7 +44,7 @@
     <!-- from: https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css -->
     <link href="{{ STATIC_URL }}plugins/phosphor-icons@2.1.1/bold.css" rel="stylesheet"/>
     {# endcompress #}
-    
+
     {# compress js #}
     <!-- dependencies for pinax-announcements -->
     <!-- from: https://code.jquery.com/jquery-2.2.4.min.js -->
@@ -64,7 +64,7 @@
     {% block header %}{% endblock header %}
 
     {% include '_navbar.html' %}
-    
+
     {% block middle %}
     <div id="main-container" class="container">
         {% include "_status_message.html" %}

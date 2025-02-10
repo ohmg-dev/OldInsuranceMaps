@@ -12,10 +12,12 @@ class PageView(View):
             "params": {
                 "PAGE_TITLE": page.title,
                 "PAGE_NAME": "markdown-page",
+                "extra_head": page.extra_head,
                 "PARAMS": {
                     "HEADER": page.title,
                     # downstream SvelteMarkdown requires this variable to be `source`
                     "source": page.content,
+                    "isHtml": page.render_as_html,
                 },
             }
         }

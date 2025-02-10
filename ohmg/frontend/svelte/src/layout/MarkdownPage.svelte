@@ -7,6 +7,7 @@
 
     export let source = '*add your markdown here*';
     export let HEADER = '*add your h1 here*';
+    export let isHtml = false;
     export let MAKE_TOC = true
 
     function slugify(str) {
@@ -31,22 +32,26 @@
 
 <main>
     <TitleBar TITLE={HEADER}/>
-    <div class="content">
-        <div>
-            <SvelteMarkdown {source} on:parsed={handleParsed}/>
-        </div>
-        {#if MAKE_TOC}
-        <div id="side-panel">
-            <div id="toc">
-                <ul>
-                    {#each headings as heading}
-                        <li><Link href="#{slugify(heading.text)}">{heading.text}</Link></li>
-                    {/each}
-                </ul>
+    {#if isHtml}
+        {@html source}
+    {:else}
+        <div class="content">
+            <div>
+                <SvelteMarkdown {source} on:parsed={handleParsed}/>
             </div>
+            {#if MAKE_TOC}
+            <div id="side-panel">
+                <div id="toc">
+                    <ul>
+                        {#each headings as heading}
+                            <li><Link href="#{slugify(heading.text)}">{heading.text}</Link></li>
+                        {/each}
+                    </ul>
+                </div>
+            </div>
+            {/if}
         </div>
-        {/if}
-    </div>
+    {/if}
 </main>
 
 <style>
