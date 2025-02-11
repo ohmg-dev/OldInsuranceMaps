@@ -1,11 +1,42 @@
 from django.http import JsonResponse
 from django.views import View
 
-from ohmg.core.models import Map, Region
+from ohmg.core.models import Map
 from ohmg.core.utils import full_reverse
-from .utils import (
-    region_as_iiif_resource,
-)
+from .utils import IIIFResource
+
+
+class IIIFSelectorView(View):
+    def get(self, request, layerid):
+        return JsonResponse(IIIFResource(layerid).get_selector())
+
+
+class IIIFGCPView(View):
+    def get(self, request, layerid):
+        return JsonResponse(IIIFResource(layerid).get_gcps())
+
+
+class IIIFResourceView(View):
+    def get(self, request, layerid):
+        return JsonResponse(IIIFResource(layerid).get_resource())
+
+
+class IIIFCanvasView(View):
+    def get(self, request, mapid, layerset_category):
+        ls = Map.objects.get(pk=mapid).get_layerset(layerset_category)
+        print(ls)
+        print(ls.layer_set.all())
+        return JsonResponse(
+            {
+                "id": full_reverse("iiif_canvas_view", args=(mapid, layerset_category)),
+                "type": "AnnotationPage",
+                "@context": "http://www.w3.org/ns/anno.jsonld",
+                "items": [
+                    IIIFResource(i.pk).get_resource() for i in [k for k in ls.layer_set.all()]
+                ],
+            }
+        )
+
 
 # Create your views here.
 ## DEPRECATED - IIIF is not currently implemented, retain for future reference.
@@ -60,26 +91,3 @@ from .utils import (
 #             loader.render_to_string(
 #                 "404.html", context={
 #                 }, request=request), status=404)
-
-
-class IIIFResourceView(View):
-    def get(self, request, regionid):
-        region = Region.objects.get(pk=regionid)
-        return JsonResponse(region_as_iiif_resource(region))
-
-
-class IIIFCanvasView(View):
-    def get(self, request, mapid, layerset_category):
-        ls = Map.objects.get(pk=mapid).get_layerset(layerset_category)
-        print(ls)
-        print(ls.layer_set.all())
-        return JsonResponse(
-            {
-                "id": full_reverse("iiif_canvas_view", args=(mapid, layerset_category)),
-                "type": "AnnotationPage",
-                "@context": "http://www.w3.org/ns/anno.jsonld",
-                "items": [
-                    region_as_iiif_resource(i) for i in [k.region for k in ls.layer_set.all()]
-                ],
-            }
-        )

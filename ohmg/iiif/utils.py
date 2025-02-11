@@ -7,22 +7,99 @@ from PIL import Image
 from django.conf import settings
 from django.urls import reverse
 
+from ohmg.core.models import Layer
 from ohmg.core.utils import full_reverse
 
 
-def region_as_iiif_resource(region):
-    return {
-        "id": full_reverse("iiif_resource_view", args=(region.pk,)),
-        "type": "Annotation",
-        "@context": [
-            "http://iiif.io/api/extension/georef/1/context.json",
-            "http://iiif.io/api/presentation/3/context.json",
-        ],
-        "created": "<timestamp>",
-        "modified": "<timestamp>",
-        "motivation": "georeferencing",
-        "target": "",
-    }
+class IIIFResource:
+    def __init__(self, layerid):
+        self.layerid = layerid
+        self.layer = Layer.objects.get(pk=layerid)
+        self.region = self.layer.region
+        self.document = self.region.document
+
+        self.d_width, self.d_height = self.document.image_size
+
+    def get_selector(self):
+        ## create coordinates for the selector
+        coords_str = [
+            f"{int(i[0])},{self.d_height-int(i[1])}" for i in self.region.boundary.coords[0]
+        ]
+        coords_join = " ".join(coords_str)
+
+        return {
+            "id": full_reverse("iiif_selector_view", args=(self.layerid,)),
+            "type": "SpecificResource",
+            "source": {
+                "id": self.document.iiif_info,
+                "type": "ImageService2",
+                "height": self.d_height,
+                "width": self.d_width,
+            },
+            "selector": {
+                "type": "SvgSelector",
+                "value": f'<svg><polygon points="{coords_join}" /></svg>',
+            },
+        }
+
+    def get_gcps(self):
+        extent = self.region.boundary.extent
+        xmin, ymin, xmax, ymax = extent
+
+        if self.region.gcpgroup.transformation == "poly1":
+            transformation = {"type": "polynomial", "options": {"order": 1}}
+        elif self.region.gcpgroup.transformation == "tps":
+            transformation = {
+                "type": "thinPlateSpline",
+            }
+        else:
+            raise Exception("invalid transformation", self.region.gcpgroup.transformation)
+
+        return {
+            "id": full_reverse("iiif_gcps_view", args=(self.layerid,)),
+            "type": "FeatureCollection",
+            "transformation": transformation,
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "resourceCoords": [
+                            i["properties"]["image"][0] + xmin,
+                            i["properties"]["image"][1] + (self.d_height - ymax),
+                        ],
+                    },
+                    "geometry": i["geometry"],
+                }
+                for i in self.region.gcpgroup.as_geojson["features"]
+            ],
+        }
+
+    def get_resource(self):
+        ## Ok, getting an extent or envelope from the region boundary produces cartesian x,y
+        ## with 0,0 at the bottom left. However, the stored image GCP coords are with 0,0 at
+        ## top left. Translating the GCP image coords is performed like this:
+        ## 1) get the extent of the region, and from that the minX and maxY
+        ##   Min X: This is added to the GCP x coord to "push" it the proper distance from the origin,
+        ##          such that the GCP coord from the small region is now translated to the source doc
+        ##   Max Y: The max Y is cartesion TOP of the small region, but this number needs to be
+        ##          SUBTRACTED from the source height of the document, to get the distance from the
+        ##          top of the small region to the top of the source document. Then, this distance
+        ##          is added to the GCP x coord to "push" it down the proper distance from the top
+        ##          of the source document
+
+        return {
+            "id": full_reverse("iiif_resource_view", args=(self.layerid,)),
+            "type": "Annotation",
+            "@context": [
+                "http://iiif.io/api/extension/georef/1/context.json",
+                "http://iiif.io/api/presentation/3/context.json",
+            ],
+            "created": self.region.created.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "modified": self.region.last_updated.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "motivation": "georeferencing",
+            "target": self.get_selector(),
+            "body": self.get_gcps(),
+        }
 
 
 ## ~~ IIIF support (Old content) ~~
