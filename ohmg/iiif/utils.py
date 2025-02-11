@@ -3,12 +3,16 @@ import json
 
 # import base64
 from PIL import Image
+from osgeo import gdal, osr
 
 from django.conf import settings
 from django.urls import reverse
+from django.contrib.gis.gdal import CoordTransform, SpatialReference
+from django.contrib.gis.geos import Polygon
 
 from ohmg.core.models import Layer
 from ohmg.core.utils import full_reverse
+from ohmg.georeference.georeferencer import Georeferencer
 
 
 class IIIFResource:
@@ -25,6 +29,41 @@ class IIIFResource:
         coords_str = [
             f"{int(i[0])},{self.d_height-int(i[1])}" for i in self.region.boundary.coords[0]
         ]
+
+        ## next step is to look for the multimask for this layer if one exists, and then
+        ## transform it back to the selector coordinates.
+        mm = self.layer.layerset2.multimask
+        if mm and self.layer.slug in mm:
+            wgs84 = osr.SpatialReference()
+            wgs84.ImportFromEPSG(4326)
+
+            coords = mm[self.layer.slug]["geometry"]["coordinates"][0]
+            ct = CoordTransform(SpatialReference("WGS84"), SpatialReference("EPSG:3857"))
+            polygon = Polygon(coords)
+            polygon.transform(ct)
+
+            g = Georeferencer(
+                crs=f"EPSG:{self.region.gcpgroup.crs_epsg}",
+                transformation=self.region.gcpgroup.transformation,
+                gcps_geojson=self.region.gcpgroup.as_geojson,
+            )
+            in_path = g.warp(self.region.file.path, return_gcps_vrt=True)
+            ds = gdal.Open(in_path)
+            transformer = gdal.Transformer(
+                # Source datasource
+                None,
+                # Target datasource
+                ds,
+                # Transformer options that are ultimately passed to 'GDALCreateGenImgProjTransformer2()'
+                # https://gdal.org/api/gdal_alg.html#_CPPv432GDALCreateGenImgProjTransformer212GDALDatasetH12GDALDatasetHPPc
+                [
+                    ## need to update this, different number if thin plate spline
+                    "MAX_GCP_ORDER=1",
+                ],
+            )
+            transposed, status = transformer.TransformPoints(False, polygon.coords[0])
+            coords_str = [f"{i[0]},{self.d_height-i[1]}" for i in transposed]
+
         coords_join = " ".join(coords_str)
 
         return {

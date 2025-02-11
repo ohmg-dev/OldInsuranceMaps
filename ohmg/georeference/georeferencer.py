@@ -231,7 +231,14 @@ class Georeferencer:
             os.mkdir(directory)
         self.workspace = directory
 
-    def warp(self, src_path, output_directory=None, return_vrt=False, preview_id=None):
+    def warp(
+        self,
+        src_path,
+        output_directory=None,
+        return_vrt=False,
+        preview_id=None,
+        return_gcps_vrt=False,
+    ):
         """
         This is (now) the only entry point for creating an output warped file. By default,
         this will be a Cloud Optimized GeoTIFF (COG), via the COG driver in GDAL.
@@ -275,6 +282,9 @@ class Georeferencer:
 
         if self.verbose:
             print(gdal.Info(vrt_with_gcps_path))
+
+        if return_gcps_vrt:
+            return vrt_with_gcps_path
 
         ## if a jpg is passed in, assume that white (255, 255, 255) should be
         ## interpreted as the no data value
