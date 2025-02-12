@@ -62,7 +62,7 @@ class IIIFResource:
                 ],
             )
             transposed, status = transformer.TransformPoints(False, polygon.coords[0])
-            coords_str = [f"{i[0]},{self.d_height-i[1]}" for i in transposed]
+            coords_str = [f"{i[0]},{i[1]}" for i in transposed]
 
         coords_join = " ".join(coords_str)
 
