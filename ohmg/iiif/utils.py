@@ -24,7 +24,7 @@ class IIIFResource:
 
         self.d_width, self.d_height = self.document.image_size
 
-    def get_selector(self):
+    def get_selector(self, trim=False):
         ## create coordinates for the selector
         coords_str = [
             f"{int(i[0])},{self.d_height-int(i[1])}" for i in self.region.boundary.coords[0]
@@ -33,7 +33,7 @@ class IIIFResource:
         ## next step is to look for the multimask for this layer if one exists, and then
         ## transform it back to the selector coordinates.
         mm = self.layer.layerset2.multimask
-        if mm and self.layer.slug in mm:
+        if mm and self.layer.slug in mm and trim:
             wgs84 = osr.SpatialReference()
             wgs84.ImportFromEPSG(4326)
 
@@ -113,7 +113,7 @@ class IIIFResource:
             ],
         }
 
-    def get_resource(self):
+    def get_resource(self, trim=False):
         ## Ok, getting an extent or envelope from the region boundary produces cartesian x,y
         ## with 0,0 at the bottom left. However, the stored image GCP coords are with 0,0 at
         ## top left. Translating the GCP image coords is performed like this:
@@ -136,7 +136,7 @@ class IIIFResource:
             "created": self.region.created.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "modified": self.region.last_updated.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "motivation": "georeferencing",
-            "target": self.get_selector(),
+            "target": self.get_selector(trim=trim),
             "body": self.get_gcps(),
         }
 

@@ -18,21 +18,21 @@ class IIIFGCPView(View):
 
 class IIIFResourceView(View):
     def get(self, request, layerid):
-        return JsonResponse(IIIFResource(layerid).get_resource())
+        trim = request.GET.get("trim", "false") == "true"
+        return JsonResponse(IIIFResource(layerid).get_resource(trim=trim))
 
 
 class IIIFCanvasView(View):
     def get(self, request, mapid, layerset_category):
         ls = Map.objects.get(pk=mapid).get_layerset(layerset_category)
-        print(ls)
-        print(ls.layer_set.all())
+        trim = request.GET.get("trim", "false") == "true"
         return JsonResponse(
             {
                 "id": full_reverse("iiif_canvas_view", args=(mapid, layerset_category)),
                 "type": "AnnotationPage",
                 "@context": "http://www.w3.org/ns/anno.jsonld",
                 "items": [
-                    IIIFResource(i.pk).get_resource() for i in [k for k in ls.layer_set.all()]
+                    IIIFResource(i.pk).get_resource(trim=trim) for i in [k for k in ls.layer_set.all()]
                 ],
             }
         )
