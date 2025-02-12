@@ -222,6 +222,11 @@ MIDDLEWARE = (
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "ohmg.core.middleware.CORSMiddleware",
+)
+
+CORS_WHITELIST = (
+    "/iiif",
 )
 
 LOGIN_URL = "/account/login/"
