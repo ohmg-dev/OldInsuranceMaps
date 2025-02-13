@@ -24,7 +24,7 @@ urlpatterns = [
         name="iiif_resource_view",
     ),
     path(
-        "iiif/canvas/<str:mapid>/<str:layerset_category>/",
+        "iiif/mosaic/<str:mapid>/<str:layerset_category>/",
         IIIFCanvasView.as_view(),
         name="iiif_canvas_view",
     ),

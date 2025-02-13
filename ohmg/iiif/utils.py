@@ -136,6 +136,8 @@ class IIIFResource:
             "created": self.region.created.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "modified": self.region.last_updated.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "motivation": "georeferencing",
+            ## Technically, these could be just be the urls to each resolvable endpoint,
+            ## instead of actually embedding the data here
             "target": self.get_selector(trim=trim),
             "body": self.get_gcps(),
         }
