@@ -30,6 +30,7 @@ from ohmg.core.api.schemas import (
 )
 from ohmg.core.tasks import (
     load_map_documents_as_task,
+    load_document_file_as_task,
 )
 
 from .http import (
@@ -130,7 +131,7 @@ class DocumentView(GenericResourceView):
     model = Document
 
     @method_decorator(login_required)
-    @method_decorator(validate_post_request(operations=["unprepare"]))
+    @method_decorator(validate_post_request(operations=["unprepare", "load-file"]))
     def post(self, request, pk):
         from ohmg.georeference.models import PrepSession
 
@@ -148,6 +149,10 @@ class DocumentView(GenericResourceView):
                 return JsonResponseSuccess(result["message"])
             else:
                 return JsonResponseFail(result["message"])
+
+        if operation == "load-file":
+            load_document_file_as_task.apply_async((pk,))
+            return JsonResponseSuccess(f"file load started for document {pk}")
 
 
 class RegionView(GenericResourceView):

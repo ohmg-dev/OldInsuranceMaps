@@ -225,9 +225,7 @@ MIDDLEWARE = (
     "ohmg.core.middleware.CORSMiddleware",
 )
 
-CORS_WHITELIST = (
-    "/iiif",
-)
+CORS_WHITELIST = ("/iiif",)
 
 LOGIN_URL = "/account/login/"
 
@@ -281,6 +279,7 @@ CELERY_TASK_ROUTES = {
     "ohmg.georeference.tasks.delete_stale_sessions": {"queue": "housekeeping"},
     "ohmg.georeference.tasks.delete_preview_vrt": {"queue": "housekeeping"},
     "ohmg.core.tasks.load_map_documents_as_task": {"queue": "map"},
+    "ohmg.core.tasks.load_document_file_as_task": {"queue": "map"},
 }
 
 # empty celery beat schedule of default GeoNode jobs
