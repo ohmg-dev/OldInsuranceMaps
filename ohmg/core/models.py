@@ -524,6 +524,7 @@ class Document(models.Model):
         self,
         set_slug: bool = False,
         set_thumbnail: bool = False,
+        set_image_size: bool = False,
         skip_map_lookup_update: bool = False,
         *args,
         **kwargs,
@@ -551,7 +552,8 @@ class Document(models.Model):
         if self.page_number and self.nickname:
             self.nickname = f"{self.map.document_page_type} {self.page_number}"
 
-        self.image_size = get_image_size(Path(self.file.path)) if self.file else None
+        if set_image_size or not self.image_size:
+            self.image_size = get_image_size(Path(self.file.path)) if self.file else None
 
         return super(self.__class__, self).save(*args, **kwargs)
 
@@ -647,6 +649,7 @@ class Region(models.Model):
         self,
         set_slug: bool = False,
         set_thumbnail: bool = False,
+        set_image_size: bool = False,
         skip_map_lookup_update: bool = False,
         *args,
         **kwargs,
@@ -671,7 +674,8 @@ class Region(models.Model):
         if self.division_number and self.nickname:
             self.nickname += f" [{self.division_number}]"
 
-        self.image_size = get_image_size(Path(self.file.path)) if self.file else None
+        if set_image_size or not self.image_size:
+            self.image_size = get_image_size(Path(self.file.path)) if self.file else None
 
         return super(self.__class__, self).save(*args, **kwargs)
 
