@@ -302,7 +302,7 @@ class Map(models.Model):
                 )
                 document.source_url = source["path"]
                 document.iiif_info = source["iiif_info"]
-                document.save()
+                document.save(skip_map_lookup_update=True)
                 if created:
                     logger.debug(f"{document} ({document.pk}) created.")
 
@@ -314,6 +314,7 @@ class Map(models.Model):
             logger.error(e)
             self.set_status("document load error")
             raise e
+        self.update_item_lookup()
         self.set_status("ready")
 
     def remove_sheets(self):
