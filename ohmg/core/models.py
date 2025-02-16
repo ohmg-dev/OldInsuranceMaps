@@ -11,6 +11,7 @@ from cogeo_mosaic.backends import MosaicBackend
 from natsort import natsorted
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Polygon, MultiPolygon, GEOSGeometry
 from django.contrib.contenttypes.models import ContentType
@@ -270,7 +271,7 @@ class Map(models.Model):
                 layerset = None
         return layerset
 
-    def create_documents(self, get_files=False):
+    def create_documents(self):
         """Iterates the list of items in self.document_sources and create Document
         objects for each one. If get_files=True, load files from their path.
 
@@ -281,29 +282,26 @@ class Map(models.Model):
             page_number: <str for page id (optional but must be unique across all documents in list)>
         }
         """
-        self.set_status("initializing...")
-        try:
-            for source in self.document_sources:
-                document, created = Document.objects.get_or_create(
-                    map=self,
-                    page_number=source["page_number"],
-                )
-                document.source_url = source["path"]
-                document.iiif_info = source["iiif_info"]
-                document.save(skip_map_lookup_update=True)
-                if created:
-                    logger.debug(f"{document} ({document.pk}) created.")
-
-            logger.debug(f"Map {self.title} ({self.pk}) has {len(self.documents.all())} Documents")
-            if get_files:
-                for document in natsorted(self.documents.all(), key=lambda k: k.title):
-                    document.load_file_from_source(overwrite=True)
-        except Exception as e:
-            logger.error(e)
-            self.set_status("document load error")
-            raise e
+        for source in self.document_sources:
+            document, created = Document.objects.get_or_create(
+                map=self,
+                page_number=source["page_number"],
+            )
+            document.source_url = source["path"]
+            document.iiif_info = source["iiif_info"]
+            document.save(skip_map_lookup_update=True)
+            if created:
+                logger.debug(f"{document} ({document.pk}) created.")
+        logger.debug(f"Map {self.title} ({self.pk}) has {len(self.documents.all())} Documents")
         self.update_item_lookup()
-        self.set_status("ready")
+
+    def load_all_document_files(self, username, overwrite=False):
+        for document in natsorted(self.documents.all(), key=lambda k: k.title):
+            if not document.file and not overwrite:
+                try:
+                    document.load_file_from_source(username, overwrite=True)
+                except Exception as e:
+                    logger.error(f"error loading document {document.pk}: {e}")
 
     def remove_sheets(self):
         for document in self.documents:
@@ -334,8 +332,7 @@ class Map(models.Model):
         regions = self.regions
         items = {
             "unprepared": [
-                DocumentSchema.from_orm(i).dict()
-                for i in self.documents.filter(prepared=False).exclude(file="")
+                DocumentSchema.from_orm(i).dict() for i in self.documents.filter(prepared=False)
             ],
             "prepared": [
                 RegionSchema.from_orm(i).dict()
@@ -458,9 +455,11 @@ class Document(models.Model):
         else:
             return None
 
-    def load_file_from_source(self, overwrite=False):
+    def load_file_from_source(self, username, overwrite=False):
         log_prefix = f"{self.__str__()} |"
         logger.info(f"{log_prefix} start load")
+        self.loading_file = True
+        self.save()
 
         if self.iiif_info:
             src_url = self.iiif_info.replace("info.json", "full/full/0/default.jpg")
@@ -496,7 +495,12 @@ class Document(models.Model):
             self.file.save(f"{self.slug}{tmp_path.suffix}", File(new_file))
 
         self.load_date = datetime.now()
-        self.save()
+        self.loading_file = False
+        if self.map.loaded_by is None:
+            self.map.loaded_by = get_user_model().objects.get(username=username)
+            self.map.load_date = self.load_date
+            self.map.save(update_fields=["loaded_by", "load_date"])
+        self.save(set_thumbnail=True)
 
     def set_thumbnail(self):
         if self.file is not None:

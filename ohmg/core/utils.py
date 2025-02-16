@@ -75,6 +75,7 @@ def make_cacheable_request(url, delay=0, no_cache=False):
 
 def download_image(url: str, out_path: Path, retries: int = 3, use_cache: bool = True):
     if out_path.is_file() and use_cache:
+        print(f"using cached file: {out_path}")
         return out_path
 
     # basic download code: https://stackoverflow.com/a/18043472/3873885
