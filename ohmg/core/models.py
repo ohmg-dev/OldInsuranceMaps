@@ -477,32 +477,34 @@ class Document(models.Model):
         log_prefix = f"{self.__str__()} |"
         logger.info(f"{log_prefix} start load")
 
-        if not self.source_url:
-            logger.warning(f"{log_prefix} no source_url - cancelling download")
+        if self.iiif_info:
+            src_url = self.iiif_info.replace("info.json", "full/full/0/default.jpg")
+        elif self.source_url:
+            src_url = self.source_url
+        else:
+            logger.warning(f"{log_prefix} no source_url or iiif_info - cancelling download")
             return
 
         if self.file != "" and not overwrite:
             logger.warning(f"{log_prefix} won't overwrite existing file")
             return
 
-        src_path = Path(self.source_url)
+        src_path = Path(src_url)
         tmp_path = Path(settings.CACHE_DIR, "images", src_path.name)
 
-        if self.source_url.startswith("http"):
-            out_file = download_image(self.source_url, tmp_path, use_cache=not overwrite)
+        if src_url.startswith("http"):
+            out_file = download_image(src_url, tmp_path, use_cache=not overwrite)
             if out_file is None:
-                logger.error(f"can't get {self.source_url} -- skipping")
+                logger.error(f"can't get {src_url} -- skipping")
                 return
         else:
             copy_local_file_to_cache(src_path, tmp_path)
 
-        if not self.source_url.endswith(".jpg"):
+        if not src_url.endswith(".jpg"):
             tmp_path = convert_img_format(tmp_path, force=True)
 
         if not tmp_path.exists():
-            logger.error(
-                f"{log_prefix} can't retrieve source: {self.source_url}. Moving to next Document."
-            )
+            logger.error(f"{log_prefix} can't retrieve source: {src_url}. Moving to next Document.")
             return
 
         with open(tmp_path, "rb") as new_file:
