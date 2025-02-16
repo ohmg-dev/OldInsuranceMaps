@@ -89,8 +89,6 @@ class Command(BaseCommand):
                 for ct, document in enumerate(docs, start=1):
                     print(f"{ct}/{docs_ct} (doc: {document.pk})")
                     document.save(skip_map_lookup_update=True)
-                if all([i.file is not None for i in docs]):
-                    map.set_status("ready")
 
                 print("re-saving Regions...")
                 regs = map.regions.all()

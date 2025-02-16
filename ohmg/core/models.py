@@ -79,13 +79,6 @@ class Map(models.Model):
     class Meta:
         verbose_name_plural = "    Maps"
 
-    STATUS_CHOICES = (
-        ("not started", "not started"),
-        ("initializing...", "initializing..."),
-        ("document load error", "document load error"),
-        ("ready", "ready"),
-    )
-
     ACCESS_CHOICES = (
         ("none", "none"),
         ("sponsor", "sponsor"),
@@ -135,11 +128,6 @@ class Map(models.Model):
         help_text="The preferred term for referring to documents within this map.",
     )
     iiif_manifest = models.JSONField(null=True, blank=True)
-    status = models.CharField(
-        max_length=50,
-        choices=STATUS_CHOICES,
-        default=STATUS_CHOICES[0][0],
-    )
     create_date = models.DateTimeField(auto_now_add=True)
     load_date = models.DateTimeField(null=True, blank=True)
     document_sources = models.JSONField(
@@ -321,10 +309,6 @@ class Map(models.Model):
         for document in self.documents:
             document.delete()
 
-    def set_status(self, status):
-        self.status = status
-        self.save(update_fields=["status"])
-
     def update_place_counts(self):
         locale = self.get_locale()
         if locale is not None:
@@ -425,6 +409,7 @@ class Document(models.Model):
     map = models.ForeignKey(Map, on_delete=models.CASCADE, related_name="documents")
     page_number = models.CharField(max_length=10, null=True, blank=True)
     prepared = models.BooleanField(default=False)
+    loading_file = models.BooleanField(default=False)
     file = models.FileField(
         upload_to="documents",
         null=True,
