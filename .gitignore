@@ -1,5 +1,6 @@
 tests/root
 
+plugins
 static_root
 uploaded
 .logs

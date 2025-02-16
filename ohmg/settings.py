@@ -147,6 +147,17 @@ STATICFILES_FINDERS = (
     "compressor.finders.CompressorFinder",
 )
 
+PLUGIN_ASSETS = (
+    "https://code.jquery.com/jquery-2.2.4.min.js",
+    "https://cdn.jsdelivr.net/npm/eldarion-ajax@0.16.0/js/eldarion-ajax.min.js",
+    "https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css",
+    "https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css",
+    "https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/Phosphor-Bold.svg",
+    "https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/Phosphor-Bold.ttf",
+    "https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/Phosphor-Bold.woff",
+    "https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/Phosphor-Bold.woff2",
+)
+
 COMPRESS_ENABLED = False
 # COMPRESS_OFFLINE = True
 

@@ -1,8 +1,10 @@
 import os
 import sys
 from argparse import Namespace
+from pathlib import Path
 
 import boto3
+import requests
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -31,6 +33,7 @@ class Command(BaseCommand):
                 "all",
                 "generate-error-pages",
                 "initialize-s3-bucket",
+                "get-plugins",
             ],
             nargs="+",
             help="Choose what configurations to generate.",
@@ -121,6 +124,9 @@ class Command(BaseCommand):
 
         if options["type"] == "initialize-s3-bucket":
             self.initialize_s3_bucket()
+
+        if "get-plugins" in options["type"]:
+            self.get_plugins()
 
     def resolve_var(self, name, default_value=None):
         value = getattr(settings, name, "<not in django settings>")
@@ -581,3 +587,13 @@ server {{
             print("Bucket created.")
         else:
             print(f"Bucket already exists: {settings.S3_BUCKET_NAME}")
+
+    def get_plugins(self):
+        dest = Path("ohmg/frontend/static/plugins")
+        dest.mkdir(exist_ok=True)
+
+        for url in settings.PLUGIN_ASSETS:
+            response = requests.get(url)
+            print(url)
+            with open(Path(dest, url.split("/")[-1]), mode="wb") as file:
+                file.write(response.content)
