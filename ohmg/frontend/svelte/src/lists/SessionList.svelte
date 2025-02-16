@@ -1,97 +1,93 @@
 <script>
-import {TableSort} from 'svelte-tablesort';
-import Select from 'svelte-select';
-import { format } from 'date-fns';
+	import {TableSort} from 'svelte-tablesort';
+	import Select from 'svelte-select';
+	import { format } from 'date-fns';
 
-import CaretDoubleLeft from 'phosphor-svelte/lib/CaretDoubleLeft'
-import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight'
-import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise'
-import Question from 'phosphor-svelte/lib/Question'
+	import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise'
+	import Question from 'phosphor-svelte/lib/Question'
 
-import Link from '@/base/Link.svelte';
-import SessionListModal from './modals/SessionListModal.svelte';
+	import Link from '@/base/Link.svelte';
+	import SessionListModal from './modals/SessionListModal.svelte';
     import { getModal } from '../base/Modal.svelte';
-	import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
 	import DatePicker from './buttons/DatePicker.svelte';
     import PaginationButtons from './buttons/PaginationButtons.svelte';
 
 	import { getFromAPI } from "@/lib/requests";
 
-export let CONTEXT;
-export let FILTER_PARAM = '';
-export let limit = "10";
-export let showThumbs = false;
-export let showUser = true;
-export let userFilterItems;
-export let userFilter;
-export let showResource = true;
-export let paginate = true;
-export let allowRefresh = true;
-export let showTypeFilter = true;
-export let typeFilter;
-export let showMap = true;
-export let mapFilterItems;
-export let mapFilter;
+	export let CONTEXT;
+	export let FILTER_PARAM = '';
+	export let limit = "10";
+	export let showThumbs = false;
+	export let showUser = true;
+	export let userFilterItems;
+	export let userFilter;
+	export let showResource = true;
+	export let paginate = true;
+	export let allowRefresh = true;
+	export let showTypeFilter = true;
+	export let typeFilter;
+	export let showMap = true;
+	export let mapFilterItems;
+	export let mapFilter;
 
-const typeFilterOptions = [
-	{label: "Prep", id: "p"},
-	{label: "Georef", id: "g"},
-]
+	const typeFilterOptions = [
+		{label: "Prep", id: "p"},
+		{label: "Georef", id: "g"},
+	]
 
-let loading = false;
+	let loading = false;
 
-let items = [];
+	let items = [];
 
-let startDate;
-let endDate;
+	let startDate;
+	let endDate;
 
-let offset = 0;
-let total = 0;
+	let offset = 0;
+	let total = 0;
 
-let currentLimit = limit;
-$: useLimit = typeof currentLimit == "string" ? currentLimit : currentLimit.value
+	let currentLimit = limit;
+	$: useLimit = typeof currentLimit == "string" ? currentLimit : currentLimit.value
 
-let dateFormat = 'yyyy-MM-dd';
-const formatDate = (dateString) => dateString && format(new Date(dateString), dateFormat) || '';
+	let dateFormat = 'yyyy-MM-dd';
+	const formatDate = (dateString) => dateString && format(new Date(dateString), dateFormat) || '';
 
-$: formattedStartDate = formatDate(startDate);
-$: formattedEndDate = formatDate(endDate);
+	$: formattedStartDate = formatDate(startDate);
+	$: formattedEndDate = formatDate(endDate);
 
-$: dqParam = formattedStartDate && formattedEndDate ?`&date_range=${formattedStartDate},${formattedEndDate}` : ""
+	$: dqParam = formattedStartDate && formattedEndDate ?`&date_range=${formattedStartDate},${formattedEndDate}` : ""
 
-$: {
-	loading = true;
-	items = [];
-	let fetchUrl = `/api/beta2/sessions/?offset=${offset}`
-	if (limit != 0 && useLimit) {
-		fetchUrl = `${fetchUrl}&limit=${useLimit}`
-	}
-	// ultimately should deprecate this and move its functionality into this component
-	if (FILTER_PARAM) {
-		fetchUrl += `&${FILTER_PARAM}`
-	}
-	if (typeFilter) {
-		fetchUrl += `&type=${typeFilter.id}`
-	}
-	if (mapFilter) {
-		fetchUrl += `&map=${mapFilter.id}`
-	}
-	if (dqParam) {
-		fetchUrl += dqParam
-	}
-	if (userFilter) {
-		fetchUrl += `&username=${userFilter.id}`
-	}
-	getFromAPI(
-		fetchUrl,
-		CONTEXT.ohmg_api_headers,
-		(result) => {
-			items = result.items;
-			total = result.count;
-			loading = false;
+	$: {
+		loading = true;
+		let fetchUrl = `/api/beta2/sessions/?offset=${offset}`
+		if (limit != 0 && useLimit) {
+			fetchUrl = `${fetchUrl}&limit=${useLimit}`
 		}
-	)
-}
+		// ultimately should deprecate this and move its functionality into this component
+		if (FILTER_PARAM) {
+			fetchUrl += `&${FILTER_PARAM}`
+		}
+		if (typeFilter) {
+			fetchUrl += `&type=${typeFilter.id}`
+		}
+		if (mapFilter) {
+			fetchUrl += `&map=${mapFilter.id}`
+		}
+		if (dqParam) {
+			fetchUrl += dqParam
+		}
+		if (userFilter) {
+			fetchUrl += `&username=${userFilter.id}`
+		}
+		getFromAPI(
+			fetchUrl,
+			CONTEXT.ohmg_api_headers,
+			(result) => {
+				items = result.items;
+				total = result.count;
+				loading = false;
+			}
+		)
+	}
 
 </script>
 <SessionListModal id={"modal-session-list"} />
@@ -137,7 +133,11 @@ $: {
 			</div>
 			{/if}
 			{#if allowRefresh}
-			<button class="is-icon-link" disabled={loading} on:click={() => {offset = 1000; offset=0}}><ArrowsClockwise /></button>
+			<button class="is-icon-link" disabled={loading} on:click={() => {offset = 1000; offset=0}}>
+				<div style="height:28px" class={loading ? "rotating" : ""}>
+					<ArrowsClockwise />
+				</div>
+			</button>
 			{/if}
 		</div>
 	</div>
@@ -214,12 +214,8 @@ $: {
 		</TableSort>
 		{:else}
 		<div class="level">
-			<div class="level-item">
-				{#if loading}
-				<LoadingEllipsis />
-				{:else}
-				<em>no results</em>
-				{/if}
+			<div class="level-item" style="margin:5px 0;">
+				<em>{loading ? "loading..." : "no results"}</em>
 			</div>
 		</div>
 		{/if}
@@ -233,5 +229,41 @@ $: {
 		width: 65px;
 		display: inline-block;
 		text-align: center;
+	}
+
+	@-webkit-keyframes rotating /* Safari and Chrome */ {
+	from {
+		-webkit-transform: rotate(0deg);
+		-o-transform: rotate(0deg);
+		transform: rotate(0deg);
+	}
+	to {
+		-webkit-transform: rotate(360deg);
+		-o-transform: rotate(360deg);
+		transform: rotate(360deg);
+	}
+	}
+	@keyframes rotating {
+	from {
+		-ms-transform: rotate(0deg);
+		-moz-transform: rotate(0deg);
+		-webkit-transform: rotate(0deg);
+		-o-transform: rotate(0deg);
+		transform: rotate(0deg);
+	}
+	to {
+		-ms-transform: rotate(360deg);
+		-moz-transform: rotate(360deg);
+		-webkit-transform: rotate(360deg);
+		-o-transform: rotate(360deg);
+		transform: rotate(360deg);
+	}
+	}
+	.rotating {
+		-webkit-animation: rotating 2s linear infinite;
+		-moz-animation: rotating 2s linear infinite;
+		-ms-animation: rotating 2s linear infinite;
+		-o-animation: rotating 2s linear infinite;
+		animation: rotating 2s linear infinite;
 	}
 </style>
