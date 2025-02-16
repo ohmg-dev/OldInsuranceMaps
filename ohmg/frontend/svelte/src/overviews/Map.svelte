@@ -32,6 +32,8 @@
 
 	import Modal, {getModal} from '@/base/Modal.svelte';
 
+	import UnpreparedDocumentCard from '@/cards/UnpreparedDocumentCard.svelte';
+
 	import MapPreview from "@/interfaces/MapPreview.svelte";
 	import BasicDocViewer from '@/interfaces/BasicDocViewer.svelte';
 	import BasicLayerViewer from '@/interfaces/BasicLayerViewer.svelte';
@@ -84,6 +86,14 @@
 		previewKey = !previewKey
 	}
 
+	let loadingDocids = [];
+	$: {
+		MAP.item_lookup.unprepared.forEach((doc) => {
+			if (doc.file && loadingDocids.includes(doc.id)) {
+				loadingDocids = loadingDocids.filter(item => item !== doc.id)
+			}
+		})
+	}
 
 	let currentLayerSet = "main-content";
 	let layerSetLookup = {};
@@ -151,7 +161,9 @@
 		window.location = "/resource/" + currentDoc
 	}
 
-	$: documentsLoading = MAP.status == "initializing...";
+	$: documentsLoading = (MAP.item_lookup.unprepared.some(function(doc) {
+		return doc.loading_file;
+	}));
 
 	let hash = window.location.hash.substr(1);
 
@@ -182,7 +194,11 @@
 			clearInterval(intervalId)
 		}
 	}
-	$: autoReload = documentsLoading || MAP.locks.length > 0;
+
+	let autoReload = false;
+	$: {
+		autoReload = (MAP.locks.length > 0) || documentsLoading;
+	}
 	$: manageAutoReload(autoReload)
 
 	function pollMapSummary() {
@@ -227,10 +243,6 @@
 			MAP.urls.summary,
 			CONTEXT.ohmg_post_headers,
 			"load-documents",
-			{},
-			(result) => {
-				MAP = result;
-			},
 		)
 	}
 
@@ -257,6 +269,14 @@
 			"unprepare",
 			{},
 			pollMapSummaryIfSuccess,
+		)
+	}
+	function postLoadDocument(documentId) {
+		documentsLoading = true;
+		submitPostRequest(
+			`/document/${documentId}`,
+			CONTEXT.ohmg_post_headers,
+			"load-file",
 		)
 	}
 
@@ -420,10 +440,9 @@
 		<div>
 			<div style="display:flex; align-items:center;">
 				{#if MAP.progress.loaded_pages < MAP.progress.total_pages && userCanEdit && !documentsLoading}
-					<button class="button is-primary is-small" style="margin-left:10px; margin-right:10px;" on:click={loadDocuments}>Load Documents ({MAP.document_sources.length})</button>
-				{/if}
-				{#if MAP.status == "load document error"}
-					<span>Error loading documents, please contact admin: <a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a>.</span>
+					<button class="button is-primary is-small" style="margin-left:10px; margin-right:10px;" on:click={loadDocuments}>
+						Load {MAP.progress.loaded_pages ? "remaining" : "all"} documents ({MAP.progress.total_pages - MAP.progress.loaded_pages})
+					</button>
 				{/if}
 				<span>
 					<em>
@@ -432,7 +451,7 @@
 					{:else if MAP.progress.loaded_pages == 0}
 					No content loaded yet...
 					{:else if MAP.progress.loaded_pages < MAP.progress.total_pages }
-					{MAP.progress.loaded_pages} of {MAP.progress.total_pages} document{#if MAP.progress.total_pages != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Documents</strong> to retry)
+					{MAP.progress.loaded_pages} of {MAP.progress.total_pages} document{#if MAP.progress.total_pages != 1}s{/if} loaded
 					{/if}
 					</em>
 				</span>
@@ -446,11 +465,11 @@
 						title={sectionVis['unprepared'] ? 'Collapse section' : 'Expand section'}>
 						<ConditionalDoubleChevron down={sectionVis['unprepared']} size="md" />
 						<a id="unprepared">
-						<h3 style="margin-top:5px;">
+						<h3>
 							Unprepared ({MAP.item_lookup.unprepared.length})
 							{#if docsLockedCt}
 							&ndash; {docsLockedCt} locked...
-							{/if}		
+							{/if}
 						</h3>
 						</a>
 					</button>
@@ -460,44 +479,18 @@
 				<div transition:slide>
 					<div class="documents-column">
 						{#each MAP.item_lookup.unprepared as document}
-						<div class="document-item">
-							<div><p><Link href={document.urls.resource} title={document.title}>{document.nickname}</Link></p></div>
-							<button class="thumbnail-btn" on:click={() => {
-								modalLyrUrl=document.urls.image;
-								modalExtent=[0, -document.image_size[1], document.image_size[0], 0];
-								modalIsGeospatial=false;
-								getModal('modal-simple-viewer').open();
-								reinitModalMap = [{}];
-								}} >
-								<img style="cursor:zoom-in"
-									src={document.urls.thumbnail}
-									alt="{document.title}"
-									/>
-							</button>
-							<div>
-								{#if sessionLocks.docs[document.id]}
-								<ul style="text-align:center">
-									<li><em>preparation in progress...</em></li>
-									<li><em>user: {sessionLocks.docs[document.id].user.username}</em></li>
-								</ul>
-								{:else if userCanEdit}
-								<ul>
-									<li><button
-											class="is-text-link"
-											title="This document does not need to be split"
-											on:click={() => {
-												splitDocumentId = document.id;
-												getModal('modal-confirm-no-split').open()
-											}}>
-											<CheckSquareOffset/> no split needed
-										</button>
-									</li>
-									<li><Link href={`/split/${document.id}`} title="Split this document">
-										<Scissors/> split this document</Link></li>
-								</ul>
-								{/if}
-							</div>
-						</div>
+						<UnpreparedDocumentCard
+							{CONTEXT}
+							{document}
+							{sessionLocks}
+							{userCanEdit}
+							bind:modalLyrUrl
+							bind:modalExtent
+							bind:modalIsGeospatial
+							bind:reinitModalMap
+							{postLoadDocument}
+							bind:documentsLoading
+							bind:splitDocumentId />
 						{/each}
 					</div>
 				</div>

@@ -45,8 +45,8 @@
                     <tr>
                         <td>Initial load</td>
                         <td>
-                            {#if MAP.progress.loaded_pages == MAP.progress.total_pages}
-                            {MAP.progress.loaded_pages} of {MAP.progress.total_pages} documents{#if MAP.progress.total_pages != 1}s{/if} loaded by <Link href={MAP.loaded_by.profile}>{MAP.loaded_by.name}</Link> - {MAP.loaded_by.date}<br>
+                            {#if MAP.progress.loaded_pages}
+                            loaded by <Link href={MAP.loaded_by.profile}>{MAP.loaded_by.name}</Link> - {MAP.loaded_by.date}<br>
                             {:else}--{/if}
                         </td>
                     </tr>
