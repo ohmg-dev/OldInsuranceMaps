@@ -461,7 +461,9 @@ class Document(models.Model):
         self.loading_file = True
         self.save()
 
-        if self.iiif_info:
+        if self.source_url:
+            src_url = self.source_url
+        elif self.iiif_info:
             src_url = self.iiif_info.replace("info.json", "full/full/0/default.jpg")
         elif self.source_url:
             src_url = self.source_url
