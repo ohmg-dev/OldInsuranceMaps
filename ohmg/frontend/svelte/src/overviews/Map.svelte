@@ -161,6 +161,12 @@
 		window.location = "/resource/" + currentDoc
 	}
 
+	let bulkLoadInProgress = false;
+	$: {
+		if (bulkLoadInProgress && (MAP.progress.sheets_loaded == MAP.progress.sheets_total)) {
+			bulkLoadInProgress = false;
+		}
+	}
 	$: documentsLoading = (MAP.item_lookup.unprepared.some(function(doc) {
 		return doc.loading_file;
 	}));
@@ -197,7 +203,7 @@
 
 	let autoReload = false;
 	$: {
-		autoReload = (MAP.locks.length > 0) || documentsLoading;
+		autoReload = (MAP.locks.length > 0) || documentsLoading || bulkLoadInProgress;
 	}
 	$: manageAutoReload(autoReload)
 
@@ -238,7 +244,7 @@
 	}
 
 	function loadDocuments() {
-		documentsLoading = true;
+		bulkLoadInProgress = true;
 		submitPostRequest(
 			MAP.urls.summary,
 			CONTEXT.ohmg_post_headers,
