@@ -13,6 +13,7 @@
 	import Question from "phosphor-svelte/lib/Question";
 	import Scissors from "phosphor-svelte/lib/Scissors";
 	import Wrench from "phosphor-svelte/lib/Wrench";
+	import Copy from "phosphor-svelte/lib/Copy";
 
 	import {getCenter} from 'ol/extent';
 
@@ -46,6 +47,8 @@
 
 	import ConfirmNoSplitModal from '../interfaces/modals/ConfirmNoSplitModal.svelte';
 	import ConfirmUngeoreferenceModal from '../interfaces/modals/ConfirmUngeoreferenceModal.svelte';
+
+	import { copyToClipboard, getLayerOHMUrl } from '@/lib/utils';
 
 	import { getFromAPI } from "@/lib/requests";
 
@@ -352,7 +355,9 @@
 	let previewRefreshable = false;
 
 </script>
-
+<svelte:window on:click={() => {
+	Array.from(document.getElementsByClassName("dropdown")).forEach(el => {el.classList.remove('is-active')})
+}} />
 <MapPreviewModal id={"modal-preview-map"} placeName={LOCALE.display_name} viewerUrl={MAP.urls.viewer}/>
 <GeoreferenceOverviewModal id={"modal-georeference-overview"} />
 <UnpreparedSectionModal id={'modal-unprepared'} />
@@ -660,8 +665,38 @@
 									</button></li>
 									{/if}
 									{#if !MAP.hidden}
-									<li><Link href={layer.urls.resource} title="downloads and web services">
+									<!-- <li><Link href={layer.urls.resource} title="downloads and web services">
 										<DownloadSimple /> downloads & web services</Link>
+									</li> -->
+									<input type="hidden" id="lyr-{layer.id}-xyz-link" value={`${makeTitilerXYZUrl({host:CONTEXT.titiler_host, url: layer.urls.cog})}`}/>
+									<input type="hidden" id="lyr-{layer.id}-wms-link" value="https://titiler.oldinsurancemaps.net/cog/wms/?{layer.urls.cog}&VERSION=1.1.1"/>
+									<li>
+										<div id="lyr-{layer.id}-services" class="dropdown is-right" style="padding:0;">
+											<div class="dropdown-trigger" style="padding:0;">
+											  <button class="is-text-link" aria-haspopup="true" aria-controls="dropdown-menu6"
+												on:click|stopPropagation={() => {
+													document.getElementById(`lyr-${layer.id}-services`).classList.toggle("is-active")
+												}}
+											  >
+												<DownloadSimple />
+												<span>downloads & web services</span>
+											  </button>
+											</div>
+											<div class="dropdown-menu" id="dropdown-menu6" role="menu" style="background:none; padding:0;">
+											  <div class="dropdown-content" style="background:#f7f1e1; box-shadow:gray 0px 0px 5px;">
+												<div class="dropdown-item" style="background:none; color:#333333; padding:0; text-align:left;">
+													<ul>
+														<li><Link href={layer.urls.cog}>GeoTIFF <DownloadSimple /></Link></li>
+														<li><button class="is-text-link" on:click={()=>{copyToClipboard(`lyr-${layer.id}-xyz-link`)}}>XYZ Tiles URL <Copy/></button></li>
+														<li><button class="is-text-link" on:click={()=>{copyToClipboard(`lyr-${layer.id}-wms-link`)}}>WMS endpoint <Copy/></button></li>
+														<li><Link href="{getLayerOHMUrl(layer, CONTEXT.titiler_host)}" external={true}>OpenHistoricalMap iD</Link></li>
+														<li><Link href="https://oldinsurancemaps.net/iiif/resource/{layer.id}/" external={true}>IIIF Georef Annotation (beta)</Link></li>
+														<li><Link href="https://viewer.allmaps.org/?url={encodeURIComponent(`https://oldinsurancemaps.net/iiif/resource/${layer.id}/`)}" external={true}>Allmaps Viewer (beta)</Link></li>
+													</ul>
+												</div>
+											  </div>
+											</div>
+										</div>
 									</li>
 									{/if}
 									<li><em>{layer.created_by}{#if layer.created_by != layer.last_updated_by}&nbsp;+ {layer.last_updated_by}{/if}</em></li>
