@@ -83,7 +83,7 @@
         </div>
     </div>
     {#each LAYERSETS as ls}
-    {#if ls.layers.length > 1}
+    {#if ls.layers.length >= 1}
         <h4>{ls.name} ({ls.layers.length} layer{ls.layers.length > 1 ? "s" : ""})</h4>
         <table>
             {#if ls.mosaicUrl}
