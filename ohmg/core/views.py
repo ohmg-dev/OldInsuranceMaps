@@ -1,6 +1,5 @@
 import json
 import logging
-from datetime import datetime
 
 from natsort import natsorted
 
@@ -30,6 +29,7 @@ from ohmg.core.api.schemas import (
 )
 from ohmg.core.tasks import (
     load_map_documents_as_task,
+    load_document_file_as_task,
 )
 
 from .http import (
@@ -83,13 +83,8 @@ class MapView(View):
 
         if operation == "load-documents":
             map = Map.objects.get(pk=identifier)
-            if map.loaded_by is None:
-                map.loaded_by = request.user
-                map.load_date = datetime.now()
-                map.save(update_fields=["loaded_by", "load_date"])
-            load_map_documents_as_task.apply_async((identifier,))
+            load_map_documents_as_task.apply_async((identifier, request.user.username))
             map_json = MapFullSchema.from_orm(map).dict()
-            map_json["status"] = "initializing..."
             return JsonResponse(map_json)
 
         elif operation == "refresh-lookups":
@@ -130,7 +125,7 @@ class DocumentView(GenericResourceView):
     model = Document
 
     @method_decorator(login_required)
-    @method_decorator(validate_post_request(operations=["unprepare"]))
+    @method_decorator(validate_post_request(operations=["unprepare", "load-file"]))
     def post(self, request, pk):
         from ohmg.georeference.models import PrepSession
 
@@ -148,6 +143,10 @@ class DocumentView(GenericResourceView):
                 return JsonResponseSuccess(result["message"])
             else:
                 return JsonResponseFail(result["message"])
+
+        if operation == "load-file":
+            load_document_file_as_task.apply_async((pk, request.user.username))
+            return JsonResponseSuccess(f"file load started for document {pk}")
 
 
 class RegionView(GenericResourceView):

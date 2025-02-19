@@ -75,7 +75,8 @@ class LOCImporterTestCase(OHMGTestCase):
         locale = Place.objects.get(slug="new-iberia-la")
         self.assertEqual(locale.volume_count, 1)
 
-        map.create_documents(get_files=True)
+        map.create_documents()
+        map.load_all_document_files("admin")
 
         doc_p1 = Document.objects.get(map=map, page_number=1)
 

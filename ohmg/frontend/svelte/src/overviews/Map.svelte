@@ -13,6 +13,7 @@
 	import Question from "phosphor-svelte/lib/Question";
 	import Scissors from "phosphor-svelte/lib/Scissors";
 	import Wrench from "phosphor-svelte/lib/Wrench";
+	import Copy from "phosphor-svelte/lib/Copy";
 
 	import {getCenter} from 'ol/extent';
 
@@ -32,6 +33,8 @@
 
 	import Modal, {getModal} from '@/base/Modal.svelte';
 
+	import UnpreparedDocumentCard from '@/cards/UnpreparedDocumentCard.svelte';
+
 	import MapPreview from "@/interfaces/MapPreview.svelte";
 	import BasicDocViewer from '@/interfaces/BasicDocViewer.svelte';
 	import BasicLayerViewer from '@/interfaces/BasicLayerViewer.svelte';
@@ -44,6 +47,8 @@
 
 	import ConfirmNoSplitModal from '../interfaces/modals/ConfirmNoSplitModal.svelte';
 	import ConfirmUngeoreferenceModal from '../interfaces/modals/ConfirmUngeoreferenceModal.svelte';
+
+	import { copyToClipboard, getLayerOHMUrl } from '@/lib/utils';
 
 	import { getFromAPI } from "@/lib/requests";
 
@@ -84,6 +89,14 @@
 		previewKey = !previewKey
 	}
 
+	let loadingDocids = [];
+	$: {
+		MAP.item_lookup.unprepared.forEach((doc) => {
+			if (doc.file && loadingDocids.includes(doc.id)) {
+				loadingDocids = loadingDocids.filter(item => item !== doc.id)
+			}
+		})
+	}
 
 	let currentLayerSet = "main-content";
 	let layerSetLookup = {};
@@ -151,7 +164,15 @@
 		window.location = "/resource/" + currentDoc
 	}
 
-	$: documentsLoading = MAP.status == "initializing...";
+	let bulkLoadInProgress = false;
+	$: {
+		if (bulkLoadInProgress && (MAP.progress.sheets_loaded == MAP.progress.sheets_total)) {
+			bulkLoadInProgress = false;
+		}
+	}
+	$: documentsLoading = (MAP.item_lookup.unprepared.some(function(doc) {
+		return doc.loading_file;
+	}));
 
 	let hash = window.location.hash.substr(1);
 
@@ -182,7 +203,11 @@
 			clearInterval(intervalId)
 		}
 	}
-	$: autoReload = documentsLoading || MAP.locks.length > 0;
+
+	let autoReload = false;
+	$: {
+		autoReload = (MAP.locks.length > 0) || documentsLoading || bulkLoadInProgress;
+	}
 	$: manageAutoReload(autoReload)
 
 	function pollMapSummary() {
@@ -222,15 +247,11 @@
 	}
 
 	function loadDocuments() {
-		documentsLoading = true;
+		bulkLoadInProgress = true;
 		submitPostRequest(
 			MAP.urls.summary,
 			CONTEXT.ohmg_post_headers,
 			"load-documents",
-			{},
-			(result) => {
-				MAP = result;
-			},
 		)
 	}
 
@@ -257,6 +278,14 @@
 			"unprepare",
 			{},
 			pollMapSummaryIfSuccess,
+		)
+	}
+	function postLoadDocument(documentId) {
+		documentsLoading = true;
+		submitPostRequest(
+			`/document/${documentId}`,
+			CONTEXT.ohmg_post_headers,
+			"load-file",
 		)
 	}
 
@@ -326,7 +355,9 @@
 	let previewRefreshable = false;
 
 </script>
-
+<svelte:window on:click={() => {
+	Array.from(document.getElementsByClassName("dropdown")).forEach(el => {el.classList.remove('is-active')})
+}} />
 <MapPreviewModal id={"modal-preview-map"} placeName={LOCALE.display_name} viewerUrl={MAP.urls.viewer}/>
 <GeoreferenceOverviewModal id={"modal-georeference-overview"} />
 <UnpreparedSectionModal id={'modal-unprepared'} />
@@ -420,10 +451,9 @@
 		<div>
 			<div style="display:flex; align-items:center;">
 				{#if MAP.progress.loaded_pages < MAP.progress.total_pages && userCanEdit && !documentsLoading}
-					<button class="button is-primary is-small" style="margin-left:10px; margin-right:10px;" on:click={loadDocuments}>Load Documents ({MAP.document_sources.length})</button>
-				{/if}
-				{#if MAP.status == "load document error"}
-					<span>Error loading documents, please contact admin: <a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a>.</span>
+					<button class="button is-primary is-small" style="margin-left:10px; margin-right:10px;" on:click={loadDocuments}>
+						Load {MAP.progress.loaded_pages ? "remaining" : "all"} documents ({MAP.progress.total_pages - MAP.progress.loaded_pages})
+					</button>
 				{/if}
 				<span>
 					<em>
@@ -432,7 +462,7 @@
 					{:else if MAP.progress.loaded_pages == 0}
 					No content loaded yet...
 					{:else if MAP.progress.loaded_pages < MAP.progress.total_pages }
-					{MAP.progress.loaded_pages} of {MAP.progress.total_pages} document{#if MAP.progress.total_pages != 1}s{/if} loaded (initial load unsuccessful. Click <strong>Load Documents</strong> to retry)
+					{MAP.progress.loaded_pages} of {MAP.progress.total_pages} document{#if MAP.progress.total_pages != 1}s{/if} loaded
 					{/if}
 					</em>
 				</span>
@@ -446,11 +476,11 @@
 						title={sectionVis['unprepared'] ? 'Collapse section' : 'Expand section'}>
 						<ConditionalDoubleChevron down={sectionVis['unprepared']} size="md" />
 						<a id="unprepared">
-						<h3 style="margin-top:5px;">
+						<h3>
 							Unprepared ({MAP.item_lookup.unprepared.length})
 							{#if docsLockedCt}
 							&ndash; {docsLockedCt} locked...
-							{/if}		
+							{/if}
 						</h3>
 						</a>
 					</button>
@@ -460,44 +490,18 @@
 				<div transition:slide>
 					<div class="documents-column">
 						{#each MAP.item_lookup.unprepared as document}
-						<div class="document-item">
-							<div><p><Link href={document.urls.resource} title={document.title}>{document.nickname}</Link></p></div>
-							<button class="thumbnail-btn" on:click={() => {
-								modalLyrUrl=document.urls.image;
-								modalExtent=[0, -document.image_size[1], document.image_size[0], 0];
-								modalIsGeospatial=false;
-								getModal('modal-simple-viewer').open();
-								reinitModalMap = [{}];
-								}} >
-								<img style="cursor:zoom-in"
-									src={document.urls.thumbnail}
-									alt="{document.title}"
-									/>
-							</button>
-							<div>
-								{#if sessionLocks.docs[document.id]}
-								<ul style="text-align:center">
-									<li><em>preparation in progress...</em></li>
-									<li><em>user: {sessionLocks.docs[document.id].user.username}</em></li>
-								</ul>
-								{:else if userCanEdit}
-								<ul>
-									<li><button
-											class="is-text-link"
-											title="This document does not need to be split"
-											on:click={() => {
-												splitDocumentId = document.id;
-												getModal('modal-confirm-no-split').open()
-											}}>
-											<CheckSquareOffset/> no split needed
-										</button>
-									</li>
-									<li><Link href={`/split/${document.id}`} title="Split this document">
-										<Scissors/> split this document</Link></li>
-								</ul>
-								{/if}
-							</div>
-						</div>
+						<UnpreparedDocumentCard
+							{CONTEXT}
+							{document}
+							{sessionLocks}
+							{userCanEdit}
+							bind:modalLyrUrl
+							bind:modalExtent
+							bind:modalIsGeospatial
+							bind:reinitModalMap
+							{postLoadDocument}
+							bind:documentsLoading
+							bind:splitDocumentId />
 						{/each}
 					</div>
 				</div>
@@ -661,8 +665,38 @@
 									</button></li>
 									{/if}
 									{#if !MAP.hidden}
-									<li><Link href={layer.urls.resource} title="downloads and web services">
+									<!-- <li><Link href={layer.urls.resource} title="downloads and web services">
 										<DownloadSimple /> downloads & web services</Link>
+									</li> -->
+									<input type="hidden" id="lyr-{layer.id}-xyz-link" value={`${makeTitilerXYZUrl({host:CONTEXT.titiler_host, url: layer.urls.cog})}`}/>
+									<input type="hidden" id="lyr-{layer.id}-wms-link" value="https://titiler.oldinsurancemaps.net/cog/wms/?{layer.urls.cog}&VERSION=1.1.1"/>
+									<li>
+										<div id="lyr-{layer.id}-services" class="dropdown is-right" style="padding:0;">
+											<div class="dropdown-trigger" style="padding:0;">
+											  <button class="is-text-link" aria-haspopup="true" aria-controls="dropdown-menu6"
+												on:click|stopPropagation={() => {
+													document.getElementById(`lyr-${layer.id}-services`).classList.toggle("is-active")
+												}}
+											  >
+												<DownloadSimple />
+												<span>downloads & web services</span>
+											  </button>
+											</div>
+											<div class="dropdown-menu" id="dropdown-menu6" role="menu" style="background:none; padding:0;">
+											  <div class="dropdown-content" style="background:#f7f1e1; box-shadow:gray 0px 0px 5px;">
+												<div class="dropdown-item" style="background:none; color:#333333; padding:0; text-align:left;">
+													<ul>
+														<li><Link href={layer.urls.cog}>GeoTIFF <DownloadSimple /></Link></li>
+														<li><button class="is-text-link" on:click={()=>{copyToClipboard(`lyr-${layer.id}-xyz-link`)}}>XYZ Tiles URL <Copy/></button></li>
+														<li><button class="is-text-link" on:click={()=>{copyToClipboard(`lyr-${layer.id}-wms-link`)}}>WMS endpoint <Copy/></button></li>
+														<li><Link href="{getLayerOHMUrl(layer, CONTEXT.titiler_host)}" external={true}>OpenHistoricalMap iD</Link></li>
+														<li><Link href="https://oldinsurancemaps.net/iiif/resource/{layer.id}/" external={true}>IIIF Georef Annotation (beta)</Link></li>
+														<li><Link href="https://viewer.allmaps.org/?url={encodeURIComponent(`https://oldinsurancemaps.net/iiif/resource/${layer.id}/`)}" external={true}>Allmaps Viewer (beta)</Link></li>
+													</ul>
+												</div>
+											  </div>
+											</div>
+										</div>
 									</li>
 									{/if}
 									<li><em>{layer.created_by}{#if layer.created_by != layer.last_updated_by}&nbsp;+ {layer.last_updated_by}{/if}</em></li>

@@ -7,6 +7,7 @@ import TileWMS from 'ol/source/TileWMS';
 import GeoJSON from 'ol/format/GeoJSON';
 
 import {transformExtent} from 'ol/proj';
+import {getCenter} from 'ol/extent';
 import Projection from 'ol/proj/Projection';
 
 import Feature from 'ol/Feature';
@@ -91,6 +92,35 @@ export function makeTitilerXYZUrl (options) {
 	}
 
 	return finalUrl
+}
+
+export function getLayerOHMUrl(layer, host) {
+	console.log(layer)
+	const url = makeTitilerXYZUrl({
+		host: host,
+		url: layer.urls.cog,
+		doubleEncode: true,
+	});
+	const ll = getCenter(layer.extent)
+	return `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${url}`
+}
+
+export function copyToClipboard(elementId) {
+	const copyText = document.getElementById(elementId);
+	console.log(copyText)
+
+	// Select the text field
+	copyText.select();
+	console.log(0)
+	// copyText.setSelectionRange(0, 99999); // For mobile devices
+	console.log(1)
+	
+	// Copy the text inside the text field
+	navigator.clipboard.writeText(copyText.value);
+	console.log(3)
+
+	// Alert the copied text
+	alert("Copied the text: " + copyText.value);
 }
 
 export function makeSatelliteLayer (apiKey) {

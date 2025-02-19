@@ -161,6 +161,8 @@ class DocumentSchema(Schema):
     prepared: bool
     urls: dict
     image_size: Optional[list]
+    iiif_info: Optional[str]
+    loading_file: bool
 
     @staticmethod
     def resolve_urls(obj):

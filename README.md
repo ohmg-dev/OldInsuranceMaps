@@ -113,6 +113,12 @@ Load all the place objects to create geography scaffolding (this will take a min
 python manage.py place import-all
 ```
 
+Download plugin assets
+
+```bash
+python manage.py configure get-plugins
+```
+
 Load test data into database (optional)
 
 ```bash

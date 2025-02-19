@@ -11,6 +11,7 @@ from cogeo_mosaic.backends import MosaicBackend
 from natsort import natsorted
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Polygon, MultiPolygon, GEOSGeometry
 from django.contrib.contenttypes.models import ContentType
@@ -79,13 +80,6 @@ class Map(models.Model):
     class Meta:
         verbose_name_plural = "    Maps"
 
-    STATUS_CHOICES = (
-        ("not started", "not started"),
-        ("initializing...", "initializing..."),
-        ("document load error", "document load error"),
-        ("ready", "ready"),
-    )
-
     ACCESS_CHOICES = (
         ("none", "none"),
         ("sponsor", "sponsor"),
@@ -135,11 +129,6 @@ class Map(models.Model):
         help_text="The preferred term for referring to documents within this map.",
     )
     iiif_manifest = models.JSONField(null=True, blank=True)
-    status = models.CharField(
-        max_length=50,
-        choices=STATUS_CHOICES,
-        default=STATUS_CHOICES[0][0],
-    )
     create_date = models.DateTimeField(auto_now_add=True)
     load_date = models.DateTimeField(null=True, blank=True)
     document_sources = models.JSONField(
@@ -282,7 +271,7 @@ class Map(models.Model):
                 layerset = None
         return layerset
 
-    def create_documents(self, get_files=False):
+    def create_documents(self):
         """Iterates the list of items in self.document_sources and create Document
         objects for each one. If get_files=True, load files from their path.
 
@@ -293,36 +282,30 @@ class Map(models.Model):
             page_number: <str for page id (optional but must be unique across all documents in list)>
         }
         """
-        self.set_status("initializing...")
-        try:
-            for source in self.document_sources:
-                document, created = Document.objects.get_or_create(
-                    map=self,
-                    page_number=source["page_number"],
-                )
-                document.source_url = source["path"]
-                document.iiif_info = source["iiif_info"]
-                document.save()
-                if created:
-                    logger.debug(f"{document} ({document.pk}) created.")
+        for source in self.document_sources:
+            document, created = Document.objects.get_or_create(
+                map=self,
+                page_number=source["page_number"],
+            )
+            document.source_url = source["path"]
+            document.iiif_info = source["iiif_info"]
+            document.save(skip_map_lookup_update=True)
+            if created:
+                logger.debug(f"{document} ({document.pk}) created.")
+        logger.debug(f"Map {self.title} ({self.pk}) has {len(self.documents.all())} Documents")
+        self.update_item_lookup()
 
-            logger.debug(f"Map {self.title} ({self.pk}) has {len(self.documents.all())} Documents")
-            if get_files:
-                for document in natsorted(self.documents.all(), key=lambda k: k.title):
-                    document.load_file_from_source(overwrite=True)
-        except Exception as e:
-            logger.error(e)
-            self.set_status("document load error")
-            raise e
-        self.set_status("ready")
+    def load_all_document_files(self, username, overwrite=False):
+        for document in natsorted(self.documents.all(), key=lambda k: k.title):
+            if not document.file and not overwrite:
+                try:
+                    document.load_file_from_source(username, overwrite=True)
+                except Exception as e:
+                    logger.error(f"error loading document {document.pk}: {e}")
 
     def remove_sheets(self):
         for document in self.documents:
             document.delete()
-
-    def set_status(self, status):
-        self.status = status
-        self.save(update_fields=["status"])
 
     def update_place_counts(self):
         locale = self.get_locale()
@@ -349,8 +332,7 @@ class Map(models.Model):
         regions = self.regions
         items = {
             "unprepared": [
-                DocumentSchema.from_orm(i).dict()
-                for i in self.documents.filter(prepared=False).exclude(file="")
+                DocumentSchema.from_orm(i).dict() for i in self.documents.filter(prepared=False)
             ],
             "prepared": [
                 RegionSchema.from_orm(i).dict()
@@ -424,6 +406,7 @@ class Document(models.Model):
     map = models.ForeignKey(Map, on_delete=models.CASCADE, related_name="documents")
     page_number = models.CharField(max_length=10, null=True, blank=True)
     prepared = models.BooleanField(default=False)
+    loading_file = models.BooleanField(default=False)
     file = models.FileField(
         upload_to="documents",
         null=True,
@@ -472,43 +455,54 @@ class Document(models.Model):
         else:
             return None
 
-    def load_file_from_source(self, overwrite=False):
+    def load_file_from_source(self, username, overwrite=False):
         log_prefix = f"{self.__str__()} |"
         logger.info(f"{log_prefix} start load")
+        self.loading_file = True
+        self.save()
 
-        if not self.source_url:
-            logger.warning(f"{log_prefix} no source_url - cancelling download")
+        if self.source_url:
+            src_url = self.source_url
+        elif self.iiif_info:
+            src_url = self.iiif_info.replace("info.json", "full/full/0/default.jpg")
+        elif self.source_url:
+            src_url = self.source_url
+        else:
+            logger.warning(f"{log_prefix} no source_url or iiif_info - cancelling download")
             return
 
         if self.file != "" and not overwrite:
             logger.warning(f"{log_prefix} won't overwrite existing file")
             return
 
-        src_path = Path(self.source_url)
+        src_path = Path(src_url)
         tmp_path = Path(settings.CACHE_DIR, "images", src_path.name)
 
-        if self.source_url.startswith("http"):
-            out_file = download_image(self.source_url, tmp_path, use_cache=not overwrite)
+        if src_url.startswith("http"):
+            out_file = download_image(src_url, tmp_path, use_cache=not overwrite)
             if out_file is None:
-                logger.error(f"can't get {self.source_url} -- skipping")
+                logger.error(f"can't get {src_url} -- skipping")
                 return
         else:
             copy_local_file_to_cache(src_path, tmp_path)
 
-        if not self.source_url.endswith(".jpg"):
+        if not src_url.endswith(".jpg"):
             tmp_path = convert_img_format(tmp_path, force=True)
 
         if not tmp_path.exists():
-            logger.error(
-                f"{log_prefix} can't retrieve source: {self.source_url}. Moving to next Document."
-            )
+            logger.error(f"{log_prefix} can't retrieve source: {src_url}. Moving to next Document.")
             return
 
         with open(tmp_path, "rb") as new_file:
             self.file.save(f"{self.slug}{tmp_path.suffix}", File(new_file))
 
         self.load_date = datetime.now()
-        self.save()
+        self.loading_file = False
+        if self.map.loaded_by is None:
+            self.map.loaded_by = get_user_model().objects.get(username=username)
+            self.map.load_date = self.load_date
+            self.map.save(update_fields=["loaded_by", "load_date"])
+        self.save(set_thumbnail=True)
 
     def set_thumbnail(self):
         if self.file is not None:
@@ -524,6 +518,7 @@ class Document(models.Model):
         self,
         set_slug: bool = False,
         set_thumbnail: bool = False,
+        set_image_size: bool = False,
         skip_map_lookup_update: bool = False,
         *args,
         **kwargs,
@@ -551,7 +546,8 @@ class Document(models.Model):
         if self.page_number and self.nickname:
             self.nickname = f"{self.map.document_page_type} {self.page_number}"
 
-        self.image_size = get_image_size(Path(self.file.path)) if self.file else None
+        if set_image_size or not self.image_size:
+            self.image_size = get_image_size(Path(self.file.path)) if self.file else None
 
         return super(self.__class__, self).save(*args, **kwargs)
 
@@ -647,6 +643,7 @@ class Region(models.Model):
         self,
         set_slug: bool = False,
         set_thumbnail: bool = False,
+        set_image_size: bool = False,
         skip_map_lookup_update: bool = False,
         *args,
         **kwargs,
@@ -671,7 +668,8 @@ class Region(models.Model):
         if self.division_number and self.nickname:
             self.nickname += f" [{self.division_number}]"
 
-        self.image_size = get_image_size(Path(self.file.path)) if self.file else None
+        if set_image_size or not self.image_size:
+            self.image_size = get_image_size(Path(self.file.path)) if self.file else None
 
         return super(self.__class__, self).save(*args, **kwargs)
 

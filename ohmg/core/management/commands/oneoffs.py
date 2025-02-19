@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime
 from pathlib import Path
 
 from django.core.management.base import BaseCommand
@@ -21,15 +22,18 @@ class Command(BaseCommand):
                 "copy-layersets",
                 "update-main-content-pk",
                 "reverse-region-gcpgroup-relationship",
+                "handle-missing-iiif-references-and-documents",
             ],
             help="Choose what operation to run.",
         )
         parser.add_argument("--reset", action="store_true")
 
     def handle(self, *args, **options):
+        operation = options["operation"]
+
         ## 11/20/2024 this operation created to update all existing Map.document_sources fields
         ## after the shape of that field had been changed (page number now stored within each entry)
-        if options["operation"] == "backfill-document-sources":
+        if operation == "backfill-document-sources":
 
             def get_page_number_from_url(url):
                 filename = url.split("/")[-1]
@@ -72,7 +76,7 @@ class Command(BaseCommand):
 
         ## generally helpful operation during development to go though and run
         ## save() on all objects in the core data model
-        if options["operation"] == "resave-content":
+        if operation == "resave-content":
             from ohmg.core.models import LayerSet
 
             maps = Map.objects.all()
@@ -85,8 +89,6 @@ class Command(BaseCommand):
                 for ct, document in enumerate(docs, start=1):
                     print(f"{ct}/{docs_ct} (doc: {document.pk})")
                     document.save(skip_map_lookup_update=True)
-                if all([i.file is not None for i in docs]):
-                    map.set_status("ready")
 
                 print("re-saving Regions...")
                 regs = map.regions.all()
@@ -112,7 +114,7 @@ class Command(BaseCommand):
                 map.update_item_lookup()
 
         ## 12/30/2024 needed this command to clean up disk space on the prod server
-        if options["operation"] == "clean-uploaded-files":
+        if operation == "clean-uploaded-files":
             media_dir = Path(settings.MEDIA_ROOT)
             files_on_disk = [str(i) for i in media_dir.glob("documents/*") if i.is_file()]
             files_on_disk += [str(i) for i in media_dir.glob("regions/*") if i.is_file()]
@@ -150,7 +152,7 @@ class Command(BaseCommand):
                 os.remove(rm)
 
         ## Jan 23rd, 2025, created during migration of LayerSet from georeference to core app.
-        if options["operation"] == "copy-layersets":
+        if operation == "copy-layersets":
             from ohmg.core.models import (
                 LayerSet as NewLayerSet,
                 LayerSetCategory as NewLayerSetCategory,
@@ -201,7 +203,7 @@ class Command(BaseCommand):
         ## Feb 5th, 2025, replacing the existing main-content layerset
         ## category with a duplicate that has pk=1 (because current pk=0
         ## is invalid)
-        if options["operation"] == "update-main-content-pk":
+        if operation == "update-main-content-pk":
             from ohmg.core.models import LayerSet, LayerSetCategory
 
             ## 1. create the new category with the correct pk
@@ -229,8 +231,45 @@ class Command(BaseCommand):
             ls_main_cat.slug = "main-content"
             ls_main_cat.save()
 
-        if options["operation"] == "reverse-region-gcpgroup-relationship":
+        if operation == "reverse-region-gcpgroup-relationship":
             for region in Region.objects.all():
                 if region.gcp_group:
                     region.gcp_group.region2 = region
                     region.gcp_group.save()
+
+        if operation == "handle-missing-iiif-references-and-documents":
+            maps = Map.objects.all()
+            logfile = Path(
+                settings.LOG_DIR, f"document-rectification-{int(datetime.now().timestamp())}.txt"
+            )
+            with open(logfile, "w") as log:
+                for map in maps:
+                    # clean any completely empty document source entries
+                    map.document_sources = [
+                        i
+                        for i in map.document_sources
+                        if (i["iiif_info"] or i["path"] or i["page_number"])
+                    ]
+                    map.save()
+
+                    # extra work on all loc sanborn maps
+                    if map.pk.startswith("sanborn"):
+                        print(map)
+                        map.iiif_manifest = f"https://loc.gov/item/{map.pk}/manifest.json"
+                        for src in map.document_sources:
+                            try:
+                                d, created = Document.objects.get_or_create(
+                                    map=map, page_number=src["page_number"]
+                                )
+                                d.iiif_info = src["iiif_info"]
+                                d.save(skip_map_lookup_update=True)
+                                if created:
+                                    print(f"document created: {d}")
+                            except Exception as e:
+                                log.write(
+                                    f"{map.pk}, {map} -- document error {src['page_number']}: {e}\n"
+                                )
+
+                        map.save()
+                        print("updating lookup...")
+                        map.update_item_lookup()

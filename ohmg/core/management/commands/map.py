@@ -178,7 +178,7 @@ class Command(BaseCommand):
             except Map.DoesNotExist:
                 print("this map does not exist in the database")
                 exit()
-            map.create_documents(get_files=options["get_files"])
+            map.create_documents()
 
         if operation == "list-importers":
             for name in settings.OHMG_IMPORTERS["map"].keys():

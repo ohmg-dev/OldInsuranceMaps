@@ -11,6 +11,8 @@
     export let LAYERSETS = [];
     export let userFilterItems;
 
+    console.log(LAYERSETS)
+
 </script>
 
 <DownloadSectionModal id={"download-section-modal"} />
@@ -45,8 +47,8 @@
                     <tr>
                         <td>Initial load</td>
                         <td>
-                            {#if MAP.progress.loaded_pages == MAP.progress.total_pages}
-                            {MAP.progress.loaded_pages} of {MAP.progress.total_pages} documents{#if MAP.progress.total_pages != 1}s{/if} loaded by <Link href={MAP.loaded_by.profile}>{MAP.loaded_by.name}</Link> - {MAP.loaded_by.date}<br>
+                            {#if MAP.progress.loaded_pages}
+                            loaded by <Link href={MAP.loaded_by.profile}>{MAP.loaded_by.name}</Link> - {MAP.loaded_by.date}<br>
                             {:else}--{/if}
                         </td>
                     </tr>
@@ -80,14 +82,11 @@
             <button class="is-icon-link" on:click={() => {getModal('download-section-modal').open()}} ><Question /></button>
         </div>
     </div>
-    <p style="font-size:.9em;"><em>
-        Only layers that have been trimmed in the <strong>MultiMask</strong> will appear in the mosaic. You can access untrimmed layers individually through the <strong>Georeferenced</strong> section.
-    </em></p>
     {#each LAYERSETS as ls}
-    {#if ls.layers.length > 1}
-        <h4>{ls.name}</h4>
-        {#if ls.mosaicUrl}
+    {#if ls.layers.length >= 1}
+        <h4>{ls.name} ({ls.layers.length} layer{ls.layers.length > 1 ? "s" : ""})</h4>
         <table>
+            {#if ls.mosaicUrl}
             <tr>
                 <td>XYZ Tiles URL</td>
                 <td>
@@ -99,16 +98,16 @@
                 </td>
             </tr>
             <tr>
-                <td>OHM</td>
+                <td>OpenHistoricalMap</td>
                 <td>
                     {#if ls.ohmUrl}
                     <Link href="{ls.ohmUrl}" title="Open mosaic in OHM Editor" external={true}>Open in OpenHistoricalMap iD editor</Link>
                     {:else}
                     n/a
                     {/if}</td>
-            </tr>
-            <tr>
-                <td>GeoTIFF</td>
+                </tr>
+                <tr>
+                    <td>GeoTIFF</td>
                 <td>
                     {#if ls.mosaic_cog_url}
                     <Link href={ls.mosaic_cog_url} title="Download mosaic geotiff file">Download GeoTIFF (direct download)</Link>
@@ -117,12 +116,25 @@
                     {/if}
                 </td>
             </tr>
+            {/if}
+            <tr>
+                <td>IIIf Georef AnnotationPage</td>
+                <td>
+                    <Link href="https://oldinsurancemaps.net/iiif/mosaic/{MAP.identifier}/{ls.id}/?trim=true" title="View full AnnotationPage for this mosaic" external={true}>View full AnnotationPage for this mosaic (beta)</Link>
+                </td>
+            </tr>
+            <tr>
+                <td>Allmaps</td>
+                <td>
+                    <Link href="https://viewer.allmaps.org/?url={encodeURIComponent(`https://oldinsurancemaps.net/iiif/mosaic/${MAP.identifier}/${ls.id}/?trim=true`)}" title="Open mosaic in Allmaps Viewer" external={true}>Open in Allmaps Viewer (beta)</Link>
+                </td>
+            </tr>
         </table>
-        {:else}
-        <p><em>Mosaic not available for this layer set.</em></p>
-        {/if}
     {/if}
     {/each}
+    <p style="font-size:.9em;"><em>
+        Only layers that have been trimmed in the <strong>MultiMask</strong> will appear in the downloadable mosaic files. You can access individual layers through the <strong>Georeferenced</strong> section.
+    </em></p>
     <h3>Work History</h3>
     <div>
         <SessionList {CONTEXT} {userFilterItems} mapFilter={{id: MAP.identifier}} showMap={false} paginate={true} limit=100/>
