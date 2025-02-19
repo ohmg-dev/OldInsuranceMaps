@@ -3,7 +3,6 @@ import sys
 from argparse import Namespace
 from pathlib import Path
 
-import boto3
 import requests
 
 from django.conf import settings
@@ -578,6 +577,7 @@ server {{
             print(f"file saved to: {outpath}")
 
     def initialize_s3_bucket(self):
+        import boto3
         client = boto3.client("s3", **settings.S3_CONFIG)
 
         response = client.list_buckets()
