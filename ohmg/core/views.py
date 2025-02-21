@@ -49,6 +49,7 @@ def test_map_access(user, map):
         if (
             user not in map.user_access.all()
             and len([i for i in user.groups.all() if i in map.group_access.all()]) == 0
+            and not user.is_superuser
         ):
             raise Http404
 
