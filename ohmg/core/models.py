@@ -12,6 +12,7 @@ from natsort import natsorted
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Polygon, MultiPolygon, GEOSGeometry
 from django.contrib.contenttypes.models import ContentType
@@ -85,6 +86,11 @@ class Map(models.Model):
         ("sponsor", "sponsor"),
         ("any", "any"),
     )
+    ACCESS_LEVEL_CHOICES = (
+        ("public", "Public"),
+        ("restricted", "Restricted"),
+        ("none", "None"),
+    )
 
     DOCUMENT_PREFIX_CHOICES = (
         ("page", "page"),
@@ -154,6 +160,17 @@ class Map(models.Model):
         MapGroup, null=True, blank=True, on_delete=models.SET_NULL, related_name="maps"
     )
     access = models.CharField(max_length=50, choices=ACCESS_CHOICES, default="any")
+    access_level = models.CharField(max_length=50, choices=ACCESS_LEVEL_CHOICES, default="any")
+    user_access = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name="maps_allowed",
+    )
+    group_access = models.ManyToManyField(
+        Group,
+        blank=True,
+        related_name="maps_allowed",
+    )
     sponsor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,

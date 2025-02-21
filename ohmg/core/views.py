@@ -4,7 +4,7 @@ import logging
 from natsort import natsorted
 
 from django.contrib.auth import get_user_model
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.utils.decorators import method_decorator
@@ -42,10 +42,25 @@ from .http import (
 logger = logging.getLogger(__name__)
 
 
+def test_map_access(user, map):
+    if map.access_level == "none" and not user.is_superuser:
+        raise Http404
+    elif map.access_level == "restricted":
+        if (
+            user not in map.user_access.all()
+            and len([i for i in user.groups.all() if i in map.group_access.all()]) == 0
+            and not user.is_superuser
+        ):
+            raise Http404
+
+
 class MapView(View):
     @time_this
     def get(self, request, identifier):
         map = get_object_or_404(Map.objects.prefetch_related(), pk=identifier)
+
+        test_map_access(request.user, map)
+
         map_json = MapFullSchema.from_orm(map).dict()
 
         session_summary = map.get_session_summary()
@@ -107,6 +122,7 @@ class GenericResourceView(View):
     @time_this
     def get(self, request, pk):
         resource = get_object_or_404(self.model, pk=pk)
+        test_map_access(request.user, resource.map)
         return render(
             request,
             "content/resource.html",
