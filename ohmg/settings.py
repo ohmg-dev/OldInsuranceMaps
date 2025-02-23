@@ -135,7 +135,7 @@ DATABASES = {
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 STATIC_URL = "/static/"
-STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / "static")
+STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / "static_root")
 # explicitly add the non-standard location of svelte build files
 STATICFILES_DIRS = [
     PROJECT_DIR / "frontend" / "svelte" / "public" / "build",
