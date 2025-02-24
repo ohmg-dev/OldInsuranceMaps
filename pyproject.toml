@@ -52,6 +52,9 @@ dev = [
     "ruff",
     "coverage",
 ]
+prod = [
+    "uwsgi",
+]
 
 [tool.setuptools]
 packages = [
