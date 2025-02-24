@@ -7,7 +7,7 @@ uploaded
 .ohmg_cache
 .build
 .temp
-
+.services
 .celery_results
 
 .ruff_cache
