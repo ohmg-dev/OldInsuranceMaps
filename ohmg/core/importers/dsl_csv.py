@@ -43,15 +43,10 @@ class DSLFileImporter(BaseImporter):
 
         title = self.input_data.get("title", "test map")
 
-        parts = Path(self.input_data.get("csv-path")).name.split("_")
+        parts = Path(self.input_data.get("csv-path")).stem.split("_")
         locale = parts[0]
         year = int(parts[1])
         volume_number = parts[2] if len(parts) == 3 else None
-
-        if year:
-            year = int(year)
-        creator = self.input_data.get("creator")
-        locale = self.input_data.get("locale")
 
         with open(self.input_data.get("csv-path"), "r") as o:
             reader = csv.DictReader(o)
@@ -65,7 +60,7 @@ class DSLFileImporter(BaseImporter):
 
             document_sources.append(
                 {
-                    "path": fp,
+                    "path": str(fp.absolute()),
                     "iiif_info": None,
                     "page_number": row["page_number"],
                 }
@@ -75,7 +70,7 @@ class DSLFileImporter(BaseImporter):
             "identifier": id,
             "title": title,
             "year": year,
-            "creator": creator,
+            "creator": "Sanborn Map Company",
             "locale": locale,
             "volume_number": volume_number,
             "document_sources": document_sources,
