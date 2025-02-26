@@ -295,6 +295,7 @@ sudo supervisorctl reload
             ("DJANGO_SETTINGS_MODULE", None),
             ("SITE_HOST_NAME", ""),
             ("SITEURL", ""),
+            ("LOGIN_REQUIRED_SITEWIDE", False),
             ("ALLOWED_HOSTS", []),
             ("ADMIN_EMAIL", ""),
             ("MAPBOX_API_TOKEN", None),
