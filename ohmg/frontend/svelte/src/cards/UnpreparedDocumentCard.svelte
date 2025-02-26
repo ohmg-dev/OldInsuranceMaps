@@ -47,7 +47,7 @@
                 alt="{document.title}"
                 />
         </button>
-        {:else}
+        {:else if document.iiif_info}
         <div style="text-align:center;">
             <img
                 style="filter:opacity(75%)"
@@ -55,6 +55,8 @@
                 alt="{document.title}"
                 />
         </div>
+        {:else}
+        <div style="text-align:center;">{document.page_number}</div>
         {/if}
     </div>
     <div slot="card-bottom">
