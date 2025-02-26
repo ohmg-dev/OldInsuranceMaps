@@ -437,6 +437,7 @@ After=network.target
 User={user}
 Group=www-data
 Type=simple
+EnvironmentFile={settings.BASE_DIR}/.env
 ExecStart={self.python_env}/uwsgi --ini {ini_file_path.absolute()}
 Restart=on-failure
 RestartSec=10s
