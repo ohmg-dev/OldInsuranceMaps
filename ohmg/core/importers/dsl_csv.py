@@ -1,10 +1,13 @@
 import csv
+import json
+import logging
 from pathlib import Path
 
-from ..utils import random_alnum
+from ..utils import random_alnum, STATE_ABBREV, STATE_POSTAL
 from ..models import Map
 from .base import BaseImporter
 
+logger = logging.getLogger(__name__)
 
 class DSLFileImporter(BaseImporter):
     """DSL File Importer
@@ -16,15 +19,10 @@ class DSLFileImporter(BaseImporter):
     <locale-slug>_<year>_<volume_number (optional)>.csv
 
         csv-path: path/to/file.csv
-        files-dir: path/to/directory/with/files
-        title: title of map
-
     """
 
     required_input = [
         "csv-path",
-        "files-dir",
-        "title",
     ]
 
     def parse(self):
@@ -41,22 +39,31 @@ class DSLFileImporter(BaseImporter):
         else:
             id = random_alnum().upper()
 
-        title = self.input_data.get("title", "test map")
-
         parts = Path(self.input_data.get("csv-path")).stem.split("_")
         locale = parts[0]
         year = int(parts[1])
         volume_number = parts[2] if len(parts) == 3 else None
 
-        with open(self.input_data.get("csv-path"), "r") as o:
+        abbrev_rev = {v:k for k,v in STATE_ABBREV.items()}
+        postal_rev = {v:k for k,v in STATE_POSTAL.items()}
+        city_words = locale.split("-")[:-1]
+        city = " ".join([i.capitalize() for i in city_words])
+        po = locale.split("-")[-1]
+        abbr = STATE_ABBREV[postal_rev[po]]
+
+        title = f"Sanborn Map of {city}, {abbr}, {year}{', Vol. '+volume_number if volume_number else ''}"
+
+        csv_path = Path(self.input_data.get("csv-path")).resolve().absolute()
+        with open(csv_path, "r") as o:
             reader = csv.DictReader(o)
             rows = [i for i in reader]
 
+        files_dir = Path(csv_path.parent.absolute(), csv_path.stem)
         document_sources = []
         for row in rows:
-            fp = Path(self.input_data.get("files-dir"), row["filename"])
+            fp = Path(files_dir, row["filename"])
             if not fp.is_file():
-                raise Exception(f"can't find expected document file: {fp}")
+                logger.warn(f"{csv_path}: can't find expected document file: {fp}")
 
             document_sources.append(
                 {
@@ -75,3 +82,4 @@ class DSLFileImporter(BaseImporter):
             "volume_number": volume_number,
             "document_sources": document_sources,
         }
+        exit()
