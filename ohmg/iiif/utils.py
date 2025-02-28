@@ -133,8 +133,10 @@ class IIIFResource:
                 "http://iiif.io/api/extension/georef/1/context.json",
                 "http://iiif.io/api/presentation/3/context.json",
             ],
+            "label": str(self.layer),
             "created": self.region.created.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "modified": self.region.last_updated.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "creator": self.layer.get_creators(),
             "motivation": "georeferencing",
             ## Technically, these could be just be the urls to each resolvable endpoint,
             ## instead of actually embedding the data here

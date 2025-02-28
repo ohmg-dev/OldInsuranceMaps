@@ -4,7 +4,7 @@ from .views import (
     IIIFSelectorView,
     IIIFResourceView,
     IIIFGCPView,
-    IIIFCanvasView,
+    IIIFMosaicView,
 )
 
 urlpatterns = [
@@ -25,7 +25,7 @@ urlpatterns = [
     ),
     path(
         "iiif/mosaic/<str:mapid>/<str:layerset_category>/",
-        IIIFCanvasView.as_view(),
+        IIIFMosaicView.as_view(),
         name="iiif_canvas_view",
     ),
 ]
