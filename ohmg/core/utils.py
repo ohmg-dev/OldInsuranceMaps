@@ -169,6 +169,21 @@ def time_this(func):
     return wrapper_function
 
 
+def get_session_user_summary(session_list):
+    users = session_list.values_list("user__username", flat=True)
+    user_dict = {}
+    for name in users:
+        user_dict[name] = user_dict.get(
+            name,
+            {
+                "ct": 0,
+                "name": name,
+            },
+        )
+        user_dict[name]["ct"] += 1
+    return sorted(user_dict.values(), key=lambda item: item.get("ct"), reverse=True)
+
+
 MONTH_CHOICES = [
     (1, "JAN."),
     (2, "FEB."),

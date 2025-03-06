@@ -30,6 +30,7 @@ from ohmg.core.utils import (
     copy_local_file_to_cache,
     convert_img_format,
     random_alnum,
+    get_session_user_summary,
     MONTH_CHOICES,
 )
 from ohmg.core.storages import OverwriteStorage
@@ -379,27 +380,13 @@ class Map(models.Model):
         prep_sessions = sessions.filter(type="p")
         georef_sessions = sessions.filter(type="g")
 
-        def _get_session_user_summary(session_list):
-            users = session_list.values_list("user__username", flat=True)
-            user_dict = {}
-            for name in users:
-                user_dict[name] = user_dict.get(
-                    name,
-                    {
-                        "ct": 0,
-                        "name": name,
-                    },
-                )
-                user_dict[name]["ct"] += 1
-            return sorted(user_dict.values(), key=lambda item: item.get("ct"), reverse=True)
-
         prep_ct = prep_sessions.count()
         georef_ct = georef_sessions.count()
         summary = {
             "prep_ct": prep_ct,
-            "prep_contributors": _get_session_user_summary(prep_sessions),
+            "prep_contributors": get_session_user_summary(prep_sessions),
             "georef_ct": georef_ct,
-            "georef_contributors": _get_session_user_summary(georef_sessions),
+            "georef_contributors": get_session_user_summary(georef_sessions),
         }
         return summary
 
@@ -809,6 +796,19 @@ class Layer(models.Model):
 
         # save here to trigger a recalculation of the layerset's extent
         layerset.save()
+
+    def get_creators(self):
+        from ohmg.georeference.models import SessionBase
+
+        sessions = SessionBase.objects.filter(Q(doc2=self.region.document) | Q(reg2=self.region))
+        user_list = get_session_user_summary(sessions)
+        return [
+            {
+                "id": f"https://oldinsurancemaps.net/profile/{i['name']}",
+                "type": "Person",
+            }
+            for i in user_list
+        ]
 
     def save(
         self,
