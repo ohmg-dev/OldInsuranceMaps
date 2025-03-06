@@ -5,7 +5,7 @@ from .base import BaseImporter
 
 class SingleFileImporter(BaseImporter):
     """Single File Importer
-    -------------
+
     Use this importer to create a new Map object with a single file in it.
 
     Required opts:
