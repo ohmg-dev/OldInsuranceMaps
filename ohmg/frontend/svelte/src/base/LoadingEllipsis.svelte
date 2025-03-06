@@ -1,8 +1,9 @@
 <script>
     export let color = "black";
+    export let small = false;
 </script>
 
-<div class='lds-ellipsis'>
+<div class='lds-ellipsis{small ? " small" : ""}'>
     <div style:background={color}></div>
     <div style:background={color}></div>
     <div style:background={color}></div>
@@ -18,6 +19,10 @@
         height: 50px;
         margin: 0 auto;
     }
+    .lds-ellipsis.small {
+        width: 40px;
+        height: 15px;
+    }
     .lds-ellipsis div {
         position: absolute;
         top: 20px;
@@ -25,6 +30,11 @@
         height: 10px;
         border-radius: 50%;
         animation-timing-function: cubic-bezier(0, 1, 1, 0);
+    }
+    .lds-ellipsis.small div {
+        top: 8px;
+        width: 4px;
+        height: 4px;
     }
     .lds-ellipsis div:nth-child(1) {
         left: 8px;
