@@ -6,11 +6,12 @@ from .base import BaseImporter
 class SingleFileImporter(BaseImporter):
     """Single File Importer
     -------------
-    Use this importer to create a new Map object with a single file in it. The following
-    opts are supported:
+    Use this importer to create a new Map object with a single file in it.
 
-        file-path: path/to/file.tif
-        year: year of publication
+    Required opts:
+
+        file-path:  path/to/file.tif
+        year:       year of publication
 
     """
 

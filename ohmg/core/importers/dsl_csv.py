@@ -1,5 +1,4 @@
 import csv
-import json
 import logging
 from pathlib import Path
 
@@ -9,14 +8,21 @@ from .base import BaseImporter
 
 logger = logging.getLogger(__name__)
 
+
 class DSLFileImporter(BaseImporter):
     """DSL File Importer
     -------------
-    Use this importer to create a new Map object with multiple Documents, as defined in a provided
-    CSV file. The input CSV must have one line per Document, with columns 'filename' and
-    'page_number'. The name of the CSV should be formatted as such:
+    Use this importer to create a new Map object with multiple Documents, based
+    on content exported from an external system used by the DSL. The input CSV must
+    have one line per Document, with columns 'filename' and 'page_number'.
+    Filenames must match files present in a directory with the same name as the
+    CSV.
 
-    <locale-slug>_<year>_<volume_number (optional)>.csv
+    The name of the CSV (and corresponding file folder) must be constructed like:
+
+        <locale-slug>_<year>_<volume_number (optional)>.csv
+
+    Required opts:
 
         csv-path: path/to/file.csv
     """
@@ -44,8 +50,7 @@ class DSLFileImporter(BaseImporter):
         year = int(parts[1])
         volume_number = parts[2] if len(parts) == 3 else None
 
-        abbrev_rev = {v:k for k,v in STATE_ABBREV.items()}
-        postal_rev = {v:k for k,v in STATE_POSTAL.items()}
+        postal_rev = {v: k for k, v in STATE_POSTAL.items()}
         city_words = locale.split("-")[:-1]
         city = " ".join([i.capitalize() for i in city_words])
         po = locale.split("-")[-1]
