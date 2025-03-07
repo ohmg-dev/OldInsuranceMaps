@@ -34,7 +34,7 @@
         </p>
     </div>
     <div slot="card-middle">
-        {#if document.file}
+        {#if document.urls.thumbnail}
         <button class="thumbnail-btn" on:click={() => {
             modalLyrUrl=document.urls.image;
             modalExtent=[0, -document.image_size[1], document.image_size[0], 0];
@@ -47,7 +47,7 @@
                 alt="{document.title}"
                 />
         </button>
-        {:else}
+        {:else if document.iiif_info}
         <div style="text-align:center;">
             <img
                 style="filter:opacity(75%)"
@@ -55,12 +55,14 @@
                 alt="{document.title}"
                 />
         </div>
+        {:else}
+        <div style="text-align:center;">{document.page_number}</div>
         {/if}
     </div>
     <div slot="card-bottom">
         {#if document.loading_file}
         <ul>
-            <li>loading...</li>
+            <li>loading <LoadingEllipsis small={true}/></li>
             {#if CONTEXT.user.is_authenticated}
                 <button
                 class="is-text-link"

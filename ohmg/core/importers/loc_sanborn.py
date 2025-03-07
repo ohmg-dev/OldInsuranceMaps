@@ -41,11 +41,13 @@ LOC_SANBORN_CITY_MISSPELLINGS = {
 
 class LOCSanbornImporter(BaseImporter):
     """LOC Importer
-    ------------
-    Load items from the Library of Congress Sanborn map collection. Required args are:
+
+    Load items from the Library of Congress Sanborn map collection.
+
+    Required opts:
 
         identifier:   the LOC id for the item, looks like 'sanborn04339_026'
-        locale:       slug for the locale to attach to the new map that is created
+        locale:       slug for the locale to attach to the new map
     """
 
     required_input = [

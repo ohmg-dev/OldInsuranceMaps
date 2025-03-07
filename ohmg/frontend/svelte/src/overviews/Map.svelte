@@ -164,12 +164,12 @@
 		window.location = "/resource/" + currentDoc
 	}
 
-	let bulkLoadInProgress = false;
-	$: {
-		if (bulkLoadInProgress && (MAP.progress.sheets_loaded == MAP.progress.sheets_total)) {
-			bulkLoadInProgress = false;
-		}
-	}
+	// $: bulkLoadInProgress = MAP.loading_documents;
+	// $: {
+	// 	if (bulkLoadInProgress && (MAP.progress.sheets_loaded == MAP.progress.sheets_total)) {
+	// 		bulkLoadInProgress = false;
+	// 	}
+	// }
 	$: documentsLoading = (MAP.item_lookup.unprepared.some(function(doc) {
 		return doc.loading_file;
 	}));
@@ -206,7 +206,7 @@
 
 	let autoReload = false;
 	$: {
-		autoReload = (MAP.locks.length > 0) || documentsLoading || bulkLoadInProgress;
+		autoReload = (MAP.locks.length > 0) || documentsLoading || MAP.loading_documents;
 	}
 	$: manageAutoReload(autoReload)
 
@@ -247,7 +247,8 @@
 	}
 
 	function loadDocuments() {
-		bulkLoadInProgress = true;
+		MAP.loading_documents = true;
+		sectionVis['unprepared'] = true;
 		submitPostRequest(
 			MAP.urls.summary,
 			CONTEXT.ohmg_post_headers,
@@ -457,7 +458,7 @@
 				{/if}
 				<span>
 					<em>
-					{#if documentsLoading}
+					{#if MAP.loading_documents}
 					Loading document {MAP.progress.loaded_pages+1}/{MAP.progress.total_pages}... (you can safely leave this page).
 					{:else if MAP.progress.loaded_pages == 0}
 					No content loaded yet...

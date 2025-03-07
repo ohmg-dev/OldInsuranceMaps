@@ -6,8 +6,6 @@ from datetime import datetime
 from pathlib import Path
 
 from osgeo import gdal
-from cogeo_mosaic.mosaic import MosaicJSON
-from cogeo_mosaic.backends import MosaicBackend
 from natsort import natsorted
 
 from django.conf import settings
@@ -138,6 +136,10 @@ class Map(models.Model):
     iiif_manifest = models.JSONField(null=True, blank=True)
     create_date = models.DateTimeField(auto_now_add=True)
     load_date = models.DateTimeField(null=True, blank=True)
+    loading_documents = models.BooleanField(
+        default=False,
+        help_text="true only when document files are being loaded for this map",
+    )
     document_sources = models.JSONField(
         null=True,
         blank=True,
@@ -314,12 +316,18 @@ class Map(models.Model):
         self.update_item_lookup()
 
     def load_all_document_files(self, username, overwrite=False):
+        self.loading_documents = True
+        self.save()
         for document in natsorted(self.documents.all(), key=lambda k: k.title):
             if not document.file and not overwrite:
                 try:
                     document.load_file_from_source(username, overwrite=True)
                 except Exception as e:
                     logger.error(f"error loading document {document.pk}: {e}")
+                    document.loading_file = False
+                    document.save()
+        self.loading_documents = False
+        self.save()
 
     def remove_sheets(self):
         for document in self.documents:
@@ -1098,6 +1106,9 @@ class LayerSet(models.Model):
         print(f"completed - elapsed time: {datetime.now() - start}")
 
     def generate_mosaic_json(self, trim_all=False):
+        from cogeo_mosaic.mosaic import MosaicJSON
+        from cogeo_mosaic.backends import MosaicBackend
+
         def write_trim_feature_cache(feature, file_path):
             with open(file_path, "w") as f:
                 json.dump(feature, f, indent=2)

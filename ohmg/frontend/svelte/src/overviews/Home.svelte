@@ -27,7 +27,7 @@
 <main>
 	<div class="homepage-section">
 		<div>
-			<h1>OldInsuranceMaps.net</h1>
+			<h1 style="word-wrap: break-word;">OldInsuranceMaps.net</h1>
 			<p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. See <Link href="/#how-it-works">how it works</Link> or visit the <Link href="https://about.oldinsurancemaps.net?utm_source=hero" external={true}>about</Link> or <Link href="https://about.oldinsurancemaps.net/faq?utm_source=hero">FAQ</Link> pages to learn more.</p>
 		</div>
 	</div>
@@ -151,7 +151,7 @@
 		</div>
 	</div>
 
-	<div class="homepage-section" style="height:750px;">
+	<div class="homepage-section" style="min-height:750px;">
 		<div>
 			<div class="level" style="margin-bottom:0;">
 				<div class="level-left">
@@ -191,7 +191,7 @@ main {
 	margin-right: -15px;
 	margin-left: -15px;
 	background: linear-gradient(0deg, rgba(255 255 255 / 60%), rgba(255 255 255 / 60%)), url(/static/img/old-basin-canal-tall-50qual-crop.jpg);
-	background-size: 100% 100%;
+	background-size: 100%;
 }
 
 main > div {

@@ -3,7 +3,6 @@ import sys
 from argparse import Namespace
 from pathlib import Path
 
-import boto3
 import requests
 
 from django.conf import settings
@@ -20,6 +19,7 @@ class Command(BaseCommand):
     )
     out_dir = "_system-configs"
     verbose = False
+    python_env = Path(sys.executable).parent
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -34,6 +34,7 @@ class Command(BaseCommand):
                 "generate-error-pages",
                 "initialize-s3-bucket",
                 "get-plugins",
+                "services",
             ],
             nargs="+",
             help="Choose what configurations to generate.",
@@ -59,6 +60,20 @@ class Command(BaseCommand):
             default=False,
             help="Verbose output.",
         )
+
+    def _write_file(self, content: str, filename: str):
+        Path(self.out_dir).mkdir(exist_ok=True)
+        outpath = Path(self.out_dir, filename)
+        with open(outpath, "w") as o:
+            o.write(content)
+        return outpath
+
+    def _resolve_var(self, name, default_value=None):
+        value = getattr(settings, name, "<not in django settings>")
+        if value == "<not in django settings>":
+            value = os.getenv(name, default_value)
+
+        return value
 
     def handle(self, *args, **options):
         self.verbose = options["verbose"]
@@ -128,12 +143,8 @@ class Command(BaseCommand):
         if "get-plugins" in options["type"]:
             self.get_plugins()
 
-    def resolve_var(self, name, default_value=None):
-        value = getattr(settings, name, "<not in django settings>")
-        if value == "<not in django settings>":
-            value = os.getenv(name, default_value)
-
-        return value
+        if "services" in options["type"]:
+            self.create_services()
 
     def write_file(self, file_path, content):
         with open(file_path, "w") as out:
@@ -160,7 +171,7 @@ class Command(BaseCommand):
             ("MEDIA_ROOT", ""),
         ]
 
-        if self.resolve_var("EMAIL_ENABLE", False) is True:
+        if self._resolve_var("EMAIL_ENABLE", False) is True:
             vars += [
                 ("EMAIL_ENABLE", True),
                 ("DJANGO_EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"),
@@ -175,7 +186,7 @@ class Command(BaseCommand):
 
         kv_list = []
         for var in vars:
-            value = self.resolve_var(var[0], var[1])
+            value = self._resolve_var(var[0], var[1])
             kv_list.append(f'{var[0]}="{value}"')
         env_block = "\n    " + ",\n    ".join(kv_list)
 
@@ -232,7 +243,7 @@ sudo supervisorctl reload
     def write_project_celery_config(self):
         project_name = settings.WSGI_APPLICATION.split(".")[0]
         env_file = settings.BASE_DIR / ".env"
-        user = self.resolve_var("USER", "username")
+        user = self._resolve_var("USER", "username")
         celery_path = os.path.join(os.path.dirname(sys.executable), "celery")
 
         file_content = f"""[program:{project_name}-celery]
@@ -265,13 +276,13 @@ sudo supervisorctl reload
 
         return full_deploy_path
 
-    def write_project_uwsgi_ini(self):
+    def generate_uwsgi_ini(self):
         project_name = settings.WSGI_APPLICATION.split(".")[0]
         wsgi_file = settings.BASE_DIR / project_name / "wsgi.py"
         wsgi_application = f"{project_name}.wsgi:application"
         env_path = os.path.dirname(os.path.dirname(sys.executable))
-        log_dir = self.resolve_var("LOG_DIR", settings.LOG_DIR)
-        user = self.resolve_var("USER", "username")
+        log_dir = self._resolve_var("LOG_DIR", settings.LOG_DIR)
+        user = self._resolve_var("USER", "username")
 
         vars = [
             ("MEDIA_ROOT", ""),
@@ -284,6 +295,7 @@ sudo supervisorctl reload
             ("DJANGO_SETTINGS_MODULE", None),
             ("SITE_HOST_NAME", ""),
             ("SITEURL", ""),
+            ("LOGIN_REQUIRED_SITEWIDE", False),
             ("ALLOWED_HOSTS", []),
             ("ADMIN_EMAIL", ""),
             ("MAPBOX_API_TOKEN", None),
@@ -296,7 +308,7 @@ sudo supervisorctl reload
             ("OHMG_API_KEY", ""),
         ]
 
-        if self.resolve_var("EMAIL_ENABLE", False) is True:
+        if self._resolve_var("EMAIL_ENABLE", False) is True:
             vars += [
                 ("EMAIL_ENABLE", True),
                 ("DJANGO_EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"),
@@ -311,11 +323,11 @@ sudo supervisorctl reload
 
         env_section = ""
         for var in vars:
-            value = self.resolve_var(var[0], var[1])
+            value = self._resolve_var(var[0], var[1])
             env_section += f"env = {var[0]}={value}\n"
 
         # this one must be quoted because it could contain # (comment tag)
-        secret = self.resolve_var("SECRET_KEY", "RanD0m%3cr3tK3y")
+        secret = self._resolve_var("SECRET_KEY", "RanD0m%3cr3tK3y")
         env_section += f'env = SECRET_KEY="{secret}"'
 
         file_content = f"""[uwsgi]
@@ -380,13 +392,17 @@ cheaper-busyness-backlog-step = 2    ; How many emergency workers to create if t
 # cron = -1 -1 -1 -1 -1 /usr/local/bin/python /usr/src/{project_name}/manage.py collect_metrics -n
 """
 
+        return file_content
+
+    def write_project_uwsgi_ini(self):
         outfile_path = os.path.join(self.out_dir, "uwsgi.ini")
 
+        file_content = self.generate_uwsgi_ini()
         return self.write_file(outfile_path, file_content)
 
     def write_uwsgi_service(self, ini_file="<UPDATE WITH PATH TO .ini FILE>"):
         uwsgi_path = os.path.join(os.path.dirname(sys.executable), "uwsgi")
-        user = self.resolve_var("USER", "username")
+        user = self._resolve_var("USER", "username")
         project_name = settings.WSGI_APPLICATION.split(".")[0]
 
         file_content = f"""[Unit]
@@ -409,6 +425,28 @@ WantedBy=multi-user.target
 
         return self.write_file(outfile_path, file_content)
 
+    def generate_uwsgi_service(self, ini_file_path: Path):
+        user = self._resolve_var("USER", "username")
+        project_name = settings.WSGI_APPLICATION.split(".")[0]
+
+        file_content = f"""[Unit]
+Description={project_name} uWSGI daemon
+After=network.target
+
+[Service]
+User={user}
+Group=www-data
+Type=simple
+EnvironmentFile={settings.BASE_DIR}/.env
+ExecStart={self.python_env}/uwsgi --ini {ini_file_path.absolute()}
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
+"""
+        return file_content
+
     def write_uwsgi_service_deploy(self, service_file):
         deploy_path = os.path.join(self.out_dir, "deploy-uwsgi-service.sh")
         service_name = os.path.splitext(os.path.basename(service_file))[0]
@@ -429,18 +467,18 @@ sudo systemctl start {service_name}
         print("not fully implemented")
         return
 
-        SITE_HOST_NAME = self.resolve_var("SITE_HOST_NAME")
+        SITE_HOST_NAME = self._resolve_var("SITE_HOST_NAME")
         file_name = SITE_HOST_NAME + ".conf"
 
-        MEDIA_ROOT = self.resolve_var("MEDIA_ROOT")
-        MEDIA_URL = self.resolve_var("MEDIA_URL")
+        MEDIA_ROOT = self._resolve_var("MEDIA_ROOT")
+        MEDIA_URL = self._resolve_var("MEDIA_URL")
         MEDIA_URL_clean = MEDIA_URL.rstrip("/")
 
-        STATIC_ROOT = self.resolve_var("STATIC_ROOT")
-        STATIC_URL = self.resolve_var("STATIC_URL")
+        STATIC_ROOT = self._resolve_var("STATIC_ROOT")
+        STATIC_URL = self._resolve_var("STATIC_URL")
         STATIC_URL_clean = STATIC_URL.rstrip("/")
 
-        LOCAL_ROOT = self.resolve_var("LOCAL_ROOT")
+        LOCAL_ROOT = self._resolve_var("LOCAL_ROOT")
         top_dir = os.path.dirname(LOCAL_ROOT)
         project_name = os.path.basename(LOCAL_ROOT)
 
@@ -483,18 +521,18 @@ server {{
         print("not fully implemented")
         return
 
-        SITE_HOST_NAME = self.resolve_var("SITE_HOST_NAME")
+        SITE_HOST_NAME = self._resolve_var("SITE_HOST_NAME")
         file_name = SITE_HOST_NAME + "-ssl.conf"
 
-        MEDIA_ROOT = self.resolve_var("MEDIA_ROOT")
-        MEDIA_URL = self.resolve_var("MEDIA_URL")
+        MEDIA_ROOT = self._resolve_var("MEDIA_ROOT")
+        MEDIA_URL = self._resolve_var("MEDIA_URL")
         MEDIA_URL_clean = MEDIA_URL.rstrip("/")
 
-        STATIC_ROOT = self.resolve_var("STATIC_ROOT")
-        STATIC_URL = self.resolve_var("STATIC_URL")
+        STATIC_ROOT = self._resolve_var("STATIC_ROOT")
+        STATIC_URL = self._resolve_var("STATIC_URL")
         STATIC_URL_clean = STATIC_URL.rstrip("/")
 
-        LOCAL_ROOT = self.resolve_var("LOCAL_ROOT")
+        LOCAL_ROOT = self._resolve_var("LOCAL_ROOT")
         top_dir = os.path.dirname(LOCAL_ROOT)
         project_name = os.path.basename(LOCAL_ROOT)
 
@@ -563,6 +601,33 @@ server {{
 
         return self.write_file(outfile_path, file_content)
 
+    def generate_celery_service(self):
+        log_dir = self._resolve_var("LOG_DIR", settings.LOG_DIR)
+
+        file_content = f"""[Unit]
+Description=Celery
+After=rabbitmq-server.service
+Requires=rabbitmq-server.service
+
+[Service]
+EnvironmentFile={settings.BASE_DIR}/.env
+ExecStart={self.python_env}/celery \\
+    -A ohmg.celeryapp:app worker \\
+    --without-gossip --without-mingle \\
+    -Ofair -B -E \\
+    --statedb=worker.state \\
+    -s celerybeat-schedule \\
+    --loglevel=DEBUG \\
+    --logfile={log_dir}/celery.log \\
+    --concurrency=10 -n worker1@%h
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+        return file_content
+
     def generate_error_pages(self):
         rf = RequestFactory()
         request = rf.get("/")
@@ -578,6 +643,8 @@ server {{
             print(f"file saved to: {outpath}")
 
     def initialize_s3_bucket(self):
+        import boto3
+
         client = boto3.client("s3", **settings.S3_CONFIG)
 
         response = client.list_buckets()
@@ -597,3 +664,26 @@ server {{
             print(url)
             with open(Path(dest, url.split("/")[-1]), mode="wb") as file:
                 file.write(response.content)
+
+    def create_services(self):
+        self.out_dir = ".services"
+        celery_service_path = self._write_file(self.generate_celery_service(), "celery.service")
+        print(celery_service_path.absolute())
+
+        uwsgi_ini_path = self._write_file(self.generate_uwsgi_ini(), "uwsgi.ini")
+        uwsgi_service_path = self._write_file(
+            self.generate_uwsgi_service(uwsgi_ini_path), "uwsgi.service"
+        )
+
+        print(f"""services created. to deploy, run the following commands:
+
+# update celery 
+sudo ln -sf {celery_service_path.absolute()} /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl restart celery
+
+# update uwsgi
+sudo ln -sf {uwsgi_service_path.absolute()} /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl restart uwsgi
+""")

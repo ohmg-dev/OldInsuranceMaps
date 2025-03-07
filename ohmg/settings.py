@@ -135,7 +135,7 @@ DATABASES = {
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 STATIC_URL = "/static/"
-STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / "static")
+STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / "static_root")
 # explicitly add the non-standard location of svelte build files
 STATICFILES_DIRS = [
     PROJECT_DIR / "frontend" / "svelte" / "public" / "build",
@@ -333,6 +333,7 @@ OHMG_IMPORTERS = {
     "map": {
         "single-file": "ohmg.core.importers.single_file.SingleFileImporter",
         "loc-sanborn": "ohmg.core.importers.loc_sanborn.LOCSanbornImporter",
+        "dsl": "ohmg.core.importers.dsl_csv.DSLFileImporter",
     }
 }
 

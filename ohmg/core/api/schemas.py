@@ -558,6 +558,7 @@ class MapFullSchema(Schema):
     loaded_by: Optional[UserSchemaLite]
     status: str = ""
     access: str = ""
+    loading_documents: bool
     featured: bool
     hidden: bool
     document_sources: list
