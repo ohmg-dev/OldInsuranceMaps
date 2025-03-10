@@ -88,4 +88,3 @@ class DSLFileImporter(BaseImporter):
             "volume_number": volume_number,
             "document_sources": document_sources,
         }
-        exit()
