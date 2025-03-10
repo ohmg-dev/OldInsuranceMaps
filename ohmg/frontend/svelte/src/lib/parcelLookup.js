@@ -18,5 +18,20 @@ export const parcelLookup = {
         "pmtilesUrl": "https://oldinsurancemaps.net/uploaded/athens-ga.pmtiles",
         "attributionText": "Athens-Clarke County Open Data",
         "attributionUrl": "https://data-athensclarke.opendata.arcgis.com/datasets/AthensClarke::acc-parcels/about"
+    },
+    "detroit-mi": {
+        "pmtilesUrl": "https://oldinsurancemaps.net/uploaded/detroit-mi-parcels.pmtiles",
+        "attributionText": "City of Detroit Open Data Portal",
+        "attributionUrl": "https://data-detroitmi.hub.arcgis.com/datasets/parcels-current-1/explore"
+    },
+    "philadelphia-pa": {
+        "pmtilesUrl": "https://oldinsurancemaps.net/uploaded/philadelphia-pa-parcels.pmtiles",
+        "attributionText": "Open Data Philly",
+        "attributionUrl": "https://opendataphilly.org/datasets/department-of-records-property-parcels/"
+    },
+    "camden-nj": {
+        "pmtilesUrl": "https://oldinsurancemaps.net/uploaded/camden-nj-parcels.pmtiles",
+        "attributionText": "Camden County Open Data Portal",
+        "attributionUrl": "https://camdencountynj-ccdpw.opendata.arcgis.com/"
     }
 }
