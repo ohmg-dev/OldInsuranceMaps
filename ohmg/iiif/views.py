@@ -19,13 +19,16 @@ class IIIFGCPView(View):
 class IIIFResourceView(View):
     def get(self, request, layerid):
         trim = request.GET.get("trim", "false") == "true"
-        return JsonResponse(IIIFResource(layerid).get_resource(trim=trim))
+        extended = request.GET.get("extended", "false") == "true"
+        resource = IIIFResource(layerid, trimmed=trim, extended=extended)
+        return JsonResponse(resource.get_annotation())
 
 
 class IIIFMosaicView(View):
     def get(self, request, mapid, layerset_category):
         ls = Map.objects.get(pk=mapid).get_layerset(layerset_category)
         trim = request.GET.get("trim", "false") == "true"
+        extended = request.GET.get("extended", "false") == "true"
         return JsonResponse(
             {
                 "id": full_reverse("iiif_canvas_view", args=(mapid, layerset_category)),
@@ -35,7 +38,7 @@ class IIIFMosaicView(View):
                 ],
                 "label": f"Mosaic of {ls.category.display_name.lower()}, {ls.map}",
                 "items": [
-                    IIIFResource(i.pk).get_resource(trim=trim)
+                    IIIFResource(i.pk, trimmed=trim, extended=extended).get_annotation()
                     for i in [k for k in ls.layer_set.all()]
                 ],
             }

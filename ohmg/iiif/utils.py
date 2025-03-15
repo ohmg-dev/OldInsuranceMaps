@@ -1,5 +1,6 @@
 from osgeo import gdal, osr
 
+from django.conf import settings
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
 from django.contrib.gis.geos import Polygon
 
@@ -9,15 +10,17 @@ from ohmg.georeference.georeferencer import Georeferencer
 
 
 class IIIFResource:
-    def __init__(self, layerid):
+    def __init__(self, layerid, extended=False, trimmed=False):
         self.layerid = layerid
         self.layer = Layer.objects.get(pk=layerid)
         self.region = self.layer.region
         self.document = self.region.document
+        self.extended = extended
+        self.trimmed = trimmed
 
         self.d_width, self.d_height = self.document.image_size
 
-    def get_selector(self, trim=False):
+    def get_selector(self):
         ## create coordinates for the selector
         coords_str = [
             f"{int(i[0])},{self.d_height-int(i[1])}" for i in self.region.boundary.coords[0]
@@ -26,7 +29,7 @@ class IIIFResource:
         ## next step is to look for the multimask for this layer if one exists, and then
         ## transform it back to the selector coordinates.
         mm = self.layer.layerset2.multimask
-        if mm and self.layer.slug in mm and trim:
+        if mm and self.layer.slug in mm and self.trimmed:
             wgs84 = osr.SpatialReference()
             wgs84.ImportFromEPSG(4326)
 
@@ -75,9 +78,32 @@ class IIIFResource:
         }
 
     def get_gcps(self):
-        extent = self.region.boundary.extent
-        xmin, ymin, xmax, ymax = extent
+        xmin, ymin, xmax, ymax = self.region.boundary.extent
 
+        features = []
+        for gcp in self.region.gcpgroup.gcps:
+            features.append(
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "resourceCoords": [
+                            gcp.pixel_x + xmin,
+                            gcp.pixel_y + (self.d_height - ymax),
+                        ],
+                        "creator": {
+                            "id": f"{settings.SITEURL}profile/{gcp.last_modified_by.username}",
+                            "type": "Person",
+                        },
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [gcp.geom.coords[1], gcp.geom.coords[0]],
+                    },
+                }
+            )
+        return features
+
+    def get_body(self):
         if self.region.gcpgroup.transformation == "poly1":
             transformation = {"type": "polynomial", "options": {"order": 1}}
         elif self.region.gcpgroup.transformation == "tps":
@@ -87,26 +113,23 @@ class IIIFResource:
         else:
             raise Exception("invalid transformation", self.region.gcpgroup.transformation)
 
-        return {
+        body = {
             "id": full_reverse("iiif_gcps_view", args=(self.layerid,)),
             "type": "FeatureCollection",
             "transformation": transformation,
-            "features": [
-                {
-                    "type": "Feature",
-                    "properties": {
-                        "resourceCoords": [
-                            i["properties"]["image"][0] + xmin,
-                            i["properties"]["image"][1] + (self.d_height - ymax),
-                        ],
-                    },
-                    "geometry": i["geometry"],
-                }
-                for i in self.region.gcpgroup.as_geojson["features"]
-            ],
+            "features": self.get_gcps(),
         }
 
-    def get_resource(self, trim=False):
+        if self.extended:
+            body["warpProjection"] = f"EPSG:{self.region.gcpgroup.crs_epsg}"
+            body["mask"] = None
+            mm = self.layer.layerset2.multimask
+            if mm and self.layer.slug in mm:
+                body["mask"] = mm[self.layer.slug]
+
+        return body
+
+    def get_annotation(self):
         ## Ok, getting an extent or envelope from the region boundary produces cartesian x,y
         ## with 0,0 at the bottom left. However, the stored image GCP coords are with 0,0 at
         ## top left. Translating the GCP image coords is performed like this:
