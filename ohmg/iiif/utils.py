@@ -20,7 +20,7 @@ class IIIFResource:
 
         self.d_width, self.d_height = self.document.image_size
 
-    def get_selector(self):
+    def get_target(self):
         ## create coordinates for the selector
         coords_str = [
             f"{int(i[0])},{self.d_height-int(i[1])}" for i in self.region.boundary.coords[0]
@@ -62,7 +62,7 @@ class IIIFResource:
 
         coords_join = " ".join(coords_str)
 
-        return {
+        target = {
             "id": full_reverse("iiif_selector_view", args=(self.layerid,)),
             "type": "SpecificResource",
             "source": {
@@ -76,6 +76,12 @@ class IIIFResource:
                 "value": f'<svg><polygon points="{coords_join}" /></svg>',
             },
         }
+
+        target["mask"] = None
+        if mm and self.layer.slug in mm:
+            target["mask"] = mm[self.layer.slug]
+
+        return target
 
     def get_gcps(self):
         xmin, ymin, xmax, ymax = self.region.boundary.extent
@@ -122,10 +128,6 @@ class IIIFResource:
 
         if self.extended:
             body["warpProjection"] = f"EPSG:{self.region.gcpgroup.crs_epsg}"
-            body["mask"] = None
-            mm = self.layer.layerset2.multimask
-            if mm and self.layer.slug in mm:
-                body["mask"] = mm[self.layer.slug]
 
         return body
 
@@ -156,6 +158,6 @@ class IIIFResource:
             "motivation": "georeferencing",
             ## Technically, these could be just be the urls to each resolvable endpoint,
             ## instead of actually embedding the data here
-            "target": self.get_selector(),
+            "target": self.get_target(),
             "body": self.get_body(),
         }
