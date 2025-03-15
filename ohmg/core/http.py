@@ -51,6 +51,7 @@ def generate_ohmg_context(request) -> dict:
     providing a standard approach to passing context to Svelte components."""
 
     return {
+        "site_url": settings.SITEURL,
         "titiler_host": settings.TITILER_HOST,
         "mapbox_api_token": settings.MAPBOX_API_TOKEN,
         "csrf_token": (csrf_token := csrf.get_token(request)),
