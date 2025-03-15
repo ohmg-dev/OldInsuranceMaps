@@ -170,10 +170,10 @@ class Viewer(View):
         place_data = place.serialize()
         for map in Map.objects.filter(locales__id__exact=place.id).prefetch_related():
             map_json = MapFullSchema.from_orm(map).dict()
-            map_json["main_layerset"] = LayerSetSchema.from_orm(
-                map.get_layerset("main-content")
-            ).dict()
-            maps.append(map_json)
+            ls = map.get_layerset("main-content")
+            if ls:
+                map_json["main_layerset"] = LayerSetSchema.from_orm(ls).dict()
+                maps.append(map_json)
 
         maps_sorted = natsorted(maps, key=lambda x: x["title"], reverse=True)
 
