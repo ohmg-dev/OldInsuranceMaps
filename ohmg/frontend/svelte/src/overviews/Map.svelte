@@ -670,7 +670,7 @@
 										<DownloadSimple /> downloads & web services</Link>
 									</li> -->
 									<input type="hidden" id="lyr-{layer.id}-xyz-link" value={`${makeTitilerXYZUrl({host:CONTEXT.titiler_host, url: layer.urls.cog})}`}/>
-									<input type="hidden" id="lyr-{layer.id}-wms-link" value="https://titiler.oldinsurancemaps.net/cog/wms/?{layer.urls.cog}&VERSION=1.1.1"/>
+									<input type="hidden" id="lyr-{layer.id}-wms-link" value="{CONTEXT.titiler_host}/cog/wms/?LAYERS={layer.urls.cog}&VERSION=1.1.1"/>
 									<li>
 										<div id="lyr-{layer.id}-services" class="dropdown is-right" style="padding:0;">
 											<div class="dropdown-trigger" style="padding:0;">
@@ -691,7 +691,7 @@
 														<li><button class="is-text-link" on:click={()=>{copyToClipboard(`lyr-${layer.id}-xyz-link`)}}>XYZ Tiles URL <Copy/></button></li>
 														<li><button class="is-text-link" on:click={()=>{copyToClipboard(`lyr-${layer.id}-wms-link`)}}>WMS endpoint <Copy/></button></li>
 														<li><Link href="{getLayerOHMUrl(layer, CONTEXT.titiler_host)}" external={true}>OpenHistoricalMap iD</Link></li>
-														<li><Link href="https://oldinsurancemaps.net/iiif/resource/{layer.id}/" external={true}>IIIF Georef Annotation (beta)</Link></li>
+														<li><Link href="{CONTEXT.site_url}iiif/resource/{layer.id}/" external={true}>IIIF Georef Annotation (beta)</Link></li>
 														<li><Link href="https://viewer.allmaps.org/?url={encodeURIComponent(`https://oldinsurancemaps.net/iiif/resource/${layer.id}/`)}" external={true}>Allmaps Viewer (beta)</Link></li>
 													</ul>
 												</div>
