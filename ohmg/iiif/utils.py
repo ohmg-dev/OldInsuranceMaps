@@ -77,9 +77,10 @@ class IIIFResource:
             },
         }
 
-        target["mask"] = None
-        if mm and self.layer.slug in mm:
-            target["mask"] = mm[self.layer.slug]
+        if self.extended:
+            target["mask"] = None
+            if mm and self.layer.slug in mm:
+                target["mask"] = mm[self.layer.slug]
 
         return target
 
