@@ -224,7 +224,7 @@ class GeoreferenceView(View):
             file_url = settings.MEDIA_HOST.rstrip("/") + region.file.url
             try:
                 preview_id = str(uuid4())
-                read_vrt, write_vrt = g.make_modified_vrt(file_url, out_name=preview_id)
+                read_vrt, write_vrt = g.make_warped_vrt(file_url, out_name=preview_id)
 
                 return JsonResponseSuccess(
                     "all good", {"preview_url": str(read_vrt), "preview_id": preview_id}

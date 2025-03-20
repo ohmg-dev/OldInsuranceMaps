@@ -272,7 +272,7 @@ class Georeferencer:
 
         return (read_out_path, write_out_path)
 
-    def make_modified_vrt(
+    def make_warped_vrt(
         self,
         src_path,
         out_name: str = None,
@@ -334,7 +334,7 @@ class Georeferencer:
         a = time.time()
         logger.debug(f"{Path(src_path).name} | create COG...")
 
-        read_modified_vrt, write_modified_vrt = self.make_modified_vrt(src_path)
+        read_modified_vrt, write_modified_vrt = self.make_warped_vrt(src_path)
         if read_modified_vrt.startswith("http"):
             read_modified_vrt = f"/vsicurl/{read_modified_vrt}"
 
