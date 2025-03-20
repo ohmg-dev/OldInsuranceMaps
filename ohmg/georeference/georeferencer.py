@@ -263,7 +263,7 @@ class Georeferencer:
             ],
         )
         try:
-            gdal.Translate(write_out_path, src_path, options=to)
+            gdal.Translate(str(write_out_path), src_path, options=to)
         except Exception as e:
             logger.error(f"{src_path} | translate error: {str(e)}")
             raise e
@@ -318,7 +318,7 @@ class Georeferencer:
             resampleAlg="nearest",
         )
         try:
-            gdal.Warp(write_out_path, read_gcps_vrt, options=wo)
+            gdal.Warp(str(write_out_path), read_gcps_vrt, options=wo)
         except Exception as e:
             logger.error(f"{read_gcps_vrt} | warp error: {str(e)}")
             raise e
@@ -357,7 +357,7 @@ class Georeferencer:
             resampleAlg="nearest",
         )
         try:
-            gdal.Translate(write_out_path, read_modified_vrt, options=to)
+            gdal.Translate(str(write_out_path), read_modified_vrt, options=to)
         except Exception as e:
             logger.error(f"{read_modified_vrt} | translate error: {str(e)}")
             raise e
