@@ -653,7 +653,7 @@ class GeorefSession(SessionBase):
 
         self.update_status("warping")
         try:
-            out_path = g.warp(self.reg2.file.path)
+            out_path = g.make_cog(self.reg2.file.path)
         except Exception as e:
             logger.error(e)
             self.update_stage("finished", save=False)

@@ -1,5 +1,8 @@
 import os
 import logging
+from pathlib import Path
+
+from django.conf import settings
 
 from ohmg.celeryapp import app
 from ohmg.georeference.models import (
@@ -31,14 +34,6 @@ def delete_stale_sessions():
 
 
 @app.task
-def delete_preview_vrt(base_file_path, preview_url_to_remove):
-    if not preview_url_to_remove.endswith(".vrt"):
-        logger.warning("will not delete non-VRT")
-        return
-    prev_file = os.path.basename(preview_url_to_remove)
-    prev_file_path = os.path.join(os.path.dirname(base_file_path), prev_file)
-    try:
-        if os.path.exists(prev_file_path):
-            os.remove(prev_file_path)
-    except Exception as e:
-        logger.warning(f"error while deleting preview VRT: {e}")
+def delete_preview_vrts(id):
+    for p in Path(settings.MEDIA_ROOT, "vrt").glob(f"{id}*.vrt"):
+        os.remove(p)
