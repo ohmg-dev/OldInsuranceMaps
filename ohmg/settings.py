@@ -164,6 +164,10 @@ COMPRESS_ENABLED = False
 MEDIA_URL = os.getenv("MEDIA_URL", "/uploaded/")
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / "uploaded")
 
+# create directory for temp holding of publicly served VRT files
+OHMG_VRT_DIR = Path(MEDIA_ROOT, "vrt")
+OHMG_VRT_DIR.mkdir(exist_ok=True)
+
 # this is a custom setting to allow apache to be used in development
 MEDIA_HOST = os.getenv("MEDIA_HOST", SITEURL)
 
