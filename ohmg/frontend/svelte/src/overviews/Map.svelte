@@ -692,7 +692,7 @@
 														<li><button class="is-text-link" on:click={()=>{copyToClipboard(`lyr-${layer.id}-wms-link`)}}>WMS endpoint <Copy/></button></li>
 														<li><Link href="{getLayerOHMUrl(layer, CONTEXT.titiler_host)}" external={true}>OpenHistoricalMap iD</Link></li>
 														<li><Link href="{CONTEXT.site_url}iiif/resource/{layer.id}/" external={true}>IIIF Georef Annotation (beta)</Link></li>
-														<li><Link href="https://viewer.allmaps.org/?url={encodeURIComponent(`https://oldinsurancemaps.net/iiif/resource/${layer.id}/`)}" external={true}>Allmaps Viewer (beta)</Link></li>
+														<li><Link href="https://viewer.allmaps.org/?url={encodeURIComponent(`${CONTEXT.site_url}iiif/resource/${layer.id}/`)}" external={true}>Allmaps Viewer (beta)</Link></li>
 													</ul>
 												</div>
 											  </div>
