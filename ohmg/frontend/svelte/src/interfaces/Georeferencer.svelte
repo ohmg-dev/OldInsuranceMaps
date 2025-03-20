@@ -103,6 +103,8 @@
 
   let enableSnapLayer = false;
 
+  let currentPreviewId;
+
   let defaultExtent;
   if (REGION.gcps_geojson) {
     defaultExtent = new VectorSource({
@@ -201,7 +203,7 @@
   const docProjection = projectionFromImageExtent(docExtent)
   const documentLayer = makeImageLayer(REGION.urls.image, docProjection, docExtent)
 
-  const previewLayer = new TileLayer({
+  let previewLayer = new TileLayer({
     source: new XYZ(),
     zIndex: 20,
   });
@@ -690,14 +692,19 @@
 
   function updatePreviewSource (previewUrl) {
     if (previewUrl) {
-      const source = new XYZ({
-        url: makeTitilerXYZUrl({
-          host: CONTEXT.titiler_host,
-          url: previewUrl,
-        }),
-      })
       showLoading = true;
-      previewLayer.setSource(source)
+      mapViewer.map.removeLayer(previewLayer)
+      previewLayer = new TileLayer({
+          source: new XYZ({
+          url: makeTitilerXYZUrl({
+            host: CONTEXT.titiler_host,
+            url: previewUrl,
+          }),
+        }),
+        zIndex: 20,
+      })
+      setPreviewVisibility(previewMode)
+      mapViewer.addLayer(previewLayer)
     }
   }
   $: updatePreviewSource(previewUrl)
@@ -737,13 +744,14 @@
         "transformation": currentTransformation,
         "projection": currentTargetProjection,
         "sesh_id": sessionId,
-        "cleanup_preview": previewUrl,
+        "last_preview_id": currentPreviewId,
       },
       (result) => {
         previewMode = previewMode == "n/a" ? "transparent" : previewMode;
         // updating this variable will trigger the preview layer to be
         // updated with the new source url
         previewUrl = result.payload.preview_url;
+        currentPreviewId = result.payload.preview_id;
       },
     )
   }
@@ -765,7 +773,7 @@
         "transformation": currentTransformation,
         "projection": currentTargetProjection,
         "sesh_id": sessionId,
-        "cleanup_preview": previewUrl,
+        "last_preview_id": currentPreviewId,
       },
       () => {window.location.href = `/map/${REGION.map}`},
     )
@@ -781,7 +789,7 @@
       "cancel",
       {
         "sesh_id": sessionId,
-        "cleanup_preview": previewUrl,
+        "last_preview_id": currentPreviewId,
       },
       () => {window.location.href = `/map/${REGION.map}`;},
     )

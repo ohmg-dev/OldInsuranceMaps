@@ -95,7 +95,6 @@ export function makeTitilerXYZUrl (options) {
 }
 
 export function getLayerOHMUrl(layer, host) {
-	console.log(layer)
 	const url = makeTitilerXYZUrl({
 		host: host,
 		url: layer.urls.cog,
