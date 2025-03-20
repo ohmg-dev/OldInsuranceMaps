@@ -292,7 +292,7 @@ CELERY_TASK_ROUTES = {
     "ohmg.georeference.tasks.run_preparation_session": {"queue": "split"},
     "ohmg.georeference.tasks.run_georeference_session": {"queue": "georeference"},
     "ohmg.georeference.tasks.delete_stale_sessions": {"queue": "housekeeping"},
-    "ohmg.georeference.tasks.delete_preview_vrt": {"queue": "housekeeping"},
+    "ohmg.georeference.tasks.delete_preview_vrts": {"queue": "housekeeping"},
     "ohmg.core.tasks.load_map_documents_as_task": {"queue": "map"},
     "ohmg.core.tasks.load_document_file_as_task": {"queue": "map"},
 }
