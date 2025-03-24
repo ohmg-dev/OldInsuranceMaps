@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+
+
+{% block extra_head %}{% if params.extra_head %}{{params.extra_head|safe}}{% endif %}{% endblock %}
+
+{% block title %}{{ params.PAGE_TITLE }} | {{ block.super }}{% endblock %}
+
+
+{% block main_content %}
+
+{{ params|json_script:'index-props'}}
+{% include '_svelte_component.html' with component_name='Index' %}
+
+{% endblock %}

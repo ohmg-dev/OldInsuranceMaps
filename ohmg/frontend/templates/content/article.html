@@ -5,8 +5,9 @@
 {% block title %}{{message.title}} | {{ block.super }}{% endblock %}
 
 {% block body %}
-<h1>{{message.title}}</h1>
-<p><em>{{publish_date}}</em></p>
+
+{% include '_titlebar.html' with title=message.title subtitle=publish_date %}
+
 <div>
     {% for article in message.articles.all %}
     <h2>{{ article.title }}</h2>

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{{ params.PAGE_TITLE }} | {{ block.super }}{% endblock %}
+
+{% block main_content %}
+
+{{ params|json_script:'index-props'}}
+{% include '_svelte_component.html' with component_name='Index' %}
+
+{% endblock %}
