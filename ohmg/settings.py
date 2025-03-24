@@ -164,6 +164,10 @@ COMPRESS_ENABLED = False
 MEDIA_URL = os.getenv("MEDIA_URL", "/uploaded/")
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / "uploaded")
 
+# create directory for temp holding of publicly served VRT files
+OHMG_VRT_DIR = Path(MEDIA_ROOT, "vrt")
+OHMG_VRT_DIR.mkdir(exist_ok=True)
+
 # this is a custom setting to allow apache to be used in development
 MEDIA_HOST = os.getenv("MEDIA_HOST", SITEURL)
 
@@ -288,7 +292,8 @@ CELERY_TASK_ROUTES = {
     "ohmg.georeference.tasks.run_preparation_session": {"queue": "split"},
     "ohmg.georeference.tasks.run_georeference_session": {"queue": "georeference"},
     "ohmg.georeference.tasks.delete_stale_sessions": {"queue": "housekeeping"},
-    "ohmg.georeference.tasks.delete_preview_vrt": {"queue": "housekeeping"},
+    "ohmg.georeference.tasks.delete_preview_vrts": {"queue": "housekeeping"},
+    "ohmg.georeference.tasks.create_mosaic_cog": {"queue": "mosaic"},
     "ohmg.core.tasks.load_map_documents_as_task": {"queue": "map"},
     "ohmg.core.tasks.load_document_file_as_task": {"queue": "map"},
 }

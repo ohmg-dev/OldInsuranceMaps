@@ -43,8 +43,10 @@ class IIIFResource:
                 transformation=self.region.gcpgroup.transformation,
                 gcps_geojson=self.region.gcpgroup.as_geojson,
             )
-            in_path = g.warp(self.region.file.path, return_gcps_vrt=True)
-            ds = gdal.Open(in_path)
+            read_path, write_path = g.make_gcps_vrt(self.region.file.path)
+            if read_path.startswith("http"):
+                read_path = f"/vsicurl/{read_path}"
+            ds = gdal.Open(read_path)
             transformer = gdal.Transformer(
                 # Source datasource
                 None,

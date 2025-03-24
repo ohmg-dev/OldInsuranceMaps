@@ -95,7 +95,6 @@ export function makeTitilerXYZUrl (options) {
 }
 
 export function getLayerOHMUrl(layer, host) {
-	console.log(layer)
 	const url = makeTitilerXYZUrl({
 		host: host,
 		url: layer.urls.cog,
@@ -107,19 +106,8 @@ export function getLayerOHMUrl(layer, host) {
 
 export function copyToClipboard(elementId) {
 	const copyText = document.getElementById(elementId);
-	console.log(copyText)
-
-	// Select the text field
 	copyText.select();
-	console.log(0)
-	// copyText.setSelectionRange(0, 99999); // For mobile devices
-	console.log(1)
-	
-	// Copy the text inside the text field
 	navigator.clipboard.writeText(copyText.value);
-	console.log(3)
-
-	// Alert the copied text
 	alert("Copied the text: " + copyText.value);
 }
 

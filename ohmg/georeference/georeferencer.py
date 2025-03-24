@@ -3,6 +3,9 @@ import sys
 import time
 import logging
 import requests
+from pathlib import Path
+from uuid import uuid4
+
 from osgeo import gdal, osr, ogr
 
 from io import StringIO
@@ -10,6 +13,8 @@ from io import StringIO
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
 
 TRANSFORMATION_LOOKUP = {
     "tps": {
@@ -230,6 +235,136 @@ class Georeferencer:
         if not os.path.isdir(directory):
             os.mkdir(directory)
         self.workspace = directory
+
+    def make_gcps_vrt(
+        self,
+        src_path,
+        out_name: str = None,
+    ):
+        logger.debug(f"{Path(src_path).name} | create VRT with GCPs...")
+
+        if not out_name:
+            out_name = str(uuid4())
+
+        if src_path.startswith("http"):
+            src_path = f"/vsicurl/{src_path}"
+
+        out_name = f"{out_name}-gcps.vrt"
+
+        read_out_path = f"{settings.MEDIA_HOST.rstrip('/')}{settings.MEDIA_URL}vrt/{out_name}"
+        write_out_path = Path(settings.OHMG_VRT_DIR, out_name)
+
+        to = gdal.TranslateOptions(
+            GCPs=self.gcps,
+            format="VRT",
+            creationOptions=[
+                "BLOCKXSIZE=512",
+                "BLOCKYSIZE=512",
+            ],
+        )
+        try:
+            gdal.Translate(str(write_out_path), src_path, options=to)
+        except Exception as e:
+            logger.error(f"{src_path} | translate error: {str(e)}")
+            raise e
+
+        logger.debug(f"{Path(src_path).name} | VRT with GCPs created")
+
+        return (read_out_path, write_out_path)
+
+    def make_warped_vrt(
+        self,
+        src_path,
+        out_name: str = None,
+    ):
+        logger.debug(f"{Path(src_path).name} | create warped VRT...")
+        if not out_name:
+            out_name = str(uuid4())
+        read_gcps_vrt, write_gcps_vrt = self.make_gcps_vrt(src_path, out_name)
+
+        if read_gcps_vrt.startswith("http"):
+            read_gcps_vrt = f"/vsicurl/{read_gcps_vrt}"
+
+        out_name = f"{out_name}-modified.vrt"
+        read_out_path = f"{settings.MEDIA_HOST.rstrip('/')}{settings.MEDIA_URL}vrt/{out_name}"
+        write_out_path = Path(settings.OHMG_VRT_DIR, out_name)
+
+        wo = gdal.WarpOptions(
+            creationOptions=[
+                #     "NUM_THREADS=ALL_CPUS",
+                #     ## originally used this set of flags used
+                #     # "COMPRESS=DEFLATE",
+                #     ## should have been used PREDICTOR=2 with DEFLATE but didn't know about it
+                #     # "PREDICTOR=2"
+                #     ## useful in general but not needed when using COG driver
+                "BLOCKXSIZE=512",
+                "BLOCKYSIZE=512",
+                #     ## advisable if using JPEG with GTiff, but not supported in COG
+                #     # "JPEG_QUALITY=75",
+                #     # "PHOTOMETRIC=YCBCR",
+                #     ## Use JPEG, as recommended by Paul Ramsey article:
+                #     ## https://blog.cleverelephant.ca/2015/02/geotiff-compression-for-dummies.html
+                # "COMPRESS=JPEG",
+            ],
+            transformerOptions=[
+                f"DST_SRS={self.crs_wkt}",
+                f'MAX_GCP_ORDER={self.transformation["gdal_code"]}',
+            ],
+            format="VRT",
+            dstSRS=f"{self.crs_code}",
+            # srcNodata=src_nodata,
+            # srcAlpha=True,
+            dstAlpha=True,
+            resampleAlg="nearest",
+        )
+        try:
+            gdal.Warp(str(write_out_path), read_gcps_vrt, options=wo)
+        except Exception as e:
+            logger.error(f"{read_gcps_vrt} | warp error: {str(e)}")
+            raise e
+
+        logger.debug(f"{Path(src_path).name} | warped VRT created")
+
+        return (read_out_path, write_out_path)
+
+    def make_cog(
+        self,
+        src_path,
+    ):
+        a = time.time()
+        logger.debug(f"{Path(src_path).name} | create COG...")
+
+        read_modified_vrt, write_modified_vrt = self.make_warped_vrt(src_path)
+        if read_modified_vrt.startswith("http"):
+            read_modified_vrt = f"/vsicurl/{read_modified_vrt}"
+
+        write_out_path = Path(settings.TEMP_DIR, Path(src_path).stem + "-modified.tif")
+
+        to = gdal.TranslateOptions(
+            # format="GTiff",
+            format="COG",
+            # maskBand="mask",
+            creationOptions=[
+                # 'COMPRESS=DEFLATE',
+                # 'PREDICTOR=2',
+                "COMPRESS=JPEG",
+                # 'TILED=YES',
+                # 'BLOCKXSIZE=512',
+                # 'BLOCKYSIZE=512',
+                # "PHOTOMETRIC=YCBCR",
+                "TILING_SCHEME=GoogleMapsCompatible",
+            ],
+            resampleAlg="nearest",
+        )
+        try:
+            gdal.Translate(str(write_out_path), read_modified_vrt, options=to)
+        except Exception as e:
+            logger.error(f"{read_modified_vrt} | translate error: {str(e)}")
+            raise e
+
+        logger.info(f"{Path(src_path).name} | COG created: {round(time.time() - a, 3)} seconds.")
+
+        return write_out_path
 
     def warp(
         self,

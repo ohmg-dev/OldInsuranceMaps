@@ -11,8 +11,6 @@
     export let LAYERSETS = [];
     export let userFilterItems;
 
-    console.log(LAYERSETS)
-
 </script>
 
 <DownloadSectionModal id={"download-section-modal"} />
@@ -120,13 +118,13 @@
             <tr>
                 <td>IIIf Georef AnnotationPage</td>
                 <td>
-                    <Link href="https://oldinsurancemaps.net/iiif/mosaic/{MAP.identifier}/{ls.id}/?trim=true" title="View full AnnotationPage for this mosaic" external={true}>View full AnnotationPage for this mosaic (beta)</Link>
+                    <Link href="{CONTEXT.site_url}iiif/mosaic/{MAP.identifier}/{ls.id}/?trim=true" title="View full AnnotationPage for this mosaic" external={true}>View full AnnotationPage for this mosaic (beta)</Link>
                 </td>
             </tr>
             <tr>
                 <td>Allmaps</td>
                 <td>
-                    <Link href="https://viewer.allmaps.org/?url={encodeURIComponent(`https://oldinsurancemaps.net/iiif/mosaic/${MAP.identifier}/${ls.id}/?trim=true`)}" title="Open mosaic in Allmaps Viewer" external={true}>Open in Allmaps Viewer (beta)</Link>
+                    <Link href="https://viewer.allmaps.org/?url={encodeURIComponent(`${CONTEXT.site_url}iiif/mosaic/${MAP.identifier}/${ls.id}/?trim=true`)}" title="Open mosaic in Allmaps Viewer" external={true}>Open in Allmaps Viewer (beta)</Link>
                 </td>
             </tr>
         </table>

@@ -1,6 +1,5 @@
-import os
 import json
-from datetime import datetime
+from uuid import uuid4
 import logging
 
 from django.conf import settings
@@ -17,10 +16,6 @@ from ohmg.core.http import (
     generate_ohmg_context,
 )
 from ohmg.core.utils import time_this
-from ohmg.georeference.tasks import (
-    run_preparation_session,
-    run_georeference_session,
-)
 from ohmg.georeference.models import (
     SessionBase,
     PrepSession,
@@ -36,9 +31,13 @@ from ohmg.core.models import (
     Document,
     Region,
 )
+from ohmg.georeference.tasks import (
+    run_preparation_session,
+    run_georeference_session,
+    delete_preview_vrts,
+)
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
-from ohmg.georeference.tasks import delete_preview_vrt
 
 logger = logging.getLogger(__name__)
 
@@ -203,26 +202,10 @@ class GeoreferenceView(View):
         transformation = payload.get("transformation", "poly1")
         projection = payload.get("projection", "EPSG:3857")
         sesh_id = payload.get("sesh_id", None)
-        cleanup_preview = payload.get("cleanup_preview", None)
+        cleanup_preview_id = payload.get("last_preview_id", None)
 
-        def _generate_preview_id(request, sesh_id):
-            try:
-                ip_val = request.META.get("REMOTE_ADDR", "0.0.0.0.").replace(".", "-")
-            except Exception as e:
-                logger.warning(e)
-                ip_val = "000000000"
-
-            sesh_val = 0
-            if sesh_id:
-                sesh_val = sesh_id
-
-            return f"{ip_val}-{sesh_val}-{int(datetime.now().timestamp())}"
-
-        def _cleanup_preview(region, previous_url):
-            """Run this deletion through celery, so that it doesn't delay
-            the return of whatever function called it."""
-            if previous_url:
-                delete_preview_vrt.delay(region.file.path, previous_url)
+        if cleanup_preview_id:
+            delete_preview_vrts.delay(cleanup_preview_id)
 
         def _get_georef_session(sesh_id):
             try:
@@ -231,8 +214,6 @@ class GeoreferenceView(View):
                 sesh = None
             return sesh
 
-        # if preview mode, modify/create the vrt for this map.
-        # allow this to happen without looking for or using a session
         if operation == "preview":
             # prepare Georeferencer object
             g = Georeferencer(
@@ -240,15 +221,14 @@ class GeoreferenceView(View):
                 gcps_geojson=gcp_geojson,
                 transformation=transformation,
             )
-            preview_id = _generate_preview_id(request, sesh_id)
+            file_url = settings.MEDIA_HOST.rstrip("/") + region.file.url
             try:
-                out_path = g.warp(region.file.path, return_vrt=True, preview_id=preview_id)
-                out_path_relative = os.path.join(
-                    os.path.dirname(region.file.url), os.path.basename(out_path)
+                preview_id = str(uuid4())
+                read_vrt, write_vrt = g.make_warped_vrt(file_url, out_name=preview_id)
+
+                return JsonResponseSuccess(
+                    "all good", {"preview_url": str(read_vrt), "preview_id": preview_id}
                 )
-                preview_url = settings.MEDIA_HOST.rstrip("/") + out_path_relative
-                _cleanup_preview(region, cleanup_preview)
-                return JsonResponseSuccess("all good", {"preview_url": preview_url})
             except Exception as e:
                 logger.error(e)
                 return JsonResponseFail(str(e))
@@ -267,7 +247,6 @@ class GeoreferenceView(View):
                 logger.info(f"{sesh.__str__()} | begin run() as task")
                 run_georeference_session.apply_async((sesh.pk,))
 
-                _cleanup_preview(region, cleanup_preview)
                 return JsonResponseSuccess()
 
             else:
@@ -285,7 +264,6 @@ class GeoreferenceView(View):
 
                 sesh.delete()
 
-            _cleanup_preview(region, cleanup_preview)
             return JsonResponseSuccess()
 
         else:
