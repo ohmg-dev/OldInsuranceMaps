@@ -1,34 +1,30 @@
+from django.conf import settings
+
 from django.urls import path, register_converter
-from django.urls.converters import StringConverter
 from django.views.generic import RedirectView
 
+from .converters import PageConverter
 from .views import (
+    HomePage,
     PageView,
+    ActivityView,
+    Browse,
 )
-
-from .models import Page
-
-
-class PageConverter(StringConverter):
-    def to_python(self, value):
-        try:
-            # returns the actual object and passes directly to view
-            return Page.objects.get(slug=value, published=True)
-        except Page.DoesNotExist:
-            raise ValueError
-
-    def to_url(self, obj):
-        return str(obj.slug)
-
 
 register_converter(PageConverter, "page-slug")
 
 urlpatterns = [
-    # APPEND_SLASH would handle this, but I believe it is applied AFTER url matching
-    # (without this redirect bare page urls were returning 404)
-    path(
-        "<page-slug:page>",
-        RedirectView.as_view(pattern_name="page-view", permanent=True),
-    ),
+    path("", HomePage.as_view(), name="home"),
+    path("activity/", ActivityView.as_view(), name="activity"),
+    path("search/", Browse.as_view(), name="search"),
+    path("browse/", RedirectView.as_view(pattern_name="search"), name="browse"),
     path("<page-slug:page>/", PageView.as_view(), name="page-view"),
 ]
+
+if settings.ENABLE_NEWSLETTER:
+    from .views import NewsList, NewsArticle
+
+    urlpatterns += [
+        path("news/", NewsList.as_view(), name="news"),
+        path("news/<str:slug>/", NewsArticle.as_view(), name="article"),
+    ]

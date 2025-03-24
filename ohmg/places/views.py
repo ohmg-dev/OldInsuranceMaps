@@ -1,22 +1,54 @@
-from django.shortcuts import render, get_object_or_404
+from natsort import natsorted
+
+from django.shortcuts import render
 from django.views import View
+from django.views.decorators.clickjacking import xframe_options_sameorigin
+
+from ohmg.core.http import generate_ohmg_context
+from ohmg.core.models import Map
+from ohmg.core.api.schemas import (
+    LayerSetSchema,
+    MapFullSchema,
+)
 
 from ohmg.core.api.schemas import PlaceFullSchema
-from ohmg.core.http import generate_ohmg_context
-from ohmg.places.models import Place
 
 
 class PlaceView(View):
-    def get(self, request, place_slug):
-        p = get_object_or_404(Place.objects.prefetch_related(), slug=place_slug)
-
+    def get(self, request, place):
         context_dict = {
             "params": {
                 "CONTEXT": generate_ohmg_context(request),
                 "PAGE_NAME": "place",
                 "PARAMS": {
-                    "PLACE": PlaceFullSchema.from_orm(p).dict(),
+                    "PLACE": PlaceFullSchema.from_orm(place).dict(),
                 },
             }
         }
         return render(request, "index.html", context=context_dict)
+
+
+class Viewer(View):
+    @xframe_options_sameorigin
+    def get(self, request, place):
+        place_data = {}
+        maps = []
+
+        place_data = place.serialize()
+        for map in Map.objects.filter(locales__id__exact=place.id).prefetch_related():
+            map_json = MapFullSchema.from_orm(map).dict()
+            ls = map.get_layerset("main-content")
+            if ls:
+                map_json["main_layerset"] = LayerSetSchema.from_orm(ls).dict()
+                maps.append(map_json)
+
+        maps_sorted = natsorted(maps, key=lambda x: x["title"], reverse=True)
+
+        context_dict = {
+            "svelte_params": {
+                "CONTEXT": generate_ohmg_context(request),
+                "PLACE": place_data,
+                "MAPS": maps_sorted,
+            }
+        }
+        return render(request, "places/viewer.html", context=context_dict)

@@ -17,16 +17,24 @@ class ProfileView(View):
 
         return render(
             request,
-            "index.html",
+            "accounts/profile.html",
             context={
                 "params": {
                     "CONTEXT": generate_ohmg_context(request),
                     "PAGE_NAME": "profile",
+                    "PAGE_TITLE": username,
                     "PARAMS": {
                         "PROFILE_USER": UserSchema.from_orm(u).dict(),
                         "MAP_FILTER_LIST": filter_list,
                     },
-                }
+                },
+                "links": [
+                    {
+                        "icon": "document",
+                        "href": "asdfasdf",
+                        "title": "DFINDF",
+                    }
+                ],
             },
         )
 
@@ -35,11 +43,12 @@ class Participants(View):
     def get(self, request):
         return render(
             request,
-            "index.html",
+            "accounts/profiles.html",
             context={
                 "params": {
                     "CONTEXT": generate_ohmg_context(request),
                     "PAGE_NAME": "profiles",
-                }
+                    "PAGE_TITLE": "Participants",
+                },
             },
         )

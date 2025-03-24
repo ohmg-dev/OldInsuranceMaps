@@ -88,7 +88,7 @@ class MapView(View):
             }
         }
 
-        return render(request, "content/map.html", context=context_dict)
+        return render(request, "core/map.html", context=context_dict)
 
     @method_decorator(login_required)
     @method_decorator(validate_post_request(operations=["load-documents", "refresh-lookups"]))
@@ -125,7 +125,7 @@ class GenericResourceView(View):
         test_map_access(request.user, resource.map)
         return render(
             request,
-            "content/resource.html",
+            "core/resource.html",
             context={
                 "resource_params": {
                     "CONTEXT": generate_ohmg_context(request),
