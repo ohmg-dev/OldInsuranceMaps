@@ -7,7 +7,7 @@
 
 {% block content %}
 
-<h1>{% trans "Sign In" %}</h1>
+{% include '_titlebar.html' with title="Sign In" %}
 
 {% get_providers as socialaccount_providers %}
 
@@ -39,7 +39,7 @@ for a {{ site_name }} account and sign in below:{% endblocktrans %}</p>
   {% if redirect_field_value %}
   <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
   {% endif %}
-  <button class="button is-primary" type="submit">{% trans "Sign In" %}</button>
+  <button class="button is-primary" type="submit">{% trans "Sign In" %}&nbsp;<i class="ph-bold ph-sign-in"></i></button>
   <a class="button is-info" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
 </form>
 

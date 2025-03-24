@@ -28,13 +28,6 @@ class ProfileView(View):
                         "MAP_FILTER_LIST": filter_list,
                     },
                 },
-                "links": [
-                    {
-                        "icon": "document",
-                        "href": "asdfasdf",
-                        "title": "DFINDF",
-                    }
-                ],
             },
         )
 

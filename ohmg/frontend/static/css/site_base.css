@@ -402,3 +402,30 @@ footer a {
 	color: white;
 	text-decoration: underline;
 }
+
+.new-title-bar {
+	display: flex;
+	flex-direction: column;
+	padding: 16px 0px 7px 0px;
+	border-bottom: 1px solid #555555;
+	margin-bottom: 5px;
+}
+
+.new-title-bar-row {
+	display: flex;
+	justify-content: space-between;
+}
+
+.new-title-bar-row-item {
+	display: flex;
+	align-items: center;
+}
+
+h1.page-title {
+	margin: 0;
+}
+h2.page-subtitle {
+	font-size: 1em;
+	margin: 7px 0 0 0;
+	color: #555555;
+}

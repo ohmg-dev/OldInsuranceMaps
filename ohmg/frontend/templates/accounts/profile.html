@@ -6,6 +6,8 @@
 
 {% block main_content %}
 
+{% include '_titlebar.html' with title=params.PAGE_TITLE img_url=params.PARAMS.PROFILE_USER.image_url %}
+
 {{ params|json_script:'index-props'}}
 {% include '_svelte_component.html' with component_name='Index' %}
 
