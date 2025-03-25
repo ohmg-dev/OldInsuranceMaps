@@ -5,6 +5,8 @@
 
 {% block main_content %}
 
+{% include '_titlebar.html' with title=svelte_params.MAP.title lead_icon="volume" %}
+
 {{ svelte_params|json_script:'map-props'}}
 {% include '_svelte_component.html' with component_name='Map' %}
 

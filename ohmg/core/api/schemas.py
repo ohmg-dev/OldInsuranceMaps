@@ -110,6 +110,7 @@ class DocumentFullSchema(Schema):
     type: str = "document"
     status: str
     page_number: Optional[str]
+    nickname: Optional[str]
     file: Optional[str]
     thumbnail: Optional[str]
     prepared: bool
@@ -117,6 +118,7 @@ class DocumentFullSchema(Schema):
     image_size: Optional[list]
     lock: Optional["SessionLockSchema"]
     map: str
+    map_title: str
     cutlines: list
     regions: List["RegionSchema"]
     layers: List["LayerSchema"]
@@ -133,6 +135,10 @@ class DocumentFullSchema(Schema):
     @staticmethod
     def resolve_map(obj):
         return obj.map.pk
+
+    @staticmethod
+    def resolve_map_title(obj):
+        return obj.map.title
 
     @staticmethod
     def resolve_cutlines(obj):
@@ -223,6 +229,7 @@ class RegionFullSchema(Schema):
     title: str
     slug: str
     type: str = "region"
+    nickname: Optional[str]
     status: str
     file: Optional[str]
     thumbnail: Optional[str]
@@ -234,6 +241,7 @@ class RegionFullSchema(Schema):
     layer: Optional["LayerSchema"]
     lock: Optional["SessionLockSchema"]
     map: str
+    map_title: str
     gcps_geojson: Optional[dict]
     transformation: Optional[str]
     page_number: Optional[str]
@@ -265,6 +273,10 @@ class RegionFullSchema(Schema):
     @staticmethod
     def resolve_map(obj):
         return obj.map.pk
+
+    @staticmethod
+    def resolve_map_title(obj):
+        return obj.map.title
 
     @staticmethod
     def resolve_status(obj):
@@ -677,6 +689,7 @@ class ResourceFullSchema(Schema):
     type: Literal["document", "region", "layer"]
     status: str
     page_number: Optional[str]
+    nickname: Optional[str]
     file: Optional[str]
     thumbnail: Optional[str]
     extent: Optional[list]
@@ -684,6 +697,7 @@ class ResourceFullSchema(Schema):
     image_size: Optional[list]
     lock: Optional["SessionLockSchema"]
     map: str
+    map_title: str
     document: DocumentFullSchema
     region: Optional[RegionSchema]
     regions: List[RegionSchema]
@@ -719,6 +733,10 @@ class ResourceFullSchema(Schema):
     @staticmethod
     def resolve_map(obj):
         return obj.map.pk
+
+    @staticmethod
+    def resolve_map_title(obj):
+        return obj.map.title
 
     @staticmethod
     def resolve_document(obj):

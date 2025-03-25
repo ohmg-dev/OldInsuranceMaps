@@ -4,6 +4,9 @@
 {% block title %}{{ split_params.DOCUMENT.title }} — Split{% endblock %}
 
 {% block main_content %}
+
+{% include '_titlebar.html' with title=split_params.DOCUMENT.nickname lead_icon="scissors" subtitle=split_params.DOCUMENT.map_title %}
+
 {{ split_params|json_script:'split-props'}}
 {% include '_svelte_component.html' with component_name='Split' %}
 {% endblock %}

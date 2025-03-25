@@ -3,10 +3,8 @@
     import SvelteMarkdown from 'svelte-markdown'
 
     import Link from '@/base/Link.svelte'
-    import TitleBar from '@/layout/TitleBar.svelte';
 
     export let source = '*add your markdown here*';
-    export let HEADER = '*add your h1 here*';
     export let isHtml = false;
     export let MAKE_TOC = true
 
@@ -31,7 +29,6 @@
 </script>
 
 <main>
-    <TitleBar TITLE={HEADER}/>
     {#if isHtml}
         {@html source}
     {:else}

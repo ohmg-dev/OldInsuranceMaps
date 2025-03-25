@@ -13,7 +13,6 @@
   import {getCenter} from 'ol/extent';
 
   import Link from '@/base/Link.svelte';
-  import TitleBar from '@/layout/TitleBar.svelte';
   import SessionList from '@/lists/SessionList.svelte';
   import BasicDocViewer from '@/interfaces/BasicDocViewer.svelte';
   import BasicLayerViewer from '@/interfaces/BasicLayerViewer.svelte';
@@ -199,7 +198,6 @@
 		</select>
     {/if}
 	</section>
-  <TitleBar TITLE={RESOURCE.title} ICON_LINKS={iconLinks} />
   <section>
     <button class="section-toggle-btn" on:click={() => toggleSection('summary')} disabled={false}>
       <ConditionalDoubleChevron down={sectionVis['summary']} size="md" />

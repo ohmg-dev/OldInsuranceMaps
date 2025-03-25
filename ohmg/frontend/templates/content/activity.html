@@ -6,7 +6,7 @@
 
 {% block main_content %}
 
-{% include '_titlebar.html' with title="Activity" %}
+{% include '_titlebar.html' with title="Activity" lead_icon="clipboard" %}
 
 {{ params|json_script:'index-props'}}
 {% include '_svelte_component.html' with component_name='Index' %}

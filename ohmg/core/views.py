@@ -4,6 +4,7 @@ import logging
 from natsort import natsorted
 
 from django.contrib.auth import get_user_model
+from django.contrib.gis.geos import Polygon
 from django.http import JsonResponse, Http404
 from django.shortcuts import render, get_object_or_404
 from django.views import View
@@ -85,7 +86,14 @@ class MapView(View):
                 "LAYERSETS": layersets,
                 "LAYERSET_CATEGORIES": layerset_categories,
                 "userFilterItems": user_filter_list,
-            }
+            },
+            "navlinks": [
+                {
+                    "icon": "camera",
+                    "url": map_json["urls"]["viewer"],
+                    "active": True,
+                }
+            ],
         }
 
         return render(request, "core/map.html", context=context_dict)
@@ -123,16 +131,55 @@ class GenericResourceView(View):
     def get(self, request, pk):
         resource = get_object_or_404(self.model, pk=pk)
         test_map_access(request.user, resource.map)
+
+        map_json = MapResourcesSchema.from_orm(resource.map).dict()
+        place_json = PlaceFullSchema.from_orm(resource.map.get_locale()).dict()
+        resource_json = ResourceFullSchema.from_orm(resource).dict()
+
+        layer = None
+        if self.model is Layer:
+            layer = resource
+        elif self.model is Region and resource.georeferenced:
+            layer = resource.layer
+
+        viewer_url = None
+        if layer:
+            centroid = Polygon.from_bbox(layer.extent).centroid
+            viewer_url = f"/viewer/{place_json['slug']}/?${map_json['identifier']}=100#/center/{centroid.x},{centroid.y}/zoom/18"
+
+        navlinks = [
+            {
+                "icon": "volume",
+                "url": f"/map/{resource.map.pk}",
+                "active": True,
+            },
+            {
+                "icon": "camera",
+                "url": viewer_url,
+                "active": viewer_url is not None,
+            },
+        ]
+        if self.model is not Document:
+            navlinks.insert(
+                0,
+                {
+                    "icon": "document",
+                    "url": f"/document/{resource.document.pk if self.model is Region else resource.region.document.pk}",
+                    "active": True,
+                },
+            )
         return render(
             request,
             "core/resource.html",
             context={
                 "resource_params": {
                     "CONTEXT": generate_ohmg_context(request),
-                    "MAP": MapResourcesSchema.from_orm(resource.map).dict(),
-                    "LOCALE": PlaceFullSchema.from_orm(resource.map.get_locale()).dict(),
-                    "RESOURCE": ResourceFullSchema.from_orm(resource).dict(),
-                }
+                    "MAP": map_json,
+                    "LOCALE": place_json,
+                    "RESOURCE": resource_json,
+                },
+                "lead_icon": "document" if self.model is Document else "layer",
+                "navlinks": navlinks,
             },
         )
 

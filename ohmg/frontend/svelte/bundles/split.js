@@ -1,8 +1,8 @@
 import '@/css/interface.css';
-import Split from '@/components/Split.svelte';
+import Splitter from '@/interfaces/Splitter.svelte';
 import '@/css/ol-overrides.css'
 
-const app = new Split({
+const app = new Splitter({
 	target: document.getElementById("split-target"),
 	props: JSON.parse(document.getElementById("split-props").textContent),
 });

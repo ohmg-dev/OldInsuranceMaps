@@ -1,9 +1,12 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{{ svelte_params.PLACE.display_name }}{% endblock title %}
+{% block title %}{{ params.PARAMS.PLACE.display_name }}{% endblock title %}
 
 {% block body %}
-{{ svelte_params|json_script:'place-props'}}
-{% include '_svelte_component.html' with component_name='Place' %}
+
+{% include '_titlebar.html' with title=params.PARAMS.PLACE.display_name lead_icon="pin" %}
+
+{{ params|json_script:'index-props'}}
+{% include '_svelte_component.html' with component_name='Index' %}
 {% endblock %}

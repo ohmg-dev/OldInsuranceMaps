@@ -4,6 +4,8 @@
 {% block title %}{{ georeference_params.REGION.title }} — Georeference{% endblock %}
 
 {% block main_content %}
+{% include '_titlebar.html' with title=georeference_params.REGION.nickname lead_icon="pushpin" subtitle=georeference_params.REGION.map_title %}
+
 {{ georeference_params|json_script:'georeference-props'}}
 {% include '_svelte_component.html' with component_name='Georeference' %}
 {% endblock %}

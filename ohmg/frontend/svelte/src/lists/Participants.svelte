@@ -68,16 +68,16 @@
 			<td style="">
 				<div>
 				{p.load_ct}{#if p.maps.length > 0}&nbsp;&mdash;{/if}
-				{#each p.maps as v, n}
+				<!-- {#each p.maps as v, n}
 					{#if n <= 2}
 					<Link href={`/map/${v.identifier}`}>{v.title}</Link>{#if n != p.maps.length - 1},&nbsp;{/if}
 					{/if}
-				{/each}
-				{#if p.maps.length > 3}
-				<button id="{p.username}-btn" on:click={() => toggleList(p.username)}>show all</button>
+				{/each} -->
+				{#if p.maps.length > 0}
+				<button id="{p.username}-btn" on:click={() => toggleList(p.username)}>show list</button>
 				{/if}
 				</div>
-				{#if p.maps.length > 3}
+				{#if p.maps.length > 0}
 				<div id="{p.username}" class="full-volume-list">
 					<ul>
 					{#each p.maps as v}

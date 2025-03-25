@@ -68,7 +68,10 @@ class SplitView(View):
         return render(
             request,
             "georeference/split.html",
-            context={"split_params": split_params},
+            context={
+                "split_params": split_params,
+                "navlinks": [{"icon": "volume", "url": f"/map/{document.map.pk}", "active": True}],
+            },
         )
 
     @method_decorator(validate_post_request(operations=["preview", "no-split", "split", "cancel"]))
@@ -183,6 +186,9 @@ class GeoreferenceView(View):
             "georeference/georeference.html",
             context={
                 "georeference_params": georeference_params,
+                "navlinks": [
+                    {"icon": "volume", "url": f"/map/{region.document.map.pk}", "active": True}
+                ],
             },
         )
 

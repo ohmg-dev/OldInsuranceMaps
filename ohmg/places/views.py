@@ -16,16 +16,25 @@ from ohmg.core.api.schemas import PlaceFullSchema
 
 class PlaceView(View):
     def get(self, request, place):
+        place_json = PlaceFullSchema.from_orm(place).dict()
+        print(place_json)
         context_dict = {
             "params": {
                 "CONTEXT": generate_ohmg_context(request),
                 "PAGE_NAME": "place",
                 "PARAMS": {
-                    "PLACE": PlaceFullSchema.from_orm(place).dict(),
+                    "PLACE": place_json,
                 },
-            }
+            },
+            "navlinks": [
+                {
+                    "icon": "camera",
+                    "url": place_json["url"],
+                    "active": True,
+                }
+            ],
         }
-        return render(request, "index.html", context=context_dict)
+        return render(request, "places/place.html", context=context_dict)
 
 
 class Viewer(View):

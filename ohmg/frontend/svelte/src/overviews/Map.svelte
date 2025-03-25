@@ -18,7 +18,6 @@
 	import {getCenter} from 'ol/extent';
 
 	import Link from '@/base/Link.svelte';
-	import TitleBar from '@/layout/TitleBar.svelte';
 	import MultiMask from "@/interfaces/MultiMask.svelte";
 	import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
 
@@ -161,7 +160,7 @@
 	}
 	let currentDoc = "---";
 	function goToDocument() {
-		window.location = "/resource/" + currentDoc
+		window.location = "/document/" + currentDoc
 	}
 
 	// $: bulkLoadInProgress = MAP.loading_documents;
@@ -354,7 +353,7 @@
 	let processing = false;
 
 	let previewRefreshable = false;
-
+	console.log(MAP)
 </script>
 <svelte:window on:click={() => {
 	Array.from(document.getElementsByClassName("dropdown")).forEach(el => {el.classList.remove('is-active')})
@@ -392,17 +391,14 @@
 			<option value={m.identifier}>{m.title}</option>
 			{/each}
 		</select>
-		<!--
-		<ArrowRight size={12} />
+		<!-- <ArrowRight size={12} />
 		<select class="item-select" bind:value={currentDoc} on:change={goToDocument}>
 			<option value="---" disabled>go to...</option>
-			{#each MAP.sheets as s}
-			<option value={s.doc_id}>page {s.sheet_no}</option>
+			{#each MAP.documents as d}
+			<option value={d.id}>{d.nickname}</option>
 			{/each}
-		</select>
-		-->
+		</select> -->
 	</section>
-	<TitleBar TITLE={MAP.title} VIEWER_LINK={MAP.urls.viewer}/>
 	<section>
 		<div class="section-title-bar">
 			<button class="section-toggle-btn" on:click={() => {toggleSection('summary')}} title={sectionVis['summary'] ? 'Collapse section' : 'Expand section'}>

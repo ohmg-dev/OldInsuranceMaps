@@ -1,0 +1,117 @@
+* {
+    --fancy-icon-size: 60px;
+    --volume-svg: url(/static/icons/volume-60.svg);
+    --document-svg: url(/static/icons/document-60.svg);
+    --layer-svg: url(/static/icons/layer-60.svg);
+    --webmap-svg: url(/static/icons/folded-map-60.svg);
+    --pinmap-svg: url(/static/icons/map-with-pin-60.svg);
+    --user-svg: url(/static/icons/noun_User_1236015.svg);
+    --magnifier-svg: url(/static/icons/magnifier-60.svg);
+    --pin-svg: url(/static/icons/pin-60.svg);
+    --compass-svg: url(/static/icons/compass-60.svg);
+    --camera-svg: url(/static/icons/camera-60.svg);
+    --scissors-svg: url(/static/icons/scissors-60.svg);
+    --pushpin-svg: url(/static/icons/pushpin-60.svg);
+    --envelope-svg: url(/static/icons/envelope-60.svg);
+    --clipboard-svg: url(/static/icons/clipboard-60.svg);
+}
+
+i.fancy {
+    display: inline-block;
+    background: #111111;
+    mask-size: cover;
+    -webkit-mask-size: cover;
+}
+
+i.fancy.is-link {
+    background: #2c689c;
+}
+
+i.fancy.is-link:hover {
+    background: #1b4060;
+}
+
+i.fancy-lg {
+    width: var(--fancy-icon-size);
+    height: var(--fancy-icon-size);
+}
+
+i.fancy-md {
+    width: calc(var(--fancy-icon-size)*.7);
+    height: calc(var(--fancy-icon-size)*.7);
+}
+
+i.fancy-sm {
+    width: calc(var(--fancy-icon-size)*.55);
+    height: calc(var(--fancy-icon-size)*.55);
+}
+
+.i-magnifier {
+    mask-image: var(--magnifier-svg);
+    -webkit-mask-image: var(--magnifier-svg);
+}
+
+.i-pin {
+    mask-image: var(--pin-svg);
+    -webkit-mask-image: var(--pin-svg);
+}
+
+.i-compass {
+    mask-image: var(--compass-svg);
+    -webkit-mask-image: var(--compass-svg);
+}
+
+.i-volume {
+    mask-image: var(--volume-svg);
+    -webkit-mask-image: var(--volume-svg);
+}
+
+.i-document {
+    mask-image: var(--document-svg);
+    -webkit-mask-image: var(--document-svg);
+}
+
+.i-layer {
+    mask-image: var(--layer-svg);
+    -webkit-mask-image: var(--layer-svg);
+}
+
+.i-webmap {
+    mask-image: var(--webmap-svg);
+    -webkit-mask-image: var(--webmap-svg);
+}
+
+.i-pinmap {
+    mask-image: var(--pinmap-svg);
+    -webkit-mask-image: var(--pinmap-svg);
+}
+
+.i-user {
+    mask-image: var(--user-svg);
+    -webkit-mask-image: var(--user-svg);
+}
+
+.i-camera {
+    mask-image: var(--camera-svg);
+    -webkit-mask-image: var(--camera-svg);
+}
+
+.i-scissors {
+    mask-image: var(--scissors-svg);
+    -webkit-mask-image: var(--scissors-svg);
+}
+
+.i-pushpin {
+    mask-image: var(--pushpin-svg);
+    -webkit-mask-image: var(--pushpin-svg);
+}
+
+.i-envelope {
+    mask-image: var(--envelope-svg);
+    -webkit-mask-image: var(--envelope-svg);
+}
+
+.i-clipboard {
+    mask-image: var(--clipboard-svg);
+    -webkit-mask-image: var(--clipboard-svg);
+}

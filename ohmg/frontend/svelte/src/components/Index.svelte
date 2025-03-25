@@ -7,7 +7,6 @@
     import Participants from '@/lists/Participants.svelte'
     import SessionList from '@/lists/SessionList.svelte'
 
-    import TitleBar from '@/layout/TitleBar.svelte';
     import MarkdownPage from '@/layout/MarkdownPage.svelte';
 
     export let PAGE_NAME = '';
@@ -27,20 +26,17 @@
     MAP_FILTER_LIST={PARAMS.MAP_FILTER_LIST}
  />
 {:else if PAGE_NAME == 'profile'}
-<TitleBar TITLE={PARAMS.PROFILE_USER.username} IMG_URL={PARAMS.PROFILE_USER.image_url} />
 <Profile
     {CONTEXT}
     PROFILE_USER={PARAMS.PROFILE_USER}
     MAP_FILTER_LIST={PARAMS.MAP_FILTER_LIST} />
 {:else if PAGE_NAME == 'activity'}
-<TitleBar TITLE={"Activity"} />
 <SessionList
     {CONTEXT}
     mapFilterItems={PARAMS.MAP_FILTER_LIST}
     userFilterItems={PARAMS.USER_FILTER_LIST}
     limit=25 showThumbs={true}/>
 {:else if PAGE_NAME == 'profiles'}
-<TitleBar TITLE={"Participants"} />
 <Participants
     {CONTEXT} />
 {:else if PAGE_NAME == 'place'}

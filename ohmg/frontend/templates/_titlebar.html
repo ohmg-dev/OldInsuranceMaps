@@ -2,22 +2,40 @@
     <div class="new-title-bar-row">
         <div class="new-title-bar-row-item">
             {% if img_url %}
-            <img style="border-radius:5px; margin-right:10px; height:50px;" src="{{ img_url }}" alt="profile pic" title="{{ img_url }}" />
+            <img class="lead-image" src="{{ img_url }}" alt="profile pic" title="{{ img_url }}" />
+            {% endif %}
+            {% if lead_icon %}
+            <span class="lead-icon">
+                <i style="vertical-align:bottom;" class="fancy fancy-md i-{{lead_icon}}"></i>
+            </span>
             {% endif %}
             <h1 class="page-title">{{title}}</h1>
+            {% if subtitle %}
+            <span style="margin-left:8px;">
+                <h2 class="page-subtitle">{{subtitle}}</h2>
+            </span>
+            {% endif %}
         </div>
-        {% if links %}
+        {% if navlinks %}
         <div class="new-title-bar-row-item icon-box">
-            {% for link in links %}
-            {{link}}
+            {% for link in navlinks %}
+            <span style="display:inline; height:100%; width:100%;">
+                {% if link.active %}
+                <a style="display:inline-block; height:100%; width:100%;" href="{{link.url}}">
+                    <i class="fancy fancy-md is-link i-{{link.icon}}"></i>
+                </a>
+                {% else %}
+                <i class="fancy fancy-md i-{{link.icon}}"></i>
+                {% endif %}
+            </span>
             {% endfor %}
         </div>
         {% endif %}
     </div>
-    {% if subtitle %}
+    {% if description %}
     <div class="new-title-bar-row">
         <div class="new-title-bar-row-item">
-            <h2 class="page-subtitle">{{subtitle}}</h2>
+            <h2 class="page-subtitle">{{description}}</h2>
         </div>
     </div>
     {% endif %}

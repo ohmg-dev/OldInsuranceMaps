@@ -1,5 +1,4 @@
 <script>
-	import TitleBar from '@/layout/TitleBar.svelte';
 	import PlaceBreadcrumbsSelect from '@/layout/PlaceBreadcrumbsSelect.svelte';
 	import Maps from '@/lists/Maps.svelte';
 
@@ -41,7 +40,6 @@
 </script>
 
 <PlaceBreadcrumbsSelect bind:PLACE {update} />
-<TitleBar TITLE={PLACE.display_name} {VIEWER_LINK}/>
 
 <div style="display:flex;">
 	<div id="sub-locale-panel" style="margin-right:15px; min-width:250px;">
