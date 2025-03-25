@@ -1,8 +1,8 @@
 import '@/css/interface.css';
-import Georeference from '@/interfaces/Georeference.svelte';
+import Georeferencer from '@/interfaces/Georeferencer.svelte';
 import '@/css/ol-overrides.css'
 
-const app = new Georeference({
+const app = new Georeferencer({
 	target: document.getElementById("georeference-target"),
 	props: JSON.parse(document.getElementById("georeference-props").textContent),
 });
