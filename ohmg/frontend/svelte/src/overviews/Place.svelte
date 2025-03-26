@@ -2,17 +2,12 @@
 	import PlaceBreadcrumbsSelect from '@/layout/PlaceBreadcrumbsSelect.svelte';
 	import Maps from '@/lists/Maps.svelte';
 
-	import { getFromAPI } from "@/lib/requests";
-
 	export let CONTEXT;
 	export let PLACE;
 
-	let reList = false
-	function reinitList() {reList = !reList}
-
 	let showAllSublocales = false;
-	$: subLocales = PLACE.descendants
-	$: subLocalesWithMaps = PLACE.descendants.filter(function (i) {return i.volume_count_inclusive != 0})
+	const subLocales = PLACE.descendants
+	const subLocalesWithMaps = PLACE.descendants.filter(function (i) {return i.volume_count_inclusive != 0})
 	$: localeList = showAllSublocales ? subLocales : subLocalesWithMaps
 
 	function update(place_slug) {
@@ -23,19 +18,8 @@
 				place_slug = value.selected;
 			}
 		}
-		getFromAPI(
-			`/api/beta2/place?slug=${place_slug}`,
-			CONTEXT.ohmg_api_headers,
-			(response) => {
-				PLACE = response;
-				history.pushState({slug:PLACE.slug}, PLACE.display_name, `/${PLACE.slug}`);
-				document.title = PLACE.display_name;
-				reinitList();
-			}
-		)
+		window.location.href = `/${place_slug}/`
 	}
-
-	$: VIEWER_LINK = PLACE.maps.length > 0 ? `/viewer/${PLACE.slug}/` : '';
 
 </script>
 
@@ -77,9 +61,7 @@
 	</div>
 	<div id="items-panel" style="flex-grow:1; overflow-x:auto;">
 		<h3>Maps</h3>
-		{#key reList}
 		<Maps {CONTEXT} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
-		{/key}
 	</div>
 </div>
 

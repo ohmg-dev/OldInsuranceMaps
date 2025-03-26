@@ -495,6 +495,7 @@ class PlaceSchema(Schema):
     slug: str
     maps: list
     url: str
+    volume_count_inclusive: int
 
     @staticmethod
     def resolve_maps(obj):

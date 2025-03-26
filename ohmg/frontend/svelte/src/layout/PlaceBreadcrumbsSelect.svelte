@@ -4,7 +4,7 @@
 
     export let PLACE;
     export let update;
-    
+
 </script>
 
 <div class="breadcrumbs-select-row">
@@ -48,6 +48,7 @@
     .breadcrumbs-select-row select {
         color: #2c689c;
         cursor: pointer;
+        /* padding: 5px 0px 4px 5px; */
     }
     .breadcrumbs-select-row select:disabled {
         cursor: default;
