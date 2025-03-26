@@ -50,6 +50,7 @@
 	import { copyToClipboard, getLayerOHMUrl } from '@/lib/utils';
 
 	import { getFromAPI } from "@/lib/requests";
+    import MapBreadcrumbs from '../breadcrumbs/MapBreadcrumbs.svelte';
 
 	export let CONTEXT;
 	export let MAP;
@@ -381,24 +382,7 @@
 <LoadingMask />
 {/if}
 <main>
-	<section class="breadcrumbs">
-		{#each LOCALE.breadcrumbs as bc, n}
-		<Link href="/{bc.slug}">{bc.name}</Link>{#if n != LOCALE.breadcrumbs.length-1}<ArrowRight size={12} />{/if}
-		{/each}
-		<ArrowRight size={12} />
-		<select class="item-select" bind:value={currentIdentifier} on:change={goToItem}>
-			{#each LOCALE.maps as m}
-			<option value={m.identifier}>{m.title}</option>
-			{/each}
-		</select>
-		<!-- <ArrowRight size={12} />
-		<select class="item-select" bind:value={currentDoc} on:change={goToDocument}>
-			<option value="---" disabled>go to...</option>
-			{#each MAP.documents as d}
-			<option value={d.id}>{d.nickname}</option>
-			{/each}
-		</select> -->
-	</section>
+	<MapBreadcrumbs {LOCALE} {MAP} />
 	<section>
 		<div class="section-title-bar">
 			<button class="section-toggle-btn" on:click={() => {toggleSection('summary')}} title={sectionVis['summary'] ? 'Collapse section' : 'Expand section'}>
@@ -855,21 +839,8 @@ button.thumbnail-btn {
 	cursor: zoom-in;
 }
 
-section.breadcrumbs {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	padding: 5px 0px;
-	font-size: .95em;
-	border-bottom: none;
-}
-
 button:disabled {
 	cursor: default;
-}
-
-:global(section.breadcrumbs svg) {
-	margin: 0px 2px;
 }
 
 .section-title-bar {

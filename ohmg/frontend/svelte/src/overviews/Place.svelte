@@ -1,5 +1,5 @@
 <script>
-	import PlaceBreadcrumbsSelect from '@/layout/PlaceBreadcrumbsSelect.svelte';
+	import PlaceBreadcrumbsSelect from '@/breadcrumbs/PlaceBreadcrumbsSelect.svelte';
 	import Maps from '@/lists/Maps.svelte';
 
 	export let CONTEXT;
@@ -78,9 +78,6 @@ button:hover {
 button:disabled {
 	color:#555;
 	text-decoration: none;
-}
-:global(.breadcrumbs-select-row svg) {
-	margin: 0px 2px;
 }
 .sub-list {
 	padding: 0;

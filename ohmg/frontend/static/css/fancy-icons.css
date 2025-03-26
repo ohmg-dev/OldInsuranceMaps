@@ -46,6 +46,11 @@ i.fancy-sm {
     height: calc(var(--fancy-icon-size)*.55);
 }
 
+i.fancy-xs {
+    width: calc(var(--fancy-icon-size)*.35);
+    height: calc(var(--fancy-icon-size)*.35);
+}
+
 .i-magnifier {
     mask-image: var(--magnifier-svg);
     -webkit-mask-image: var(--magnifier-svg);
