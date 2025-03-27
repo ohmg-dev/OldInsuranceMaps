@@ -39,6 +39,7 @@ class BasicTests(OHMGTestCase):
 
 class ImportersTestCase(OHMGTestCase):
     fixtures = [
+        OHMGTestCase.Fixtures.region_categories,
         OHMGTestCase.Fixtures.layerset_categories,
     ]
 
@@ -51,6 +52,8 @@ class ImportersTestCase(OHMGTestCase):
 @tag("loc")
 class LOCImporterTestCase(OHMGTestCase):
     fixtures = [
+        OHMGTestCase.Fixtures.region_categories,
+        OHMGTestCase.Fixtures.region_categories_sanborn,
         OHMGTestCase.Fixtures.layerset_categories,
         OHMGTestCase.Fixtures.layerset_categories_sanborn,
         OHMGTestCase.Fixtures.admin_user,
@@ -87,6 +90,8 @@ class LOCImporterTestCase(OHMGTestCase):
 
 class MapTestCase(OHMGTestCase):
     fixtures = [
+        OHMGTestCase.Fixtures.region_categories,
+        OHMGTestCase.Fixtures.region_categories_sanborn,
         OHMGTestCase.Fixtures.layerset_categories,
         OHMGTestCase.Fixtures.layerset_categories_sanborn,
         OHMGTestCase.Fixtures.admin_user,
@@ -106,6 +111,8 @@ class MapTestCase(OHMGTestCase):
 @tag("sessions")
 class PreparationSessionTestCase(OHMGTestCase):
     fixtures = [
+        OHMGTestCase.Fixtures.region_categories,
+        OHMGTestCase.Fixtures.region_categories_sanborn,
         OHMGTestCase.Fixtures.layerset_categories,
         OHMGTestCase.Fixtures.layerset_categories_sanborn,
         OHMGTestCase.Fixtures.admin_user,
@@ -175,6 +182,8 @@ class PreparationSessionTestCase(OHMGTestCase):
 @tag("sessions")
 class GeoreferenceSessionTestCase(OHMGTestCase):
     fixtures = [
+        OHMGTestCase.Fixtures.region_categories,
+        OHMGTestCase.Fixtures.region_categories_sanborn,
         OHMGTestCase.Fixtures.layerset_categories,
         OHMGTestCase.Fixtures.layerset_categories_sanborn,
         OHMGTestCase.Fixtures.admin_user,

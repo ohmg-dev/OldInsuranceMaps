@@ -8,7 +8,7 @@
     "boundary": "SRID=4326;POLYGON ((0 0, 0 7650, 6450 7650, 6450 5627, 5285 5598, 5333 2442, 3558 2442, 4331.826086956522 0, 0 0))",
     "document": 1,
     "division_number": 2,
-    "is_map": true,
+    "category": 1,
     "georeferenced": false,
     "created_by": 1,
     "created": "2024-12-30T13:10:23.011",

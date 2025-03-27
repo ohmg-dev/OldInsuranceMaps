@@ -28,6 +28,9 @@ class OHMGTestCase(TestCase):
         layerset_categories = Path("ohmg/core/fixtures/default-layerset-categories.json")
         layerset_categories_sanborn = Path("ohmg/core/fixtures/sanborn-layerset-categories.json")
 
+        region_categories = Path("ohmg/core/fixtures/default-region-categories.json")
+        region_categories_sanborn = Path("ohmg/core/fixtures/sanborn-region-categories.json")
+
         new_iberia_place = DATA_DIR / "fixtures/places/new-iberia-la-and-parents.json"
 
         new_iberia_map = DATA_DIR / "fixtures/core/new-iberia-1885-map.json"
