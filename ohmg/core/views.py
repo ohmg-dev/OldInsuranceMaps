@@ -16,6 +16,7 @@ from ohmg.core.models import (
     Map,
     Document,
     Region,
+    RegionCategory,
     Layer,
     LayerSet,
     LayerSetCategory,
@@ -218,7 +219,7 @@ class RegionView(GenericResourceView):
     @method_decorator(login_required)
     @method_decorator(
         validate_post_request(
-            operations=["set-category"],
+            operations=["set-category", "set-skip"],
         )
     )
     def post(self, request, pk):
@@ -232,12 +233,17 @@ class RegionView(GenericResourceView):
 
         if operation == "set-category":
             cat = payload.get("new-category", None)
-            if cat == "non-map":
-                region.is_map = False
-            elif cat == "map":
-                region.is_map = True
-            else:
+            try:
+                cat_obj = RegionCategory.objects.get(slug=cat)
+            except RegionCategory.DoesNotExist:
                 return JsonResponseFail(f"Invalid category for Region: {cat}")
+            region.category = cat_obj
+            region.save()
+            return JsonResponseSuccess()
+
+        if operation == "set-skip":
+            skipped = payload.get("skipped", False)
+            region.skipped = skipped
             region.save()
             return JsonResponseSuccess()
 

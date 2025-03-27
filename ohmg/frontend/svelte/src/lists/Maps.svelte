@@ -30,6 +30,7 @@ function handleFetch(url) {
 				item.unprepared_ct = item.stats.unprepared_ct;
 				item.prepared_ct = item.stats.prepared_ct;
 				item.georeferenced_ct = item.stats.georeferenced_ct;
+				item.skipped_ct = item.stats.skipped_ct;
 				item.percent = item.stats.percent;
 				item.mm_ct = item.stats.mm_todo;
 				item.mm_display = item.stats.mm_display;
@@ -85,6 +86,7 @@ $: updateFilteredList(filterInput)
 			<th data-sort="unprepared_ct" style="width:25px; text-align:center; border-left: 1px solid gray;" title="Number of unprepared documents">U</th>
 			<th data-sort="prepared_ct" style="width:25px; text-align:center;" title="Number of prepared documents">P</th>
 			<th data-sort="georeferenced_ct" style="width:25px; text-align:center;" title="Number of georeferenced documents">G</th>
+			<th data-sort="skipped_ct" style="width:25px; text-align:center;" title="Number of skipped pieces">S</th>
 			<th data-sort="percent" style="width:25px; text-align:center; border-left:1px solid gray;" title="Percent complete - G/(U+P+G)">%</th>
 			<th data-sort="mm_percent" style="width:25px; text-align:center; border-left:1px solid gray;" title="Layers included in multimask">MM</th>
 			<th data-sort="mj_exists" style="width:25px; text-align:center; border-left:1px solid gray;" title="MosaicJSON prepared for this volume?">MJ</th>
@@ -107,6 +109,7 @@ $: updateFilteredList(filterInput)
 			<td style="text-align:center; border-left:1px solid gray;">{v.unprepared_ct}</td>
 			<td style="text-align:center;">{v.prepared_ct}</td>
 			<td style="text-align:center;">{v.georeferenced_ct}</td>
+			<td style="text-align:center;">{v.skipped_ct}</td>
 			<td style="text-align:center; border-left:1px solid gray;"><div class="box" style="--p:{v.percent};"></div></td>
 			<td style="text-align:center; border-left:1px solid gray;">{v.mm_display}</td>
 			<td style="text-align:center; border-left:1px solid gray;">

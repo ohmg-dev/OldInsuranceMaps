@@ -4,14 +4,12 @@
 	import { makeTitilerXYZUrl } from "@lib/utils";
 	import { submitPostRequest } from '@lib/requests';
 
-	import ArrowRight from "phosphor-svelte/lib/ArrowRight";
-	import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
+	import Broom from "phosphor-svelte/lib/Broom";
 	import DownloadSimple from "phosphor-svelte/lib/DownloadSimple";
 	import FileText from "phosphor-svelte/lib/FileText";
 	import MapPin from "phosphor-svelte/lib/MapPin";
 	import MapTrifold from "phosphor-svelte/lib/MapTrifold";
 	import Question from "phosphor-svelte/lib/Question";
-	import Scissors from "phosphor-svelte/lib/Scissors";
 	import Wrench from "phosphor-svelte/lib/Wrench";
 	import Copy from "phosphor-svelte/lib/Copy";
 
@@ -53,6 +51,7 @@
 	import { getFromAPI } from "@/lib/requests";
     import MapBreadcrumbs from '../breadcrumbs/MapBreadcrumbs.svelte';
     import PreparedCard from '../cards/PreparedCard.svelte';
+    import SkippedCard from '../cards/SkippedCard.svelte';
 
 	export let CONTEXT;
 	export let MAP;
@@ -185,6 +184,7 @@
 		"prepared": hash == "prepared",
 		"georeferenced": hash == "georeferenced",
 		"nonmaps": hash == "nonmaps",
+		"skipped": hash == "skipped",
 		"multimask": hash == "multimask",
 		"download": hash == "download",
 	}
@@ -300,6 +300,17 @@
 			CONTEXT.ohmg_post_headers,
 			"set-category",
 			{"new-category": newCategory},
+			pollMapSummaryIfSuccess,
+		)
+	}
+
+	function postSkipRegion(regionId, setTo) {
+		processing = true;
+		submitPostRequest(
+			`/region/${regionId}`,
+			CONTEXT.ohmg_post_headers,
+			"set-skip",
+			{"skipped": setTo},
 			pollMapSummaryIfSuccess,
 		)
 	}
@@ -689,6 +700,39 @@
 								{/if}
 							</div>
 						</div>
+						{/each}
+					</div>
+				</div>
+				{/if}
+			</section>
+			<section class="subsection">
+				<div class="subsection-title-bar">
+					<button class="section-toggle-btn" on:click={() => toggleSection("skipped")} disabled={MAP.item_lookup.skipped.length === 0}
+						title={sectionVis['skipped'] ? 'Collapse section' : 'Expand section'}>
+						<ConditionalDoubleChevron down={sectionVis['prepared']} size="md" />
+						<a id="skipped"><h3>
+							Skipped ({MAP.item_lookup.skipped.length})
+							{#if regsLockedCt}
+							&ndash; {regsLockedCt} locked...
+							{/if}
+						</h3></a>
+					</button>
+					<button class="is-icon-link" on:click={() => {getModal('modal-prepared').open()}} ><Question /></button>
+				</div>
+				{#if sectionVis['skipped']}
+				<div transition:slide>
+					<div class="documents-column">
+						{#each MAP.item_lookup.skipped as region}
+						<SkippedCard
+							{region}
+							{sessionLocks}
+							{userCanEdit}
+							bind:modalLyrUrl
+							bind:modalExtent
+							bind:modalIsGeospatial
+							bind:reinitModalMap
+							{postSkipRegion}
+							 />
 						{/each}
 					</div>
 				</div>

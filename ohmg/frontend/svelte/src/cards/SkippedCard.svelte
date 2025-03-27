@@ -10,7 +10,6 @@
 
     import BaseCard from "./BaseCard.svelte";
 
-    export let CONTEXT;
     export let region;
     export let sessionLocks;
     export let userCanEdit;
@@ -18,8 +17,6 @@
     export let modalExtent;
     export let modalIsGeospatial;
     export let reinitModalMap;
-    export let postDocumentUnprepare;
-    export let postRegionCategory;
     export let postSkipRegion;
 
 </script>
@@ -51,36 +48,11 @@
         {:else if userCanEdit}
         <ul>
             <li>
-                <Link href={region.urls.georeference} title="georeference this document">
-                    <MapPin /> georeference
-                </Link>
-            </li>
-            <li>
-                <button
-                    disabled={!CONTEXT.user.is_staff && CONTEXT.user.username != region.created_by}
-                    class="is-text-link"
-                    title={
-                        !CONTEXT.user.is_staff && CONTEXT.user.username != region.created_by ?
-                        `Only ${region.created_by} or an admin and can undo this preparation.` :
-                        "Undo all preparation."
-                    }
-                    style="display:flex; align-items:center;"
-                    on:click={() => {postDocumentUnprepare(region.document_id)}}>
-                    <ArrowCounterClockwise/> unprepare</button>
-            </li>
-            <li>
                 <button
                 class="is-text-link"
                 title="click to move this document to the non-map section"
-                on:click={() => {postRegionCategory(region.id, "non-map")}}>
-                <FileText /> set as non-map</button>
-            </li>
-            <li>
-                <button
-                class="is-text-link"
-                title="click to move this document to the non-map section"
-                on:click={() => {postSkipRegion(region.id, true)}}>
-                <Broom /> skip this piece</button>
+                on:click={() => {postSkipRegion(region.id, false)}}>
+                <Broom /> unskip this piece</button>
             </li>
             <li><em>{region.created_by}</em></li>
         </ul>

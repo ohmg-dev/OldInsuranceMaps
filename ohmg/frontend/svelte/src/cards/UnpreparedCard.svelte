@@ -10,6 +10,7 @@
 	import Link from '@/base/Link.svelte';
 
     import BaseCard from "./BaseCard.svelte";
+    import { ArrowClockwise } from "phosphor-svelte";
 
     export let CONTEXT;
     export let document;
@@ -40,13 +41,11 @@
 
 <BaseCard>
     <div slot="card-top">
-        <p>
-            {#if document.file}
-            <Link href={document.urls.resource} title={document.title}>{document.nickname}</Link>
-            {:else}
-            {document.nickname}
-            {/if}
-        </p>
+        {#if document.file}
+        <Link href={document.urls.resource} title={document.title}>{document.nickname}</Link>
+        {:else}
+        {document.nickname}
+        {/if}
     </div>
     <div slot="card-middle">
         {#if document.urls.thumbnail}
@@ -149,7 +148,7 @@
                         document.loading_file = true;
                         postLoadDocument(document.id)
                     }} >
-                    force reload document
+                    <ArrowClockwise /> force reload
                 </button>
             </li>
             {/if}

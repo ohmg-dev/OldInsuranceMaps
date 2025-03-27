@@ -230,6 +230,7 @@ class Map(models.Model):
         unprep_ct = len(self.item_lookup["unprepared"])
         prep_ct = len(self.item_lookup["prepared"])
         georef_ct = len(self.item_lookup["georeferenced"])
+        skipped_ct = len(self.item_lookup["skipped"])
         percent = 0
         if georef_ct > 0:
             percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
@@ -256,6 +257,7 @@ class Map(models.Model):
             "unprepared_ct": unprep_ct,
             "prepared_ct": prep_ct,
             "georeferenced_ct": georef_ct,
+            "skipped_ct": skipped_ct,
             "percent": percent,
             "mm_ct": mm_todo,
             "mm_display": mm_display,
