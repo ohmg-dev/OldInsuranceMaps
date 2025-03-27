@@ -1,6 +1,15 @@
 from django.contrib import admin
 
-from ohmg.core.models import MapGroup, Map, Document, Region, Layer, LayerSet, LayerSetCategory
+from ohmg.core.models import (
+    MapGroup,
+    Map,
+    Document,
+    Region,
+    RegionCategory,
+    Layer,
+    LayerSet,
+    LayerSetCategory,
+)
 
 
 class MapAdmin(admin.ModelAdmin):
@@ -20,6 +29,8 @@ class RegionAdmin(admin.ModelAdmin):
     search_fields = ("title",)
     raw_id_fields = ("document",)
     readonly_fields = ("georeferenced", "title")
+    list_display = ("title", "category", "georeferenced")
+    list_filter = ("category",)
 
 
 class LayerAdmin(admin.ModelAdmin):
@@ -32,6 +43,7 @@ admin.site.register(MapGroup)
 admin.site.register(Map, MapAdmin)
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(Region, RegionAdmin)
+admin.site.register(RegionCategory)
 admin.site.register(Layer, LayerAdmin)
 
 

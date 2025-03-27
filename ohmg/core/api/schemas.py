@@ -280,7 +280,7 @@ class RegionFullSchema(Schema):
 
     @staticmethod
     def resolve_status(obj):
-        if obj.is_map is False:
+        if obj.category.slug == "non-map":
             return "non-map"
         elif obj.georeferenced:
             return "georeferenced"

@@ -6,8 +6,6 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
-from ohmg.core.models import Map, Document, Region, Layer
-
 
 class Command(BaseCommand):
     help = "add oneoff operations to this command as needed."
@@ -23,10 +21,12 @@ class Command(BaseCommand):
                 "update-main-content-pk",
                 "reverse-region-gcpgroup-relationship",
                 "handle-missing-iiif-references-and-documents",
+                "set-region-categories",
             ],
             help="Choose what operation to run.",
         )
         parser.add_argument("--reset", action="store_true")
+        parser.add_argument("--use-multiprocessing", action="store_true")
 
     def handle(self, *args, **options):
         operation = options["operation"]
@@ -34,6 +34,7 @@ class Command(BaseCommand):
         ## 11/20/2024 this operation created to update all existing Map.document_sources fields
         ## after the shape of that field had been changed (page number now stored within each entry)
         if operation == "backfill-document-sources":
+            from ohmg.core.models import Map
 
             def get_page_number_from_url(url):
                 filename = url.split("/")[-1]
@@ -77,7 +78,7 @@ class Command(BaseCommand):
         ## generally helpful operation during development to go though and run
         ## save() on all objects in the core data model
         if operation == "resave-content":
-            from ohmg.core.models import LayerSet
+            from ohmg.core.models import LayerSet, Map
 
             maps = Map.objects.all()
             maps_ct = maps.count()
@@ -115,6 +116,8 @@ class Command(BaseCommand):
 
         ## 12/30/2024 needed this command to clean up disk space on the prod server
         if operation == "clean-uploaded-files":
+            from ohmg.core.models import Map, Document, Region, Layer
+
             media_dir = Path(settings.MEDIA_ROOT)
             files_on_disk = [str(i) for i in media_dir.glob("documents/*") if i.is_file()]
             files_on_disk += [str(i) for i in media_dir.glob("regions/*") if i.is_file()]
@@ -273,3 +276,28 @@ class Command(BaseCommand):
                         map.save()
                         print("updating lookup...")
                         map.update_item_lookup()
+
+        ## March 27th, 2025 -- adding a new field Region.category, which supercedes the exsiting
+        ## Region.is_map field (presents more options). This operation must be run right after
+        ## making the migration to update all existing Region objects accordingly.
+        if operation == "set-region-categories":
+            from ohmg.core.models import Region, RegionCategory, Map
+
+            map_cat = RegionCategory.objects.get(slug="map")
+            nonmap_cat = RegionCategory.objects.get(slug="non-map")
+            regions = Region.objects.all()
+            ct = regions.count()
+            for n, r in enumerate(regions, start=1):
+                if r.is_map:
+                    r.category = map_cat
+                else:
+                    r.category = nonmap_cat
+                r.save(skip_map_lookup_update=True)
+                print(f"{n}/{ct}")
+
+            print("Region update complete. Updating all Map.item_lookup now.")
+            maps = Map.objects.all()
+            ct = maps.count()
+            for n, map in enumerate(Map.objects.all(), start=1):
+                map.update_item_lookup()
+                print(f"{map} {n}/{ct}")

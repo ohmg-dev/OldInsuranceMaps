@@ -1,0 +1,26 @@
+[
+  {
+    "model": "core.regioncategory",
+    "pk": 101,
+    "fields": {
+      "slug": "index",
+      "display_name": "Index"
+    }
+  },
+  {
+    "model": "core.regioncategory",
+    "pk": 102,
+    "fields": {
+      "slug": "title-page",
+      "display_name": "Title Page"
+    }
+  },
+  {
+    "model": "core.regioncategory",
+    "pk": 103,
+    "fields": {
+      "slug": "key",
+      "display_name": "Key"
+    }
+  }
+]
