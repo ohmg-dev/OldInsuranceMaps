@@ -32,7 +32,7 @@
 
 	import Modal, {getModal} from '@/base/Modal.svelte';
 
-	import UnpreparedDocumentCard from '@/cards/UnpreparedDocumentCard.svelte';
+	import UnpreparedCard from '@/cards/UnpreparedCard.svelte';
 
 	import MapPreview from "@/interfaces/MapPreview.svelte";
 	import BasicDocViewer from '@/interfaces/BasicDocViewer.svelte';
@@ -52,6 +52,7 @@
 
 	import { getFromAPI } from "@/lib/requests";
     import MapBreadcrumbs from '../breadcrumbs/MapBreadcrumbs.svelte';
+    import PreparedCard from '../cards/PreparedCard.svelte';
 
 	export let CONTEXT;
 	export let MAP;
@@ -498,7 +499,7 @@
 					</div>
 					<div class="documents-column">
 						{#each MAP.item_lookup.unprepared as document}
-						<UnpreparedDocumentCard
+						<UnpreparedCard
 							{CONTEXT}
 							{document}
 							{sessionLocks}
@@ -535,54 +536,19 @@
 				<div transition:slide>
 					<div class="documents-column">
 						{#each MAP.item_lookup.prepared as region}
-						<div class="document-item">
-							<div><p><Link href={region.urls.resource} title={region.title}>{region.nickname}</Link></p></div>
-							<button class="thumbnail-btn" on:click={() => {
-								modalLyrUrl=region.urls.image;
-								modalExtent=[0, -region.image_size[1], region.image_size[0], 0];
-								modalIsGeospatial=false;
-								getModal('modal-simple-viewer').open();
-								reinitModalMap = [{}];
-								}} >
-								<img style="cursor:zoom-in"
-									src={region.urls.thumbnail}
-									alt={region.title}
-									/>
-							</button>
-							<div>
-								{#if sessionLocks.regs[region.id]}
-								<ul style="text-align:center">
-									<li><em>georeferencing in progress...</em></li>
-									<li>user: {sessionLocks.regs[region.id].user.username}</li>
-								</ul>
-								{:else if userCanEdit}
-								<ul>
-									<li><Link href={region.urls.georeference} title="georeference this document">
-										<MapPin /> georeference
-									</Link></li>
-									<li><button
-										disabled={!CONTEXT.user.is_staff && CONTEXT.user.username != region.created_by}
-										class="is-text-link"
-										title={
-											!CONTEXT.user.is_staff && CONTEXT.user.username != region.created_by ?
-											`Only ${region.created_by} or an admin and can undo this preparation.` :
-											"Undo all preparation."
-										}
-										style="display:flex; align-items:center;"
-										on:click={() => {postDocumentUnprepare(region.document_id)}}>
-										<ArrowCounterClockwise/> unprepare
-									</button></li>
-									<li>
-										<button
-										class="is-text-link"
-										title="click to move this document to the non-map section"
-										on:click={() => {postRegionCategory(region.id, "non-map")}}>
-										<FileText /> set as non-map</button></li>
-									<li><em>{region.created_by}</em></li>
-								</ul>
-								{/if}
-							</div>
-						</div>
+						<PreparedCard
+							{CONTEXT}
+							{region}
+							{sessionLocks}
+							{userCanEdit}
+							bind:modalLyrUrl
+							bind:modalExtent
+							bind:modalIsGeospatial
+							bind:reinitModalMap
+							{postDocumentUnprepare}
+							{postRegionCategory}
+							{postSkipRegion}
+							 />
 						{/each}
 					</div>
 				</div>
