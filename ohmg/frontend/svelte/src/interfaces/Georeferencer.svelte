@@ -65,9 +65,6 @@
   export let MAIN_LAYERSET;
   export let KEYMAP_LAYERSET;
 
-  // console.log(MAP)
-
-  // console.log(REGION)
   const styles = new Styles();
 
   let previewMode = "n/a";

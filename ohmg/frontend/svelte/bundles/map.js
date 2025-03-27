@@ -1,7 +1,7 @@
 import '@/css/shared.css';
 import '@/css/interface.css';
 
-import Map from '@/components/Map.svelte';
+import Map from '@/overviews/Map.svelte';
 import '@/css/ol-overrides.css'
 
 const map = new Map({

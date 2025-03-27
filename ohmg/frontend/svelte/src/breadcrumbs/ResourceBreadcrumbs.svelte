@@ -19,7 +19,6 @@
     } else if (RESOURCE.type == "layer") {
         currentReg = RESOURCE.region.id;
     }
-    console.log(RESOURCE.regions)
     function goToRegion() {
         window.location = "/region/" + currentReg
     }
