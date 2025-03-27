@@ -74,9 +74,14 @@ class SplitView(View):
             },
         )
 
-    @method_decorator(validate_post_request(operations=["preview", "no-split", "split", "cancel"]))
-    def post(self, request, docid):
-        document = get_object_or_404(Document, pk=docid)
+    @method_decorator(
+        validate_post_request(
+            operations=["preview", "no-split", "bulk-no-split", "split", "cancel"]
+        )
+    )
+    def post(self, request, docid=None):
+        if docid:
+            document = get_object_or_404(Document, pk=docid)
 
         body = json.loads(request.body)
         operation = body.get("operation")
@@ -84,6 +89,7 @@ class SplitView(View):
 
         cutlines = payload.get("lines")
         sesh_id = payload.get("sessionId", None)
+        bulk_no_split_ids = payload.get("bulkNoSplitIds", [])
 
         sesh = None
         if sesh_id is not None:
@@ -120,6 +126,21 @@ class SplitView(View):
 
             new_region = sesh.run()[0]
             return JsonResponseSuccess(f"no split, new region created: {new_region.pk}")
+
+        elif operation == "bulk-no-split":
+            for docid in bulk_no_split_ids:
+                document = Document.objects.get(pk=docid)
+                sesh = PrepSession.objects.create(
+                    doc2=document,
+                    user=request.user,
+                    user_input_duration=0,
+                )
+                sesh.start()
+
+                sesh.data["split_needed"] = False
+                sesh.save(update_fields=["data"])
+                sesh.run()
+            return JsonResponseSuccess("bulk prepare completed successfully")
 
         elif operation == "split":
             sesh.data["split_needed"] = True

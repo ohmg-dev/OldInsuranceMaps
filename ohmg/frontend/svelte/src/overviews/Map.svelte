@@ -45,6 +45,7 @@
     import { ArrowCounterClockwise } from 'phosphor-svelte';
 
 	import ConfirmNoSplitModal from '../interfaces/modals/ConfirmNoSplitModal.svelte';
+	import ConfirmBulkNoSplitModal from '../interfaces/modals/ConfirmBulkNoSplitModal.svelte';
 	import ConfirmUngeoreferenceModal from '../interfaces/modals/ConfirmUngeoreferenceModal.svelte';
 
 	import { copyToClipboard, getLayerOHMUrl } from '@/lib/utils';
@@ -269,7 +270,8 @@
 
 	function pollMapSummaryIfSuccess(response) {
 		if (response.success) { pollMapSummary() } else { alert(response.message) }
-		processing = false
+		processing = false;
+		bulkPrepareList = [];
 	}
 	function postDocumentUnprepare(documentId) {
 		processing = true;
@@ -341,6 +343,8 @@
 	}
 
 	let classifyingLayers = false;
+	let bulkPreparing = false;
+	let bulkPrepareList = [];
 
 	let reinitModalMap = [{}]
 
@@ -368,15 +372,16 @@
 <NonMapContentModal id={"modal-non-map"} />
 <GeoreferencePermissionsModal id={"modal-permissions"} user={CONTEXT.user.username} userCanEdit={userCanEdit} item={MAP} />
 <Modal id={"modal-simple-viewer"} full={true}>
-{#each reinitModalMap as key (key)}
+	{#each reinitModalMap as key (key)}
 	{#if modalIsGeospatial}
 	<BasicLayerViewer {CONTEXT} LAYER_URL={modalLyrUrl} EXTENT={modalExtent} />
 	{:else}
 	<BasicDocViewer LAYER_URL={modalLyrUrl} EXTENT={modalExtent} />
 	{/if}
-{/each}
+	{/each}
 </Modal>
 <ConfirmNoSplitModal bind:processing {CONTEXT} documentId={splitDocumentId} callback={pollMapSummaryIfSuccess} />
+<ConfirmBulkNoSplitModal bind:processing {CONTEXT} bind:bulkPrepareList callback={pollMapSummaryIfSuccess}/>
 <ConfirmUngeoreferenceModal bind:processing {CONTEXT} layerId={undoGeorefLayerId} callback={pollMapSummaryIfSuccess} />
 {#if processing}
 <LoadingMask />
@@ -469,6 +474,28 @@
 				</div>
 				{#if sectionVis['unprepared']}
 				<div transition:slide>
+					<div style="margin: 10px 0px;">
+						{#if MAP.item_lookup.unprepared.length > 0 && !bulkPreparing}
+						<button class="button is-primary"
+							on:click={() => bulkPreparing = !bulkPreparing}
+							disabled={!CONTEXT.user.is_authenticated}
+							title={!CONTEXT.user.is_authenticated ? 'You must be signed in to prepare documents' : 'Click to enable bulk preparation'}
+							>Bulk prepare documents</button>
+						{/if}
+						{#if bulkPreparing}
+						<button class="button is-success"
+							disabled={bulkPrepareList.length === 0} on:click={() => {
+							getModal('modal-confirm-bulk-no-split').open();
+							bulkPreparing = false;
+						}}>Submit</button>
+						<button class="button is-danger"
+							on:click={() => {
+							bulkPreparing = false;
+							layersToUpdate = {};
+							bulkPrepareList = [];
+						}}>Cancel</button>
+						{/if}
+					</div>
 					<div class="documents-column">
 						{#each MAP.item_lookup.unprepared as document}
 						<UnpreparedDocumentCard
@@ -482,7 +509,9 @@
 							bind:reinitModalMap
 							{postLoadDocument}
 							bind:documentsLoading
-							bind:splitDocumentId />
+							bind:splitDocumentId
+							bind:bulkPreparing
+							bind:bulkPrepareList />
 						{/each}
 					</div>
 				</div>
@@ -583,7 +612,7 @@
 							on:click={() => classifyingLayers = !classifyingLayers}
 							disabled={!CONTEXT.user.is_authenticated}
 							title={!CONTEXT.user.is_authenticated ? 'You must be signed in to classify layers' : 'Click to enable layer classification'}
-							>Classify Layers</button>
+							>Classify layers</button>
 						{/if}
 						{#if classifyingLayers}
 						<button class="button is-success"
@@ -592,7 +621,7 @@
 							classifyingLayers = false;
 							layersToUpdate = {};
 							reinitMultimask();
-						}}>Save</button>
+						}}>Submit</button>
 						<button class="button is-danger"
 							on:click={() => {
 							classifyingLayers = false;

@@ -1,5 +1,7 @@
 <script>
     import Scissors from "phosphor-svelte/lib/Scissors";
+	import Square from "phosphor-svelte/lib/Square";
+	import CheckSquare from "phosphor-svelte/lib/CheckSquare";
 	import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
 
     import {getModal} from '@/base/Modal.svelte';
@@ -20,6 +22,19 @@
     export let postLoadDocument;
     export let splitDocumentId;
     export let documentsLoading;
+    export let bulkPreparing;
+    export let bulkPrepareList;
+
+    $: bulkPrepare = bulkPrepareList.includes(document.id);
+
+    function handleChange() {
+        bulkPrepare = !bulkPrepare;
+        if (bulkPrepare) {
+            bulkPrepareList = bulkPrepareList.concat([document.id])
+        } else {
+            bulkPrepareList = bulkPrepareList.filter(id => id !== document.id)
+        }
+    }
 
 </script>
 
@@ -99,7 +114,21 @@
         </ul>
         {:else if userCanEdit}
         <ul>
-            <li><button
+            <li>
+                {#if bulkPreparing}
+                <button
+                    class="is-text-link"
+                    title="This document does not need to be split"
+                    on:click={handleChange}>
+                    {#if bulkPrepare}
+                    <CheckSquare/>
+                    {:else}
+                    <Square/>
+                    {/if}
+                     no split needed
+                </button>
+                {:else}
+                <button
                     class="is-text-link"
                     title="This document does not need to be split"
                     on:click={() => {
@@ -108,6 +137,7 @@
                     }}>
                     <CheckSquareOffset/> no split needed
                 </button>
+                {/if}
             </li>
             <li><Link href={`/split/${document.id}`} title="Split this document">
                 <Scissors/> split this document</Link></li>
