@@ -1,21 +1,11 @@
 <script>
 	import { slide } from 'svelte/transition';
 
-	import { makeTitilerXYZUrl } from "@lib/utils";
-	import { submitPostRequest } from '@lib/requests';
-
-	import Broom from "phosphor-svelte/lib/Broom";
-	import DownloadSimple from "phosphor-svelte/lib/DownloadSimple";
-	import FileText from "phosphor-svelte/lib/FileText";
-	import MapPin from "phosphor-svelte/lib/MapPin";
-	import MapTrifold from "phosphor-svelte/lib/MapTrifold";
 	import Question from "phosphor-svelte/lib/Question";
 	import Wrench from "phosphor-svelte/lib/Wrench";
-	import Copy from "phosphor-svelte/lib/Copy";
 
 	import {getCenter} from 'ol/extent';
 
-	import Link from '@/base/Link.svelte';
 	import MultiMask from "@/interfaces/MultiMask.svelte";
 	import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
 
@@ -30,28 +20,26 @@
 
 	import Modal, {getModal} from '@/base/Modal.svelte';
 
-	import UnpreparedCard from '@/cards/UnpreparedCard.svelte';
-
 	import MapPreview from "@/interfaces/MapPreview.svelte";
 	import BasicDocViewer from '@/interfaces/BasicDocViewer.svelte';
 	import BasicLayerViewer from '@/interfaces/BasicLayerViewer.svelte';
-	import DownloadSectionModal from './modals/ItemDownloadSectionModal.svelte';
 	import MapDetails from './sections/MapDetails.svelte';
     import SigninReminder from '../layout/SigninReminder.svelte';
 	import LoadingEllipsis from '../base/LoadingEllipsis.svelte';
     import LoadingMask from '../base/LoadingMask.svelte';
-    import { ArrowCounterClockwise } from 'phosphor-svelte';
 
 	import ConfirmNoSplitModal from '../interfaces/modals/ConfirmNoSplitModal.svelte';
 	import ConfirmBulkNoSplitModal from '../interfaces/modals/ConfirmBulkNoSplitModal.svelte';
 	import ConfirmUngeoreferenceModal from '../interfaces/modals/ConfirmUngeoreferenceModal.svelte';
 
-	import { copyToClipboard, getLayerOHMUrl } from '@/lib/utils';
-
 	import { getFromAPI } from "@/lib/requests";
     import MapBreadcrumbs from '../breadcrumbs/MapBreadcrumbs.svelte';
-    import PreparedCard from '../cards/PreparedCard.svelte';
-    import SkippedCard from '../cards/SkippedCard.svelte';
+
+	import UnpreparedCard from '@/cards/UnpreparedCard.svelte';
+    import PreparedCard from '@/cards/PreparedCard.svelte';
+    import LayerCard from '@/cards/LayerCard.svelte';
+    import SkippedCard from '@/cards/SkippedCard.svelte';
+    import NonMapCard from '@/cards/NonMapCard.svelte';
 
 	export let CONTEXT;
 	export let MAP;
@@ -558,8 +546,7 @@
 							bind:reinitModalMap
 							{postDocumentUnprepare}
 							{postRegionCategory}
-							{postSkipRegion}
-							 />
+							{postSkipRegion} />
 						{/each}
 					</div>
 				</div>
@@ -609,97 +596,22 @@
 					</div>
 					<div class="documents-column">
 						{#each MAP.item_lookup.georeferenced as layer}
-						<div class="document-item">
-							<div><p><Link href={layer.urls.resource} title={layer.title}>{layer.nickname}</Link></p></div>
-							<button class="thumbnail-btn" on:click={() => {
-								modalLyrUrl=layer.urls.cog;
-								modalExtent=layer.extent;
-								modalIsGeospatial=true;
-								getModal('modal-simple-viewer').open();
-								reinitModalMap = [{}]}}>
-								<img style="cursor:zoom-in"
-									src={layer.urls.thumbnail}
-									alt={layer.title}
-									>
-							</button>
-							<div>
-								{#if sessionLocks.lyrs[layer.id]}
-								<ul style="text-align:center">
-									<li><em>session in progress...</em></li>
-									<li>user: {sessionLocks.lyrs[layer.id].user.username}</li>
-								</ul>
-								{:else}
-								<ul>
-									{#if userCanEdit}
-									<li>
-										<Link href={layer.urls.georeference} title="edit georeferencing">
-											<MapPin/> edit georeferencing
-										</Link>
-									</li>
-									<li><button
-										disabled={!CONTEXT.user.is_staff && CONTEXT.user.username != layer.created_by}
-										class="is-text-link"
-										title={
-											!CONTEXT.user.is_staff && CONTEXT.user.username != layer.created_by ?
-											`Only ${layer.created_by} or an admin and can undo this layer.` :
-											"Undo all georeferencing for this layer."
-										}
-										on:click={() => {
-											undoGeorefLayerId = layer.id;
-											getModal('modal-confirm-ungeoreference').open()
-										}}>
-										<ArrowCounterClockwise/> ungeoreference
-									</button></li>
-									{/if}
-									{#if !MAP.hidden}
-									<!-- <li><Link href={layer.urls.resource} title="downloads and web services">
-										<DownloadSimple /> downloads & web services</Link>
-									</li> -->
-									<input type="hidden" id="lyr-{layer.id}-xyz-link" value={`${makeTitilerXYZUrl({host:CONTEXT.titiler_host, url: layer.urls.cog})}`}/>
-									<input type="hidden" id="lyr-{layer.id}-wms-link" value="{CONTEXT.titiler_host}/cog/wms/?LAYERS={layer.urls.cog}&VERSION=1.1.1"/>
-									<li>
-										<div id="lyr-{layer.id}-services" class="dropdown is-right" style="padding:0;">
-											<div class="dropdown-trigger" style="padding:0;">
-											  <button class="is-text-link" aria-haspopup="true" aria-controls="dropdown-menu6"
-												on:click|stopPropagation={() => {
-													document.getElementById(`lyr-${layer.id}-services`).classList.toggle("is-active")
-												}}
-											  >
-												<DownloadSimple />
-												<span>downloads & web services</span>
-											  </button>
-											</div>
-											<div class="dropdown-menu" id="dropdown-menu6" role="menu" style="background:none; padding:0;">
-											  <div class="dropdown-content" style="background:#f7f1e1; box-shadow:gray 0px 0px 5px;">
-												<div class="dropdown-item" style="background:none; color:#333333; padding:0; text-align:left;">
-													<ul>
-														<li><Link href={layer.urls.cog}>GeoTIFF <DownloadSimple /></Link></li>
-														<li><button class="is-text-link" on:click={()=>{copyToClipboard(`lyr-${layer.id}-xyz-link`)}}>XYZ Tiles URL <Copy/></button></li>
-														<li><button class="is-text-link" on:click={()=>{copyToClipboard(`lyr-${layer.id}-wms-link`)}}>WMS endpoint <Copy/></button></li>
-														<li><Link href="{getLayerOHMUrl(layer, CONTEXT.titiler_host)}" external={true}>OpenHistoricalMap iD</Link></li>
-														<li><Link href="{CONTEXT.site_url}iiif/resource/{layer.id}/" external={true}>IIIF Georef Annotation (beta)</Link></li>
-														<li><Link href="https://viewer.allmaps.org/?url={encodeURIComponent(`${CONTEXT.site_url}iiif/resource/${layer.id}/`)}" external={true}>Allmaps Viewer (beta)</Link></li>
-													</ul>
-												</div>
-											  </div>
-											</div>
-										</div>
-									</li>
-									{/if}
-									<li><em>{layer.created_by}{#if layer.created_by != layer.last_updated_by}&nbsp;+ {layer.last_updated_by}{/if}</em></li>
-								</ul>
-								{/if}
-								{#if classifyingLayers}
-								<select bind:value={layerToLayerSetLookup[layer.slug]} on:change={(e) => {
-										checkForExistingMask(e.target.options[e.target.selectedIndex].value, layer.id)
-									}}>
-									{#each LAYERSET_CATEGORIES as opt}
-									<option value={opt.slug}>{opt.display_name}</option>
-									{/each}
-								</select>
-								{/if}
-							</div>
-						</div>
+						<LayerCard
+							{CONTEXT}
+							{MAP}
+							{LAYERSET_CATEGORIES}
+							{layer}
+							{sessionLocks}
+							{userCanEdit}
+							bind:modalLyrUrl
+							bind:modalExtent
+							bind:modalIsGeospatial
+							bind:reinitModalMap
+							bind:undoGeorefLayerId
+							bind:classifyingLayers
+							{layerToLayerSetLookup}
+							downloadEnabled={!MAP.hidden}
+							{checkForExistingMask} />
 						{/each}
 					</div>
 				</div>
@@ -709,7 +621,7 @@
 				<div class="subsection-title-bar">
 					<button class="section-toggle-btn" on:click={() => toggleSection("skipped")} disabled={MAP.item_lookup.skipped.length === 0}
 						title={sectionVis['skipped'] ? 'Collapse section' : 'Expand section'}>
-						<ConditionalDoubleChevron down={sectionVis['prepared']} size="md" />
+						<ConditionalDoubleChevron down={sectionVis['skipped']} size="md" />
 						<a id="skipped"><h3>
 							Skipped ({MAP.item_lookup.skipped.length})
 						</h3></a>
@@ -728,8 +640,7 @@
 							bind:modalExtent
 							bind:modalIsGeospatial
 							bind:reinitModalMap
-							{postSkipRegion}
-							 />
+							{postSkipRegion} />
 						{/each}
 					</div>
 				</div>
@@ -748,33 +659,15 @@
 				<div transition:slide>
 					<div class="documents-column">
 						{#each MAP.item_lookup.nonmaps as nonmap}
-						<div class="document-item">
-							<div><p><Link href={nonmap.urls.resource} title={nonmap.title}>{nonmap.title}</Link></p></div>
-							<button class="thumbnail-btn" on:click={() => {
-								modalLyrUrl=nonmap.urls.image;
-								modalExtent=[0, -nonmap.image_size[1], nonmap.image_size[0], 0];
-								modalIsGeospatial=false;
-								getModal('modal-simple-viewer').open();
-								reinitModalMap = [{}];
-								}} >
-								<img style="cursor:zoom-in"
-									src={nonmap.urls.thumbnail}
-									alt={nonmap.title}
-									/>
-							</button>
-							{#if userCanEdit}
-							<div>
-								<ul>
-									<li><button
-										class="is-text-link"
-										on:click={() => {postRegionCategory(nonmap.id, "map")}}
-										title="click to set this document back to 'prepared' so it can be georeferenced">
-										<MapTrifold /> this <em>is</em> a map
-									</button></li>
-								</ul>
-							</div>
-							{/if}
-						</div>
+						<NonMapCard
+							{nonmap}
+							{sessionLocks}
+							{userCanEdit}
+							bind:modalLyrUrl
+							bind:modalExtent
+							bind:modalIsGeospatial
+							bind:reinitModalMap
+							{postRegionCategory} />
 						{/each}
 					</div>
 				</div>
@@ -869,12 +762,6 @@ button.section-toggle-btn:disabled, button.section-toggle-btn:disabled > a {
 	color: grey;
 }
 
-button.thumbnail-btn {
-	border: none;
-	background: none;
-	cursor: zoom-in;
-}
-
 button:disabled {
 	cursor: default;
 }
@@ -901,44 +788,6 @@ button:disabled {
 	padding-bottom: 15px;
 }
 
-.documents-column p {
-	margin: 0px;
-}
-
-.document-item {
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	border: 1px solid gray;
-	background: white;
-
-}
-
-.document-item img {
-	margin: 15px;
-	max-height: 200px;
-	max-width: 200px;
-	object-fit: scale-down;
-}
-
-.document-item div:first-child {
-	text-align: center;
-}
-
-.document-item div:first-child, .document-item div:last-child {
-	padding: 10px;
-	background: #e6e6e6;
-	width: 100%;
-}
-
-.document-item p, .document-item ul {
-	margin: 0px;
-}
-
-.document-item ul {
-	list-style-type: none;
-	padding: 0;
-}
 
 select.item-select {
 	margin-right: 3px;
