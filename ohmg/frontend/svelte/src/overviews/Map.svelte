@@ -712,9 +712,6 @@
 						<ConditionalDoubleChevron down={sectionVis['prepared']} size="md" />
 						<a id="skipped"><h3>
 							Skipped ({MAP.item_lookup.skipped.length})
-							{#if regsLockedCt}
-							&ndash; {regsLockedCt} locked...
-							{/if}
 						</h3></a>
 					</button>
 					<button class="is-icon-link" on:click={() => {getModal('modal-prepared').open()}} ><Question /></button>
