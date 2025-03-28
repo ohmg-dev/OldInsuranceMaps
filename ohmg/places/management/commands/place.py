@@ -75,6 +75,12 @@ class Command(BaseCommand):
         place.save(set_slug=False)
         place.direct_parents.add(parent)
         place.save()
+
+        if Place.objects.filter(slug=place.slug).count() > 1:
+            Place.objects.get(pk=place.pk).delete()
+            print("this place already existed, won't create double.")
+            return
+
         print(place)
 
     def import_all_places(self):

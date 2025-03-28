@@ -291,7 +291,7 @@ class Place(models.Model):
         }
 
     def save(self, set_slug=True, *args, **kwargs):
-        if set_slug is True or (not self.slug or not self.display_name):
+        if set_slug is True:
             state_postal = self.get_state_postal()
             state_abbrev = self.get_state_abbrev()
             slug, display_name = "", ""
