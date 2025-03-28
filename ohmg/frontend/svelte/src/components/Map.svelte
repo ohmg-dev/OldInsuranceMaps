@@ -357,7 +357,7 @@
 	let processing = false;
 
 	let previewRefreshable = false;
-	console.log(MAP)
+
 </script>
 <svelte:window on:click={() => {
 	Array.from(document.getElementsByClassName("dropdown")).forEach(el => {el.classList.remove('is-active')})
