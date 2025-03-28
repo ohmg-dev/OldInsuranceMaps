@@ -1,13 +1,13 @@
 <script>
-    import '@/css/shared.css'
-    import Browse from '@/overviews/Browse.svelte'
-    import Home from '@/overviews/Home.svelte'
-    import Place from '@/overviews/Place.svelte'
-    import Profile from '@/overviews/Profile.svelte'
-    import Participants from '@/lists/Participants.svelte'
-    import SessionList from '@/lists/SessionList.svelte'
+    import '../css/shared.css'
+    import Browse from './overviews/Browse.svelte'
+    import Home from './overviews/Home.svelte'
+    import Place from './overviews/Place.svelte'
+    import Profile from './overviews/Profile.svelte'
+    import Participants from './lists/Participants.svelte'
+    import SessionList from './lists/SessionList.svelte'
 
-    import MarkdownPage from '@/layout/MarkdownPage.svelte';
+    import MarkdownPage from './common/MarkdownPage.svelte';
 
     export let PAGE_NAME = '';
     export let PARAMS = {};

@@ -4,8 +4,6 @@ import resolve from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import livereload from 'rollup-plugin-livereload';
 import css from 'rollup-plugin-css-only';
-import alias from '@rollup/plugin-alias';
-import path from "path";
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -32,7 +30,7 @@ function serve() {
 
 function componentExportDetails(componentName) {
 	return {
-    input: `./bundles/${componentName.toLowerCase()}.js`,
+    input: `./src/bundles/${componentName.toLowerCase()}.js`,
 		output: {
 			sourcemap: true,
 			format: 'iife',
@@ -41,25 +39,6 @@ function componentExportDetails(componentName) {
 			inlineDynamicImports: true,
 		},
 		plugins: [
-			alias({
-				/**
-				 * For custom files extension you might want to add "customerResolver"
-				 * https://github.com/rollup/plugins/tree/master/packages/alias#custom-resolvers
-				 *
-				 * By doing that this plugin can read different kind of files.
-				 */
-				entries: [
-					{
-						find: "@",
-						replacement: path.resolve(__dirname, "src"),
-					},
-					{
-						find: "@lib",
-						replacement: path.resolve(__dirname, "src/lib"),
-					},
-				],
-			}),
-
 			svelte({
 				compilerOptions: {
 					// enable run-time checks when not in production
@@ -112,8 +91,8 @@ function componentExportDetails(componentName) {
 
 let exportable = [];
 
-// Add exportables here. These must match a lowercase file in ./src/components
-// e.g. ./src/components/main.js
+// Add exportables here. These must match a lowercase file in ./src/bundles
+// e.g. ./src/bundles/main.js
 [
 	"Index",
 	"Georeference",

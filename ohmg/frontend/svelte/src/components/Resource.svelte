@@ -1,28 +1,24 @@
 <script>
   import { slide } from 'svelte/transition';
 
-  import Scissors from "phosphor-svelte/lib/Scissors";
-  import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
-  import ArrowCounterClockwise from "phosphor-svelte/lib/ArrowCounterClockwise";
-  import ArrowRight from "phosphor-svelte/lib/ArrowRight";
   import MapPin from "phosphor-svelte/lib/MapPin";
-  import Trash from "phosphor-svelte/lib/Trash";
 
   import 'ol/ol.css';
 
   import {getCenter} from 'ol/extent';
 
-  import Link from '@/base/Link.svelte';
-  import SessionList from '@/lists/SessionList.svelte';
-  import BasicDocViewer from '@/interfaces/BasicDocViewer.svelte';
-  import BasicLayerViewer from '@/interfaces/BasicLayerViewer.svelte';
-  import ConditionalDoubleChevron from '../overviews/buttons/ConditionalDoubleChevron.svelte';
-  import ToolUIButton from '@/base/ToolUIButton.svelte';
+  import Link from './common/Link.svelte';
+  import SessionList from './lists/SessionList.svelte';
+  import BasicDocViewer from './interfaces/BasicDocViewer.svelte';
+  import BasicLayerViewer from './interfaces/BasicLayerViewer.svelte';
+  import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
+  import ToolUIButton from './buttons/ToolUIButton.svelte';
 
-  import ResourceDetails from '../overviews/sections/ResourceDetails.svelte';
+  import ResourceDetails from './overviews/sections/ResourceDetails.svelte';
 
-  import { makeTitilerXYZUrl } from '@lib/utils';
-    import ResourceBreadcrumbs from '../breadcrumbs/ResourceBreadcrumbs.svelte';
+  import ResourceBreadcrumbs from './breadcrumbs/ResourceBreadcrumbs.svelte';
+
+  import { makeTitilerXYZUrl } from '../lib/utils';
 
   export let CONTEXT;
   export let RESOURCE;
