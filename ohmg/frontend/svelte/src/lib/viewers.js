@@ -3,7 +3,7 @@ import ZoomToExtent from 'ol/control/ZoomToExtent';
 import Draw from 'ol/interaction/Draw';
 import Link from 'ol/interaction/Link.js';
 
-import { makeBasemaps } from '@lib/utils';
+import { makeBasemaps } from './utils';
 
 export class MapViewer {
 

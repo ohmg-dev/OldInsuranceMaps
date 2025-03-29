@@ -7,6 +7,7 @@ from .views import (
 )
 
 urlpatterns = [
+    path("split/", SplitView.as_view(), name="base_split_view"),
     path("split/<int:docid>/", SplitView.as_view(), name="split_view"),
     path(
         "georeference/<int:docid>/",

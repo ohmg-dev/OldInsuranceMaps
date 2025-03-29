@@ -7,6 +7,8 @@ class APITestCase(OHMGTestCase):
         OHMGTestCase.Fixtures.admin_user,
         OHMGTestCase.Fixtures.layerset_categories,
         OHMGTestCase.Fixtures.layerset_categories_sanborn,
+        OHMGTestCase.Fixtures.region_categories,
+        OHMGTestCase.Fixtures.region_categories_sanborn,
         OHMGTestCase.Fixtures.new_iberia_place,
         OHMGTestCase.Fixtures.new_iberia_map,
         OHMGTestCase.Fixtures.new_iberia_docs,

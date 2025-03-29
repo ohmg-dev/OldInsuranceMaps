@@ -278,9 +278,8 @@ class LOCParser(object):
             if source["path"]:
                 self.document_sources.append(source)
             else:
-                print(json.dumps(file_set, indent=2))
-                raise Exception("No jp2 urls in this fileset. Cannot load this Map.")
-
+                logger.error("No jp2 urls in this fileset, skipping")
+                logger.debug(file_set)
 
 class LOCConnection(object):
     def __init__(self, verbose=False, delay=5):

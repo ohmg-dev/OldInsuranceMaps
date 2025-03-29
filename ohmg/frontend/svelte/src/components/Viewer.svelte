@@ -17,38 +17,30 @@
 	import {createXYZ} from 'ol/tilegrid';
 
 	import 'ol/ol.css';
-	import '@/css/ol-overrides.css';
-	import Map from 'ol/Map';
-	import View from 'ol/View';
-
-	import Crop from 'ol-ext/filter/Crop';
+	
 	import Control from 'ol/control/Control';
-
-	import GeoJSON from 'ol/format/GeoJSON';
-
+	
 	import Feature from 'ol/Feature';
 	import Point from 'ol/geom/Point';
 	import {circular} from 'ol/geom/Polygon';
 
 	import XYZ from 'ol/source/XYZ';
 	import VectorSource from 'ol/source/Vector';
-	import TileWMS from 'ol/source/TileWMS';
 
 	import TileLayer from 'ol/layer/Tile';
 	import LayerGroup from 'ol/layer/Group';
 	import VectorLayer from 'ol/layer/Vector';
-
-	import {MouseWheelZoom, defaults} from 'ol/interaction';
-
+	
+	import '../css/ol-overrides.css'
 	import {
 		makeTitilerXYZUrl,
 		makeLayerGroupFromLayerSet,
 		makeBasemaps
-	} from '@lib/utils';
-	import { MapViewer } from '@lib/viewers';
-	import Modal, {getModal} from '@/base/Modal.svelte'
-	import Link from '@/base/Link.svelte';
-	import MapboxLogoLink from "../interfaces/buttons/MapboxLogoLink.svelte"
+	} from '../lib/utils';
+	import { MapViewer } from '../lib/viewers';
+	import Modal, {getModal} from './modals/BaseModal.svelte'
+	import Link from './common/Link.svelte';
+	import MapboxLogoLink from "./common/MapboxLogoLink.svelte"
 
 	export let CONTEXT;
 	export let PLACE;

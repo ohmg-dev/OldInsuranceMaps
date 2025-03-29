@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ resource_params.RESOURCE.title }}{% endblock %}
+
+{% block body_outer %}
+
+{% include '_titlebar.html' with title=resource_params.RESOURCE.nickname lead_icon=lead_icon subtitle=resource_params.RESOURCE.map_title %}
+
+{{ resource_params|json_script:'resource-props'}}
+{% include '_svelte_component.html' with component_name='Resource' %}
+{% endblock %}

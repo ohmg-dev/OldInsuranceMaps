@@ -1,0 +1,18 @@
+[
+  {
+    "model": "core.regioncategory",
+    "pk": 1,
+    "fields": {
+      "slug": "map",
+      "display_name": "Map"
+    }
+  },
+  {
+    "model": "core.regioncategory",
+    "pk": 2,
+    "fields": {
+      "slug": "non-map",
+      "display_name": "Non-map"
+    }
+  }
+]

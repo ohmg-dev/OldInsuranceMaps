@@ -402,3 +402,53 @@ footer a {
 	color: white;
 	text-decoration: underline;
 }
+
+.new-title-bar {
+	display: flex;
+	flex-direction: column;
+	padding: 8px 0px 8px 0px;
+	border-bottom: 1px solid rgb(149, 149, 149);
+	margin-bottom: 5px;
+}
+
+.new-title-bar-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.new-title-bar-row-item {
+	display: flex;
+	align-items: baseline;
+}
+
+h1.page-title {
+	margin: 0;
+}
+h2.page-subtitle {
+	font-size: 1em;
+	margin: 7px 0 0 0;
+	color: #555555;
+}
+
+span.lead-icon {
+	height: 45px;
+	margin-right: 8px; 
+}
+
+img.lead-image {
+	border-radius: 5px;
+	margin-right: 8px;
+	height: 45px;
+}
+
+.new-title-bar-row-item.icon-box {
+	height: 46px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	background: #e6e6e6;
+	padding: 2px;
+	box-shadow: gray 0px 0px 5px;
+	border-radius: 4px;
+}

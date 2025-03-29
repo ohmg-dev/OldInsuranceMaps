@@ -1,47 +1,30 @@
 <script>
   import { slide } from 'svelte/transition';
 
-  import Scissors from "phosphor-svelte/lib/Scissors";
-  import CheckSquareOffset from "phosphor-svelte/lib/CheckSquareOffset";
-  import ArrowCounterClockwise from "phosphor-svelte/lib/ArrowCounterClockwise";
-  import ArrowRight from "phosphor-svelte/lib/ArrowRight";
   import MapPin from "phosphor-svelte/lib/MapPin";
-  import Trash from "phosphor-svelte/lib/Trash";
 
   import 'ol/ol.css';
 
   import {getCenter} from 'ol/extent';
 
-  import Link from '@/base/Link.svelte';
-  import TitleBar from '@/layout/TitleBar.svelte';
-  import SessionList from '@/lists/SessionList.svelte';
-  import BasicDocViewer from '@/interfaces/BasicDocViewer.svelte';
-  import BasicLayerViewer from '@/interfaces/BasicLayerViewer.svelte';
-  import ConditionalDoubleChevron from '../overviews/buttons/ConditionalDoubleChevron.svelte';
-  import ToolUIButton from '@/base/ToolUIButton.svelte';
+  import Link from './common/Link.svelte';
+  import SessionList from './lists/SessionList.svelte';
+  import BasicDocViewer from './interfaces/BasicDocViewer.svelte';
+  import BasicLayerViewer from './interfaces/BasicLayerViewer.svelte';
+  import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
+  import ToolUIButton from './buttons/ToolUIButton.svelte';
 
-  import ResourceDetails from '../overviews/sections/ResourceDetails.svelte';
+  import ResourceDetails from './overviews/sections/ResourceDetails.svelte';
 
-  import { makeTitilerXYZUrl } from '@lib/utils';
+  import ResourceBreadcrumbs from './breadcrumbs/ResourceBreadcrumbs.svelte';
+
+  import { makeTitilerXYZUrl } from '../lib/utils';
 
   export let CONTEXT;
   export let RESOURCE;
   export let MAP;
   export let LOCALE;
   export let GEOREFERENCE_SUMMARY;
-
-  // console.log(CONTEXT)
-  // console.log(RESOURCE)
-
-  const userCanUndoPrep = (
-      RESOURCE.status == "prepared" ||
-      RESOURCE.status == "split"
-    )
-    && !RESOURCE.regions.some(e => e.georeferenced)
-    && (
-      CONTEXT.user.is_staff ||
-      CONTEXT.user.username ==  RESOURCE.prep_sessions[0].user.username
-    )
 
   const EXTENT = RESOURCE.type == "layer" ? RESOURCE.extent : [0, -RESOURCE.image_size[1], RESOURCE.image_size[0], 0]
   const LAYER_URL = RESOURCE.type == "layer" ? RESOURCE.urls.cog : RESOURCE.urls.image
@@ -122,84 +105,12 @@
     }
   }
 
-  const iconLinks = [
-    {
-      visible: true,
-      enabled: RESOURCE.type == "layer",
-      iconClass: 'document',
-      alt: RESOURCE.document ? 'Go to document: ' + RESOURCE.document.title : '',
-      url: RESOURCE.document ? RESOURCE.document.urls.resource : '',
-    },
-    {
-      visible: true,
-      enabled: RESOURCE.type == "document" && RESOURCE.layer,
-      iconClass: 'layer',
-      alt: RESOURCE.layer ? 'Go to layer: ' + RESOURCE.layer.title : 'Layer not yet made',
-      url: RESOURCE.layer ? RESOURCE.layer.urls.resource : '',
-    },
-    {
-      visible: true,
-      enabled: true,
-      iconClass: 'volume',
-      alt: 'Go to map overview',
-      url: `/map/${MAP.identifier}`,
-    },
-    {
-      visible: true,
-      enabled: RESOURCE.type == "layer",
-      iconClass: 'camera',
-      alt: 'Open in main viewer',
-      url: viewerUrl,
-    }
-  ]
   let reinitMap = [{}]
 
-  let currentIdentifier = MAP.identifier
-  function goToItem() {
-    window.location = "/map/" + currentIdentifier
-  }
-  let currentDoc = RESOURCE.type == "document" ? RESOURCE.id : RESOURCE.document.id;
-  function goToDocument() {
-    window.location = "/document/" + currentDoc
-  }
-  let currentReg;
-  if (RESOURCE.type == "document") {
-    currentReg = "---";
-  } else if (RESOURCE.type == "region") {
-    currentReg = RESOURCE.id;
-  } else if (RESOURCE.type == "layer") {
-    currentReg = RESOURCE.region.id;
-  }
-  function goToRegion() {
-    window.location = "/region/" + currentReg
-  }
 </script>
 
 <main>
-  <section class="breadcrumbs">
-		{#each LOCALE.breadcrumbs as bc, n}
-		<Link href="/{bc.slug}">{bc.name}</Link>{#if n != LOCALE.breadcrumbs.length-1}<ArrowRight size={12} />{/if}
-		{/each}
-		<ArrowRight size={12} />
-    <Link href={`/map/${MAP.identifier}`}>{MAP.title}</Link>
-		<ArrowRight size={12} />
-		<select class="item-select" bind:value={currentDoc} on:change={goToDocument}>
-			<option value="---" disabled>go to...</option>
-			{#each MAP.documents as d}
-			<option value={d.id}>{d.nickname}</option>
-			{/each}
-		</select>
-    {#if MAP.regions.length > 0}
-    <ArrowRight size={12} />
-    <select class="item-select" bind:value={currentReg} on:change={goToRegion}>
-			<option value="---" disabled>go to...</option>
-			{#each MAP.regions as r}
-			<option value={r.id}>{r.nickname}</option>
-			{/each}
-		</select>
-    {/if}
-	</section>
-  <TitleBar TITLE={RESOURCE.title} ICON_LINKS={iconLinks} />
+  <ResourceBreadcrumbs {LOCALE} {MAP} {RESOURCE} />
   <section>
     <button class="section-toggle-btn" on:click={() => toggleSection('summary')} disabled={false}>
       <ConditionalDoubleChevron down={sectionVis['summary']} size="md" />
@@ -440,25 +351,6 @@ tr:nth-child(odd) {
 .document-item ul {
   list-style-type: none;
   padding: 0;
-}
-
-section.breadcrumbs {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	padding: 5px 0px;
-	font-size: .95em;
-	border-bottom: none;
-}
-
-/* select.item-select {
-	margin-right: 3px;
-	color: #2c689c;
-	cursor: pointer;
-} */
-
-:global(section.breadcrumbs svg) {
-	margin: 0px 2px;
 }
 
 @media screen and (max-width: 768px){

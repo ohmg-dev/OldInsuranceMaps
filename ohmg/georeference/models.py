@@ -20,6 +20,7 @@ from django.utils import timezone
 from ohmg.core.models import (
     Document,
     Region,
+    RegionCategory,
     Layer,
 )
 from ohmg.georeference.georeferencer import Georeferencer
@@ -500,6 +501,7 @@ class PrepSession(SessionBase):
         self.update_stage("processing")
 
         output = []
+        map_cat = RegionCategory.objects.get(slug="map")
         if self.data["split_needed"] is False:
             # create Region that matches this document
             w, h = self.doc2.image_size
@@ -507,6 +509,7 @@ class PrepSession(SessionBase):
                 boundary=Polygon([[0, 0], [0, h], [w, h], [w, 0], [0, 0]]),
                 document=self.doc2,
                 created_by=self.user,
+                category=map_cat,
             )
             save_file_to_object(region, source_object=self.doc2)
             output.append(region)
@@ -529,6 +532,7 @@ class PrepSession(SessionBase):
                     document=self.doc2,
                     division_number=div_no,
                     created_by=self.user,
+                    category=map_cat,
                 )
 
                 save_file_to_object(region, file_path=Path(file_path))

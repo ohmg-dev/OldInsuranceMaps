@@ -1,9 +1,0 @@
-{% extends 'base.html' %}
-{% load i18n %}
-
-{% block title %}{{ svelte_params.MAP.title }}{% endblock title %}
-
-{% block main_content %}
-{{ svelte_params|json_script:'map-props'}}
-{% include '_svelte_component.html' with component_name='Map' %}
-{% endblock %}

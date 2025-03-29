@@ -230,6 +230,7 @@ class Map(models.Model):
         unprep_ct = len(self.item_lookup["unprepared"])
         prep_ct = len(self.item_lookup["prepared"])
         georef_ct = len(self.item_lookup["georeferenced"])
+        skipped_ct = len(self.item_lookup["skipped"])
         percent = 0
         if georef_ct > 0:
             percent = int((georef_ct / (unprep_ct + prep_ct + georef_ct)) * 100)
@@ -256,6 +257,7 @@ class Map(models.Model):
             "unprepared_ct": unprep_ct,
             "prepared_ct": prep_ct,
             "georeferenced_ct": georef_ct,
+            "skipped_ct": skipped_ct,
             "percent": percent,
             "mm_ct": mm_todo,
             "mm_display": mm_display,
@@ -358,17 +360,22 @@ class Map(models.Model):
             ],
             "prepared": [
                 RegionSchema.from_orm(i).dict()
-                for i in regions.filter(georeferenced=False, is_map=True)
+                for i in regions.filter(georeferenced=False, category__slug="map").exclude(
+                    skipped=True
+                )
             ],
             "georeferenced": [LayerSchema.from_orm(i).dict() for i in self.layers],
-            "nonmaps": [RegionSchema.from_orm(i).dict() for i in regions.filter(is_map=False)],
+            "nonmaps": [
+                RegionSchema.from_orm(i).dict() for i in regions.exclude(category__slug="map")
+            ],
+            "skipped": [RegionSchema.from_orm(i).dict() for i in regions.filter(skipped=True)],
             "processing": {
                 "unprep": 0,
                 "prep": 0,
                 "geo_trim": 0,
             },
         }
-        for cat in ["unprepared", "prepared", "georeferenced", "nonmaps"]:
+        for cat in ["unprepared", "prepared", "georeferenced", "nonmaps", "skipped"]:
             items[cat] = natsorted(items[cat], key=lambda k: k["title"])
         self.item_lookup = items
         self.save(update_fields=["item_lookup"])
@@ -560,6 +567,18 @@ class Document(models.Model):
         return super(self.__class__, self).save(*args, **kwargs)
 
 
+class RegionCategory(models.Model):
+    class Meta:
+        verbose_name_plural = "  Region Categories"
+
+    slug = models.CharField(max_length=50)
+    description = models.CharField(max_length=200, null=True, blank=True)
+    display_name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.display_name if self.display_name else self.slug
+
+
 class Region(models.Model):
     class Meta:
         verbose_name_plural = "  Regions"
@@ -574,7 +593,9 @@ class Region(models.Model):
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="regions")
     division_number = models.IntegerField(null=True, blank=True)
     is_map = models.BooleanField(default=True)
+    category = models.ForeignKey(RegionCategory, on_delete=models.PROTECT, null=True, blank=True)
     georeferenced = models.BooleanField(default=False)
+    skipped = models.BooleanField(default=False)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,

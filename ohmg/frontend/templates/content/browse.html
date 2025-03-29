@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+
+{% block title %}Search | {{ block.super }}{% endblock %}
+
+{% block main_content %}
+
+{% include '_titlebar.html' with title="Search" lead_icon="magnifier" %}
+
+{{ params|json_script:'index-props'}}
+{% include '_svelte_component.html' with component_name='Index' %}
+
+{% endblock %}

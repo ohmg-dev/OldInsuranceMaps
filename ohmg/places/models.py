@@ -206,16 +206,16 @@ class Place(models.Model):
         if lists[2]["selected"] != "---":
             state_pk = Place.objects.get(slug=lists[2]["selected"]).pk
             all_lvl3 = list(
-                Place.objects.filter(direct_parents=state_pk).values(
+                Place.objects.filter(direct_parents=state_pk, volume_count_inclusive__gt=0).values(
                     "pk", "slug", "display_name", "volume_count_inclusive"
                 )
             )
             lists[3]["options"] = all_lvl3
             lvl3_pks = [i["pk"] for i in all_lvl3]
             all_lvl4 = list(
-                Place.objects.filter(direct_parents__in=lvl3_pks).values(
-                    "pk", "slug", "display_name", "volume_count_inclusive"
-                )
+                Place.objects.filter(
+                    direct_parents__in=lvl3_pks, volume_count_inclusive__gt=0
+                ).values("pk", "slug", "display_name", "volume_count_inclusive")
             )
             lists[4]["options"] = all_lvl4
 
@@ -223,7 +223,7 @@ class Place(models.Model):
         if lists[3]["selected"] != "---":
             ce_pk = Place.objects.get(slug=lists[3]["selected"]).pk
             all_lvl4 = list(
-                Place.objects.filter(direct_parents=ce_pk).values(
+                Place.objects.filter(direct_parents=ce_pk, volume_count_inclusive__gt=0).values(
                     "pk", "slug", "display_name", "volume_count_inclusive"
                 )
             )
