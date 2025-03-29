@@ -38,7 +38,8 @@
     import SkippedCard from './cards/SkippedCard.svelte';
     import NonMapCard from './cards/NonMapCard.svelte';
 
-	import { getFromAPI } from "../lib/requests";
+	import { getFromAPI, submitPostRequest } from "../lib/requests";
+	import { makeTitilerXYZUrl } from "../lib/utils";
 
 	export let CONTEXT;
 	export let MAP;
