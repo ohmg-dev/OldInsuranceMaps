@@ -115,7 +115,7 @@ class Mosaicker:
             ],
         )
         out_tif_path = mosaic_vrt.with_suffix(".tif")
-        gdal.Translate(str(out_tif_path), mosaic_vrt, options=to)
+        gdal.Translate(str(out_tif_path), str(mosaic_vrt), options=to)
 
         existing_file_path = None
         if layerset.mosaic_geotiff:
