@@ -288,7 +288,13 @@
   }
 
   // SNAP LAYER STUFF
-  const parcelEntry = parcelLookup[MAP.locale.slug]
+  let parcelEntry;
+  MAP.locale_lineage.forEach(slug => {
+    if (parcelLookup[slug]) {
+      parcelEntry = parcelLookup[slug]
+      return
+    }
+  })
   const pmLayer = parcelEntry ? makePmTilesLayer(
     parcelEntry.pmtilesUrl,
     `<a target="_blank" href="${parcelEntry.attributionUrl}">${parcelEntry.attributionText}</a>`,
