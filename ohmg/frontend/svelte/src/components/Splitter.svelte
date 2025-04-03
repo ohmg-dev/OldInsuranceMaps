@@ -64,6 +64,17 @@
     enableButtons = true;
   }
 
+  let countdown = 10;
+  let timer;
+  $: {
+    if (countdown === 0) {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+  }
+
   // show the extend session prompt 10 seconds before the session expires
   setTimeout(promptRefresh, (CONTEXT.session_length*1000) - 10000)
 
@@ -73,6 +84,9 @@
       getModal('modal-extend-session').open()
       leaveOkay = true;
       autoRedirect = setTimeout(cancelSplit, 10000);
+      timer = setInterval(() => {
+        countdown -= 1;
+      }, 1000);
     }
   }
 
@@ -338,7 +352,7 @@
 </script>
 <svelte:window on:keydown={handleKeydown} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cleanup}/>
 
-<ExtendSessionModal {CONTEXT} {sessionId} callback={handleExtendSession} />
+<ExtendSessionModal {CONTEXT} {sessionId} callback={handleExtendSession} bind:countdown />
 <Modal id="modal-anonymous">
   <p>Feel free to experiment with the interface, but to submit your work you must 
     <Link href={"/account/login"}>sign in</Link> or
