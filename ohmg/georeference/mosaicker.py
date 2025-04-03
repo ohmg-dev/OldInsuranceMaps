@@ -95,7 +95,7 @@ class Mosaicker:
         mosaic_vrt = Path(
             settings.TEMP_DIR, f"{layerset.map.identifier}-{layerset.category.slug}.vrt"
         )
-        gdal.BuildVRT(mosaic_vrt, trim_list, options=vo)
+        gdal.BuildVRT(str(mosaic_vrt), trim_list, options=vo)
 
         return mosaic_vrt
 
@@ -115,7 +115,7 @@ class Mosaicker:
             ],
         )
         out_tif_path = mosaic_vrt.with_suffix(".tif")
-        gdal.Translate(out_tif_path, mosaic_vrt, options=to)
+        gdal.Translate(str(out_tif_path), mosaic_vrt, options=to)
 
         existing_file_path = None
         if layerset.mosaic_geotiff:
