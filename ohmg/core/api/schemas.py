@@ -583,6 +583,7 @@ class MapFullSchema(Schema):
     progress: dict
     extent: Optional[Any]
     locale: Optional[PlaceSchema]
+    locale_lineage: List[str]
     loaded_by: dict
     locks: List[SessionLockSchema]
 
@@ -642,6 +643,20 @@ class MapFullSchema(Schema):
     @staticmethod
     def resolve_documents(obj):
         return natsorted(obj.documents.all(), key=lambda k: k.title)
+
+    @staticmethod
+    def resolve_locale_lineage(obj):
+        slugs = []
+        for locale in obj.locales.all():
+            slugs.append(locale.slug)
+            direct_parents = locale.direct_parents.all()
+            while len(direct_parents) > 0:
+                new_parents = []
+                for parent in direct_parents:
+                    slugs.append(parent.slug)
+                    new_parents += list(parent.direct_parents.all())
+                direct_parents = new_parents
+        return slugs
 
 
 class MapResourcesSchema(Schema):

@@ -57,7 +57,6 @@
   import ExpandElement from "./buttons/ExpandElement.svelte";
   import ExtendSessionModal from "./modals/ExtendSessionModal.svelte";
 
-
   export let CONTEXT;
   export let REGION;
   export let MAP;
@@ -127,6 +126,17 @@
   }
   $: enableSave = gcpList.length >= 3 && enableButtons;
 
+  let countdown = 10;
+  let timer;
+  $: {
+    if (countdown === 0) {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+  }
+
   // show the extend session prompt 10 seconds before the session expires
   setTimeout(promptRefresh, (CONTEXT.session_length*1000) - 10000)
 
@@ -136,6 +146,9 @@
       getModal('modal-extend-session').open()
       leaveOkay = true;
       autoRedirect = setTimeout(cancelSession, 10000);
+      timer = setInterval(() => {
+        countdown -= 1;
+      }, 1000);
     }
   }
 
@@ -288,7 +301,13 @@
   }
 
   // SNAP LAYER STUFF
-  const parcelEntry = parcelLookup[MAP.locale.slug]
+  let parcelEntry;
+  MAP.locale_lineage.forEach(slug => {
+    if (parcelLookup[slug]) {
+      parcelEntry = parcelLookup[slug]
+      return
+    }
+  })
   const pmLayer = parcelEntry ? makePmTilesLayer(
     parcelEntry.pmtilesUrl,
     `<a target="_blank" href="${parcelEntry.attributionUrl}">${parcelEntry.attributionText}</a>`,
@@ -865,7 +884,7 @@
 
 </script>
 
-<ExtendSessionModal {CONTEXT} {sessionId} callback={handleExtendSession} />
+<ExtendSessionModal {CONTEXT} {sessionId} callback={handleExtendSession} bind:countdown />
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} on:beforeunload={() => {if (!leaveOkay) {confirmLeave()}}} on:unload={cancelSession}/>
 <div style="height:25px;">

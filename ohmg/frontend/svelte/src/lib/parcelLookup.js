@@ -33,5 +33,15 @@ export const parcelLookup = {
         "pmtilesUrl": "https://oldinsurancemaps.net/uploaded/camden-nj-parcels.pmtiles",
         "attributionText": "Camden County Open Data Portal",
         "attributionUrl": "https://camdencountynj-ccdpw.opendata.arcgis.com/"
+    },
+    "gloucester-county-nj": {
+        "pmtilesUrl": "https://oldinsurancemaps.net/uploaded/gloucester-county-parcels.pmtiles",
+        "attributionText": "New Jersey Office of GIS",
+        "attributionUrl": "https://njogis-newjersey.opendata.arcgis.com/documents/f74e347c0622425cbcb6d59d93ca6ac0/about"
+    },
+    "salem-county-nj": {
+        "pmtilesUrl": "https://oldinsurancemaps.net/uploaded/salem-county-parcels.pmtiles",
+        "attributionText": "New Jersey Office of GIS",
+        "attributionUrl": "https://www.arcgis.com/home/item.html?id=af31e6cfba5044a3914ba1ff52f5e26e"
     }
 }

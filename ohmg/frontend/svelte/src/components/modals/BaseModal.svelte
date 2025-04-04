@@ -26,10 +26,11 @@ let closeCallback
 export let id=''
 export let mdContent = ''
 export let full = false
+export let closable = true;
 
 function keyPress(ev){
 	//only respond if the current modal is the top one
-	if(ev.key=="Escape" && onTop==topDiv) close('') //ESC
+	if(ev.key=="Escape" && onTop==topDiv && closable) close('') //ESC
 }
 
 /**  API **/
@@ -69,15 +70,17 @@ onDestroy(()=>{
 
 <!-- this modal works fine with keyboard interaction, disabling a11y warnings -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div id="topModal" class:visible bind:this={topDiv} on:click={()=>close('')}>
+<div id="topModal" class:visible bind:this={topDiv} on:click={()=> {if (closable && visible) {close('')}}}>
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<div id='modal' class={full ? 'full-modal' : ''} on:click|stopPropagation={()=>{}}>
 		<!-- svelte-ignore a11y-click-events-have-key-events -->
+		{#if closable}
 		<svg id="close" on:click={()=>close('')} viewBox="0 0 12 12">
 			<circle cx=6 cy=6 r=6 />
 			<line x1=3 y1=3 x2=9 y2=9 />
 			<line x1=9 y1=3 x2=3 y2=9 />
 		</svg>
+		{/if}
 		<div id='modal-content' class={full ? 'full-modal-content' : ''}>
 			{#if mdContent}
 			<SvelteMarkdown source={mdContent} />
