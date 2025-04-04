@@ -44,7 +44,7 @@ class Viewer(View):
         maps = []
 
         place_data = place.serialize()
-        for map in Map.objects.filter(locales__id__exact=place.id).prefetch_related():
+        for map in Map.objects.filter(locales__id__exact=place.id, hidden=False).prefetch_related():
             map_json = MapFullSchema.from_orm(map).dict()
             ls = map.get_layerset("main-content")
             if ls:
