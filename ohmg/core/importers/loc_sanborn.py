@@ -13,7 +13,6 @@ from ohmg.core.utils import (
     STATE_ABBREV,
 )
 from ohmg.core.importers.base import BaseImporter
-from ohmg.places.models import Place
 from ohmg.core.utils import (
     STATE_CHOICES,
 )
@@ -57,11 +56,6 @@ class LOCSanbornImporter(BaseImporter):
 
     def parse(self):
         identifier = self.input_data["identifier"]
-        locale_slug = self.input_data["locale"]
-        try:
-            Place.objects.get(slug=locale_slug)
-        except Place.DoesNotExist as e:
-            raise e
 
         lc = LOCConnection(delay=0, verbose=True)
 
@@ -280,6 +274,7 @@ class LOCParser(object):
             else:
                 logger.error("No jp2 urls in this fileset, skipping")
                 logger.debug(file_set)
+
 
 class LOCConnection(object):
     def __init__(self, verbose=False, delay=5):
