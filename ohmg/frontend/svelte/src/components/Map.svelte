@@ -40,6 +40,7 @@
 
   import { getFromAPI, submitPostRequest } from '../lib/requests';
   import { makeTitilerXYZUrl } from '../lib/utils';
+  import SkippedSectionHelpModal from './modals/SkippedSectionHelpModal.svelte';
 
   export let CONTEXT;
   export let MAP;
@@ -366,6 +367,7 @@
 <MultiMaskModal id={'modal-multimask'} />
 <NonMapContentModal id={'modal-non-map'} />
 <GeoreferencePermissionsModal id={'modal-permissions'} user={CONTEXT.user.username} {userCanEdit} item={MAP} />
+<SkippedSectionHelpModal id="modal-skipped" />
 <Modal id={'modal-simple-viewer'} full={true}>
   {#each reinitModalMap as key (key)}
     {#if modalIsGeospatial}
