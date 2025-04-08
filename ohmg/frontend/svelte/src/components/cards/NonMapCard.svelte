@@ -23,6 +23,7 @@
   <div slot="card-middle">
     <button
       class="thumbnail-btn"
+      title="Open image preview"
       on:click={() => {
         modalLyrUrl = nonmap.urls.image;
         modalExtent = [0, -nonmap.image_size[1], nonmap.image_size[0], 0];

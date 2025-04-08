@@ -407,6 +407,7 @@
   {/if}
   <div id="panel-btn">
     <button
+      title={showPanel ? 'Close layers panel' : 'Open layers panel'}
       class="control-btn"
       on:click={() => {
         showPanel = !showPanel;
@@ -444,6 +445,7 @@
                 <div>
                   <button
                     class="toggle-button"
+                    title="Toggle layer transparency"
                     disabled={!volumeLookup[id].mainLayer}
                     on:click={() => toggleLayerTransparencyIcon(id)}
                   >
@@ -466,7 +468,7 @@
                   />
                 </div>
                 <div>
-                  <button style="" on:click={() => toggleDetails(id)}><DotsThreeOutline /></button>
+                  <button title="Map details" style="" on:click={() => toggleDetails(id)}><DotsThreeOutline /></button>
                 </div>
               </div>
               <div {id} class="volume-detail">

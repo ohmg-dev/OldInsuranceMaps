@@ -384,6 +384,7 @@
               &nbsp;
               <button
                 class="layer-entry"
+                title="Zoom to layer"
                 on:click={() => zoomToLayer(layer)}
                 on:mouseover={() => showExtent(layer)}
                 on:focus={null}
@@ -406,7 +407,7 @@
               </ToolUIButton>
               {#if CONTEXT.user.is_authenticated}
                 <ToolUIButton
-                  title="edit georeferencing for this layer"
+                  title="Edit georeferencing for this layer"
                   action={() => {
                     window.location.href = layer.georeferenceUrl;
                   }}
@@ -417,6 +418,7 @@
               &nbsp;
               <button
                 class="layer-entry"
+                title="Zoom to layer"
                 on:click={() => zoomToLayer(layer)}
                 on:mouseover={() => showExtent(layer)}
                 on:focus={null}

@@ -32,7 +32,7 @@
 
 <div class="date-filter">
   <DatePicker bind:isOpen bind:startDate bind:endDate isRange showPresets>
-    <button class="date-field" on:click={toggleDatePicker} class:open={isOpen}>
+    <button class="date-field" title="Open date picker" on:click={toggleDatePicker} class:open={isOpen}>
       <div class="date">
         {#if startDate}
           {formattedStartDate} - {formattedEndDate}
@@ -40,7 +40,7 @@
           Filter by date range...
         {/if}
         {#if startDate}
-          <button on:click={onClearDates}>
+          <button title="Close date picker" on:click={onClearDates}>
             <X />
           </button>
         {/if}

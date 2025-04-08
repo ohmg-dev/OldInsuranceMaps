@@ -111,7 +111,12 @@
 <main>
   <ResourceBreadcrumbs {LOCALE} {MAP} {RESOURCE} />
   <section>
-    <button class="section-toggle-btn" on:click={() => toggleSection('summary')} disabled={false}>
+    <button
+      class="section-toggle-btn"
+      on:click={() => toggleSection('summary')}
+      disabled={false}
+      title={sectionVis['summary'] ? 'Collapse section' : 'Expand section'}
+    >
       <ConditionalDoubleChevron down={sectionVis['summary']} size="md" />
       <h2>Summary</h2>
     </button>
@@ -122,7 +127,12 @@
     {/if}
   </section>
   <section>
-    <button class="section-toggle-btn" on:click={() => toggleSection('preview')} disabled={false}>
+    <button
+      class="section-toggle-btn"
+      on:click={() => toggleSection('preview')}
+      disabled={false}
+      title={sectionVis['preview'] ? 'Collapse section' : 'Expand section'}
+    >
       <ConditionalDoubleChevron down={sectionVis['preview']} size="md" />
       <h2>{upperCaseType} Preview</h2>
     </button>
@@ -141,7 +151,12 @@
     {/if}
   </section>
   <section>
-    <button class="section-toggle-btn" on:click={() => toggleSection('prep')} disabled={false}>
+    <button
+      class="section-toggle-btn"
+      on:click={() => toggleSection('prep')}
+      disabled={false}
+      title={sectionVis['prep'] ? 'Collapse section' : 'Expand section'}
+    >
       <ConditionalDoubleChevron down={sectionVis['prep']} size="md" />
       <h2>Preparation</h2>
     </button>
@@ -200,7 +215,12 @@
     {/if}
   </section>
   <section>
-    <button class="section-toggle-btn" on:click={() => toggleSection('georef')} disabled={false}>
+    <button
+      class="section-toggle-btn"
+      on:click={() => toggleSection('georef')}
+      disabled={false}
+      title={sectionVis['georef'] ? 'Collapse section' : 'Expand section'}
+    >
       <ConditionalDoubleChevron down={sectionVis['georef']} size="md" />
       <h2>Georeferencing</h2>
     </button>
@@ -247,7 +267,12 @@
     {/if}
   </section>
   <section style="border-bottom:none;">
-    <button class="section-toggle-btn" on:click={() => toggleSection('history')} disabled={false}>
+    <button
+      class="section-toggle-btn"
+      on:click={() => toggleSection('history')}
+      disabled={false}
+      title={sectionVis['history'] ? 'Collapse section' : 'Expand section'}
+    >
       <ConditionalDoubleChevron down={sectionVis['history']} size="md" />
       <h2>Session History</h2>
     </button>

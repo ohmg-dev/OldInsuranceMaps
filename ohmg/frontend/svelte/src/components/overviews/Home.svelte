@@ -43,6 +43,7 @@
       </div>
       {#if CONTEXT.on_mobile}<span
           ><button
+            title="Show browsable map interface"
             class="link-btn"
             on:click={() => {
               showBrowseMap = !showBrowseMap;
@@ -119,7 +120,9 @@
           {#if USER_SUBSCRIBED}
             <Link href="/newsletter/{NEWSLETTER_SLUG}?utm_source=index">manage subscription</Link>
           {:else}
-            <button id="id_submit" name="submit" value="Subscribe" type="submit">Subscribe</button>
+            <button id="id_submit" title="Submit newsletter subscription" name="submit" value="Subscribe" type="submit"
+              >Subscribe</button
+            >
           {/if}
         </form>
       </div>

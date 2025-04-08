@@ -23,6 +23,7 @@
   </div>
   <div slot="card-middle">
     <button
+      title="Open image preview"
       class="thumbnail-btn"
       on:click={() => {
         modalLyrUrl = region.urls.image;
@@ -46,7 +47,7 @@
         <li>
           <button
             class="is-text-link"
-            title="click to move this document to the non-map section"
+            title="Move to the Prepared section"
             on:click={() => {
               postSkipRegion(region.id, false);
             }}

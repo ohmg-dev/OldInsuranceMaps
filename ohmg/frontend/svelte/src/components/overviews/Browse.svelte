@@ -24,6 +24,7 @@
   <div class="tab-row">
     <button
       class={currentTab == 'map' ? 'active' : ''}
+      title="Browse by map"
       on:click={() => {
         currentTab = 'map';
         reinitMap = [{}];
@@ -33,6 +34,7 @@
     </button>
     <button
       class={currentTab == 'places' ? 'active' : ''}
+      title="Browse by locale"
       on:click={() => {
         currentTab = 'places';
       }}
@@ -41,6 +43,7 @@
     </button>
     <button
       class={currentTab == 'items' ? 'active' : ''}
+      title="Browse by content name"
       on:click={() => {
         currentTab = 'items';
       }}

@@ -36,6 +36,7 @@
         {#each PLACE.parents as d}
           <li>
             <button
+              title="Find maps in {d.display_name}"
               on:click={() => {
                 update(d.slug);
               }}
@@ -58,6 +59,7 @@
           {#each localeList as d}
             <li>
               <button
+                title="Find maps in {d.display_name}"
                 on:click={() => {
                   update(d.slug);
                 }}

@@ -21,6 +21,7 @@
   <button
     on:click={handleRefresh}
     disabled={!enableRefresh}
+    title={label}
     class="button"
     style="height:1.5em; border-radius:2px; background:#123b4f; color:white; display:flex; align-items:center; padding: 5px;"
   >

@@ -1,12 +1,11 @@
 <script>
-  import Question from 'phosphor-svelte/lib/Question';
   import { getCenter } from 'ol/extent';
 
   import Link from '../../common/Link.svelte';
-  import { getModal } from '../../modals/BaseModal.svelte';
   import ResourceDownloadSectionModal from '../../modals/ResourceDownloadSectionModal.svelte';
 
   import { makeTitilerXYZUrl } from '../../../lib/utils';
+  import InfoModalButton from '../../buttons/InfoModalButton.svelte';
 
   export let CONTEXT;
   export let RESOURCE;
@@ -74,12 +73,7 @@
 {#if !MAP.hidden}
   <div class="header-bar">
     <h3>Downloads & Web Services</h3>
-    <button
-      class="is-icon-link"
-      on:click={() => {
-        getModal('download-section-modal').open();
-      }}><Question /></button
-    >
+    <InfoModalButton modalId="download-section-modal" />
   </div>
   <table>
     <tr>

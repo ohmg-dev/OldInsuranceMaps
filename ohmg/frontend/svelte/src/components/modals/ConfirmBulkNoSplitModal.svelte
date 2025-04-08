@@ -28,6 +28,7 @@
   </p>
   <button
     class="button is-success"
+    title="Confirm preparation"
     on:click={() => {
       postBulkNoSplit();
       getModal('modal-confirm-bulk-no-split').close();
@@ -35,6 +36,7 @@
   >
   <button
     class="button is-danger"
+    title="Cancel preparation"
     on:click={() => {
       getModal('modal-confirm-bulk-no-split').close();
     }}>Cancel</button

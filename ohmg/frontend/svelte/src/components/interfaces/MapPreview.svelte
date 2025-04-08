@@ -170,7 +170,12 @@
       </div>
       {#each layerIdList as id}
         <div class="layer-section-header">
-          <button class="layer-entry" on:click={() => mapViewer.setExtent(layerSetLookup[id].extent)} on:focus={null}>
+          <button
+            class="layer-entry"
+            title="Zoom to layer category extent"
+            on:click={() => mapViewer.setExtent(layerSetLookup[id].extent)}
+            on:focus={null}
+          >
             <span>{layerSetLookup[id].name}</span>
           </button>
           <span style="color:grey">({layerSetLookup[id].layerCt})</span>

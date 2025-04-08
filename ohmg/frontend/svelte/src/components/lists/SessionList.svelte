@@ -8,11 +8,12 @@
 
   import Link from '../common/Link.svelte';
   import SessionListModal from '../modals/SessionListModal.svelte';
-  import { getModal } from '../modals/BaseModal.svelte';
+  // import { getModal } from '../modals/BaseModal.svelte';
   import DatePicker from '../buttons/DatePicker.svelte';
   import PaginationButtons from '../buttons/PaginationButtons.svelte';
 
   import { getFromAPI } from '../../lib/requests';
+  import InfoModalButton from '../buttons/InfoModalButton.svelte';
 
   export let CONTEXT;
   export let FILTER_PARAM = '';
@@ -90,12 +91,7 @@
 <div>
   <div class="level" style="margin:.5em 0;">
     <div class="level-left">
-      <button
-        class="is-icon-link"
-        on:click={() => {
-          getModal('modal-session-list').open();
-        }}><Question /></button
-      >
+      <InfoModalButton modalId="modal-session-list" />
       {#if mapFilterItems}
         <Select
           items={mapFilterItems}
@@ -148,6 +144,7 @@
       {#if allowRefresh}
         <button
           class="is-icon-link"
+          title="Refresh session list"
           disabled={loading}
           on:click={() => {
             offset = 1000;

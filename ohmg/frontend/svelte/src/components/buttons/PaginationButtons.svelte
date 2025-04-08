@@ -21,6 +21,7 @@
 <div class="btn-container">
   <button
     class="is-icon-link"
+    title="Go to previous page"
     disabled={currentOffset < limitInt || loading}
     on:click={() => {
       currentOffset = currentOffset - limitInt;
@@ -44,6 +45,7 @@
   {/if}
   <button
     class="is-icon-link"
+    title="Go to next page"
     disabled={currentOffset + limitInt >= total || loading}
     on:click={() => {
       currentOffset = currentOffset + limitInt;

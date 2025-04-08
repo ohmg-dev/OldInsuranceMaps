@@ -146,6 +146,7 @@
           <li>
             <button
               class="is-text-link"
+              title="Attempt to reload the file for this document"
               disabled={documentsLoading}
               on:click={() => {
                 document.loading_file = true;

@@ -29,6 +29,7 @@
   </div>
   <div slot="card-middle">
     <button
+      title="Open image preview"
       class="thumbnail-btn"
       on:click={() => {
         modalLyrUrl = region.urls.image;
@@ -50,7 +51,7 @@
     {:else if userCanEdit}
       <ul>
         <li>
-          <Link href={region.urls.georeference} title="georeference this document">
+          <Link href={region.urls.georeference} title="Begin georeferencing">
             <MapPin /> georeference
           </Link>
         </li>
@@ -59,8 +60,8 @@
             disabled={!CONTEXT.user.is_staff && CONTEXT.user.username != region.created_by}
             class="is-text-link"
             title={!CONTEXT.user.is_staff && CONTEXT.user.username != region.created_by
-              ? `Only ${region.created_by} or an admin and can undo this preparation.`
-              : 'Undo all preparation.'}
+              ? `Only ${region.created_by} or an admin and can undo this preparation`
+              : 'Undo preparation'}
             style="display:flex; align-items:center;"
             on:click={() => {
               postDocumentUnprepare(region.document_id);
@@ -72,7 +73,7 @@
         <li>
           <button
             class="is-text-link"
-            title="click to move this document to the non-map section"
+            title="Move to Non-map section"
             on:click={() => {
               postRegionCategory(region.id, 'non-map');
             }}
@@ -83,7 +84,7 @@
         <li>
           <button
             class="is-text-link"
-            title="click to move this document to the non-map section"
+            title="Skip this piece (for now)"
             on:click={() => {
               postSkipRegion(region.id, true);
             }}

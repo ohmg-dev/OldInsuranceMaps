@@ -41,6 +41,7 @@
   <section>
     <div class="section-title-bar">
       <button
+        title={showSessions ? 'Collapse section' : 'Expand section'}
         class="section-toggle-btn"
         on:click={() => {
           showSessions = !showSessions;

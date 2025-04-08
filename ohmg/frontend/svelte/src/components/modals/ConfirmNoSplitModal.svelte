@@ -17,6 +17,7 @@
   <p>Are you sure this document does not need to be split?</p>
   <button
     class="button is-success"
+    title="Confirm no split needed"
     on:click={() => {
       postNoSplit();
       getModal('modal-confirm-no-split').close();
@@ -24,6 +25,7 @@
   >
   <button
     class="button is-danger"
+    title="Cancel preparation"
     on:click={() => {
       getModal('modal-confirm-no-split').close();
     }}>Cancel</button

@@ -23,6 +23,7 @@
   </p>
   <button
     class="button is-success"
+    title="Confirm removal of georeferencing information for this layer"
     on:click={() => {
       postUngeoreference();
       getModal('modal-confirm-ungeoreference').close();
@@ -30,6 +31,7 @@
   >
   <button
     class="button is-danger"
+    title="Cancel"
     on:click={() => {
       getModal('modal-confirm-ungeoreference').close();
     }}>Cancel</button

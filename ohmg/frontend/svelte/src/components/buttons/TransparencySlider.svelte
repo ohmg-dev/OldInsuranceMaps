@@ -27,6 +27,7 @@
 <div style="display:flex; align-items:center;">
   <input class="slider" type="range" bind:value={opacity} min="0" max="100" />
   <button
+    title="Toggle transparency"
     class="transparency-toggle"
     on:click={() => {
       opacity = toggleTransparency(opacity);

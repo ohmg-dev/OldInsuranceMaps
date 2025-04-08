@@ -395,6 +395,7 @@
   <p>Are you sure you want to cancel this session?</p>
   <button
     class="button is-success"
+    title="Cancel and redirect"
     on:click={() => {
       cancelSplit();
       getModal('modal-cancel').close();
@@ -402,6 +403,7 @@
   >
   <button
     class="button is-danger"
+    title="Continue session"
     on:click={() => {
       getModal('modal-cancel').close();
     }}>No - keep working</button

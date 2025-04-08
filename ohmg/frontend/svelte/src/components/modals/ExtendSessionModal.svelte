@@ -17,6 +17,7 @@
   <div style="display:flex; align-items:center;">
     <button
       class="button is-success"
+      title="Extend this session"
       on:click={() => {
         postExtendSession();
         getModal('modal-extend-session').close();

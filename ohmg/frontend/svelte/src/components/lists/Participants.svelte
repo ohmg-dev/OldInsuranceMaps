@@ -85,7 +85,9 @@
 					{/if}
 				{/each} -->
           {#if p.maps.length > 0}
-            <button id="{p.username}-btn" on:click={() => toggleList(p.username)}>show list</button>
+            <button id="{p.username}-btn" title="Show loaded maps" on:click={() => toggleList(p.username)}
+              >show list</button
+            >
           {/if}
         </div>
         {#if p.maps.length > 0}

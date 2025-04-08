@@ -34,6 +34,7 @@
   </div>
   <div slot="card-middle">
     <button
+      title="Open layer preview"
       class="thumbnail-btn"
       on:click={() => {
         modalLyrUrl = layer.urls.cog;
@@ -56,7 +57,7 @@
       <ul>
         {#if userCanEdit}
           <li>
-            <Link href={layer.urls.georeference} title="edit georeferencing">
+            <Link href={layer.urls.georeference} title="Edit georeferencing">
               <MapPin /> edit georeferencing
             </Link>
           </li>
@@ -65,8 +66,8 @@
               disabled={!CONTEXT.user.is_staff && CONTEXT.user.username != layer.created_by}
               class="is-text-link"
               title={!CONTEXT.user.is_staff && CONTEXT.user.username != layer.created_by
-                ? `Only ${layer.created_by} or an admin and can undo this layer.`
-                : 'Undo all georeferencing for this layer.'}
+                ? `Only ${layer.created_by} or an admin and can undo this layer`
+                : 'Undo georeferencing for this layer'}
               on:click={() => {
                 undoGeorefLayerId = layer.id;
                 getModal('modal-confirm-ungeoreference').open();
@@ -92,6 +93,7 @@
               <div class="dropdown-trigger" style="padding:0;">
                 <button
                   class="is-text-link"
+                  title="Show download options"
                   aria-haspopup="true"
                   aria-controls="dropdown-menu6"
                   on:click|stopPropagation={() => {
@@ -110,6 +112,7 @@
                       <li>
                         <button
                           class="is-text-link"
+                          title="Copy URL to clipboard"
                           on:click={() => {
                             copyToClipboard(`lyr-${layer.id}-xyz-link`);
                           }}>XYZ Tiles URL <Copy /></button
@@ -118,6 +121,7 @@
                       <li>
                         <button
                           class="is-text-link"
+                          title="Copy URL to clipboard"
                           on:click={() => {
                             copyToClipboard(`lyr-${layer.id}-wms-link`);
                           }}>WMS endpoint <Copy /></button

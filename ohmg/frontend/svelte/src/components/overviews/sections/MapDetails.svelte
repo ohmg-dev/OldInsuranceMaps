@@ -1,10 +1,8 @@
 <script>
-  import Question from 'phosphor-svelte/lib/Question';
-
   import Link from '../../common/Link.svelte';
-  import { getModal } from '../../modals/BaseModal.svelte';
   import DownloadSectionModal from '../../modals/ItemDownloadSectionModal.svelte';
   import SessionList from '../../lists/SessionList.svelte';
+  import InfoModalButton from '../../buttons/InfoModalButton.svelte';
 
   export let CONTEXT;
   export let MAP;
@@ -81,12 +79,7 @@
       <h3>Mosaic Download & Web Services</h3>
     </div>
     <div class="level-right">
-      <button
-        class="is-icon-link"
-        on:click={() => {
-          getModal('download-section-modal').open();
-        }}><Question /></button
-      >
+      <InfoModalButton modalId="download-section-modal" />
     </div>
   </div>
   {#each LAYERSETS as ls}
