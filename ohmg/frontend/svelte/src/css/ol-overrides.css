@@ -1,47 +1,46 @@
 .ol-control > button {
-    background: #123b4f !important;
-    color: white !important;
+  background: #123b4f !important;
+  color: white !important;
 }
 
 .ol-mouse-position {
-    background: rgba(255,255,255,0.5) !important;
-    padding: 1px 5px !important;
-    cursor: default !important;
-    border-radius: 4px !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  padding: 1px 5px !important;
+  cursor: default !important;
+  border-radius: 4px !important;
 }
 
 .ol-zoom-extent {
-    top: .5em !important;
-    right: .5em !important;
-    left: unset !important;
+  top: 0.5em !important;
+  right: 0.5em !important;
+  left: unset !important;
 }
 
 .ol-zoom-extent button {
-    line-height: .4em !important;
+  line-height: 0.4em !important;
 }
 
 .ol-touch .ol-zoom-extent {
-    top: .5em;
+  top: 0.5em;
 }
 
 .ol-touch .ol-control button {
-    font-size: unset;
+  font-size: unset;
 }
 
 .ol-rotate {
-    top: 6em !important;
-    left: .5em !important;
-    right: unset !important;
+  top: 6em !important;
+  left: 0.5em !important;
+  right: unset !important;
 }
 
 @media only screen and (max-width: 480px) {
-
-    #locate-button {
-    	top: 6em !important;
-	}
-	.ol-rotate {
-    	top: 9em !important;
-	}
+  #locate-button {
+    top: 6em !important;
+  }
+  .ol-rotate {
+    top: 9em !important;
+  }
 }
 
 /* .ol-rotate-reset {

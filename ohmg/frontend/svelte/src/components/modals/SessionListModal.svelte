@@ -1,9 +1,9 @@
 <script>
-    import Modal from "./BaseModal.svelte";
+  import Modal from './BaseModal.svelte';
 
-    export let id;
+  export let id;
 
-    let modalContent = `## Activity by sessions
+  let modalContent = `## Activity by sessions
 
 When users complete a step in the georeferencing process, it is stored as a session, either a **Prep** (preparation) session or **Georef** (georeferencing) session. (For now, MultiMask trimming is not stored in sessions.) 
 
@@ -13,7 +13,7 @@ This panel allows you to view all sessions that have been performed on _OldInsur
 
 Note that this session list appears in more than one place across the platform, so some filter methods and columns are hidden in certain contexts where they would be redundant.
 
-If you are looking for a list of the most recently added items (volumes), go to the [items page](/search#items)</a> and sort the table by **Load date**.`
+If you are looking for a list of the most recently added items (volumes), go to the [items page](/search#items)</a> and sort the table by **Load date**.`;
 </script>
 
-<Modal id={id} mdContent={modalContent} />
+<Modal {id} mdContent={modalContent} />

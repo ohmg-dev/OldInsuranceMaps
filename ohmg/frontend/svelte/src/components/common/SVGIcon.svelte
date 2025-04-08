@@ -1,9 +1,9 @@
 <script>
-    import "../../../../static/css/fancy-icons.css";
+  import '../../../../static/css/fancy-icons.css';
 
-    export let icon;
-    export let size = 'lg';
-    export let link = '';
+  export let icon;
+  export let size = 'lg';
+  export let link = '';
 </script>
 
-<i class="fancy fancy-{size} i-{icon} {link == "enabled" ? ' link-enabled' : ''}{link == "disabled" ? ' link-disabled' : ''}"></i>
+<i class="fancy fancy-{size} i-{icon} {link == 'enabled' ? ' link-enabled' : ''}{link == 'disabled' ? ' link-disabled' : ''}"></i>
