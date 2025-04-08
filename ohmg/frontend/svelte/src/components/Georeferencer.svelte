@@ -536,7 +536,9 @@
     mapGCPSource.forEachFeature(function (mapFeat) {
       docGCPSource.forEachFeature(function (docFeat) {
         if (mapFeat.getProperties().listId == docFeat.getProperties().listId) {
-          mapFeat.setProperties({ image: [Math.round(docFeat.getGeometry().flatCoordinates[0]), -Math.round(docFeat.getGeometry().flatCoordinates[1])] });
+          mapFeat.setProperties({
+            image: [Math.round(docFeat.getGeometry().flatCoordinates[0]), -Math.round(docFeat.getGeometry().flatCoordinates[1])],
+          });
         }
       });
     });
@@ -969,7 +971,9 @@
           </p>
         {:else if disableReason == 'input' || disableReason == 'processing'}
           <!-- svelte-ignore a11y-invalid-attribute -->
-          <p>Someone is already georeferencing this document (<Link href="javascript:window.location.reload(true)">refresh</Link>).</p>
+          <p>
+            Someone is already georeferencing this document (<Link href="javascript:window.location.reload(true)">refresh</Link>).
+          </p>
         {:else if disableReason == 'submit'}
           <p>Saving control points and georeferencing document... redirecting to document detail page.</p>
           <LoadingEllipsis />

@@ -93,12 +93,15 @@
   let currentTxt;
   $: {
     if (DOCUMENT.regions.length > 0) {
-      currentTxt = 'This document has already been prepared! (It was split into ' + DOCUMENT.regions.length + ' documents.)';
+      currentTxt =
+        'This document has already been prepared! (It was split into ' + DOCUMENT.regions.length + ' documents.)';
     } else if (divisions.length <= 1) {
-      currentTxt = 'If this image needs to be split, draw cut-lines across it as needed. Click once to start or continue a line, double-click to finish.';
+      currentTxt =
+        'If this image needs to be split, draw cut-lines across it as needed. Click once to start or continue a line, double-click to finish.';
     } else {
       const linesTxt = cutLines.length + ' ' + (cutLines.length === 1 ? 'cut-line' : 'cut-lines');
-      const divsTxt = divisions.length + ' new ' + (divisions.length === 1 ? 'document' : 'documents') + ' will be made';
+      const divsTxt =
+        divisions.length + ' new ' + (divisions.length === 1 ? 'document' : 'documents') + ' will be made';
       currentTxt = 'Split summary: ' + linesTxt + ' | ' + divsTxt;
     }
   }

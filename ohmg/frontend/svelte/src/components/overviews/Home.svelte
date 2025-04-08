@@ -26,7 +26,13 @@
   <div class="homepage-section">
     <div>
       <h1 style="word-wrap: break-word;">OldInsuranceMaps.net</h1>
-      <p>A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the Library of Congress. See <Link href="/#how-it-works">how it works</Link> or visit the <Link href="https://about.oldinsurancemaps.net?utm_source=hero" external={true}>about</Link> or <Link href="https://about.oldinsurancemaps.net/faq?utm_source=hero">FAQ</Link> pages to learn more.</p>
+      <p>
+        A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the
+        Library of Congress. See <Link href="/#how-it-works">how it works</Link> or visit the <Link
+          href="https://about.oldinsurancemaps.net?utm_source=hero"
+          external={true}>about</Link
+        > or <Link href="https://about.oldinsurancemaps.net/faq?utm_source=hero">FAQ</Link> pages to learn more.
+      </p>
     </div>
   </div>
   <div class="homepage-section">
@@ -65,7 +71,12 @@
         <div>
           <h3>Recently added</h3>
           <LatestAdditions {CONTEXT} />
-          <span><em>Want to see more? View <Link href="/search/#items">all items</Link> and sort by <strong>Load date</strong>.</em></span>
+          <span
+            ><em
+              >Want to see more? View <Link href="/search/#items">all items</Link> and sort by
+              <strong>Load date</strong>.</em
+            ></span
+          >
         </div>
         <div>
           <h3>Browse all</h3>
@@ -74,7 +85,14 @@
             <li><Link href="/search/#places">By place name ({PLACES_CT})</Link></li>
             <li><Link href="/search/#places">By item ({MAP_CT})</Link></li>
           </ul>
-          <span><em><Link href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link" external={true}>request more LOC maps</Link></em></span>
+          <span
+            ><em
+              ><Link
+                href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link"
+                external={true}>request more LOC maps</Link
+              ></em
+            ></span
+          >
         </div>
       </div>
     </div>
@@ -96,7 +114,8 @@
         </div>
         <form enctype="multipart/form-data" method="post" action="/newsletter/{NEWSLETTER_SLUG}/subscribe/">
           <input type="hidden" name="csrfmiddlewaretoken" value={CONTEXT.csrf_token} />
-          <label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe:</label> <input type="email" name="email_field" required="" id="id_email_field" disabled={USER_SUBSCRIBED} />
+          <label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe:</label>
+          <input type="email" name="email_field" required="" id="id_email_field" disabled={USER_SUBSCRIBED} />
           {#if USER_SUBSCRIBED}
             <Link href="/newsletter/{NEWSLETTER_SLUG}?utm_source=index">manage subscription</Link>
           {:else}
@@ -116,7 +135,15 @@
             <SVGIcon icon="volume" size="lg" />
           </div>
           <p>
-            Digital scans of Sanborn maps are available through the <Link href="https://loc.gov/collections/sanborn-maps" external={true}>Library of Congress</Link> and are pulled into this site through the LOC <Link href="https://www.loc.gov/apis/json-and-yaml/requests/" external={true}>JSON API</Link>, generating a "Map Summary" page (<Link href="/map/sanborn03275_001/?utm_source=index">Baton Rouge, 1885</Link>).
+            Digital scans of Sanborn maps are available through the <Link
+              href="https://loc.gov/collections/sanborn-maps"
+              external={true}>Library of Congress</Link
+            > and are pulled into this site through the LOC <Link
+              href="https://www.loc.gov/apis/json-and-yaml/requests/"
+              external={true}>JSON API</Link
+            >, generating a "Map Summary" page (<Link href="/map/sanborn03275_001/?utm_source=index"
+              >Baton Rouge, 1885</Link
+            >).
           </p>
         </div>
         <div>
@@ -124,7 +151,10 @@
             <SVGIcon icon="document" size="lg" />
           </div>
           <p>
-            Users <Link href="/split/244/">prepare each sheet</Link> in the volume, sometimes splitting it into multiple documents, each to be georeferenced individually (<Link href="/document/244?utm_source=index">Baton Rouge, 1885, page 1</Link>).
+            Users <Link href="/split/244/">prepare each sheet</Link> in the volume, sometimes splitting it into multiple
+            documents, each to be georeferenced individually (<Link href="/document/244?utm_source=index"
+              >Baton Rouge, 1885, page 1</Link
+            >).
           </p>
         </div>
         <div>
@@ -132,7 +162,11 @@
             <SVGIcon icon="layer" size="lg" />
           </div>
           <p>
-            Next, each document must be georeferenced by <Link href="/georeference/3097?utm_source=index">creating ground control points</Link>, linking features on the old map with latitude/longitude coordinates to create a geospatial layer (<Link href="/layer/389?utm_source=index">Baton Rouge, 1885, page 1, part 3</Link>).
+            Next, each document must be georeferenced by <Link href="/georeference/3097?utm_source=index"
+              >creating ground control points</Link
+            >, linking features on the old map with latitude/longitude coordinates to create a geospatial layer (<Link
+              href="/layer/389?utm_source=index">Baton Rouge, 1885, page 1, part 3</Link
+            >).
           </p>
         </div>
         <div>
@@ -140,7 +174,9 @@
             <SVGIcon icon="webmap" size="lg" />
           </div>
           <p>
-            As they are georeferenced, layers slowly build a collage of all the content from a given volume, and their overlapping margins <Link href="/map/sanborn03275_001?utm_source=index#multimask">must be trimmed</Link> to create a seamless mosaic.
+            As they are georeferenced, layers slowly build a collage of all the content from a given volume, and their
+            overlapping margins <Link href="/map/sanborn03275_001?utm_source=index#multimask">must be trimmed</Link> to create
+            a seamless mosaic.
           </p>
         </div>
         <div>
@@ -148,10 +184,17 @@
             <SVGIcon icon="pinmap" size="lg" />
           </div>
           <p>
-            Finally, all volume mosaics for a given locale are automatically aggregated into a simple web viewer so you can easily compare different years and current maps (<Link href="/viewer/baton-rouge-la?utm_source=index">Baton Rouge viewer</Link>).
+            Finally, all volume mosaics for a given locale are automatically aggregated into a simple web viewer so you
+            can easily compare different years and current maps (<Link href="/viewer/baton-rouge-la?utm_source=index"
+              >Baton Rouge viewer</Link
+            >).
           </p>
         </div>
-        <h4>Want to learn more? Visit the <Link href="https://about.oldinsurancemaps.net?utm_source=index" external={true}>documentation site</Link>.</h4>
+        <h4>
+          Want to learn more? Visit the <Link href="https://about.oldinsurancemaps.net?utm_source=index" external={true}
+            >documentation site</Link
+          >.
+        </h4>
       </div>
     </div>
   </div>
@@ -196,7 +239,9 @@ To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
     flex-direction: column;
     margin-right: -15px;
     margin-left: -15px;
-    background: linear-gradient(0deg, rgba(255 255 255 / 60%), rgba(255 255 255 / 60%)), url(/static/img/old-basin-canal-tall-50qual-crop.jpg);
+    background:
+      linear-gradient(0deg, rgba(255 255 255 / 60%), rgba(255 255 255 / 60%)),
+      url(/static/img/old-basin-canal-tall-50qual-crop.jpg);
     background-size: 100%;
   }
 

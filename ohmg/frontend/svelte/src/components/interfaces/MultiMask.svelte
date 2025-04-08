@@ -382,7 +382,12 @@
                 </ToolUIButton>
               {/if}
               &nbsp;
-              <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
+              <button
+                class="layer-entry"
+                on:click={() => zoomToLayer(layer)}
+                on:mouseover={() => showExtent(layer)}
+                on:focus={null}
+              >
                 <span style={currentLayer == layer.layerDef.slug ? 'color:red' : ''}>{layer.layerDef.nickname}</span>
               </button>
             </div>
@@ -410,7 +415,12 @@
                 </ToolUIButton>
               {/if}
               &nbsp;
-              <button class="layer-entry" on:click={() => zoomToLayer(layer)} on:mouseover={() => showExtent(layer)} on:focus={null}>
+              <button
+                class="layer-entry"
+                on:click={() => zoomToLayer(layer)}
+                on:mouseover={() => showExtent(layer)}
+                on:focus={null}
+              >
                 <span style={currentLayer == layer.layerDef.slug ? 'color:red' : ''}>{layer.layerDef.nickname}</span>
               </button>
             </div>

@@ -58,7 +58,9 @@
           <button
             disabled={!CONTEXT.user.is_staff && CONTEXT.user.username != region.created_by}
             class="is-text-link"
-            title={!CONTEXT.user.is_staff && CONTEXT.user.username != region.created_by ? `Only ${region.created_by} or an admin and can undo this preparation.` : 'Undo all preparation.'}
+            title={!CONTEXT.user.is_staff && CONTEXT.user.username != region.created_by
+              ? `Only ${region.created_by} or an admin and can undo this preparation.`
+              : 'Undo all preparation.'}
             style="display:flex; align-items:center;"
             on:click={() => {
               postDocumentUnprepare(region.document_id);

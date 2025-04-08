@@ -149,14 +149,23 @@
       <div transition:slide>
         <div class="section-body">
           {#if RESOURCE.prep_sessions.length > 0}
-            Initial preparation by <a href={RESOURCE.prep_sessions[0].user.profile}>{RESOURCE.prep_sessions[0].user.username}</a>: Split needed? <strong>{RESOURCE.prep_sessions[0].data.split_needed ? `Yes: ${RESOURCE.document.title} has been split into ${RESOURCE.regions.length} regions.` : 'No.'}</strong>
+            Initial preparation by <a href={RESOURCE.prep_sessions[0].user.profile}
+              >{RESOURCE.prep_sessions[0].user.username}</a
+            >: Split needed?
+            <strong
+              >{RESOURCE.prep_sessions[0].data.split_needed
+                ? `Yes: ${RESOURCE.document.title} has been split into ${RESOURCE.regions.length} regions.`
+                : 'No.'}</strong
+            >
           {/if}
           <div class="documents-column">
             {#if RESOURCE.regions}
               {#each RESOURCE.regions as region}
                 <div class="document-item">
                   <div>
-                    <Link href={region.urls.resource} title={region.title}>p{region.page_number}{region.division_number ? ` [${region.division_number}]` : ''}</Link>
+                    <Link href={region.urls.resource} title={region.title}
+                      >p{region.page_number}{region.division_number ? ` [${region.division_number}]` : ''}</Link
+                    >
                   </div>
                   <img src={region.urls.thumbnail} alt={region.title} title={region.title} />
                   <div>
@@ -174,9 +183,15 @@
             {:else}
               <div class="document-item">
                 <div>
-                  <Link href={RESOURCE.document.urls.resource} title={RESOURCE.document.title}>p{RESOURCE.document.page_number}</Link>
+                  <Link href={RESOURCE.document.urls.resource} title={RESOURCE.document.title}
+                    >p{RESOURCE.document.page_number}</Link
+                  >
                 </div>
-                <img src={RESOURCE.document.urls.thumbnail} alt={RESOURCE.document.title} title={RESOURCE.document.title} />
+                <img
+                  src={RESOURCE.document.urls.thumbnail}
+                  alt={RESOURCE.document.title}
+                  title={RESOURCE.document.title}
+                />
               </div>
             {/if}
           </div>
@@ -238,7 +253,14 @@
     </button>
     {#if sectionVis['history']}
       <div transition:slide>
-        <SessionList {CONTEXT} FILTER_PARAM={filterParam} showResource={false} paginate={false} limit="0" allowRefresh={false} />
+        <SessionList
+          {CONTEXT}
+          FILTER_PARAM={filterParam}
+          showResource={false}
+          paginate={false}
+          limit="0"
+          allowRefresh={false}
+        />
       </div>
     {/if}
   </section>

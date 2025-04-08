@@ -62,7 +62,11 @@
       </button>
     {:else if document.iiif_info}
       <div style="text-align:center;">
-        <img style="filter:opacity(75%)" src={document.iiif_info.replace('info.json', 'full/,200/0/default.jpg')} alt={document.title} />
+        <img
+          style="filter:opacity(75%)"
+          src={document.iiif_info.replace('info.json', 'full/,200/0/default.jpg')}
+          alt={document.title}
+        />
       </div>
     {:else}
       <div style="text-align:center;">{document.page_number}</div>

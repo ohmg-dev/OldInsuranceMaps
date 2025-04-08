@@ -32,7 +32,14 @@
   {#if currentLimit != 0}
     <div style="display:flex; flex-direction:row; align-items:center; margin-left:10px;">
       <span>show</span>
-      <Select items={limitOptions} bind:value={currentLimit} searchable={false} clearable={false} containerStyles="background:none; border:none; margin-left:6px; padding:0; width:45px; cursor:pointer;" listAutoWidth={false} />
+      <Select
+        items={limitOptions}
+        bind:value={currentLimit}
+        searchable={false}
+        clearable={false}
+        containerStyles="background:none; border:none; margin-left:6px; padding:0; width:45px; cursor:pointer;"
+        listAutoWidth={false}
+      />
     </div>
   {/if}
   <button

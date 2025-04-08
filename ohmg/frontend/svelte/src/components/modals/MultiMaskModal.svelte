@@ -10,7 +10,10 @@
 
 <Modal {id}>
   <h3>MultiMask</h3>
-  <p>The <strong>MultiMask</strong> is a mechanism for trimming the margins from every layer in a way that guarantees a seamless mosaic across this item's content.</p>
+  <p>
+    The <strong>MultiMask</strong> is a mechanism for trimming the margins from every layer in a way that guarantees a seamless
+    mosaic across this item's content.
+  </p>
   <p></p>
   <h4>How to create a MultiMask</h4>
   <ul>
@@ -23,7 +26,9 @@
   <ul>
     <li>You must be signed in to save your work, so don't get started before you are signed in!</li>
     <li>The vertices of every adjacent mask should be snapped together</li>
-    <li>You can drag existing vertices to snap them to others, but this is sometimes "sticky" and takes a couple of tries.</li>
+    <li>
+      You can drag existing vertices to snap them to others, but this is sometimes "sticky" and takes a couple of tries.
+    </li>
     <li>If a mosaic is generated for this item, only layers that have been masked will be included in the mosaic.</li>
   </ul>
 </Modal>

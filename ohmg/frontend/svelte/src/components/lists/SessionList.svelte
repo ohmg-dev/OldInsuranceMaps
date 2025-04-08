@@ -174,7 +174,9 @@
             <th title="Map">Map</th>
           {/if}
           {#if showResource}
-            <th title="Document, Region or Layer proccessed">Resource <input type="checkbox" bind:checked={showThumbs} title="Show thumbnails" /></th>
+            <th title="Document, Region or Layer proccessed"
+              >Resource <input type="checkbox" bind:checked={showThumbs} title="Show thumbnails" /></th
+            >
           {/if}
           <th>Stage</th>
           <th title="Session result note">Result</th>

@@ -14,8 +14,13 @@
 </script>
 
 <Modal id="modal-confirm-ungeoreference">
-  <p>Are you sure you want to remove all georeferencing information for this layer? This operation cannot be reversed, and is only necessary if the preparation step for this document needs to be redone.</p>
-  <p>If you only need to improve the ground control points for this layer, click <strong>edit georeferencing</strong>.</p>
+  <p>
+    Are you sure you want to remove all georeferencing information for this layer? This operation cannot be reversed,
+    and is only necessary if the preparation step for this document needs to be redone.
+  </p>
+  <p>
+    If you only need to improve the ground control points for this layer, click <strong>edit georeferencing</strong>.
+  </p>
   <button
     class="button is-success"
     on:click={() => {

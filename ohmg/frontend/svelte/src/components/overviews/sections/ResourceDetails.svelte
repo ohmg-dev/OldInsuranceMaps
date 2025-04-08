@@ -120,7 +120,9 @@
       <td>OHM</td>
       <td>
         {#if ohmUrl}
-          <Link href={ohmUrl} title="Open mosaic in OHM Editor" external={true}>Open in OpenHistoricalMap iD editor</Link>
+          <Link href={ohmUrl} title="Open mosaic in OHM Editor" external={true}
+            >Open in OpenHistoricalMap iD editor</Link
+          >
         {:else}
           n/a
         {/if}</td

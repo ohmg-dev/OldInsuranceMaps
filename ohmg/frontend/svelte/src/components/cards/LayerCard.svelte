@@ -64,7 +64,9 @@
             <button
               disabled={!CONTEXT.user.is_staff && CONTEXT.user.username != layer.created_by}
               class="is-text-link"
-              title={!CONTEXT.user.is_staff && CONTEXT.user.username != layer.created_by ? `Only ${layer.created_by} or an admin and can undo this layer.` : 'Undo all georeferencing for this layer.'}
+              title={!CONTEXT.user.is_staff && CONTEXT.user.username != layer.created_by
+                ? `Only ${layer.created_by} or an admin and can undo this layer.`
+                : 'Undo all georeferencing for this layer.'}
               on:click={() => {
                 undoGeorefLayerId = layer.id;
                 getModal('modal-confirm-ungeoreference').open();
@@ -76,8 +78,16 @@
         {/if}
         {#if downloadEnabled}
           <li>
-            <input type="hidden" id="lyr-{layer.id}-xyz-link" value={`${makeTitilerXYZUrl({ host: CONTEXT.titiler_host, url: layer.urls.cog })}`} />
-            <input type="hidden" id="lyr-{layer.id}-wms-link" value="{CONTEXT.titiler_host}/cog/wms/?LAYERS={layer.urls.cog}&VERSION=1.1.1" />
+            <input
+              type="hidden"
+              id="lyr-{layer.id}-xyz-link"
+              value={`${makeTitilerXYZUrl({ host: CONTEXT.titiler_host, url: layer.urls.cog })}`}
+            />
+            <input
+              type="hidden"
+              id="lyr-{layer.id}-wms-link"
+              value="{CONTEXT.titiler_host}/cog/wms/?LAYERS={layer.urls.cog}&VERSION=1.1.1"
+            />
             <div id="lyr-{layer.id}-services" class="dropdown is-right" style="padding:0;">
               <div class="dropdown-trigger" style="padding:0;">
                 <button
@@ -113,9 +123,24 @@
                           }}>WMS endpoint <Copy /></button
                         >
                       </li>
-                      <li><Link href={getLayerOHMUrl(layer, CONTEXT.titiler_host)} external={true}>OpenHistoricalMap iD</Link></li>
-                      <li><Link href="{CONTEXT.site_url}iiif/resource/{layer.id}/" external={true}>IIIF Georef Annotation (beta)</Link></li>
-                      <li><Link href="https://viewer.allmaps.org/?url={encodeURIComponent(`${CONTEXT.site_url}iiif/resource/${layer.id}/`)}" external={true}>Allmaps Viewer (beta)</Link></li>
+                      <li>
+                        <Link href={getLayerOHMUrl(layer, CONTEXT.titiler_host)} external={true}
+                          >OpenHistoricalMap iD</Link
+                        >
+                      </li>
+                      <li>
+                        <Link href="{CONTEXT.site_url}iiif/resource/{layer.id}/" external={true}
+                          >IIIF Georef Annotation (beta)</Link
+                        >
+                      </li>
+                      <li>
+                        <Link
+                          href="https://viewer.allmaps.org/?url={encodeURIComponent(
+                            `${CONTEXT.site_url}iiif/resource/${layer.id}/`,
+                          )}"
+                          external={true}>Allmaps Viewer (beta)</Link
+                        >
+                      </li>
                     </ul>
                   </div>
                 </div>

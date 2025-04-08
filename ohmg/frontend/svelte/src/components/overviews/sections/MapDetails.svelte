@@ -34,7 +34,10 @@
           </tr>
           <tr>
             <td>Source</td>
-            <td><Link href="https://loc.gov/item/{MAP.identifier}" external={true}>loc.gov/item/{MAP.identifier}</Link></td>
+            <td
+              ><Link href="https://loc.gov/item/{MAP.identifier}" external={true}>loc.gov/item/{MAP.identifier}</Link
+              ></td
+            >
           </tr>
         </table>
       </div>
@@ -105,7 +108,9 @@
             <td>OpenHistoricalMap</td>
             <td>
               {#if ls.ohmUrl}
-                <Link href={ls.ohmUrl} title="Open mosaic in OHM Editor" external={true}>Open in OpenHistoricalMap iD editor</Link>
+                <Link href={ls.ohmUrl} title="Open mosaic in OHM Editor" external={true}
+                  >Open in OpenHistoricalMap iD editor</Link
+                >
               {:else}
                 n/a
               {/if}</td
@@ -115,7 +120,9 @@
             <td>GeoTIFF</td>
             <td>
               {#if ls.mosaic_cog_url}
-                <Link href={ls.mosaic_cog_url} title="Download mosaic geotiff file">Download GeoTIFF (direct download)</Link>
+                <Link href={ls.mosaic_cog_url} title="Download mosaic geotiff file"
+                  >Download GeoTIFF (direct download)</Link
+                >
               {:else}
                 n/a
               {/if}
@@ -125,13 +132,23 @@
         <tr>
           <td>IIIf Georef AnnotationPage</td>
           <td>
-            <Link href="{CONTEXT.site_url}iiif/mosaic/{MAP.identifier}/{ls.id}/?trim=true" title="View full AnnotationPage for this mosaic" external={true}>View full AnnotationPage for this mosaic (beta)</Link>
+            <Link
+              href="{CONTEXT.site_url}iiif/mosaic/{MAP.identifier}/{ls.id}/?trim=true"
+              title="View full AnnotationPage for this mosaic"
+              external={true}>View full AnnotationPage for this mosaic (beta)</Link
+            >
           </td>
         </tr>
         <tr>
           <td>Allmaps</td>
           <td>
-            <Link href="https://viewer.allmaps.org/?url={encodeURIComponent(`${CONTEXT.site_url}iiif/mosaic/${MAP.identifier}/${ls.id}/?trim=true`)}" title="Open mosaic in Allmaps Viewer" external={true}>Open in Allmaps Viewer (beta)</Link>
+            <Link
+              href="https://viewer.allmaps.org/?url={encodeURIComponent(
+                `${CONTEXT.site_url}iiif/mosaic/${MAP.identifier}/${ls.id}/?trim=true`,
+              )}"
+              title="Open mosaic in Allmaps Viewer"
+              external={true}>Open in Allmaps Viewer (beta)</Link
+            >
           </td>
         </tr>
       </table>
@@ -139,12 +156,20 @@
   {/each}
   <p style="font-size:.9em;">
     <em>
-      Only layers that have been trimmed in the <strong>MultiMask</strong> will appear in the downloadable mosaic files. You can access individual layers through the <strong>Georeferenced</strong> section.
+      Only layers that have been trimmed in the <strong>MultiMask</strong> will appear in the downloadable mosaic files.
+      You can access individual layers through the <strong>Georeferenced</strong> section.
     </em>
   </p>
   <h3>Work History</h3>
   <div>
-    <SessionList {CONTEXT} {userFilterItems} mapFilter={{ id: MAP.identifier }} showMap={false} paginate={true} limit="100" />
+    <SessionList
+      {CONTEXT}
+      {userFilterItems}
+      mapFilter={{ id: MAP.identifier }}
+      showMap={false}
+      paginate={true}
+      limit="100"
+    />
   </div>
 </section>
 

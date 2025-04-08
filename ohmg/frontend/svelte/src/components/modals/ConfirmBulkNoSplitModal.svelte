@@ -22,7 +22,10 @@
 </script>
 
 <Modal id="modal-confirm-bulk-no-split">
-  <p>Are you sure {bulkPrepareList.length > 1 ? `these ${bulkPrepareList.length} documents do` : 'this document does'} not need to be split?</p>
+  <p>
+    Are you sure {bulkPrepareList.length > 1 ? `these ${bulkPrepareList.length} documents do` : 'this document does'} not
+    need to be split?
+  </p>
   <button
     class="button is-success"
     on:click={() => {

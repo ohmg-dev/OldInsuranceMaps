@@ -24,7 +24,9 @@
       <div class="section-content">
         <ul>
           <li><Link href="/account/password/change/" title="Change password">Change my password</Link></li>
-          <li><Link href={CONTEXT.change_avatar_url} title="Change profile picture">Change my profile picture</Link></li>
+          <li>
+            <Link href={CONTEXT.change_avatar_url} title="Change profile picture">Change my profile picture</Link>
+          </li>
           <li><Link href="/account/logout">Sign out</Link></li>
         </ul>
         {#if CONTEXT.user.api_keys.length > 0}

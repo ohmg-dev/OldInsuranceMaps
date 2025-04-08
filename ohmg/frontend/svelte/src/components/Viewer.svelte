@@ -271,7 +271,10 @@
         const coords = [pos.coords.longitude, pos.coords.latitude];
         const accuracy = circular(coords, pos.coords.accuracy);
         gpsSource.clear(true);
-        gpsSource.addFeatures([new Feature(accuracy.transform('EPSG:4326', viewer.map.getView().getProjection())), new Feature(new Point(fromLonLat(coords)))]);
+        gpsSource.addFeatures([
+          new Feature(accuracy.transform('EPSG:4326', viewer.map.getView().getProjection())),
+          new Feature(new Point(fromLonLat(coords))),
+        ]);
         if (justEnabled) {
           locateUser();
           justEnabled = false;
@@ -371,10 +374,25 @@
     <li>Share the browser URL at any time to retain current location and layer settings</li>
   </ul>
   <h2>About the Maps</h2>
-  <p>These historical fire insurance maps were originally created by the Sanborn Map Company, and provided here via the <Link href="https://loc.gov/collections/sanborn-maps/about-this-collection" title="LOC Sanborn Maps Collection">Library of Congress</Link> collection.</p>
-  <p>In early 2022, participants in a <Link href="https://digitalcommons.lsu.edu/gradschool_theses/5641/" external={true}>crowdsourcing project</Link> georeferenced all of the Louisiana maps you see here, eventually creating these seamless mosaic overlays. These comprise 1,500 individual sheets from 270 different Sanborn atlases, covering of over <Link href="/browse">130 different locations</Link>.</p>
+  <p>
+    These historical fire insurance maps were originally created by the Sanborn Map Company, and provided here via the <Link
+      href="https://loc.gov/collections/sanborn-maps/about-this-collection"
+      title="LOC Sanborn Maps Collection">Library of Congress</Link
+    > collection.
+  </p>
+  <p>
+    In early 2022, participants in a <Link href="https://digitalcommons.lsu.edu/gradschool_theses/5641/" external={true}
+      >crowdsourcing project</Link
+    > georeferenced all of the Louisiana maps you see here, eventually creating these seamless mosaic overlays. These comprise
+    1,500 individual sheets from 270 different Sanborn atlases, covering of over <Link href="/browse"
+      >130 different locations</Link
+    >.
+  </p>
   <h2>Further Development</h2>
-  <p>If you are interested in supporting this site <Link href="mailto:hello@oldinsuracemaps.net">get in touch</Link>. To get more Sanborn maps on here, please fill out <Link href="https://forms.gle/3gbZPYKWcPFb1NN5A">this form</Link>.</p>
+  <p>
+    If you are interested in supporting this site <Link href="mailto:hello@oldinsuracemaps.net">get in touch</Link>. To
+    get more Sanborn maps on here, please fill out <Link href="https://forms.gle/3gbZPYKWcPFb1NN5A">this form</Link>.
+  </p>
   <p>To learn much more about the entire project, head to <Link href="https://ohmg.dev">ohmg.dev</Link>.</p>
 </Modal>
 <main>
@@ -405,8 +423,15 @@
     <div id="layer-panel" style="display:{showPanel == true ? 'flex' : 'none'}">
       <div class="control-panel-buttons">
         <button class="control-btn" title="Change basemap" on:click={toggleBasemap}><MapTrifold /></button>
-        <button class="control-btn" title="{watchId ? 'Disable' : 'Show'} my location" on:click={toggleGPSLocation} style={watchId ? 'color:blue' : ''}><CrosshairSimple /></button>
-        <button class="control-btn" title="Reset to original extent and settings" on:click={resetExtent}><CornersOut /></button>
+        <button
+          class="control-btn"
+          title="{watchId ? 'Disable' : 'Show'} my location"
+          on:click={toggleGPSLocation}
+          style={watchId ? 'color:blue' : ''}><CrosshairSimple /></button
+        >
+        <button class="control-btn" title="Reset to original extent and settings" on:click={resetExtent}
+          ><CornersOut /></button
+        >
       </div>
       <div class="control-panel-title">
         <h1>{PLACE.display_name}</h1>
@@ -417,11 +442,28 @@
             <div class="volume-item">
               <div class="volume-header">
                 <div>
-                  <button class="toggle-button" disabled={!volumeLookup[id].mainLayer} on:click={() => toggleLayerTransparencyIcon(id)}>
-                    <i class="{volumeLookup[id].mainLayer != undefined ? 'transparency-toggle' : ''} {getClass(volumeLookup[id].mainLayerO)}" style={volumeLookup[id].mainLayer != undefined ? '' : 'background:grey;border-color:grey;'} />
+                  <button
+                    class="toggle-button"
+                    disabled={!volumeLookup[id].mainLayer}
+                    on:click={() => toggleLayerTransparencyIcon(id)}
+                  >
+                    <i
+                      class="{volumeLookup[id].mainLayer != undefined ? 'transparency-toggle' : ''} {getClass(
+                        volumeLookup[id].mainLayerO,
+                      )}"
+                      style={volumeLookup[id].mainLayer != undefined ? '' : 'background:grey;border-color:grey;'}
+                    />
                     <span>{volumeLookup[id].displayName}</span>
                   </button>
-                  <input type="range" disabled={volumeLookup[id].mainLayer ? '' : 'disabled'} class="transparency-slider" bind:value={volumeLookup[id].mainLayerO} on:mouseup={syncUrlParams} min="0" max="100" />
+                  <input
+                    type="range"
+                    disabled={volumeLookup[id].mainLayer ? '' : 'disabled'}
+                    class="transparency-slider"
+                    bind:value={volumeLookup[id].mainLayerO}
+                    on:mouseup={syncUrlParams}
+                    min="0"
+                    max="100"
+                  />
                 </div>
                 <div>
                   <button style="" on:click={() => toggleDetails(id)}><DotsThreeOutline /></button>
@@ -433,13 +475,19 @@
                     {volumeLookup[id].progress.percent}&percnt; ({getCompletedStr(id)})
                   </span>
                   {#if volumeLookup[id].mosaicType}
-                    <span style="color:lightgrey;" title="Mosaic stored as {volumeLookup[id].mosaicType == 'gt' ? 'GeoTIFF' : 'MosaicJSON'}">
+                    <span
+                      style="color:lightgrey;"
+                      title="Mosaic stored as {volumeLookup[id].mosaicType == 'gt' ? 'GeoTIFF' : 'MosaicJSON'}"
+                    >
                       {volumeLookup[id].mosaicType}
                     </span>
                   {/if}
                 </div>
                 <div>
-                  <Link href={volumeLookup[id].summaryUrl} title="The full summary includes content that has not yet been georeferenced.">Summary &rarr;</Link>
+                  <Link
+                    href={volumeLookup[id].summaryUrl}
+                    title="The full summary includes content that has not yet been georeferenced.">Summary &rarr;</Link
+                  >
                 </div>
               </div>
             </div>

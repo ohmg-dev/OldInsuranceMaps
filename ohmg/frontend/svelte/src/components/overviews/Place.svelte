@@ -49,7 +49,9 @@
     {#if PLACE.descendants.length > 0}
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <h4>Sub-locales</h4>
-        <label title="Show all sub-locales, even those without maps">show all<input type="checkbox" bind:checked={showAllSublocales} /></label>
+        <label title="Show all sub-locales, even those without maps"
+          >show all<input type="checkbox" bind:checked={showAllSublocales} /></label
+        >
       </div>
       {#if localeList.length > 0}
         <ul class="sub-list">

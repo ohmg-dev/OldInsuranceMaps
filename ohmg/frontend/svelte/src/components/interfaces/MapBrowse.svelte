@@ -132,7 +132,12 @@
 
 {#if EMBEDDED}
   <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-  <div id="map-viewer" tabindex="0" class="spinner" style="height:{MAP_HEIGHT}px; width:100%; cursor:{EMBEDDED ? 'pointer' : 'default'};"></div>
+  <div
+    id="map-viewer"
+    tabindex="0"
+    class="spinner"
+    style="height:{MAP_HEIGHT}px; width:100%; cursor:{EMBEDDED ? 'pointer' : 'default'};"
+  ></div>
 {:else}
   <div id="map-viewer" class="spinner" style="height:{MAP_HEIGHT}px; width:100%"></div>
 {/if}

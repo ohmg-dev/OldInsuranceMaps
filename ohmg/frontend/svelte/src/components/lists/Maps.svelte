@@ -14,7 +14,9 @@
   let loading = true;
 
   let showAll = false;
-  $: url = PLACE_SLUG ? `/api/beta2/maps/?locale=${PLACE_SLUG}&locale_inclusive=${PLACE_INCLUSIVE}&loaded=${!showAll}` : `/api/beta2/maps/?loaded=${!showAll}`;
+  $: url = PLACE_SLUG
+    ? `/api/beta2/maps/?locale=${PLACE_SLUG}&locale_inclusive=${PLACE_INCLUSIVE}&loaded=${!showAll}`
+    : `/api/beta2/maps/?loaded=${!showAll}`;
 
   function handleFetch(url) {
     getFromAPI(url, CONTEXT.ohmg_api_headers, (result) => {
@@ -59,7 +61,9 @@
 
 <div class="filter-container">
   <input style="flex-grow: 1;" type="text" id="filterInput" placeholder="Filter by title..." bind:value={filterInput} />
-  <label title="Show maps that haven't yet been loaded." style="margin-left:5px;">show all<input type="checkbox" bind:checked={showAll} /></label>
+  <label title="Show maps that haven't yet been loaded." style="margin-left:5px;"
+    >show all<input type="checkbox" bind:checked={showAll} /></label
+  >
 </div>
 <div style="overflow-x:auto;">
   {#if loading}
@@ -75,17 +79,45 @@
       <tr slot="thead">
         <th data-sort="title" style="max-width:300px;" title="Title">Title</th>
         <th data-sort="year_vol" title="Year of publication">Year</th>
-        <th data-sort="sheet_ct" style="width:55px; text-align:center;" title="Number of documents in publication">Sheets</th>
-        <th data-sort="loaded_by_name" style="text-align:center;" title="Volume originally loaded by this user">Loaded by</th>
+        <th data-sort="sheet_ct" style="width:55px; text-align:center;" title="Number of documents in publication"
+          >Sheets</th
+        >
+        <th data-sort="loaded_by_name" style="text-align:center;" title="Volume originally loaded by this user"
+          >Loaded by</th
+        >
         <th data-sort="load_date" style="text-align:center;" title="Date this item was loaded">Load date</th>
-        <th data-sort="unprepared_ct" style="width:25px; text-align:center; border-left: 1px solid gray;" title="Number of unprepared documents">U</th>
+        <th
+          data-sort="unprepared_ct"
+          style="width:25px; text-align:center; border-left: 1px solid gray;"
+          title="Number of unprepared documents">U</th
+        >
         <th data-sort="prepared_ct" style="width:25px; text-align:center;" title="Number of prepared documents">P</th>
-        <th data-sort="georeferenced_ct" style="width:25px; text-align:center;" title="Number of georeferenced documents">G</th>
+        <th
+          data-sort="georeferenced_ct"
+          style="width:25px; text-align:center;"
+          title="Number of georeferenced documents">G</th
+        >
         <th data-sort="skipped_ct" style="width:25px; text-align:center;" title="Number of skipped pieces">S</th>
-        <th data-sort="percent" style="width:25px; text-align:center; border-left:1px solid gray;" title="Percent complete - G/(U+P+G)">%</th>
-        <th data-sort="mm_percent" style="width:25px; text-align:center; border-left:1px solid gray;" title="Layers included in multimask">MM</th>
-        <th data-sort="mj_exists" style="width:25px; text-align:center; border-left:1px solid gray;" title="MosaicJSON prepared for this volume?">MJ</th>
-        <th data-sort="gt_exists" style="width:25px; text-align:center;" title="GeoTIFF mosaic has been prepared for this volume">GT</th>
+        <th
+          data-sort="percent"
+          style="width:25px; text-align:center; border-left:1px solid gray;"
+          title="Percent complete - G/(U+P+G)">%</th
+        >
+        <th
+          data-sort="mm_percent"
+          style="width:25px; text-align:center; border-left:1px solid gray;"
+          title="Layers included in multimask">MM</th
+        >
+        <th
+          data-sort="mj_exists"
+          style="width:25px; text-align:center; border-left:1px solid gray;"
+          title="MosaicJSON prepared for this volume?">MJ</th
+        >
+        <th
+          data-sort="gt_exists"
+          style="width:25px; text-align:center;"
+          title="GeoTIFF mosaic has been prepared for this volume">GT</th
+        >
       </tr>
       <tr slot="tbody" let:item={v} style="height:38px;">
         <td>
