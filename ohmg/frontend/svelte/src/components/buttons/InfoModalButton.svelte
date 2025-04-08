@@ -4,7 +4,7 @@
   import { getModal } from '../modals/BaseModal.svelte';
 
   export let modalId;
-  export let size = 'lg';
+  export let size = '1em';
   export let title = 'More information';
 </script>
 
@@ -14,5 +14,5 @@
   on:click={() => {
     getModal(modalId).open();
   }}
-  ><Question />
+  ><Question {size} />
 </button>

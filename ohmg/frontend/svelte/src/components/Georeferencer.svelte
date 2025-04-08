@@ -31,7 +31,17 @@
   import Snap from 'ol/interaction/Snap';
 
   import Styles from '../lib/ol-styles';
-  import { makeLayerGroupFromLayerSet, makeTitilerXYZUrl, makeRotateCenterLayer, showRotateCenter, removeRotateCenter, uuid, extentFromImageSize, projectionFromImageExtent, usaExtent } from '../lib/utils';
+  import {
+    makeLayerGroupFromLayerSet,
+    makeTitilerXYZUrl,
+    makeRotateCenterLayer,
+    showRotateCenter,
+    removeRotateCenter,
+    uuid,
+    extentFromImageSize,
+    projectionFromImageExtent,
+    usaExtent,
+  } from '../lib/utils';
   import { submitPostRequest } from '../lib/requests';
   import { makeImageLayer, makePmTilesLayer } from '../lib/layers';
   import { DocMousePosition, LyrMousePosition, MapScaleLine } from '../lib/controls';
@@ -45,6 +55,7 @@
 
   import ExpandElement from './buttons/ExpandElement.svelte';
   import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
+  import InfoModalButton from './buttons/InfoModalButton.svelte';
 
   export let CONTEXT;
   export let REGION;
@@ -295,9 +306,17 @@
 
   // SNAP LAYER STUFF
   let pmLayer;
+  let parcelEntry;
+  let localeMatch;
   MAP.locale_lineage.forEach((slug) => {
     if (parcelLookup[slug]) {
-      pmLayer = makePmTilesLayer(parcelLookup[slug].pmtilesUrl, `<a target="_blank" href="${parcelLookup[slug].attributionUrl}">${parcelLookup[slug].attributionText}</a>`, styles.greyOutline);
+      localeMatch = slug;
+      parcelEntry = parcelLookup[slug];
+      pmLayer = makePmTilesLayer(
+        parcelEntry.pmtilesUrl,
+        `<a target="_blank" href="${parcelEntry.attributionUrl}">${parcelEntry.attributionText}</a>`,
+        styles.greyOutline,
+      );
       return;
     }
   });
@@ -537,7 +556,10 @@
       docGCPSource.forEachFeature(function (docFeat) {
         if (mapFeat.getProperties().listId == docFeat.getProperties().listId) {
           mapFeat.setProperties({
-            image: [Math.round(docFeat.getGeometry().flatCoordinates[0]), -Math.round(docFeat.getGeometry().flatCoordinates[1])],
+            image: [
+              Math.round(docFeat.getGeometry().flatCoordinates[0]),
+              -Math.round(docFeat.getGeometry().flatCoordinates[1]),
+            ],
           });
         }
       });
@@ -642,7 +664,7 @@
     } else {
       snapSource.clear();
       mapViewer.interactions.parcelSnap.setActive(false);
-      pmLayer.setStyle(styles.lightRedOutline);
+      pmLayer.setStyle(styles.greyOutline);
     }
   }
   $: toggleSnap(enableParcelSnapping);
@@ -929,7 +951,10 @@
   on:unload={cancelSession}
 />
 <div style="height:25px;">
-  Create 3 or more ground control points to georeference this document. <Link href="https://about.oldinsurancemaps.net/guides/georeferencing/" external={true}>Learn more</Link>
+  Create 3 or more ground control points to georeference this document. <Link
+    href="https://about.oldinsurancemaps.net/guides/georeferencing/"
+    external={true}>Learn more</Link
+  >
 </div>
 
 <Modal id="modal-anonymous">
@@ -957,6 +982,21 @@
     }}>No - keep working</button
   >
 </Modal>
+<Modal id="modal-parcels">
+  <h3>A parcel layer is available for this locale!</h3>
+  <p>It can be helpful to use modern-day property lines when georeferencing historical maps.</p>
+  <p>When you are zoomed in far enough, you will be able to add the parcels layer.</p>
+  <p>
+    As you zoom in further, the color of the lines will turn from <span style="color:grey;">grey</span> to
+    <span style="color:red">red</span>. When the lines are <span style="color:red">red</span>, you can snap control
+    points to parcel corners.
+  </p>
+  <hr />
+  <ul>
+    <li>Locale match: <code>{localeMatch}</code></li>
+    <li>Source: <Link href={parcelEntry.attributionUrl} external={true}>{parcelEntry.attributionText}</Link></li>
+  </ul>
+</Modal>
 
 <div id="map-container" style="height:calc(100vh - 205px)" class="svelte-component-main">
   {#if disableInterface}
@@ -972,7 +1012,9 @@
         {:else if disableReason == 'input' || disableReason == 'processing'}
           <!-- svelte-ignore a11y-invalid-attribute -->
           <p>
-            Someone is already georeferencing this document (<Link href="javascript:window.location.reload(true)">refresh</Link>).
+            Someone is already georeferencing this document (<Link href="javascript:window.location.reload(true)"
+              >refresh</Link
+            >).
           </p>
         {:else if disableReason == 'submit'}
           <p>Saving control points and georeferencing document... redirecting to document detail page.</p>
@@ -1002,7 +1044,9 @@
         title="Cancel georeferencing"
         disabled={!enableButtons}><X /></ToolUIButton
       >
-      <ToolUIButton action={loadIncomingGCPs} title="Reset/reload original GCPs" disabled={unchanged}><ArrowsClockwise /></ToolUIButton>
+      <ToolUIButton action={loadIncomingGCPs} title="Reset/reload original GCPs" disabled={unchanged}
+        ><ArrowsClockwise /></ToolUIButton
+      >
       <ExpandElement elementId={'map-container'} />
     </div>
   </nav>
@@ -1035,10 +1079,13 @@
         </select>
       </label>
       {#if pmLayer}
-        <label class="checkbox">
-          Parcels
-          <input type="checkbox" bind:checked={enableSnapLayer} disabled={currentZoom <= 10} />
-        </label>
+        <div style="display:flex; align-items:end;">
+          <label class="checkbox">
+            Parcels
+            <input type="checkbox" bind:checked={enableSnapLayer} disabled={currentZoom <= 10} />
+          </label>
+          <InfoModalButton modalId="modal-parcels" size=".75em" />
+        </div>
       {/if}
       <label title="Change basemap">
         Basemap (b)
@@ -1065,7 +1112,13 @@
     <nav style="justify-content: start;">
       <label title="Add note about control point {activeGCP}">
         <span class="">Note:</span>
-        <input type="text" id={noteInputElId} style="height:30px; width:250px;" disabled={gcpList.length == 0} on:change={updateNote} />
+        <input
+          type="text"
+          id={noteInputElId}
+          style="height:30px; width:250px;"
+          disabled={gcpList.length == 0}
+          on:change={updateNote}
+        />
       </label>
     </nav>
   {/if}
