@@ -22,5 +22,6 @@ export function makePmTilesLayer(url, attribution, style) {
       attributions: [attribution],
     }),
     style: style,
+    maxResolution: 140,
   });
 }

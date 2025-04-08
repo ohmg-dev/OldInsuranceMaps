@@ -294,14 +294,13 @@
   }
 
   // SNAP LAYER STUFF
-  let parcelEntry;
+  let pmLayer;
   MAP.locale_lineage.forEach((slug) => {
     if (parcelLookup[slug]) {
-      parcelEntry = parcelLookup[slug];
+      pmLayer = makePmTilesLayer(parcelLookup[slug].pmtilesUrl, `<a target="_blank" href="${parcelLookup[slug].attributionUrl}">${parcelLookup[slug].attributionText}</a>`, styles.greyOutline);
       return;
     }
   });
-  const pmLayer = parcelEntry ? makePmTilesLayer(parcelEntry.pmtilesUrl, `<a target="_blank" href="${parcelEntry.attributionUrl}">${parcelEntry.attributionText}</a>`, styles.redOutline) : null;
   const snapSource = new VectorSource({
     overlaps: false,
   });
@@ -602,12 +601,14 @@
 
   $: {
     if (currentZoom < 17) {
-      enableSnapLayer = false;
+      enableParcelSnapping = false;
     }
   }
 
+  $: enableParcelSnapping = currentZoom >= 17;
+
   function refreshSnapSource() {
-    if (!enableSnapLayer) {
+    if (!enableParcelSnapping) {
       return;
     }
     snapSource.clear();
@@ -633,18 +634,34 @@
       return;
     }
     if (enabled) {
-      mapViewer.addLayer(snapLayer);
-      mapViewer.addLayer(pmLayer);
       mapViewer.interactions.parcelSnap.setActive(true);
       mapViewer.map.once('rendercomplete', refreshSnapSource);
+      pmLayer.setStyle(styles.redOutline);
+    } else {
+      snapSource.clear();
+      mapViewer.interactions.parcelSnap.setActive(false);
+      pmLayer.setStyle(styles.lightRedOutline);
+    }
+  }
+  $: toggleSnap(enableParcelSnapping);
+
+  function toggleParcelLayer(enabled) {
+    if (!mapViewer || !pmLayer) {
+      return;
+    }
+    if (currentZoom < 10) {
+      enableParcelSnapping = false;
+    }
+    if (enabled) {
+      mapViewer.addLayer(snapLayer);
+      mapViewer.addLayer(pmLayer);
     } else {
       snapSource.clear();
       mapViewer.map.removeLayer(snapLayer);
       mapViewer.map.removeLayer(pmLayer);
-      mapViewer.interactions.parcelSnap.setActive(false);
     }
   }
-  $: toggleSnap(enableSnapLayer);
+  $: toggleParcelLayer(enableSnapLayer);
 
   function setPreviewVisibility(mode) {
     if (!mapViewer) {
@@ -1015,8 +1032,8 @@
       </label>
       {#if pmLayer}
         <label class="checkbox">
-          Snap to Parcels
-          <input type="checkbox" bind:checked={enableSnapLayer} disabled={currentZoom <= 17} />
+          Parcels
+          <input type="checkbox" bind:checked={enableSnapLayer} disabled={currentZoom <= 10} />
         </label>
       {/if}
       <label title="Change basemap">

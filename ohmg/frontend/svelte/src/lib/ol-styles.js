@@ -149,6 +149,12 @@ class Styles {
       width: 1,
     }),
   });
+  greyOutline = new Style({
+    stroke: new Stroke({
+      color: 'grey',
+      width: 1,
+    }),
+  });
   redDashedOutline = new Style({
     stroke: new Stroke({ color: 'red', width: 0.75, lineDash: [2] }),
   });
