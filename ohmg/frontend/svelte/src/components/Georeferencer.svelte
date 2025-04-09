@@ -992,10 +992,12 @@
     points to parcel corners.
   </p>
   <hr />
+  {#if parcelEntry}
   <ul>
     <li>Locale match: <code>{localeMatch}</code></li>
     <li>Source: <Link href={parcelEntry.attributionUrl} external={true}>{parcelEntry.attributionText}</Link></li>
   </ul>
+  {/if}
 </Modal>
 
 <div id="map-container" style="height:calc(100vh - 205px)" class="svelte-component-main">
