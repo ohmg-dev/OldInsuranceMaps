@@ -54,7 +54,7 @@
 }
 
 #doc-viewer {
-  background: url('../static/img/sandpaper-bg-vlite.jpg')
+  background: url('../static/img/sandpaper-bg-vlite.jpg');
 }
 
 .map-container {
@@ -65,7 +65,7 @@
 }
 
 .map-item {
-  width: 100%
+  width: 100%;
 }
 
 .rounded-bottom {
@@ -74,7 +74,7 @@
 }
 
 /* hide on small screens */
-@media screen and (max-width: 768px){
+@media screen and (max-width: 768px) {
   .hidden-small {
     display: none;
   }
@@ -89,22 +89,22 @@
 }
 
 table.tablesort {
-	width: 100%;
+  width: 100%;
 }
 
-th.sortable, td {
-	padding: 5px;
+th.sortable,
+td {
+  padding: 5px;
 }
 
 thead tr {
   background-color: #eaeaea;
 }
 
-tbody tr:nth-child(even){
+tbody tr:nth-child(even) {
   background-color: #f6f6f6;
 }
 
-tbody tr:nth-child(odd){
+tbody tr:nth-child(odd) {
   background-color: #ffffff;
 }
-

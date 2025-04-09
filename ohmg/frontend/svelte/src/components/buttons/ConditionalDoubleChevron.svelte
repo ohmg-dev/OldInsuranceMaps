@@ -1,12 +1,12 @@
 <script>
-    import CaretDoubleDown from "phosphor-svelte/lib/CaretDoubleDown"; 
-    import CaretDoubleRight from "phosphor-svelte/lib/CaretDoubleRight"; 
+  import CaretDoubleDown from 'phosphor-svelte/lib/CaretDoubleDown';
+  import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight';
 
-    export let down;
-
+  export let down;
 </script>
+
 {#if down}
-<CaretDoubleDown />
+  <CaretDoubleDown />
 {:else}
-<CaretDoubleRight />
+  <CaretDoubleRight />
 {/if}

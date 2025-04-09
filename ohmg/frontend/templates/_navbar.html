@@ -104,7 +104,7 @@
 			</div>
 			<div class="signin-forms" style="display:none;">
 				<h2>Sign up</h2>
-				<p>If you already have an account, please <button class="is-text-link" onclick="toggleSigninForm()">sign in</button>.</p>
+				<p>If you already have an account, please <button class="is-text-link" title="Sign in" onclick="toggleSigninForm()">sign in</button>.</p>
 				<form id="signup_form" method="post" action="/account/signup/">
 					<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 					<p>

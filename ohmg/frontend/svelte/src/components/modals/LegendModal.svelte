@@ -1,11 +1,11 @@
 <script>
-    import Modal from './BaseModal.svelte';
+  import Modal from './BaseModal.svelte';
 
-    export let id;
-    export let legendUrl;
-    export let legendAlt;
+  export let id;
+  export let legendUrl;
+  export let legendAlt;
 </script>
 
-<Modal id={id} full={true}>
-    <img src={legendUrl} alt={legendAlt} />
+<Modal {id} full={true}>
+  <img src={legendUrl} alt={legendAlt} />
 </Modal>

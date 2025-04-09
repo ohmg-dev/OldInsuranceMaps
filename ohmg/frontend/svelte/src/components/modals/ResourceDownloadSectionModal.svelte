@@ -1,11 +1,11 @@
 <script>
-    import Modal from "./BaseModal.svelte";
-    import HowToUseXyz from "../overviews/sections/HowToUseXYZ.svelte";
+  import Modal from './BaseModal.svelte';
+  import HowToUseXyz from '../overviews/sections/HowToUseXYZ.svelte';
 
-    export let id;
+  export let id;
 </script>
 
-<Modal id={id}>
-	<h3>Download & Web Services</h3>
-    <HowToUseXyz />
+<Modal {id}>
+  <h3>Download & Web Services</h3>
+  <HowToUseXyz />
 </Modal>

@@ -1,8 +1,8 @@
 import Viewer from '../components/Viewer.svelte';
 
 const viewer = new Viewer({
-	target: document.getElementById("viewer-target"),
-	props: JSON.parse(document.getElementById("viewer-props").textContent),
+  target: document.getElementById('viewer-target'),
+  props: JSON.parse(document.getElementById('viewer-props').textContent),
 });
 
 export default viewer;

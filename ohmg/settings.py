@@ -336,7 +336,7 @@ LOCALE_PATHS = (PROJECT_DIR / "locale",)
 
 OHMG_IMPORTERS = {
     "map": {
-        "single-file": "ohmg.core.importers.single_file.SingleFileImporter",
+        "default": "ohmg.core.importers.default.DefaultImporter",
         "loc-sanborn": "ohmg.core.importers.loc_sanborn.LOCSanbornImporter",
         "dsl": "ohmg.core.importers.dsl_csv.DSLFileImporter",
     }

@@ -1,36 +1,41 @@
 hr {
-	border-top-color:rgb(149, 149, 149);
+  border-top-color: rgb(149, 149, 149);
 }
 
-
-h1, h2, h3, h4, h5, h6 {
-	scroll-margin-top: 65px
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  scroll-margin-top: 65px;
 }
 
 table.tablesort {
-	width:100%;
-	border: 1px solid grey;
-	border-radius: 4px;
+  width: 100%;
+  border: 1px solid grey;
+  border-radius: 4px;
 }
 
-th.sortable, td {
-	padding: 5px;
-	white-space: nowrap;
+th.sortable,
+td {
+  padding: 5px;
+  white-space: nowrap;
 }
 
 thead tr {
   background-color: #eaeaea;
 }
 
-tbody tr:nth-child(even){
+tbody tr:nth-child(even) {
   background-color: #f6f6f6;
 }
 
-tbody tr:nth-child(odd){
+tbody tr:nth-child(odd) {
   background-color: #ffffff;
 }
 
 .reloading-btn.active {
-	color: white;
-	background: black;
+  color: white;
+  background: black;
 }
