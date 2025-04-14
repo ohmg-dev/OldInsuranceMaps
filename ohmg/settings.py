@@ -211,6 +211,9 @@ AVATAR_GRAVATAR_SSL = ast.literal_eval(os.getenv("AVATAR_GRAVATAR_SSL", "False")
 
 AVATAR_DEFAULT_URL = os.getenv("AVATAR_DEFAULT_URL", "icons/noun-user-1213267-FFFFFF.png")
 
+PLAUSIBLE_DATA_DOMAIN = os.getenv("PLAUSIBLE_DATA_DOMAIN")
+PLAUSIBLE_SOURCE_SCRIPT = os.getenv("PLAUSIBLE_SOURCE_SCRIPT")
+
 try:
     # try to parse python notation, default in dockerized env
     AVATAR_PROVIDERS = ast.literal_eval(os.getenv("AVATAR_PROVIDERS"))

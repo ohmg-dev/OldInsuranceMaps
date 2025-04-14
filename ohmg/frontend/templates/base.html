@@ -26,8 +26,10 @@
 
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
 
+    {% if PLAUSIBLE_DATA_DOMAIN %}
     <!-- analytics with plausible.io -->
-    <script defer data-domain="oldinsurancemaps.net" src="/js/script.js"></script>
+    <script defer data-domain="{{PLAUSIBLE_DATA_DOMAIN}}" src="{{PLAUSIBLE_SOURCE_SCRIPT}}"></script>
+    {% endif %}
 
     <!-- from: https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css -->
     <link href="{{ STATIC_URL }}plugins/bulma.min.css" rel="stylesheet"/>

@@ -10,4 +10,6 @@ def site_info(request):
         "SITE_NAME": site.name,
         "SITE_DOMAIN": site.domain,
         "BUILD_NUMBER": settings.BUILD_NUMBER,
+        "PLAUSIBLE_DATA_DOMAIN": settings.PLAUSIBLE_DATA_DOMAIN,
+        "PLAUSIBLE_SOURCE_SCRIPT": settings.PLAUSIBLE_SOURCE_SCRIPT,
     }
