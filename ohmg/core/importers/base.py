@@ -2,6 +2,7 @@ import csv
 import json
 import importlib
 import logging
+from pathlib import Path
 
 from django.conf import settings
 
@@ -175,7 +176,12 @@ class BaseImporter:
             reader = csv.DictReader(o)
             items = [i for i in reader]
 
+        csv_parent = Path(csv_file).parent.resolve()
         for item in items:
+            ## for 'path' params, treat them as relative to the bulk CSV,
+            ## and then resolve to absolute paths.
+            if "path" in item:
+                item["path"] = str(Path(csv_parent, item["path"]))
             self.run_import(**item)
 
 

@@ -34,7 +34,7 @@ class Command(BaseCommand):
         )
         (
             parser.add_argument(
-                "--csv-file",
+                "--bulk-file",
                 help="path to file for bulk import",
             ),
         )
@@ -120,8 +120,8 @@ class Command(BaseCommand):
 
                 importer.run_import(**importer_kwargs)
 
-            elif options["csv_file"]:
-                importer.run_bulk_import(options["csv_file"])
+            elif options["bulk_file"]:
+                importer.run_bulk_import(options["bulk_file"])
 
         if operation == "remove":
             try:
