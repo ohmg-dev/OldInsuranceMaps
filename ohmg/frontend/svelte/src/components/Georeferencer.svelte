@@ -993,10 +993,10 @@
   </p>
   <hr />
   {#if parcelEntry}
-  <ul>
-    <li>Locale match: <code>{localeMatch}</code></li>
-    <li>Source: <Link href={parcelEntry.attributionUrl} external={true}>{parcelEntry.attributionText}</Link></li>
-  </ul>
+    <ul>
+      <li>Locale match: <code>{localeMatch}</code></li>
+      <li>Source: <Link href={parcelEntry.attributionUrl} external={true}>{parcelEntry.attributionText}</Link></li>
+    </ul>
   {/if}
 </Modal>
 
@@ -1053,7 +1053,7 @@
     </div>
   </nav>
   <div class="map-container">
-    <div id="doc-viewer" class="map-item">s</div>
+    <div id="doc-viewer" class="map-item"></div>
     <div id="map-viewer" class="map-item"></div>
     {#if showLoading && (previewMode == 'transparent' || previewMode == 'full')}
       <div style="top:65px; right:25px; width:80px; height:80px; position:absolute;">
