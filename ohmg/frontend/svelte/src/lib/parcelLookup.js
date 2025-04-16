@@ -12,7 +12,7 @@ export const parcelLookup = {
       'https://portal-nolagis.opendata.arcgis.com/datasets/273cc01f8dae4765b2924ba5de028c27/explore?layer=0',
   },
   'phoenix-az': {
-    pmtilesUrl: 'https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/phoenix-az.pmtiles',
+    pmtilesUrl: 'https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/phoenix-parcels.pmtiles',
     attributionText: 'City of Phoenix Open Data',
     attributionUrl:
       'https://phoenixopendata.com/dataset/city-parcels/resource/a805b9a1-5a2f-44dc-8e43-6d8a2280c421?inner_span=True',
