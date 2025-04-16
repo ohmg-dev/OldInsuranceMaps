@@ -632,7 +632,7 @@
   $: enableParcelSnapping = currentZoom >= 17;
 
   function refreshSnapSource() {
-    if (!enableParcelSnapping) {
+    if (!enableParcelSnapping || !pmLayer) {
       return;
     }
     snapSource.clear();
