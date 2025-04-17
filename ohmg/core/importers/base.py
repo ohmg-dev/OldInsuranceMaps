@@ -67,7 +67,7 @@ class BaseImporter:
             try:
                 Map.objects.get(pk=id)
                 exists = True
-                if not self.overwrite:
+                if not self.overwrite and not self.skip_existing:
                     self.errors.append(f"A map with the identifier '{id}' already exists.")
             except Map.DoesNotExist:
                 pass
