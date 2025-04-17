@@ -201,7 +201,9 @@ class BaseImporter:
             self.run_import(**item)
 
 
-def get_importer(name, dry_run=False, overwrite=False, verbose=False) -> BaseImporter:
+def get_importer(
+    name, dry_run=False, overwrite=False, verbose=False, skip_existing=False
+) -> BaseImporter:
     """Creates an instance of an importer from the class specified in
     settings.py corresponding to the name provided to this function.
     Any kwargs passed to this function are pass directly to the new importer
@@ -215,6 +217,8 @@ def get_importer(name, dry_run=False, overwrite=False, verbose=False) -> BaseImp
     class_name = full_path.split(".")[-1]
     module = importlib.import_module(module_path)
     importer_class = getattr(module, class_name)
-    importer_instance = importer_class(dry_run=dry_run, overwrite=overwrite, verbose=verbose)
+    importer_instance = importer_class(
+        dry_run=dry_run, overwrite=overwrite, verbose=verbose, skip_existing=skip_existing
+    )
 
     return importer_instance
