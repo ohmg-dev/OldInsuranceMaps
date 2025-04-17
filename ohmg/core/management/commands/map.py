@@ -72,7 +72,7 @@ class Command(BaseCommand):
             "--skip-existing",
             action="store_true",
             default=False,
-            help="Used during Map lookup refresh; skip any Maps that don't have null lookups.",
+            help="During Map lookup refresh: skip any Maps that don't have null lookups. During bulk map load: Don't throw an error if one of the maps already exists, just move on to the next one.",
         )
         parser.add_argument(
             "--force",
@@ -107,6 +107,7 @@ class Command(BaseCommand):
                 dry_run=options["dry_run"],
                 overwrite=options["overwrite"],
                 verbose=options["verbose"],
+                skip_existing=options["skip_existing"],
             )
 
             importer_kwargs = {}

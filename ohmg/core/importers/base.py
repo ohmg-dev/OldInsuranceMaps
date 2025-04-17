@@ -16,10 +16,17 @@ logger = logging.getLogger(__name__)
 class BaseImporter:
     required_input = []
 
-    def __init__(self, dry_run: bool = False, verbose: bool = False, overwrite: bool = False):
+    def __init__(
+        self,
+        dry_run: bool = False,
+        verbose: bool = False,
+        overwrite: bool = False,
+        skip_existing: bool = False,
+    ):
         self.dry_run = dry_run
         self.verbose = verbose
         self.overwrite = overwrite
+        self.skip_existing = skip_existing
         self.input_data = {}
         self.parsed_data = {}
         self.errors = []
@@ -54,16 +61,20 @@ class BaseImporter:
                 pass
 
     def check_identifier(self):
+        exists = False
         id = self.parsed_data.get("identifier")
         if id:
             try:
                 Map.objects.get(pk=id)
+                exists = True
                 if not self.overwrite:
                     self.errors.append(f"A map with the identifier '{id}' already exists.")
             except Map.DoesNotExist:
                 pass
         else:
             self.parsed_data["identifier"] = random_alnum().upper()
+
+        return exists
 
     def check_locale(self):
         locale_slug = self.parsed_data.get("locale")
@@ -147,7 +158,12 @@ class BaseImporter:
         self.parse()
 
         # run a series of checks, which will add messages to self.errors
-        self.check_identifier()
+        map_exists = self.check_identifier()
+        if map_exists and self.skip_existing:
+            logger.warning(
+                f"a map with the id {self.parsed_data['identifier']} already exists, skipping load"
+            )
+            return None
         self.check_locale()
         self.check_document_sources()
         self.check_parsed_data()
