@@ -1,6 +1,7 @@
 module.exports = {
     extends: [
-        'plugin:svelte/recommended'
+        'plugin:svelte/recommended',
+        'prettier',
     ],
     parser: '@babel/eslint-parser',
     parserOptions: {

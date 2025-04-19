@@ -1,35 +1,34 @@
 <script>
-    import ArrowSquareOut from "phosphor-svelte/lib/ArrowSquareOut";
+  import ArrowSquareOut from 'phosphor-svelte/lib/ArrowSquareOut';
 
-    export let href;
-    export let external = false;
-    export let title = "";
-    export let classes = [];
-    export let download = null;
-    export let filename = null;
+  export let href;
+  export let external = false;
+  export let title = '';
+  export let classes = [];
+  export let download = null;
+  export let filename = null;
 
-    const classStr = classes.join(" ")
-
+  const classStr = classes.join(' ');
 </script>
 
 {#if external}
-<span>
-    <a href={href} class={classStr} target="_blank" title={title} {download}>
-        <slot></slot>
-        <ArrowSquareOut />
+  <span>
+    <a {href} class={classStr} target="_blank" {title} {download}>
+      <slot></slot>
+      <ArrowSquareOut />
     </a>
-</span>
+  </span>
 {:else}
-<a href={href} class={classStr} title={title} {download} {filename}>
+  <a {href} class={classStr} {title} {download} {filename}>
     <slot></slot>
-</a>
+  </a>
 {/if}
-    
+
 <style>
-    span {
-        display: inline-flex;
-    }
-    span > a {
-        margin-right: 2px;
-    }
+  span {
+    display: inline-flex;
+  }
+  span > a {
+    margin-right: 2px;
+  }
 </style>

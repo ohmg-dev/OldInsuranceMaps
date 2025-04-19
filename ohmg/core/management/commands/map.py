@@ -34,7 +34,7 @@ class Command(BaseCommand):
         )
         (
             parser.add_argument(
-                "--csv-file",
+                "--bulk-file",
                 help="path to file for bulk import",
             ),
         )
@@ -72,7 +72,7 @@ class Command(BaseCommand):
             "--skip-existing",
             action="store_true",
             default=False,
-            help="Used during Map lookup refresh; skip any Maps that don't have null lookups.",
+            help="During Map lookup refresh: skip any Maps that don't have null lookups. During bulk map load: Don't throw an error if one of the maps already exists, just move on to the next one.",
         )
         parser.add_argument(
             "--force",
@@ -80,27 +80,34 @@ class Command(BaseCommand):
             action="store_true",
         )
         parser.add_argument(
-            "--importer",
-            default="single-file",
+            "--verbose",
+            help="print verbose output during process",
+            action="store_true",
+            default=False,
+        )
+        parser.add_argument(
+            "-c",
+            "--config",
+            default="default",
             help="id of importer class to use, from list of options in settings.IMPORTERS['map']",
         )
         parser.add_argument(
-            "--opts",
-            nargs="*",
-            # help="id of importer class to use, from list of options in settings.IMPORTERS['map']"
+            "--opts", nargs="*", help="arguments to pass to selected importer class operation"
         )
 
     def handle(self, *args, **options):
         operation = options["operation"]
 
         if operation == "add":
-            if options["importer"] not in settings.OHMG_IMPORTERS["map"]:
+            if options["config"] not in settings.OHMG_IMPORTERS["map"]:
                 raise NotImplementedError("no entry in settings.OHMG_IMPORTERS for this importer")
 
             importer = get_importer(
-                options["importer"],
+                options["config"],
                 dry_run=options["dry_run"],
                 overwrite=options["overwrite"],
+                verbose=options["verbose"],
+                skip_existing=options["skip_existing"],
             )
 
             importer_kwargs = {}
@@ -114,8 +121,8 @@ class Command(BaseCommand):
 
                 importer.run_import(**importer_kwargs)
 
-            elif options["csv_file"]:
-                importer.run_bulk_import(options["csv_file"])
+            elif options["bulk_file"]:
+                importer.run_bulk_import(options["bulk_file"])
 
         if operation == "remove":
             try:
@@ -128,7 +135,7 @@ class Command(BaseCommand):
             regions = []
             for d in documents:
                 regions += list(d.regions.all())
-            layers = [i.layer for i in regions if i.layer]
+            layers = [i.layer for i in regions if hasattr(i, "layer")]
             gcpgroups = [i.region.gcpgroup for i in layers if hasattr(i.region, "gcpgroup")]
             gcps = []
             for gcpgroup in gcpgroups:

@@ -7,7 +7,7 @@ from django.core.handlers.asgi import ASGIHandler
 from django.test import tag, Client
 
 from ohmg.core.importers.base import get_importer
-from ohmg.core.importers.single_file import SingleFileImporter
+from ohmg.core.importers.default import DefaultImporter
 from ohmg.core.models import (
     Map,
     Document,
@@ -41,12 +41,69 @@ class ImportersTestCase(OHMGTestCase):
     fixtures = [
         OHMGTestCase.Fixtures.region_categories,
         OHMGTestCase.Fixtures.layerset_categories,
+        OHMGTestCase.Fixtures.new_iberia_place,
+        OHMGTestCase.Fixtures.admin_user,
     ]
 
-    def test_single_file_importer(self):
-        importer = get_importer("single-file")
+    def test_single_file_import(self):
+        importer = get_importer("default")
 
-        self.assertEqual(importer.__class__, SingleFileImporter)
+        self.assertEqual(importer.__class__, DefaultImporter)
+
+        importer.run_import(
+            identifier="test-map-id",
+            title="test map",
+            path="tests/data/files/source_images/new_iberia_la_1885_p1.jpg",
+            year=1885,
+            locale="new-iberia-la",
+        )
+
+        map = Map.objects.get(pk="test-map-id")
+        self.assertEqual(map.documents.all().count(), 1)
+
+        map.load_all_document_files("admin")
+
+        for document in map.documents.all():
+            self.assertTrue(Path(document.file.path).is_file())
+
+    def test_csv_import(self):
+        importer = get_importer("default")
+
+        self.assertEqual(importer.__class__, DefaultImporter)
+
+        importer.run_import(
+            identifier="test-map-id",
+            title="test map",
+            path="tests/data/files/csvs/new-iberia-1885-file-list.csv",
+            year=1885,
+            locale="new-iberia-la",
+        )
+
+        map = Map.objects.get(pk="test-map-id")
+        self.assertEqual(map.documents.all().count(), 3)
+
+        map.load_all_document_files("admin")
+
+        for document in map.documents.all():
+            self.assertTrue(Path(document.file.path).is_file())
+
+    def test_bulk_import(self):
+        """Test bulk loading of multiple maps (each with have one different
+        document)"""
+        importer = get_importer("default")
+
+        self.assertEqual(importer.__class__, DefaultImporter)
+
+        importer.run_bulk_import(
+            csv_file="tests/data/files/csvs/new-iberia-1885-bulk-load.csv",
+        )
+
+        self.assertEqual(Map.objects.all().count(), 3)
+
+        # map.load_all_document_files("admin")
+
+        # for document in map.documents.all():
+        #     self.assertTrue(Path(document.file.path).is_file())
 
 
 @tag("loc")

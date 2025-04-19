@@ -1,6 +1,7 @@
 from io import BytesIO
 from pathlib import Path
 import logging
+import subprocess
 
 from PIL import Image, ImageOps
 from osgeo import gdal, osr
@@ -148,3 +149,15 @@ def convert_img_to_pyramidal_tiff(input_image):
     gdal.Translate(out_path, input_image, options=to)
 
     return out_path
+
+
+def convert_pdf_to_jpg(input_path: Path):
+    if not subprocess.getstatusoutput("pdftoppm --help")[0] == 0:
+        logger.warning("pdftoppm is not available, PDF file cannot be converted")
+        return None
+
+    output_path = input_path.with_suffix(".jpg")
+    cmd = ["pdftoppm", str(input_path), "-jpeg", str(output_path), "-singlefile"]
+    subprocess.run(cmd)
+
+    return output_path
