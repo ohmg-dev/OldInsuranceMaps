@@ -1,5 +1,6 @@
 from natsort import natsorted
 
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
 from django.views.decorators.clickjacking import xframe_options_sameorigin
@@ -9,6 +10,7 @@ from ohmg.core.models import Map
 from ohmg.core.api.schemas import (
     LayerSetSchema,
     MapFullSchema,
+    AtlascopeLayersetFeature,
 )
 
 from ohmg.core.api.schemas import PlaceFullSchema
@@ -61,3 +63,26 @@ class Viewer(View):
             }
         }
         return render(request, "places/viewer.html", context=context_dict)
+
+
+class AtlascopeDataView(View):
+    def get(self, request, place, operation):
+        if operation == "footprints":
+            maps = sorted(place.map_set.all().exclude(hidden=True), key=lambda x: x.year)
+            ls = [i.get_layerset("main-content") for i in maps]
+
+            features = [
+                AtlascopeLayersetFeature.from_orm(i).dict()
+                for i in ls
+                if i and i.multimask and i.mosaic_geotiff
+            ]
+
+            feature_collection = {
+                "type": "FeatureCollection",
+                "name": f"{place.slug}-volume-extents",
+                "features": features,
+            }
+            return JsonResponse(feature_collection)
+
+        elif operation == "coverages":
+            return JsonResponse([{"name": str(place), "center": place.get_center()}], safe=False)

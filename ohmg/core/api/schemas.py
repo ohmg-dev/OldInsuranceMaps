@@ -829,5 +829,19 @@ class ResourceFullSchema(Schema):
                 return "split"
 
 
+class AtlascopeLayersetFeature(Schema):
+    type: str = "Feature"
+    properties: dict
+    geometry: dict
+
+    @staticmethod
+    def resolve_properties(obj):
+        return obj.as_atlascope_properties()
+
+    @staticmethod
+    def resolve_geometry(obj):
+        return obj.as_atlascope_geometry()
+
+
 DocumentFullSchema.update_forward_refs()
 RegionFullSchema.update_forward_refs()

@@ -243,7 +243,7 @@ MIDDLEWARE = (
     "ohmg.core.middleware.CORSMiddleware",
 )
 
-CORS_WHITELIST = ("/iiif",)
+CORS_WHITELIST = ("/iiif", "/atlascope")
 
 LOGIN_URL = "/account/login/"
 

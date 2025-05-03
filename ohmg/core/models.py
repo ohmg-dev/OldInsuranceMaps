@@ -996,6 +996,35 @@ class LayerSet(models.Model):
             self.multimask = None
         self.save(update_fields=["multimask"])
 
+    def as_atlascope_properties(self):
+        cog_url = self.mosaic_cog_url.replace(
+            "http://localhost:8080/uploaded/mosaics/",
+            "https://oldinsurancemaps.net/uploaded/mosaics/",
+        )
+        tilejson_url = f"{settings.TITILER_HOST}/cog/tilejson.json/?url={cog_url}"
+        return {
+            "identifier": self.map.identifier,
+            "publisherShort": "Sanborn",
+            "year": self.map.year,
+            "bibliographicEntry": "_Richards standard atlas of the town of Greenfield_ (Richards Map Company, 1918)",
+            "source": {"type": "tilejson", "url": tilejson_url},
+            "catalogPermalink": f"https://loc.gov/item/{self.map.identifier}",
+            "heldBy": ["Library of Congress"],
+            "sponsors": [],
+        }
+
+    def as_atlascope_geometry(self):
+        if self.multimask_geojson:
+            collection = []
+            for i in self.multimask_geojson["features"]:
+                geom = GEOSGeometry(json.dumps(i["geometry"]))
+                collection.append(geom)
+
+            geoms = MultiPolygon(collection)
+            return json.loads(geoms.unary_union.json)
+        else:
+            return {"type": "MultiPolygon", "coordinates": []}
+
     def save(self, *args, **kwargs):
         extents = self.layer_set.all().values_list("extent", flat=True)
         layer_extents = []
