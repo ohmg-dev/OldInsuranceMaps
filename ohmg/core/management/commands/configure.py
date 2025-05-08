@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 from argparse import Namespace
 from pathlib import Path
 
@@ -19,14 +20,13 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "type",
+            "operation",
             choices=[
                 "services",
                 "generate-error-pages",
                 "initialize-s3-bucket",
                 "get-plugins",
             ],
-            nargs="+",
             help="Choose what configuration operation to run.",
         )
         parser.add_argument(
@@ -55,17 +55,18 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.verbose = options["verbose"]
+        operation = options["operation"]
 
-        if options["type"] == "generate-error-pages":
+        if operation == "generate-error-pages":
             self.generate_error_pages()
 
-        if options["type"] == "initialize-s3-bucket":
+        if operation == "initialize-s3-bucket":
             self.initialize_s3_bucket()
 
-        if "get-plugins" in options["type"]:
+        if operation == "get-plugins":
             self.get_plugins()
 
-        if "services" in options["type"]:
+        if operation == "services":
             out_dir = Path(options["destination"])
             output_files = self.create_services(destination=out_dir)
 
@@ -290,15 +291,72 @@ sudo systemctl restart uwsgi
     def initialize_s3_bucket(self):
         import boto3
 
-        client = boto3.client("s3", **settings.S3_CONFIG)
+        bucket_name = settings.S3_BUCKET_NAME
+        client = boto3.client(
+            "s3",
+            aws_access_key_id=settings.S3_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.S3_SECRET_ACCESS_KEY,
+            endpoint_url=settings.S3_ENDPOINT_URL,
+            region_name=settings.S3_REGION,
+        )
 
+        ## create bucket if it doesn't exist
         response = client.list_buckets()
-        if settings.S3_BUCKET_NAME not in [i["Name"] for i in response["Buckets"]]:
-            print(f"Creating bucket: {settings.S3_BUCKET_NAME}")
-            client.create_bucket(Bucket=settings.S3_BUCKET_NAME)
+        if bucket_name not in [i["Name"] for i in response["Buckets"]]:
+            print(f"Creating bucket: {bucket_name}")
+            client.create_bucket(Bucket=bucket_name)
             print("Bucket created.")
         else:
-            print(f"Bucket already exists: {settings.S3_BUCKET_NAME}")
+            print(f"Bucket already exists: {bucket_name}")
+            c = input(
+                "Do you want to overwrite this bucket's "
+                "CORS configuration and access policy? y/N "
+            )
+            if not c.lower().startswith("y"):
+                exit()
+
+        ## set CORS
+        cors_configuration = {
+            "CORSRules": [
+                {
+                    "AllowedHeaders": ["*"],
+                    "AllowedMethods": ["GET"],
+                    "AllowedOrigins": ["*"],
+                    "ExposeHeaders": [
+                        "x-amz-server-side-encryption",
+                        "x-amz-request-id",
+                        "x-amz-id-2",
+                    ],
+                    "MaxAgeSeconds": 3000,
+                }
+            ]
+        }
+        client.put_bucket_cors(Bucket=bucket_name, CORSConfiguration=cors_configuration)
+        print("CORS configured:")
+        print(json.dumps(cors_configuration, indent=2))
+
+        ## set bucket policy
+        bucket_policy = {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "PublicRead",
+                    "Effect": "Allow",
+                    "Principal": "*",
+                    "Action": ["s3:GetObject"],
+                    "Resource": f"arn:aws:s3:::{bucket_name}/*",
+                }
+            ],
+        }
+
+        # Set the new policy
+        client.put_bucket_policy(
+            Bucket=bucket_name,
+            # Convert the policy from JSON dict to string
+            Policy=json.dumps(bucket_policy),
+        )
+        print("Bucket policy updated:")
+        print(json.dumps(bucket_policy, indent=2))
 
     def get_plugins(self):
         dest = Path("ohmg/frontend/static/plugins")
