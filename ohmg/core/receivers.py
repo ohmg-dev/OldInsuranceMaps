@@ -25,6 +25,14 @@ def update_item_lookup(sender, instance, **kwargs):
             instance.region.document.map.update_item_lookup()
 
 
+@receiver([signals.post_delete], sender=Document)
+@receiver([signals.post_delete], sender=Region)
+@receiver([signals.post_delete], sender=Layer)
+def delete_files(sender, instance, **kwargs):
+    instance.thumbnail.delete(save=False)
+    instance.file.delete(save=False)
+
+
 @receiver([signals.post_save], sender=Layer)
 def set_georeferenced_on_region(sender, instance, **kwargs):
     if not hasattr(instance, "skip_map_lookup_update") or instance.skip_map_lookup_update is False:
