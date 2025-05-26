@@ -1,6 +1,7 @@
 import csv
 import logging
 from django.db import models, transaction
+from django.contrib.gis.geos import Polygon
 
 from ohmg.core.utils import slugify
 from ohmg.core.utils import (
@@ -289,6 +290,15 @@ class Place(models.Model):
                 .values_list("identifier", "year", "volume_number")
             ],
         }
+
+    def get_center(self):
+        coords = [-90, 30]
+        for map in self.map_set.all().order_by("year"):
+            if ls := map.get_layerset("main-content"):
+                if ls.extent:
+                    coords = Polygon().from_bbox(ls.extent).centroid.coords
+                    break
+        return coords
 
     def save(self, set_slug=True, *args, **kwargs):
         if set_slug is True:
