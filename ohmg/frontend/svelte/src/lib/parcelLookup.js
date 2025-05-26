@@ -57,4 +57,25 @@ export const parcelLookup = {
     attributionText: 'Ohio Geographically Referenced Information Program',
     attributionUrl: 'https://geohio.maps.arcgis.com/home/item.html?id=26ab5fad8d5d4258a7492a14de83bc0e',
   },
+  'san-diego-ca': {
+    pmtilesUrl: 'https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/san-diego-ca-parcels.pmtiles',
+    attributionText: 'San Diego Regional Data Warehouse',
+    attributionUrl:
+      'https://geo.sandag.org/portal/apps/experiencebuilder/experience/?id=fad9e9c038c84f799b5378e4cc3ed068#data_s=id%3AdataSource_1-0%3A225',
+  },
+  'san-jose-ca': {
+    pmtilesUrl: 'https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/san-jose-ca-parcels.pmtiles',
+    attributionText: 'City of San José',
+    attributionUrl: 'https://gisdata-csj.opendata.arcgis.com/datasets/4bb085cb99a64eff8e83d2bf92a8d5cb_270/explore',
+  },
+  'san-antonio-tx': {
+    pmtilesUrl: 'https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/san-antonio-tx-parcels.pmtiles',
+    attributionText: 'City of San Antonio',
+    attributionUrl: 'https://koordinates.com/layer/96700-city-of-san-antonio-texas-parcels/',
+  },
+  'austin-tx': {
+    pmtilesUrl: 'https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/austin-tx-parcels.pmtiles',
+    attributionText: 'City of Austin, Texas - data.austintexas.gov',
+    attributionUrl: 'https://data.austintexas.gov/Locations-and-Maps/Land-Use-Inventory-Detailed/7vsm-dvxg/about_data',
+  },
 };
