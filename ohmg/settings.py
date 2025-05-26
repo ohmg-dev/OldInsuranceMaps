@@ -263,12 +263,11 @@ if DEBUG and ENABLE_DEBUG_TOOLBAR:
 
 TITILER_HOST = os.getenv("TITILER_HOST", "")
 
+S3_REGION = os.getenv("S3_REGION")
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
-S3_CONFIG = {
-    "aws_access_key_id": os.getenv("S3_ACCESS_KEY_ID"),
-    "aws_secret_access_key": os.getenv("S3_SECRET_ACCESS_KEY"),
-    "endpoint_url": os.getenv("S3_ENDPOINT_URL"),
-}
+S3_ACCESS_KEY_ID = os.getenv("S3_ACCESS_KEY_ID")
+S3_SECRET_ACCESS_KEY = os.getenv("S3_SECRET_ACCESS_KEY")
+S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL")
 
 # this is a hack to handle the fact that certain GDAL and Django versions
 # are not compatible, and the order of lat/long gets messed up. ONLY to

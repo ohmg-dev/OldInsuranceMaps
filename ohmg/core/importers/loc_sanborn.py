@@ -1,5 +1,6 @@
 import os
 import json
+from json.decoder import JSONDecodeError
 import pytz
 import time
 import logging
@@ -372,8 +373,14 @@ class LOCConnection(object):
                 print(msg)
                 logger.warning(e)
                 return
+            try:
+                self.data = json.loads(response.content)
+            except JSONDecodeError:
+                msg = f"Can't decode this JSON response: {response.content}\nResponse code: {response.status_code}"
+                print(msg)
+                logger.warning(msg)
+                return
 
-            self.data = json.loads(response.content)
             self.save_cache(url)
         else:
             if self.verbose:
