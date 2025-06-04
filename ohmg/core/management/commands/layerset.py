@@ -4,7 +4,7 @@ from ohmg.core.models import LayerSet
 
 
 class Command(BaseCommand):
-    help = "command to search the Library of Congress API."
+    help = "Operations for managing LayerSets objects."
 
     def add_arguments(self, parser):
         parser.add_argument(

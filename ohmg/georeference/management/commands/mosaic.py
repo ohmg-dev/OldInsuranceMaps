@@ -7,7 +7,7 @@ from ohmg.georeference.tasks import create_mosaic_cog
 
 
 class Command(BaseCommand):
-    help = "command to search the Library of Congress API."
+    help = "Operations for creating and managing mosaics."
 
     def add_arguments(self, parser):
         parser.add_argument(
