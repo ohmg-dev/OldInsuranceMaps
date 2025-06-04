@@ -28,7 +28,7 @@ from ohmg.core.utils import (
     get_session_user_summary,
     MONTH_CHOICES,
 )
-from ohmg.core.storages import OverwriteStorage
+from ohmg.core.storages import get_storage
 from ohmg.core.renderers import (
     get_image_size,
     get_extent_from_file,
@@ -427,7 +427,7 @@ class Document(models.Model):
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
+        storage=get_storage(),
     )
     image_size = ArrayField(
         models.IntegerField(),
@@ -440,7 +440,7 @@ class Document(models.Model):
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
+        storage=get_storage(),
     )
     source_url = models.CharField(
         max_length=255,
@@ -610,7 +610,7 @@ class Region(models.Model):
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
+        storage=get_storage(),
     )
     image_size = ArrayField(
         models.IntegerField(),
@@ -623,7 +623,7 @@ class Region(models.Model):
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
+        storage=get_storage(),
     )
 
     def __str__(self):
@@ -741,14 +741,14 @@ class Layer(models.Model):
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
+        storage=get_storage(),
     )
     thumbnail = models.FileField(
         upload_to="thumbnails",
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
+        storage=get_storage(),
     )
     layerset2 = models.ForeignKey(
         "core.LayerSet",
@@ -896,14 +896,14 @@ class LayerSet(models.Model):
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
+        storage=get_storage(),
     )
     mosaic_json = models.FileField(
         upload_to="mosaics",
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
+        storage=get_storage(),
     )
     extent = ArrayField(
         models.FloatField(),
