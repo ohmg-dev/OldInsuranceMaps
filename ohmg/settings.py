@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     "compressor",
     "ninja",
     "markdownx",
+    "ohmg.conf",
     "ohmg.core",
     "ohmg.content",
     "ohmg.frontend",

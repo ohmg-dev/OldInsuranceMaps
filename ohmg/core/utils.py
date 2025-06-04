@@ -8,6 +8,7 @@ import requests
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Literal
 
 from django.conf import settings
 from django.urls import reverse
@@ -16,6 +17,23 @@ from django.core.files import File
 from PIL import Image
 
 logger = logging.getLogger(__name__)
+
+
+def confirm_continue(
+    message: str = "continue?", default: Literal["y", "n"] = "y", do_exit: bool = True
+):
+    message += " Y/n " if default == "y" else " y/N "
+    response = input(message)
+    if not response:
+        response = default
+
+    choice = True
+    if response.lower().startswith("n"):
+        choice = False
+        if do_exit:
+            print("-- cancelling operation")
+            exit()
+    return choice
 
 
 def make_cache_path(url):
