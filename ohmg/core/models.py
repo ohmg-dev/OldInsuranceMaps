@@ -1,4 +1,3 @@
-import os
 import json
 import logging
 from datetime import datetime
@@ -523,10 +522,8 @@ class Document(models.Model):
         if self.file is not None:
             if self.thumbnail:
                 self.thumbnail.delete()
-            path = self.file.path
-            name = os.path.splitext(os.path.basename(path))[0]
-            content = generate_document_thumbnail_content(path)
-            tname = f"{name}-doc-thumb.jpg"
+            content = generate_document_thumbnail_content(self.file)
+            tname = f"{Path(self.file.url).stem}-doc-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
 
     def save(
@@ -562,7 +559,7 @@ class Document(models.Model):
             self.nickname = f"{self.map.document_page_type} {self.page_number}"
 
         if set_image_size or not self.image_size:
-            self.image_size = get_image_size(Path(self.file.path)) if self.file else None
+            self.image_size = get_image_size(self.file) if self.file else None
 
         return super(self.__class__, self).save(*args, **kwargs)
 
@@ -662,10 +659,8 @@ class Region(models.Model):
         if self.file is not None:
             if self.thumbnail:
                 self.thumbnail.delete()
-            path = self.file.path
-            name = os.path.splitext(os.path.basename(path))[0]
-            content = generate_document_thumbnail_content(path)
-            tname = f"{name}-reg-thumb.jpg"
+            content = generate_document_thumbnail_content(self.file)
+            tname = f"{Path(self.file.url).stem}-reg-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
 
     def save(
@@ -698,7 +693,7 @@ class Region(models.Model):
             self.nickname += f" [{self.division_number}]"
 
         if set_image_size or not self.image_size:
-            self.image_size = get_image_size(Path(self.file.path)) if self.file else None
+            self.image_size = get_image_size(self.file) if self.file else None
 
         return super(self.__class__, self).save(*args, **kwargs)
 
@@ -779,10 +774,8 @@ class Layer(models.Model):
         if self.file is not None:
             if self.thumbnail:
                 self.thumbnail.delete()
-            path = self.file.path
-            name = os.path.splitext(os.path.basename(path))[0]
-            content = generate_layer_thumbnail_content(path)
-            tname = f"{name}-lyr-thumb.jpg"
+            content = generate_layer_thumbnail_content(self.file)
+            tname = f"{Path(self.file.url).stem}-lyr-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
 
     def set_layerset(self, layerset):
