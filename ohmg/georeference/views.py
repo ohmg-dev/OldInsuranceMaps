@@ -101,7 +101,7 @@ class SplitView(View):
                 return JsonResponseNotFound(msg)
 
         if operation == "preview":
-            s = Splitter(image_file=document.file.path)
+            s = Splitter(image_file=document.file)
             divisions = s.generate_divisions(cutlines)
             return JsonResponseSuccess(
                 "ok",

@@ -520,7 +520,7 @@ class PrepSession(SessionBase):
 
         else:
             self.update_status("splitting document image")
-            s = Splitter(image_file=self.doc2.file.path)
+            s = Splitter(image_file=self.doc2.file)
             self.data["divisions"] = s.generate_divisions(self.data["cutlines"])
             new_images = s.split_image()
 
