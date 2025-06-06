@@ -16,27 +16,26 @@ gdal.UseExceptions()
 logger = logging.getLogger(__name__)
 
 
-def get_extent_from_file(file_path: Path):
+def get_extent_from_file(file: FileField):
     """Credit: https://gis.stackexchange.com/a/201320/28414"""
 
-    if not file_path.is_file():
-        return None
-    src = gdal.Open(str(file_path))
+    path = file.url if file.url.startswith("http") else file.path
+    src = gdal.Open(path)
     ulx, xres, xskew, uly, yskew, yres = src.GetGeoTransform()
     lrx = ulx + (src.RasterXSize * xres)
     lry = uly + (src.RasterYSize * yres)
 
-    src = None
-    del src
-
-    webMerc = osr.SpatialReference()
-    webMerc.ImportFromEPSG(3857)
+    src_prj = osr.SpatialReference()
+    src_prj.ImportFromWkt(src.GetProjection())
     wgs84 = osr.SpatialReference()
     wgs84.ImportFromEPSG(4326)
-    transform = osr.CoordinateTransformation(webMerc, wgs84)
+    transform = osr.CoordinateTransformation(src_prj, wgs84)
 
     ul = transform.TransformPoint(ulx, uly)
     lr = transform.TransformPoint(lrx, lry)
+
+    src = None
+    del src
 
     return [ul[1], lr[0], lr[1], ul[0]]
 

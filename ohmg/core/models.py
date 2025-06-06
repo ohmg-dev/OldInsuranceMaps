@@ -840,7 +840,7 @@ class Layer(models.Model):
             self.set_thumbnail()
 
         if set_extent and self.file:
-            self.extent = get_extent_from_file(Path(self.file.path))
+            self.extent = get_extent_from_file(self.file)
 
         self.title = self.region.title
         self.nickname = self.region.nickname
