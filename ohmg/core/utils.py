@@ -12,7 +12,6 @@ from typing import Literal
 
 from django.conf import settings
 from django.urls import reverse
-from django.core.files import File
 
 from PIL import Image
 
@@ -116,19 +115,6 @@ def download_image(url: str, out_path: Path, retries: int = 3, use_cache: bool =
 def copy_local_file_to_cache(path: str, out_path: Path, use_cache: bool = True):
     if not out_path.exists() or not use_cache:
         shutil.copyfile(path, out_path)
-
-
-def save_file_to_object(target, file_path: Path = None, source_object=None):
-    if file_path:
-        source_path = file_path
-    if source_object:
-        if source_object.file:
-            source_path = Path(source_object.file.path)
-        else:
-            print(f"[WARNING] {source_object} is missing file")
-
-    with open(source_path, "rb") as openf:
-        target.file.save(source_path.name, File(openf))
 
 
 def convert_img_format(input_img: Path, format: str = "JPEG", force: bool = False) -> Path:

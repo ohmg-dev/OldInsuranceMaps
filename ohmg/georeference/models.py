@@ -28,7 +28,6 @@ from ohmg.georeference.splitter import Splitter
 from ohmg.core.utils import (
     full_reverse,
     random_alnum,
-    save_file_to_object,
 )
 
 logger = logging.getLogger(__name__)
@@ -511,7 +510,12 @@ class PrepSession(SessionBase):
                 created_by=self.user,
                 category=map_cat,
             )
-            save_file_to_object(region, source_object=self.doc2)
+
+            if self.doc2.file:
+                with self.doc2.file.open("rb") as openf:
+                    region.file.save(self.doc2.file.name, File(openf))
+            else:
+                logger.warning(f"[WARNING] {self.doc2} is missing file")
             output.append(region)
 
         else:
@@ -535,7 +539,10 @@ class PrepSession(SessionBase):
                     category=map_cat,
                 )
 
-                save_file_to_object(region, file_path=Path(file_path))
+                source_path = Path(file_path)
+                with open(source_path, "rb") as openf:
+                    region.file.save(source_path.name, File(openf))
+
                 os.remove(file_path)
                 output.append(region)
 
