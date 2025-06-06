@@ -4,7 +4,7 @@ import shutil
 from typing import List
 
 from django.conf import settings
-from django.test import TestCase, Client
+from django.test import Client, LiveServerTestCase
 from django.core.management import call_command
 
 from ohmg.core.models import MapGroup, Map, Document, Region, Layer, LayerSet
@@ -17,8 +17,16 @@ def copy_files_to_media_root(file_paths: List[Path], sub_dir: str = ""):
         shutil.copy2(src, dest)
 
 
-class OHMGTestCase(TestCase):
+class OHMGTestCase(LiveServerTestCase):
+    """This inherits from LiveServerTestCase so that there will be a
+    localhost:xxxx server running based on the test database."""
+
     DATA_DIR = Path(__file__).parent / "data"
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        settings.MEDIA_HOST = cls.live_server_url
 
     class Fixtures:
         DATA_DIR = Path(__file__).parent / "data"
