@@ -134,6 +134,7 @@ DATABASES = {
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+DEFAULT_FILE_STORAGE = "ohmg.core.storages.OverwriteStorage"
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / "static_root")

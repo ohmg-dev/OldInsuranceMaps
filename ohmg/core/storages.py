@@ -1,7 +1,6 @@
 import os
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from storages.backends.s3boto3 import S3Boto3Storage
 
 
 class OverwriteStorage(FileSystemStorage):
@@ -27,10 +26,3 @@ class OverwriteStorage(FileSystemStorage):
         if self.exists(name):
             os.remove(os.path.join(settings.MEDIA_ROOT, name))
         return name
-
-
-def get_storage():
-    if settings.ENABLE_S3_STORAGE:
-        return S3Boto3Storage
-    else:
-        return
