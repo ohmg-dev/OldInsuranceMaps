@@ -53,10 +53,10 @@ class Mosaicker:
                 transformation=gcpgroup.transformation,
                 gcps_geojson=gcpgroup.as_geojson,
             )
-            in_path = g.warp(layer.region.file.path, return_vrt=True)
+            in_path, write_modified_vrt = g.make_warped_vrt(layer.region.file.path)
 
-            trim_name = os.path.basename(in_path).replace(".vrt", "_trim.vrt")
-            out_path = os.path.join(settings.TEMP_DIR, trim_name)
+            trim_name = os.path.basename(in_path).replace(".vrt", "-trim.vrt")
+            out_path = os.path.join(settings.OHMG_VRT_DIR, trim_name)
 
             wo = gdal.WarpOptions(
                 format="VRT",
@@ -93,7 +93,7 @@ class Mosaicker:
         print("building vrt")
 
         mosaic_vrt = Path(
-            settings.TEMP_DIR, f"{layerset.map.identifier}-{layerset.category.slug}.vrt"
+            settings.OHMG_VRT_DIR, f"{layerset.map.identifier}-{layerset.category.slug}.vrt"
         )
         gdal.BuildVRT(str(mosaic_vrt), trim_list, options=vo)
 

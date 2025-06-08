@@ -97,28 +97,6 @@ def anticipate_polynomial_order(gcp_count):
         return "poly3"
 
 
-def get_path_variant(original_path, variant, outdir=None):
-    """Used to standardize the derivative names of Document files created
-    during the georeferencing process"""
-
-    if outdir is None:
-        outdir = os.path.dirname(original_path)
-
-    basename = os.path.basename(original_path)
-    ext = os.path.splitext(basename)[1]
-
-    if variant == "gcps":
-        filename = basename.replace(ext, "_gcps.vrt")
-    elif variant == "VRT":
-        filename = basename.replace(ext, "_modified.vrt")
-    elif variant == "GTiff":
-        filename = basename.replace(ext, "_modified.tif")
-    else:
-        raise Exception(f"unsupported derivative type: {variant}")
-
-    return os.path.join(outdir, filename)
-
-
 def retrieve_srs_wkt(code):
     srs_cache_dir = os.path.join(settings.CACHE_DIR, "srs_wkt")
     if not os.path.isdir(srs_cache_dir):
@@ -176,8 +154,6 @@ class Georeferencer:
         else:
             raise Exception("no valid gcps_* argument provided")
 
-        self.workspace = None
-
         # verbose can trigger extra print statements in certain contexts
         self.verbose = verbose
 
@@ -230,11 +206,6 @@ class Georeferencer:
                 float(feature["properties"]["image"][1]),
             )
             self.gcps.append(gcp)
-
-    def set_workspace(self, directory):
-        if not os.path.isdir(directory):
-            os.mkdir(directory)
-        self.workspace = directory
 
     def make_gcps_vrt(
         self,
@@ -365,137 +336,3 @@ class Georeferencer:
         logger.info(f"{Path(src_path).name} | COG created: {round(time.time() - a, 3)} seconds.")
 
         return write_out_path
-
-    def warp(
-        self,
-        src_path,
-        output_directory=None,
-        return_vrt=False,
-        preview_id=None,
-        return_gcps_vrt=False,
-    ):
-        """
-        This is (now) the only entry point for creating an output warped file. By default,
-        this will be a Cloud Optimized GeoTIFF (COG), via the COG driver in GDAL.
-
-        Use return_vrt=True to stop short of creating an actual COG and only get a VRT.
-
-        Use preview_id to append an extra string on the end of the output file. This is only
-        needed/used in conjunction with return_vrt, in order to get a brand new VRT to force
-        a new preview layer during georeferencing.
-        """
-
-        gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
-
-        fname = os.path.basename(src_path)
-
-        logger.debug(f"{fname} | start")
-        a = time.time()
-
-        if output_directory is None:
-            self.set_workspace(os.path.dirname(src_path))
-        else:
-            self.set_workspace(output_directory)
-
-        vrt_with_gcps_path = get_path_variant(src_path, "gcps", outdir=self.workspace)
-
-        to = gdal.TranslateOptions(
-            GCPs=self.gcps,
-            format="VRT",
-            creationOptions=[
-                "BLOCKXSIZE=512",
-                "BLOCKYSIZE=512",
-            ],
-        )
-        try:
-            gdal.Translate(vrt_with_gcps_path, src_path, options=to)
-        except Exception as e:
-            logger.error(f"{fname} | translate error: {str(e)}")
-            raise e
-
-        logger.debug(f"{fname} | running warp...")
-
-        if self.verbose:
-            print(gdal.Info(vrt_with_gcps_path))
-
-        if return_gcps_vrt:
-            return vrt_with_gcps_path
-
-        ## if a jpg is passed in, assume that white (255, 255, 255) should be
-        ## interpreted as the no data value
-        # src_nodata = None
-        # if src_path.endswith(".jpg"):
-        #     src_nodata = "255 255 255"
-        ## make WarpOptions to handle more settings in the final process
-        # https://gdal.org/python/osgeo.gdal-module.html#WarpOptions
-
-        # gdal.SetConfigOption('GDAL_TIFF_INTERNAL_MASK', 'YES')
-
-        wo = gdal.WarpOptions(
-            creationOptions=[
-                #     "NUM_THREADS=ALL_CPUS",
-                #     ## originally used this set of flags used
-                #     # "COMPRESS=DEFLATE",
-                #     ## should have been used PREDICTOR=2 with DEFLATE but didn't know about it
-                #     # "PREDICTOR=2"
-                #     ## useful in general but not needed when using COG driver
-                "BLOCKXSIZE=512",
-                "BLOCKYSIZE=512",
-                #     ## advisable if using JPEG with GTiff, but not supported in COG
-                #     # "JPEG_QUALITY=75",
-                #     # "PHOTOMETRIC=YCBCR",
-                #     ## Use JPEG, as recommended by Paul Ramsey article:
-                #     ## https://blog.cleverelephant.ca/2015/02/geotiff-compression-for-dummies.html
-                # "COMPRESS=JPEG",
-            ],
-            transformerOptions=[
-                f"DST_SRS={self.crs_wkt}",
-                f'MAX_GCP_ORDER={self.transformation["gdal_code"]}',
-            ],
-            format="VRT",
-            dstSRS=f"{self.crs_code}",
-            # srcNodata=src_nodata,
-            # srcAlpha=True,
-            dstAlpha=True,
-            resampleAlg="nearest",
-        )
-
-        warped_vrt_path = get_path_variant(src_path, "VRT", outdir=output_directory)
-        if preview_id:
-            warped_vrt_path = warped_vrt_path.replace(".vrt", f"_{preview_id}.vrt")
-
-        gdal.Warp(warped_vrt_path, vrt_with_gcps_path, options=wo)
-
-        logger.debug(f"{fname} | warp completed in {round(time.time() - a, 3)} seconds.")
-
-        if return_vrt:
-            logger.debug(f"{fname} | returning VRT: {warped_vrt_path}")
-            return warped_vrt_path
-
-        dst_path = get_path_variant(src_path, "GTiff", outdir=output_directory)
-
-        b = time.time()
-        logger.debug(f"{fname} | translating to COG: {dst_path}")
-        to = gdal.TranslateOptions(
-            # format="GTiff",
-            format="COG",
-            # maskBand="mask",
-            creationOptions=[
-                # 'COMPRESS=DEFLATE',
-                # 'PREDICTOR=2',
-                "COMPRESS=JPEG",
-                # 'TILED=YES',
-                # 'BLOCKXSIZE=512',
-                # 'BLOCKYSIZE=512',
-                # "PHOTOMETRIC=YCBCR",
-                "TILING_SCHEME=GoogleMapsCompatible",
-            ],
-            resampleAlg="nearest",
-        )
-        gdal.Translate(dst_path, warped_vrt_path, options=to)
-
-        logger.debug(f"{fname} | translate completed in {round(time.time() - b, 3)} seconds.")
-
-        logger.info(f"{fname} | georeference successful in {round(time.time() - a, 3)} seconds.")
-
-        return dst_path

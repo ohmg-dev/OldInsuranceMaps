@@ -168,7 +168,7 @@ MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / "uploaded")
 
 # create directory for temp holding of publicly served VRT files
 OHMG_VRT_DIR = Path(MEDIA_ROOT, "vrt")
-OHMG_VRT_DIR.mkdir(exist_ok=True)
+OHMG_VRT_DIR.mkdir(exist_ok=True, parents=True)
 
 # this is a custom setting to allow apache to be used in development
 MEDIA_HOST = os.getenv("MEDIA_HOST", SITEURL)
@@ -265,11 +265,30 @@ if DEBUG and ENABLE_DEBUG_TOOLBAR:
 
 TITILER_HOST = os.getenv("TITILER_HOST", "")
 
+## These creds are only used by the initialize-s3-bucket command
 S3_REGION = os.getenv("S3_REGION")
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
 S3_ACCESS_KEY_ID = os.getenv("S3_ACCESS_KEY_ID")
 S3_SECRET_ACCESS_KEY = os.getenv("S3_SECRET_ACCESS_KEY")
 S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL")
+
+ENABLE_S3_STORAGE = ast.literal_eval(os.getenv("ENABLE_S3_STORAGE", "False"))
+if ENABLE_S3_STORAGE:
+    print("s3 storage enabled")
+    ## These creds are used by django-storages
+    AWS_ACCESS_KEY_ID = os.getenv("S3_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = os.getenv("S3_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+    AWS_S3_REGION_NAME = os.getenv("S3_REGION")
+    AWS_S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL")
+
+    AWS_S3_VERIFY = True
+    AWS_S3_FILE_OVERWRITE = True
+    AWS_LOCATION = "uploaded/"
+
+    MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/uploaded/"
+    MEDIA_HOST = ""
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 # this is a hack to handle the fact that certain GDAL and Django versions
 # are not compatible, and the order of lat/long gets messed up. ONLY to
