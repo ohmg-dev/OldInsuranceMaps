@@ -4,6 +4,8 @@ from pathlib import Path
 
 from kombu import Queue, Exchange
 
+MODE = os.getenv("MODE", "DEV")
+
 # set the repo root as the BASE_DIR, project root at PROJECT_DIR
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -166,12 +168,13 @@ COMPRESS_ENABLED = False
 MEDIA_URL = os.getenv("MEDIA_URL", "/uploaded/")
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / "uploaded")
 
-# create directory for temp holding of publicly served VRT files
-OHMG_VRT_DIR = Path(MEDIA_ROOT, "vrt")
-OHMG_VRT_DIR.mkdir(exist_ok=True, parents=True)
+# create pattern for holding and serving temp VRT files
+VRT_URL = "/uploaded/vrt/"
+VRT_ROOT = BASE_DIR / "uploaded/vrt"
+VRT_ROOT.mkdir(exist_ok=True, parents=True)
 
 # this is a custom setting to allow apache to be used in development
-MEDIA_HOST = os.getenv("MEDIA_HOST", SITEURL)
+LOCAL_MEDIA_HOST = os.getenv("LOCAL_MEDIA_HOST", SITEURL)
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
@@ -287,7 +290,6 @@ if ENABLE_S3_STORAGE:
     AWS_LOCATION = "uploaded/"
 
     MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/uploaded/"
-    MEDIA_HOST = ""
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 # this is a hack to handle the fact that certain GDAL and Django versions

@@ -26,7 +26,7 @@ class OHMGTestCase(LiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        settings.MEDIA_HOST = cls.live_server_url
+        settings.LOCAL_MEDIA_HOST = cls.live_server_url
 
     class Fixtures:
         DATA_DIR = Path(__file__).parent / "data"

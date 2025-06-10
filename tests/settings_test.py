@@ -20,8 +20,8 @@ STATIC_ROOT.mkdir(exist_ok=True)
 MEDIA_ROOT = BASE_DIR / "uploaded"
 MEDIA_ROOT.mkdir(exist_ok=True)
 
-OHMG_VRT_DIR = Path(MEDIA_ROOT, "vrt")
-OHMG_VRT_DIR.mkdir(exist_ok=True, parents=True)
+VRT_ROOT = Path(MEDIA_ROOT, "vrt")
+VRT_ROOT.mkdir(exist_ok=True, parents=True)
 
 ENABLE_DEBUG_TOOLBAR = True
 

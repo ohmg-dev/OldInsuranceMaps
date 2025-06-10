@@ -115,6 +115,38 @@ def retrieve_srs_wkt(code):
     return wkt
 
 
+class VRTHandler:
+    """This class should be given a name, and then provide
+    1. the local writable path for where this VRT can be created
+    2. a range request compatible http url through which the written
+        file can be accessed
+    3. a GDAL vsi readable url (derived from 2)
+
+    1 and 3 are easy, but 2 is tricky to accommodate in dev and prod
+    environments, specifically alongside existing pattern for
+    dev/prod serving of COGs. 2 Must be a FULL url, not relative, So:
+
+    2 (dev): This must be the LOCAL_MEDIA_HOST url pointing to uploaded/vrt
+    2 (prod): This should be SITEURL pointing to uploaded/vrt."""
+
+    def __init__(self, base_name: str):
+        self.base_name = base_name
+        self.name = self.base_name
+
+    def get_path(self):
+        return Path(settings.VRT_ROOT, self.name + ".vrt")
+
+    def get_url(self):
+        base_url = settings.LOCAL_MEDIA_HOST if settings.MODE == "DEV" else settings.SITURL
+        return f"{base_url}{settings.VRT_URL}{self.name}.vrt"
+
+    def get_vsi_url(self):
+        return f"/vsicurl/{self.get_url()}"
+
+    def set_variant_name(self, variant: str):
+        self.name = f"{self.base_name}-{variant}"
+
+
 class Georeferencer:
     def __init__(
         self,
@@ -211,19 +243,17 @@ class Georeferencer:
         self,
         src_path,
         out_name: str = None,
-    ):
+    ) -> VRTHandler:
         logger.debug(f"{Path(src_path).name} | create VRT with GCPs...")
 
         if not out_name:
             out_name = str(uuid4())
 
+        gcps_vrt = VRTHandler(out_name)
+        gcps_vrt.set_variant_name("gcps")
+
         if src_path.startswith("http"):
             src_path = f"/vsicurl/{src_path}"
-
-        out_name = f"{out_name}-gcps.vrt"
-
-        read_out_path = f"{settings.MEDIA_HOST.rstrip('/')}{settings.MEDIA_URL}vrt/{out_name}"
-        write_out_path = Path(settings.OHMG_VRT_DIR, out_name)
 
         to = gdal.TranslateOptions(
             GCPs=self.gcps,
@@ -234,31 +264,28 @@ class Georeferencer:
             ],
         )
         try:
-            gdal.Translate(str(write_out_path), src_path, options=to)
+            gdal.Translate(str(gcps_vrt.get_path()), src_path, options=to)
         except Exception as e:
             logger.error(f"{src_path} | translate error: {str(e)}")
             raise e
 
         logger.debug(f"{Path(src_path).name} | VRT with GCPs created")
 
-        return (read_out_path, write_out_path)
+        return gcps_vrt
 
     def make_warped_vrt(
         self,
         src_path,
         out_name: str = None,
-    ):
-        logger.debug(f"{Path(src_path).name} | create warped VRT...")
+    ) -> VRTHandler:
+        src_name = Path(src_path).name
+        logger.debug(f"{src_name} | create warped VRT...")
         if not out_name:
             out_name = str(uuid4())
-        read_gcps_vrt, write_gcps_vrt = self.make_gcps_vrt(src_path, out_name)
 
-        if read_gcps_vrt.startswith("http"):
-            read_gcps_vrt = f"/vsicurl/{read_gcps_vrt}"
-
-        out_name = f"{out_name}-modified.vrt"
-        read_out_path = f"{settings.MEDIA_HOST.rstrip('/')}{settings.MEDIA_URL}vrt/{out_name}"
-        write_out_path = Path(settings.OHMG_VRT_DIR, out_name)
+        gcps_vrt = self.make_gcps_vrt(src_path, out_name)
+        warped_vrt = VRTHandler(out_name)
+        warped_vrt.set_variant_name("modified")
 
         wo = gdal.WarpOptions(
             creationOptions=[
@@ -289,25 +316,23 @@ class Georeferencer:
             resampleAlg="nearest",
         )
         try:
-            gdal.Warp(str(write_out_path), read_gcps_vrt, options=wo)
+            gdal.Warp(str(warped_vrt.get_path()), gcps_vrt.get_vsi_url(), options=wo)
         except Exception as e:
-            logger.error(f"{read_gcps_vrt} | warp error: {str(e)}")
+            logger.error(f"{gcps_vrt.get_vsi_url()} | warp error: {str(e)}")
             raise e
 
-        logger.debug(f"{Path(src_path).name} | warped VRT created")
+        logger.debug(f"{src_name} | warped VRT created")
 
-        return (read_out_path, write_out_path)
+        return warped_vrt
 
     def make_cog(
         self,
         src_path,
-    ):
+    ) -> Path:
         a = time.time()
         logger.debug(f"{Path(src_path).name} | create COG...")
 
-        read_modified_vrt, write_modified_vrt = self.make_warped_vrt(src_path)
-        if read_modified_vrt.startswith("http"):
-            read_modified_vrt = f"/vsicurl/{read_modified_vrt}"
+        warped_vrt = self.make_warped_vrt(src_path)
 
         write_out_path = Path(settings.TEMP_DIR, Path(src_path).stem + "-modified.tif")
 
@@ -328,9 +353,9 @@ class Georeferencer:
             resampleAlg="nearest",
         )
         try:
-            gdal.Translate(str(write_out_path), read_modified_vrt, options=to)
+            gdal.Translate(str(write_out_path), warped_vrt.get_vsi_url(), options=to)
         except Exception as e:
-            logger.error(f"{read_modified_vrt} | translate error: {str(e)}")
+            logger.error(f"{warped_vrt.get_vsi_url()} | translate error: {str(e)}")
             raise e
 
         logger.info(f"{Path(src_path).name} | COG created: {round(time.time() - a, 3)} seconds.")

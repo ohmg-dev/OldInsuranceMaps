@@ -38,6 +38,24 @@ from ohmg.places.models import Place
 logger = logging.getLogger(__name__)
 
 
+def get_file_url(obj, attr_name: str = "file"):
+    f = getattr(obj, attr_name)
+    if f is None or (not f.name):
+        return ""
+
+    ## with S3 storage FileField will return an absolute url
+    if settings.ENABLE_S3_STORAGE:
+        url = f.url
+    ## this is true during local development
+    elif settings.MODE == "DEV":
+        url = f"{settings.LOCAL_MEDIA_HOST.rstrip('/')}{f.url}"
+    ## this is true in prod without S3 storage enabled
+    else:
+        url = f"{settings.SITEURL.rstrip('/')}{f.url}"
+
+    return url
+
+
 class MapGroup(models.Model):
     class Meta:
         verbose_name_plural = "      Map Groups"

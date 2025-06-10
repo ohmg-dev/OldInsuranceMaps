@@ -267,6 +267,5 @@ These are the essential environment variables that must be present in your `.env
 |`DATABASE_HOST`|`localhost`|postgres host|dev+prod|
 |`DATABASE_PORT`|`5432`|postgres port|dev+prod|
 |`TITILER_HOST`|`http://localhost:8008`|address for running TiTiler instance|dev+prod|
-|`MEDIA_HOST`|`http://localhost:8080`|location of |dev|
 
 -->
