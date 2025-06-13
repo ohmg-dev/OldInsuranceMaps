@@ -256,11 +256,11 @@ LOGIN_REQUIRED_SITEWIDE = ast.literal_eval(os.getenv("LOGIN_REQUIRED_SITEWIDE", 
 if LOGIN_REQUIRED_SITEWIDE:
     MIDDLEWARE += ("ohmg.core.middleware.LoginRequiredMiddleware",)
 
-ENABLE_CPROFILER = ast.literal_eval(os.getenv("ENABLE_CPROFILER", False))
+ENABLE_CPROFILER = ast.literal_eval(os.getenv("ENABLE_CPROFILER", "False"))
 if ENABLE_CPROFILER:
     MIDDLEWARE += ("django_cprofile_middleware.middleware.ProfilerMiddleware",)
 
-ENABLE_DEBUG_TOOLBAR = ast.literal_eval(os.getenv("ENABLE_DEBUG_TOOLBAR", False))
+ENABLE_DEBUG_TOOLBAR = ast.literal_eval(os.getenv("ENABLE_DEBUG_TOOLBAR", "False"))
 if DEBUG and ENABLE_DEBUG_TOOLBAR:
     INSTALLED_APPS += ("debug_toolbar",)
     MIDDLEWARE = ("debug_toolbar.middleware.DebugToolbarMiddleware",) + MIDDLEWARE
@@ -277,7 +277,6 @@ S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL")
 
 ENABLE_S3_STORAGE = ast.literal_eval(os.getenv("ENABLE_S3_STORAGE", "False"))
 if ENABLE_S3_STORAGE:
-    print("s3 storage enabled")
     ## These creds are used by django-storages
     AWS_ACCESS_KEY_ID = os.getenv("S3_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = os.getenv("S3_SECRET_ACCESS_KEY")

@@ -16,7 +16,7 @@ pnpm run build
 cd $CURRENT_DIR
 
 echo "getting static plugin assets"
-$VIRTUAL_ENV/bin/python $PROJECT_ROOT/manage.py configure get-plugins
+$VIRTUAL_ENV/bin/python $PROJECT_ROOT/manage.py get-plugins
 
 echo "running collectstatic"
 $VIRTUAL_ENV/bin/python $PROJECT_ROOT/manage.py collectstatic --noinput
