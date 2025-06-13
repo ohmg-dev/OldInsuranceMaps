@@ -10,11 +10,12 @@ from osgeo import gdal
 from django.conf import settings
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.core.files import File
+from django.core.files.storage import get_storage_class
 
-from ohmg.core.models import Layer
+from ohmg.core.models import Layer, LayerSet, get_file_url
 from ohmg.core.utils import random_alnum
 
-from .georeferencer import Georeferencer
+from .georeferencer import Georeferencer, VRTHandler
 
 gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
 gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class Mosaicker:
-    def generate_mosaic_vrt(self, layerset) -> Path:
+    def generate_mosaic_vrt(self, layerset) -> VRTHandler:
         """A helpful reference from the BPLv used during the creation of this method:
         https://github.com/bplmaps/atlascope-utilities/blob/master/new-workflow/atlas-tools.py
         """
@@ -53,10 +54,10 @@ class Mosaicker:
                 transformation=gcpgroup.transformation,
                 gcps_geojson=gcpgroup.as_geojson,
             )
-            in_path, write_modified_vrt = g.make_warped_vrt(layer.region.file.path)
+            warped_vrt = g.make_warped_vrt(get_file_url(layer.region))
 
-            trim_name = os.path.basename(in_path).replace(".vrt", "-trim.vrt")
-            out_path = os.path.join(settings.OHMG_VRT_DIR, trim_name)
+            trimmed_vrt = VRTHandler(warped_vrt.base_name)
+            trimmed_vrt.set_variant_name("trim")
 
             wo = gdal.WarpOptions(
                 format="VRT",
@@ -75,10 +76,10 @@ class Mosaicker:
                 #     'PREDICTOR=2',
                 # ]
             )
-            gdal.Warp(out_path, in_path, options=wo)
+            gdal.Warp(str(trimmed_vrt.get_path()), warped_vrt.get_vsi_url(), options=wo)
             print("warped")
 
-            trim_list.append(out_path)
+            trim_list.append(str(trimmed_vrt.get_path()))
 
         if len(layer_extent_polygons) > 0:
             multi = MultiPolygon(layer_extent_polygons, srid=4326)
@@ -92,14 +93,12 @@ class Mosaicker:
         )
         print("building vrt")
 
-        mosaic_vrt = Path(
-            settings.OHMG_VRT_DIR, f"{layerset.map.identifier}-{layerset.category.slug}.vrt"
-        )
-        gdal.BuildVRT(str(mosaic_vrt), trim_list, options=vo)
+        mosaic_vrt = VRTHandler(f"{layerset.map.identifier}-{layerset.category.slug}")
+        gdal.BuildVRT(str(mosaic_vrt.get_path()), trim_list, options=vo)
 
         return mosaic_vrt
 
-    def generate_cog(self, layerset):
+    def generate_cog(self, layerset: LayerSet):
         start = datetime.now()
 
         mosaic_vrt = self.generate_mosaic_vrt(layerset)
@@ -114,12 +113,10 @@ class Mosaicker:
                 "TILING_SCHEME=GoogleMapsCompatible",
             ],
         )
-        out_tif_path = mosaic_vrt.with_suffix(".tif")
-        gdal.Translate(str(out_tif_path), str(mosaic_vrt), options=to)
+        out_tif_path = mosaic_vrt.get_path().with_suffix(".tif")
+        gdal.Translate(str(out_tif_path), str(mosaic_vrt.get_path()), options=to)
 
-        existing_file_path = None
-        if layerset.mosaic_geotiff:
-            existing_file_path = layerset.mosaic_geotiff.path
+        existing_file_name = layerset.mosaic_geotiff.name if layerset.mosaic_geotiff else None
 
         file_name = f"{layerset.map.identifier}-{layerset.category.slug}__{datetime.now().strftime('%Y-%m-%d')}__{random_alnum(6)}.tif"
 
@@ -127,8 +124,9 @@ class Mosaicker:
             layerset.mosaic_geotiff.save(file_name, File(f))
 
         os.remove(out_tif_path)
-        if existing_file_path:
-            os.remove(existing_file_path)
+        storage = get_storage_class()()
+        if existing_file_name and storage.exists(name=existing_file_name):
+            storage.delete(name=existing_file_name)
 
         print(f"completed - elapsed time: {datetime.now() - start}")
 
