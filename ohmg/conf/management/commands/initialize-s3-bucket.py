@@ -1,6 +1,4 @@
-import sys
 import json
-from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -10,31 +8,45 @@ from ohmg.core.utils import confirm_continue
 
 
 class Command(BaseCommand):
-    help = "Create and set permissions on S3 bucket, using configs in .env."
-    verbose = False
-    python_env = Path(sys.executable).parent
+    help = (
+        "Create and set permissions on S3 bucket. S3 credentials and configs "
+        "(bucket name, region, and endpoint URL) can be provided, or will default"
+        "to env variables."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--bucket",
-            default=settings.S3_BUCKET_NAME,
-            help="Directory where generated service files will be placed.",
-        )
-        parser.add_argument(
-            "--endpoint-url",
-            default=settings.S3_ENDPOINT_URL,
-            help="Directory where generated service files will be placed.",
+            default=settings.AWS_STORAGE_BUCKET_NAME,
+            help="Optionally provide a bucket name, uses AWS_STORAGE_BUCKET_NAME if not provided.",
         )
         parser.add_argument(
             "--region",
-            default=settings.S3_REGION,
-            help="Directory where generated service files will be placed.",
+            default=settings.AWS_S3_REGION_NAME,
+            help="Optionally provide a region name, uses AWS_S3_REGION_NAME if not provided.",
+        )
+        parser.add_argument(
+            "--endpoint-url",
+            default=settings.AWS_S3_ENDPOINT_URL,
+            help="Optionally provide a custom endpoint URL, uses AWS_S3_ENDPOINT_URL if not provided.",
+        )
+        parser.add_argument(
+            "--access-key-id",
+            default=settings.AWS_ACCESS_KEY_ID,
+            help="Optionally provide access key id, uses AWS_ACCESS_KEY_ID if not provided.",
+        )
+        parser.add_argument(
+            "--secret-access-key",
+            default=settings.AWS_SECRET_ACCESS_KEY,
+            help="Optionally provide a secret access key, uses AWS_SECRET_ACCESS_KEY if not provided.",
         )
 
     def handle(self, *args, **options):
         bucket_name = options["bucket"]
         endpoint_url = options["endpoint_url"]
         region_name = options["region"]
+        access_id = options["access_key_id"]
+        secret_key = options["secret_access_key"]
 
         print("Initializing bucket")
         print(f"Bucket name:    {bucket_name}")
@@ -45,8 +57,8 @@ class Command(BaseCommand):
 
         client = boto3.client(
             "s3",
-            aws_access_key_id=settings.S3_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.S3_SECRET_ACCESS_KEY,
+            aws_access_key_id=access_id,
+            aws_secret_access_key=secret_key,
             endpoint_url=endpoint_url,
             region_name=region_name,
         )

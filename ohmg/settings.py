@@ -268,26 +268,21 @@ if DEBUG and ENABLE_DEBUG_TOOLBAR:
 
 TITILER_HOST = os.getenv("TITILER_HOST", "")
 
-## These creds are only used by the initialize-s3-bucket command
-S3_REGION = os.getenv("S3_REGION")
-S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
-S3_ACCESS_KEY_ID = os.getenv("S3_ACCESS_KEY_ID")
-S3_SECRET_ACCESS_KEY = os.getenv("S3_SECRET_ACCESS_KEY")
-S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL")
+## These creds are only actually used by boto3 if ENABLE_S3_STORAGE = True,
+## or by the initialze-s3-bucket command as default values
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
+AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")
+
+AWS_S3_VERIFY = True
+AWS_S3_FILE_OVERWRITE = True
+AWS_LOCATION = "uploaded/"
 
 ENABLE_S3_STORAGE = ast.literal_eval(os.getenv("ENABLE_S3_STORAGE", "False"))
+
 if ENABLE_S3_STORAGE:
-    ## These creds are used by django-storages
-    AWS_ACCESS_KEY_ID = os.getenv("S3_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.getenv("S3_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
-    AWS_S3_REGION_NAME = os.getenv("S3_REGION")
-    AWS_S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL")
-
-    AWS_S3_VERIFY = True
-    AWS_S3_FILE_OVERWRITE = True
-    AWS_LOCATION = "uploaded/"
-
     MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/uploaded/"
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
