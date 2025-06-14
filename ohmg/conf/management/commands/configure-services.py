@@ -1,16 +1,10 @@
 import os
 import sys
-import json
-from argparse import Namespace
 from pathlib import Path
 
-import requests
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.template.loader import render_to_string
-from django.test.client import RequestFactory
-from django.contrib.sessions.middleware import SessionMiddleware
 
 
 class Command(BaseCommand):
@@ -19,16 +13,6 @@ class Command(BaseCommand):
     python_env = Path(sys.executable).parent
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            "operation",
-            choices=[
-                "services",
-                "generate-error-pages",
-                "initialize-s3-bucket",
-                "get-plugins",
-            ],
-            help="Choose what configuration operation to run.",
-        )
         parser.add_argument(
             "-d",
             "--destination",
@@ -42,6 +26,42 @@ class Command(BaseCommand):
             help="Verbose output.",
         )
 
+    def handle(self, *args, **options):
+        self.verbose = options["verbose"]
+
+        out_dir = Path(options["destination"])
+        out_dir.mkdir(exist_ok=True)
+
+        cs_path = Path(out_dir, "celery.service")
+        self._write_file(self.generate_celery_service(), cs_path)
+
+        ui_path = Path(out_dir, "uwsgi.ini")
+        self._write_file(self.generate_uwsgi_ini(), ui_path)
+
+        us_path = Path(out_dir, "uwsgi.service")
+        self._write_file(self.generate_uwsgi_service(ui_path), us_path)
+
+        print(f"""services created. to deploy, run the following commands:
+
+# update celery 
+sudo ln -sf {cs_path.absolute()} /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl restart celery
+
+# update uwsgi
+sudo ln -sf {us_path.absolute()} /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl restart uwsgi
+""")
+
+        output_files = [cs_path, ui_path, us_path]
+
+        if self.verbose:
+            print(f"~~~\noutput directory: {out_dir.absolute()}")
+            print(f"~~~\nfile count: {len(output_files)}")
+            for f in output_files:
+                print(f.resolve())
+
     def _write_file(self, content: str, outpath: str):
         with open(outpath, "w") as o:
             o.write(content)
@@ -52,34 +72,6 @@ class Command(BaseCommand):
         if value == "<not in django settings>":
             value = os.getenv(name, default_value)
         return value
-
-    def handle(self, *args, **options):
-        self.verbose = options["verbose"]
-        operation = options["operation"]
-
-        if operation == "generate-error-pages":
-            self.generate_error_pages()
-
-        if operation == "initialize-s3-bucket":
-            self.initialize_s3_bucket()
-
-        if operation == "get-plugins":
-            self.get_plugins()
-
-        if operation == "services":
-            out_dir = Path(options["destination"])
-            output_files = self.create_services(destination=out_dir)
-
-            if self.verbose:
-                print(f"~~~\noutput directory: {out_dir.absolute()}")
-                print(f"~~~\nfile count: {len(output_files)}")
-                for f in output_files:
-                    print(f.name)
-
-    def write_file(self, file_path, content):
-        with open(file_path, "w") as out:
-            out.write(content)
-        return os.path.abspath(file_path)
 
     def generate_uwsgi_ini(self):
         project_name = settings.WSGI_APPLICATION.split(".")[0]
@@ -247,123 +239,3 @@ WantedBy=multi-user.target
 """
 
         return file_content
-
-    def create_services(self, destination: Path):
-        destination.mkdir(exist_ok=True)
-        cs_path = Path(destination, "celery.service")
-        self._write_file(self.generate_celery_service(), cs_path)
-
-        ui_path = Path(destination, "uwsgi.ini")
-        self._write_file(self.generate_uwsgi_ini(), ui_path)
-
-        us_path = Path(destination, "uwsgi.service")
-        self._write_file(self.generate_uwsgi_service(ui_path), us_path)
-
-        print(f"""services created. to deploy, run the following commands:
-
-# update celery 
-sudo ln -sf {cs_path.absolute()} /etc/systemd/system
-sudo systemctl daemon-reload
-sudo systemctl restart celery
-
-# update uwsgi
-sudo ln -sf {us_path.absolute()} /etc/systemd/system
-sudo systemctl daemon-reload
-sudo systemctl restart uwsgi
-""")
-
-        return [cs_path, ui_path, us_path]
-
-    def generate_error_pages(self):
-        rf = RequestFactory()
-        request = rf.get("/")
-        middleware = SessionMiddleware(lambda x: None)
-        middleware.process_request(request)
-        request.session.save()
-        request.user = Namespace(is_authenticated=False)
-        for status in [404, 500]:
-            content = render_to_string(f"{status}.html.template", request=request)
-            outpath = os.path.join(settings.PROJECT_DIR, f"frontend/templates/{status}.html")
-            with open(outpath, "w") as static_file:
-                static_file.write(content)
-            print(f"file saved to: {outpath}")
-
-    def initialize_s3_bucket(self):
-        import boto3
-
-        bucket_name = settings.S3_BUCKET_NAME
-        client = boto3.client(
-            "s3",
-            aws_access_key_id=settings.S3_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.S3_SECRET_ACCESS_KEY,
-            endpoint_url=settings.S3_ENDPOINT_URL,
-            region_name=settings.S3_REGION,
-        )
-
-        ## create bucket if it doesn't exist
-        response = client.list_buckets()
-        if bucket_name not in [i["Name"] for i in response["Buckets"]]:
-            print(f"Creating bucket: {bucket_name}")
-            client.create_bucket(Bucket=bucket_name)
-            print("Bucket created.")
-        else:
-            print(f"Bucket already exists: {bucket_name}")
-            c = input(
-                "Do you want to overwrite this bucket's "
-                "CORS configuration and access policy? y/N "
-            )
-            if not c.lower().startswith("y"):
-                exit()
-
-        ## set CORS
-        cors_configuration = {
-            "CORSRules": [
-                {
-                    "AllowedHeaders": ["*"],
-                    "AllowedMethods": ["GET"],
-                    "AllowedOrigins": ["*"],
-                    "ExposeHeaders": [
-                        "x-amz-server-side-encryption",
-                        "x-amz-request-id",
-                        "x-amz-id-2",
-                    ],
-                    "MaxAgeSeconds": 3000,
-                }
-            ]
-        }
-        client.put_bucket_cors(Bucket=bucket_name, CORSConfiguration=cors_configuration)
-        print("CORS configured:")
-        print(json.dumps(cors_configuration, indent=2))
-
-        ## set bucket policy
-        bucket_policy = {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Sid": "PublicRead",
-                    "Effect": "Allow",
-                    "Principal": "*",
-                    "Action": ["s3:GetObject"],
-                    "Resource": f"arn:aws:s3:::{bucket_name}/*",
-                }
-            ],
-        }
-
-        # Set the new policy
-        client.put_bucket_policy(
-            Bucket=bucket_name,
-            # Convert the policy from JSON dict to string
-            Policy=json.dumps(bucket_policy),
-        )
-        print("Bucket policy updated:")
-        print(json.dumps(bucket_policy, indent=2))
-
-    def get_plugins(self):
-        dest = Path("ohmg/frontend/static/plugins")
-        dest.mkdir(exist_ok=True)
-
-        for url in settings.PLUGIN_ASSETS:
-            response = requests.get(url)
-            print(url)
-            with open(Path(dest, url.split("/")[-1]), mode="wb") as file:
-                file.write(response.content)

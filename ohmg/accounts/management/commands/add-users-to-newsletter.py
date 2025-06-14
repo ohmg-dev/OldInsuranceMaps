@@ -5,7 +5,10 @@ from newsletter.models import Newsletter, Subscription
 
 
 class Command(BaseCommand):
-    help = "command to search the Library of Congress API."
+    help = (
+        "Creates subcriptions to the specified newsletter for all users that "
+        "are not already subscribed."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(

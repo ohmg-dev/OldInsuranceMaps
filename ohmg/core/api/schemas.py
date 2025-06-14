@@ -5,7 +5,6 @@ from typing import List, Optional, Any, Literal
 
 from natsort import natsorted
 
-from django.conf import settings
 from django.urls import reverse
 from ninja import (
     Schema,
@@ -17,6 +16,7 @@ from ohmg.core.models import (
     Document,
     Region,
     Layer,
+    get_file_url,
 )
 from ohmg.georeference.models import (
     PrepSession,
@@ -306,7 +306,7 @@ class LayerSchema(Schema):
         return {
             "resource": f"/layer/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
-            "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
+            "cog": get_file_url(obj),
             "georeference": f"/georeference/{obj.region.pk}/",
         }
 
@@ -368,7 +368,7 @@ class LayerFullSchema(Schema):
         return {
             "resource": f"/layer/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
-            "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
+            "cog": get_file_url(obj),
             "georeference": f"/georeference/{obj.region.pk}/",
         }
 
@@ -459,7 +459,7 @@ class LayerSetLayer(Schema):
         return {
             "resource": f"/resource/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
-            "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
+            "cog": get_file_url(obj),
             "georeference": f"/georeference/{obj.region.pk}/",
         }
 
@@ -743,7 +743,7 @@ class ResourceFullSchema(Schema):
             "georeference": f"/georeference/{regid}/",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
             "image": obj.file.url if obj.file else "",
-            "cog": settings.MEDIA_HOST.rstrip("/") + obj.file.url if obj.file else "",
+            "cog": get_file_url(obj),
         }
 
     @staticmethod
