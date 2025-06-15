@@ -237,7 +237,7 @@ class Mosaicker:
             trim_list.append(out_path)
 
         trim_urls = [
-            i.replace(os.path.dirname(settings.MEDIA_ROOT), settings.MEDIA_HOST.rstrip("/"))
+            i.replace(os.path.dirname(settings.MEDIA_ROOT), settings.LOCAL_MEDIA_HOST.rstrip("/"))
             for i in trim_list
         ]
         logger.info(

@@ -234,9 +234,9 @@ All COGs will now be accessible at `http://localhost:8080/uploaded/`.
 
 ---
 
-Make sure you have `MEDIA_HOST=http://localhost:8080` in `.env`. `MEDIA_HOST` is a prefix that will be prepended to any uploaded media paths that are passed to TiTiler.
+Make sure you have `LOCAL_MEDIA_HOST=http://localhost:8080` in `.env`. `LOCAL_MEDIA_HOST` is a prefix that will be prepended to any uploaded media paths that are passed to TiTiler.
 
-In production, you will already be using a webserver for static files so you will not need to use `http-server`. In this case, remove `MEDIA_HOST` from `.env` or set it to `''`.
+In production, you will already be using a webserver for static files so you will not need to use `http-server`. In this case, remove `LOCAL_MEDIA_HOST` from `.env` or set it to `''`.
 
 ## Running tests
 

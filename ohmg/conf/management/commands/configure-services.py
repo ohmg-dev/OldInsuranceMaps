@@ -82,6 +82,7 @@ sudo systemctl restart uwsgi
         user = self._resolve_var("USER", "username")
 
         vars = [
+            ("MODE", "PROD"),
             ("MEDIA_ROOT", ""),
             ("DATABASE_NAME", ""),
             ("DATABASE_USER", ""),
@@ -104,6 +105,16 @@ sudo systemctl restart uwsgi
             ("ENABLE_NEWSLETTER", False),
             ("OHMG_API_KEY", ""),
         ]
+
+        if self._resolve_var("ENABLE_S3_STORAGE", False) is True:
+            vars += [
+                ("ENABLE_S3_STORAGE", True),
+                ("AWS_ACCESS_KEY_ID", ""),
+                ("AWS_SECRET_ACCESS_KEY", ""),
+                ("AWS_STORAGE_BUCKET_NAME", ""),
+                ("AWS_S3_REGION_NAME", ""),
+                ("AWS_S3_ENDPOINT_URL", ""),
+            ]
 
         if self._resolve_var("EMAIL_ENABLE", False) is True:
             vars += [
