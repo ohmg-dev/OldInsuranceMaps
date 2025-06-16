@@ -4,6 +4,8 @@ from pathlib import Path
 
 from kombu import Queue, Exchange
 
+MODE = os.getenv("MODE", "DEV")
+
 # set the repo root as the BASE_DIR, project root at PROJECT_DIR
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 PROJECT_DIR = Path(__file__).resolve().parent
@@ -74,6 +76,7 @@ INSTALLED_APPS = [
     "compressor",
     "ninja",
     "markdownx",
+    "ohmg.conf",
     "ohmg.core",
     "ohmg.content",
     "ohmg.frontend",
@@ -133,6 +136,7 @@ DATABASES = {
 
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+DEFAULT_FILE_STORAGE = "ohmg.core.storages.OverwriteStorage"
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.getenv("STATIC_ROOT", BASE_DIR / "static_root")
@@ -164,12 +168,13 @@ COMPRESS_ENABLED = False
 MEDIA_URL = os.getenv("MEDIA_URL", "/uploaded/")
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / "uploaded")
 
-# create directory for temp holding of publicly served VRT files
-OHMG_VRT_DIR = Path(MEDIA_ROOT, "vrt")
-OHMG_VRT_DIR.mkdir(exist_ok=True)
+# create pattern for holding and serving temp VRT files
+VRT_URL = "/uploaded/vrt/"
+VRT_ROOT = Path(MEDIA_ROOT, "vrt")
+VRT_ROOT.mkdir(exist_ok=True, parents=True)
 
 # this is a custom setting to allow apache to be used in development
-MEDIA_HOST = os.getenv("MEDIA_HOST", SITEURL)
+LOCAL_MEDIA_HOST = os.getenv("LOCAL_MEDIA_HOST", SITEURL)
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
@@ -251,11 +256,11 @@ LOGIN_REQUIRED_SITEWIDE = ast.literal_eval(os.getenv("LOGIN_REQUIRED_SITEWIDE", 
 if LOGIN_REQUIRED_SITEWIDE:
     MIDDLEWARE += ("ohmg.core.middleware.LoginRequiredMiddleware",)
 
-ENABLE_CPROFILER = ast.literal_eval(os.getenv("ENABLE_CPROFILER", False))
+ENABLE_CPROFILER = ast.literal_eval(os.getenv("ENABLE_CPROFILER", "False"))
 if ENABLE_CPROFILER:
     MIDDLEWARE += ("django_cprofile_middleware.middleware.ProfilerMiddleware",)
 
-ENABLE_DEBUG_TOOLBAR = ast.literal_eval(os.getenv("ENABLE_DEBUG_TOOLBAR", False))
+ENABLE_DEBUG_TOOLBAR = ast.literal_eval(os.getenv("ENABLE_DEBUG_TOOLBAR", "False"))
 if DEBUG and ENABLE_DEBUG_TOOLBAR:
     INSTALLED_APPS += ("debug_toolbar",)
     MIDDLEWARE = ("debug_toolbar.middleware.DebugToolbarMiddleware",) + MIDDLEWARE
@@ -263,11 +268,23 @@ if DEBUG and ENABLE_DEBUG_TOOLBAR:
 
 TITILER_HOST = os.getenv("TITILER_HOST", "")
 
-S3_REGION = os.getenv("S3_REGION")
-S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
-S3_ACCESS_KEY_ID = os.getenv("S3_ACCESS_KEY_ID")
-S3_SECRET_ACCESS_KEY = os.getenv("S3_SECRET_ACCESS_KEY")
-S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL")
+## These creds are only actually used by boto3 if ENABLE_S3_STORAGE = True,
+## or by the initialze-s3-bucket command as default values
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
+AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL")
+
+AWS_S3_VERIFY = True
+AWS_S3_FILE_OVERWRITE = True
+AWS_LOCATION = "uploaded/"
+
+ENABLE_S3_STORAGE = ast.literal_eval(os.getenv("ENABLE_S3_STORAGE", "False"))
+
+if ENABLE_S3_STORAGE:
+    MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/uploaded/"
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 # this is a hack to handle the fact that certain GDAL and Django versions
 # are not compatible, and the order of lat/long gets messed up. ONLY to

@@ -6,6 +6,7 @@ import logging
 from PIL import Image, ImageDraw, ImageFilter
 
 from django.db import connection
+from django.db.models import FileField
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry, Polygon, LineString
 
@@ -13,19 +14,17 @@ logger = logging.getLogger(__name__)
 
 
 class Splitter(object):
-    def __init__(self, image_file=None, divisions=[]):
+    def __init__(self, image_file: FileField, divisions=[]):
         self.img_file = image_file
         self.divisions = divisions
 
         self.temp_dir = settings.TEMP_DIR
 
-    def make_border_geometry(self, image_file=None):
+    def make_border_geometry(self):
         """generates a Polygon from the dimensions of the input image file."""
 
-        if image_file is None:
-            image_file = self.img_file
-
-        img = Image.open(image_file)
+        with self.img_file.open("rb") as openf:
+            img = Image.open(openf)
         w, h = img.size
         coords = [(0, 0), (0, h), (w, h), (w, 0), (0, 0)]
 
@@ -81,7 +80,7 @@ class Splitter(object):
         any sub polygons resulting from the cut are also compared to the cutlines,
         until all cutlines have been used."""
 
-        initial_geom = self.make_border_geometry(self.img_file)
+        initial_geom = self.make_border_geometry()
 
         ## process input cutlines
         cut_shapes = []
@@ -153,7 +152,8 @@ class Splitter(object):
         start = time.time()
         format_lookup = {"jpg": "JPEG", "png": "PNG", "tif": "GTiff"}
 
-        img = Image.open(self.img_file)
+        openf = self.img_file.open("rb")
+        img = Image.open(openf)
         w, h = img.size
 
         out_paths = []
@@ -190,7 +190,7 @@ class Splitter(object):
                 out_image = composite.convert("RGB")
 
             # set output file name
-            filename = os.path.basename(self.img_file)
+            filename = os.path.basename(self.img_file.name)
             ext = os.path.splitext(filename)[1]
             out_filename = filename.replace(ext, f"__{n}.{out_format}")
             out_path = os.path.join(self.temp_dir, out_filename)
@@ -199,9 +199,9 @@ class Splitter(object):
             out_image.save(out_path, format_lookup[out_format])
             out_paths.append(out_path)
 
+        openf.close()
+
         t = round(time.time() - start, 3)
-        logger.info(
-            f"{os.path.basename(self.img_file)} split completed | {t} seconds | {len(out_paths)} parts"
-        )
+        logger.info(f"{self.img_file.name} split completed | {t} seconds | {len(out_paths)} parts")
 
         return out_paths

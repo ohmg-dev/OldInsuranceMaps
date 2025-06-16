@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = "command to search the Library of Congress API."
+    help = "Rename an existing user."
 
     def add_arguments(self, parser):
         parser.add_argument(
