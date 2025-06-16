@@ -170,7 +170,7 @@ MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / "uploaded")
 
 # create pattern for holding and serving temp VRT files
 VRT_URL = "/uploaded/vrt/"
-VRT_ROOT = BASE_DIR / "uploaded/vrt"
+VRT_ROOT = Path(MEDIA_ROOT, "vrt")
 VRT_ROOT.mkdir(exist_ok=True, parents=True)
 
 # this is a custom setting to allow apache to be used in development
