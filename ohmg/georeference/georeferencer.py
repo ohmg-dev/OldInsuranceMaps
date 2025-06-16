@@ -137,7 +137,7 @@ class VRTHandler:
         return Path(settings.VRT_ROOT, self.name + ".vrt")
 
     def get_url(self):
-        base_url = settings.LOCAL_MEDIA_HOST if settings.MODE == "DEV" else settings.SITEURL
+        base_url = settings.LOCAL_MEDIA_HOST if settings.MODE == "DEV" else settings.SITEURL.rstrip("/")
         return f"{base_url}{settings.VRT_URL}{self.name}.vrt"
 
     def get_vsi_url(self):

@@ -116,7 +116,7 @@ class Command(BaseCommand):
 
         ## 12/30/2024 needed this command to clean up disk space on the prod server
         if operation == "clean-uploaded-files":
-            from ohmg.core.models import Map, Document, Region, Layer
+            from ohmg.core.models import Map, Document, Region, Layer, LayerSet
 
             media_dir = Path(settings.MEDIA_ROOT)
             files_on_disk = [str(i) for i in media_dir.glob("documents/*") if i.is_file()]
