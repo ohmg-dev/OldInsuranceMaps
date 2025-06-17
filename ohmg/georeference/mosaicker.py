@@ -34,7 +34,7 @@ class Mosaicker:
 
     def cleanup_files(self):
         if self.multimask_file and self.multimask_file.is_file():
-            os.remove(self.cog)
+            os.remove(self.multimask_file)
         for i in self.trimmed_vrts:
             os.remove(i.get_path())
         for i in self.other_vrts:
