@@ -667,7 +667,7 @@ class GeorefSession(SessionBase):
             in_path = (
                 self.reg2.file.url if self.reg2.file.url.startswith("http") else self.reg2.file.path
             )
-            local_path = g.make_cog(in_path)
+            g.make_cog(in_path)
         except Exception as e:
             logger.error(e)
             self.update_stage("finished", save=False)
@@ -709,12 +709,12 @@ class GeorefSession(SessionBase):
         session_ct = GeorefSession.objects.filter(reg2=self.reg2).exclude(pk=self.pk).count()
         file_name = f"{layer.slug}__{random_alnum(6)}_{str(session_ct).zfill(2)}.tif"
 
-        with open(local_path, "rb") as openf:
+        with open(g.cog, "rb") as openf:
             layer.file.save(file_name, File(openf))
         logger.debug(f"new geotiff saved to layer, {layer.slug} ({layer.pk})")
 
         # remove now-obsolete tif files
-        os.remove(local_path)
+        g.cleanup_files()
         if existing_file_name:
             storage = get_storage_class()()
             if storage.exists(name=existing_file_name):

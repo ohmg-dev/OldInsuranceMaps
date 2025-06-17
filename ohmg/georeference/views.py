@@ -251,10 +251,10 @@ class GeoreferenceView(View):
 
             try:
                 preview_id = str(uuid4())
-                warped_vrt = g.make_warped_vrt(get_file_url(region), out_name=preview_id)
+                g.make_warped_vrt(get_file_url(region), out_name=preview_id)
 
                 return JsonResponseSuccess(
-                    "all good", {"preview_url": warped_vrt.get_url(), "preview_id": preview_id}
+                    "all good", {"preview_url": g.warped_vrt.get_url(), "preview_id": preview_id}
                 )
             except Exception as e:
                 logger.error(e)

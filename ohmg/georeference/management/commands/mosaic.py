@@ -51,4 +51,6 @@ class Command(BaseCommand):
             if options.background:
                 create_mosaic_cog.delay(ls.pk)
             else:
-                Mosaicker().generate_cog(ls)
+                m = Mosaicker()
+                m.generate_cog(ls)
+                m.cleanup_files()

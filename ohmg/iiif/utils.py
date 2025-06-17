@@ -48,8 +48,8 @@ class IIIFResource:
                 if self.region.file.url.startswith("http")
                 else self.region.file.path
             )
-            gcps_vrt = g.make_gcps_vrt(in_path)
-            ds = gdal.Open(gcps_vrt.get_vsi_url())
+            g.make_gcps_vrt(in_path)
+            ds = gdal.Open(g.gcps_vrt.get_vsi_url())
             transformer = gdal.Transformer(
                 # Source datasource
                 None,

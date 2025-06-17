@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 from glob import glob
 from pathlib import Path
+from typing import List
 
 from osgeo import gdal
 
@@ -25,25 +26,35 @@ logger = logging.getLogger(__name__)
 
 class Mosaicker:
     def __init__(self):
-        self.files_to_delete = []
+        self.multimask_file: Path = None
+        self.trimmed_vrts: List[VRTHandler] = []
+        self.other_vrts: List[VRTHandler] = []
+        self.mosaic_vrt: VRTHandler = None
+        self.cog: Path = None
 
     def cleanup_files(self):
-        for i in self.files_to_delete:
-            os.remove(i)
+        if self.multimask_file and self.multimask_file.is_file():
+            os.remove(self.cog)
+        for i in self.trimmed_vrts:
+            os.remove(i.get_path())
+        for i in self.other_vrts:
+            os.remove(i.get_path())
+        if self.mosaic_vrt and self.mosaic_vrt.get_path().is_file():
+            os.remove(self.mosaic_vrt.get_path())
+        if self.cog and self.cog.is_file():
+            os.remove(self.cog)
 
     def generate_mosaic_vrt(self, layerset) -> VRTHandler:
-        """A helpful reference from the BPLv used during the creation of this method:
+        """A helpful reference from the BPL used during the creation of this method:
         https://github.com/bplmaps/atlascope-utilities/blob/master/new-workflow/atlas-tools.py
         """
 
         multimask_geojson = layerset.multimask_geojson
         multimask_file_name = f"multimask-{layerset.category.slug}-{layerset.map.identifier}"
-        multimask_file = Path(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
-        with open(multimask_file, "w") as out:
+        self.multimask_file = Path(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
+        with open(self.multimask_file, "w") as out:
             json.dump(multimask_geojson, out, indent=1)
-        self.files_to_delete.append(multimask_file)
 
-        trim_list = []
         layer_extent_polygons = []
         for feature in multimask_geojson["features"]:
             layer_name = feature["properties"]["layer"]
@@ -62,36 +73,13 @@ class Mosaicker:
                 transformation=gcpgroup.transformation,
                 gcps_geojson=gcpgroup.as_geojson,
             )
-            warped_vrt = g.make_warped_vrt(get_file_url(layer.region))
 
-            trimmed_vrt = VRTHandler(warped_vrt.base_name)
-            trimmed_vrt.set_variant_name("trim")
+            g.make_trimmed_vrt(get_file_url(layer.region), self.multimask_file, layer_name)
 
-            wo = gdal.WarpOptions(
-                format="VRT",
-                dstSRS="EPSG:3857",
-                cutlineDSName=multimask_file,
-                cutlineLayer=multimask_file_name,
-                cutlineWhere=f"layer='{layer_name}'",
-                cropToCutline=True,
-                # srcAlpha = True,
-                # dstAlpha = True,
-                # creationOptions= [
-                #     'COMPRESS=JPEG',
-                # ]
-                # creationOptions= [
-                #     'COMPRESS=DEFLATE',
-                #     'PREDICTOR=2',
-                # ]
-            )
-            gdal.Warp(str(trimmed_vrt.get_path()), warped_vrt.get_vsi_url(), options=wo)
-            print("warped")
+            self.trimmed_vrts.append(g.trimmed_vrt)
 
-            trim_list.append(str(trimmed_vrt.get_path()))
-
-            self.files_to_delete.append(g.files["gcps"])
-            self.files_to_delete.append(g.files["warped"])
-            self.files_to_delete.append(trimmed_vrt.get_path())
+            self.other_vrts.append(g.gcps_vrt)
+            self.other_vrts.append(g.warped_vrt)
 
         if len(layer_extent_polygons) > 0:
             multi = MultiPolygon(layer_extent_polygons, srid=4326)
@@ -105,17 +93,14 @@ class Mosaicker:
         )
         print("building vrt")
 
-        mosaic_vrt = VRTHandler(f"{layerset.map.identifier}-{layerset.category.slug}")
-        gdal.BuildVRT(str(mosaic_vrt.get_path()), trim_list, options=vo)
-
-        self.files_to_delete.append(mosaic_vrt.get_path())
-
-        return mosaic_vrt
+        self.mosaic_vrt = VRTHandler(f"{layerset.map.identifier}-{layerset.category.slug}")
+        trim_list = [i.get_path() for i in self.trimmed_vrts]
+        gdal.BuildVRT(str(self.mosaic_vrt.get_path()), trim_list, options=vo)
 
     def generate_cog(self, layerset: LayerSet):
         start = datetime.now()
 
-        mosaic_vrt = self.generate_mosaic_vrt(layerset)
+        self.generate_mosaic_vrt(layerset)
 
         print("building final geotiff")
 
@@ -127,19 +112,15 @@ class Mosaicker:
                 "TILING_SCHEME=GoogleMapsCompatible",
             ],
         )
-        out_tif_path = mosaic_vrt.get_path().with_suffix(".tif")
-        gdal.Translate(str(out_tif_path), str(mosaic_vrt.get_path()), options=to)
+        self.cog = self.mosaic_vrt.get_path().with_suffix(".tif")
+        gdal.Translate(str(self.cog), str(self.mosaic_vrt.get_path()), options=to)
 
         existing_file_name = layerset.mosaic_geotiff.name if layerset.mosaic_geotiff else None
 
         file_name = f"{layerset.map.identifier}-{layerset.category.slug}__{datetime.now().strftime('%Y-%m-%d')}__{random_alnum(6)}.tif"
 
-        with open(out_tif_path, "rb") as f:
+        with open(self.cog, "rb") as f:
             layerset.mosaic_geotiff.save(file_name, File(f))
-
-        self.files_to_delete.append(out_tif_path)
-
-        self.cleanup_files()
 
         storage = get_storage_class()()
         if existing_file_name and storage.exists(name=existing_file_name):
