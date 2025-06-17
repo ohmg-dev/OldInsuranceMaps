@@ -137,7 +137,9 @@ class VRTHandler:
         return Path(settings.VRT_ROOT, self.name + ".vrt")
 
     def get_url(self):
-        base_url = settings.LOCAL_MEDIA_HOST if settings.MODE == "DEV" else settings.SITEURL.rstrip("/")
+        base_url = (
+            settings.LOCAL_MEDIA_HOST if settings.MODE == "DEV" else settings.SITEURL.rstrip("/")
+        )
         return f"{base_url}{settings.VRT_URL}{self.name}.vrt"
 
     def get_vsi_url(self):
@@ -188,6 +190,8 @@ class Georeferencer:
 
         # verbose can trigger extra print statements in certain contexts
         self.verbose = verbose
+
+        self.files = {}
 
         if self.verbose:
             print("initialized")
@@ -269,6 +273,7 @@ class Georeferencer:
             logger.error(f"{src_path} | translate error: {str(e)}")
             raise e
 
+        self.files["gcps"] = gcps_vrt.get_path()
         logger.debug(f"{Path(src_path).name} | VRT with GCPs created")
 
         return gcps_vrt
@@ -321,8 +326,8 @@ class Georeferencer:
             logger.error(f"{gcps_vrt.get_vsi_url()} | warp error: {str(e)}")
             raise e
 
+        self.files["warped"] = warped_vrt.get_path()
         logger.debug(f"{src_name} | warped VRT created")
-
         return warped_vrt
 
     def make_cog(
@@ -357,6 +362,10 @@ class Georeferencer:
         except Exception as e:
             logger.error(f"{warped_vrt.get_vsi_url()} | translate error: {str(e)}")
             raise e
+
+        for i in list(self.files.keys()):
+            path = self.files.pop(i)
+            os.remove(path)
 
         logger.info(f"{Path(src_path).name} | COG created: {round(time.time() - a, 3)} seconds.")
 

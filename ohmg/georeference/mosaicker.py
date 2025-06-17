@@ -24,6 +24,13 @@ logger = logging.getLogger(__name__)
 
 
 class Mosaicker:
+    def __init__(self):
+        self.files_to_delete = []
+
+    def cleanup_files(self):
+        for i in self.files_to_delete:
+            os.remove(i)
+
     def generate_mosaic_vrt(self, layerset) -> VRTHandler:
         """A helpful reference from the BPLv used during the creation of this method:
         https://github.com/bplmaps/atlascope-utilities/blob/master/new-workflow/atlas-tools.py
@@ -34,6 +41,7 @@ class Mosaicker:
         multimask_file = Path(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
         with open(multimask_file, "w") as out:
             json.dump(multimask_geojson, out, indent=1)
+        self.files_to_delete.append(multimask_file)
 
         trim_list = []
         layer_extent_polygons = []
@@ -81,6 +89,10 @@ class Mosaicker:
 
             trim_list.append(str(trimmed_vrt.get_path()))
 
+            self.files_to_delete.append(g.files["gcps"])
+            self.files_to_delete.append(g.files["warped"])
+            self.files_to_delete.append(trimmed_vrt.get_path())
+
         if len(layer_extent_polygons) > 0:
             multi = MultiPolygon(layer_extent_polygons, srid=4326)
 
@@ -95,6 +107,8 @@ class Mosaicker:
 
         mosaic_vrt = VRTHandler(f"{layerset.map.identifier}-{layerset.category.slug}")
         gdal.BuildVRT(str(mosaic_vrt.get_path()), trim_list, options=vo)
+
+        self.files_to_delete.append(mosaic_vrt.get_path())
 
         return mosaic_vrt
 
@@ -123,7 +137,10 @@ class Mosaicker:
         with open(out_tif_path, "rb") as f:
             layerset.mosaic_geotiff.save(file_name, File(f))
 
-        os.remove(out_tif_path)
+        self.files_to_delete.append(out_tif_path)
+
+        self.cleanup_files()
+
         storage = get_storage_class()()
         if existing_file_name and storage.exists(name=existing_file_name):
             storage.delete(name=existing_file_name)
