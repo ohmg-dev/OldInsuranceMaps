@@ -155,7 +155,7 @@ class VRTHandler:
 class Georeferencer:
     def __init__(
         self,
-        crs="EPGS:3857",
+        crs="EPSG:3857",
         transformation="poly1",
         # three different ways to add GCPs, one must be provided
         gcps_gdal=None,
