@@ -22,6 +22,7 @@ class Command(BaseCommand):
                 "reverse-region-gcpgroup-relationship",
                 "handle-missing-iiif-references-and-documents",
                 "set-region-categories",
+                "fix-full-region-files",
             ],
             help="Choose what operation to run.",
         )
@@ -116,7 +117,7 @@ class Command(BaseCommand):
 
         ## 12/30/2024 needed this command to clean up disk space on the prod server
         if operation == "clean-uploaded-files":
-            from ohmg.core.models import Map, Document, Region, Layer
+            from ohmg.core.models import Map, Document, Region, Layer, LayerSet
 
             media_dir = Path(settings.MEDIA_ROOT)
             files_on_disk = [str(i) for i in media_dir.glob("documents/*") if i.is_file()]
@@ -301,3 +302,22 @@ class Command(BaseCommand):
             for n, map in enumerate(Map.objects.all(), start=1):
                 map.update_item_lookup()
                 print(f"{map} {n}/{ct}")
+
+        ## June 19th, 2025 -- There was a bug with the S3 code where regions that contained
+        ## the whole document image would save that file to /regions/documents/filename.jpg,
+        ## instead of /regions/filename.jpg. The code is fixed, but 500 objects on the prod
+        ## server need to be fixed.
+        if operation == "fix-full-region-files":
+            from django.core.files import File
+            from ohmg.core.models import Region
+
+            regions = Region.objects.filter(file__startswith="regions/documents/")
+            print(regions.count())
+
+            for region in regions:
+                proper_name = Path(region.file.name).name
+                old_path = region.file.path
+                with region.file.open("rb") as openf:
+                    region.file.save(proper_name, File(openf))
+
+                os.remove(old_path)

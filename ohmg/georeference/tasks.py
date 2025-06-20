@@ -47,4 +47,6 @@ def create_mosaic_cog(layersetid):
         layerset = LayerSet.objects.get(pk=layersetid)
     except LayerSet.DoesNotExist:
         logger.warning(f"LayerSet does not exist: {layersetid}. Cancelling mosaic creation.")
-    Mosaicker().generate_cog(layerset)
+    m = Mosaicker()
+    m.generate_cog(layerset)
+    m.cleanup_files()

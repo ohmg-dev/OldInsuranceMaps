@@ -7,7 +7,7 @@ from ohmg.georeference.tasks import create_mosaic_cog
 
 
 class Command(BaseCommand):
-    help = "command to search the Library of Congress API."
+    help = "Operations for creating and managing mosaics."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -51,4 +51,6 @@ class Command(BaseCommand):
             if options.background:
                 create_mosaic_cog.delay(ls.pk)
             else:
-                Mosaicker().generate_cog(ls)
+                m = Mosaicker()
+                m.generate_cog(ls)
+                m.cleanup_files()

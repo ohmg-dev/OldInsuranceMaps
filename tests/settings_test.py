@@ -20,7 +20,14 @@ STATIC_ROOT.mkdir(exist_ok=True)
 MEDIA_ROOT = BASE_DIR / "uploaded"
 MEDIA_ROOT.mkdir(exist_ok=True)
 
-ENABLE_DEBUG_TOOLBAR = True
+VRT_ROOT = Path(MEDIA_ROOT, "vrt")
+VRT_ROOT.mkdir(exist_ok=True, parents=True)
+
+## reset these S3 settings here to their default values, because they
+## may be altered (during development) through the .env file.
+MEDIA_URL = "/uploaded/"
+ENABLE_S3_STORAGE = False
+DEFAULT_FILE_STORAGE = "ohmg.core.storages.OverwriteStorage"
 
 # set all file handlers to use the test log directory
 for handler in LOGGING["handlers"].values():  # noqa: F405
