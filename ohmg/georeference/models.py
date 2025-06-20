@@ -511,10 +511,11 @@ class PrepSession(SessionBase):
                 created_by=self.user,
                 category=map_cat,
             )
-
+            ## effectively strips the documents/ prefix from the original image
+            fname = Path(self.doc2.file.name).name
             if self.doc2.file:
                 with self.doc2.file.open("rb") as openf:
-                    region.file.save(self.doc2.file.name, File(openf))
+                    region.file.save(fname, File(openf))
             else:
                 logger.warning(f"[WARNING] {self.doc2} is missing file")
             output.append(region)
