@@ -94,7 +94,9 @@ class Mosaicker:
         print("building vrt")
 
         self.mosaic_vrt = VRTHandler(f"{layerset.map.identifier}-{layerset.category.slug}")
-        trim_list = [i.get_path() for i in self.trimmed_vrts]
+        trim_list = [str(i.get_path()) for i in self.trimmed_vrts]
+        print(trim_list)
+        print(self.mosaic_vrt.get_path())
         gdal.BuildVRT(str(self.mosaic_vrt.get_path()), trim_list, options=vo)
 
     def generate_cog(self, layerset: LayerSet):
