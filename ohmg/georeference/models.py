@@ -14,6 +14,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Polygon, Point
 from django.core.files import File
+from django.core.files.storage import get_storage_class
 from django.core.mail import send_mass_mail
 from django.utils import timezone
 
@@ -28,7 +29,6 @@ from ohmg.georeference.splitter import Splitter
 from ohmg.core.utils import (
     full_reverse,
     random_alnum,
-    save_file_to_object,
 )
 
 logger = logging.getLogger(__name__)
@@ -511,12 +511,18 @@ class PrepSession(SessionBase):
                 created_by=self.user,
                 category=map_cat,
             )
-            save_file_to_object(region, source_object=self.doc2)
+            ## effectively strips the documents/ prefix from the original image
+            fname = Path(self.doc2.file.name).name
+            if self.doc2.file:
+                with self.doc2.file.open("rb") as openf:
+                    region.file.save(fname, File(openf))
+            else:
+                logger.warning(f"[WARNING] {self.doc2} is missing file")
             output.append(region)
 
         else:
             self.update_status("splitting document image")
-            s = Splitter(image_file=self.doc2.file.path)
+            s = Splitter(image_file=self.doc2.file)
             self.data["divisions"] = s.generate_divisions(self.data["cutlines"])
             new_images = s.split_image()
 
@@ -535,7 +541,10 @@ class PrepSession(SessionBase):
                     category=map_cat,
                 )
 
-                save_file_to_object(region, file_path=Path(file_path))
+                source_path = Path(file_path)
+                with open(source_path, "rb") as openf:
+                    region.file.save(source_path.name, File(openf))
+
                 os.remove(file_path)
                 output.append(region)
 
@@ -622,7 +631,6 @@ class GeorefSession(SessionBase):
         return n
 
     def run(self):
-        existing_file_path = None
         layer = None
         if hasattr(self.reg2, "layer"):
             layer = self.reg2.layer
@@ -657,7 +665,10 @@ class GeorefSession(SessionBase):
 
         self.update_status("warping")
         try:
-            out_path = g.make_cog(self.reg2.file.path)
+            in_path = (
+                self.reg2.file.url if self.reg2.file.url.startswith("http") else self.reg2.file.path
+            )
+            g.make_cog(in_path)
         except Exception as e:
             logger.error(e)
             self.update_stage("finished", save=False)
@@ -679,6 +690,7 @@ class GeorefSession(SessionBase):
 
         ## if there was no existing layer, create a new object by copying
         ## the document and saving it without a pk
+        existing_file_name = layer.file.name if (layer and layer.file) else None
         if layer is None:
             logger.debug("no existing layer, creating new layer now")
 
@@ -687,28 +699,27 @@ class GeorefSession(SessionBase):
                 last_updated_by=self.user,
                 region=self.reg2,
             )
-            layer.save()
-
-            existing_file_path = None
+            layer.save(skip_map_lookup_update=True)
         else:
             layer.last_updated_by = self.user
-            layer.save()
+            layer.save(skip_map_lookup_update=True)
             logger.debug(f"updating existing layer, {layer} ({layer.pk})")
-            existing_file_path = layer.file.path if layer.file else None
 
         ## regardless of whether there was an old layer or not, overwrite
         ## the file with the newly georeferenced tif.
         session_ct = GeorefSession.objects.filter(reg2=self.reg2).exclude(pk=self.pk).count()
         file_name = f"{layer.slug}__{random_alnum(6)}_{str(session_ct).zfill(2)}.tif"
 
-        with open(out_path, "rb") as openf:
+        with open(g.cog, "rb") as openf:
             layer.file.save(file_name, File(openf))
         logger.debug(f"new geotiff saved to layer, {layer.slug} ({layer.pk})")
 
         # remove now-obsolete tif files
-        os.remove(out_path)
-        if existing_file_path:
-            os.remove(existing_file_path)
+        g.cleanup_files()
+        if existing_file_name:
+            storage = get_storage_class()()
+            if storage.exists(name=existing_file_name):
+                storage.delete(name=existing_file_name)
 
         layer.save(set_thumbnail=True)
         self.lyr2 = layer

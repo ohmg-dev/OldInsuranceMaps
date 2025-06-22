@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = "command to search the Library of Congress API."
+    help = "Updates the build number for frontend assets."
 
     def add_arguments(self, parser):
         pass

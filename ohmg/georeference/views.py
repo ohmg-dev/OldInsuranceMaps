@@ -2,7 +2,6 @@ import json
 from uuid import uuid4
 import logging
 
-from django.conf import settings
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.utils.decorators import method_decorator
@@ -30,6 +29,7 @@ from ohmg.core.api.schemas import (
 from ohmg.core.models import (
     Document,
     Region,
+    get_file_url,
 )
 from ohmg.georeference.tasks import (
     run_preparation_session,
@@ -101,7 +101,7 @@ class SplitView(View):
                 return JsonResponseNotFound(msg)
 
         if operation == "preview":
-            s = Splitter(image_file=document.file.path)
+            s = Splitter(image_file=document.file)
             divisions = s.generate_divisions(cutlines)
             return JsonResponseSuccess(
                 "ok",
@@ -248,13 +248,13 @@ class GeoreferenceView(View):
                 gcps_geojson=gcp_geojson,
                 transformation=transformation,
             )
-            file_url = settings.MEDIA_HOST.rstrip("/") + region.file.url
+
             try:
                 preview_id = str(uuid4())
-                read_vrt, write_vrt = g.make_warped_vrt(file_url, out_name=preview_id)
+                g.make_warped_vrt(get_file_url(region), out_name=preview_id)
 
                 return JsonResponseSuccess(
-                    "all good", {"preview_url": str(read_vrt), "preview_id": preview_id}
+                    "all good", {"preview_url": g.warped_vrt.get_url(), "preview_id": preview_id}
                 )
             except Exception as e:
                 logger.error(e)

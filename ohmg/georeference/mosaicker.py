@@ -4,17 +4,19 @@ import logging
 from datetime import datetime
 from glob import glob
 from pathlib import Path
+from typing import List
 
 from osgeo import gdal
 
 from django.conf import settings
 from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.core.files import File
+from django.core.files.storage import get_storage_class
 
-from ohmg.core.models import Layer
+from ohmg.core.models import Layer, LayerSet, get_file_url
 from ohmg.core.utils import random_alnum
 
-from .georeferencer import Georeferencer
+from .georeferencer import Georeferencer, VRTHandler
 
 gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
 gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")
@@ -23,18 +25,36 @@ logger = logging.getLogger(__name__)
 
 
 class Mosaicker:
-    def generate_mosaic_vrt(self, layerset) -> Path:
-        """A helpful reference from the BPLv used during the creation of this method:
+    def __init__(self):
+        self.multimask_file: Path = None
+        self.trimmed_vrts: List[VRTHandler] = []
+        self.other_vrts: List[VRTHandler] = []
+        self.mosaic_vrt: VRTHandler = None
+        self.cog: Path = None
+
+    def cleanup_files(self):
+        if self.multimask_file and self.multimask_file.is_file():
+            os.remove(self.multimask_file)
+        for i in self.trimmed_vrts:
+            os.remove(i.get_path())
+        for i in self.other_vrts:
+            os.remove(i.get_path())
+        if self.mosaic_vrt and self.mosaic_vrt.get_path().is_file():
+            os.remove(self.mosaic_vrt.get_path())
+        if self.cog and self.cog.is_file():
+            os.remove(self.cog)
+
+    def generate_mosaic_vrt(self, layerset) -> VRTHandler:
+        """A helpful reference from the BPL used during the creation of this method:
         https://github.com/bplmaps/atlascope-utilities/blob/master/new-workflow/atlas-tools.py
         """
 
         multimask_geojson = layerset.multimask_geojson
         multimask_file_name = f"multimask-{layerset.category.slug}-{layerset.map.identifier}"
-        multimask_file = Path(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
-        with open(multimask_file, "w") as out:
+        self.multimask_file = Path(settings.TEMP_DIR, f"{multimask_file_name}.geojson")
+        with open(self.multimask_file, "w") as out:
             json.dump(multimask_geojson, out, indent=1)
 
-        trim_list = []
         layer_extent_polygons = []
         for feature in multimask_geojson["features"]:
             layer_name = feature["properties"]["layer"]
@@ -53,32 +73,13 @@ class Mosaicker:
                 transformation=gcpgroup.transformation,
                 gcps_geojson=gcpgroup.as_geojson,
             )
-            in_path = g.warp(layer.region.file.path, return_vrt=True)
 
-            trim_name = os.path.basename(in_path).replace(".vrt", "_trim.vrt")
-            out_path = os.path.join(settings.TEMP_DIR, trim_name)
+            g.make_trimmed_vrt(get_file_url(layer.region), self.multimask_file, layer_name)
 
-            wo = gdal.WarpOptions(
-                format="VRT",
-                dstSRS="EPSG:3857",
-                cutlineDSName=multimask_file,
-                cutlineLayer=multimask_file_name,
-                cutlineWhere=f"layer='{layer_name}'",
-                cropToCutline=True,
-                # srcAlpha = True,
-                # dstAlpha = True,
-                # creationOptions= [
-                #     'COMPRESS=JPEG',
-                # ]
-                # creationOptions= [
-                #     'COMPRESS=DEFLATE',
-                #     'PREDICTOR=2',
-                # ]
-            )
-            gdal.Warp(out_path, in_path, options=wo)
-            print("warped")
+            self.trimmed_vrts.append(g.trimmed_vrt)
 
-            trim_list.append(out_path)
+            self.other_vrts.append(g.gcps_vrt)
+            self.other_vrts.append(g.warped_vrt)
 
         if len(layer_extent_polygons) > 0:
             multi = MultiPolygon(layer_extent_polygons, srid=4326)
@@ -92,17 +93,16 @@ class Mosaicker:
         )
         print("building vrt")
 
-        mosaic_vrt = Path(
-            settings.TEMP_DIR, f"{layerset.map.identifier}-{layerset.category.slug}.vrt"
-        )
-        gdal.BuildVRT(str(mosaic_vrt), trim_list, options=vo)
+        self.mosaic_vrt = VRTHandler(f"{layerset.map.identifier}-{layerset.category.slug}")
+        trim_list = [str(i.get_path()) for i in self.trimmed_vrts]
+        print(trim_list)
+        print(self.mosaic_vrt.get_path())
+        gdal.BuildVRT(str(self.mosaic_vrt.get_path()), trim_list, options=vo)
 
-        return mosaic_vrt
-
-    def generate_cog(self, layerset):
+    def generate_cog(self, layerset: LayerSet):
         start = datetime.now()
 
-        mosaic_vrt = self.generate_mosaic_vrt(layerset)
+        self.generate_mosaic_vrt(layerset)
 
         print("building final geotiff")
 
@@ -114,21 +114,19 @@ class Mosaicker:
                 "TILING_SCHEME=GoogleMapsCompatible",
             ],
         )
-        out_tif_path = mosaic_vrt.with_suffix(".tif")
-        gdal.Translate(str(out_tif_path), str(mosaic_vrt), options=to)
+        self.cog = self.mosaic_vrt.get_path().with_suffix(".tif")
+        gdal.Translate(str(self.cog), str(self.mosaic_vrt.get_path()), options=to)
 
-        existing_file_path = None
-        if layerset.mosaic_geotiff:
-            existing_file_path = layerset.mosaic_geotiff.path
+        existing_file_name = layerset.mosaic_geotiff.name if layerset.mosaic_geotiff else None
 
         file_name = f"{layerset.map.identifier}-{layerset.category.slug}__{datetime.now().strftime('%Y-%m-%d')}__{random_alnum(6)}.tif"
 
-        with open(out_tif_path, "rb") as f:
+        with open(self.cog, "rb") as f:
             layerset.mosaic_geotiff.save(file_name, File(f))
 
-        os.remove(out_tif_path)
-        if existing_file_path:
-            os.remove(existing_file_path)
+        storage = get_storage_class()()
+        if existing_file_name and storage.exists(name=existing_file_name):
+            storage.delete(name=existing_file_name)
 
         print(f"completed - elapsed time: {datetime.now() - start}")
 
@@ -239,7 +237,7 @@ class Mosaicker:
             trim_list.append(out_path)
 
         trim_urls = [
-            i.replace(os.path.dirname(settings.MEDIA_ROOT), settings.MEDIA_HOST.rstrip("/"))
+            i.replace(os.path.dirname(settings.MEDIA_ROOT), settings.LOCAL_MEDIA_HOST.rstrip("/"))
             for i in trim_list
         ]
         logger.info(

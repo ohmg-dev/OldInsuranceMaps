@@ -7,7 +7,6 @@ from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
 import ohmg.georeference.models
-import ohmg.georeference.storage
 import uuid
 
 

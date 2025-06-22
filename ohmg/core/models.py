@@ -1,4 +1,3 @@
-import os
 import json
 import logging
 from datetime import datetime
@@ -28,7 +27,6 @@ from ohmg.core.utils import (
     get_session_user_summary,
     MONTH_CHOICES,
 )
-from ohmg.core.storages import OverwriteStorage
 from ohmg.core.renderers import (
     get_image_size,
     get_extent_from_file,
@@ -38,6 +36,24 @@ from ohmg.core.renderers import (
 from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
+
+
+def get_file_url(obj, attr_name: str = "file"):
+    f = getattr(obj, attr_name)
+    if f is None or (not f.name):
+        return ""
+
+    ## with S3 storage FileField will return an absolute url
+    if settings.ENABLE_S3_STORAGE:
+        url = f.url
+    ## this is true during local development
+    elif settings.MODE == "DEV":
+        url = f"{settings.LOCAL_MEDIA_HOST.rstrip('/')}{f.url}"
+    ## this is true in prod without S3 storage enabled
+    else:
+        url = f"{settings.SITEURL.rstrip('/')}{f.url}"
+
+    return url
 
 
 class MapGroup(models.Model):
@@ -427,7 +443,6 @@ class Document(models.Model):
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
     )
     image_size = ArrayField(
         models.IntegerField(),
@@ -440,7 +455,6 @@ class Document(models.Model):
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
     )
     source_url = models.CharField(
         max_length=255,
@@ -523,10 +537,8 @@ class Document(models.Model):
         if self.file is not None:
             if self.thumbnail:
                 self.thumbnail.delete()
-            path = self.file.path
-            name = os.path.splitext(os.path.basename(path))[0]
-            content = generate_document_thumbnail_content(path)
-            tname = f"{name}-doc-thumb.jpg"
+            content = generate_document_thumbnail_content(self.file)
+            tname = f"{Path(self.file.url).stem}-doc-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
 
     def save(
@@ -562,7 +574,7 @@ class Document(models.Model):
             self.nickname = f"{self.map.document_page_type} {self.page_number}"
 
         if set_image_size or not self.image_size:
-            self.image_size = get_image_size(Path(self.file.path)) if self.file else None
+            self.image_size = get_image_size(self.file) if self.file else None
 
         return super(self.__class__, self).save(*args, **kwargs)
 
@@ -610,7 +622,6 @@ class Region(models.Model):
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
     )
     image_size = ArrayField(
         models.IntegerField(),
@@ -623,7 +634,6 @@ class Region(models.Model):
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
     )
 
     def __str__(self):
@@ -662,10 +672,8 @@ class Region(models.Model):
         if self.file is not None:
             if self.thumbnail:
                 self.thumbnail.delete()
-            path = self.file.path
-            name = os.path.splitext(os.path.basename(path))[0]
-            content = generate_document_thumbnail_content(path)
-            tname = f"{name}-reg-thumb.jpg"
+            content = generate_document_thumbnail_content(self.file)
+            tname = f"{Path(self.file.url).stem}-reg-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
 
     def save(
@@ -698,7 +706,7 @@ class Region(models.Model):
             self.nickname += f" [{self.division_number}]"
 
         if set_image_size or not self.image_size:
-            self.image_size = get_image_size(Path(self.file.path)) if self.file else None
+            self.image_size = get_image_size(self.file) if self.file else None
 
         return super(self.__class__, self).save(*args, **kwargs)
 
@@ -741,14 +749,12 @@ class Layer(models.Model):
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
     )
     thumbnail = models.FileField(
         upload_to="thumbnails",
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
     )
     layerset2 = models.ForeignKey(
         "core.LayerSet",
@@ -779,10 +785,8 @@ class Layer(models.Model):
         if self.file is not None:
             if self.thumbnail:
                 self.thumbnail.delete()
-            path = self.file.path
-            name = os.path.splitext(os.path.basename(path))[0]
-            content = generate_layer_thumbnail_content(path)
-            tname = f"{name}-lyr-thumb.jpg"
+            content = generate_layer_thumbnail_content(self.file)
+            tname = f"{Path(self.file.url).stem}-lyr-thumb.jpg"
             self.thumbnail.save(tname, ContentFile(content))
 
     def set_layerset(self, layerset):
@@ -854,7 +858,7 @@ class Layer(models.Model):
             self.set_thumbnail()
 
         if set_extent and self.file:
-            self.extent = get_extent_from_file(Path(self.file.path))
+            self.extent = get_extent_from_file(self.file)
 
         self.title = self.region.title
         self.nickname = self.region.nickname
@@ -896,14 +900,12 @@ class LayerSet(models.Model):
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
     )
     mosaic_json = models.FileField(
         upload_to="mosaics",
         null=True,
         blank=True,
         max_length=255,
-        storage=OverwriteStorage(),
     )
     extent = ArrayField(
         models.FloatField(),
@@ -929,19 +931,13 @@ class LayerSet(models.Model):
     def mosaic_cog_url(self):
         """return the public url to the mosaic COG for this annotation set. If
         no COG exists, return None."""
-        url = None
-        if self.mosaic_geotiff:
-            url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_geotiff.url
-        return url
+        return get_file_url(self, "mosaic_geotiff")
 
     @property
     def mosaic_json_url(self):
         """return the public url to the mosaic JSON for this annotation set. If
         no mosaic JSON exists, return None."""
-        url = None
-        if self.mosaic_json:
-            url = settings.MEDIA_HOST.rstrip("/") + self.mosaic_json.url
-        return url
+        return get_file_url(self, "mosaic_json")
 
     @property
     def multimask_extent(self):
