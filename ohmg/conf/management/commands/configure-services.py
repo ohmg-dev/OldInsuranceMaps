@@ -43,14 +43,18 @@ class Command(BaseCommand):
 
         print(f"""services created. to deploy, run the following commands:
 
-# update celery 
+# initial deployment (first time only)
 sudo ln -sf {cs_path.absolute()} /etc/systemd/system
-sudo systemctl daemon-reload
-sudo systemctl restart celery
-
-# update uwsgi
 sudo ln -sf {us_path.absolute()} /etc/systemd/system
 sudo systemctl daemon-reload
+sudo systemctl enable celery
+sudo systemctl enable uwsgi
+sudo systemctl start celery
+sudo systemctl start uwsgi
+
+# reload services
+sudo systemctl daemon-reload
+sudo systemctl restart celery
 sudo systemctl restart uwsgi
 """)
 
