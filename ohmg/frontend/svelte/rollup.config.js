@@ -89,17 +89,26 @@ function componentExportDetails(componentName) {
   };
 }
 
-let exportable = [];
+export default (cliArgs) => {
+  // Add exportable to this array. These must match a lowercase file in ./src/bundles
+  // e.g. ./src/bundles/main.js
+  let exportable = [];
 
-// Add exportables here. These must match a lowercase file in ./src/bundles
-// e.g. ./src/bundles/main.js
-[
-  'Index', // this forces prettier to multiline array
-  'Georeference',
-  'Resource',
-  'Split',
-  'Viewer',
-  'Map',
-].forEach((d) => exportable.push(componentExportDetails(d)));
+  if (cliArgs.configComponent) {
+    // Only build one component if it has been specified in the configComponent arg
+    exportable.push(componentExportDetails(cliArgs.configComponent));
+  } else {
+    // Otherwise build all components
+    [
+      'Index', // this forces prettier to multiline array
+      'Georeference',
+      'Resource',
+      'Split',
+      'Viewer',
+      'Map',
+      'SessionList',
+    ].forEach((d) => exportable.push(componentExportDetails(d)));
+  }
 
-export default exportable;
+  return exportable;
+};

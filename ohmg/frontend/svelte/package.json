@@ -4,6 +4,13 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
+    "dev:Index": "rollup -c -w --configComponent=Index",
+    "dev:Map": "rollup -c -w --configComponent=Map",
+    "dev:Resource": "rollup -c -w --configComponent=Resource",
+    "dev:Viewer": "rollup -c -w --configComponent=Viewer",
+    "dev:Split": "rollup -c -w --configComponent=Split",
+    "dev:Georeference": "rollup -c -w --configComponent=Georeference",
+    "dev:SessionList": "rollup -c -w --configComponent=SessionList",
     "start": "sirv public"
   },
   "devDependencies": {
