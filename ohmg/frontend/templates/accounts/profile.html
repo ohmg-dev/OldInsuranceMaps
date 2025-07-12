@@ -6,9 +6,38 @@
 
 {% block main_content %}
 
-{% include '_titlebar.html' with title=params.PAGE_TITLE img_url=params.PARAMS.PROFILE_USER.image_url %}
+{% include '_titlebar.html' with title=PAGE_TITLE img_url=PROFILE_USER.image_url %}
 
-{{ params|json_script:'index-props'}}
-{% include '_svelte_component.html' with component_name='Index' %}
+{% if CONTEXT.user.username == PROFILE_USER.username %}
+<section>
+    <div class="section-title-bar">
+    <h2>My Account</h2>
+    </div>
+    <div class="section-content">
+    <ul>
+        <li><a href="/account/password/change/" title="Change password">Change my password</a></li>
+        <li>
+        <a href="{{params.CONTEXT.change_avatar_url}}" title="Change profile picture">Change my profile picture</Link>
+        </li>
+        <li><a href="/account/logout">Sign out</a></li>
+    </ul>
+    {% if CONTEXT.user.api_keys|length > 0 %}
+        <h4>API Keys</h4>
+        {% for key in CONTEXT.user.api_keys %}
+        <pre>{{key}}</pre>
+        {% endfor %}
+    {% endif %}
+    </div>
+</section>
+{% endif %}
+<section>
+    <div class="section-title-bar">
+    <h2>Session History</h2>
+    </div>
+    <div class="section-content">
+        {{ SESSIONLIST_PROPS|json_script:'sessionlist-props'}}
+        {% include '_svelte_component.html' with component_name='SessionList' %}
+    </div>
+</section>
 
 {% endblock %}

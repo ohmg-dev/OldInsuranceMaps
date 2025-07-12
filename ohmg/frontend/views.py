@@ -99,18 +99,20 @@ class ActivityView(View):
             [{"title": i, "id": i} for i in users.values_list("username", flat=True)],
             key=lambda k: k["id"],
         )
+
+        ohmg_context = generate_ohmg_context(request)
         context_dict = {
-            "params": {
-                "CONTEXT": generate_ohmg_context(request),
-                "PAGE_NAME": "activity",
-                "PARAMS": {
-                    "MAP_FILTER_LIST": map_filter_list,
-                    "USER_FILTER_LIST": user_filter_list,
-                },
-            }
+            "CONTEXT": ohmg_context,
+            "SESSIONLIST_PROPS": {
+                "CONTEXT": ohmg_context,
+                "mapFilterItems": map_filter_list,
+                "userFilterItems": user_filter_list,
+                "showThumbs": True,
+                "limit": "25",
+            },
         }
 
-        return render(request, "content/activity.html", context=context_dict)
+        return render(request, "frontend/activity.html", context=context_dict)
 
 
 class NewsList(View):
