@@ -170,17 +170,9 @@ class Participants(View):
 class PageView(View):
     def get(self, request, page):
         context_dict = {
-            "params": {
-                "PAGE_TITLE": page.title,
-                "PAGE_NAME": "markdown-page",
-                "extra_head": page.extra_head,
-                "PARAMS": {
-                    "HEADER": page.title,
-                    # downstream SvelteMarkdown requires this variable to be `source`
-                    "source": page.content,
-                    "isHtml": page.render_as_html,
-                },
-            }
+            "PAGE_TITLE": page.title,
+            "EXTRA_HEAD": page.extra_head,
+            "MARKDOWN_CONTENT": page.content,
         }
 
-        return render(request, "content/page.html", context=context_dict)
+        return render(request, "frontend/page.html", context=context_dict)

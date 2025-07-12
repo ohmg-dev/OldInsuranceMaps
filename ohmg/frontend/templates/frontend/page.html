@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load markdown_utils %}
+
+
+
+{% block extra_head %}{% if EXTRA_HEAD %}{{EXTRA_HEAD|safe}}{% endif %}{% endblock %}
+
+{% block title %}{{ PAGE_TITLE }} | {{ block.super }}{% endblock %}
+
+{% block main_content %}
+
+{% include '_titlebar.html' with title=PAGE_TITLE %}
+
+<section class="content markdown-page">
+    <div class="columns" style="margin:0">
+        <div class="column is-one-fifth markdown-page-toc is-hidden-tablet">
+            {% markdowntoc %}{{MARKDOWN_CONTENT}}{% endmarkdowntoc %}
+        </div>
+        <div class="column markdown-page-content">
+            {% markdowncontent %}{{MARKDOWN_CONTENT}}{% endmarkdowncontent %}
+        </div>
+        <div class="column is-one-fifth markdown-page-toc is-hidden-mobile">
+            {% markdowntoc %}{{MARKDOWN_CONTENT}}{% endmarkdowntoc %}
+        </div>
+    </div>
+</section>
+
+<!-- {{ params|json_script:'index-props'}}
+{% include '_svelte_component.html' with component_name='Index' %} -->
+
+{% endblock %}
