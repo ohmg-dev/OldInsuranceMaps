@@ -4,15 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0003_auto_20250220_1617'),
+        ("core", "0003_auto_20250220_1617"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='map',
-            name='loading_documents',
-            field=models.BooleanField(default=False, help_text='true only when document files are being loaded for this map'),
+            model_name="map",
+            name="loading_documents",
+            field=models.BooleanField(
+                default=False,
+                help_text="true only when document files are being loaded for this map",
+            ),
         ),
     ]

@@ -7,19 +7,32 @@ import ohmg.accounts.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0001_initial'),
+        ("accounts", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='APIKey',
+            name="APIKey",
             fields=[
-                ('value', models.CharField(default=ohmg.accounts.models.generate_key, editable=False, max_length=22, primary_key=True, serialize=False)),
-                ('active', models.BooleanField(default=True)),
-                ('request_count', models.IntegerField(default=0, editable=False)),
-                ('account', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "value",
+                    models.CharField(
+                        default=ohmg.accounts.models.generate_key,
+                        editable=False,
+                        max_length=22,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("active", models.BooleanField(default=True)),
+                ("request_count", models.IntegerField(default=0, editable=False)),
+                (
+                    "account",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
             ],
         ),
     ]

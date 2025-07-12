@@ -5,27 +5,32 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('auth', '0012_alter_user_first_name_max_length'),
-        ('core', '0002_auto_20250216_1038'),
+        ("auth", "0012_alter_user_first_name_max_length"),
+        ("core", "0002_auto_20250216_1038"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='map',
-            name='access_level',
-            field=models.CharField(choices=[('public', 'Public'), ('restricted', 'Restricted'), ('none', 'None')], default='any', max_length=50),
+            model_name="map",
+            name="access_level",
+            field=models.CharField(
+                choices=[("public", "Public"), ("restricted", "Restricted"), ("none", "None")],
+                default="any",
+                max_length=50,
+            ),
         ),
         migrations.AddField(
-            model_name='map',
-            name='group_access',
-            field=models.ManyToManyField(blank=True, related_name='maps_allowed', to='auth.Group'),
+            model_name="map",
+            name="group_access",
+            field=models.ManyToManyField(blank=True, related_name="maps_allowed", to="auth.Group"),
         ),
         migrations.AddField(
-            model_name='map',
-            name='user_access',
-            field=models.ManyToManyField(blank=True, related_name='maps_allowed', to=settings.AUTH_USER_MODEL),
+            model_name="map",
+            name="user_access",
+            field=models.ManyToManyField(
+                blank=True, related_name="maps_allowed", to=settings.AUTH_USER_MODEL
+            ),
         ),
     ]

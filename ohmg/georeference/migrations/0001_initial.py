@@ -11,106 +11,242 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('contenttypes', '0002_remove_content_type_name'),
-        ('core', '0001_initial'),
+        ("contenttypes", "0002_remove_content_type_name"),
+        ("core", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='GCPGroup',
+            name="GCPGroup",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('crs_epsg', models.IntegerField(blank=True, null=True)),
-                ('transformation', models.CharField(blank=True, choices=[('tps', 'tps'), ('poly1', 'poly1'), ('poly2', 'poly2'), ('poly3', 'poly3')], max_length=20, null=True)),
-                ('region2', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.region')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("crs_epsg", models.IntegerField(blank=True, null=True)),
+                (
+                    "transformation",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("tps", "tps"),
+                            ("poly1", "poly1"),
+                            ("poly2", "poly2"),
+                            ("poly3", "poly3"),
+                        ],
+                        max_length=20,
+                        null=True,
+                    ),
+                ),
+                (
+                    "region2",
+                    models.OneToOneField(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="core.region",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'GCP Group',
-                'verbose_name_plural': 'GCP Groups',
+                "verbose_name": "GCP Group",
+                "verbose_name_plural": "GCP Groups",
             },
         ),
         migrations.CreateModel(
-            name='SessionBase',
+            name="SessionBase",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.CharField(blank=True, choices=[('p', 'Preparation'), ('g', 'Georeference')], max_length=1)),
-                ('stage', models.CharField(choices=[('input', 'input'), ('processing', 'processing'), ('finished', 'finished')], default='input', max_length=11)),
-                ('status', models.CharField(default='getting user input', max_length=50)),
-                ('data', models.JSONField(blank=True, default=dict)),
-                ('user_input_duration', models.IntegerField(blank=True, null=True)),
-                ('date_created', models.DateTimeField(default=django.utils.timezone.now)),
-                ('date_modified', models.DateTimeField(default=django.utils.timezone.now)),
-                ('date_run', models.DateTimeField(blank=True, null=True)),
-                ('note', models.CharField(blank=True, max_length=255, null=True)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('doc2', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='core.document')),
-                ('lyr2', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='core.layer')),
-                ('reg2', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='core.region')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "type",
+                    models.CharField(
+                        blank=True,
+                        choices=[("p", "Preparation"), ("g", "Georeference")],
+                        max_length=1,
+                    ),
+                ),
+                (
+                    "stage",
+                    models.CharField(
+                        choices=[
+                            ("input", "input"),
+                            ("processing", "processing"),
+                            ("finished", "finished"),
+                        ],
+                        default="input",
+                        max_length=11,
+                    ),
+                ),
+                ("status", models.CharField(default="getting user input", max_length=50)),
+                ("data", models.JSONField(blank=True, default=dict)),
+                ("user_input_duration", models.IntegerField(blank=True, null=True)),
+                ("date_created", models.DateTimeField(default=django.utils.timezone.now)),
+                ("date_modified", models.DateTimeField(default=django.utils.timezone.now)),
+                ("date_run", models.DateTimeField(blank=True, null=True)),
+                ("note", models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "doc2",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="core.document",
+                    ),
+                ),
+                (
+                    "lyr2",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="core.layer",
+                    ),
+                ),
+                (
+                    "reg2",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="core.region",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='GCP',
+            name="GCP",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('pixel_x', models.IntegerField(blank=True, null=True)),
-                ('pixel_y', models.IntegerField(blank=True, null=True)),
-                ('geom', django.contrib.gis.db.models.fields.PointField(blank=True, null=True, srid=4326)),
-                ('note', models.CharField(blank=True, max_length=255, null=True)),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('last_modified', models.DateTimeField(auto_now=True)),
-                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='created_by', to=settings.AUTH_USER_MODEL)),
-                ('gcp_group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='georeference.gcpgroup')),
-                ('last_modified_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='modified_by', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4, editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                ("pixel_x", models.IntegerField(blank=True, null=True)),
+                ("pixel_y", models.IntegerField(blank=True, null=True)),
+                (
+                    "geom",
+                    django.contrib.gis.db.models.fields.PointField(
+                        blank=True, null=True, srid=4326
+                    ),
+                ),
+                ("note", models.CharField(blank=True, max_length=255, null=True)),
+                ("created", models.DateTimeField(auto_now_add=True)),
+                ("last_modified", models.DateTimeField(auto_now=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="created_by",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "gcp_group",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="georeference.gcpgroup"
+                    ),
+                ),
+                (
+                    "last_modified_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="modified_by",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'GCP',
-                'verbose_name_plural': 'GCPs',
+                "verbose_name": "GCP",
+                "verbose_name_plural": "GCPs",
             },
         ),
         migrations.CreateModel(
-            name='GeorefSession',
-            fields=[
-            ],
+            name="GeorefSession",
+            fields=[],
             options={
-                'verbose_name': 'Georeference Session',
-                'verbose_name_plural': '  Georeference Sessions',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Georeference Session",
+                "verbose_name_plural": "  Georeference Sessions",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('georeference.sessionbase',),
+            bases=("georeference.sessionbase",),
         ),
         migrations.CreateModel(
-            name='PrepSession',
-            fields=[
-            ],
+            name="PrepSession",
+            fields=[],
             options={
-                'verbose_name': 'Preparation Session',
-                'verbose_name_plural': '   Preparation Sessions',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Preparation Session",
+                "verbose_name_plural": "   Preparation Sessions",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('georeference.sessionbase',),
+            bases=("georeference.sessionbase",),
         ),
         migrations.CreateModel(
-            name='SessionLock',
+            name="SessionLock",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('target_id', models.PositiveIntegerField()),
-                ('expiration', models.DateTimeField(default=ohmg.georeference.models.default_expiration_time)),
-                ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='locks', to='georeference.sessionbase')),
-                ('target_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("target_id", models.PositiveIntegerField()),
+                (
+                    "expiration",
+                    models.DateTimeField(default=ohmg.georeference.models.default_expiration_time),
+                ),
+                (
+                    "session",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="locks",
+                        to="georeference.sessionbase",
+                    ),
+                ),
+                (
+                    "target_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="contenttypes.contenttype"
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Session Lock',
-                'verbose_name_plural': 'Session Locks',
+                "verbose_name": "Session Lock",
+                "verbose_name_plural": "Session Locks",
             },
         ),
     ]
