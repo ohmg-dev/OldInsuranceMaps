@@ -30,18 +30,3 @@ class ProfileView(View):
                 },
             },
         )
-
-
-class Participants(View):
-    def get(self, request):
-        return render(
-            request,
-            "accounts/profiles.html",
-            context={
-                "params": {
-                    "CONTEXT": generate_ohmg_context(request),
-                    "PAGE_NAME": "profiles",
-                    "PAGE_TITLE": "Participants",
-                },
-            },
-        )

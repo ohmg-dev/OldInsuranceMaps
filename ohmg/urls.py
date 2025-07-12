@@ -3,12 +3,9 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
-from django.contrib.sitemaps.views import sitemap
 from django.views.defaults import page_not_found, server_error
-from django.views.generic import TemplateView, RedirectView
 
 from ohmg.core.api.routes import beta2
-from .sitemap import sitemaps
 
 
 def debug_page_not_found(request):
@@ -21,28 +18,13 @@ def debug_server_error(request):
 
 
 urlpatterns = [
-    ## OHMG urls
-    path("", include("ohmg.content.urls")),
+    ## OHMG app urls
+    path("", include("ohmg.frontend.urls")),
     path("", include("ohmg.core.urls")),
     path("", include("ohmg.accounts.urls")),
     path("", include("ohmg.georeference.urls")),
     path("", include("ohmg.iiif.urls")),
     path("", include("ohmg.places.urls")),
-    ## Standard URLs
-    path(
-        "robots.txt",
-        TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
-    ),
-    path(
-        "favicon.ico",
-        RedirectView.as_view(url=settings.STATIC_URL + "favicon.ico", permanent=True),
-    ),
-    path(
-        "sitemap.xml/",
-        sitemap,
-        {"sitemaps": sitemaps},
-        name="django.contrib.sitemaps.views.sitemap",
-    ),
     ## Django extensions URLs
     path("grappelli/", include("grappelli.urls")),
     path("admin/", admin.site.urls, name="admin"),

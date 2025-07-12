@@ -102,9 +102,6 @@ TEMPLATES = [
     {
         "NAME": "Project Templates",
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [
-            PROJECT_DIR / "frontend" / "templates",
-        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -116,7 +113,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "ohmg.context_processors.site_info",
+                "ohmg.frontend.context_processors.site_info",
             ],
             "debug": DEBUG,
         },
