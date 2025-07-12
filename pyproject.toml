@@ -41,6 +41,7 @@ dependencies = [
     "django_compressor",
     "natsort",
     "python-dotenv",
+    "django-json-widget",
 ]
 
 [project.optional-dependencies]

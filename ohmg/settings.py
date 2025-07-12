@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "pinax.announcements",
     "storages",
     "django_extensions",
+    "django_json_widget",
     "avatar",
     "compressor",
     "ninja",
