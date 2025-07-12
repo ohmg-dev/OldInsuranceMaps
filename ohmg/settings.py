@@ -103,6 +103,9 @@ TEMPLATES = [
     {
         "NAME": "Project Templates",
         "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [
+            PROJECT_DIR / "frontend" / "templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
