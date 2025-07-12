@@ -5,8 +5,6 @@
   import Place from './overviews/Place.svelte';
   import Participants from './lists/Participants.svelte';
 
-  import MarkdownPage from './common/MarkdownPage.svelte';
-
   export let PAGE_NAME = '';
   export let PARAMS = {};
   export let CONTEXT = {};
@@ -28,6 +26,4 @@
   <Place {CONTEXT} PLACE={PARAMS.PLACE} />
 {:else if PAGE_NAME == 'browse'}
   <Browse {CONTEXT} PLACES_CT={PARAMS.PLACES_CT} MAP_CT={PARAMS.MAP_CT} />
-{:else if PAGE_NAME == 'markdown-page'}
-  <MarkdownPage HEADER={PARAMS.HEADER} source={PARAMS.source} isHtml={PARAMS.isHtml} />
 {/if}
