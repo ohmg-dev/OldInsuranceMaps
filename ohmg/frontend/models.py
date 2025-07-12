@@ -35,6 +35,9 @@ class Page(models.Model):
     extra_head = models.CharField(max_length=600, null=True, blank=True)
     published = models.BooleanField(default=False)
     render_as_html = models.BooleanField(default=False)
+    date_modified = models.DateTimeField(auto_now=True)
+    date_published = models.DateTimeField(auto_now_add=True)
+    show_date_modified = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title

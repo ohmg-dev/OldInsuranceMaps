@@ -44,7 +44,7 @@ class MarkdownTocNode(template.Node):
         md = markdown.Markdown()
         content = self.nodelist.render(context)
         result = mark_safe(md.convert(str(content)))
-        soup = BeautifulSoup(result)
+        soup = BeautifulSoup(result, features="html.parser")
 
         toc = []
         current_list = toc

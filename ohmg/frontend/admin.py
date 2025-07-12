@@ -8,7 +8,7 @@ from .models import Page, Navbar
 
 
 class PageAdmin(MarkdownxModelAdmin):
-    readonly_fields = ["slug"]
+    readonly_fields = ["slug", "date_published", "date_modified"]
 
 
 admin.site.register(Page, PageAdmin)

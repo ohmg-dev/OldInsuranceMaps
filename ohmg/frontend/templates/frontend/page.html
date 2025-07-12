@@ -19,6 +19,7 @@
             {% markdowntoc %}{{MARKDOWN_CONTENT}}{% endmarkdowntoc %}
         </div>
         <div class="column markdown-page-content">
+            {% if DATE_MODIFIED %}<p style="color: #555555;"><em>Last updated: {{DATE_MODIFIED}}</em></p>{% endif %}
             {% markdowncontent %}{{MARKDOWN_CONTENT}}{% endmarkdowncontent %}
         </div>
         <div class="column is-one-fifth markdown-page-toc is-hidden-mobile">

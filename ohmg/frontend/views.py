@@ -169,8 +169,10 @@ class Participants(View):
 
 class PageView(View):
     def get(self, request, page):
+        m_date = page.date_modified.strftime("%B %d, %Y")
         context_dict = {
             "PAGE_TITLE": page.title,
+            "DATE_MODIFIED": m_date if page.show_date_modified else None,
             "EXTRA_HEAD": page.extra_head,
             "MARKDOWN_CONTENT": page.content,
         }
