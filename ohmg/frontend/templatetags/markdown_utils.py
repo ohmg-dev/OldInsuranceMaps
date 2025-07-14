@@ -21,7 +21,7 @@ class MarkdownNode(template.Node):
         self.nodelist = nodelist
 
     def render(self, context):
-        md = markdown.Markdown(extensions=["fenced_code", "toc"])
+        md = markdown.Markdown(extensions=["fenced_code", "toc", "tables"])
         content = self.nodelist.render(context)
         result = mark_safe(md.convert(str(content)))
         return result

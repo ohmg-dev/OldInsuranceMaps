@@ -21,7 +21,12 @@
                 </a>
                 <div class="navbar-dropdown navbar-menu">
                     {% for child in item.children %}
-                    <a class="navbar-item" href="{{child.link}}">{{child.title}}</a>
+                    <a class="navbar-item" href="{{child.link}}">
+                        <span style="margin-right:5px;">{{child.title}}</span>
+                        {% if child.link|slice:":4" == "http" %}
+                        <i class="ph-bold ph-arrow-square-out"></i>
+                        {% endif %}
+                    </a>
                     {% endfor %}
                 </div>
             </div>
