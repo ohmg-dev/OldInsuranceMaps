@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0002_apikey'),
+        ("accounts", "0002_apikey"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='apikey',
-            options={'verbose_name': 'API Key'},
+            name="apikey",
+            options={"verbose_name": "API Key"},
         ),
     ]

@@ -8,7 +8,10 @@
 
 {% include '_titlebar.html' with title="Activity" lead_icon="clipboard" %}
 
-{{ params|json_script:'index-props'}}
-{% include '_svelte_component.html' with component_name='Index' %}
-
+<section>
+    <div class="section-content">
+        {{ SESSIONLIST_PROPS|json_script:'sessionlist-props'}}
+        {% include '_svelte_component.html' with component_name='SessionList' %}
+    </div>
+</section>
 {% endblock %}

@@ -5,32 +5,41 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0004_map_loading_documents'),
+        ("core", "0004_map_loading_documents"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RegionCategory',
+            name="RegionCategory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('slug', models.CharField(max_length=50)),
-                ('description', models.CharField(blank=True, max_length=200, null=True)),
-                ('display_name', models.CharField(max_length=50)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("slug", models.CharField(max_length=50)),
+                ("description", models.CharField(blank=True, max_length=200, null=True)),
+                ("display_name", models.CharField(max_length=50)),
             ],
             options={
-                'verbose_name_plural': '  Region Categories',
+                "verbose_name_plural": "  Region Categories",
             },
         ),
         migrations.AddField(
-            model_name='region',
-            name='skipped',
+            model_name="region",
+            name="skipped",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='region',
-            name='category',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='core.regioncategory'),
+            model_name="region",
+            name="category",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                to="core.regioncategory",
+            ),
         ),
     ]

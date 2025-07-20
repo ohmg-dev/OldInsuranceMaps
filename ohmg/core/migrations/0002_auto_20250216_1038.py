@@ -4,19 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='map',
-            name='status',
+            model_name="map",
+            name="status",
         ),
         migrations.AddField(
-            model_name='document',
-            name='loading_file',
+            model_name="document",
+            name="loading_file",
             field=models.BooleanField(default=False),
         ),
     ]

@@ -41,6 +41,9 @@ dependencies = [
     "django_compressor",
     "natsort",
     "python-dotenv",
+    "django-json-widget",
+    "beautifulsoup4",
+    "python-slugify",
 ]
 
 [project.optional-dependencies]

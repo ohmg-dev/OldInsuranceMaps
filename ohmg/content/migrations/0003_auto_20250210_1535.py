@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('content', '0002_auto_20240225_0751'),
+        ("content", "0002_auto_20240225_0751"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='page',
-            name='extra_head',
+            model_name="page",
+            name="extra_head",
             field=models.CharField(blank=True, max_length=600, null=True),
         ),
         migrations.AddField(
-            model_name='page',
-            name='render_as_html',
+            model_name="page",
+            name="render_as_html",
             field=models.BooleanField(default=False),
         ),
     ]

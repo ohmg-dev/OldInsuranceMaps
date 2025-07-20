@@ -4,50 +4,49 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0005_auto_20250327_1045'),
+        ("core", "0005_auto_20250327_1045"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='document',
-            name='file',
-            field=models.FileField(blank=True, max_length=255, null=True, upload_to='documents'),
+            model_name="document",
+            name="file",
+            field=models.FileField(blank=True, max_length=255, null=True, upload_to="documents"),
         ),
         migrations.AlterField(
-            model_name='document',
-            name='thumbnail',
-            field=models.FileField(blank=True, max_length=255, null=True, upload_to='thumbnails'),
+            model_name="document",
+            name="thumbnail",
+            field=models.FileField(blank=True, max_length=255, null=True, upload_to="thumbnails"),
         ),
         migrations.AlterField(
-            model_name='layer',
-            name='file',
-            field=models.FileField(blank=True, max_length=255, null=True, upload_to='layers'),
+            model_name="layer",
+            name="file",
+            field=models.FileField(blank=True, max_length=255, null=True, upload_to="layers"),
         ),
         migrations.AlterField(
-            model_name='layer',
-            name='thumbnail',
-            field=models.FileField(blank=True, max_length=255, null=True, upload_to='thumbnails'),
+            model_name="layer",
+            name="thumbnail",
+            field=models.FileField(blank=True, max_length=255, null=True, upload_to="thumbnails"),
         ),
         migrations.AlterField(
-            model_name='layerset',
-            name='mosaic_geotiff',
-            field=models.FileField(blank=True, max_length=255, null=True, upload_to='mosaics'),
+            model_name="layerset",
+            name="mosaic_geotiff",
+            field=models.FileField(blank=True, max_length=255, null=True, upload_to="mosaics"),
         ),
         migrations.AlterField(
-            model_name='layerset',
-            name='mosaic_json',
-            field=models.FileField(blank=True, max_length=255, null=True, upload_to='mosaics'),
+            model_name="layerset",
+            name="mosaic_json",
+            field=models.FileField(blank=True, max_length=255, null=True, upload_to="mosaics"),
         ),
         migrations.AlterField(
-            model_name='region',
-            name='file',
-            field=models.FileField(blank=True, max_length=255, null=True, upload_to='regions'),
+            model_name="region",
+            name="file",
+            field=models.FileField(blank=True, max_length=255, null=True, upload_to="regions"),
         ),
         migrations.AlterField(
-            model_name='region',
-            name='thumbnail',
-            field=models.FileField(blank=True, max_length=255, null=True, upload_to='thumbnails'),
+            model_name="region",
+            name="thumbnail",
+            field=models.FileField(blank=True, max_length=255, null=True, upload_to="thumbnails"),
         ),
     ]

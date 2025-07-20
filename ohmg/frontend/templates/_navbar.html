@@ -1,7 +1,7 @@
-<nav class="navbar" aria-label="main navigation">
+<nav class="navbar is-fixed-top is-tab" aria-label="main navigation">
 	<div class="navbar-brand">
 		<a class="navbar-item" href="/">
-			<img style="height:30px; width:30px;" src="/static/img/colored-full-linework.png" alt="Home">
+			<img style="height:30px; width:30px;" src="{{NAVBAR_CONFIG.image_url}}" alt="Home">
 		</a>
 		<button class="navbar-burger" onClick="toggleMobileMenu()" aria-label="menu" aria-expanded="false" data-target="top-navbar">
 		<span aria-hidden="true"></span>
@@ -12,61 +12,53 @@
 	</div>
 	<div id="top-navbar" class="navbar-menu">
 		<div class="navbar-start">
-			<a class="navbar-item" href="/search">Search</a>
-			<div class="navbar-item has-dropdown is-hoverable" style="border-top:none;">
-				<button class="navbar-link is-hoverable is-arrowless" onclick="this.nextElementSibling.classList.toggle('is-active')">
-					<span>Georeferencing</span>
-					<i class="ph-bold ph-caret-down"></i>
-				</button>
-				<div class="navbar-dropdown navbar-menu">
-					<a class="navbar-item" href="/activity">Latest Activity</a>
-					<a class="navbar-item" href="/profiles">Contributors</a>
-					<a class="navbar-item" href="https://about.oldinsurancemaps.net/guides">Guides</a>
-					<a class="navbar-item" href="/search#items">Find a map...</a>
-				</div>
-			</div>
-			<div class="navbar-item has-dropdown is-hoverable" style="border-top:none;">
-				<button class="navbar-link is-hoverable is-arrowless" onclick="this.nextElementSibling.classList.toggle('is-active')">
-					<span>Community</span>
-					<i class="ph-bold ph-caret-down"></i>
-				</button>
-				<div class="navbar-dropdown navbar-menu">
-					<a class="navbar-item" href="/forum">Forum</a>
-					<a class="navbar-item" href="/news">News & Newsletter</a>
-					<a class="navbar-item" href="https://about.oldinsurancemaps.net/community">Contact</a>
-				</div>
-			</div>
-			<div class="navbar-item has-dropdown is-hoverable" style="border-top:none;">
-				<button class="navbar-link is-hoverable is-arrowless" onclick="this.nextElementSibling.classList.toggle('is-active')">
-					<span>Learn More</span>
-					<i class="ph-bold ph-caret-down"></i>
-				</button>
-				<div class="navbar-dropdown navbar-menu">
-					<a class="navbar-item" href="https://about.oldinsurancemaps.net/faq">FAQ</a>
-					<a class="navbar-item" href="https://about.oldinsurancemaps.net/sanborn-maps">Sanborn Maps</a>
-					<a class="navbar-item" href="https://about.oldinsurancemaps.net">Background</a>
-					<a class="navbar-item" href="https://about.oldinsurancemaps.net/credits">Credits</a>
-				</div>
-			</div>
+        {% for item in NAVBAR_CONFIG.left_side.items %}
+            {% if item.children %}
+            <div class="navbar-item has-dropdown is-hoverable{% if CURRENT_ROUTE in item.active_routes %} active{% endif %}">
+                <a class="navbar-link is-hoverable is-arrowless" href="{{item.link}}">
+                    <span>{{item.title}}</span>
+                    <i class="ph-bold ph-caret-down"></i>
+                </a>
+                <div class="navbar-dropdown navbar-menu">
+                    {% for child in item.children %}
+                    <a class="navbar-item" href="{{child.link}}">
+                        <span style="margin-right:5px;">{{child.title}}</span>
+                        {% if child.link|slice:":4" == "http" %}
+                        <i class="ph-bold ph-arrow-square-out"></i>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="navbar-item{% if CURRENT_ROUTE in item.active_routes %} active{% endif %}" style="padding:0">
+                <a class="navbar-link is-arrowless" href="{{item.link}}">
+                    <span>{{ item.title }}</span>
+                    {% if item.link|slice:":4" == "http" %}
+                    <i class="ph-bold ph-arrow-square-out"></i>
+                    {% endif %}
+                </a>
+            </div>
+            {% endif %}
+        {% endfor %}
 		</div>
 		<div class="navbar-end">
 		{% if user.is_authenticated %}
-		<div class="navbar-item is-right has-dropdown is-hoverable" style="border-top:none;">
-			<button class="navbar-link is-hoverable is-arrowless" onclick="this.nextElementSibling.classList.toggle('is-active')">
-				<span>{{ user.username }}</span>
-				<i class="ph-bold ph-caret-down"></i>
-			</button>
-			<div class="navbar-dropdown navbar-menu is-right">
-				<a class="navbar-item" href="/profile/{{ user.username }}" title="My Profile">My profile</a>
-				<a class="navbar-item" href="/account/logout" title="Logout">Logout</a>
-			</div>
-		</div>
+        <div class="navbar-item has-dropdown is-hoverable">
+            <a class="navbar-link is-hoverable is-arrowless" href="/profile/{{ user.username }}" title="Go to profile">
+                <span>{{ user.username }}</span>
+                <i class="ph-bold ph-caret-down"></i>
+            </a>
+            <div class="navbar-dropdown navbar-menu">
+                <a class="navbar-item" href="/account/logout" title="Sign out">Sign out</a>
+            </div>
+        </div>
 		{% else %}
 		<div class="navbar-item is-right">
-			<button class="navbar-link is-arrowless" onclick="openSigninModal()">
+			<a class="navbar-link is-arrowless" onclick="openSigninModal()">
 				<span>Sign in</span>
 				<i class="ph-bold ph-sign-in"></i>
-			</button>
+            </a>
 		</div>
 		{% endif %}
 		</div>
@@ -134,6 +126,9 @@
 	function toggleMobileMenu() {
 		document.getElementsByClassName('navbar-burger')[0].classList.toggle('is-active')
 		document.getElementsByClassName('navbar-menu')[0].classList.toggle('is-active');
+		Array.from(document.getElementsByClassName('navbar-dropdown')).forEach( function(el) {
+            el.classList.toggle('is-active')
+        });
 	}
 	function toggleSigninForm() {
 		Array.from(document.getElementsByClassName("signin-forms")).forEach( function(el) {
@@ -150,7 +145,6 @@
 	function openSigninModal() {
 		window.addEventListener("keydown", keyPress)
 		document.getElementById('topModal').style.visibility = 'visible'
-		
 		//this prevents scrolling of the main window on larger screens
 		document.body.style.overflow="hidden" 
 	}
