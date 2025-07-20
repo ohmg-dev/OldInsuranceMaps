@@ -188,7 +188,7 @@ class BaseImporter:
         All values in a CSV row are passed to the importer, any irrelevant ones
         will be ignored."""
 
-        with open(csv_file, "r") as o:
+        with open(csv_file, "r", encoding="utf-8-sig") as o:
             reader = csv.DictReader(o)
             items = [i for i in reader]
 
