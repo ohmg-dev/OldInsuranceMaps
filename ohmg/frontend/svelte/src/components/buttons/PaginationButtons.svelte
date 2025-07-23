@@ -6,6 +6,7 @@
   export let loading = false;
   export let currentOffset = 0;
   export let currentLimit = 100;
+  export let showLimitSwitcher = true;
   export let total = 0;
 
   const locale = document.documentElement.lang || 'en';
@@ -30,7 +31,7 @@
     <CaretDoubleLeft />
   </button>
   <div>{currentOffset} - {currentOffset + limitInt < total ? currentOffset + limitInt : total} ({formattedTotal})</div>
-  {#if currentLimit != 0}
+  {#if currentLimit != 0 && showLimitSwitcher}
     <div style="display:flex; flex-direction:row; align-items:center; margin-left:10px;">
       <span>show</span>
       <Select

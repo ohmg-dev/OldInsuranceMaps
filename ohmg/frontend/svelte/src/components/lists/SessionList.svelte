@@ -1,10 +1,11 @@
 <script>
+  import { slide } from 'svelte/transition';
   import { TableSort } from 'svelte-tablesort';
   import Select from 'svelte-select';
   import { format } from 'date-fns';
 
   import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise';
-  import Question from 'phosphor-svelte/lib/Question';
+  import Funnel from 'phosphor-svelte/lib/Funnel';
 
   import Link from '../common/Link.svelte';
   import SessionListModal from '../modals/SessionListModal.svelte';
@@ -30,6 +31,7 @@
   export let showMap = true;
   export let mapFilterItems;
   export let mapFilter;
+  export let showLimitSwitcher = true;
 
   const typeFilterOptions = [
     { label: 'Prep', id: 'p' },
@@ -85,62 +87,22 @@
       loading = false;
     });
   }
+
+  let showFilters = false;
 </script>
 
 <SessionListModal id={'modal-session-list'} />
 <div>
-  <div class="level" style="margin:.5em 0;">
+  <div class="level is-mobile" style="margin:.5em 0;">
     <div class="level-left">
       <InfoModalButton modalId="modal-session-list" />
-      {#if mapFilterItems}
-        <Select
-          items={mapFilterItems}
-          bind:value={mapFilter}
-          id="id"
-          label="title"
-          placeholder="Filter by map..."
-          listAutoWidth={false}
-          containerStyles="width:300px;"
-          on:change={() => {
-            offset = 0;
-          }}
-        />
-      {/if}
-      {#if showTypeFilter}
-        <Select
-          items={typeFilterOptions}
-          bind:value={typeFilter}
-          id="id"
-          label="label"
-          placeholder="Filter by type..."
-          searchable={false}
-          containerStyles="width:150px;"
-          on:change={() => {
-            offset = 0;
-          }}
-        />
-      {/if}
-      <DatePicker bind:startDate bind:endDate />
-      {#if userFilterItems}
-        <Select
-          items={userFilterItems}
-          bind:value={userFilter}
-          id="id"
-          label="title"
-          placeholder="Filter by user..."
-          containerStyles="width:150px;"
-          on:change={() => {
-            offset = 0;
-          }}
-        />
-      {/if}
-    </div>
-    <div class="level-right">
-      {#if paginate}
-        <div class="level-item">
-          <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit />
-        </div>
-      {/if}
+      <button
+        class="is-icon-link"
+        on:click={() => {
+          showFilters = !showFilters;
+        }}
+        ><Funnel size={'1em'} />
+      </button>
       {#if allowRefresh}
         <button
           class="is-icon-link"
@@ -157,7 +119,65 @@
         </button>
       {/if}
     </div>
+    <div class="level-right">
+      {#if paginate}
+        <div class="level-item">
+          <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit {showLimitSwitcher} />
+        </div>
+      {/if}
+    </div>
   </div>
+  {#if showFilters}
+    <div transition:slide class="level" style="margin:.5em 0;">
+      <div id="filter-level" class="level-left">
+        {#if mapFilterItems}
+          <Select
+            items={mapFilterItems}
+            bind:value={mapFilter}
+            id="id"
+            label="title"
+            placeholder="Filter by map..."
+            listAutoWidth={false}
+            class="filter-input"
+            containerStyles="width:300px;"
+            on:change={() => {
+              offset = 0;
+            }}
+          />
+        {/if}
+        {#if showTypeFilter}
+          <Select
+            items={typeFilterOptions}
+            bind:value={typeFilter}
+            id="id"
+            label="label"
+            placeholder="Filter by type..."
+            searchable={false}
+            class="filter-input"
+            containerStyles="width:150px;"
+            on:change={() => {
+              offset = 0;
+            }}
+          />
+        {/if}
+        <DatePicker bind:startDate bind:endDate />
+        {#if userFilterItems}
+          <Select
+            items={userFilterItems}
+            bind:value={userFilter}
+            id="id"
+            label="title"
+            placeholder="Filter by user..."
+            class="filter-input"
+            containerStyles="width:150px;"
+            on:change={() => {
+              offset = 0;
+            }}
+          />
+        {/if}
+      </div>
+    </div>
+  {/if}
   <div style="height: 100%; overflow-y:auto; border:1px solid #ddd; border-radius:4px; background:white;">
     {#if items.length > 0}
       <TableSort {items}>
@@ -242,6 +262,9 @@
 </div>
 
 <style>
+  .level.is-mobile > .level-left {
+    flex-direction: row;
+  }
   td {
     white-space: nowrap;
   }
@@ -249,6 +272,14 @@
     width: 65px;
     display: inline-block;
     text-align: center;
+  }
+  @media screen and (max-width: 768px) {
+    #filter-level,
+    :global(.filter-input),
+    :global(.date-filter),
+    :global(button.date-field) {
+      min-width: 100% !important;
+    }
   }
 
   @-webkit-keyframes rotating /* Safari and Chrome */ {
