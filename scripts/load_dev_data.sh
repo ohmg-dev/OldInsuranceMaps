@@ -9,7 +9,6 @@ set +a
 python manage.py loaddata ohmg/core/fixtures/sanborn-region-categories.json
 python manage.py loaddata ohmg/core/fixtures/sanborn-layerset-categories.json
 
-python manage.py loaddata tests/data/fixtures/auth/admin-user.json
 python manage.py loaddata tests/data/fixtures/places/new-iberia-la-and-parents.json
 python manage.py loaddata tests/data/fixtures/core/new-iberia-1885-map.json
 python manage.py loaddata tests/data/fixtures/core/new-iberia-1885-docs.json
