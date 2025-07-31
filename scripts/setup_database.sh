@@ -17,6 +17,8 @@ then
 
     python manage.py migrate
 
+    python manage.py loaddata tests/data/fixtures/auth/admin-user.json
     python manage.py loaddata default-region-categories
     python manage.py loaddata default-layerset-categories
+    python manage.py loaddata default-navbar
 fi

@@ -79,7 +79,6 @@ INSTALLED_APPS = [
     "markdownx",
     "ohmg.conf",
     "ohmg.core",
-    "ohmg.content",
     "ohmg.frontend",
     "ohmg.georeference",
     "ohmg.places",

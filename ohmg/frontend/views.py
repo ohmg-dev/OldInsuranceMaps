@@ -85,7 +85,7 @@ class Browse(View):
                 },
             }
         }
-        return render(request, "content/browse.html", context=context_dict)
+        return render(request, "frontend/browse.html", context=context_dict)
 
 
 class ActivityView(View):
@@ -134,7 +134,7 @@ class NewsList(View):
             "USER_SUBSCRIBED": user_subscribed,
         }
 
-        return render(request, "content/list.html", context=context_dict)
+        return render(request, "frontend/article_list.html", context=context_dict)
 
 
 class NewsArticle(View):
@@ -149,7 +149,7 @@ class NewsArticle(View):
             "publish_date": submissions[0].publish_date,
         }
 
-        return render(request, "content/article.html", context=context_dict)
+        return render(request, "frontend/article.html", context=context_dict)
 
 
 class Participants(View):
