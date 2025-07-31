@@ -80,7 +80,7 @@
 
   let processing;
 
-  let filterParamsList = ['sort=oldest_first'];
+  let filterParamsList = ['sortold=oldest_first'];
   filterParamsList.push(`${RESOURCE.type}=${RESOURCE.id}`);
   const filterParam = filterParamsList.join('&');
 

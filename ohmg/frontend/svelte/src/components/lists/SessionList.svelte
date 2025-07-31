@@ -15,6 +15,7 @@
 
   import { getFromAPI } from '../../lib/requests';
   import InfoModalButton from '../buttons/InfoModalButton.svelte';
+  import SortButton from '../buttons/SortButton.svelte';
 
   export let CONTEXT;
   export let FILTER_PARAM = '';
@@ -54,6 +55,9 @@
   let dateFormat = 'yyyy-MM-dd';
   const formatDate = (dateString) => (dateString && format(new Date(dateString), dateFormat)) || '';
 
+  let sortParam = 'id';
+  let sortDir = 'des';
+
   $: formattedStartDate = formatDate(startDate);
   $: formattedEndDate = formatDate(endDate);
 
@@ -80,6 +84,9 @@
     }
     if (userFilter) {
       fetchUrl += `&username=${userFilter.id}`;
+    }
+    if (sortParam) {
+      fetchUrl += `&sortby=${sortParam}&sort=${sortDir}`;
     }
     getFromAPI(fetchUrl, CONTEXT.ohmg_api_headers, (result) => {
       items = result.items;
@@ -130,21 +137,6 @@
   {#if showFilters}
     <div transition:slide|global class="level" style="margin:.5em 0;">
       <div id="filter-level" class="level-left">
-        {#if mapFilterItems}
-          <Select
-            items={mapFilterItems}
-            bind:value={mapFilter}
-            id="id"
-            label="title"
-            placeholder="Filter by map..."
-            listAutoWidth={false}
-            class="filter-input"
-            containerStyles="width:300px;"
-            on:change={() => {
-              offset = 0;
-            }}
-          />
-        {/if}
         {#if showTypeFilter}
           <Select
             items={typeFilterOptions}
@@ -160,7 +152,6 @@
             }}
           />
         {/if}
-        <DatePicker bind:startDate bind:endDate />
         {#if userFilterItems}
           <Select
             items={userFilterItems}
@@ -175,6 +166,22 @@
             }}
           />
         {/if}
+        {#if mapFilterItems}
+          <Select
+            items={mapFilterItems}
+            bind:value={mapFilter}
+            id="id"
+            label="title"
+            placeholder="Filter by map..."
+            listAutoWidth={false}
+            class="filter-input"
+            containerStyles="width:300px;"
+            on:change={() => {
+              offset = 0;
+            }}
+          />
+        {/if}
+        <DatePicker bind:startDate bind:endDate />
       </div>
     </div>
   {/if}
@@ -182,22 +189,24 @@
     {#if items.length > 0}
       <TableSort {items}>
         <tr slot="thead">
-          <th title="Session Id">Id</th>
-          <th title="Session Type">Type</th>
+          <th><SortButton title="Id" bind:sortDir bind:sortParam value={'id'} /></th>
+          <th><SortButton title="Type" bind:sortDir bind:sortParam value={'type'} /></th>
           {#if showUser}
-            <th title="Username">User</th>
+            <th><SortButton title="User" bind:sortDir bind:sortParam value={'user'} /></th>
           {/if}
           {#if showMap}
             <th title="Map">Map</th>
           {/if}
           {#if showResource}
-            <th title="Document, Region or Layer proccessed"
-              >Resource <input type="checkbox" bind:checked={showThumbs} title="Show thumbnails" /></th
-            >
+            <th>
+              <div>
+                <span>Resource</span><input type="checkbox" bind:checked={showThumbs} title="Show thumbnails" />
+              </div>
+            </th>
           {/if}
-          <th>Stage</th>
-          <th title="Session result note">Result</th>
-          <th title="When the session was created">When</th>
+          <th><SortButton title="Stage" bind:sortDir bind:sortParam value={'stage'} /></th>
+          <th><SortButton title="Result" bind:sortDir bind:sortParam value={'note'} /></th>
+          <th><SortButton title="Date" bind:sortDir bind:sortParam value={'date_created'} /></th>
         </tr>
         <tr slot="tbody" let:item={s} style="height:38px; vertical-align:center;">
           <td>{s.id}</td>
@@ -217,7 +226,11 @@
           {/if}
           {#if showMap}
             <td>
-              <Link href={`/map/${s.map.identifier}`} title={s.map.title}>{s.map.title}</Link>
+              {#if s.map}
+                <Link href={`/map/${s.map.identifier}`} title={s.map.title}>{s.map.title}</Link>
+              {:else}
+                Error
+              {/if}
             </td>
           {/if}
           {#if showResource}
@@ -265,8 +278,13 @@
   .level.is-mobile > .level-left {
     flex-direction: row;
   }
+  th > * {
+    display: flex;
+  }
   td {
     white-space: nowrap;
+    padding-left: 0.5em;
+    vertical-align: middle;
   }
   .thumb-container {
     width: 65px;
