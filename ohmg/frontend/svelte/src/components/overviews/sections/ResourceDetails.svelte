@@ -61,14 +61,16 @@
 
 <h3 style="margin-top:5px;">Resource Details</h3>
 <table>
-  <tr>
-    <td>Title</td>
-    <td>Sanborn Map of {RESOURCE.title}</td>
-  </tr>
-  <tr>
-    <td>Status</td>
-    <td>{RESOURCE.status}</td>
-  </tr>
+  <thead>
+    <tr>
+      <td>Title</td>
+      <td>Sanborn Map of {RESOURCE.title}</td>
+    </tr>
+    <tr>
+      <td>Status</td>
+      <td>{RESOURCE.status}</td>
+    </tr>
+  </thead>
 </table>
 {#if !MAP.hidden}
   <div class="header-bar">
@@ -76,52 +78,54 @@
     <InfoModalButton modalId="download-section-modal" />
   </div>
   <table>
-    <tr>
-      <td>Image</td>
-      <td>
-        {#if jpegUrl}
-          <Link href={jpegUrl} title="Download original JPEG">JPEG</Link>
-        {/if}
-        {#if cogUrl}
-          &bullet;
-          <Link href={cogUrl} title="Download georeferenced layer as GeoTIFF">GeoTIFF</Link>
-        {/if}
-      </td>
-    </tr>
-    <tr>
-      <td>Ground Control Points</td>
-      <td>
-        {#if gcpsGeojsonUrl || gcpsPointsUrl}
-          <!-- <Link href={gcpsGeojsonUrl} title="Download GCPs in GeoJSON format" download={`${RESOURCE.slug}.geojson`}>GeoJSON</Link> -->
-          <!--&bullet;
-            <Link href={gcpsPointsUrl} title="Download GCPs in .points format (QGIS)" download={`${RESOURCE.slug}.points`}>.points</Link>-->
-        {:else}
-          n/a
-        {/if}
-      </td>
-    </tr>
-    <tr>
-      <td>XYZ Tiles URL</td>
-      <td>
-        {#if xyzUrl}
-          <pre style="margin:0;">{xyzUrl}</pre>
-        {:else}
-          n/a
-        {/if}
-      </td>
-    </tr>
-    <tr>
-      <td>OHM</td>
-      <td>
-        {#if ohmUrl}
-          <Link href={ohmUrl} title="Open mosaic in OHM Editor" external={true}
-            >Open in OpenHistoricalMap iD editor</Link
-          >
-        {:else}
-          n/a
-        {/if}</td
-      >
-    </tr>
+    <thead>
+      <tr>
+        <td>Image</td>
+        <td>
+          {#if jpegUrl}
+            <Link href={jpegUrl} title="Download original JPEG">JPEG</Link>
+          {/if}
+          {#if cogUrl}
+            &bullet;
+            <Link href={cogUrl} title="Download georeferenced layer as GeoTIFF">GeoTIFF</Link>
+          {/if}
+        </td>
+      </tr>
+      <tr>
+        <td>Ground Control Points</td>
+        <td>
+          {#if gcpsGeojsonUrl || gcpsPointsUrl}
+            <!-- <Link href={gcpsGeojsonUrl} title="Download GCPs in GeoJSON format" download={`${RESOURCE.slug}.geojson`}>GeoJSON</Link> -->
+            <!--&bullet;
+                <Link href={gcpsPointsUrl} title="Download GCPs in .points format (QGIS)" download={`${RESOURCE.slug}.points`}>.points</Link>-->
+          {:else}
+            n/a
+          {/if}
+        </td>
+      </tr>
+      <tr>
+        <td>XYZ Tiles URL</td>
+        <td>
+          {#if xyzUrl}
+            <pre style="margin:0;">{xyzUrl}</pre>
+          {:else}
+            n/a
+          {/if}
+        </td>
+      </tr>
+      <tr>
+        <td>OHM</td>
+        <td>
+          {#if ohmUrl}
+            <Link href={ohmUrl} title="Open mosaic in OHM Editor" external={true}
+              >Open in OpenHistoricalMap iD editor</Link
+            >
+          {:else}
+            n/a
+          {/if}</td
+        >
+      </tr>
+    </thead>
   </table>
 {/if}
 

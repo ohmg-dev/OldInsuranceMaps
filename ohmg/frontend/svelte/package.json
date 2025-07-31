@@ -42,7 +42,7 @@
     "ol-hashed": "^2.1.0",
     "ol-pmtiles": "^1.0.2",
     "sirv-cli": "^1.0.0",
-    "svelte-markdown": "^0.2.3",
+    "svelte-markdown": "^0.4.1",
     "svelte-select": "^5.8.3",
     "svelte-tablesort": "^1.1.0"
   }

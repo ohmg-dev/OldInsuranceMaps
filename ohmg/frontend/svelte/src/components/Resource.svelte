@@ -242,24 +242,28 @@
           {#if GEOREFERENCE_SUMMARY}
             <table>
               <caption>{GEOREFERENCE_SUMMARY.gcp_geojson.features.length} Control Points</caption>
-              <tr>
-                <th>X</th>
-                <th>Y</th>
-                <th>Lng</th>
-                <th>Lat</th>
-                <th>User</th>
-                <th>Note</th>
-              </tr>
-              {#each GEOREFERENCE_SUMMARY.gcp_geojson.features as feat}
+              <thead>
                 <tr>
-                  <td class="coord-digit">{feat.properties.image[0]}</td>
-                  <td class="coord-digit">{feat.properties.image[1]}</td>
-                  <td class="coord-digit">{Math.round(feat.geometry.coordinates[0] * 1000000) / 1000000}</td>
-                  <td class="coord-digit">{Math.round(feat.geometry.coordinates[1] * 1000000) / 1000000}</td>
-                  <td>{feat.properties.username}</td>
-                  <td>{feat.properties.note != null ? feat.properties.note : '--'}</td>
+                  <th>X</th>
+                  <th>Y</th>
+                  <th>Lng</th>
+                  <th>Lat</th>
+                  <th>User</th>
+                  <th>Note</th>
                 </tr>
-              {/each}
+              </thead>
+              <tbody>
+                {#each GEOREFERENCE_SUMMARY.gcp_geojson.features as feat}
+                  <tr>
+                    <td class="coord-digit">{feat.properties.image[0]}</td>
+                    <td class="coord-digit">{feat.properties.image[1]}</td>
+                    <td class="coord-digit">{Math.round(feat.geometry.coordinates[0] * 1000000) / 1000000}</td>
+                    <td class="coord-digit">{Math.round(feat.geometry.coordinates[1] * 1000000) / 1000000}</td>
+                    <td>{feat.properties.username}</td>
+                    <td>{feat.properties.note != null ? feat.properties.note : '--'}</td>
+                  </tr>
+                {/each}
+              </tbody>
             </table>
           {/if}
         </div>
