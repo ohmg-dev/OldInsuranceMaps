@@ -195,18 +195,23 @@
             <th><SortButton title="User" bind:sortDir bind:sortParam value={'user'} /></th>
           {/if}
           {#if showMap}
-            <th title="Map">Map</th>
+            <th title="Map" style="font-weight:400">Map</th>
           {/if}
           {#if showResource}
-            <th>
+            <th title="Document, Region, or Layer for this work">
               <div>
-                <span>Resource</span><input type="checkbox" bind:checked={showThumbs} title="Show thumbnails" />
+                <span style="font-weight:400; margin-right:.5em;">Resource</span><input
+                  type="checkbox"
+                  bind:checked={showThumbs}
+                  title="Show thumbnails"
+                />
               </div>
             </th>
           {/if}
           <th><SortButton title="Stage" bind:sortDir bind:sortParam value={'stage'} /></th>
           <th><SortButton title="Result" bind:sortDir bind:sortParam value={'note'} /></th>
           <th><SortButton title="Date" bind:sortDir bind:sortParam value={'date_created'} /></th>
+          <th><SortButton title="Duration" bind:sortDir bind:sortParam value={'duration'} /></th>
         </tr>
         <tr slot="tbody" let:item={s} style="height:38px; vertical-align:center;">
           <td>{s.id}</td>
@@ -229,21 +234,25 @@
               {#if s.map}
                 <Link href={`/map/${s.map.identifier}`} title={s.map.title}>{s.map.title}</Link>
               {:else}
-                Error
+                Error: no map
               {/if}
             </td>
           {/if}
           {#if showResource}
             <td>
               {#if s.type === 'p'}
-                {#if showThumbs}
-                  <div class="thumb-container">
-                    <img style="max-height:50px;" src={s.doc2.urls.thumbnail} alt={s.doc2.nickname} />
-                  </div>
+                {#if s.doc2}
+                  {#if showThumbs}
+                    <div class="thumb-container">
+                      <img style="max-height:50px;" src={s.doc2.urls.thumbnail} alt={s.doc2.nickname} />
+                    </div>
+                  {/if}
+                  <Link href={s.doc2.urls.resource} title={s.doc2.nickname}>
+                    {s.doc2.nickname}
+                  </Link>
+                {:else}
+                  Error: no document
                 {/if}
-                <Link href={s.doc2.urls.resource} title={s.doc2.nickname}>
-                  {s.doc2.nickname}
-                </Link>
               {:else if s.type === 'g' || s.type === 't'}
                 {#if s.lyr2}
                   {#if showThumbs}
@@ -254,14 +263,22 @@
                   <Link href={s.lyr2.urls.resource} title={s.lyr2.nickname}>
                     {s.lyr2.nickname}
                   </Link>
+                {:else}
+                  Error: no layer
                 {/if}
               {/if}
             </td>
           {/if}
           <td>{s.stage}</td>
           <td>{s.note}</td>
-          <!-- <td>{s.user_input_duration}</td> -->
           <td title={s.date_created.date}>{s.date_created.relative}</td>
+          <td title={`${s.duration.seconds} seconds`}>
+            {#if s.duration}
+              {s.duration.humanized}
+            {:else}
+              Error: not recorded
+            {/if}
+          </td>
         </tr>
       </TableSort>
     {:else}

@@ -4,23 +4,27 @@
   export let title = '';
   export let value = '';
   export let sortParam = null;
-  export let sortDir = 'des';
+  export let sortDir = 'asc';
+
+  $: active = sortParam == value;
 </script>
 
 <button
   title={`Sort by ${value}`}
   on:click={() => {
+    sortDir = !active ? 'asc' : sortDir == 'asc' ? 'des' : 'asc';
     sortParam = value;
-    sortDir = sortDir == 'des' ? 'asc' : 'des';
   }}
 >
-  <span style={value != sortParam ? 'margin-right: 1em;' : ''}>{title}</span>
-  {#if value == sortParam}
-    {#if sortDir == 'des'}
+  <span style="margin-right: .5em;">{title}</span>
+  {#if active}
+    {#if sortDir == 'asc'}
       <SortAscending />
     {:else}
       <SortDescending />
     {/if}
+  {:else}
+    <SortAscending style="color:grey;" />
   {/if}
 </button>
 

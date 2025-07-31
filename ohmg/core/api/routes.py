@@ -86,6 +86,10 @@ def list_sessions(request, filters: FilterSessionSchema = Query(...), date_range
     else:
         sessions = SessionBase.objects.all()
     if sort_param:
+        if sort_param == "user":
+            sort_param = "user__username"
+        if sort_param == "duration":
+            sort_param = "user_input_duration"
         sort_arg = sort_param if sort_dir == "asc" else f"-{sort_param}"
         queryset = sessions.order_by(sort_arg).select_related("doc2", "reg2", "lyr2")
     elif sort == "oldest_first":
