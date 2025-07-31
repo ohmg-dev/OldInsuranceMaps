@@ -121,7 +121,7 @@
       <h2>Summary</h2>
     </button>
     {#if sectionVis['summary']}
-      <div transition:slide>
+      <div transition:slide|global>
         <ResourceDetails {CONTEXT} {RESOURCE} {MAP} />
       </div>
     {/if}
@@ -137,7 +137,7 @@
       <h2>{upperCaseType} Preview</h2>
     </button>
     {#if sectionVis['preview']}
-      <div transition:slide>
+      <div transition:slide|global>
         <div id="map-panel">
           {#each reinitMap as key (key)}
             {#if RESOURCE.type == 'layer'}
@@ -161,7 +161,7 @@
       <h2>Preparation</h2>
     </button>
     {#if sectionVis['prep']}
-      <div transition:slide>
+      <div transition:slide|global>
         <div class="section-body">
           {#if RESOURCE.prep_sessions.length > 0}
             Initial preparation by <a href={RESOURCE.prep_sessions[0].user.profile}
@@ -225,7 +225,7 @@
       <h2>Georeferencing</h2>
     </button>
     {#if sectionVis['georef']}
-      <div transition:slide>
+      <div transition:slide|global>
         <div class="control-btn-group">
           <ToolUIButton
             onlyIcon={false}
@@ -277,7 +277,7 @@
       <h2>Session History</h2>
     </button>
     {#if sectionVis['history']}
-      <div transition:slide>
+      <div transition:slide|global>
         <SessionList
           {CONTEXT}
           FILTER_PARAM={filterParam}

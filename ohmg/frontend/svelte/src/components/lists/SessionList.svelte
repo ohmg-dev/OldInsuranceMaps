@@ -128,7 +128,7 @@
     </div>
   </div>
   {#if showFilters}
-    <div transition:slide class="level" style="margin:.5em 0;">
+    <div transition:slide|global class="level" style="margin:.5em 0;">
       <div id="filter-level" class="level-left">
         {#if mapFilterItems}
           <Select

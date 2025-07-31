@@ -399,7 +399,7 @@
       </button>
     </div>
     {#if sectionVis['summary']}
-      <div style="margin-bottom:10px;" transition:slide>
+      <div style="margin-bottom:10px;" transition:slide|global>
         <MapDetails {CONTEXT} {MAP} {SESSION_SUMMARY} {LAYERSETS} {userFilterItems} />
       </div>
     {/if}
@@ -424,7 +424,7 @@
       <InfoModalButton modalId="modal-preview-map" />
     </div>
     {#if sectionVis['preview']}
-      <div class="section-content" transition:slide>
+      <div class="section-content" transition:slide|global>
         <MapPreview {CONTEXT} mapId={MAP.identifier} mapExtent={MAP.extent} bind:refreshable={previewRefreshable} />
       </div>
     {/if}
@@ -500,7 +500,7 @@
           <InfoModalButton modalId="modal-unprepared" />
         </div>
         {#if sectionVis['unprepared']}
-          <div transition:slide>
+          <div transition:slide|global>
             <div style="margin: 10px 0px;">
               {#if MAP.item_lookup.unprepared.length > 0 && !bulkPreparing}
                 <button
@@ -576,7 +576,7 @@
           <InfoModalButton modalId="modal-prepared" />
         </div>
         {#if sectionVis['prepared']}
-          <div transition:slide>
+          <div transition:slide|global>
             <div class="documents-column">
               {#each MAP.item_lookup.prepared as region}
                 <PreparedCard
@@ -618,7 +618,7 @@
           <InfoModalButton modalId="modal-georeferenced" />
         </div>
         {#if sectionVis['georeferenced']}
-          <div transition:slide>
+          <div transition:slide|global>
             <div style="margin: 10px 0px;">
               {#if MAP.item_lookup.georeferenced.length > 0 && !classifyingLayers}
                 <button
@@ -697,7 +697,7 @@
           <InfoModalButton modalId="modal-skipped" />
         </div>
         {#if sectionVis['skipped']}
-          <div transition:slide>
+          <div transition:slide|global>
             <div class="documents-column">
               {#each MAP.item_lookup.skipped as region}
                 <SkippedCard
@@ -733,7 +733,7 @@
           <InfoModalButton modalId="modal-non-map" />
         </div>
         {#if sectionVis['nonmaps']}
-          <div transition:slide>
+          <div transition:slide|global>
             <div class="documents-column">
               {#each MAP.item_lookup.nonmaps as nonmap}
                 <NonMapCard
@@ -767,7 +767,7 @@
       <InfoModalButton modalId="modal-multimask" />
     </div>
     {#if sectionVis['multimask']}
-      <div transition:slide>
+      <div transition:slide|global>
         {#if !CONTEXT.user.is_authenticated}
           <SigninReminder csrfToken={CONTEXT.csrf_token} />
         {/if}
