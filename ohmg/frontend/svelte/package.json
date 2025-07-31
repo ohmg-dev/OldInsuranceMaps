@@ -35,7 +35,7 @@
   "dependencies": {
     "@petamoriken/float16": "3.4.7",
     "@rollup/plugin-alias": "^5.1.0",
-    "@svelte-plugins/datepicker": "^1.0.9",
+    "@svelte-plugins/datepicker": "^1.0.11",
     "date-fns": "^4.1.0",
     "ol": "^10.0.0",
     "ol-ext": "^4.0.24",

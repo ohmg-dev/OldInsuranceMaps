@@ -12,8 +12,8 @@ dependencies:
     specifier: ^5.1.0
     version: 5.1.1(rollup@2.79.2)
   '@svelte-plugins/datepicker':
-    specifier: ^1.0.9
-    version: 1.0.9
+    specifier: ^1.0.11
+    version: 1.0.11
   date-fns:
     specifier: ^4.1.0
     version: 4.1.0
@@ -518,8 +518,8 @@ packages:
       rollup: 2.79.2
     dev: true
 
-  /@svelte-plugins/datepicker@1.0.9:
-    resolution: {integrity: sha512-HagVB8jLUwNFbwfAcJBNURN1QMQ+qAQQjLJPH97GMqI6auo7jIxOMiSIEWpx7SxTDewHJAlH1izQy3cwBVV8oQ==}
+  /@svelte-plugins/datepicker@1.0.11:
+    resolution: {integrity: sha512-Tqc07QLyRkCpc3Glg6oRLTUApLtCrOh52d6vJ7L32QI17HrwvcDDjaH3LF3X1SBm3CWdMrnqfJp3xjUZmB4wzw==}
     dev: false
 
   /@types/estree@1.0.6:
