@@ -80,10 +80,6 @@
 
   let processing;
 
-  let filterParamsList = ['sortold=oldest_first'];
-  filterParamsList.push(`${RESOURCE.type}=${RESOURCE.id}`);
-  const filterParam = filterParamsList.join('&');
-
   $: upperCaseType = RESOURCE.type[0].toUpperCase() + RESOURCE.type.substring(1, RESOURCE.type.length);
 
   $: {
@@ -284,10 +280,11 @@
       <div transition:slide|global>
         <SessionList
           {CONTEXT}
-          FILTER_PARAM={filterParam}
+          FILTER_PARAM={`${RESOURCE.type}=${RESOURCE.id}`}
+          sortDir="asc"
+          sortParam="date_created"
           showResource={false}
-          paginate={false}
-          limit="0"
+          showMap={false}
           allowRefresh={false}
         />
       </div>

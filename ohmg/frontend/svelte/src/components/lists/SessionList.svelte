@@ -30,6 +30,8 @@
   export let typeFilter = null;
   export let showMap = true;
   export let mapFilter = null;
+  export let sortParam = 'id';
+  export let sortDir = 'des';
 
   let userFilterItems = [];
   let mapFilterItems = [];
@@ -50,9 +52,6 @@
 
   let dateFormat = 'yyyy-MM-dd';
   const formatDate = (dateString) => (dateString && format(new Date(dateString), dateFormat)) || '';
-
-  let sortParam = 'id';
-  let sortDir = 'des';
 
   $: formattedStartDate = formatDate(startDate);
   $: formattedEndDate = formatDate(endDate);
