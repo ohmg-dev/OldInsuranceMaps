@@ -5,7 +5,7 @@
   import { format } from 'date-fns';
 
   import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise';
-  import Funnel from 'phosphor-svelte/lib/Funnel';
+  import Faders from 'phosphor-svelte/lib/Faders';
 
   import Link from '../common/Link.svelte';
   import SessionListModal from '../modals/SessionListModal.svelte';
@@ -32,7 +32,6 @@
   export let showMap = true;
   export let mapFilterItems;
   export let mapFilter;
-  export let showLimitSwitcher = true;
 
   const typeFilterOptions = [
     { label: 'Prep', id: 'p' },
@@ -96,6 +95,7 @@
   }
 
   let showFilters = false;
+  let limitOptions = [10, 25, 50, 100];
 </script>
 
 <SessionListModal id={'modal-session-list'} />
@@ -105,15 +105,16 @@
       <InfoModalButton modalId="modal-session-list" />
       <button
         class="is-icon-link"
+        title={showFilters ? 'Hide filters' : 'Show filters'}
         on:click={() => {
           showFilters = !showFilters;
         }}
-        ><Funnel size={'1em'} />
+        ><Faders size={'1em'} />
       </button>
       {#if allowRefresh}
         <button
           class="is-icon-link"
-          title="Refresh session list"
+          title={loading ? 'Loading...' : 'Refresh'}
           disabled={loading}
           on:click={() => {
             offset = 1000;
@@ -129,20 +130,18 @@
     <div class="level-right">
       {#if paginate}
         <div class="level-item">
-          <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit {showLimitSwitcher} />
+          <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit />
         </div>
       {/if}
     </div>
   </div>
   {#if showFilters}
-    <div transition:slide|global class="level" style="margin:.5em 0;">
-      <div id="filter-level" class="level-left">
+    <div transition:slide class="level" style="margin:.5em 0;">
+      <div id="" class="filter-level level-left">
         {#if showTypeFilter}
           <Select
             items={typeFilterOptions}
             bind:value={typeFilter}
-            id="id"
-            label="label"
             placeholder="Filter by type..."
             searchable={false}
             class="filter-input"
@@ -156,8 +155,6 @@
           <Select
             items={userFilterItems}
             bind:value={userFilter}
-            id="id"
-            label="title"
             placeholder="Filter by user..."
             class="filter-input"
             containerStyles="width:150px;"
@@ -170,8 +167,6 @@
           <Select
             items={mapFilterItems}
             bind:value={mapFilter}
-            id="id"
-            label="title"
             placeholder="Filter by map..."
             listAutoWidth={false}
             class="filter-input"
@@ -182,6 +177,16 @@
           />
         {/if}
         <DatePicker bind:startDate bind:endDate />
+      </div>
+      <div class="filter-level level-right">
+        <Select
+          items={limitOptions}
+          bind:value={currentLimit}
+          class="filter-input"
+          searchable={false}
+          clearable={false}
+          listAutoWidth={false}
+        />
       </div>
     </div>
   {/if}
@@ -309,7 +314,7 @@
     text-align: center;
   }
   @media screen and (max-width: 768px) {
-    #filter-level,
+    .filter-level,
     :global(.filter-input),
     :global(.date-filter),
     :global(button.date-field) {
