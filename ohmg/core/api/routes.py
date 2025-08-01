@@ -33,6 +33,7 @@ from .filters import (
     FilterAllDocumentsSchema,
     FilterRegionSchema,
 )
+from .paginators import SessionPagination
 from .schemas import (
     PlaceSchema,
     LayerSchema,
@@ -72,7 +73,7 @@ beta2 = NinjaAPI(
 
 
 @beta2.get("sessions/", response=List[SessionSchema], url_name="session_list")
-@paginate
+@paginate(SessionPagination)
 def list_sessions(request, filters: FilterSessionSchema = Query(...), date_range: str = ""):
     sort = request.GET.get("sortold", "")
     sort_param = request.GET.get("sortby", "")
