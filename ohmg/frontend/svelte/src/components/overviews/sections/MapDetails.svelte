@@ -161,14 +161,7 @@
   </p>
   <h3>Work History</h3>
   <div>
-    <SessionList
-      {CONTEXT}
-      {userFilterItems}
-      mapFilter={{ id: MAP.identifier }}
-      showMap={false}
-      paginate={true}
-      limit="100"
-    />
+    <SessionList {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false} paginate={true} limit="50" />
   </div>
 </section>
 

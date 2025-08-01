@@ -216,7 +216,7 @@
           </div>
         </div>
       </div>
-      <SessionList {CONTEXT} showThumbs={true} mapFilterItems={MAP_FILTER_LIST} showLimitSwitcher={false} />
+      <SessionList {CONTEXT} showThumbs={true} />
     </div>
   </div>
 

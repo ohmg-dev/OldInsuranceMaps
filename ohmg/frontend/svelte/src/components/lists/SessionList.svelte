@@ -9,7 +9,7 @@
 
   import Link from '../common/Link.svelte';
   import SessionListModal from '../modals/SessionListModal.svelte';
-  // import { getModal } from '../modals/BaseModal.svelte';
+
   import DatePicker from '../buttons/DatePicker.svelte';
   import PaginationButtons from '../buttons/PaginationButtons.svelte';
 
@@ -22,21 +22,18 @@
   export let limit = '10';
   export let showThumbs = false;
   export let showUser = true;
-  export let userFilterItems;
-  export let userFilter;
+  export let userFilter = null;
   export let showResource = true;
   export let paginate = true;
   export let allowRefresh = true;
   export let showTypeFilter = true;
-  export let typeFilter;
+  export let typeFilter = null;
   export let showMap = true;
-  export let mapFilterItems;
-  export let mapFilter;
+  export let mapFilter = null;
 
-  const typeFilterOptions = [
-    { label: 'Prep', id: 'p' },
-    { label: 'Georef', id: 'g' },
-  ];
+  let userFilterItems = [];
+  let mapFilterItems = [];
+  let typeFilterItems = [];
 
   let loading = false;
 
@@ -90,6 +87,9 @@
     getFromAPI(fetchUrl, CONTEXT.ohmg_api_headers, (result) => {
       items = result.items;
       total = result.count;
+      typeFilterItems = result.filter_items.types;
+      userFilterItems = result.filter_items.users;
+      mapFilterItems = result.filter_items.maps;
       loading = false;
     });
   }
@@ -140,7 +140,7 @@
       <div id="" class="filter-level level-left">
         {#if showTypeFilter}
           <Select
-            items={typeFilterOptions}
+            items={typeFilterItems}
             bind:value={typeFilter}
             placeholder="Filter by type..."
             searchable={false}
@@ -151,7 +151,7 @@
             }}
           />
         {/if}
-        {#if userFilterItems}
+        {#if showUser}
           <Select
             items={userFilterItems}
             bind:value={userFilter}
@@ -163,7 +163,7 @@
             }}
           />
         {/if}
-        {#if mapFilterItems}
+        {#if showMap}
           <Select
             items={mapFilterItems}
             bind:value={mapFilter}
