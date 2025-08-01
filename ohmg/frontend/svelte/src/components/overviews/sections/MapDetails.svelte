@@ -8,7 +8,6 @@
   export let MAP;
   export let SESSION_SUMMARY;
   export let LAYERSETS = [];
-  export let userFilterItems;
 </script>
 
 <DownloadSectionModal id={'download-section-modal'} />

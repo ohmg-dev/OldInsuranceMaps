@@ -14,7 +14,6 @@
   export let PLACES_CT;
   export let MAP_CT;
   export let FEATURED_MAPS = [];
-  export let MAP_FILTER_LIST = [];
 
   let showBrowseMap = !CONTEXT.on_mobile;
   $: showBrowseMapBtnLabel = showBrowseMap ? 'Hide map finder' : 'Show map finder';

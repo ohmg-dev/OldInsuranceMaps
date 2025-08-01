@@ -394,7 +394,7 @@
           toggleSection('summary');
         }}
       >
-        <ConditionalDoubleChevron down={sectionVis['summary']} size="md" />
+        <ConditionalDoubleChevron down={sectionVis['summary']} />
         <a id="summary"><h2>Summary</h2></a>
       </button>
     </div>
@@ -414,7 +414,7 @@
           toggleSection('preview');
         }}
       >
-        <ConditionalDoubleChevron down={sectionVis['preview']} size="md" />
+        <ConditionalDoubleChevron down={sectionVis['preview']} />
         <a id="preview"
           ><h2>
             Mosaic Preview ({MAP.item_lookup.georeferenced.length} layers)
@@ -432,7 +432,7 @@
   <section>
     <div class="section-title-bar">
       <div>
-        <ConditionalDoubleChevron down={true} size="md" />
+        <ConditionalDoubleChevron down={true} />
         <a id="overview" class="no-link">
           <h2 style="margin-right:10px; display:inline-block;">Georeferencing Overview</h2>
         </a>
@@ -487,7 +487,7 @@
             title={sectionVis['unprepared'] ? 'Collapse section' : 'Expand section'}
             on:click={() => toggleSection('unprepared')}
           >
-            <ConditionalDoubleChevron down={sectionVis['unprepared']} size="md" />
+            <ConditionalDoubleChevron down={sectionVis['unprepared']} />
             <a id="unprepared">
               <h3>
                 Unprepared ({MAP.item_lookup.unprepared.length})
@@ -563,7 +563,7 @@
             disabled={MAP.item_lookup.prepared.length === 0}
             title={sectionVis['prepared'] ? 'Collapse section' : 'Expand section'}
           >
-            <ConditionalDoubleChevron down={sectionVis['prepared']} size="md" />
+            <ConditionalDoubleChevron down={sectionVis['prepared']} />
             <a id="prepared"
               ><h3>
                 Prepared ({MAP.item_lookup.prepared.length})
@@ -605,7 +605,7 @@
             disabled={MAP.item_lookup.georeferenced.length == 0}
             title={sectionVis['georeferenced'] ? 'Collapse section' : 'Expand section'}
           >
-            <ConditionalDoubleChevron down={sectionVis['georeferenced']} size="md" />
+            <ConditionalDoubleChevron down={sectionVis['georeferenced']} />
             <a id="georeferenced">
               <h3>
                 Georeferenced ({MAP.item_lookup.georeferenced.length})
@@ -659,7 +659,6 @@
               {#each MAP.item_lookup.georeferenced as layer}
                 <LayerCard
                   {CONTEXT}
-                  {MAP}
                   {LAYERSET_CATEGORIES}
                   {layer}
                   {sessionLocks}
@@ -687,7 +686,7 @@
             disabled={MAP.item_lookup.skipped.length === 0}
             title={sectionVis['skipped'] ? 'Collapse section' : 'Expand section'}
           >
-            <ConditionalDoubleChevron down={sectionVis['skipped']} size="md" />
+            <ConditionalDoubleChevron down={sectionVis['skipped']} />
             <a id="skipped"
               ><h3>
                 Skipped ({MAP.item_lookup.skipped.length})
@@ -723,7 +722,7 @@
             disabled={MAP.item_lookup.nonmaps.length == 0}
             title={sectionVis['nonmaps'] ? 'Collapse section' : 'Expand section'}
           >
-            <ConditionalDoubleChevron down={sectionVis['nonmaps']} size="md" />
+            <ConditionalDoubleChevron down={sectionVis['nonmaps']} />
             <a id="georeferenced"
               ><h3>
                 Non-Map Content ({MAP.item_lookup.nonmaps.length})
@@ -761,7 +760,7 @@
         disabled={MAP.item_lookup.georeferenced.length == 0}
         title={sectionVis['multimask'] ? 'Collapse section' : 'Expand section'}
       >
-        <ConditionalDoubleChevron down={sectionVis['multimask']} size="md" />
+        <ConditionalDoubleChevron down={sectionVis['multimask']} />
         <a id="multimask"><h2>MultiMask</h2></a>
       </button>
       <InfoModalButton modalId="modal-multimask" />

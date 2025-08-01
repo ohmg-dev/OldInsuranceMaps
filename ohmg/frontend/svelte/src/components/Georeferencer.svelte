@@ -1145,7 +1145,7 @@
               showNotePanel = !showNotePanel;
             }}
             onlyIcon={false}
-            title="">Show/edit note for this GCP...</ToolUIButton
+            title="Show/edit note for this GCP...">Show/edit note for this GCP...</ToolUIButton
           >
         </div>
       {/if}

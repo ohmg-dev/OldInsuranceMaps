@@ -148,6 +148,7 @@
         action={() => {
           getModal('modal-legend').open();
         }}
+        title="Show map key"
       >
         <Article />
       </ToolUIButton>
@@ -160,7 +161,7 @@
           action={() => {
             currentBasemap = currentBasemap == 'osm' ? 'satellite' : 'osm';
           }}
-          title="change basemap"
+          title="Switch basemap"
         >
           <MapTrifold />
         </ToolUIButton>

@@ -113,7 +113,7 @@
       disabled={false}
       title={sectionVis['summary'] ? 'Collapse section' : 'Expand section'}
     >
-      <ConditionalDoubleChevron down={sectionVis['summary']} size="md" />
+      <ConditionalDoubleChevron down={sectionVis['summary']} />
       <h2>Summary</h2>
     </button>
     {#if sectionVis['summary']}
@@ -129,7 +129,7 @@
       disabled={false}
       title={sectionVis['preview'] ? 'Collapse section' : 'Expand section'}
     >
-      <ConditionalDoubleChevron down={sectionVis['preview']} size="md" />
+      <ConditionalDoubleChevron down={sectionVis['preview']} />
       <h2>{upperCaseType} Preview</h2>
     </button>
     {#if sectionVis['preview']}
@@ -153,7 +153,7 @@
       disabled={false}
       title={sectionVis['prep'] ? 'Collapse section' : 'Expand section'}
     >
-      <ConditionalDoubleChevron down={sectionVis['prep']} size="md" />
+      <ConditionalDoubleChevron down={sectionVis['prep']} />
       <h2>Preparation</h2>
     </button>
     {#if sectionVis['prep']}
@@ -217,7 +217,7 @@
       disabled={false}
       title={sectionVis['georef'] ? 'Collapse section' : 'Expand section'}
     >
-      <ConditionalDoubleChevron down={sectionVis['georef']} size="md" />
+      <ConditionalDoubleChevron down={sectionVis['georef']} />
       <h2>Georeferencing</h2>
     </button>
     {#if sectionVis['georef']}
@@ -273,7 +273,7 @@
       disabled={false}
       title={sectionVis['history'] ? 'Collapse section' : 'Expand section'}
     >
-      <ConditionalDoubleChevron down={sectionVis['history']} size="md" />
+      <ConditionalDoubleChevron down={sectionVis['history']} />
       <h2>Session History</h2>
     </button>
     {#if sectionVis['history']}
