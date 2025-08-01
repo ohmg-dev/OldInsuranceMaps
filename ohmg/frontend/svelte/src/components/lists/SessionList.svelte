@@ -215,8 +215,8 @@
           {/if}
           <th><SortButton title="Stage" bind:sortDir bind:sortParam value={'stage'} /></th>
           <th><SortButton title="Result" bind:sortDir bind:sortParam value={'note'} /></th>
-          <th><SortButton title="Date" bind:sortDir bind:sortParam value={'date_created'} /></th>
           <th><SortButton title="Duration" bind:sortDir bind:sortParam value={'duration'} /></th>
+          <th><SortButton title="Date" bind:sortDir bind:sortParam value={'date_created'} /></th>
         </tr>
         <tr slot="tbody" let:item={s} style="height:38px; vertical-align:center;">
           <td>{s.id}</td>
@@ -276,7 +276,6 @@
           {/if}
           <td>{s.stage}</td>
           <td>{s.note}</td>
-          <td title={s.date_created.date}>{s.date_created.relative}</td>
           <td title={`${s.duration.seconds} seconds`}>
             {#if s.duration}
               {s.duration.humanized}
@@ -284,6 +283,7 @@
               Error: not recorded
             {/if}
           </td>
+          <td title={s.date_created.date}>{s.date_created.relative}</td>
         </tr>
       </TableSort>
     {:else}
