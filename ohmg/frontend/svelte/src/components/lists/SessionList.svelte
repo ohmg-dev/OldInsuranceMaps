@@ -1,6 +1,5 @@
 <script>
   import { slide } from 'svelte/transition';
-  import { TableSort } from 'svelte-tablesort';
   import Select from 'svelte-select';
   import { format } from 'date-fns';
 
@@ -191,100 +190,106 @@
   {/if}
   <div style="height: 100%; overflow-y:auto; border:1px solid #ddd; border-radius:4px; background:white;">
     {#if items.length > 0}
-      <TableSort {items}>
-        <tr slot="thead">
-          <th><SortButton title="Id" bind:sortDir bind:sortParam value={'id'} /></th>
-          <th><SortButton title="Type" bind:sortDir bind:sortParam value={'type'} /></th>
-          {#if showUser}
-            <th><SortButton title="User" bind:sortDir bind:sortParam value={'user'} /></th>
-          {/if}
-          {#if showMap}
-            <th title="Map" style="font-weight:400">Map</th>
-          {/if}
-          {#if showResource}
-            <th title="Document, Region, or Layer for this work">
-              <div>
-                <span style="font-weight:400; margin-right:.5em;">Resource</span><input
-                  type="checkbox"
-                  bind:checked={showThumbs}
-                  title="Show thumbnails"
-                />
-              </div>
-            </th>
-          {/if}
-          <th><SortButton title="Stage" bind:sortDir bind:sortParam value={'stage'} /></th>
-          <th><SortButton title="Result" bind:sortDir bind:sortParam value={'note'} /></th>
-          <th><SortButton title="Duration" bind:sortDir bind:sortParam value={'duration'} /></th>
-          <th><SortButton title="Date" bind:sortDir bind:sortParam value={'date_created'} /></th>
-        </tr>
-        <tr slot="tbody" let:item={s} style="height:38px; vertical-align:center;">
-          <td>{s.id}</td>
-          <td>
-            {#if s.type === 'p'}
-              <span title="Preparation">Prep</span>
-            {:else if s.type === 'g'}
-              <span title="Georeference">Georef</span>
-            {:else if s.type === 't'}
-              <span title="Trim">Trim</span>
+      <table>
+        <thead>
+          <tr>
+            <th><SortButton title="Id" bind:sortDir bind:sortParam value={'id'} /></th>
+            <th><SortButton title="Type" bind:sortDir bind:sortParam value={'type'} /></th>
+            {#if showUser}
+              <th><SortButton title="User" bind:sortDir bind:sortParam value={'user'} /></th>
             {/if}
-          </td>
-          {#if showUser}
-            <td>
-              <Link href={s.user.profile_url} title="View profile">{s.user.username}</Link>
-            </td>
-          {/if}
-          {#if showMap}
-            <td>
-              {#if s.map}
-                <Link href={`/map/${s.map.identifier}`} title={s.map.title}>{s.map.title}</Link>
-              {:else}
-                Error: no map
-              {/if}
-            </td>
-          {/if}
-          {#if showResource}
-            <td>
-              {#if s.type === 'p'}
-                {#if s.doc2}
-                  {#if showThumbs}
-                    <div class="thumb-container">
-                      <img style="max-height:50px;" src={s.doc2.urls.thumbnail} alt={s.doc2.nickname} />
-                    </div>
-                  {/if}
-                  <Link href={s.doc2.urls.resource} title={s.doc2.nickname}>
-                    {s.doc2.nickname}
-                  </Link>
-                {:else}
-                  Error: no document
-                {/if}
-              {:else if s.type === 'g' || s.type === 't'}
-                {#if s.lyr2}
-                  {#if showThumbs}
-                    <div class="thumb-container">
-                      <img style="max-height:50px;" src={s.lyr2.urls.thumbnail} alt={s.reg2.nickname} />
-                    </div>
-                  {/if}
-                  <Link href={s.lyr2.urls.resource} title={s.lyr2.nickname}>
-                    {s.lyr2.nickname}
-                  </Link>
-                {:else}
-                  Error: no layer
-                {/if}
-              {/if}
-            </td>
-          {/if}
-          <td>{s.stage}</td>
-          <td>{s.note}</td>
-          <td title={`${s.duration.seconds} seconds`}>
-            {#if s.duration}
-              {s.duration.humanized}
-            {:else}
-              Error: not recorded
+            {#if showMap}
+              <th title="Map" style="font-weight:400">Map</th>
             {/if}
-          </td>
-          <td title={s.date_created.date}>{s.date_created.relative}</td>
-        </tr>
-      </TableSort>
+            {#if showResource}
+              <th title="Document, Region, or Layer for this work">
+                <div>
+                  <span style="font-weight:400; margin-right:.5em;">Resource</span><input
+                    type="checkbox"
+                    bind:checked={showThumbs}
+                    title="Show thumbnails"
+                  />
+                </div>
+              </th>
+            {/if}
+            <th><SortButton title="Stage" bind:sortDir bind:sortParam value={'stage'} /></th>
+            <th><SortButton title="Result" bind:sortDir bind:sortParam value={'note'} /></th>
+            <th><SortButton title="Duration" bind:sortDir bind:sortParam value={'duration'} /></th>
+            <th><SortButton title="Date" bind:sortDir bind:sortParam value={'date_created'} /></th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each items as s}
+            <tr style="height:38px; vertical-align:center;">
+              <td>{s.id}</td>
+              <td>
+                {#if s.type === 'p'}
+                  <span title="Preparation">Prep</span>
+                {:else if s.type === 'g'}
+                  <span title="Georeference">Georef</span>
+                {:else if s.type === 't'}
+                  <span title="Trim">Trim</span>
+                {/if}
+              </td>
+              {#if showUser}
+                <td>
+                  <Link href={s.user.profile_url} title="View profile">{s.user.username}</Link>
+                </td>
+              {/if}
+              {#if showMap}
+                <td>
+                  {#if s.map}
+                    <Link href={`/map/${s.map.identifier}`} title={s.map.title}>{s.map.title}</Link>
+                  {:else}
+                    Error: no map
+                  {/if}
+                </td>
+              {/if}
+              {#if showResource}
+                <td>
+                  {#if s.type === 'p'}
+                    {#if s.doc2}
+                      {#if showThumbs}
+                        <div class="thumb-container">
+                          <img style="max-height:50px;" src={s.doc2.urls.thumbnail} alt={s.doc2.nickname} />
+                        </div>
+                      {/if}
+                      <Link href={s.doc2.urls.resource} title={s.doc2.nickname}>
+                        {s.doc2.nickname}
+                      </Link>
+                    {:else}
+                      Error: no document
+                    {/if}
+                  {:else if s.type === 'g' || s.type === 't'}
+                    {#if s.lyr2}
+                      {#if showThumbs}
+                        <div class="thumb-container">
+                          <img style="max-height:50px;" src={s.lyr2.urls.thumbnail} alt={s.reg2.nickname} />
+                        </div>
+                      {/if}
+                      <Link href={s.lyr2.urls.resource} title={s.lyr2.nickname}>
+                        {s.lyr2.nickname}
+                      </Link>
+                    {:else}
+                      Error: no layer
+                    {/if}
+                  {/if}
+                </td>
+              {/if}
+              <td>{s.stage}</td>
+              <td>{s.note}</td>
+              <td title={`${s.duration.seconds} seconds`}>
+                {#if s.duration}
+                  {s.duration.humanized}
+                {:else}
+                  Error: not recorded
+                {/if}
+              </td>
+              <td title={s.date_created.date}>{s.date_created.relative}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
     {:else}
       <div class="level">
         <div class="level-item" style="margin:5px 0;">

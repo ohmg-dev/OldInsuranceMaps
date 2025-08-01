@@ -88,15 +88,6 @@
   }
 }
 
-table.tablesort {
-  width: 100%;
-}
-
-th.sortable,
-td {
-  padding: 5px;
-}
-
 thead tr {
   background-color: #eaeaea;
 }
