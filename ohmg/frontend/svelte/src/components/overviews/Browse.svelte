@@ -1,6 +1,6 @@
 <script>
   import '../../css/shared.css';
-  import Maps from '../lists/Maps.svelte';
+  import MapList from '../lists/MapList.svelte';
   import Places from '../lists/Places.svelte';
   import MapBrowse from '../interfaces/MapBrowse.svelte';
 
@@ -61,7 +61,7 @@
       <Places {CONTEXT} />
     </div>
     <div style="display: {currentTab === 'items' ? 'block' : 'none'}">
-      <Maps {CONTEXT} />
+      <MapList {CONTEXT} />
     </div>
   </div>
 </main>
