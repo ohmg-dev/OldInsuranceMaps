@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Maps | {{ block.super}} {% endblock title %}
+
+{% block main_content %}
+
+{% include '_titlebar.html' with title="Maps" subtitle="see also: <a href='/documents'>documents</a>, <a href='/regions'>regions</a>, <a href='/layers'>layers</a>, <a href='/layersets'>layersets</a>, and <a href='/united-states'>locales</a>" lead_icon="volume" %}
+
+{{ MAPLIST_PARAMS|json_script:'maplist-props'}}
+{% include '_svelte_component.html' with component_name='MapList' %}
+
+{% endblock %}

@@ -56,6 +56,16 @@ def test_map_access(user, map):
             raise Http404
 
 
+class MapListView(View):
+    def get(self, request):
+        context_dict = {
+            "MAPLIST_PARAMS": {
+                "CONTEXT": generate_ohmg_context(request),
+            }
+        }
+        return render(request, "core/maps.html", context=context_dict)
+
+
 class MapView(View):
     @time_this
     def get(self, request, identifier):
