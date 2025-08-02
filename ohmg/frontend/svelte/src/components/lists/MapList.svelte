@@ -21,6 +21,7 @@
   export let allowRefresh = true;
   export let showPlace = true;
   export let placeFilter = null;
+  export let placeInclusive = false;
   export let sortParam = 'title';
   export let sortDir = 'asc';
 
@@ -30,22 +31,11 @@
 
   let items = [];
 
-  let startDate;
-  let endDate;
-
   let offset = 0;
   let total = 0;
 
   let currentLimit = limit;
   $: useLimit = typeof currentLimit == 'string' ? currentLimit : currentLimit.value;
-
-  let dateFormat = 'yyyy-MM-dd';
-  const formatDate = (dateString) => (dateString && format(new Date(dateString), dateFormat)) || '';
-
-  $: formattedStartDate = formatDate(startDate);
-  $: formattedEndDate = formatDate(endDate);
-
-  $: dqParam = formattedStartDate && formattedEndDate ? `&date_range=${formattedStartDate},${formattedEndDate}` : '';
 
   $: {
     loading = true;
@@ -53,21 +43,18 @@
     if (limit != 0 && useLimit) {
       fetchUrl = `${fetchUrl}&limit=${useLimit}`;
     }
-    if (dqParam) {
-      fetchUrl += dqParam;
-    }
     if (placeFilter) {
       fetchUrl += `&place=${placeFilter.id}`;
+    }
+    if (placeInclusive) {
+      fetchUrl += `&place_inclusive=true`;
     }
     if (sortParam) {
       fetchUrl += `&sortby=${sortParam}&sort=${sortDir}`;
     }
-
-    console.log(fetchUrl);
     getFromAPI(fetchUrl, CONTEXT.ohmg_api_headers, (result) => {
       items = result.items;
       total = result.count;
-      console.log(result);
       placeFilterItems = result.filter_items.places;
       loading = false;
     });
@@ -159,6 +146,9 @@
                 value={'document_ct'}
               /></th
             >
+            {#if showPlace}
+              <th title="Place" style="font-weight:400">Place</th>
+            {/if}
             <th title="Loaded by" style="font-weight:400">Loaded by</th>
             <th><SortButton title="Date" bind:sortDir bind:sortParam value={'load_date'} /></th>
             <th class="number-col new-col">
@@ -225,6 +215,13 @@
               <td><Link href={`/map/${s.identifier}`}>{s.title}</Link></td>
               <td>{s.year}</td>
               <td>{s.document_ct}</td>
+              {#if showPlace}
+                <td
+                  ><Link href={`/${s.locale.slug}`} title={`View all ${s.locale.display_name} maps`}
+                    >{s.locale.display_name}</Link
+                  ></td
+                >
+              {/if}
               <td>
                 {#if s.loaded_by}
                   <Link href={s.loaded_by.profile_url} title="View profile">{s.loaded_by.username}</Link>
@@ -253,71 +250,6 @@
                   <span style="color:red">x</span>
                 {/if}</td
               >
-
-              <!-- <td>
-                {#if s.type === 'p'}
-                  <span title="Preparation">Prep</span>
-                {:else if s.type === 'g'}
-                  <span title="Georeference">Georef</span>
-                {:else if s.type === 't'}
-                  <span title="Trim">Trim</span>
-                {/if}
-              </td>
-              {#if showUser}
-                <td>
-                  <Link href={s.user.profile_url} title="View profile">{s.user.username}</Link>
-                </td>
-              {/if}
-              {#if showMap}
-                <td>
-                  {#if s.map}
-                    <Link href={`/map/${s.map.identifier}`} title={s.map.title}>{s.map.title}</Link>
-                  {:else}
-                    Error: no map
-                  {/if}
-                </td>
-              {/if}
-              {#if showResource}
-                <td>
-                  {#if s.type === 'p'}
-                    {#if s.doc2}
-                      {#if showThumbs}
-                        <div class="thumb-container">
-                          <img style="max-height:50px;" src={s.doc2.urls.thumbnail} alt={s.doc2.nickname} />
-                        </div>
-                      {/if}
-                      <Link href={s.doc2.urls.resource} title={s.doc2.nickname}>
-                        {s.doc2.nickname}
-                      </Link>
-                    {:else}
-                      Error: no document
-                    {/if}
-                  {:else if s.type === 'g' || s.type === 't'}
-                    {#if s.lyr2}
-                      {#if showThumbs}
-                        <div class="thumb-container">
-                          <img style="max-height:50px;" src={s.lyr2.urls.thumbnail} alt={s.reg2.nickname} />
-                        </div>
-                      {/if}
-                      <Link href={s.lyr2.urls.resource} title={s.lyr2.nickname}>
-                        {s.lyr2.nickname}
-                      </Link>
-                    {:else}
-                      Error: no layer
-                    {/if}
-                  {/if}
-                </td>
-              {/if}
-              <td>{s.stage}</td>
-              <td>{s.note}</td>
-              <td title={`${s.duration.seconds} seconds`}>
-                {#if s.duration}
-                  {s.duration.humanized}
-                {:else}
-                  Error: not recorded
-                {/if}
-              </td>
-              <td title={s.date_created.date}>{s.date_created.relative}</td> -->
             </tr>
           {/each}
         </tbody>

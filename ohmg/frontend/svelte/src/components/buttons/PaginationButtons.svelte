@@ -1,5 +1,4 @@
 <script>
-  import Select from 'svelte-select';
   import CaretDoubleLeft from 'phosphor-svelte/lib/CaretDoubleLeft';
   import CaretDoubleRight from 'phosphor-svelte/lib/CaretDoubleRight';
 
