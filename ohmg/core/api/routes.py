@@ -32,7 +32,6 @@ from .filters import (
     FilterDocumentSchema,
     FilterAllDocumentsSchema,
     FilterRegionSchema,
-    FilterMapSchema,
 )
 from .paginators import (
     SessionPagination,
@@ -163,11 +162,22 @@ def list_maps(
 
 @beta2.get("maps2/", response=List[MapListSchema2], url_name="maps_list2")
 @paginate(MapPagination)
-def list_maps2(request, filters: FilterMapSchema = Query(...)):
+def list_maps2(
+    request,
+    place: str = None,
+    place_inclusive: bool = False,
+):
     sort_param = request.GET.get("sortby", "")
     sort_dir = request.GET.get("sort", "")
 
     maps = Map.objects.all()
+    if place:
+        if place_inclusive:
+            p = Place.objects.get(slug=place)
+            place_ids = p.get_inclusive_pks()
+            maps = maps.filter(locales__in=place_ids)
+        else:
+            maps = maps.filter(locales__slug__exact=place)
     if sort_param:
         if sort_param == "loaded_by":
             sort_param = "loaded_by__username"
@@ -175,7 +185,6 @@ def list_maps2(request, filters: FilterMapSchema = Query(...)):
         queryset = maps.order_by(sort_arg)
     else:
         queryset = maps.order_by("title")
-    queryset = filters.filter(queryset)
     return queryset
 
 

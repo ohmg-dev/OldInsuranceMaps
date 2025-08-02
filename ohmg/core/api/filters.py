@@ -22,10 +22,6 @@ class FilterSessionSchema(FilterSchema):
     type: Optional[str]
 
 
-class FilterMapSchema(FilterSchema):
-    place: Optional[str] = Field(q="locales__slug__exact")
-
-
 class FilterDocumentSchema(FilterSchema):
     map: str = Field(q="map_id")
     prepared: Optional[bool] = Field(q="prepared")
