@@ -28,7 +28,7 @@ from ohmg.georeference.models import (
 logger = logging.getLogger(__name__)
 
 
-class MapListSchema(Schema):
+class MapListSchemaUser(Schema):
     identifier: str
     title: str
     year: str
@@ -41,7 +41,7 @@ class UserSchema(Schema):
     gsesh_ct: int
     total_ct: int = 0
     gcp_ct: int
-    maps: List[MapListSchema]
+    maps: List[MapListSchemaUser]
     load_ct: int
     image_url: str
 
@@ -102,6 +102,48 @@ class MapListSchema(Schema):
         return {
             "summary": f"/map/{obj.identifier}",
         }
+
+
+class PlaceSchemaVeryLite(Schema):
+    """very lightweight serialization of a Place"""
+
+    display_name: str
+    slug: str
+
+
+class MapListSchema2(Schema):
+    identifier: str
+    title: str
+    year: int
+    loaded_by: Optional[UserSchemaLite]
+    load_date: str
+    volume_number: Optional[str]
+    gt_exists: bool
+    featured: bool
+    hidden: bool
+    document_ct: int
+    unprepared_ct: int
+    region_ct: int
+    prepared_ct: int
+    layer_ct: int
+    skip_ct: int
+    nonmap_ct: int
+    completion_pct: int
+    multimask_ct: int
+    multimask_rank: float
+    locale: Optional[PlaceSchemaVeryLite]
+
+    @staticmethod
+    def resolve_load_date(obj):
+        try:
+            load_date_str = obj.load_date.strftime("%Y-%m-%d")
+        except AttributeError:
+            load_date_str = ""
+        return load_date_str
+
+    @staticmethod
+    def resolve_locale(obj):
+        return obj.get_locale()
 
 
 class DocumentFullSchema(Schema):
@@ -839,3 +881,4 @@ class AtlascopeLayersetFeature(Schema):
 
 DocumentFullSchema.update_forward_refs()
 RegionFullSchema.update_forward_refs()
+MapListSchema2.update_forward_refs()

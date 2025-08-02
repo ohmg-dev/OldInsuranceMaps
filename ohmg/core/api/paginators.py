@@ -13,6 +13,7 @@ from ohmg.core.models import (
 from ohmg.georeference.models import (
     SESSION_TYPES,
 )
+from ohmg.places.models import Place
 
 
 class SessionPagination(PaginationBase):
@@ -54,6 +55,36 @@ class SessionPagination(PaginationBase):
             "types": type_items,
             "users": user_items,
             "maps": map_items,
+        }
+
+        offset = pagination.offset
+        return {
+            "items": queryset[offset : offset + pagination.limit],
+            "count": queryset.count(),
+            "filter_items": filter_items,
+        }
+
+
+class MapPagination(PaginationBase):
+    class Input(Schema):
+        offset: int
+        limit: int
+
+    class Output(Schema):
+        items: List[Any]
+        count: int
+        filter_items: dict
+
+    def paginate_queryset(self, queryset, pagination: Input, **params):
+        place_ids = set(queryset.values_list("locales", flat=True))
+        places = Place.objects.filter(pk__in=place_ids)
+        place_items = natsorted(
+            [{"id": i.slug, "label": i.display_name} for i in places],
+            key=lambda k: k["id"],
+        )
+
+        filter_items = {
+            "places": place_items,
         }
 
         offset = pagination.offset

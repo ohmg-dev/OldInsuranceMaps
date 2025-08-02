@@ -32,8 +32,12 @@ from .filters import (
     FilterDocumentSchema,
     FilterAllDocumentsSchema,
     FilterRegionSchema,
+    FilterMapSchema,
 )
-from .paginators import SessionPagination
+from .paginators import (
+    SessionPagination,
+    MapPagination,
+)
 from .schemas import (
     PlaceSchema,
     LayerSchema,
@@ -41,6 +45,7 @@ from .schemas import (
     UserSchema,
     MapFullSchema,
     MapListSchema,
+    MapListSchema2,
     SessionSchema,
     SessionLockSchema,
     DocumentSchema,
@@ -154,6 +159,24 @@ def list_maps(
     if limit:
         maps = maps[:limit]
     return maps
+
+
+@beta2.get("maps2/", response=List[MapListSchema2], url_name="maps_list2")
+@paginate(MapPagination)
+def list_maps2(request, filters: FilterMapSchema = Query(...)):
+    sort_param = request.GET.get("sortby", "")
+    sort_dir = request.GET.get("sort", "")
+
+    maps = Map.objects.all()
+    if sort_param:
+        if sort_param == "loaded_by":
+            sort_param = "loaded_by__username"
+        sort_arg = sort_param if sort_dir == "asc" else f"-{sort_param}"
+        queryset = maps.order_by(sort_arg)
+    else:
+        queryset = maps.order_by("title")
+    queryset = filters.filter(queryset)
+    return queryset
 
 
 @beta2.get("layerset/", response=LayerSetSchema, url_name="layerset")
