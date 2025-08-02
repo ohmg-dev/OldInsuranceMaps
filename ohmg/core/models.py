@@ -200,6 +200,38 @@ class Map(models.Model):
         on_delete=models.CASCADE,
         related_name="maps_loaded",
     )
+    document_ct = models.IntegerField(
+        default=0,
+    )
+    unprepared_ct = models.IntegerField(
+        default=0,
+    )
+    region_ct = models.IntegerField(
+        default=0,
+    )
+    prepared_ct = models.IntegerField(
+        default=0,
+    )
+    layer_ct = models.IntegerField(
+        default=0,
+    )
+    skip_ct = models.IntegerField(
+        default=0,
+    )
+    nonmap_ct = models.IntegerField(
+        default=0,
+    )
+    completion_pct = models.IntegerField(
+        default=0,
+    )
+    multimask_ct = models.IntegerField(
+        default=0,
+    )
+    multimask_rank = models.DecimalField(
+        max_digits=7,
+        decimal_places=6,
+        default=0.000000,
+    )
 
     def __str__(self):
         return self.title
@@ -394,7 +426,62 @@ class Map(models.Model):
         for cat in ["unprepared", "prepared", "georeferenced", "nonmaps", "skipped"]:
             items[cat] = natsorted(items[cat], key=lambda k: k["title"])
         self.item_lookup = items
-        self.save(update_fields=["item_lookup"])
+
+        document_ct = self.documents.all().count()
+        unprepared_ct = len(items["unprepared"])
+        region_ct = self.regions.count()
+        prepared_ct = len(items["prepared"])
+        layer_ct = self.layers.count()
+        skip_ct = len(items["skipped"])
+        nonmap_ct = len(items["nonmaps"])
+
+        completion_pct = 0
+        if layer_ct > 0:
+            completion_pct = int((layer_ct / (unprepared_ct + prepared_ct + layer_ct)) * 100)
+
+        multimask_ct, multimask_rank = 0, 0
+        main_layerset = self.get_layerset("main-content")
+        if main_layerset:
+            main_lyrs_ct = main_layerset.layer_set.count()
+        else:
+            main_lyrs_ct = 0
+
+        if main_lyrs_ct != 0:
+            # make sure 0/0 appears at the very bottom, then 0/1, 0/2, etc.
+            multimask_rank = main_lyrs_ct * 0.000001
+
+        if main_layerset and main_layerset.multimask is not None:
+            multimask_ct = len(main_layerset.multimask)
+            if multimask_ct > 0 and main_lyrs_ct > 0:
+                pct = multimask_ct / main_lyrs_ct
+                multimask_rank += pct * 0.000001
+
+        self.document_ct = document_ct
+        self.unprepared_ct = unprepared_ct
+        self.region_ct = region_ct
+        self.prepared_ct = prepared_ct
+        self.layer_ct = layer_ct
+        self.skip_ct = skip_ct
+        self.nonmap_ct = nonmap_ct
+        self.completion_pct = completion_pct
+        self.multimask_ct = multimask_ct
+        self.multimask_rank = multimask_rank
+
+        self.save(
+            update_fields=[
+                "item_lookup",
+                "document_ct",
+                "unprepared_ct",
+                "region_ct",
+                "prepared_ct",
+                "layer_ct",
+                "skip_ct",
+                "nonmap_ct",
+                "completion_pct",
+                "multimask_ct",
+                "multimask_rank",
+            ]
+        )
 
     def get_session_summary(self):
         from ohmg.georeference.models import SessionBase

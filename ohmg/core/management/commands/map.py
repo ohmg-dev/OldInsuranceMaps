@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
@@ -194,13 +196,16 @@ class Command(BaseCommand):
                 print(importer.__doc__)
 
         if operation == "refresh-lookups":
+            start = datetime.now()
             if options["pk"]:
                 maps = [Map.objects.get(pk=options["pk"])]
             elif options["skip_existing"]:
-                maps = Map.objects.all().filter(item_lookup__isnull=True)
+                maps = Map.objects.all().filter(item_lookup__isnull=True).order_by("title")
             else:
-                maps = Map.objects.all()
+                maps = Map.objects.all().order_by("title")
 
             for map in maps:
                 print(map)
                 map.update_item_lookup()
+
+            print(f"elapsed_time: {datetime.now() - start}")
