@@ -11,6 +11,7 @@
     "dev:Split": "rollup -c -w --configComponent=Split",
     "dev:Georeference": "rollup -c -w --configComponent=Georeference",
     "dev:SessionList": "rollup -c -w --configComponent=SessionList",
+    "dev:MapList": "rollup -c -w --configComponent=MapList",
     "start": "sirv public"
   },
   "devDependencies": {

@@ -2,21 +2,26 @@
   import SortAscending from 'phosphor-svelte/lib/SortAscending';
   import SortDescending from 'phosphor-svelte/lib/SortDescending';
   export let title = '';
+  export let alt = '';
   export let value = '';
+  export let offset = 0;
   export let sortParam = null;
   export let sortDir = 'asc';
+
+  let popup = alt ? alt : `Sort by ${value}`;
 
   $: active = sortParam == value;
 </script>
 
 <button
-  title={`Sort by ${value}`}
+  title={popup}
   on:click={() => {
     sortDir = !active ? 'asc' : sortDir == 'asc' ? 'des' : 'asc';
     sortParam = value;
+    offset = 0;
   }}
 >
-  <span style="margin-right: .5em;">{title}</span>
+  <span style="margin-right: .25em;">{title}</span>
   {#if active}
     {#if sortDir == 'asc'}
       <SortAscending />
