@@ -309,7 +309,7 @@
   }
   td {
     white-space: nowrap;
-    padding-left: 0.5em;
+    padding: 2px 0.5em 2px 0;
     vertical-align: middle;
   }
   .thumb-container {
