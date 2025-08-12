@@ -217,10 +217,15 @@
               <td>{s.document_ct}</td>
               {#if showPlace}
                 <td
-                  ><Link href={`/${s.locale.slug}`} title={`View all ${s.locale.display_name} maps`}
+                  >
+                   {#if s.locale }
+                   <Link href={`/${s.locale.slug}`} title={`View all ${s.locale.display_name} maps`}
                     >{s.locale.display_name}</Link
-                  ></td
-                >
+                  >
+                   {:else}
+                   Error: no locale
+                   {/if}
+                </td>
               {/if}
               <td>
                 {#if s.loaded_by}
