@@ -33,6 +33,10 @@ from .filters import (
     FilterAllDocumentsSchema,
     FilterRegionSchema,
 )
+from .paginators import (
+    SessionPagination,
+    MapPagination,
+)
 from .schemas import (
     PlaceSchema,
     LayerSchema,
@@ -40,6 +44,7 @@ from .schemas import (
     UserSchema,
     MapFullSchema,
     MapListSchema,
+    MapListSchema2,
     SessionSchema,
     SessionLockSchema,
     DocumentSchema,
@@ -72,9 +77,10 @@ beta2 = NinjaAPI(
 
 
 @beta2.get("sessions/", response=List[SessionSchema], url_name="session_list")
-@paginate
+@paginate(SessionPagination)
 def list_sessions(request, filters: FilterSessionSchema = Query(...), date_range: str = ""):
-    sort = request.GET.get("sort", "")
+    sort_param = request.GET.get("sortby", "")
+    sort_dir = request.GET.get("sort", "")
     if date_range:
         start, end = date_range.split(",")
         if start == end:
@@ -83,8 +89,13 @@ def list_sessions(request, filters: FilterSessionSchema = Query(...), date_range
             sessions = SessionBase.objects.filter(date_created__range=[start, end])
     else:
         sessions = SessionBase.objects.all()
-    if sort == "oldest_first":
-        queryset = sessions.order_by("date_created").select_related("doc2", "reg2", "lyr2")
+    if sort_param:
+        if sort_param == "user":
+            sort_param = "user__username"
+        if sort_param == "duration":
+            sort_param = "user_input_duration"
+        sort_arg = sort_param if sort_dir == "asc" else f"-{sort_param}"
+        queryset = sessions.order_by(sort_arg).select_related("doc2", "reg2", "lyr2")
     else:
         queryset = sessions.order_by("-date_created").select_related("doc2", "reg2", "lyr2")
     queryset = filters.filter(queryset)
@@ -147,6 +158,34 @@ def list_maps(
     if limit:
         maps = maps[:limit]
     return maps
+
+
+@beta2.get("maps2/", response=List[MapListSchema2], url_name="maps_list2")
+@paginate(MapPagination)
+def list_maps2(
+    request,
+    place: str = None,
+    place_inclusive: bool = False,
+):
+    sort_param = request.GET.get("sortby", "")
+    sort_dir = request.GET.get("sort", "")
+
+    maps = Map.objects.all()
+    if place:
+        if place_inclusive:
+            p = Place.objects.get(slug=place)
+            place_ids = p.get_inclusive_pks()
+            maps = maps.filter(locales__in=place_ids)
+        else:
+            maps = maps.filter(locales__slug__exact=place)
+    if sort_param:
+        if sort_param == "loaded_by":
+            sort_param = "loaded_by__username"
+        sort_arg = sort_param if sort_dir == "asc" else f"-{sort_param}"
+        queryset = maps.order_by(sort_arg)
+    else:
+        queryset = maps.order_by("title")
+    return queryset
 
 
 @beta2.get("layerset/", response=LayerSetSchema, url_name="layerset")

@@ -237,12 +237,19 @@ class Place(models.Model):
 
     def get_inclusive_pks(self):
         pks = [self.pk]
-        descendants = Place.objects.filter(direct_parents__id__exact=self.id)
+        descendants = Place.objects.filter(direct_parents__id__exact=self.id).exclude(
+            volume_count_inclusive=0
+        )
         while descendants:
             pks += [i.pk for i in descendants]
             new_descendants = []
             for d in descendants:
-                new_descendants += [i for i in Place.objects.filter(direct_parents__id__exact=d.pk)]
+                new_descendants += [
+                    i
+                    for i in Place.objects.filter(direct_parents__id__exact=d.pk).exclude(
+                        volume_count_inclusive=0
+                    )
+                ]
             descendants = new_descendants
         return pks
 

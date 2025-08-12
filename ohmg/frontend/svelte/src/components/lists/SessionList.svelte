@@ -1,42 +1,40 @@
 <script>
   import { slide } from 'svelte/transition';
-  import { TableSort } from 'svelte-tablesort';
   import Select from 'svelte-select';
   import { format } from 'date-fns';
 
   import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise';
-  import Funnel from 'phosphor-svelte/lib/Funnel';
+  import Faders from 'phosphor-svelte/lib/Faders';
 
   import Link from '../common/Link.svelte';
   import SessionListModal from '../modals/SessionListModal.svelte';
-  // import { getModal } from '../modals/BaseModal.svelte';
+
   import DatePicker from '../buttons/DatePicker.svelte';
   import PaginationButtons from '../buttons/PaginationButtons.svelte';
 
   import { getFromAPI } from '../../lib/requests';
   import InfoModalButton from '../buttons/InfoModalButton.svelte';
+  import SortButton from '../buttons/SortButton.svelte';
 
   export let CONTEXT;
   export let FILTER_PARAM = '';
   export let limit = '10';
   export let showThumbs = false;
   export let showUser = true;
-  export let userFilterItems;
-  export let userFilter;
+  export let userFilter = null;
   export let showResource = true;
   export let paginate = true;
   export let allowRefresh = true;
   export let showTypeFilter = true;
-  export let typeFilter;
+  export let typeFilter = null;
   export let showMap = true;
-  export let mapFilterItems;
-  export let mapFilter;
-  export let showLimitSwitcher = true;
+  export let mapFilter = null;
+  export let sortParam = 'id';
+  export let sortDir = 'des';
 
-  const typeFilterOptions = [
-    { label: 'Prep', id: 'p' },
-    { label: 'Georef', id: 'g' },
-  ];
+  let userFilterItems = [];
+  let mapFilterItems = [];
+  let typeFilterItems = [];
 
   let loading = false;
 
@@ -81,14 +79,21 @@
     if (userFilter) {
       fetchUrl += `&username=${userFilter.id}`;
     }
+    if (sortParam) {
+      fetchUrl += `&sortby=${sortParam}&sort=${sortDir}`;
+    }
     getFromAPI(fetchUrl, CONTEXT.ohmg_api_headers, (result) => {
       items = result.items;
       total = result.count;
+      typeFilterItems = result.filter_items.types;
+      userFilterItems = result.filter_items.users;
+      mapFilterItems = result.filter_items.maps;
       loading = false;
     });
   }
 
   let showFilters = false;
+  let limitOptions = [10, 25, 50, 100];
 </script>
 
 <SessionListModal id={'modal-session-list'} />
@@ -98,15 +103,16 @@
       <InfoModalButton modalId="modal-session-list" />
       <button
         class="is-icon-link"
+        title={showFilters ? 'Hide filters' : 'Show filters'}
         on:click={() => {
           showFilters = !showFilters;
         }}
-        ><Funnel size={'1em'} />
+        ><Faders size={'1em'} />
       </button>
       {#if allowRefresh}
         <button
           class="is-icon-link"
-          title="Refresh session list"
+          title={loading ? 'Loading...' : 'Refresh'}
           disabled={loading}
           on:click={() => {
             offset = 1000;
@@ -122,35 +128,18 @@
     <div class="level-right">
       {#if paginate}
         <div class="level-item">
-          <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit {showLimitSwitcher} />
+          <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit />
         </div>
       {/if}
     </div>
   </div>
   {#if showFilters}
     <div transition:slide class="level" style="margin:.5em 0;">
-      <div id="filter-level" class="level-left">
-        {#if mapFilterItems}
-          <Select
-            items={mapFilterItems}
-            bind:value={mapFilter}
-            id="id"
-            label="title"
-            placeholder="Filter by map..."
-            listAutoWidth={false}
-            class="filter-input"
-            containerStyles="width:300px;"
-            on:change={() => {
-              offset = 0;
-            }}
-          />
-        {/if}
+      <div id="" class="filter-level level-left">
         {#if showTypeFilter}
           <Select
-            items={typeFilterOptions}
+            items={typeFilterItems}
             bind:value={typeFilter}
-            id="id"
-            label="label"
             placeholder="Filter by type..."
             searchable={false}
             class="filter-input"
@@ -160,13 +149,10 @@
             }}
           />
         {/if}
-        <DatePicker bind:startDate bind:endDate />
-        {#if userFilterItems}
+        {#if showUser}
           <Select
             items={userFilterItems}
             bind:value={userFilter}
-            id="id"
-            label="title"
             placeholder="Filter by user..."
             class="filter-input"
             containerStyles="width:150px;"
@@ -175,82 +161,135 @@
             }}
           />
         {/if}
+        {#if showMap}
+          <Select
+            items={mapFilterItems}
+            bind:value={mapFilter}
+            placeholder="Filter by map..."
+            listAutoWidth={false}
+            class="filter-input"
+            containerStyles="width:300px;"
+            on:change={() => {
+              offset = 0;
+            }}
+          />
+        {/if}
+        <DatePicker bind:startDate bind:endDate />
+      </div>
+      <div class="filter-level level-right">
+        <Select
+          items={limitOptions}
+          bind:value={currentLimit}
+          class="filter-input"
+          searchable={false}
+          clearable={false}
+          listAutoWidth={false}
+        />
       </div>
     </div>
   {/if}
   <div style="height: 100%; overflow-y:auto; border:1px solid #ddd; border-radius:4px; background:white;">
     {#if items.length > 0}
-      <TableSort {items}>
-        <tr slot="thead">
-          <th title="Session Id">Id</th>
-          <th title="Session Type">Type</th>
-          {#if showUser}
-            <th title="Username">User</th>
-          {/if}
-          {#if showMap}
-            <th title="Map">Map</th>
-          {/if}
-          {#if showResource}
-            <th title="Document, Region or Layer proccessed"
-              >Resource <input type="checkbox" bind:checked={showThumbs} title="Show thumbnails" /></th
-            >
-          {/if}
-          <th>Stage</th>
-          <th title="Session result note">Result</th>
-          <th title="When the session was created">When</th>
-        </tr>
-        <tr slot="tbody" let:item={s} style="height:38px; vertical-align:center;">
-          <td>{s.id}</td>
-          <td>
-            {#if s.type === 'p'}
-              <span title="Preparation">Prep</span>
-            {:else if s.type === 'g'}
-              <span title="Georeference">Georef</span>
-            {:else if s.type === 't'}
-              <span title="Trim">Trim</span>
+      <table>
+        <thead>
+          <tr>
+            <th><SortButton title="Id" bind:sortDir bind:sortParam value={'id'} /></th>
+            <th><SortButton title="Type" bind:sortDir bind:sortParam value={'type'} /></th>
+            {#if showUser}
+              <th><SortButton title="User" bind:sortDir bind:sortParam value={'user'} /></th>
             {/if}
-          </td>
-          {#if showUser}
-            <td>
-              <Link href={s.user.profile_url} title="View profile">{s.user.username}</Link>
-            </td>
-          {/if}
-          {#if showMap}
-            <td>
-              <Link href={`/map/${s.map.identifier}`} title={s.map.title}>{s.map.title}</Link>
-            </td>
-          {/if}
-          {#if showResource}
-            <td>
-              {#if s.type === 'p'}
-                {#if showThumbs}
-                  <div class="thumb-container">
-                    <img style="max-height:50px;" src={s.doc2.urls.thumbnail} alt={s.doc2.nickname} />
-                  </div>
+            {#if showMap}
+              <th title="Map" style="font-weight:400">Map</th>
+            {/if}
+            {#if showResource}
+              <th title="Document, Region, or Layer for this work">
+                <div>
+                  <span style="font-weight:400; margin-right:.5em;">Resource</span><input
+                    type="checkbox"
+                    bind:checked={showThumbs}
+                    title="Show thumbnails"
+                  />
+                </div>
+              </th>
+            {/if}
+            <th><SortButton title="Stage" bind:sortDir bind:sortParam value={'stage'} /></th>
+            <th><SortButton title="Result" bind:sortDir bind:sortParam value={'note'} /></th>
+            <th><SortButton title="Duration" bind:sortDir bind:sortParam value={'duration'} /></th>
+            <th><SortButton title="Date" bind:sortDir bind:sortParam value={'date_created'} /></th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each items as s}
+            <tr style="height:38px; vertical-align:center;">
+              <td>{s.id}</td>
+              <td>
+                {#if s.type === 'p'}
+                  <span title="Preparation">Prep</span>
+                {:else if s.type === 'g'}
+                  <span title="Georeference">Georef</span>
+                {:else if s.type === 't'}
+                  <span title="Trim">Trim</span>
                 {/if}
-                <Link href={s.doc2.urls.resource} title={s.doc2.nickname}>
-                  {s.doc2.nickname}
-                </Link>
-              {:else if s.type === 'g' || s.type === 't'}
-                {#if s.lyr2}
-                  {#if showThumbs}
-                    <div class="thumb-container">
-                      <img style="max-height:50px;" src={s.lyr2.urls.thumbnail} alt={s.reg2.nickname} />
-                    </div>
-                  {/if}
-                  <Link href={s.lyr2.urls.resource} title={s.lyr2.nickname}>
-                    {s.lyr2.nickname}
-                  </Link>
-                {/if}
+              </td>
+              {#if showUser}
+                <td>
+                  <Link href={s.user.profile_url} title="View profile">{s.user.username}</Link>
+                </td>
               {/if}
-            </td>
-          {/if}
-          <td>{s.stage}</td>
-          <td>{s.note}</td>
-          <!-- <td>{s.user_input_duration}</td> -->
-          <td title={s.date_created.date}>{s.date_created.relative}</td>
-        </tr>
-      </TableSort>
+              {#if showMap}
+                <td>
+                  {#if s.map}
+                    <Link href={`/map/${s.map.identifier}`} title={s.map.title}>{s.map.title}</Link>
+                  {:else}
+                    Error: no map
+                  {/if}
+                </td>
+              {/if}
+              {#if showResource}
+                <td>
+                  {#if s.type === 'p'}
+                    {#if s.doc2}
+                      {#if showThumbs}
+                        <div class="thumb-container">
+                          <img style="max-height:50px;" src={s.doc2.urls.thumbnail} alt={s.doc2.nickname} />
+                        </div>
+                      {/if}
+                      <Link href={s.doc2.urls.resource} title={s.doc2.nickname}>
+                        {s.doc2.nickname}
+                      </Link>
+                    {:else}
+                      Error: no document
+                    {/if}
+                  {:else if s.type === 'g' || s.type === 't'}
+                    {#if s.lyr2}
+                      {#if showThumbs}
+                        <div class="thumb-container">
+                          <img style="max-height:50px;" src={s.lyr2.urls.thumbnail} alt={s.reg2.nickname} />
+                        </div>
+                      {/if}
+                      <Link href={s.lyr2.urls.resource} title={s.lyr2.nickname}>
+                        {s.lyr2.nickname}
+                      </Link>
+                    {:else}
+                      Error: no layer
+                    {/if}
+                  {/if}
+                </td>
+              {/if}
+              <td>{s.stage}</td>
+              <td>{s.note}</td>
+              <td title={`${s.duration.seconds} seconds`}>
+                {#if s.duration}
+                  {s.duration.humanized}
+                {:else}
+                  Error: not recorded
+                {/if}
+              </td>
+              <td title={s.date_created.date}>{s.date_created.relative}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
     {:else}
       <div class="level">
         <div class="level-item" style="margin:5px 0;">
@@ -265,8 +304,13 @@
   .level.is-mobile > .level-left {
     flex-direction: row;
   }
+  th > * {
+    display: flex;
+  }
   td {
     white-space: nowrap;
+    padding: 2px 0.5em 2px 0;
+    vertical-align: middle;
   }
   .thumb-container {
     width: 65px;
@@ -274,7 +318,7 @@
     text-align: center;
   }
   @media screen and (max-width: 768px) {
-    #filter-level,
+    .filter-level,
     :global(.filter-input),
     :global(.date-filter),
     :global(button.date-field) {

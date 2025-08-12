@@ -11,6 +11,7 @@
     "dev:Split": "rollup -c -w --configComponent=Split",
     "dev:Georeference": "rollup -c -w --configComponent=Georeference",
     "dev:SessionList": "rollup -c -w --configComponent=SessionList",
+    "dev:MapList": "rollup -c -w --configComponent=MapList",
     "start": "sirv public"
   },
   "devDependencies": {
@@ -29,20 +30,20 @@
     "rollup": "^2.3.4",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.0",
-    "rollup-plugin-svelte": "^7.0.0",
-    "svelte": "^3.59.2"
+    "rollup-plugin-svelte": "^7.1.5",
+    "svelte": "^4.0.0"
   },
   "dependencies": {
     "@petamoriken/float16": "3.4.7",
     "@rollup/plugin-alias": "^5.1.0",
-    "@svelte-plugins/datepicker": "^1.0.9",
+    "@svelte-plugins/datepicker": "^1.0.11",
     "date-fns": "^4.1.0",
     "ol": "^10.0.0",
     "ol-ext": "^4.0.24",
     "ol-hashed": "^2.1.0",
     "ol-pmtiles": "^1.0.2",
     "sirv-cli": "^1.0.0",
-    "svelte-markdown": "^0.2.3",
+    "svelte-markdown": "^0.4.1",
     "svelte-select": "^5.8.3",
     "svelte-tablesort": "^1.1.0"
   }

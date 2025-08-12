@@ -394,12 +394,12 @@
           toggleSection('summary');
         }}
       >
-        <ConditionalDoubleChevron down={sectionVis['summary']} size="md" />
+        <ConditionalDoubleChevron down={sectionVis['summary']} />
         <a id="summary"><h2>Summary</h2></a>
       </button>
     </div>
     {#if sectionVis['summary']}
-      <div style="margin-bottom:10px;" transition:slide>
+      <div style="margin-bottom:10px;" transition:slide|global>
         <MapDetails {CONTEXT} {MAP} {SESSION_SUMMARY} {LAYERSETS} {userFilterItems} />
       </div>
     {/if}
@@ -414,7 +414,7 @@
           toggleSection('preview');
         }}
       >
-        <ConditionalDoubleChevron down={sectionVis['preview']} size="md" />
+        <ConditionalDoubleChevron down={sectionVis['preview']} />
         <a id="preview"
           ><h2>
             Mosaic Preview ({MAP.item_lookup.georeferenced.length} layers)
@@ -424,7 +424,7 @@
       <InfoModalButton modalId="modal-preview-map" />
     </div>
     {#if sectionVis['preview']}
-      <div class="section-content" transition:slide>
+      <div class="section-content" transition:slide|global>
         <MapPreview {CONTEXT} mapId={MAP.identifier} mapExtent={MAP.extent} bind:refreshable={previewRefreshable} />
       </div>
     {/if}
@@ -432,7 +432,7 @@
   <section>
     <div class="section-title-bar">
       <div>
-        <ConditionalDoubleChevron down={true} size="md" />
+        <ConditionalDoubleChevron down={true} />
         <a id="overview" class="no-link">
           <h2 style="margin-right:10px; display:inline-block;">Georeferencing Overview</h2>
         </a>
@@ -487,7 +487,7 @@
             title={sectionVis['unprepared'] ? 'Collapse section' : 'Expand section'}
             on:click={() => toggleSection('unprepared')}
           >
-            <ConditionalDoubleChevron down={sectionVis['unprepared']} size="md" />
+            <ConditionalDoubleChevron down={sectionVis['unprepared']} />
             <a id="unprepared">
               <h3>
                 Unprepared ({MAP.item_lookup.unprepared.length})
@@ -500,7 +500,7 @@
           <InfoModalButton modalId="modal-unprepared" />
         </div>
         {#if sectionVis['unprepared']}
-          <div transition:slide>
+          <div transition:slide|global>
             <div style="margin: 10px 0px;">
               {#if MAP.item_lookup.unprepared.length > 0 && !bulkPreparing}
                 <button
@@ -563,7 +563,7 @@
             disabled={MAP.item_lookup.prepared.length === 0}
             title={sectionVis['prepared'] ? 'Collapse section' : 'Expand section'}
           >
-            <ConditionalDoubleChevron down={sectionVis['prepared']} size="md" />
+            <ConditionalDoubleChevron down={sectionVis['prepared']} />
             <a id="prepared"
               ><h3>
                 Prepared ({MAP.item_lookup.prepared.length})
@@ -576,7 +576,7 @@
           <InfoModalButton modalId="modal-prepared" />
         </div>
         {#if sectionVis['prepared']}
-          <div transition:slide>
+          <div transition:slide|global>
             <div class="documents-column">
               {#each MAP.item_lookup.prepared as region}
                 <PreparedCard
@@ -605,7 +605,7 @@
             disabled={MAP.item_lookup.georeferenced.length == 0}
             title={sectionVis['georeferenced'] ? 'Collapse section' : 'Expand section'}
           >
-            <ConditionalDoubleChevron down={sectionVis['georeferenced']} size="md" />
+            <ConditionalDoubleChevron down={sectionVis['georeferenced']} />
             <a id="georeferenced">
               <h3>
                 Georeferenced ({MAP.item_lookup.georeferenced.length})
@@ -618,7 +618,7 @@
           <InfoModalButton modalId="modal-georeferenced" />
         </div>
         {#if sectionVis['georeferenced']}
-          <div transition:slide>
+          <div transition:slide|global>
             <div style="margin: 10px 0px;">
               {#if MAP.item_lookup.georeferenced.length > 0 && !classifyingLayers}
                 <button
@@ -659,7 +659,6 @@
               {#each MAP.item_lookup.georeferenced as layer}
                 <LayerCard
                   {CONTEXT}
-                  {MAP}
                   {LAYERSET_CATEGORIES}
                   {layer}
                   {sessionLocks}
@@ -687,7 +686,7 @@
             disabled={MAP.item_lookup.skipped.length === 0}
             title={sectionVis['skipped'] ? 'Collapse section' : 'Expand section'}
           >
-            <ConditionalDoubleChevron down={sectionVis['skipped']} size="md" />
+            <ConditionalDoubleChevron down={sectionVis['skipped']} />
             <a id="skipped"
               ><h3>
                 Skipped ({MAP.item_lookup.skipped.length})
@@ -697,7 +696,7 @@
           <InfoModalButton modalId="modal-skipped" />
         </div>
         {#if sectionVis['skipped']}
-          <div transition:slide>
+          <div transition:slide|global>
             <div class="documents-column">
               {#each MAP.item_lookup.skipped as region}
                 <SkippedCard
@@ -723,7 +722,7 @@
             disabled={MAP.item_lookup.nonmaps.length == 0}
             title={sectionVis['nonmaps'] ? 'Collapse section' : 'Expand section'}
           >
-            <ConditionalDoubleChevron down={sectionVis['nonmaps']} size="md" />
+            <ConditionalDoubleChevron down={sectionVis['nonmaps']} />
             <a id="georeferenced"
               ><h3>
                 Non-Map Content ({MAP.item_lookup.nonmaps.length})
@@ -733,7 +732,7 @@
           <InfoModalButton modalId="modal-non-map" />
         </div>
         {#if sectionVis['nonmaps']}
-          <div transition:slide>
+          <div transition:slide|global>
             <div class="documents-column">
               {#each MAP.item_lookup.nonmaps as nonmap}
                 <NonMapCard
@@ -761,13 +760,13 @@
         disabled={MAP.item_lookup.georeferenced.length == 0}
         title={sectionVis['multimask'] ? 'Collapse section' : 'Expand section'}
       >
-        <ConditionalDoubleChevron down={sectionVis['multimask']} size="md" />
+        <ConditionalDoubleChevron down={sectionVis['multimask']} />
         <a id="multimask"><h2>MultiMask</h2></a>
       </button>
       <InfoModalButton modalId="modal-multimask" />
     </div>
     {#if sectionVis['multimask']}
-      <div transition:slide>
+      <div transition:slide|global>
         {#if !CONTEXT.user.is_authenticated}
           <SigninReminder csrfToken={CONTEXT.csrf_token} />
         {/if}

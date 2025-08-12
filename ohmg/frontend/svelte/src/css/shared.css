@@ -11,18 +11,6 @@ h6 {
   scroll-margin-top: 65px;
 }
 
-table.tablesort {
-  width: 100%;
-  border: 1px solid grey;
-  border-radius: 4px;
-}
-
-th.sortable,
-td {
-  padding: 5px;
-  white-space: nowrap;
-}
-
 thead tr {
   background-color: #eaeaea;
 }

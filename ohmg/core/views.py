@@ -5,8 +5,8 @@ from natsort import natsorted
 
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
-from django.http import JsonResponse, Http404
-from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404, HttpResponse
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -45,15 +45,27 @@ logger = logging.getLogger(__name__)
 
 
 def test_map_access(user, map):
+    access_allowed = True
     if map.access_level == "none" and not user.is_superuser:
-        raise Http404
+        access_allowed = False
     elif map.access_level == "restricted":
         if (
             user not in map.user_access.all()
             and len([i for i in user.groups.all() if i in map.group_access.all()]) == 0
             and not user.is_superuser
         ):
-            raise Http404
+            access_allowed = False
+    return access_allowed
+
+
+class MapListView(View):
+    def get(self, request):
+        context_dict = {
+            "MAPLIST_PARAMS": {
+                "CONTEXT": generate_ohmg_context(request),
+            }
+        }
+        return render(request, "core/maps.html", context=context_dict)
 
 
 class MapView(View):
@@ -61,7 +73,8 @@ class MapView(View):
     def get(self, request, identifier):
         map = get_object_or_404(Map.objects.prefetch_related(), pk=identifier)
 
-        test_map_access(request.user, map)
+        if not test_map_access(request.user, map):
+            return HttpResponse("Unauthorized", status=401)
 
         map_json = MapFullSchema.from_orm(map).dict()
 
@@ -131,7 +144,8 @@ class GenericResourceView(View):
     @time_this
     def get(self, request, pk):
         resource = get_object_or_404(self.model, pk=pk)
-        test_map_access(request.user, resource.map)
+        if not test_map_access(request.user, resource.map):
+            return HttpResponse("Unauthorized", status=401)
 
         map_json = MapResourcesSchema.from_orm(resource.map).dict()
         place_json = PlaceFullSchema.from_orm(resource.map.get_locale()).dict()

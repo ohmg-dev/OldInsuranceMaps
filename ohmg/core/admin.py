@@ -17,6 +17,18 @@ class MapAdmin(admin.ModelAdmin):
     list_display = ("title", "load_date", "loaded_by", "sponsor")
     search_fields = ("title",)
     autocomplete_fields = ("locales",)
+    readonly_fields = (
+        "document_ct",
+        "unprepared_ct",
+        "region_ct",
+        "prepared_ct",
+        "layer_ct",
+        "skip_ct",
+        "nonmap_ct",
+        "completion_pct",
+        "multimask_ct",
+        "multimask_rank",
+    )
 
 
 class DocumentAdmin(admin.ModelAdmin):

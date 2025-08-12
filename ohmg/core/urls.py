@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     MapView,
+    MapListView,
     DocumentView,
     RegionView,
     LayerView,
@@ -9,6 +10,7 @@ from .views import (
 )
 
 urlpatterns = [
+    path("maps/", MapListView.as_view(), name="map_list"),
     path("map/<str:identifier>", MapView.as_view(), name="map_summary"),
     path("document/<int:pk>", DocumentView.as_view(), name="document_view"),
     path("region/<int:pk>", RegionView.as_view(), name="region_view"),

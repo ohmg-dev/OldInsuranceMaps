@@ -80,10 +80,6 @@
 
   let processing;
 
-  let filterParamsList = ['sort=oldest_first'];
-  filterParamsList.push(`${RESOURCE.type}=${RESOURCE.id}`);
-  const filterParam = filterParamsList.join('&');
-
   $: upperCaseType = RESOURCE.type[0].toUpperCase() + RESOURCE.type.substring(1, RESOURCE.type.length);
 
   $: {
@@ -117,11 +113,11 @@
       disabled={false}
       title={sectionVis['summary'] ? 'Collapse section' : 'Expand section'}
     >
-      <ConditionalDoubleChevron down={sectionVis['summary']} size="md" />
+      <ConditionalDoubleChevron down={sectionVis['summary']} />
       <h2>Summary</h2>
     </button>
     {#if sectionVis['summary']}
-      <div transition:slide>
+      <div transition:slide|global>
         <ResourceDetails {CONTEXT} {RESOURCE} {MAP} />
       </div>
     {/if}
@@ -133,11 +129,11 @@
       disabled={false}
       title={sectionVis['preview'] ? 'Collapse section' : 'Expand section'}
     >
-      <ConditionalDoubleChevron down={sectionVis['preview']} size="md" />
+      <ConditionalDoubleChevron down={sectionVis['preview']} />
       <h2>{upperCaseType} Preview</h2>
     </button>
     {#if sectionVis['preview']}
-      <div transition:slide>
+      <div transition:slide|global>
         <div id="map-panel">
           {#each reinitMap as key (key)}
             {#if RESOURCE.type == 'layer'}
@@ -157,11 +153,11 @@
       disabled={false}
       title={sectionVis['prep'] ? 'Collapse section' : 'Expand section'}
     >
-      <ConditionalDoubleChevron down={sectionVis['prep']} size="md" />
+      <ConditionalDoubleChevron down={sectionVis['prep']} />
       <h2>Preparation</h2>
     </button>
     {#if sectionVis['prep']}
-      <div transition:slide>
+      <div transition:slide|global>
         <div class="section-body">
           {#if RESOURCE.prep_sessions.length > 0}
             Initial preparation by <a href={RESOURCE.prep_sessions[0].user.profile}
@@ -221,11 +217,11 @@
       disabled={false}
       title={sectionVis['georef'] ? 'Collapse section' : 'Expand section'}
     >
-      <ConditionalDoubleChevron down={sectionVis['georef']} size="md" />
+      <ConditionalDoubleChevron down={sectionVis['georef']} />
       <h2>Georeferencing</h2>
     </button>
     {#if sectionVis['georef']}
-      <div transition:slide>
+      <div transition:slide|global>
         <div class="control-btn-group">
           <ToolUIButton
             onlyIcon={false}
@@ -242,24 +238,28 @@
           {#if GEOREFERENCE_SUMMARY}
             <table>
               <caption>{GEOREFERENCE_SUMMARY.gcp_geojson.features.length} Control Points</caption>
-              <tr>
-                <th>X</th>
-                <th>Y</th>
-                <th>Lng</th>
-                <th>Lat</th>
-                <th>User</th>
-                <th>Note</th>
-              </tr>
-              {#each GEOREFERENCE_SUMMARY.gcp_geojson.features as feat}
+              <thead>
                 <tr>
-                  <td class="coord-digit">{feat.properties.image[0]}</td>
-                  <td class="coord-digit">{feat.properties.image[1]}</td>
-                  <td class="coord-digit">{Math.round(feat.geometry.coordinates[0] * 1000000) / 1000000}</td>
-                  <td class="coord-digit">{Math.round(feat.geometry.coordinates[1] * 1000000) / 1000000}</td>
-                  <td>{feat.properties.username}</td>
-                  <td>{feat.properties.note != null ? feat.properties.note : '--'}</td>
+                  <th>X</th>
+                  <th>Y</th>
+                  <th>Lng</th>
+                  <th>Lat</th>
+                  <th>User</th>
+                  <th>Note</th>
                 </tr>
-              {/each}
+              </thead>
+              <tbody>
+                {#each GEOREFERENCE_SUMMARY.gcp_geojson.features as feat}
+                  <tr>
+                    <td class="coord-digit">{feat.properties.image[0]}</td>
+                    <td class="coord-digit">{feat.properties.image[1]}</td>
+                    <td class="coord-digit">{Math.round(feat.geometry.coordinates[0] * 1000000) / 1000000}</td>
+                    <td class="coord-digit">{Math.round(feat.geometry.coordinates[1] * 1000000) / 1000000}</td>
+                    <td>{feat.properties.username}</td>
+                    <td>{feat.properties.note != null ? feat.properties.note : '--'}</td>
+                  </tr>
+                {/each}
+              </tbody>
             </table>
           {/if}
         </div>
@@ -273,17 +273,18 @@
       disabled={false}
       title={sectionVis['history'] ? 'Collapse section' : 'Expand section'}
     >
-      <ConditionalDoubleChevron down={sectionVis['history']} size="md" />
+      <ConditionalDoubleChevron down={sectionVis['history']} />
       <h2>Session History</h2>
     </button>
     {#if sectionVis['history']}
-      <div transition:slide>
+      <div transition:slide|global>
         <SessionList
           {CONTEXT}
-          FILTER_PARAM={filterParam}
+          FILTER_PARAM={`${RESOURCE.type}=${RESOURCE.id}`}
+          sortDir="asc"
+          sortParam="date_created"
           showResource={false}
-          paginate={false}
-          limit="0"
+          showMap={false}
           allowRefresh={false}
         />
       </div>

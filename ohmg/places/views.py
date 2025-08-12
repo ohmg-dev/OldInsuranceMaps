@@ -19,7 +19,6 @@ from ohmg.core.api.schemas import PlaceFullSchema
 class PlaceView(View):
     def get(self, request, place):
         place_json = PlaceFullSchema.from_orm(place).dict()
-        print(place_json)
         context_dict = {
             "params": {
                 "CONTEXT": generate_ohmg_context(request),

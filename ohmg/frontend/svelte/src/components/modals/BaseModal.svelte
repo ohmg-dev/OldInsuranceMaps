@@ -69,6 +69,7 @@
 
 <!-- this modal works fine with keyboard interaction, disabling a11y warnings -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
   id="topModal"
   class:visible
@@ -80,8 +81,10 @@
   }}
 >
   <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div id="modal" class={full ? 'full-modal' : ''} on:click|stopPropagation={() => {}}>
     <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     {#if closable}
       <svg id="close" on:click={() => close('')} viewBox="0 0 12 12">
         <circle cx="6" cy="6" r="6" />

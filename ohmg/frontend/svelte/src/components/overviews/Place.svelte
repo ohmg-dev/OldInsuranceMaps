@@ -1,10 +1,11 @@
 <script>
   import PlaceBreadcrumbsSelect from '../breadcrumbs/PlaceBreadcrumbsSelect.svelte';
-  import Maps from '../lists/Maps.svelte';
+  import MapList from '../lists/MapList.svelte';
 
   export let CONTEXT;
   export let PLACE;
 
+  let freezePlace = PLACE;
   let showAllSublocales = false;
   const subLocales = PLACE.descendants;
   const subLocalesWithMaps = PLACE.descendants.filter(function (i) {
@@ -77,7 +78,12 @@
   </div>
   <div id="items-panel" style="flex-grow:1; overflow-x:auto;">
     <h3>Maps</h3>
-    <Maps {CONTEXT} PLACE_SLUG={PLACE.slug} PLACE_INCLUSIVE={true} />
+    <MapList
+      {CONTEXT}
+      placeFilter={{ id: freezePlace.slug, label: freezePlace.displayname }}
+      placeInclusive={true}
+      showPlace={false}
+    />
   </div>
 </div>
 

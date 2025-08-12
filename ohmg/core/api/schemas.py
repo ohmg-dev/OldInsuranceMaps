@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from typing import List, Optional, Any, Literal
 
+import humanize
 from natsort import natsorted
 
 from django.urls import reverse
@@ -27,7 +28,7 @@ from ohmg.georeference.models import (
 logger = logging.getLogger(__name__)
 
 
-class MapListSchema(Schema):
+class MapListSchemaUser(Schema):
     identifier: str
     title: str
     year: str
@@ -40,7 +41,7 @@ class UserSchema(Schema):
     gsesh_ct: int
     total_ct: int = 0
     gcp_ct: int
-    maps: List[MapListSchema]
+    maps: List[MapListSchemaUser]
     load_ct: int
     image_url: str
 
@@ -101,6 +102,48 @@ class MapListSchema(Schema):
         return {
             "summary": f"/map/{obj.identifier}",
         }
+
+
+class PlaceSchemaVeryLite(Schema):
+    """very lightweight serialization of a Place"""
+
+    display_name: str
+    slug: str
+
+
+class MapListSchema2(Schema):
+    identifier: str
+    title: str
+    year: int
+    loaded_by: Optional[UserSchemaLite]
+    load_date: str
+    volume_number: Optional[str]
+    gt_exists: bool
+    featured: bool
+    hidden: bool
+    document_ct: int
+    unprepared_ct: int
+    region_ct: int
+    prepared_ct: int
+    layer_ct: int
+    skip_ct: int
+    nonmap_ct: int
+    completion_pct: int
+    multimask_ct: int
+    multimask_rank: float
+    locale: Optional[PlaceSchemaVeryLite]
+
+    @staticmethod
+    def resolve_load_date(obj):
+        try:
+            load_date_str = obj.load_date.strftime("%Y-%m-%d")
+        except AttributeError:
+            load_date_str = ""
+        return load_date_str
+
+    @staticmethod
+    def resolve_locale(obj):
+        return obj.get_locale()
 
 
 class DocumentFullSchema(Schema):
@@ -413,28 +456,21 @@ class SessionSchema(Schema):
     data: dict
     user_input_duration: Optional[int]
     date_created: Optional[dict]
+    duration: Optional[dict]
 
     @staticmethod
     def resolve_date_created(obj):
-        d = {"date": obj.date_created.strftime("%Y-%m-%d"), "relative": ""}
-        diff = datetime.now() - obj.date_created
+        return {
+            "date": humanize.naturaldate(obj.date_created),
+            "relative": humanize.naturaltime(datetime.now() - obj.date_created),
+        }
 
-        if diff.days > 0:
-            n, u = diff.days, "day"
-        else:
-            seconds = diff.total_seconds()
-            hours = seconds // 3600
-            minutes = (seconds % 3600) // 60
-            seconds = seconds % 60
-            if hours > 0:
-                n, u = hours, "hour"
-            elif minutes > 0:
-                n, u = minutes, "minute"
-            else:
-                n, u = seconds, "second"
-        n = int(n)
-        d["relative"] = f"{n} {u}{'' if n == 1 else 's'} ago"
-        return d
+    @staticmethod
+    def resolve_duration(obj):
+        return {
+            "seconds": obj.user_input_duration,
+            "humanized": humanize.naturaldelta(obj.user_input_duration),
+        }
 
     @staticmethod
     def resolve_map(obj):
@@ -845,3 +881,4 @@ class AtlascopeLayersetFeature(Schema):
 
 DocumentFullSchema.update_forward_refs()
 RegionFullSchema.update_forward_refs()
+MapListSchema2.update_forward_refs()

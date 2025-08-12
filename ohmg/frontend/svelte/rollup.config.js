@@ -107,6 +107,7 @@ export default (cliArgs) => {
       'Viewer',
       'Map',
       'SessionList',
+      'MapList',
     ].forEach((d) => exportable.push(componentExportDetails(d)));
   }
 
