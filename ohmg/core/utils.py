@@ -228,9 +228,9 @@ def get_session_user_summary(session_list):
 
 
 def make_qlr_content(file_url, lyr_extent, title, titiler_host):
-    ## TODO: This is functional, but the extent property doesn't seem to drive the
-    ## QGIS Zoom to Layer like I was hoping. Should probably add the wgs84 extent
-    ## back in?
+    ## TODO:
+    ## - Add the wgs84 extent back in for the sake of completion
+    ## - Refactor this to a new exporters submodule I think. Atlascope and IIIF could go in there as well
 
     ## Further, it may be better to move this function to a new module, and then
     ## supply it with only a instance object and do more with that.

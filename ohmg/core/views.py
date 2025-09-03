@@ -2,10 +2,12 @@ import json
 import logging
 
 from natsort import natsorted
+from slugify import slugify
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 from django.shortcuts import render, get_object_or_404, HttpResponse
 from django.views import View
 from django.utils.decorators import method_decorator
@@ -21,7 +23,7 @@ from ohmg.core.models import (
     LayerSet,
     LayerSetCategory,
 )
-from ohmg.core.utils import time_this
+from ohmg.core.utils import time_this, make_qlr_content, get_file_url
 from ohmg.core.api.schemas import (
     MapFullSchema,
     MapResourcesSchema,
@@ -33,6 +35,7 @@ from ohmg.core.tasks import (
     load_map_documents_as_task,
     load_document_file_as_task,
 )
+from .renderers import get_extent_from_file
 
 from .http import (
     validate_post_request,
@@ -265,6 +268,66 @@ class RegionView(GenericResourceView):
 class LayerView(GenericResourceView):
     model = Layer
 
+    def get(self, request, pk):
+        layer = get_object_or_404(self.model, pk=pk)
+        if not test_map_access(request.user, layer.map):
+            return HttpResponse("Unauthorized", status=401)
+
+        format = request.GET.get("format", None)
+        download = request.GET.get("download", "false")
+        if format == "qlr":
+            file_url = get_file_url(layer)
+            extent = get_extent_from_file(layer.file, crs=3857)
+            xml_str = make_qlr_content(file_url, extent, layer.title, settings.TITILER_HOST)
+            filename = slugify(layer.title)
+
+            if download.lower() == "true":
+                response = FileResponse(xml_str, content_type="text/xml")
+                response["Content-Length"] = len(xml_str)
+                response["Content-Disposition"] = f'attachment; filename="{filename}.qlr"'
+                return response
+
+            return HttpResponse(xml_str, content_type="text/xml")
+
+        map_json = MapResourcesSchema.from_orm(layer.map).dict()
+        place_json = PlaceFullSchema.from_orm(layer.map.get_locale()).dict()
+        resource_json = ResourceFullSchema.from_orm(layer).dict()
+
+        centroid = Polygon.from_bbox(layer.extent).centroid
+        viewer_url = f"/viewer/{place_json['slug']}/?${map_json['identifier']}=100#/center/{centroid.x},{centroid.y}/zoom/18"
+
+        navlinks = [
+            {
+                "icon": "document",
+                "url": f"/document/{layer.region.document.pk}",
+                "active": True,
+            },
+            {
+                "icon": "volume",
+                "url": f"/map/{layer.map.pk}",
+                "active": True,
+            },
+            {
+                "icon": "camera",
+                "url": viewer_url,
+                "active": viewer_url is not None,
+            },
+        ]
+        return render(
+            request,
+            "core/resource.html",
+            context={
+                "resource_params": {
+                    "CONTEXT": generate_ohmg_context(request),
+                    "MAP": map_json,
+                    "LOCALE": place_json,
+                    "RESOURCE": resource_json,
+                },
+                "lead_icon": "layer",
+                "navlinks": navlinks,
+            },
+        )
+
     @method_decorator(login_required)
     @method_decorator(validate_post_request(operations=["set-layerset", "ungeoreference"]))
     def post(self, request, pk):
@@ -303,6 +366,28 @@ class LayerView(GenericResourceView):
 
 
 class LayerSetView(View):
+    def get(self, request, pk):
+        layerset = get_object_or_404(LayerSet, pk=pk)
+        if not test_map_access(request.user, layerset.map):
+            return HttpResponse("Unauthorized", status=401)
+
+        format = request.GET.get("format", None)
+        download = request.GET.get("download", "false")
+        if format == "qlr":
+            title = str(layerset)
+            file_url = get_file_url(layerset, "mosaic_geotiff")
+            extent = get_extent_from_file(layerset.mosaic_geotiff, crs=3857)
+            xml_str = make_qlr_content(file_url, extent, title, settings.TITILER_HOST)
+            filename = slugify(title)
+
+            if download.lower() == "true":
+                response = FileResponse(xml_str, content_type="text/xml")
+                response["Content-Length"] = len(xml_str)
+                response["Content-Disposition"] = f'attachment; filename="{filename}.qlr"'
+                return response
+
+            return HttpResponse(xml_str, content_type="text/xml")
+
     @method_decorator(
         validate_post_request(
             operations=["bulk-classify-layers", "check-for-existing-mask", "set-mask"]

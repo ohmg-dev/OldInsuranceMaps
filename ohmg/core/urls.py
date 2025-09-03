@@ -16,4 +16,5 @@ urlpatterns = [
     path("region/<int:pk>", RegionView.as_view(), name="region_view"),
     path("layer/<int:pk>", LayerView.as_view(), name="layer_view"),
     path("layerset/", LayerSetView.as_view(), name="layerset_view"),
+    path("layerset/<int:pk>", LayerSetView.as_view(), name="layerset_view"),
 ]
