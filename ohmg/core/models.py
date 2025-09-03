@@ -19,41 +19,24 @@ from django.db.models import Q
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 
-from ohmg.core.utils import (
+from ohmg.places.models import Place
+from .utils import (
     slugify,
     download_image,
     copy_local_file_to_cache,
     convert_img_format,
     get_session_user_summary,
     MONTH_CHOICES,
+    get_file_url,
 )
-from ohmg.core.renderers import (
+from .renderers import (
     get_image_size,
     get_extent_from_file,
     generate_document_thumbnail_content,
     generate_layer_thumbnail_content,
 )
-from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
-
-
-def get_file_url(obj, attr_name: str = "file"):
-    f = getattr(obj, attr_name)
-    if f is None or (not f.name):
-        return ""
-
-    ## with S3 storage FileField will return an absolute url
-    if settings.ENABLE_S3_STORAGE:
-        url = f.url
-    ## this is true during local development
-    elif settings.MODE == "DEV":
-        url = f"{settings.LOCAL_MEDIA_HOST.rstrip('/')}{f.url}"
-    ## this is true in prod without S3 storage enabled
-    else:
-        url = f"{settings.SITEURL.rstrip('/')}{f.url}"
-
-    return url
 
 
 class MapGroup(models.Model):

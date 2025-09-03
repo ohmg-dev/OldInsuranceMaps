@@ -17,8 +17,8 @@ from ohmg.core.models import (
     Document,
     Region,
     Layer,
-    get_file_url,
 )
+from ohmg.core.utils import get_file_url
 from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,

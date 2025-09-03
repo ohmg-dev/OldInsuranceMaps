@@ -90,6 +90,24 @@ def make_cacheable_request(url, delay=0, no_cache=False):
     return data
 
 
+def retrieve_srs_wkt(code):
+    srs_cache_dir = os.path.join(settings.CACHE_DIR, "srs_wkt")
+    if not os.path.isdir(srs_cache_dir):
+        os.makedirs(srs_cache_dir, exist_ok=True)
+    cache_path = os.path.join(srs_cache_dir, f"{code}-wkt.txt")
+    if os.path.isfile(cache_path):
+        with open(cache_path, "r") as o:
+            wkt = o.read()
+    else:
+        url = f"https://epsg.io/{code}.wkt"
+        response = requests.get(url)
+        wkt = response.content.decode("utf-8")
+        with open(cache_path, "w") as o:
+            o.write(wkt)
+
+    return wkt
+
+
 def download_image(url: str, out_path: Path, retries: int = 3, use_cache: bool = True):
     if out_path.is_file() and use_cache:
         print(f"using cached file: {out_path}")
@@ -171,6 +189,24 @@ def time_this(func):
         return result
 
     return wrapper_function
+
+
+def get_file_url(obj, attr_name: str = "file"):
+    f = getattr(obj, attr_name)
+    if f is None or (not f.name):
+        return ""
+
+    ## with S3 storage FileField will return an absolute url
+    if settings.ENABLE_S3_STORAGE:
+        url = f.url
+    ## this is true during local development
+    elif settings.MODE == "DEV":
+        url = f"{settings.LOCAL_MEDIA_HOST.rstrip('/')}{f.url}"
+    ## this is true in prod without S3 storage enabled
+    else:
+        url = f"{settings.SITEURL.rstrip('/')}{f.url}"
+
+    return url
 
 
 def get_session_user_summary(session_list):
