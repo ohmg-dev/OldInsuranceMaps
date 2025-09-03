@@ -16,7 +16,7 @@ gdal.UseExceptions()
 logger = logging.getLogger(__name__)
 
 
-def get_extent_from_file(file: FileField):
+def get_extent_from_file(file: FileField, crs=4326):
     """Credit: https://gis.stackexchange.com/a/201320/28414"""
 
     path = file.url if file.url.startswith("http") else file.path
@@ -27,9 +27,9 @@ def get_extent_from_file(file: FileField):
 
     src_prj = osr.SpatialReference()
     src_prj.ImportFromWkt(src.GetProjection())
-    wgs84 = osr.SpatialReference()
-    wgs84.ImportFromEPSG(4326)
-    transform = osr.CoordinateTransformation(src_prj, wgs84)
+    out_sr = osr.SpatialReference()
+    out_sr.ImportFromEPSG(crs)
+    transform = osr.CoordinateTransformation(src_prj, out_sr)
 
     ul = transform.TransformPoint(ulx, uly)
     lr = transform.TransformPoint(lrx, lry)
