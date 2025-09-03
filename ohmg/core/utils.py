@@ -6,14 +6,17 @@ import string
 import random
 import requests
 import logging
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Literal
+import lxml.etree as et
 
 from django.conf import settings
 from django.urls import reverse
 
 from PIL import Image
+
 
 logger = logging.getLogger(__name__)
 
@@ -222,6 +225,70 @@ def get_session_user_summary(session_list):
         )
         user_dict[name]["ct"] += 1
     return sorted(user_dict.values(), key=lambda item: item.get("ct"), reverse=True)
+
+
+def make_qlr_content(file_url, lyr_extent, title, titiler_host):
+    ## TODO: This is functional, but the extent property doesn't seem to drive the
+    ## QGIS Zoom to Layer like I was hoping. Should probably add the wgs84 extent
+    ## back in?
+
+    ## Further, it may be better to move this function to a new module, and then
+    ## supply it with only a instance object and do more with that.
+
+    def make_element_with_text(tag: str, text: str, **kwargs):
+        el = et.Element(tag, **kwargs)
+        el.text = text
+        return el
+
+    id_str = f"_{str(uuid.uuid1()).replace('-', '_')}"
+
+    layername_str = title
+    datasource_str2 = (
+        "crs=EPSG:3857&dpiMode=7&format=image/png&"
+        + f"layers={file_url}&"
+        + "tilePixelRatio=0&"
+        + "styles&"
+        + f"url={titiler_host}/cog/wms/?LAYERS%3D{file_url}%26VERSION%3D1.1.1"
+    )
+
+    # wkt3857_str = 'PROJCRS["WGS 84 / Pseudo-Mercator",BASEGEOGCRS["WGS 84",ENSEMBLE["World Geodetic System 1984 ensemble",MEMBER["World Geodetic System 1984 (Transit)"],MEMBER["World Geodetic System 1984 (G730)"],MEMBER["World Geodetic System 1984 (G873)"],MEMBER["World Geodetic System 1984 (G1150)"],MEMBER["World Geodetic System 1984 (G1674)"],MEMBER["World Geodetic System 1984 (G1762)"],MEMBER["World Geodetic System 1984 (G2139)"],ELLIPSOID["WGS 84",6378137,298.257223563,LENGTHUNIT["metre",1]],ENSEMBLEACCURACY[2.0]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4326]],CONVERSION["Popular Visualisation Pseudo-Mercator",METHOD["Popular Visualisation Pseudo Mercator",ID["EPSG",1024]],PARAMETER["Latitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",0,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["False easting",0,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",0,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["easting (X)",east,ORDER[1],LENGTHUNIT["metre",1]],AXIS["northing (Y)",north,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Web mapping and visualisation."],AREA["World between 85.06°S and 85.06°N."],BBOX[-85.06,-180,85.06,180]],ID["EPSG",3857]]'
+    wkt3857_str = retrieve_srs_wkt(3857)
+
+    ## TODO: use a similar stategy here to the WKT retrieval: https://epsg.io/{code}.wkt
+    proj43857_str = "+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs"
+
+    qlr = et.Element("qlr")
+    maplayers = et.SubElement(qlr, "maplayers")
+    maplayer = et.SubElement(maplayers, "maplayer", type="raster")
+    maplayer.append(make_element_with_text("id", id_str))
+    maplayer.append(make_element_with_text("layername", layername_str))
+    maplayer.append(make_element_with_text("datasource", datasource_str2))
+    maplayer.append(make_element_with_text("provider", "wms"))
+
+    extent = et.SubElement(maplayer, "extent")
+    ymax, xmax, ymin, xmin = lyr_extent
+    extent.append(make_element_with_text("xmin", str(xmin)))
+    extent.append(make_element_with_text("ymin", str(ymin)))
+    extent.append(make_element_with_text("xmax", str(xmax)))
+    extent.append(make_element_with_text("ymax", str(ymax)))
+
+    srs = et.SubElement(maplayer, "srs")
+    spatailrefsys = et.SubElement(srs, "spatialrefsys", **{"nativeFormat": "Wkt"})
+    spatailrefsys.append(make_element_with_text("wkt", wkt3857_str))
+    spatailrefsys.append(make_element_with_text("proj4", proj43857_str))
+    spatailrefsys.append(make_element_with_text("srsid", "3857"))
+    spatailrefsys.append(make_element_with_text("srid", "3857"))
+    spatailrefsys.append(make_element_with_text("authid", "EPSG:3857"))
+    spatailrefsys.append(make_element_with_text("description", "WGS 84 / Pseudo-Mercator"))
+    spatailrefsys.append(make_element_with_text("projectionacronym", "merc"))
+    spatailrefsys.append(make_element_with_text("ellipsoidacronym", "EPSG:7030"))
+    spatailrefsys.append(make_element_with_text("geographicflag", "false"))
+
+    xml_str = et.tostring(
+        qlr, pretty_print=True, doctype="<!DOCTYPE qgis-layer-definition>"
+    ).decode()
+
+    return xml_str
 
 
 MONTH_CHOICES = [
