@@ -4,11 +4,10 @@ import logging
 from natsort import natsorted
 from slugify import slugify
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
 from django.http import JsonResponse, FileResponse
-from django.shortcuts import render, get_object_or_404, HttpResponse
+from django.shortcuts import render, get_object_or_404, HttpResponse, redirect
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -23,7 +22,8 @@ from ohmg.core.models import (
     LayerSet,
     LayerSetCategory,
 )
-from ohmg.core.utils import time_this, make_qlr_content, get_file_url
+from .utils import time_this, get_file_url
+from .exporters.qlr import generate_qlr_content
 from ohmg.core.api.schemas import (
     MapFullSchema,
     MapResourcesSchema,
@@ -35,7 +35,6 @@ from ohmg.core.tasks import (
     load_map_documents_as_task,
     load_document_file_as_task,
 )
-from .renderers import get_extent_from_file
 
 from .http import (
     validate_post_request,
@@ -276,9 +275,7 @@ class LayerView(GenericResourceView):
         format = request.GET.get("format", None)
         download = request.GET.get("download", "false")
         if format == "qlr":
-            file_url = get_file_url(layer)
-            extent = get_extent_from_file(layer.file, crs=3857)
-            xml_str = make_qlr_content(file_url, extent, layer.title, settings.TITILER_HOST)
+            xml_str = generate_qlr_content(layer)
             filename = slugify(layer.title)
 
             if download.lower() == "true":
@@ -286,8 +283,13 @@ class LayerView(GenericResourceView):
                 response["Content-Length"] = len(xml_str)
                 response["Content-Disposition"] = f'attachment; filename="{filename}.qlr"'
                 return response
-
             return HttpResponse(xml_str, content_type="text/xml")
+
+        if format == "img":
+            return redirect(get_file_url(layer.region))
+
+        if format == "tif":
+            return redirect(get_file_url(layer))
 
         map_json = MapResourcesSchema.from_orm(layer.map).dict()
         place_json = PlaceFullSchema.from_orm(layer.map.get_locale()).dict()
@@ -374,11 +376,8 @@ class LayerSetView(View):
         format = request.GET.get("format", None)
         download = request.GET.get("download", "false")
         if format == "qlr":
-            title = str(layerset)
-            file_url = get_file_url(layerset, "mosaic_geotiff")
-            extent = get_extent_from_file(layerset.mosaic_geotiff, crs=3857)
-            xml_str = make_qlr_content(file_url, extent, title, settings.TITILER_HOST)
-            filename = slugify(title)
+            xml_str = generate_qlr_content(layerset)
+            filename = slugify(str(layerset))
 
             if download.lower() == "true":
                 response = FileResponse(xml_str, content_type="text/xml")
