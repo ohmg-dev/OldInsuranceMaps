@@ -1044,12 +1044,6 @@ class LayerSet(models.Model):
         no COG exists, return None."""
         return get_file_url(self, "mosaic_geotiff")
 
-    @property
-    def mosaic_json_url(self):
-        """return the public url to the mosaic JSON for this annotation set. If
-        no mosaic JSON exists, return None."""
-        return get_file_url(self, "mosaic_json")
-
     @cached_property
     def file_url_encoded(self):
         """return the public url to the mosaic COG for this annotation set. If
