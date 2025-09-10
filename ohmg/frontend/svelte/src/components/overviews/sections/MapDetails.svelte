@@ -90,12 +90,12 @@
       <h4>{ls.name} ({ls.layers.length} layer{ls.layers.length > 1 ? 's' : ''})</h4>
       <table>
         <tbody>
-          {#if ls.mosaicUrl}
+          {#if ls.xyz_url}
             <tr>
               <td>XYZ Tiles URL</td>
               <td>
-                {#if ls.mosaicUrl}
-                  <pre style="margin:0;">{ls.mosaicUrl}</pre>
+                {#if ls.xyz_url}
+                  <pre style="margin:0;">{ls.xyz_url}</pre>
                 {:else}
                   n/a
                 {/if}
@@ -104,8 +104,8 @@
             <tr>
               <td>OpenHistoricalMap</td>
               <td>
-                {#if ls.ohmUrl}
-                  <Link href={ls.ohmUrl} title="Open mosaic in OHM Editor" external={true}
+                {#if ls.ohm_url}
+                  <Link href={ls.ohm_url} title="Open mosaic in OHM Editor" external={true}
                     >Open in OpenHistoricalMap iD editor</Link
                   >
                 {:else}

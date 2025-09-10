@@ -10,7 +10,7 @@
 
   import BaseCard from './BaseCard.svelte';
 
-  import { copyToClipboard, getLayerOHMUrl, makeTitilerXYZUrl } from '../../lib/utils';
+  import { copyToClipboard } from '../../lib/utils';
 
   export let CONTEXT;
   export let LAYERSET_CATEGORIES;
@@ -79,11 +79,7 @@
         {/if}
         {#if downloadEnabled}
           <li>
-            <input
-              type="hidden"
-              id="lyr-{layer.id}-xyz-link"
-              value={`${makeTitilerXYZUrl({ host: CONTEXT.titiler_host, url: layer.urls.cog })}`}
-            />
+            <input type="hidden" id="lyr-{layer.id}-xyz-link" value={layer.xyz_url} />
             <input
               type="hidden"
               id="lyr-{layer.id}-wms-link"
@@ -128,9 +124,7 @@
                         >
                       </li>
                       <li>
-                        <Link href={getLayerOHMUrl(layer, CONTEXT.titiler_host)} external={true}
-                          >OpenHistoricalMap iD</Link
-                        >
+                        <Link href={layer.ohm_url} external={true}>OpenHistoricalMap iD</Link>
                       </li>
                       <li>
                         <Link href="{CONTEXT.site_url}iiif/resource/{layer.id}/" external={true}

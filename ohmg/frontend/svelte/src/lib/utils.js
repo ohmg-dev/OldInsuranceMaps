@@ -97,16 +97,6 @@ export function makeTitilerXYZUrl(options) {
   return finalUrl;
 }
 
-export function getLayerOHMUrl(layer, host) {
-  const url = makeTitilerXYZUrl({
-    host: host,
-    url: layer.urls.cog,
-    doubleEncode: true,
-  });
-  const ll = getCenter(layer.extent);
-  return `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${url}`;
-}
-
 export function copyToClipboard(elementId) {
   const copyText = document.getElementById(elementId);
   copyText.select();
@@ -170,10 +160,7 @@ export function makeLayerGroupFromLayerSet(options) {
       // create the actual ol layers and add to group.
       let newLayer = new TileLayer({
         source: new XYZ({
-          url: makeTitilerXYZUrl({
-            host: options.titilerHost,
-            url: layer.urls.cog,
-          }),
+          url: layer.xyz_url,
         }),
         extent: lyrExtent,
       });

@@ -861,6 +861,11 @@ class Layer(models.Model):
         return f"{settings.TITILER_HOST}/cog/tilejson.json/?url={self.file_url_encoded}"
 
     @cached_property
+    def wms_url(self):
+        """Returns the WMS URL for this layers's geotiff"""
+        return f"{settings.TITILER_HOST}/cog/wms/?LAYERS={self.file_url_encoded}&VERSION=1.1.1"
+
+    @cached_property
     def xyz_url(self):
         """Returns a XYZ Tiles URL for this layer's geotiff"""
         xyx_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
@@ -1054,6 +1059,11 @@ class LayerSet(models.Model):
     def tilejson_url(self):
         """Returns the TileJSON URL for this layerset's geotiff"""
         return f"{settings.TITILER_HOST}/cog/tilejson.json/?url={self.file_url_encoded}"
+
+    @cached_property
+    def wms_url(self):
+        """Returns the WMS URL for this layerset's geotiff"""
+        return f"{settings.TITILER_HOST}/cog/wms/?LAYERS={self.file_url_encoded}&VERSION=1.1.1"
 
     @cached_property
     def xyz_url(self):
