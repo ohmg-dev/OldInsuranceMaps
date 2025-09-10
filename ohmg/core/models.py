@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
+import urllib.parse
 
 from natsort import natsorted
 
@@ -840,6 +841,42 @@ class Layer(models.Model):
     def map(self) -> Map:
         return self.region.document.map
 
+    @cached_property
+    def centroid(self):
+        return Polygon.from_bbox(self.extent).centroid
+
+    @cached_property
+    def file_url(self):
+        return get_file_url(self)
+
+    @cached_property
+    def file_url_encoded(self):
+        """return the public url to the mosaic COG for this annotation set. If
+        no COG exists, return None."""
+        return urllib.parse.quote(self.file_url, safe="")
+
+    @cached_property
+    def tilejson_url(self):
+        """Returns the TileJSON URL for this layer's geotiff"""
+        return f"{settings.TITILER_HOST}/cog/tilejson.json/?url={self.file_url_encoded}"
+
+    @cached_property
+    def xyz_url(self):
+        """Returns a XYZ Tiles URL for this layer's geotiff"""
+        xyx_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+        return f"{xyx_base}&url={self.file_url_encoded}"
+
+    @cached_property
+    def xyz_url_encoded(self):
+        """Returns encoded XYZ Tiles URL for this layer's geotiff"""
+        return urllib.parse.quote(self.xyz_url, safe="")
+
+    @cached_property
+    def ohm_url(self):
+        """Returns an URL for direct integration into OpenHistoricalMap's online ID editor"""
+        lon, lat = self.centroid
+        return f"https://www.openhistoricalmap.org/edit#map=16/{lat}/{lon}&background=custom:{self.xyz_url_encoded}"
+
     @property
     def lock(self):
         from ohmg.georeference.models import SessionLock
@@ -997,6 +1034,10 @@ class LayerSet(models.Model):
 
     layer_display_list.short_description = "Layers"
 
+    @cached_property
+    def centroid(self):
+        return Polygon.from_bbox(self.extent).centroid
+
     @property
     def mosaic_cog_url(self):
         """return the public url to the mosaic COG for this annotation set. If
@@ -1008,6 +1049,34 @@ class LayerSet(models.Model):
         """return the public url to the mosaic JSON for this annotation set. If
         no mosaic JSON exists, return None."""
         return get_file_url(self, "mosaic_json")
+
+    @cached_property
+    def file_url_encoded(self):
+        """return the public url to the mosaic COG for this annotation set. If
+        no COG exists, return None."""
+        return urllib.parse.quote(self.mosaic_cog_url, safe="")
+
+    @cached_property
+    def tilejson_url(self):
+        """Returns the TileJSON URL for this layerset's geotiff"""
+        return f"{settings.TITILER_HOST}/cog/tilejson.json/?url={self.file_url_encoded}"
+
+    @cached_property
+    def xyz_url(self):
+        """Returns a XYZ Tiles URL for this layerset's geotiff"""
+        xyx_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+        return f"{xyx_base}&url={self.file_url_encoded}"
+
+    @cached_property
+    def xyz_url_encoded(self):
+        """Returns encoded XYZ Tiles URL for this layerset's geotiff"""
+        return urllib.parse.quote(self.xyz_url, safe="")
+
+    @cached_property
+    def ohm_url(self):
+        """Returns an URL for direct integration into OpenHistoricalMap's online ID editor"""
+        lon, lat = self.centroid
+        return f"https://www.openhistoricalmap.org/edit#map=16/{lat}/{lon}&background=custom:{self.xyz_url_encoded}"
 
     @property
     def multimask_extent(self):
