@@ -24,6 +24,10 @@ from ohmg.georeference.models import (
     GeorefSession,
     SessionLock,
 )
+from ..exporters.atlascope import (
+    generate_atlascope_properties,
+    generate_atlascope_geometry,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -872,11 +876,11 @@ class AtlascopeLayersetFeature(Schema):
 
     @staticmethod
     def resolve_properties(obj):
-        return obj.as_atlascope_properties()
+        return generate_atlascope_properties(obj)
 
     @staticmethod
     def resolve_geometry(obj):
-        return obj.as_atlascope_geometry()
+        return generate_atlascope_geometry(obj)
 
 
 DocumentFullSchema.update_forward_refs()
