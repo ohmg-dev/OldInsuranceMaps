@@ -856,9 +856,20 @@ class Layer(models.Model):
         return urllib.parse.quote(self.file_url, safe="")
 
     @cached_property
-    def tilejson_url(self):
-        """Returns the TileJSON URL for this layer's geotiff"""
-        return f"{settings.TITILER_HOST}/cog/tilejson.json/?url={self.file_url_encoded}"
+    def tilejson(self):
+        """Returns the TileJSON for this layer's geotiff"""
+        attr_link = f"{settings.SITEURL}map/{self.map.pk}"
+        return {
+            "tilejson": "2.2.0",
+            "version": "1.0.0",
+            "scheme": "xyz",
+            "tiles": [self.xyz_url],
+            "minzoom": 16,
+            "maxzoom": 21,
+            "bounds": self.extent,
+            "center": [self.centroid[0], self.centroid[1], 16],
+            "attribution": f"<a href='{attr_link}'>OldInsuranceMaps.net contributors</a>",
+        }
 
     @cached_property
     def wms_url(self):
@@ -1056,9 +1067,20 @@ class LayerSet(models.Model):
         return urllib.parse.quote(self.mosaic_cog_url, safe="")
 
     @cached_property
-    def tilejson_url(self):
-        """Returns the TileJSON URL for this layerset's geotiff"""
-        return f"{settings.TITILER_HOST}/cog/tilejson.json/?url={self.file_url_encoded}"
+    def tilejson(self):
+        """Returns the TileJSON for this layer's geotiff"""
+        attr_link = f"{settings.SITEURL}map/{self.map.pk}"
+        return {
+            "tilejson": "2.2.0",
+            "version": "1.0.0",
+            "scheme": "xyz",
+            "tiles": [self.xyz_url],
+            "minzoom": 16,
+            "maxzoom": 21,
+            "bounds": self.extent,
+            "center": [self.centroid[0], self.centroid[1], 16],
+            "attribution": f"<a href='{attr_link}'>OldInsuranceMaps.net contributors</a>",
+        }
 
     @cached_property
     def wms_url(self):

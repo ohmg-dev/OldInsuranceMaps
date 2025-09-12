@@ -3,6 +3,7 @@ import ImageStatic from 'ol/source/ImageStatic';
 import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import TileWMS from 'ol/source/TileWMS';
+import TileJSON from 'ol/source/TileJSON';
 
 import GeoJSON from 'ol/format/GeoJSON';
 
@@ -154,15 +155,13 @@ export function makeLayerGroupFromLayerSet(options) {
     return lyrGroup;
   }
   options.layerSet.layers.forEach(function (layer) {
-    if (layer.slug != options.excludeLayerId && layer.extent) {
-      const lyrExtent = transformExtent(layer.extent, 'EPSG:4326', 'EPSG:3857');
-
+    if (layer.slug != options.excludeLayerId) {
       // create the actual ol layers and add to group.
       let newLayer = new TileLayer({
-        source: new XYZ({
-          url: layer.xyz_url,
+        source: new TileJSON({
+          tileJSON: layer.tilejson,
         }),
-        extent: lyrExtent,
+        extent: transformExtent(layer.tilejson.bounds, 'EPSG:4326', 'EPSG:3857'),
       });
 
       lyrGroup.getLayers().push(newLayer);

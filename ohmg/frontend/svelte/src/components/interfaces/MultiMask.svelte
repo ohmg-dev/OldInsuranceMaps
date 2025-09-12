@@ -30,7 +30,7 @@
   import ToolUIButton from '../buttons/ToolUIButton.svelte';
   import ExpandElement from '../buttons/ExpandElement.svelte';
 
-  import { makeTitilerXYZUrl, usaExtent } from '../../lib/utils';
+  import { usaExtent } from '../../lib/utils';
   import { submitPostRequest } from '../../lib/requests';
   import { MapViewer } from '../../lib/viewers';
   import { LyrMousePosition } from '../../lib/controls';
@@ -85,12 +85,10 @@
     layerLookup = {};
     trimShapeSource.clear();
     LAYERSET.layers.forEach(function (layerDef) {
+      console.log(layerDef);
       let newLayer = new TileLayer({
         source: new XYZ({
-          url: makeTitilerXYZUrl({
-            host: CONTEXT.titiler_host,
-            url: layerDef.urls.cog,
-          }),
+          url: layerDef.xyz_url,
         }),
         extent: transformExtent(layerDef.extent, 'EPSG:4326', 'EPSG:3857'),
       });
