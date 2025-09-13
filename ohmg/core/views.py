@@ -324,7 +324,7 @@ class ResourceDerivativeView(View):
         raw = request.GET.get("raw", "false")
 
         region_derivatives = ["img"]
-        layer_derivatives = ["qlr", "cog", "services", "tilejson"]
+        layer_derivatives = ["qlr", "cog", "services", "tilejson", "ohm"]
 
         ## these are derivatives from the region
         if derivative in region_derivatives:
@@ -357,6 +357,9 @@ class ResourceDerivativeView(View):
 
             if derivative == "tilejson":
                 return JsonResponse(layer.tilejson)
+
+            if derivative == "ohm":
+                return redirect(layer.ohm_url)
 
             if derivative == "services":
                 return JsonResponse(
@@ -462,6 +465,9 @@ class LayersetDerivativeView(View):
 
         elif derivative == "cog":
             return redirect(layerset.mosaic_cog_url)
+
+        elif derivative == "ohm":
+            return redirect(layerset.ohm_url)
 
         elif derivative == "services":
             return JsonResponse(
