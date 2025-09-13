@@ -441,6 +441,10 @@ class LayersetDerivativeView(View):
         if not layerset:
             raise Http404
 
+        if not layerset.mosaic_geotiff:
+            raise Http404
+
+
         raw = request.GET.get("raw", "false")
 
         if derivative == "tilejson":
