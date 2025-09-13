@@ -2,11 +2,13 @@ import json
 import logging
 
 from natsort import natsorted
+from slugify import slugify
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
-from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, HttpResponse
+from django.http import JsonResponse, FileResponse, Http404
+from django.shortcuts import render, get_object_or_404, HttpResponse, redirect
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -21,7 +23,8 @@ from ohmg.core.models import (
     LayerSet,
     LayerSetCategory,
 )
-from ohmg.core.utils import time_this
+from .utils import time_this, get_file_url
+from .exporters.qlr import generate_qlr_content
 from ohmg.core.api.schemas import (
     MapFullSchema,
     MapResourcesSchema,
@@ -302,6 +305,72 @@ class LayerView(GenericResourceView):
             return JsonResponseSuccess(msg)
 
 
+class ResourceDerivativeView(View):
+    def get(self, request, pk, derivative, resource=""):
+        if resource == "layer":
+            layer = get_object_or_404(Layer, pk=pk)
+            region = layer.region
+            if not test_map_access(request.user, layer.map):
+                return HttpResponse("Unauthorized", status=401)
+
+        elif resource == "region":
+            region = get_object_or_404(Region, pk=pk)
+            layer = region.layer if hasattr(region, "layer") else None
+            if not test_map_access(request.user, region.map):
+                return HttpResponse("Unauthorized", status=401)
+        else:
+            raise Http404
+
+        raw = request.GET.get("raw", "false")
+
+        region_derivatives = ["img"]
+        layer_derivatives = ["qlr", "cog", "services", "tilejson"]
+
+        ## these are derivatives from the region
+        if derivative in region_derivatives:
+            if not region:
+                raise Http404
+
+            if derivative == "img":
+                return redirect(get_file_url(region))
+
+        ## these derivatives require a layer instance
+        elif derivative in layer_derivatives:
+            if not layer:
+                raise Http404
+
+            if derivative == "qlr":
+                xml_str = generate_qlr_content(layer)
+
+                filename = slugify(layer.title)
+
+                if raw.lower() == "true":
+                    return HttpResponse(xml_str, content_type="text/xml")
+
+                response = FileResponse(xml_str, content_type="text/xml")
+                response["Content-Length"] = len(xml_str)
+                response["Content-Disposition"] = f'attachment; filename="{filename}.qlr"'
+                return response
+
+            if derivative == "cog":
+                return redirect(layer.file_url)
+
+            if derivative == "tilejson":
+                return JsonResponse(layer.tilejson)
+
+            if derivative == "services":
+                return JsonResponse(
+                    {
+                        "xyz_tiles": layer.xyz_url,
+                        "wms": layer.wms_url,
+                        "tilejson": f"{settings.SITEURL}layer/{pk}/tilejson",
+                    }
+                )
+
+        else:
+            raise Http404
+
+
 class LayerSetView(View):
     @method_decorator(
         validate_post_request(
@@ -356,3 +425,52 @@ class LayerSetView(View):
                     return JsonResponseSuccess()
             except LayerSet.DoesNotExist:
                 return JsonResponseNotFound()
+
+
+class LayersetDerivativeView(View):
+    def get(self, request, mapid, category, derivative):
+        map = get_object_or_404(Map.objects.prefetch_related(), pk=mapid)
+
+        if not test_map_access(request.user, map):
+            return HttpResponse("Unauthorized", status=401)
+
+        layerset = map.get_layerset(category)
+        if not layerset:
+            raise Http404
+
+        raw = request.GET.get("raw", "false")
+
+        if derivative == "tilejson":
+            if not layerset.mosaic_geotiff:
+                raise Http404
+            return JsonResponse(layerset.tilejson)
+
+        elif derivative == "qlr":
+            xml_str = generate_qlr_content(layerset)
+            filename = slugify(str(layerset))
+
+            if raw.lower() == "true":
+                return HttpResponse(xml_str, content_type="text/xml")
+
+            response = FileResponse(xml_str, content_type="text/xml")
+            response["Content-Length"] = len(xml_str)
+            response["Content-Disposition"] = f'attachment; filename="{filename}.qlr"'
+            return response
+
+        elif derivative == "ohm":
+            return redirect(layerset.ohm_url)
+
+        elif derivative == "cog":
+            return redirect(layerset.mosaic_cog_url)
+
+        elif derivative == "services":
+            return JsonResponse(
+                {
+                    "xyz_tiles": layerset.xyz_url,
+                    "wms": layerset.wms_url,
+                    "tilejson": f"{settings.SITEURL}map/{mapid}/{category}/tilejson",
+                }
+            )
+
+        else:
+            raise Http404

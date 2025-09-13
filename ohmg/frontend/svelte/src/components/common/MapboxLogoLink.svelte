@@ -17,6 +17,7 @@
     position: relative;
     display: block;
     height: 20px;
+    width: 20px;
     margin-top: -30px;
     margin-left: 10px;
     z-index: 1000;

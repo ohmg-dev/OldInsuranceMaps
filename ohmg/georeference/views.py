@@ -14,7 +14,7 @@ from ohmg.core.http import (
     validate_post_request,
     generate_ohmg_context,
 )
-from ohmg.core.utils import time_this
+from ohmg.core.utils import time_this, get_file_url
 from ohmg.georeference.models import (
     SessionBase,
     PrepSession,
@@ -29,7 +29,6 @@ from ohmg.core.api.schemas import (
 from ohmg.core.models import (
     Document,
     Region,
-    get_file_url,
 )
 from ohmg.georeference.tasks import (
     run_preparation_session,

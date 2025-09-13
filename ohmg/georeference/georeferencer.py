@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import logging
-import requests
 from pathlib import Path
 from uuid import uuid4
 
@@ -11,6 +10,8 @@ from osgeo import gdal, osr, ogr
 from io import StringIO
 
 from django.conf import settings
+
+from ohmg.core.utils import retrieve_srs_wkt
 
 logger = logging.getLogger(__name__)
 
@@ -95,24 +96,6 @@ def anticipate_polynomial_order(gcp_count):
         ## based on recs from GDAL docs, use poly2 here even
         ## though there are enough GCPs for poly3
         return "poly3"
-
-
-def retrieve_srs_wkt(code):
-    srs_cache_dir = os.path.join(settings.CACHE_DIR, "srs_wkt")
-    if not os.path.isdir(srs_cache_dir):
-        os.makedirs(srs_cache_dir, exist_ok=True)
-    cache_path = os.path.join(srs_cache_dir, f"{code}-wkt.txt")
-    if os.path.isfile(cache_path):
-        with open(cache_path, "r") as o:
-            wkt = o.read()
-    else:
-        url = f"https://epsg.io/{code}.wkt"
-        response = requests.get(url)
-        wkt = response.content.decode("utf-8")
-        with open(cache_path, "w") as o:
-            o.write(wkt)
-
-    return wkt
 
 
 class VRTHandler:

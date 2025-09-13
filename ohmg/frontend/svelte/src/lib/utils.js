@@ -3,6 +3,7 @@ import ImageStatic from 'ol/source/ImageStatic';
 import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import TileWMS from 'ol/source/TileWMS';
+import TileJSON from 'ol/source/TileJSON';
 
 import GeoJSON from 'ol/format/GeoJSON';
 
@@ -97,16 +98,6 @@ export function makeTitilerXYZUrl(options) {
   return finalUrl;
 }
 
-export function getLayerOHMUrl(layer, host) {
-  const url = makeTitilerXYZUrl({
-    host: host,
-    url: layer.urls.cog,
-    doubleEncode: true,
-  });
-  const ll = getCenter(layer.extent);
-  return `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${url}`;
-}
-
 export function copyToClipboard(elementId) {
   const copyText = document.getElementById(elementId);
   copyText.select();
@@ -164,18 +155,13 @@ export function makeLayerGroupFromLayerSet(options) {
     return lyrGroup;
   }
   options.layerSet.layers.forEach(function (layer) {
-    if (layer.slug != options.excludeLayerId && layer.extent) {
-      const lyrExtent = transformExtent(layer.extent, 'EPSG:4326', 'EPSG:3857');
-
+    if (layer.slug != options.excludeLayerId) {
       // create the actual ol layers and add to group.
       let newLayer = new TileLayer({
-        source: new XYZ({
-          url: makeTitilerXYZUrl({
-            host: options.titilerHost,
-            url: layer.urls.cog,
-          }),
+        source: new TileJSON({
+          tileJSON: layer.tilejson,
         }),
-        extent: lyrExtent,
+        extent: transformExtent(layer.tilejson.bounds, 'EPSG:4326', 'EPSG:3857'),
       });
 
       lyrGroup.getLayers().push(newLayer);

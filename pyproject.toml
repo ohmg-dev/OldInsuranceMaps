@@ -45,6 +45,7 @@ dependencies = [
     "beautifulsoup4",
     "python-slugify",
     "humanize",
+    "lxml",
 ]
 
 [project.optional-dependencies]

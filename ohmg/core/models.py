@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
+import urllib.parse
 
 from natsort import natsorted
 
@@ -19,41 +20,24 @@ from django.db.models import Q
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 
-from ohmg.core.utils import (
+from ohmg.places.models import Place
+from .utils import (
     slugify,
     download_image,
     copy_local_file_to_cache,
     convert_img_format,
     get_session_user_summary,
     MONTH_CHOICES,
+    get_file_url,
 )
-from ohmg.core.renderers import (
+from .renderers import (
     get_image_size,
     get_extent_from_file,
     generate_document_thumbnail_content,
     generate_layer_thumbnail_content,
 )
-from ohmg.places.models import Place
 
 logger = logging.getLogger(__name__)
-
-
-def get_file_url(obj, attr_name: str = "file"):
-    f = getattr(obj, attr_name)
-    if f is None or (not f.name):
-        return ""
-
-    ## with S3 storage FileField will return an absolute url
-    if settings.ENABLE_S3_STORAGE:
-        url = f.url
-    ## this is true during local development
-    elif settings.MODE == "DEV":
-        url = f"{settings.LOCAL_MEDIA_HOST.rstrip('/')}{f.url}"
-    ## this is true in prod without S3 storage enabled
-    else:
-        url = f"{settings.SITEURL.rstrip('/')}{f.url}"
-
-    return url
 
 
 class MapGroup(models.Model):
@@ -857,6 +841,58 @@ class Layer(models.Model):
     def map(self) -> Map:
         return self.region.document.map
 
+    @cached_property
+    def centroid(self):
+        return Polygon.from_bbox(self.extent).centroid
+
+    @cached_property
+    def file_url(self):
+        return get_file_url(self)
+
+    @cached_property
+    def file_url_encoded(self):
+        """return the public url to the mosaic COG for this annotation set. If
+        no COG exists, return None."""
+        return urllib.parse.quote(self.file_url, safe="")
+
+    @cached_property
+    def tilejson(self):
+        """Returns the TileJSON for this layer's geotiff"""
+        attr_link = f"{settings.SITEURL}map/{self.map.pk}"
+        return {
+            "tilejson": "2.2.0",
+            "version": "1.0.0",
+            "scheme": "xyz",
+            "tiles": [self.xyz_url],
+            "minzoom": 16,
+            "maxzoom": 21,
+            "bounds": self.extent,
+            "center": [self.centroid[0], self.centroid[1], 16],
+            "attribution": f"<a href='{attr_link}'>OldInsuranceMaps.net contributors</a>",
+        }
+
+    @cached_property
+    def wms_url(self):
+        """Returns the WMS URL for this layers's geotiff"""
+        return f"{settings.TITILER_HOST}/cog/wms/?LAYERS={self.file_url_encoded}&VERSION=1.1.1"
+
+    @cached_property
+    def xyz_url(self):
+        """Returns a XYZ Tiles URL for this layer's geotiff"""
+        xyx_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+        return f"{xyx_base}&url={self.file_url_encoded}"
+
+    @cached_property
+    def xyz_url_encoded(self):
+        """Returns encoded XYZ Tiles URL for this layer's geotiff"""
+        return urllib.parse.quote(self.xyz_url, safe="")
+
+    @cached_property
+    def ohm_url(self):
+        """Returns an URL for direct integration into OpenHistoricalMap's online ID editor"""
+        lon, lat = self.centroid
+        return f"https://www.openhistoricalmap.org/edit#map=16/{lat}/{lon}&background=custom:{self.xyz_url_encoded}"
+
     @property
     def lock(self):
         from ohmg.georeference.models import SessionLock
@@ -1014,17 +1050,59 @@ class LayerSet(models.Model):
 
     layer_display_list.short_description = "Layers"
 
+    @cached_property
+    def centroid(self):
+        return Polygon.from_bbox(self.extent).centroid
+
     @property
     def mosaic_cog_url(self):
         """return the public url to the mosaic COG for this annotation set. If
         no COG exists, return None."""
         return get_file_url(self, "mosaic_geotiff")
 
-    @property
-    def mosaic_json_url(self):
-        """return the public url to the mosaic JSON for this annotation set. If
-        no mosaic JSON exists, return None."""
-        return get_file_url(self, "mosaic_json")
+    @cached_property
+    def file_url_encoded(self):
+        """return the public url to the mosaic COG for this annotation set. If
+        no COG exists, return None."""
+        return urllib.parse.quote(self.mosaic_cog_url, safe="")
+
+    @cached_property
+    def tilejson(self):
+        """Returns the TileJSON for this layer's geotiff"""
+        attr_link = f"{settings.SITEURL}map/{self.map.pk}"
+        return {
+            "tilejson": "2.2.0",
+            "version": "1.0.0",
+            "scheme": "xyz",
+            "tiles": [self.xyz_url],
+            "minzoom": 16,
+            "maxzoom": 21,
+            "bounds": self.extent,
+            "center": [self.centroid[0], self.centroid[1], 16],
+            "attribution": f"<a href='{attr_link}'>OldInsuranceMaps.net contributors</a>",
+        }
+
+    @cached_property
+    def wms_url(self):
+        """Returns the WMS URL for this layerset's geotiff"""
+        return f"{settings.TITILER_HOST}/cog/wms/?LAYERS={self.file_url_encoded}&VERSION=1.1.1"
+
+    @cached_property
+    def xyz_url(self):
+        """Returns a XYZ Tiles URL for this layerset's geotiff"""
+        xyx_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+        return f"{xyx_base}&url={self.file_url_encoded}"
+
+    @cached_property
+    def xyz_url_encoded(self):
+        """Returns encoded XYZ Tiles URL for this layerset's geotiff"""
+        return urllib.parse.quote(self.xyz_url, safe="")
+
+    @cached_property
+    def ohm_url(self):
+        """Returns an URL for direct integration into OpenHistoricalMap's online ID editor"""
+        lon, lat = self.centroid
+        return f"https://www.openhistoricalmap.org/edit#map=16/{lat}/{lon}&background=custom:{self.xyz_url_encoded}"
 
     @property
     def multimask_extent(self):
@@ -1078,35 +1156,6 @@ class LayerSet(models.Model):
         else:
             self.multimask = None
         self.save(update_fields=["multimask"])
-
-    def as_atlascope_properties(self):
-        cog_url = self.mosaic_cog_url.replace(
-            "http://localhost:8080/uploaded/mosaics/",
-            "https://oldinsurancemaps.net/uploaded/mosaics/",
-        )
-        tilejson_url = f"{settings.TITILER_HOST}/cog/tilejson.json/?url={cog_url}"
-        return {
-            "identifier": self.map.identifier,
-            "publisherShort": "Sanborn",
-            "year": self.map.year,
-            "bibliographicEntry": "_Richards standard atlas of the town of Greenfield_ (Richards Map Company, 1918)",
-            "source": {"type": "tilejson", "url": tilejson_url},
-            "catalogPermalink": f"https://loc.gov/item/{self.map.identifier}",
-            "heldBy": ["Library of Congress"],
-            "sponsors": [],
-        }
-
-    def as_atlascope_geometry(self):
-        if self.multimask_geojson:
-            collection = []
-            for i in self.multimask_geojson["features"]:
-                geom = GEOSGeometry(json.dumps(i["geometry"]))
-                collection.append(geom)
-
-            geoms = MultiPolygon(collection)
-            return json.loads(geoms.unary_union.json)
-        else:
-            return {"type": "MultiPolygon", "coordinates": []}
 
     def save(self, *args, **kwargs):
         extents = self.layer_set.all().values_list("extent", flat=True)

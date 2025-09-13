@@ -105,39 +105,6 @@
         layerToLayerSetLookup[lyr.slug] = ls.id;
         layerToLayerSetLookupOrig[lyr.slug] = ls.id;
       });
-
-      let mosaicUrl;
-      let ohmUrl;
-      if (ls.mosaic_json_url) {
-        mosaicUrl = makeTitilerXYZUrl({
-          host: CONTEXT.titiler_host,
-          url: ls.mosaic_json_url,
-        });
-        // make the OHM url here
-        const mosaicUrlEncoded = makeTitilerXYZUrl({
-          host: CONTEXT.titiler_host,
-          url: ls.mosaic_json_url,
-          doubleEncode: true,
-        });
-        const ll = getCenter(ls.extent);
-        ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`;
-      }
-      if (ls.mosaic_cog_url) {
-        mosaicUrl = makeTitilerXYZUrl({
-          host: CONTEXT.titiler_host,
-          url: ls.mosaic_cog_url,
-        });
-        // make the OHM url here
-        const mosaicUrlEncoded = makeTitilerXYZUrl({
-          host: CONTEXT.titiler_host,
-          url: ls.mosaic_cog_url,
-          doubleEncode: true,
-        });
-        const ll = getCenter(ls.extent);
-        ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${mosaicUrlEncoded}`;
-      }
-      ls.mosaicUrl = mosaicUrl;
-      ls.ohmUrl = ohmUrl;
     });
     LAYERSETS = newLayerSets;
     reinitMultimask();
