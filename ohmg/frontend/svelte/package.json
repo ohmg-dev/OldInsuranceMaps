@@ -41,6 +41,7 @@
     "ol": "^10.0.0",
     "ol-ext": "^4.0.24",
     "ol-hashed": "^2.1.0",
+    "ol-mapbox-style": "^13.1.0",
     "ol-pmtiles": "^1.0.2",
     "sirv-cli": "^1.0.0",
     "svelte-markdown": "^0.4.1",

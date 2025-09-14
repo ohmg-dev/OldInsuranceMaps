@@ -5,6 +5,8 @@ import XYZ from 'ol/source/XYZ';
 import TileWMS from 'ol/source/TileWMS';
 import TileJSON from 'ol/source/TileJSON';
 
+import { apply } from 'ol-mapbox-style';
+
 import GeoJSON from 'ol/format/GeoJSON';
 
 import { transformExtent } from 'ol/proj';
@@ -125,11 +127,17 @@ export function makeOSMLayer() {
   });
 }
 
+export function makeOFMLayer() {
+  const openfreemap = new LayerGroup();
+  apply(openfreemap, 'https://tiles.openfreemap.org/styles/liberty');
+  return openfreemap;
+}
+
 export function makeBasemaps(mapboxKey) {
   return [
     {
       id: 'osm',
-      layer: makeOSMLayer(),
+      layer: makeOFMLayer(),
       label: 'Streets',
     },
     {
