@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Union
 import urllib.parse
 
 from natsort import natsorted
@@ -833,6 +834,7 @@ class Layer(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
     )
+    tilejson = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -855,43 +857,14 @@ class Layer(models.Model):
         no COG exists, return None."""
         return urllib.parse.quote(self.file_url, safe="")
 
-    @cached_property
-    def tilejson(self):
-        """Returns the TileJSON for this layer's geotiff"""
-        attr_link = f"{settings.SITEURL}map/{self.map.pk}"
-        return {
-            "tilejson": "2.2.0",
-            "version": "1.0.0",
-            "scheme": "xyz",
-            "tiles": [self.xyz_url],
-            "minzoom": 10,
-            "maxzoom": 21,
-            "bounds": self.extent,
-            "center": [self.centroid[0], self.centroid[1], 16],
-            "attribution": f"<a href='{attr_link}'>OldInsuranceMaps.net contributors</a>",
-        }
-
-    @cached_property
-    def wms_url(self):
-        """Returns the WMS URL for this layers's geotiff"""
-        return f"{settings.TITILER_HOST}/cog/wms/?LAYERS={self.file_url_encoded}&VERSION=1.1.1"
-
-    @cached_property
-    def xyz_url(self):
-        """Returns a XYZ Tiles URL for this layer's geotiff"""
-        xyx_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
-        return f"{xyx_base}&url={self.file_url_encoded}"
-
-    @cached_property
-    def xyz_url_encoded(self):
-        """Returns encoded XYZ Tiles URL for this layer's geotiff"""
-        return urllib.parse.quote(self.xyz_url, safe="")
-
-    @cached_property
-    def ohm_url(self):
-        """Returns an URL for direct integration into OpenHistoricalMap's online ID editor"""
-        lon, lat = self.centroid
-        return f"https://www.openhistoricalmap.org/edit#map=16/{lat}/{lon}&background=custom:{self.xyz_url_encoded}"
+    def create_xyz_url(self) -> Union[str, None]:
+        file_url = get_file_url(self)
+        if file_url:
+            encoded_url = urllib.parse.quote(file_url, safe="")
+            xyx_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+            return f"{xyx_base}&url={encoded_url}"
+        else:
+            return None
 
     @property
     def lock(self):
@@ -967,6 +940,7 @@ class Layer(models.Model):
         set_slug: bool = False,
         set_thumbnail: bool = False,
         set_extent: bool = True,
+        set_tilejson: bool = False,
         skip_map_lookup_update: bool = False,
         *args,
         **kwargs,
@@ -985,6 +959,19 @@ class Layer(models.Model):
 
         self.title = self.region.title
         self.nickname = self.region.nickname
+
+        if (set_tilejson or self.tilejson is None) and self.file:
+            self.tilejson = {
+                "tilejson": "2.2.0",
+                "version": "1.0.0",
+                "scheme": "xyz",
+                "tiles": [self.create_xyz_url()],
+                "minzoom": 10,
+                "maxzoom": 21,
+                "bounds": self.extent,
+                "center": [self.centroid[0], self.centroid[1], 16],
+                "attribution": "<a href='https://oldinsurancemaps.net'>OldInsuranceMaps</a>; <a href='https://loc.gov/collections/sanborn-maps'>LOC</a>",
+            }
 
         return super(self.__class__, self).save(*args, **kwargs)
 
@@ -1036,6 +1023,7 @@ class LayerSet(models.Model):
         null=True,
         blank=True,
     )
+    tilejson = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.map} - {self.category}"
@@ -1066,43 +1054,14 @@ class LayerSet(models.Model):
         no COG exists, return None."""
         return urllib.parse.quote(self.mosaic_cog_url, safe="")
 
-    @cached_property
-    def tilejson(self):
-        """Returns the TileJSON for this layer's geotiff"""
-        attr_link = f"{settings.SITEURL}map/{self.map.pk}"
-        return {
-            "tilejson": "2.2.0",
-            "version": "1.0.0",
-            "scheme": "xyz",
-            "tiles": [self.xyz_url],
-            "minzoom": 10,
-            "maxzoom": 21,
-            "bounds": self.extent,
-            "center": [self.centroid[0], self.centroid[1], 16],
-            "attribution": f"<a href='{attr_link}'>OldInsuranceMaps.net contributors</a>",
-        }
-
-    @cached_property
-    def wms_url(self):
-        """Returns the WMS URL for this layerset's geotiff"""
-        return f"{settings.TITILER_HOST}/cog/wms/?LAYERS={self.file_url_encoded}&VERSION=1.1.1"
-
-    @cached_property
-    def xyz_url(self):
-        """Returns a XYZ Tiles URL for this layerset's geotiff"""
-        xyx_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
-        return f"{xyx_base}&url={self.file_url_encoded}"
-
-    @cached_property
-    def xyz_url_encoded(self):
-        """Returns encoded XYZ Tiles URL for this layerset's geotiff"""
-        return urllib.parse.quote(self.xyz_url, safe="")
-
-    @cached_property
-    def ohm_url(self):
-        """Returns an URL for direct integration into OpenHistoricalMap's online ID editor"""
-        lon, lat = self.centroid
-        return f"https://www.openhistoricalmap.org/edit#map=16/{lat}/{lon}&background=custom:{self.xyz_url_encoded}"
+    def create_xyz_url(self) -> Union[str, None]:
+        file_url = get_file_url(self, "mosaic_geotiff")
+        if file_url:
+            encoded_url = urllib.parse.quote(file_url, safe="")
+            xyx_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+            return f"{xyx_base}&url={encoded_url}"
+        else:
+            return None
 
     @property
     def multimask_extent(self):
@@ -1157,7 +1116,7 @@ class LayerSet(models.Model):
             self.multimask = None
         self.save(update_fields=["multimask"])
 
-    def save(self, *args, **kwargs):
+    def save(self, set_tilejson: bool = False, *args, **kwargs):
         extents = self.layer_set.all().values_list("extent", flat=True)
         layer_extents = []
         for extent in extents:
@@ -1167,5 +1126,17 @@ class LayerSet(models.Model):
         if layer_extents:
             combined = MultiPolygon(layer_extents)
             self.extent = combined.extent
+        if (set_tilejson or self.tilejson is None) and self.mosaic_geotiff:
+            self.tilejson = {
+                "tilejson": "2.2.0",
+                "version": "1.0.0",
+                "scheme": "xyz",
+                "tiles": [self.create_xyz_url()],
+                "minzoom": 10,
+                "maxzoom": 21,
+                "bounds": self.extent,
+                "center": [self.centroid[0], self.centroid[1], 16],
+                "attribution": "<a href='https://oldinsurancemaps.net'>OldInsuranceMaps</a>; <a href='https://loc.gov/collections/sanborn-maps'>LOC</a>",
+            }
 
         return super(self.__class__, self).save(*args, **kwargs)
