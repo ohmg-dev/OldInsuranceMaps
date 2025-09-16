@@ -330,16 +330,15 @@ class Command(BaseCommand):
             from ohmg.core.models import Layer, LayerSet, Map
 
             if options["mapid"]:
-                map = Map.objects.get(pk=options["mapid"])
-                layers = map.layers
-                layersets = LayerSet.objects.filter(map=map)
+                maps = Map.objects.filter(pk=options["mapid"])
             else:
-                layers = Layer.objects.all()
-                layersets = LayerSet.objects.all()
+                maps = Map.objects.all().order_by('-load_date')
 
-            for layer in layers:
-                print(layer)
-                layer.save(set_tilejson=True, set_extent=True)
-            for layerset in layersets:
-                print(layerset)
-                layer.save(set_tilejson=True, set_extent=True)
+            for map in maps:
+                print(map)
+                for layer in map.layers:
+                    if not layer.tilejson:
+                        print(layer)
+                        layer.save(set_tilejson=True, skip_map_lookup_update=True, set_extent=True)
+                for layerset in LayerSet.objects.filter(map=map):
+                    layerset.save(set_tilejson=True)
