@@ -79,7 +79,7 @@
         {/if}
         {#if downloadEnabled}
           <li>
-            <input type="hidden" id="lyr-{layer.id}-xyz-link" value={layer.xyz_url} />
+            <input type="hidden" id="lyr-{layer.id}-xyz-link" value="{CONTEXT.site_url}layer/{layer.id}/tilejson" />
             <input
               type="hidden"
               id="lyr-{layer.id}-wms-link"
@@ -106,13 +106,7 @@
                     <ul>
                       <li><Link href={layer.urls.cog}>GeoTIFF <DownloadSimple /></Link></li>
                       <li>
-                        <button
-                          class="is-text-link"
-                          title="Copy URL to clipboard"
-                          on:click={() => {
-                            copyToClipboard(`lyr-${layer.id}-xyz-link`);
-                          }}>XYZ Tiles URL <Copy /></button
-                        >
+                        <Link title="Get TileJSON" href="{CONTEXT.site_url}layer/{layer.id}/tilejson">TileJSON</Link>
                       </li>
                       <li>
                         <button
@@ -124,7 +118,7 @@
                         >
                       </li>
                       <li>
-                        <Link href={layer.ohm_url} external={true}>OpenHistoricalMap iD</Link>
+                        <Link href="{CONTEXT.site_url}layer/{layer.id}/ohm" external={true}>OpenHistoricalMap iD</Link>
                       </li>
                       <li>
                         <Link href="{CONTEXT.site_url}iiif/resource/{layer.id}/" external={true}

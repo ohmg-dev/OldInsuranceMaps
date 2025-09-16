@@ -90,23 +90,25 @@
       <h4>{ls.name} ({ls.layers.length} layer{ls.layers.length > 1 ? 's' : ''})</h4>
       <table>
         <tbody>
-          {#if ls.xyz_url}
+          {#if ls.mosaic_cog_url}
             <tr>
-              <td>XYZ Tiles URL</td>
+              <td>TileJSON</td>
               <td>
-                {#if ls.xyz_url}
-                  <pre style="margin:0;">{ls.xyz_url}</pre>
-                {:else}
-                  n/a
-                {/if}
+                <Link
+                  href="{CONTEXT.site_url}map/{MAP.identifier}/{ls.id}/tilejson"
+                  title="Get TileJSON"
+                  external={true}>{CONTEXT.site_url}map/{MAP.identifier}/{ls.id}/tilejson</Link
+                >
               </td>
             </tr>
             <tr>
-              <td>OpenHistoricalMap</td>
+              <td>OpenHistoricalMap editor</td>
               <td>
-                {#if ls.ohm_url}
-                  <Link href={ls.ohm_url} title="Open mosaic in OHM Editor" external={true}
-                    >Open in OpenHistoricalMap iD editor</Link
+                {#if ls.mosaic_cog_url}
+                  <Link
+                    href="{CONTEXT.site_url}map/{MAP.identifier}/{ls.id}/ohm"
+                    title="Open mosaic in OpenHistoricalMap iD Editor"
+                    external={true}>{CONTEXT.site_url}map/{MAP.identifier}/{ls.id}/ohm</Link
                   >
                 {:else}
                   n/a
@@ -114,11 +116,11 @@
               >
             </tr>
             <tr>
-              <td>GeoTIFF</td>
+              <td>Download Cloud-Optimized GeoTIFF</td>
               <td>
                 {#if ls.mosaic_cog_url}
                   <Link href={ls.mosaic_cog_url} title="Download mosaic geotiff file"
-                    >Download GeoTIFF (direct download)</Link
+                    >{CONTEXT.site_url}map/{MAP.identifier}/{ls.id}/cog</Link
                   >
                 {:else}
                   n/a
@@ -127,12 +129,12 @@
             </tr>
           {/if}
           <tr>
-            <td>IIIf Georef AnnotationPage</td>
+            <td>IIIf Georef AnnotationPage (JSON)</td>
             <td>
               <Link
                 href="{CONTEXT.site_url}iiif/mosaic/{MAP.identifier}/{ls.id}/?trim=true"
-                title="View full AnnotationPage for this mosaic"
-                external={true}>View full AnnotationPage for this mosaic (beta)</Link
+                title="View full AnnotationPage JSON for this mosaic"
+                external={true}>{CONTEXT.site_url}iiif/mosaic/{MAP.identifier}/{ls.id}/?trim=true</Link
               >
             </td>
           </tr>
@@ -144,7 +146,10 @@
                   `${CONTEXT.site_url}iiif/mosaic/${MAP.identifier}/${ls.id}/?trim=true`,
                 )}"
                 title="Open mosaic in Allmaps Viewer"
-                external={true}>Open in Allmaps Viewer (beta)</Link
+                external={true}
+                >https://viewer.allmaps.org/?url={encodeURIComponent(
+                  `${CONTEXT.site_url}iiif/mosaic/${MAP.identifier}/${ls.id}/?trim=true`,
+                )}</Link
               >
             </td>
           </tr>

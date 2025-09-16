@@ -35,6 +35,7 @@
   import { MapViewer } from '../../lib/viewers';
   import { LyrMousePosition } from '../../lib/controls';
   import Styles from '../../lib/ol-styles';
+  import { TileJSON } from 'ol/source';
 
   const styles = new Styles();
 
@@ -87,8 +88,8 @@
     LAYERSET.layers.forEach(function (layerDef) {
       console.log(layerDef);
       let newLayer = new TileLayer({
-        source: new XYZ({
-          url: layerDef.xyz_url,
+        source: new TileJSON({
+          tileJSON: layerDef.tilejson,
         }),
         extent: transformExtent(layerDef.extent, 'EPSG:4326', 'EPSG:3857'),
       });
