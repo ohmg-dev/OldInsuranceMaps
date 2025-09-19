@@ -1,4 +1,10 @@
 export const parcelLookup = {
+  'richmond-va': {
+    pmtilesUrl: 'https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/richmond-va.pmtiles',
+    attributionText: 'City of Richmond, VA',
+    attributionUrl:
+      'https://richmond-geo-hub-cor.hub.arcgis.com/datasets/cor::parcels-1/about',
+  },
   'san-francisco-ca': {
     pmtilesUrl: 'https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/sf_parcels.pmtiles',
     attributionText: 'City and County of San Francisco',
