@@ -7,6 +7,8 @@
 
   import LatestAdditions from '../lists/LatestAdditions.svelte';
   import SessionList from '../lists/SessionList.svelte';
+  import HowItWorks from './sections/HowItWorks.svelte';
+  import LatestBlogPosts from './sections/LatestBlogPosts.svelte';
 
   export let CONTEXT;
   export let NEWSLETTER_SLUG;
@@ -15,52 +17,86 @@
   export let MAP_CT;
   export let FEATURED_MAPS = [];
 
-  let showBrowseMap = !CONTEXT.on_mobile;
-  $: showBrowseMapBtnLabel = showBrowseMap ? 'Hide map finder' : 'Show map finder';
-
-  const urlSegs = window.location.href.split('/');
+  const blogSection = false;
 </script>
 
 <main>
-  <div class="homepage-section">
+  <section>
     <div>
       <h1 style="word-wrap: break-word;">OldInsuranceMaps.net</h1>
       <p>
         A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the
         Library of Congress. See <Link href="/#how-it-works">how it works</Link> or visit the <Link
-          href="https://about.oldinsurancemaps.net?utm_source=hero"
-          external={true}>about</Link
-        > or <Link href="https://about.oldinsurancemaps.net/faq?utm_source=hero">FAQ</Link> pages to learn more.
+          href="https://about.oldinsurancemaps.net?utm_source=hero">about</Link
+        > or <Link href="/faq">FAQ</Link> pages to learn more.
       </p>
     </div>
-  </div>
-  <div class="homepage-section">
-    <div style="padding:0;">
-      <div style="padding:5px;">
-        <h3>Explore georeferenced maps from {PLACES_CT} locations...</h3>
-        <p>Click a point to access maps of that locale, or <Link href="/united-states">search by place name</Link>.</p>
+  </section>
+  <section>
+    <div class="double-column-section" style="padding:0;">
+      <div style="padding:10px;">
+        <div style="border-bottom: dashed grey 1px; padding-bottom: 20px;">
+          <LatestBlogPosts />
+        </div>
+        <div class="level is-mobile" style="margin-bottom:0;">
+          <div class="level-left">
+            <div class="level-item">
+              <h3>Newsletter</h3>
+            </div>
+          </div>
+          <div class="level-right">
+            <div class="level-item">
+              <Link href="/newsletter/{NEWSLETTER_SLUG}/archive/" rightArrow={true}>read past newsletters</Link>
+            </div>
+          </div>
+        </div>
+        <form enctype="multipart/form-data" method="post" action="/newsletter/{NEWSLETTER_SLUG}/subscribe/">
+          <input type="hidden" name="csrfmiddlewaretoken" value={CONTEXT.csrf_token} />
+          <label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe:</label>
+          <input
+            type="email"
+            name="email_field"
+            required=""
+            id="id_email_field"
+            disabled={USER_SUBSCRIBED}
+            placeholder={USER_SUBSCRIBED ? "you're already subscribed!" : ''}
+          />
+          {#if USER_SUBSCRIBED}
+            <Link href="/newsletter/{NEWSLETTER_SLUG}?utm_source=index">manage your subscription</Link>
+          {:else}
+            <button id="id_submit" title="Subscribe to newsletter" name="submit" value="Subscribe" type="submit"
+              >Subscribe</button
+            >
+          {/if}
+        </form>
       </div>
-      {#if CONTEXT.on_mobile}<span
-          ><button
-            title="Show browsable map interface"
-            class="link-btn"
-            on:click={() => {
-              showBrowseMap = !showBrowseMap;
-            }}>{showBrowseMapBtnLabel}</button
-          ></span
-        >{/if}
-      {#if showBrowseMap}
-        <MapBrowse {CONTEXT} MAP_HEIGHT={'400'} EMBEDDED={true} />
-      {/if}
+      <div style="padding:0;">
+        <div style="padding:10px; min-height:75px;">
+          <div class="level" style="margin-bottom:0;">
+            <div class="level-left">
+              <div class="level-item">
+                <h3>{MAP_CT} maps in {PLACES_CT} cities</h3>
+              </div>
+            </div>
+            <div class="level-right">
+              <div class="level-item">
+                <Link href="/united-states" rightArrow={true}>search all places</Link>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="map-container">
+          <MapBrowse {CONTEXT} MAP_HEIGHT={'100%'} />
+        </div>
+      </div>
     </div>
-  </div>
-
-  <div class="homepage-section">
+  </section>
+  <section>
     <div>
       <div class="hero-banner-inner">
         {#if FEATURED_MAPS}
           <div>
-            <h3>Featured</h3>
+            <h3>Featured maps</h3>
             <ul>
               {#each FEATURED_MAPS as map}
                 <li><Link href={`/map/${map.id}`}>{map.title}</Link></li>
@@ -69,7 +105,7 @@
           </div>
         {/if}
         <div>
-          <h3>Recently added</h3>
+          <h3>Recently added maps</h3>
           <LatestAdditions {CONTEXT} />
           <span
             ><em
@@ -89,121 +125,24 @@
             ><em
               ><Link
                 href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link"
-                external={true}>request more LOC maps</Link
+                external={true}>request more LOC Sanborn maps</Link
               ></em
             ></span
           >
         </div>
       </div>
     </div>
-  </div>
-  {#if NEWSLETTER_SLUG}
-    <div class="homepage-section">
-      <div>
-        <div class="level" style="margin-bottom:0;">
-          <div class="level-left">
-            <div class="level-item">
-              <h3>Newsletter</h3>
-            </div>
-          </div>
-          <div class="level-right">
-            <div class="level-item">
-              <Link href="/newsletter/{NEWSLETTER_SLUG}/archive/">view the archive &rarr;</Link>
-            </div>
-          </div>
-        </div>
-        <form enctype="multipart/form-data" method="post" action="/newsletter/{NEWSLETTER_SLUG}/subscribe/">
-          <input type="hidden" name="csrfmiddlewaretoken" value={CONTEXT.csrf_token} />
-          <label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe:</label>
-          <input type="email" name="email_field" required="" id="id_email_field" disabled={USER_SUBSCRIBED} />
-          {#if USER_SUBSCRIBED}
-            <Link href="/newsletter/{NEWSLETTER_SLUG}?utm_source=index">manage subscription</Link>
-          {:else}
-            <button id="id_submit" title="Submit newsletter subscription" name="submit" value="Subscribe" type="submit"
-              >Subscribe</button
-            >
-          {/if}
-        </form>
-      </div>
-    </div>
-  {/if}
+  </section>
 
-  <div id="how-it-works" class="homepage-section">
+  <section id="how-it-works">
     <div>
-      <h3>How it Works</h3>
-      <div id="step-list">
-        <div>
-          <div>
-            <SVGIcon icon="volume" size="lg" />
-          </div>
-          <p>
-            Digital scans of Sanborn maps are available through the <Link
-              href="https://loc.gov/collections/sanborn-maps"
-              external={true}>Library of Congress</Link
-            > and are pulled into this site through the LOC <Link
-              href="https://www.loc.gov/apis/json-and-yaml/requests/"
-              external={true}>JSON API</Link
-            >, generating a "Map Summary" page (<Link href="/map/sanborn03275_001/?utm_source=index"
-              >Baton Rouge, 1885</Link
-            >).
-          </p>
-        </div>
-        <div>
-          <div>
-            <SVGIcon icon="document" size="lg" />
-          </div>
-          <p>
-            Users <Link href="/split/244/">prepare each sheet</Link> in the volume, sometimes splitting it into multiple
-            documents, each to be georeferenced individually (<Link href="/document/244?utm_source=index"
-              >Baton Rouge, 1885, page 1</Link
-            >).
-          </p>
-        </div>
-        <div>
-          <div>
-            <SVGIcon icon="layer" size="lg" />
-          </div>
-          <p>
-            Next, each document must be georeferenced by <Link href="/georeference/3097?utm_source=index"
-              >creating ground control points</Link
-            >, linking features on the old map with latitude/longitude coordinates to create a geospatial layer (<Link
-              href="/layer/389?utm_source=index">Baton Rouge, 1885, page 1, part 3</Link
-            >).
-          </p>
-        </div>
-        <div>
-          <div>
-            <SVGIcon icon="webmap" size="lg" />
-          </div>
-          <p>
-            As they are georeferenced, layers slowly build a collage of all the content from a given volume, and their
-            overlapping margins <Link href="/map/sanborn03275_001?utm_source=index#multimask">must be trimmed</Link> to create
-            a seamless mosaic.
-          </p>
-        </div>
-        <div>
-          <div>
-            <SVGIcon icon="pinmap" size="lg" />
-          </div>
-          <p>
-            Finally, all volume mosaics for a given locale are automatically aggregated into a simple web viewer so you
-            can easily compare different years and current maps (<Link href="/viewer/baton-rouge-la?utm_source=index"
-              >Baton Rouge viewer</Link
-            >).
-          </p>
-        </div>
-        <h4>
-          Want to learn more? Visit the <Link href="https://about.oldinsurancemaps.net?utm_source=index" external={true}
-            >documentation site</Link
-          >.
-        </h4>
-      </div>
+      <HowItWorks />
     </div>
-  </div>
+  </section>
 
-  <div class="homepage-section" style="min-height:750px;">
+  <section id="latest-activity-section">
     <div>
-      <div class="level" style="margin-bottom:0;">
+      <div class="level is-mobile" style="margin-bottom:0;">
         <div class="level-left">
           <div class="level-item">
             <h3>Latest activity</h3>
@@ -211,15 +150,15 @@
         </div>
         <div class="level-right">
           <div class="level-item">
-            <Link href="/activity">all activity &rarr;</Link>
+            <Link href="/activity" rightArrow={true}>all activity</Link>
           </div>
         </div>
       </div>
       <SessionList {CONTEXT} showThumbs={true} />
     </div>
-  </div>
+  </section>
 
-  <div class="homepage-section" style="font-size:1.15em;">
+  <section style="font-size:1.15em;">
     <div>
       <SvelteMarkdown
         source={`_OldInsuranceMaps.net_ is funded in part by the National Institutes of Health (National Institute on Aging: [R01AG080401](https://reporter.nih.gov/search/bCrnkRo-rkWJJXyXqsj44g/project-details/10582012)) through a partnership with University of Michigan [Institute for Social Research](https://isr.umich.edu/), University of Richmond [Digital Scholarship Lab](https://dsl.richmond.edu/), and the [National Community Reinvestment Coalition](https://ncrc.org). Read more in the [ISR press release](https://isr.umich.edu/news-events/news-releases/grant-to-enable-creation-of-new-data-resources-for-studying-structural-racism/).
@@ -232,7 +171,7 @@ To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
 `}
       />
     </div>
-  </div>
+  </section>
 </main>
 
 <style>
@@ -247,9 +186,17 @@ To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
     background-size: 100%;
   }
 
-  main > div {
+  section {
     margin-top: 40px;
     padding: 0 20px;
+  }
+
+  section > div {
+    background: rgba(255, 255, 255, 0.85);
+    border: 2px solid black;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
   }
 
   main p {
@@ -258,14 +205,6 @@ To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
 
   #how-it-works {
     scroll-margin-top: 40px;
-  }
-
-  .homepage-section > div {
-    background: rgba(255, 255, 255, 0.85);
-    border: 2px solid black;
-    border-radius: 4px;
-    padding: 10px;
-    margin-bottom: 10px;
   }
 
   .hero-banner-inner {
@@ -283,34 +222,20 @@ To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
     padding-left: 5px;
   }
 
-  #step-list > div {
+  .double-column-section {
     display: flex;
-    align-items: center;
-    padding-bottom: 5px;
-    margin-bottom: 5px;
-    border-bottom: dashed grey 1px;
+    gap: 10px;
+    padding: 0;
   }
 
-  #step-list > div:first-child {
-    padding-top: 5px;
-    border-top: dashed grey 1px;
+  .double-column-section > div {
+    width: 50%;
   }
 
-  #step-list div > div {
-    min-width: 85px;
-  }
-
-  #step-list div > p {
-    font-size: 1.1em;
-    margin-bottom: 0px;
-  }
-
-  button.link-btn {
-    color: #2c689c;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.25em;
+  .map-container {
+    height: calc(100% - 75px);
+    border-top: 2px solid black;
+    border-left: 2px solid black;
   }
 
   @media only screen and (max-width: 760px) {
@@ -320,6 +245,18 @@ To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
 
     .hero-banner-inner {
       flex-direction: column;
+    }
+
+    .double-column-section {
+      flex-direction: column-reverse;
+    }
+
+    .double-column-section > div {
+      width: 100%;
+    }
+
+    .map-container {
+      display: none;
     }
   }
 </style>
