@@ -1,5 +1,6 @@
 import json
 import logging
+from urllib.parse import quote
 
 from natsort import natsorted
 from slugify import slugify
@@ -353,19 +354,29 @@ class ResourceDerivativeView(View):
                 return response
 
             if derivative == "cog":
-                return redirect(layer.file_url)
+                return redirect(get_file_url(layer))
 
             if derivative == "tilejson":
-                return JsonResponse(layer.tilejson)
+                if layer.tilejson:
+                    return JsonResponse(layer.tilejson)
+                else:
+                    raise Http404
 
             if derivative == "ohm":
-                return redirect(layer.ohm_url)
+                file_url_encoded = quote(get_file_url(layer), safe="")
+                xyz_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+                xyz_url_encoded = quote(f"{xyz_base}&url={file_url_encoded}", safe="")
+                lon, lat = layer.centroid
+                u = f"https://www.openhistoricalmap.org/edit#map=16/{lat}/{lon}&background=custom:{xyz_url_encoded}"
+                return redirect(u)
 
             if derivative == "services":
+                file_url_encoded = quote(get_file_url(layer), safe="")
+                xyz_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
                 return JsonResponse(
                     {
-                        "xyz_tiles": layer.xyz_url,
-                        "wms": layer.wms_url,
+                        "xyz": f"{xyz_base}&url={file_url_encoded}",
+                        "wms": f"{settings.TITILER_HOST}/cog/wms/?LAYERS={file_url_encoded}&VERSION=1.1.1",
                         "tilejson": f"{settings.SITEURL}layer/{pk}/tilejson",
                     }
                 )
@@ -444,12 +455,9 @@ class LayersetDerivativeView(View):
         if not layerset.mosaic_geotiff:
             raise Http404
 
-
         raw = request.GET.get("raw", "false")
 
-        if derivative == "tilejson":
-            if not layerset.mosaic_geotiff:
-                raise Http404
+        if derivative == "tilejson" and layerset.tilejson:
             return JsonResponse(layerset.tilejson)
 
         elif derivative == "qlr":
@@ -465,19 +473,23 @@ class LayersetDerivativeView(View):
             return response
 
         elif derivative == "ohm":
-            return redirect(layerset.ohm_url)
+            file_url_encoded = quote(get_file_url(layerset, "mosaic_geotiff"), safe="")
+            xyz_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+            xyz_url_encoded = quote(f"{xyz_base}&url={file_url_encoded}", safe="")
+            lon, lat = layerset.centroid
+            u = f"https://www.openhistoricalmap.org/edit#map=16/{lat}/{lon}&background=custom:{xyz_url_encoded}"
+            return redirect(u)
 
         elif derivative == "cog":
-            return redirect(layerset.mosaic_cog_url)
-
-        elif derivative == "ohm":
-            return redirect(layerset.ohm_url)
+            return redirect(get_file_url(layerset, "mosaic_geotiff"))
 
         elif derivative == "services":
+            file_url_encoded = quote(get_file_url(layerset, "mosaic_geotiff"), safe="")
+            xyz_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
             return JsonResponse(
                 {
-                    "xyz_tiles": layerset.xyz_url,
-                    "wms": layerset.wms_url,
+                    "xyz": f"{xyz_base}&url={file_url_encoded}",
+                    "wms": f"{settings.TITILER_HOST}/cog/wms/?LAYERS={file_url_encoded}&VERSION=1.1.1",
                     "tilejson": f"{settings.SITEURL}map/{mapid}/{category}/tilejson",
                 }
             )

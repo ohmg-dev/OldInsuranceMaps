@@ -343,10 +343,7 @@ class LayerSchema(Schema):
     created_by: str
     last_updated_by: str
     image_url: Optional[str]
-    xyz_url: str
-    ohm_url: str
-    wms_url: str
-    tilejson: dict
+    tilejson: Optional[dict]
     mask: Optional[dict]
     gcps_geojson: Optional[dict]
     urls: dict
@@ -495,9 +492,7 @@ class LayerSetLayer(Schema):
     title: str
     nickname: Optional[str]
     slug: str
-    xyz_url: str
-    ohm_url: str
-    tilejson: dict
+    tilejson: Optional[dict]
     urls: dict
     extent: Optional[list]
 
@@ -515,10 +510,7 @@ class LayerSetSchema(Schema):
     id: str
     name: str
     map_id: str
-    xyz_url: str
-    ohm_url: str
-    tilejson: dict
-    wms_url: str
+    tilejson: Optional[dict]
     layers: List[LayerSetLayer]
     multimask_geojson: Optional[dict]
     extent: Optional[tuple]

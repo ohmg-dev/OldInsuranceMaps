@@ -17,8 +17,7 @@
   const styles = new Styles();
 
   export let CONTEXT;
-  export let MAP_HEIGHT = '600';
-  export let EMBEDDED = false;
+  export let MAP_HEIGHT = '600px';
 
   let container;
   let content;
@@ -77,11 +76,11 @@
       viewer.map.forEachFeatureAtPixel(
         event.pixel,
         function (feature) {
-          if (hit) return; // only hover on one point at a time
+          if (hit || !feature.getProperties().volumes) return; // only hover on one point at a time
           hit = true;
         },
         {
-          hitTolerance: 2,
+          hitTolerance: 5,
         },
       );
       viewer.element.style.cursor = hit ? 'pointer' : 'default';
@@ -104,7 +103,7 @@
 					<p><a title="Go to viewer" href="${props.place.url}">Go to viewer &rarr;</a></p>
 					<div style="margin-bottom:15px;">
 						<div style="border-bottom:1px dashed #000; height:12px; margin-bottom:10px;">
-							<span style="background:#fff; padding-right:5px;">Content</span>
+							<span style="background:#fff; padding-right:5px;">Maps</span>
 						</div>
 					</div>
 					<p>${volListStr}</p>
@@ -130,17 +129,7 @@
   }
 </script>
 
-{#if EMBEDDED}
-  <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-  <div
-    id="map-viewer"
-    tabindex="0"
-    class="spinner"
-    style="height:{MAP_HEIGHT}px; width:100%; cursor:{EMBEDDED ? 'pointer' : 'default'};"
-  ></div>
-{:else}
-  <div id="map-viewer" class="spinner" style="height:{MAP_HEIGHT}px; width:100%"></div>
-{/if}
+<div id="map-viewer" class="spinner" style="height:{MAP_HEIGHT}; width:100%"></div>
 <div id="popup" class="ol-popup" style="">
   <button class="close-popup" on:click={closePopup} title="close">x</button>
   <div id="popup-content"></div>
@@ -155,6 +144,7 @@
 
   #map-viewer {
     position: relative;
+    border-bottom-right-radius: 15px;
   }
 
   #map-viewer:focus {

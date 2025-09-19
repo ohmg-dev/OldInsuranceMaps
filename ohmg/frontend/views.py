@@ -1,5 +1,6 @@
 import logging
 
+import humanize
 
 from django.conf import settings
 from django.http import Http404
@@ -56,8 +57,10 @@ class HomePage(View):
                 "PARAMS": {
                     "NEWSLETTER_SLUG": newsletter_slug,
                     "USER_SUBSCRIBED": user_subscribed,
-                    "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
-                    "MAP_CT": Map.objects.all().exclude(loaded_by=None).count(),
+                    "PLACES_CT": humanize.intcomma(
+                        Place.objects.all().exclude(volume_count=0).count()
+                    ),
+                    "MAP_CT": humanize.intcomma(Map.objects.all().exclude(loaded_by=None).count()),
                     "FEATURED_MAPS": featured_list,
                 },
             },
@@ -74,8 +77,10 @@ class Browse(View):
                 "PAGE_NAME": "browse",
                 "PAGE_TITLE": "Search",
                 "PARAMS": {
-                    "PLACES_CT": Place.objects.all().exclude(volume_count=0).count(),
-                    "MAP_CT": Map.objects.all().exclude(loaded_by=None).count(),
+                    "PLACES_CT": humanize.intcomma(
+                        Place.objects.all().exclude(volume_count=0).count()
+                    ),
+                    "MAP_CT": humanize.intcomma(Map.objects.all().exclude(loaded_by=None).count()),
                 },
             }
         }
