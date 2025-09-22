@@ -13,14 +13,19 @@
   const classStr = classes.join(' ');
 </script>
 
-<a {href} class={classStr} target={external ? '_blank' : null} {title} {download}>
-  <slot></slot>
-  {#if external}
-    <ArrowSquareOut />
-  {:else if rightArrow}
-    <ArrowRight />
-  {:else if download}
-    <DownloadSimple />
-  {/if}
-  <!-- </span> -->
-</a>
+{#if external || rightArrow || download}
+  <a {href} class={classStr} target={external ? '_blank' : null} {title} {download}>
+    <slot></slot>
+    {#if external}
+      <ArrowSquareOut />
+    {:else if rightArrow}
+      <ArrowRight />
+    {:else if download}
+      <DownloadSimple />
+    {/if}
+  </a>
+{:else}
+  <a {href} class={classStr} {title}>
+    <slot></slot>
+  </a>
+{/if}
