@@ -17,7 +17,63 @@
   export let MAP_CT;
   export let FEATURED_MAPS = [];
 
-  const blogSection = false;
+  const logoList = [
+    {
+      src: 'https://raw.githubusercontent.com/ohmg-dev/blog/refs/heads/main/src/assets/logos/dsl+ur.png',
+      link: 'https://dsl.richmond.edu/',
+      text: 'Digital Scholarship Lab, University of Richmond',
+    },
+    {
+      src: 'https://raw.githubusercontent.com/ohmg-dev/blog/refs/heads/main/src/assets/logos/ISR-acronym-white.png',
+      link: 'https://isr.umich.edu/',
+      text: 'Institute for Social Research, University of Michigan',
+    },
+    {
+      src: 'https://raw.githubusercontent.com/ohmg-dev/blog/refs/heads/main/src/assets/logos/ohm-wordmark-3.png',
+      link: 'https://openhistoricalmap.org/',
+      text: 'OpenHistoricalMap',
+    },
+    {
+      src: 'https://raw.githubusercontent.com/ohmg-dev/blog/refs/heads/main/src/assets/logos/historyforge-text.png',
+      link: 'https://historyforge.net/',
+      text: 'HistoryForge',
+    },
+    {
+      src: 'https://raw.githubusercontent.com/ohmg-dev/blog/refs/heads/main/src/assets/logos/color_horizontal_transparent.png',
+      link: 'https://midlocenter.org/',
+      text: 'Midlo Center for New Orleans Studies, University of New Orleans',
+    },
+    {
+      src: 'https://raw.githubusercontent.com/ohmg-dev/blog/refs/heads/main/src/assets/logos/commaplab-uga-weblogo.png',
+      link: 'https://www.communitymappinglab.org/',
+      text: 'Community Mapping Lab, University of Georgia',
+    },
+    {
+      src: 'https://raw.githubusercontent.com/ohmg-dev/blog/refs/heads/main/src/assets/logos/rowan_logo_stacked_old.png',
+      link: 'https://www.rowan.edu/ric-edelman-college/centers/cdhr/',
+      text: 'Center for Digital Humanities Research, Rowan University',
+    },
+    {
+      src: 'https://raw.githubusercontent.com/ohmg-dev/blog/refs/heads/main/src/assets/logos/tab-ksu-logo.png',
+      link: 'https://www.ksutab.org/',
+      text: 'Kansas State University Technical Assistance to Brownfields',
+    },
+    {
+      src: 'https://raw.githubusercontent.com/ohmg-dev/blog/refs/heads/main/src/assets/logos/logo70-final-cuhe.png',
+      link: 'https://cuhe.morgan.edu/',
+      text: 'Center for Urban Health Equity, Morgan State University',
+    },
+    {
+      src: 'https://raw.githubusercontent.com/ohmg-dev/blog/refs/heads/main/src/assets/logos/osu-lib-horiz-gray-full.png',
+      link: 'https://library.osu.edu/',
+      text: 'The Ohio State University Libraries',
+    },
+    {
+      src: 'https://raw.githubusercontent.com/ohmg-dev/blog/refs/heads/main/src/assets/logos/uiuc+herop.png',
+      link: 'https://healthyregions.org/',
+      text: 'Healthy Regions & Policies Lab, University of Illinois Urbana-Champaign',
+    },
+  ];
 </script>
 
 <main>
@@ -158,18 +214,34 @@
     </div>
   </section>
 
-  <section style="font-size:1.15em;">
-    <div>
-      <SvelteMarkdown
-        source={`_OldInsuranceMaps.net_ is funded in part by the National Institutes of Health (National Institute on Aging: [R01AG080401](https://reporter.nih.gov/search/bCrnkRo-rkWJJXyXqsj44g/project-details/10582012)) through a partnership with University of Michigan [Institute for Social Research](https://isr.umich.edu/), University of Richmond [Digital Scholarship Lab](https://dsl.richmond.edu/), and the [National Community Reinvestment Coalition](https://ncrc.org). Read more in the [ISR press release](https://isr.umich.edu/news-events/news-releases/grant-to-enable-creation-of-new-data-resources-for-studying-structural-racism/).
+  <section>
+    <div class="double-column-section">
+      <div class="supporter-text">
+        <div class="level is-mobile" style="margin-bottom:0;">
+          <div class="level-left">
+            <div class="level-item">
+              <h3>Support</h3>
+            </div>
+          </div>
+        </div>
+        <SvelteMarkdown
+          source={`_OldInsuranceMaps.net_ is funded in part by the National Institutes of Health (National Institute on Aging: [R01AG080401](https://reporter.nih.gov/search/bCrnkRo-rkWJJXyXqsj44g/project-details/10582012)) through a partnership with University of Michigan [Institute for Social Research](https://isr.umich.edu/), University of Richmond [Digital Scholarship Lab](https://dsl.richmond.edu/), and the [National Community Reinvestment Coalition](https://ncrc.org). Read more in the [ISR press release](https://isr.umich.edu/news-events/news-releases/grant-to-enable-creation-of-new-data-resources-for-studying-structural-racism/).
 
-We have also worked in partnership with [OpenHistoricalMap](https://openhistoricalmap.org), [HistoryForge](https://historyforge.net), [Midlo Center for New Orleans Studies](https://www.uno.edu/academics/colaehd/la/history/midlo), [The Ohio State University Libraries](https://www.uno.edu/research/centers-and-institutes/midlo), and numerous other individuals who have found this while on their own quest to georeference Sanborn Maps.
+We have also worked in partnership with [OpenHistoricalMap](https://openhistoricalmap.org), [HistoryForge](https://historyforge.net), [Midlo Center for New Orleans Studies](https://www.uno.edu/academics/colaehd/la/history/midlo), and have supported community georeferencing events at [The Ohio State University Libraries](https://library.osu.edu/), Rowan University's [Center for Digital Humanities Research](https://www.rowan.edu/ric-edelman-college/centers/cdhr/), the [Community Mapping Lab](https://www.communitymappinglab.org/) at University of Georgia, and the [Center for Urban Health Equality at Morgan State University](https://cuhe.morgan.edu/).
 
-A special thanks to individuals who have donated: Kevin H., Andrew M., Peter M., Pete Z., Chris P., Hayden S., and Mike O.
+OIM proudly supports graduate researchers and independent mappers, especially those who find this site while on a quest to georeference Sanborn maps of their home! Making these maps more accessible is what the project is all about.
+
+And a very special thanks goes out to those individuals who have donated to the project: Kevin H., Andrew M., Peter M., Pete Z., Chris P., Hayden S., and Mike O. Thank you!
 
 To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
-`}
-      />
+  `}
+        />
+      </div>
+      <div class="logo-list-container">
+        {#each logoList as logo}
+          <a href={logo.link} target="_blank"><img src={logo.src} class="logo-image" alt={logo.text} /></a>
+        {/each}
+      </div>
     </div>
   </section>
 </main>
@@ -232,10 +304,29 @@ To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
     width: 50%;
   }
 
+  .supporter-text {
+    width: 40%;
+    padding: 10px;
+  }
+
   .map-container {
     height: calc(100% - 75px);
     border-top: 2px solid black;
     border-left: 2px solid black;
+  }
+
+  .logo-list-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    width: 60%;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .logo-image {
+    max-height: 45px;
+    max-width: 250px;
   }
 
   @media only screen and (max-width: 760px) {
