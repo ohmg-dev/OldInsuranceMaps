@@ -128,6 +128,8 @@ class Mosaicker:
         if existing_file_name and storage.exists(name=existing_file_name):
             storage.delete(name=existing_file_name)
 
+        layerset.save(set_tilejson=True)
+
         print(f"completed - elapsed time: {datetime.now() - start}")
 
     def generate_mosaic_json(self, layerset, trim_all=False):

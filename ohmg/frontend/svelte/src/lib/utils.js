@@ -163,7 +163,7 @@ export function makeLayerGroupFromLayerSet(options) {
     return lyrGroup;
   }
   options.layerSet.layers.forEach(function (layer) {
-    if (layer.slug != options.excludeLayerId) {
+    if (layer.slug != options.excludeLayerId && layer.tilejson) {
       // create the actual ol layers and add to group.
       let newLayer = new TileLayer({
         source: new TileJSON({

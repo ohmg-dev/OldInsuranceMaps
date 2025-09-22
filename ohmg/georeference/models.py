@@ -721,7 +721,7 @@ class GeorefSession(SessionBase):
             if storage.exists(name=existing_file_name):
                 storage.delete(name=existing_file_name)
 
-        layer.save(set_thumbnail=True)
+        layer.save(set_thumbnail=True, set_extent=True, set_tilejson=True)
         self.lyr2 = layer
 
         # add the layer to the main-content LayerSet

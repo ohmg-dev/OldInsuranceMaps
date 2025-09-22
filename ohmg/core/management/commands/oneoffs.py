@@ -23,11 +23,13 @@ class Command(BaseCommand):
                 "handle-missing-iiif-references-and-documents",
                 "set-region-categories",
                 "fix-full-region-files",
+                "set-tilejson",
             ],
             help="Choose what operation to run.",
         )
         parser.add_argument("--reset", action="store_true")
         parser.add_argument("--use-multiprocessing", action="store_true")
+        parser.add_argument("--mapid")
 
     def handle(self, *args, **options):
         operation = options["operation"]
@@ -321,3 +323,22 @@ class Command(BaseCommand):
                     region.file.save(proper_name, File(openf))
 
                 os.remove(old_path)
+
+        ## Sept 15th, 2020 added the tilejson field to Layers and LayerSets, need to resave
+        ## all of that content with the new flag.
+        if operation == "set-tilejson":
+            from ohmg.core.models import Layer, LayerSet, Map
+
+            if options["mapid"]:
+                maps = Map.objects.filter(pk=options["mapid"])
+            else:
+                maps = Map.objects.all().order_by('-load_date')
+
+            for map in maps:
+                print(map)
+                for layer in map.layers:
+                    if not layer.tilejson:
+                        print(layer)
+                        layer.save(set_tilejson=True, skip_map_lookup_update=True, set_extent=True)
+                for layerset in LayerSet.objects.filter(map=map):
+                    layerset.save(set_tilejson=True)
