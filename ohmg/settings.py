@@ -39,7 +39,7 @@ SITE_NAME = os.getenv("SITENAME", "Example.com")
 OHMG_API_KEY_FILEPATH = os.getenv("OHMG_API_KEY_FILEPATH", Path(BASE_DIR, ".ohmg_api_key"))
 if Path(OHMG_API_KEY_FILEPATH).is_file():
     with open(OHMG_API_KEY_FILEPATH, "r") as o:
-        OHMG_API_KEY = o.read()
+        OHMG_API_KEY = o.read().rstrip()
 else:
     OHMG_API_KEY = os.getenv("OHMG_API_KEY")
 if not OHMG_API_KEY:
