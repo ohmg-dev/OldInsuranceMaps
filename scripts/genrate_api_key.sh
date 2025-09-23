@@ -15,9 +15,7 @@ generate_token() {
       token+=${charset:$random_index:1}
   done
 
-  echo $token > .ohmg_api_key
+  echo $token
 }
 
 generate_token
-
-echo "New API key saved. You must restart the webserver for the key to take effect."
