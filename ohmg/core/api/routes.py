@@ -61,9 +61,10 @@ class APIKeyAuth(APIKeyHeader):
     def authenticate(self, request, key):
         if key == settings.OHMG_API_KEY:
             return key
-        elif key in APIKey.objects.filter(active=True).values_list("value", flat=True):
+        elif key in APIKey.objects.all().values_list("value", flat=True):
             APIKey.objects.get(value=key).increment_count()
-            return key
+            if key in APIKey.objects.filter(active=True).values_list("value", flat=True):
+                return key
 
 
 # going to be useful eventually for Geo support
