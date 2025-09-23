@@ -1,4 +1,5 @@
 tests/root
+.ohmg_api_key
 
 plugins
 static_root
