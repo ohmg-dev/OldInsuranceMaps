@@ -25,3 +25,20 @@ class ProfileView(View):
                 },
             },
         )
+
+
+class ContributorsView(View):
+    def get(self, request):
+        ohmg_context = generate_ohmg_context(request)
+        return render(
+            request,
+            "accounts/contributors.html",
+            context={
+                "CONTEXT": ohmg_context,
+                "CONTRIBUTORLIST_PROPS": {
+                    "CONTEXT": ohmg_context,
+                    # "showUser": False,
+                    # "userFilter": {"id": username, "label": username},
+                },
+            },
+        )

@@ -108,6 +108,7 @@ export default (cliArgs) => {
       'Map',
       'SessionList',
       'MapList',
+      'ContributorList',
     ].forEach((d) => exportable.push(componentExportDetails(d)));
   }
 
