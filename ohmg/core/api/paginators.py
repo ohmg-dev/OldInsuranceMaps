@@ -93,3 +93,26 @@ class MapPagination(PaginationBase):
             "count": queryset.count(),
             "filter_items": filter_items,
         }
+
+
+class ContributorPagination(PaginationBase):
+    class Input(Schema):
+        offset: int
+        limit: int
+
+    class Output(Schema):
+        items: List[Any]
+        count: int
+        filter_items: dict
+
+    def paginate_queryset(self, queryset, pagination: Input, **params):
+        filter_items = {
+            "maps": ["sdf"],
+        }
+
+        offset = pagination.offset
+        return {
+            "items": queryset[offset : offset + pagination.limit],
+            "count": queryset.count(),
+            "filter_items": filter_items,
+        }
