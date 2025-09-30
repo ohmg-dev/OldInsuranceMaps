@@ -7,7 +7,7 @@ from ninja import (
 
 class FilterSessionSchema(FilterSchema):
     username: Optional[str] = Field(q="user__username")
-    map: Optional[List[str]]
+    map: Optional[List[str]] = Field(q=["map_id__in"])
     document: Optional[List[int]] = Field(
         q=["doc2_id__in", "reg2__document_id__in", "lyr2__region__document_id__in"]
     )
