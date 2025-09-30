@@ -2,10 +2,9 @@ from django.urls import path
 
 from .views import (
     ProfileView,
-    ContributorsView,
 )
 
 urlpatterns = [
     path("profile/<str:username>/", ProfileView.as_view(), name="profile_detail"),
-    path("contributors/", ContributorsView.as_view(), name="contributors"),
+    # path("contributors/", ContributorsView.as_view(), name="contributors"),
 ]
