@@ -19,6 +19,7 @@ from django.core.mail import send_mass_mail
 from django.utils import timezone
 
 from ohmg.core.models import (
+    Map,
     Document,
     Region,
     RegionCategory,
@@ -332,6 +333,12 @@ class SessionBase(models.Model):
         null=True,
         blank=True,
     )
+    map = models.ForeignKey(
+        Map,
+        models.SET_NULL,
+        null=True,
+        blank=True,
+    )
     data = models.JSONField(
         default=dict,
         blank=True,
@@ -453,17 +460,27 @@ class SessionBase(models.Model):
                     f"{self.__str__()} data | Invalid type: {k} is {type(v)}, must be {type(lookup[k])}"
                 )
 
-    def save(self, *args, **kwargs):
-        self.validate_data()
-        self.date_modified = timezone.now()
-        return super(SessionBase, self).save(*args, **kwargs)
-
     def send_email_notification(self, subject, message):
         data_tuple = (
             (subject, message, settings.DEFAULT_FROM_EMAIL, [settings.ADMIN_EMAIL]),
             # (subject, message, settings.DEFAULT_FROM_EMAIL, [self.user.email]),
         )
         send_mass_mail(data_tuple)
+
+    def save(self, update_modified_timestamp=True, set_map=False, *args, **kwargs):
+        self.validate_data()
+        if update_modified_timestamp:
+            self.date_modified = timezone.now()
+
+        if set_map or not self.map:
+            if self.doc2:
+                self.map = self.doc2.map
+            elif self.reg2:
+                self.map = self.reg2.map
+            elif self.lyr2:
+                self.map = self.lyr2.map
+
+        return super(SessionBase, self).save(*args, **kwargs)
 
 
 class PrepSession(SessionBase):

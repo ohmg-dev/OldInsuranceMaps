@@ -46,10 +46,12 @@ class SessionPagination(PaginationBase):
             key=lambda k: k["id"],
         )
 
-        ## TODO: Add .map to SessionBase and auto-set it based on the doc2, reg2, or lyr2
-        ## attributes. Then, implement a dynamic list of maps here.
-        maps = Map.objects.exclude(hidden=True).order_by("title")
-        map_items = [{"id": i[0], "label": i[1]} for i in maps.values_list("identifier", "title")]
+        map_ids = queryset.values_list("map", flat=True)
+        maps = Map.objects.filter(pk__in=map_ids)
+        map_items = natsorted(
+            [{"id": i[0], "label": i[1]} for i in maps.values_list("identifier", "title")],
+            key=lambda k: k["label"],
+        )
 
         filter_items = {
             "types": type_items,

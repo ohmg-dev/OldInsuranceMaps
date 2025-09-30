@@ -24,7 +24,7 @@ admin.site.register(GCPGroup, GCPGroupAdmin)
 
 class SessionAdmin(admin.ModelAdmin):
     raw_id_fields = ("doc2", "reg2", "lyr2")
-    readonly_fields = ("date_created", "date_modified", "date_run")
+    readonly_fields = ("map", "date_created", "date_modified", "date_run")
     list_display = [
         "__str__",
         "user",
