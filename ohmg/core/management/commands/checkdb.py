@@ -1,7 +1,10 @@
 import copy
 from django.core.management.base import BaseCommand
+from django.db.models import Q
 
-from ohmg.core.models import Layer, LayerSet
+from ohmg.core.models import Layer, LayerSet, Document
+from ohmg.core.utils import confirm_continue
+from ohmg.georeference.models import PrepSession, GeorefSession, SessionLock
 
 
 class Command(BaseCommand):
@@ -10,6 +13,7 @@ class Command(BaseCommand):
             "operation",
             choices=[
                 "multimasks",
+                "sessions",
             ],
             help="Choose what check to run.",
         )
@@ -18,8 +22,15 @@ class Command(BaseCommand):
             action="store_true",
             help="Run a fix on the check (actions taken depend on the check).",
         )
+        parser.add_argument(
+            "--verbose",
+            action="store_true",
+            help="Verbose print statements.",
+        )
 
     def handle(self, *args, **options):
+        verbose = options["verbose"]
+
         def fix_layer_slug(slug, valid_slugs):
             """Return the input slug if it's valid, or a fixed one if it can
             be figured out. Return None if no fix can be found."""
@@ -77,3 +88,66 @@ class Command(BaseCommand):
                 for ls in to_save:
                     print(f"saving {ls}")
                     ls.save()
+
+        if options["operation"] == "sessions":
+            print("\nchecking PrepSessions...")
+            s = PrepSession.objects.filter(doc2__isnull=True)
+            print(f"{s.count()} missing doc2")
+            if s.count() > 0 and verbose:
+                for i in s:
+                    print(f"-- {i}")
+            s = PrepSession.objects.filter(Q(reg2__isnull=False) | Q(lyr2__isnull=False))
+            print(f"{s.count()} have reg2 or lyr2")
+            if s.count() > 0 and verbose:
+                for i in s:
+                    print(f"-- {i}")
+            s = PrepSession.objects.filter(map__isnull=True)
+            print(f"{s.count()} missing map")
+            if s.count() > 0 and verbose:
+                for i in s:
+                    print(f"-- {i}")
+            split = PrepSession.objects.filter(data__split_needed=True)
+            print(f"{split.count()} split prepsessions")
+            for i in split:
+                if i.doc2 and i.doc2.regions.count() < 2 and verbose:
+                    print(f"-- {i}: document {i.doc2} is split but only has 1 region attached")
+            nosplit = PrepSession.objects.filter(data__split_needed=False)
+            print(f"{nosplit.count()} no split prepsessions")
+            dupe_ct = 0
+            for i in nosplit:
+                if i.doc2 and i.doc2.regions.count() > 1:
+                    dupe_ct += 1
+                    if verbose:
+                        print(
+                            f"-- {i}: document {i.doc2} has multiple regions (should just have one)"
+                        )
+                        print(f"   {i.doc2.regions.all()}")
+            print(f"{dupe_ct} no split prepsessions have documents with multiple regions")
+            mp = 0
+            for d in Document.objects.all():
+                if PrepSession.objects.filter(doc2=d).count() > 1:
+                    mp += 1
+                    if verbose:
+                        print(f"document {d} has multiple prepsessions")
+            print(f"{mp} documents have multiple prepsessions")
+
+            print("\nchecking GeorefSessions...")
+            s = GeorefSession.objects.filter(doc2__isnull=False)
+            print(f"{s.count()} have doc2")
+            if s.count() > 0 and verbose:
+                for i in s:
+                    print(f"-- {i}")
+            s = GeorefSession.objects.filter(reg2__isnull=True)
+            print(f"{s.count()} missing reg2")
+            if s.count() > 0 and verbose:
+                for i in s:
+                    print(f"-- {i}")
+            s = GeorefSession.objects.filter(lyr2__isnull=True)
+            print(f"{s.count()} missing lyr2")
+            if s.count() > 0 and (verbose or confirm_continue("print details?")):
+                for i in s:
+                    print(f"-- {i}")
+
+            print("\nchecking SessionLocks...")
+            locks = SessionLock.objects.all()
+            print(f"{locks.count()} current locks")
