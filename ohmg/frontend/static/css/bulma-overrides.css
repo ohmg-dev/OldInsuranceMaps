@@ -30,7 +30,8 @@
 }
 
 a.navbar-item,
-a.navbar-link {
+a.navbar-link,
+button.navbar-link {
   color: white;
   height: 100%;
 }
@@ -72,7 +73,8 @@ a.navbar-link {
 a.navbar-link:hover {
   text-decoration: none;
 }
-a.navbar-link > span {
+a.navbar-link > span,
+button.navbar-link > span {
   margin-right: 0.25em;
 }
 a.navbar-link > span:hover {

@@ -12,53 +12,54 @@
 	</div>
 	<div id="top-navbar" class="navbar-menu">
 		<div class="navbar-start">
-        {% for item in NAVBAR_CONFIG.left_side.items %}
-            {% if item.children %}
-            <div class="navbar-item has-dropdown is-hoverable{% if CURRENT_ROUTE in item.active_routes %} active{% endif %}">
-                <a class="navbar-link is-hoverable is-arrowless" href="{{item.link}}">
-                    <span>{{item.title}}</span>
-                    <i class="ph-bold ph-caret-down"></i>
-                </a>
-                <div class="navbar-dropdown navbar-menu">
-                    {% for child in item.children %}
-                    <a class="navbar-item" href="{{child.link}}">
-                        <span style="margin-right:5px;">{{child.title}}</span>
-                        {% if child.link|slice:":4" == "http" %}
-                        <i class="ph-bold ph-arrow-square-out"></i>
-                        {% endif %}
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-            {% else %}
-            <div class="navbar-item{% if CURRENT_ROUTE in item.active_routes %} active{% endif %}" style="padding:0">
-                <a class="navbar-link is-arrowless" href="{{item.link}}">
-                    <span>{{ item.title }}</span>
-                    {% if item.link|slice:":4" == "http" %}
-                    <i class="ph-bold ph-arrow-square-out"></i>
-                    {% endif %}
-                </a>
-            </div>
-            {% endif %}
-        {% endfor %}
+		{% for item in NAVBAR_CONFIG.left_side.items %}
+			{% if item.children %}
+			<div class="navbar-item has-dropdown is-hoverable{% if CURRENT_ROUTE in item.active_routes %} active{% endif %}">
+				<button class="navbar-link is-arrowless" style="cursor:default" >
+					<span>{{item.title}}</span>
+					<i class="ph-bold ph-caret-down"></i>
+				</button>
+				<div class="navbar-dropdown navbar-menu">
+					{% for child in item.children %}
+					<a class="navbar-item" href="{{child.link}}">
+						<span style="margin-right:5px;">{{child.title}}</span>
+						{% if child.link|slice:":4" == "http" %}
+						<i class="ph-bold ph-arrow-square-out"></i>
+						{% endif %}
+					</a>
+					{% endfor %}
+				</div>
+			</div>
+			{% else %}
+			<div class="navbar-item{% if CURRENT_ROUTE in item.active_routes %} active{% endif %}" style="padding:0">
+				<a class="navbar-link is-arrowless" href="{{item.link}}">
+					<span>{{ item.title }}</span>
+					{% if item.link|slice:":4" == "http" %}
+					<i class="ph-bold ph-arrow-square-out"></i>
+					{% endif %}
+				</a>
+			</div>
+			{% endif %}
+		{% endfor %}
 		</div>
 		<div class="navbar-end">
 		{% if user.is_authenticated %}
-        <div class="navbar-item has-dropdown is-hoverable">
-            <a class="navbar-link is-hoverable is-arrowless" href="/profile/{{ user.username }}" title="Go to profile">
-                <span>{{ user.username }}</span>
-                <i class="ph-bold ph-caret-down"></i>
-            </a>
-            <div class="navbar-dropdown navbar-menu">
-                <a class="navbar-item" href="/account/logout" title="Sign out">Sign out</a>
-            </div>
-        </div>
+		<div class="navbar-item has-dropdown is-hoverable">
+			<button class="navbar-link is-arrowless" style="cursor:default" >
+				<span>{{ user.username }}</span>
+				<i class="ph-bold ph-caret-down"></i>
+			</button>
+			<div class="navbar-dropdown navbar-menu">
+				<a class="navbar-item" href="/profile/{{ user.username }}" title="Go to my profile">My profile</a>
+				<a class="navbar-item" href="/account/logout" title="Sign out">Sign out</a>
+			</div>
+		</div>
 		{% else %}
 		<div class="navbar-item is-right">
-			<a class="navbar-link is-arrowless" onclick="openSigninModal()">
+			<button class="navbar-link is-arrowless" onclick="openSigninModal()">
 				<span>Sign in</span>
 				<i class="ph-bold ph-sign-in"></i>
-            </a>
+			</button>
 		</div>
 		{% endif %}
 		</div>
@@ -126,9 +127,14 @@
 	function toggleMobileMenu() {
 		document.getElementsByClassName('navbar-burger')[0].classList.toggle('is-active')
 		document.getElementsByClassName('navbar-menu')[0].classList.toggle('is-active');
-		Array.from(document.getElementsByClassName('navbar-dropdown')).forEach( function(el) {
-            el.classList.toggle('is-active')
-        });
+		// ideally, the dropdowns would only be clickable on mobile. That's what this should do,
+		// but it seems like they are clickable no matter what.
+		Array.from(document.querySelectorAll("button.navbar-link")).forEach( function(el) {
+			el.removeAttribute('onclick');
+			if (document.getElementsByClassName('navbar-menu')[0].classList.contains("is-active")) {
+				el.onclick = function () {el.nextElementSibling.classList.toggle('is-active')}
+			}
+		});
 	}
 	function toggleSigninForm() {
 		Array.from(document.getElementsByClassName("signin-forms")).forEach( function(el) {

@@ -114,7 +114,14 @@ def list_users(request):
     return queryset
 
 
-# @beta2.get('map/session-summary', response=SessionSummarySchema, url_name="map_session_summary"):
+@beta2.get("contributors/", response=List[UserSchema], url_name="user_list")
+@paginate
+def list_contributors(request):
+    user_ids = set(SessionBase.objects.all().values_list("user", flat=True))
+    queryset = (
+        User.objects.filter(pk__in=user_ids).exclude(username="AnonymousUser").order_by("username")
+    )
+    return queryset
 
 
 @beta2.get("map/", response=MapFullSchema, url_name="map")
