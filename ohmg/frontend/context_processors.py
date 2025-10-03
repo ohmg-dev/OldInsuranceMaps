@@ -21,11 +21,11 @@ def site_info(request):
                 item["active_routes"] = []
                 if "extra_active_routes" in item:
                     item["active_routes"] += item.pop("extra_active_routes")
-                if item["link"]:
+                if "link" in item:
                     item["active_routes"].append(item["link"].lstrip("/").rstrip("/"))
                 if "children" in item:
                     for child in item["children"]:
-                        if child["link"]:
+                        if "link" in child:
                             item["active_routes"].append(child["link"].lstrip("/").rstrip("/"))
 
     site = Site.objects.get_current()
