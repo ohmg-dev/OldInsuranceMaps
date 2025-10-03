@@ -84,4 +84,9 @@ export const parcelLookup = {
     attributionText: 'City of Austin, Texas - data.austintexas.gov',
     attributionUrl: 'https://data.austintexas.gov/Locations-and-Maps/Land-Use-Inventory-Detailed/7vsm-dvxg/about_data',
   },
+  'santa-clara-county-ca': {
+    pmtilesUrl: 'https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/santa-clara-county-ca-parcels.pmtiles',
+    attributionText: 'County of Santa Clara - Open Data Portal',
+    attributionUrl: 'https://data.sccgov.org/Government/Parcels/2bmn-3ayc/about_data',
+  },
 };
