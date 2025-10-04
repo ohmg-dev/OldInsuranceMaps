@@ -32,6 +32,7 @@ from ohmg.core.models import (
 )
 from ohmg.georeference.tasks import (
     run_preparation_session,
+    bulk_run_preparation_sessions,
     run_georeference_session,
     delete_preview_vrts,
 )
@@ -127,6 +128,7 @@ class SplitView(View):
             return JsonResponseSuccess(f"no split, new region created: {new_region.pk}")
 
         elif operation == "bulk-no-split":
+            sessionids = []
             for docid in bulk_no_split_ids:
                 document = Document.objects.get(pk=docid)
                 sesh = PrepSession.objects.create(
@@ -138,7 +140,11 @@ class SplitView(View):
 
                 sesh.data["split_needed"] = False
                 sesh.save(update_fields=["data"])
-                sesh.run()
+                logger.info(f"{sesh.__str__()} | queued bulk run() as task")
+                sessionids.append(sesh.pk)
+
+            bulk_run_preparation_sessions.apply_async((sessionids,))
+
             return JsonResponseSuccess("bulk prepare completed successfully")
 
         elif operation == "split":

@@ -317,6 +317,7 @@ CELERY_TASK_QUEUES = (
 
 CELERY_TASK_ROUTES = {
     "ohmg.georeference.tasks.run_preparation_session": {"queue": "split"},
+    "ohmg.georeference.tasks.bulk_run_preparation_sessions": {"queue": "split"},
     "ohmg.georeference.tasks.run_georeference_session": {"queue": "georeference"},
     "ohmg.georeference.tasks.delete_stale_sessions": {"queue": "housekeeping"},
     "ohmg.georeference.tasks.delete_preview_vrts": {"queue": "housekeeping"},
