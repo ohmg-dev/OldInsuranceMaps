@@ -114,6 +114,11 @@ class SplitView(View):
             # sesh could be None if this post has been made directly from an overview page,
             # not from the split interface where a session will have already been made.
             if sesh is None:
+                if PrepSession.objects.filter(doc2=document).exists():
+                    msg = f"one or more PrepSessions already exist for Document {document.pk}"
+                    logger.warning(msg)
+                    return JsonResponseFail(msg)
+
                 sesh = PrepSession.objects.create(
                     doc2=document,
                     user=request.user,
