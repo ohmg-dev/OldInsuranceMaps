@@ -129,8 +129,9 @@ class SplitView(View):
             sesh.data["split_needed"] = False
             sesh.save(update_fields=["data"])
 
-            new_region = sesh.run()[0]
-            return JsonResponseSuccess(f"no split, new region created: {new_region.pk}")
+            logger.info(f"{sesh.__str__()} | begin run() as task")
+            run_preparation_session.apply_async((sesh.pk,))
+            return JsonResponseSuccess()
 
         elif operation == "bulk-no-split":
             sessionids = []
