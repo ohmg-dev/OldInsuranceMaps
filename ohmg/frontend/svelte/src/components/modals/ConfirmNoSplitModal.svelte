@@ -4,12 +4,21 @@
 
   export let CONTEXT;
   export let documentId;
+  export let sessionId = null;
   export let processing;
   export let callback = null;
 
   function postNoSplit() {
     processing = true;
-    submitPostRequest(`/split/${documentId}/`, CONTEXT.ohmg_post_headers, 'no-split', {}, callback);
+    submitPostRequest(
+      `/split/${documentId}/`,
+      CONTEXT.ohmg_post_headers,
+      'no-split',
+      {
+        sessionId: sessionId,
+      },
+      callback,
+    );
   }
 </script>
 
