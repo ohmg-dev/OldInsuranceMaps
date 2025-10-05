@@ -32,6 +32,7 @@ from ohmg.core.models import (
 )
 from ohmg.georeference.tasks import (
     run_preparation_session,
+    bulk_run_preparation_sessions,
     run_georeference_session,
     delete_preview_vrts,
 )
@@ -113,6 +114,11 @@ class SplitView(View):
             # sesh could be None if this post has been made directly from an overview page,
             # not from the split interface where a session will have already been made.
             if sesh is None:
+                if PrepSession.objects.filter(doc2=document).exists():
+                    msg = f"one or more PrepSessions already exist for Document {document.pk}"
+                    logger.warning(msg)
+                    return JsonResponseFail(msg)
+
                 sesh = PrepSession.objects.create(
                     doc2=document,
                     user=request.user,
@@ -123,10 +129,12 @@ class SplitView(View):
             sesh.data["split_needed"] = False
             sesh.save(update_fields=["data"])
 
-            new_region = sesh.run()[0]
-            return JsonResponseSuccess(f"no split, new region created: {new_region.pk}")
+            logger.info(f"{sesh.__str__()} | begin run() as task")
+            run_preparation_session.apply_async((sesh.pk,))
+            return JsonResponseSuccess()
 
         elif operation == "bulk-no-split":
+            sessionids = []
             for docid in bulk_no_split_ids:
                 document = Document.objects.get(pk=docid)
                 sesh = PrepSession.objects.create(
@@ -138,7 +146,11 @@ class SplitView(View):
 
                 sesh.data["split_needed"] = False
                 sesh.save(update_fields=["data"])
-                sesh.run()
+                logger.info(f"{sesh.__str__()} | queued bulk run() as task")
+                sessionids.append(sesh.pk)
+
+            bulk_run_preparation_sessions.apply_async((sessionids,))
+
             return JsonResponseSuccess("bulk prepare completed successfully")
 
         elif operation == "split":

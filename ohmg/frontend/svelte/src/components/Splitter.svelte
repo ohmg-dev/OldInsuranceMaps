@@ -412,6 +412,7 @@
 <ConfirmNoSplitModal
   documentId={DOCUMENT.id}
   {CONTEXT}
+  {sessionId}
   callback={() => {
     leaveOkay = true;
     window.location.href = `/map/${DOCUMENT.map}`;

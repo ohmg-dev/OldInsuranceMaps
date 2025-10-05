@@ -24,6 +24,14 @@ def run_preparation_session(sessionid):
 
 
 @app.task
+def bulk_run_preparation_sessions(sessionids):
+    for sessionid in sessionids:
+        session = PrepSession.objects.get(pk=sessionid)
+        session.run()
+    return sessionids
+
+
+@app.task
 def run_georeference_session(sessionid):
     session = GeorefSession.objects.get(pk=sessionid)
     session.run()
