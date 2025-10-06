@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from django.db.models import Count
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
@@ -24,6 +25,7 @@ class Command(BaseCommand):
                 "set-region-categories",
                 "fix-full-region-files",
                 "set-tilejson",
+                "delete-duplicate-regions",
             ],
             help="Choose what operation to run.",
         )
@@ -332,7 +334,7 @@ class Command(BaseCommand):
             if options["mapid"]:
                 maps = Map.objects.filter(pk=options["mapid"])
             else:
-                maps = Map.objects.all().order_by('-load_date')
+                maps = Map.objects.all().order_by("-load_date")
 
             for map in maps:
                 print(map)
@@ -342,3 +344,44 @@ class Command(BaseCommand):
                         layer.save(set_tilejson=True, skip_map_lookup_update=True, set_extent=True)
                 for layerset in LayerSet.objects.filter(map=map):
                     layerset.save(set_tilejson=True)
+
+        ## 10/06/2025 Cleaning up a lot of duplicate regions that had been inadvertedly created
+        ## due to the slow reaponse of the prep "no split" action. In this operation, any document
+        ## that should not have been split, but has multiple regions attached to it, will be selected
+        ## then all of its regions iterated. If one region has been georeffed, choose it
+        if operation == "delete-duplicate-regions":
+            from ohmg.georeference.models import PrepSession
+            from ohmg.core.models import Document
+
+            docids = PrepSession.objects.filter(data__split_needed=False).values_list(
+                "doc2__pk", flat=True
+            )
+            docs = (
+                Document.objects.annotate(num_regions=Count("regions"))
+                .filter(pk__in=docids, num_regions__gt=1)
+                .order_by("map__pk")
+            )
+            for doc in docs:
+                print(doc.map.pk, doc, doc.pk)
+                print("regions:", doc.num_regions)
+                keep_reg = None
+                for i in doc.regions.all():
+                    if i.georeferenced:
+                        keep_reg = i
+                if not keep_reg:
+                    keep_reg = doc.regions.all()[0]
+                reg_delete = doc.regions.exclude(pk=keep_reg.pk)
+                for r in reg_delete:
+                    print("deleting:", r, r.pk)
+                    r.file = None
+                    r.thumbnail = None
+                    r.save()
+                    r.delete()
+
+                ps = PrepSession.objects.filter(doc2=doc)
+                print("prepsessions:", ps.count())
+                keep_ps_pk = ps.first().pk
+                delete_ps = ps.exclude(pk=keep_ps_pk)
+                for s in delete_ps:
+                    print("deleting:", s, s.pk)
+                delete_ps.delete()
