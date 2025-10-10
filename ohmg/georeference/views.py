@@ -6,7 +6,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.utils.decorators import method_decorator
 
-from ohmg.core.http import (
+from ohmg.conf.http import (
     JsonResponseSuccess,
     JsonResponseFail,
     JsonResponseBadRequest,

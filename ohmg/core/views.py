@@ -14,7 +14,13 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 
-from ohmg.core.http import generate_ohmg_context
+from ohmg.conf.http import (
+    generate_ohmg_context,
+    validate_post_request,
+    JsonResponseSuccess,
+    JsonResponseFail,
+    JsonResponseNotFound,
+)
 from ohmg.core.models import (
     Map,
     Document,
@@ -26,23 +32,16 @@ from ohmg.core.models import (
 )
 from .utils import time_this, get_file_url
 from .exporters.qlr import generate_qlr_content
-from ohmg.core.api.schemas import (
+from .api.schemas import (
     MapFullSchema,
     MapResourcesSchema,
     PlaceFullSchema,
     LayerSetSchema,
     ResourceFullSchema,
 )
-from ohmg.core.tasks import (
+from .tasks import (
     load_map_documents_as_task,
     load_document_file_as_task,
-)
-
-from .http import (
-    validate_post_request,
-    JsonResponseSuccess,
-    JsonResponseFail,
-    JsonResponseNotFound,
 )
 
 logger = logging.getLogger(__name__)
@@ -312,13 +311,17 @@ class ResourceDerivativeView(View):
             layer = get_object_or_404(Layer, pk=pk)
             region = layer.region
             if not test_map_access(request.user, layer.map):
-                return HttpResponse("Unauthorized: You do not have access to this item.", status=401)
+                return HttpResponse(
+                    "Unauthorized: You do not have access to this item.", status=401
+                )
 
         elif resource == "region":
             region = get_object_or_404(Region, pk=pk)
             layer = region.layer if hasattr(region, "layer") else None
             if not test_map_access(request.user, region.map):
-                return HttpResponse("Unauthorized: You do not have access to this item.", status=401)
+                return HttpResponse(
+                    "Unauthorized: You do not have access to this item.", status=401
+                )
         else:
             raise Http404
 

@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.views import View
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
-from ohmg.core.http import generate_ohmg_context
+from ohmg.conf.http import generate_ohmg_context
 from ohmg.core.models import Map
 from ohmg.core.api.schemas import (
     LayerSetSchema,
