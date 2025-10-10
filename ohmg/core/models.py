@@ -384,7 +384,7 @@ class Map(models.Model):
         return f"/map/{self.pk}/"
 
     def update_item_lookup(self):
-        from ohmg.core.api.schemas import DocumentSchema, RegionSchema, LayerSchema
+        from ohmg.api.schemas import DocumentSchema, RegionSchema, LayerSchema
 
         regions = self.regions
         items = {

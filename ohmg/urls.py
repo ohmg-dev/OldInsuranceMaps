@@ -5,7 +5,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
 from django.views.defaults import page_not_found, server_error
 
-from ohmg.core.api.routes import beta2
+from ohmg.api.routes import beta2
 
 
 def debug_page_not_found(request):

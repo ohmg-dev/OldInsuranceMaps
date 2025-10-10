@@ -20,7 +20,7 @@ from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,
 )
-from ohmg.core.api.schemas import (
+from ohmg.api.schemas import (
     DocumentFullSchema,
     LayerSetSchema,
     MapFullSchema,

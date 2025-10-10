@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 
-from ohmg.core.api.schemas import UserSchema
+from ohmg.api.schemas import UserSchema
 from ohmg.conf.http import generate_ohmg_context
 
 

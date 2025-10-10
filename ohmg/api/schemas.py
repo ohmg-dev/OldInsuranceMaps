@@ -24,7 +24,7 @@ from ohmg.georeference.models import (
     GeorefSession,
     SessionLock,
 )
-from ..exporters.atlascope import (
+from ..core.exporters.atlascope import (
     generate_atlascope_properties,
     generate_atlascope_geometry,
 )

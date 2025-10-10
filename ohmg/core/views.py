@@ -14,6 +14,13 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 
+from ohmg.api.schemas import (
+    MapFullSchema,
+    MapResourcesSchema,
+    PlaceFullSchema,
+    LayerSetSchema,
+    ResourceFullSchema,
+)
 from ohmg.conf.http import (
     generate_ohmg_context,
     validate_post_request,
@@ -21,7 +28,7 @@ from ohmg.conf.http import (
     JsonResponseFail,
     JsonResponseNotFound,
 )
-from ohmg.core.models import (
+from .models import (
     Map,
     Document,
     Region,
@@ -32,13 +39,6 @@ from ohmg.core.models import (
 )
 from .utils import time_this, get_file_url
 from .exporters.qlr import generate_qlr_content
-from .api.schemas import (
-    MapFullSchema,
-    MapResourcesSchema,
-    PlaceFullSchema,
-    LayerSetSchema,
-    ResourceFullSchema,
-)
 from .tasks import (
     load_map_documents_as_task,
     load_document_file_as_task,

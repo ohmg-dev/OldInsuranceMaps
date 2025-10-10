@@ -7,13 +7,13 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from ohmg.conf.http import generate_ohmg_context
 from ohmg.core.models import Map
-from ohmg.core.api.schemas import (
+from ohmg.api.schemas import (
     LayerSetSchema,
     MapFullSchema,
     AtlascopeLayersetFeature,
 )
 
-from ohmg.core.api.schemas import PlaceFullSchema
+from ohmg.api.schemas import PlaceFullSchema
 
 
 class PlaceView(View):
