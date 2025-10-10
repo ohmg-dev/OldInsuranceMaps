@@ -480,6 +480,9 @@ class SessionBase(models.Model):
             elif self.lyr2:
                 self.map = self.lyr2.map
 
+        if self.stage == "finished":
+            self.unlock_resources()
+
         return super(SessionBase, self).save(*args, **kwargs)
 
 
@@ -571,8 +574,6 @@ class PrepSession(SessionBase):
 
         self.doc2.prepared = True
         self.doc2.save()
-
-        self.unlock_resources()
 
         processing_time = timezone.now() - self.date_run
         self.send_email_notification(
@@ -756,8 +757,6 @@ class GeorefSession(SessionBase):
         self.update_stage("finished", save=False)
         self.update_status("success", save=False)
         self.save()
-
-        self.unlock_resources()
 
         processing_time = timezone.now() - self.date_run
         self.send_email_notification(
