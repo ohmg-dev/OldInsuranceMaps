@@ -78,7 +78,7 @@ class MapView(View):
         map = get_object_or_404(Map.objects.prefetch_related(), pk=identifier)
 
         if not test_map_access(request.user, map):
-            return HttpResponse("Unauthorized", status=401)
+            return HttpResponse("Unauthorized: You do not have access to this item.", status=401)
 
         map_json = MapFullSchema.from_orm(map).dict()
 
@@ -149,7 +149,7 @@ class GenericResourceView(View):
     def get(self, request, pk):
         resource = get_object_or_404(self.model, pk=pk)
         if not test_map_access(request.user, resource.map):
-            return HttpResponse("Unauthorized", status=401)
+            return HttpResponse("Unauthorized: You do not have access to this item.", status=401)
 
         map_json = MapResourcesSchema.from_orm(resource.map).dict()
         place_json = PlaceFullSchema.from_orm(resource.map.get_locale()).dict()
@@ -312,13 +312,13 @@ class ResourceDerivativeView(View):
             layer = get_object_or_404(Layer, pk=pk)
             region = layer.region
             if not test_map_access(request.user, layer.map):
-                return HttpResponse("Unauthorized", status=401)
+                return HttpResponse("Unauthorized: You do not have access to this item.", status=401)
 
         elif resource == "region":
             region = get_object_or_404(Region, pk=pk)
             layer = region.layer if hasattr(region, "layer") else None
             if not test_map_access(request.user, region.map):
-                return HttpResponse("Unauthorized", status=401)
+                return HttpResponse("Unauthorized: You do not have access to this item.", status=401)
         else:
             raise Http404
 
@@ -446,7 +446,7 @@ class LayersetDerivativeView(View):
         map = get_object_or_404(Map.objects.prefetch_related(), pk=mapid)
 
         if not test_map_access(request.user, map):
-            return HttpResponse("Unauthorized", status=401)
+            return HttpResponse("Unauthorized: You do not have access to this item.", status=401)
 
         layerset = map.get_layerset(category)
         if not layerset:
