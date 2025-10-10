@@ -92,6 +92,6 @@ export const parcelLookup = {
   hawaii: {
     pmtilesUrl: 'https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/hawaii-parcels.pmtiles',
     attributionText: 'Hawaii Statewide GIS Program',
-    attributionUrl: 'https://geoportal.hawaii.gov/datasets/HiStateGIS::parcels-hawaii-county/about',
+    attributionUrl: 'https://geoportal.hawaii.gov/datasets/HiStateGIS::parcels-hawaii-statewide/about',
   },
 };
