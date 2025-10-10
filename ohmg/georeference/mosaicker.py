@@ -59,7 +59,7 @@ class Mosaicker:
         for feature in multimask_geojson["features"]:
             layer_name = feature["properties"]["layer"]
 
-            layer = Layer.objects.get(slug=layer_name)
+            layer = Layer.objects.get(slug=layer_name, region__document__map=layerset.map)
             if not layer.file:
                 raise Exception(f"no layer file for this layer {layer_name}")
 
