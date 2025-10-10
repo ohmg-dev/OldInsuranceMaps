@@ -16,8 +16,7 @@
       > and are pulled into this site through the LOC <Link
         href="https://www.loc.gov/apis/json-and-yaml/requests/"
         external={true}>JSON API</Link
-      >, generating a "Map Summary" page (<Link href="/map/sanborn03275_001/?utm_source=index">Baton Rouge, 1885</Link
-      >).
+      >, generating a "Map Summary" page (<Link href="/map/sanborn03275_001?utm_source=index">Baton Rouge, 1885</Link>).
     </p>
   </div>
   <div>
