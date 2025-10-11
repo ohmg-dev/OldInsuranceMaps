@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.contrib.gis.geos import MultiPolygon, GEOSGeometry
 
 from ..models import LayerSet
@@ -11,7 +12,10 @@ def generate_atlascope_properties(layerset: LayerSet):
         "publisherShort": "Sanborn",
         "year": layerset.map.year,
         "bibliographicEntry": "_Richards standard atlas of the town of Greenfield_ (Richards Map Company, 1918)",
-        "source": {"type": "tilejson", "url": layerset.tilejson_url},
+        "source": {
+            "type": "tilejson",
+            "url": f"{settings.SITEURL.rstrip('/')}/map/{layerset.map.identifier}/{layerset.category.slug}/tilejson",
+        },
         "catalogPermalink": f"https://loc.gov/item/{layerset.map.identifier}",
         "heldBy": ["Library of Congress"],
         "sponsors": [],
