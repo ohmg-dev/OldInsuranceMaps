@@ -130,9 +130,10 @@
 		// ideally, the dropdowns would only be clickable on mobile. That's what this should do,
 		// but it seems like they are clickable no matter what.
 		Array.from(document.querySelectorAll("button.navbar-link")).forEach( function(el) {
-			el.removeAttribute('onclick');
 			if (document.getElementsByClassName('navbar-menu')[0].classList.contains("is-active")) {
-				el.onclick = function () {el.nextElementSibling.classList.toggle('is-active')}
+				if (el.nextElementSibling) {
+					el.onclick = function () {el.nextElementSibling.classList.toggle('is-active')}
+				}
 			}
 		});
 	}
