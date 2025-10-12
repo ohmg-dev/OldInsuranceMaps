@@ -5,16 +5,17 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0008_auto_20250915_1937'),
-        ('georeference', '0001_initial'),
+        ("core", "0008_auto_20250915_1937"),
+        ("georeference", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sessionbase',
-            name='map',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='core.map'),
+            model_name="sessionbase",
+            name="map",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to="core.map"
+            ),
         ),
     ]

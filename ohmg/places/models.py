@@ -3,10 +3,10 @@ import logging
 from django.db import models, transaction
 from django.contrib.gis.geos import Polygon
 
-from ohmg.core.utils import slugify
 from ohmg.core.utils import (
     STATE_ABBREV,
     STATE_POSTAL,
+    slugify,
 )
 
 logger = logging.getLogger(__name__)

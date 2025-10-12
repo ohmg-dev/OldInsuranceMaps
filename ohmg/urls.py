@@ -5,7 +5,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
 from django.views.defaults import page_not_found, server_error
 
-from ohmg.core.api.routes import beta2
+from ohmg.api.routes import beta2
 
 
 def debug_page_not_found(request):
@@ -23,7 +23,7 @@ urlpatterns = [
     path("", include("ohmg.core.urls")),
     path("", include("ohmg.accounts.urls")),
     path("", include("ohmg.georeference.urls")),
-    path("", include("ohmg.iiif.urls")),
+    path("", include("ohmg.extensions.urls")),
     path("", include("ohmg.places.urls")),
     ## Django extensions URLs
     path("grappelli/", include("grappelli.urls")),

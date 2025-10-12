@@ -11,7 +11,7 @@ from io import StringIO
 
 from django.conf import settings
 
-from ohmg.core.utils import retrieve_srs_wkt
+from ohmg.core.utils.srs import retrieve_srs_wkt
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +151,9 @@ class Georeferencer:
             raise Exception("Invalid CRS format, must be 'AUTHORITY:CODE', e.g. 'EPSG:3857'")
         self.crs_code = crs
 
-        self.crs_wkt = retrieve_srs_wkt(self.crs_code.split(":")[1])
+        wkt_content = retrieve_srs_wkt(self.crs_code.split(":")[1])
+        print(wkt_content)
+        self.crs_wkt = str(wkt_content)
 
         sr = osr.SpatialReference()
         sr.ImportFromWkt(self.crs_wkt)

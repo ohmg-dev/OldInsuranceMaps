@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.middleware import csrf
 from django.urls import reverse
 
-from ohmg.core.api.schemas import UserSchema
+from ohmg.api.schemas import UserSchema
 
 
 ## ~~ CONTEXT GENERATION

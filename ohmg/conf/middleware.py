@@ -1,3 +1,5 @@
+from fnmatch import fnmatch
+
 from django.conf import settings
 from django.contrib.auth.views import redirect_to_login
 
@@ -49,8 +51,7 @@ class CORSMiddleware(object):
     def __call__(self, request):
         response = self.get_response(request)
 
-        for path in settings.CORS_WHITELIST:
-            if request.path.startswith(path):
-                response["Access-Control-Allow-Origin"] = "*"
+        if any([fnmatch(request.path, i) for i in settings.CORS_WHITELIST]):
+            response["Access-Control-Allow-Origin"] = "*"
 
         return response

@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import Q
 
 from ohmg.core.models import Layer, LayerSet, Document
-from ohmg.core.utils import confirm_continue
+from ohmg.core.utils.cli import confirm_continue
 from ohmg.georeference.models import PrepSession, GeorefSession, SessionLock
 
 

@@ -14,8 +14,21 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 
-from ohmg.core.http import generate_ohmg_context
-from ohmg.core.models import (
+from ohmg.api.schemas import (
+    MapFullSchema,
+    MapResourcesSchema,
+    PlaceFullSchema,
+    LayerSetSchema,
+    ResourceFullSchema,
+)
+from ohmg.conf.http import (
+    generate_ohmg_context,
+    validate_post_request,
+    JsonResponseSuccess,
+    JsonResponseFail,
+    JsonResponseNotFound,
+)
+from .models import (
     Map,
     Document,
     Region,
@@ -24,25 +37,12 @@ from ohmg.core.models import (
     LayerSet,
     LayerSetCategory,
 )
-from .utils import time_this, get_file_url
+from .utils.performance import time_this_function
 from .exporters.qlr import generate_qlr_content
-from ohmg.core.api.schemas import (
-    MapFullSchema,
-    MapResourcesSchema,
-    PlaceFullSchema,
-    LayerSetSchema,
-    ResourceFullSchema,
-)
-from ohmg.core.tasks import (
+from .storages import get_file_url
+from .tasks import (
     load_map_documents_as_task,
     load_document_file_as_task,
-)
-
-from .http import (
-    validate_post_request,
-    JsonResponseSuccess,
-    JsonResponseFail,
-    JsonResponseNotFound,
 )
 
 logger = logging.getLogger(__name__)
@@ -73,12 +73,12 @@ class MapListView(View):
 
 
 class MapView(View):
-    @time_this
+    @time_this_function
     def get(self, request, identifier):
         map = get_object_or_404(Map.objects.prefetch_related(), pk=identifier)
 
         if not test_map_access(request.user, map):
-            return HttpResponse("Unauthorized", status=401)
+            return HttpResponse("Unauthorized: You do not have access to this item.", status=401)
 
         map_json = MapFullSchema.from_orm(map).dict()
 
@@ -145,11 +145,11 @@ class GenericResourceView(View):
         except self.model.DoesNotExist:
             return None
 
-    @time_this
+    @time_this_function
     def get(self, request, pk):
         resource = get_object_or_404(self.model, pk=pk)
         if not test_map_access(request.user, resource.map):
-            return HttpResponse("Unauthorized", status=401)
+            return HttpResponse("Unauthorized: You do not have access to this item.", status=401)
 
         map_json = MapResourcesSchema.from_orm(resource.map).dict()
         place_json = PlaceFullSchema.from_orm(resource.map.get_locale()).dict()
@@ -312,13 +312,17 @@ class ResourceDerivativeView(View):
             layer = get_object_or_404(Layer, pk=pk)
             region = layer.region
             if not test_map_access(request.user, layer.map):
-                return HttpResponse("Unauthorized", status=401)
+                return HttpResponse(
+                    "Unauthorized: You do not have access to this item.", status=401
+                )
 
         elif resource == "region":
             region = get_object_or_404(Region, pk=pk)
             layer = region.layer if hasattr(region, "layer") else None
             if not test_map_access(request.user, region.map):
-                return HttpResponse("Unauthorized", status=401)
+                return HttpResponse(
+                    "Unauthorized: You do not have access to this item.", status=401
+                )
         else:
             raise Http404
 
@@ -446,7 +450,7 @@ class LayersetDerivativeView(View):
         map = get_object_or_404(Map.objects.prefetch_related(), pk=mapid)
 
         if not test_map_access(request.user, map):
-            return HttpResponse("Unauthorized", status=401)
+            return HttpResponse("Unauthorized: You do not have access to this item.", status=401)
 
         layerset = map.get_layerset(category)
         if not layerset:

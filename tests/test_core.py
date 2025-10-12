@@ -6,8 +6,7 @@ from django.core.handlers.wsgi import WSGIHandler
 from django.core.handlers.asgi import ASGIHandler
 from django.test import tag, Client
 
-from ohmg.core.importers.base import get_importer
-from ohmg.core.importers.default import DefaultImporter
+from ohmg.core.importer import get_importer, DefaultImporter
 from ohmg.core.models import (
     Map,
     Document,

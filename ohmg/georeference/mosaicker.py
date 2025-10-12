@@ -14,7 +14,8 @@ from django.core.files import File
 from django.core.files.storage import get_storage_class
 
 from ohmg.core.models import Layer, LayerSet
-from ohmg.core.utils import random_alnum, get_file_url
+from ohmg.core.utils import random_alnum
+from ohmg.core.storages import get_file_url
 
 from .georeferencer import Georeferencer, VRTHandler
 
@@ -59,7 +60,7 @@ class Mosaicker:
         for feature in multimask_geojson["features"]:
             layer_name = feature["properties"]["layer"]
 
-            layer = Layer.objects.get(slug=layer_name)
+            layer = Layer.objects.get(slug=layer_name, region__document__map=layerset.map)
             if not layer.file:
                 raise Exception(f"no layer file for this layer {layer_name}")
 

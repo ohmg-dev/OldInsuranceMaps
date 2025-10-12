@@ -1,22 +1,16 @@
 import os
-import json
-from json.decoder import JSONDecodeError
 import pytz
-import time
 import logging
-import requests
 from datetime import datetime
 
-from django.conf import settings
 
+from ohmg.core.importer import BaseImporter
 from ohmg.core.utils import (
     full_capitalize,
     STATE_ABBREV,
-)
-from ohmg.core.importers.base import BaseImporter
-from ohmg.core.utils import (
     STATE_CHOICES,
 )
+from ohmg.core.utils.requests import CacheableRequest
 
 logger = logging.getLogger(__name__)
 
@@ -290,18 +284,6 @@ class LOCConnection(object):
         self.data = None
         self.results = []
 
-    def make_cache_path(self, url=None):
-        if url is None:
-            url = self.query_url
-
-        cache_dir = settings.CACHE_DIR / "requests"
-        if not os.path.isdir(cache_dir):
-            os.mkdir(cache_dir)
-        file_name = url.replace("/", "__") + ".json"
-        cache_path = os.path.join(cache_dir, file_name)
-
-        return cache_path
-
     def initialize_query(self, collection=None, identifier=None):
         if collection:
             self.query_url = f"{self.baseurl}/collections/{collection}"
@@ -325,17 +307,6 @@ class LOCConnection(object):
         date_qry = "&dates=" + date
         self.query_url += date_qry
 
-    def load_cache(self, url):
-        path = self.make_cache_path(url)
-        if os.path.isfile(path):
-            with open(path, "r") as op:
-                self.data = json.loads(op.read())
-
-    def save_cache(self, url):
-        path = self.make_cache_path(url)
-        with open(path, "w") as op:
-            json.dump(self.data, op, indent=1)
-
     def perform_search(self, no_cache=False, page=1):
         # empty data property to start new search
         self.data = None
@@ -343,48 +314,8 @@ class LOCConnection(object):
         url = self.query_url
         if page is not None:
             url += f"&sp={page}"
-        self.load_cache(url)
-        run_search = no_cache is True or self.data is None
-        if self.verbose:
-            logger.info(f"query url: {url} | delay: {self.delay} | using cache: {not run_search}")
-        if run_search:
-            if self.verbose and self.delay > 0:
-                logger.info(f"waiting {self.delay} seconds before making a request...")
-            time.sleep(self.delay)
-            logger.info("making request...")
-            try:
-                response = requests.get(url)
-                if response.status_code in [500, 503]:
-                    msg = f"{response.status_code} error, retrying in 5 seconds..."
-                    logger.warning(msg)
-                    if self.verbose:
-                        print(msg)
-                    time.sleep(5)
-                    if self.verbose:
-                        print("making request")
-                    response = requests.get(url)
-            except (
-                ConnectionError,
-                ConnectionRefusedError,
-                ConnectionAbortedError,
-                ConnectionResetError,
-            ) as e:
-                msg = f"API Error: {e}"
-                print(msg)
-                logger.warning(e)
-                return
-            try:
-                self.data = json.loads(response.content)
-            except JSONDecodeError:
-                msg = f"Can't decode this JSON response: {response.content}\nResponse code: {response.status_code}"
-                print(msg)
-                logger.warning(msg)
-                return
 
-            self.save_cache(url)
-        else:
-            if self.verbose:
-                print("using cached query results")
+        self.data = CacheableRequest(url).get_json_content()
 
         ## during location/year searches, multiple items are returned in a 'results' list
         if "results" in self.data:

@@ -6,11 +6,14 @@ import lxml.etree as et
 from django.conf import settings
 
 from ..models import Layer, LayerSet
-from ..utils import retrieve_srs_wkt, get_file_url
-from ..renderers import get_extent_from_file
+from ..storages import get_file_url
+from ..utils.srs import retrieve_srs_wkt
+from ..utils.image import get_extent_from_file
 
 
-def generate_qlr_content(instance: Union[Layer, LayerSet], titiler_host: str = settings.TITILER_HOST):
+def generate_qlr_content(
+    instance: Union[Layer, LayerSet], titiler_host: str = settings.TITILER_HOST
+):
     title = str(instance)
 
     if isinstance(instance, Layer):

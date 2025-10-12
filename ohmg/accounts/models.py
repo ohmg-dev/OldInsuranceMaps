@@ -6,8 +6,7 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 
 from ohmg.core.models import Map
-from ohmg.georeference.models import SessionBase
-from ohmg.georeference.models import GCP
+from ohmg.georeference.models import SessionBase, GCP
 
 
 class User(AbstractUser):

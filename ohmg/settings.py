@@ -84,12 +84,13 @@ INSTALLED_APPS = [
     "compressor",
     "ninja",
     "markdownx",
+    "ohmg.api",
     "ohmg.conf",
     "ohmg.core",
+    "ohmg.extensions",
     "ohmg.frontend",
     "ohmg.georeference",
     "ohmg.places",
-    "ohmg.iiif",
 ]
 
 GRAPPELLI_ADMIN_TITLE = "OHMG"
@@ -252,16 +253,20 @@ MIDDLEWARE = (
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "ohmg.core.middleware.CORSMiddleware",
+    "ohmg.conf.middleware.CORSMiddleware",
 )
 
-CORS_WHITELIST = ("/iiif", "/atlascope")
+CORS_WHITELIST = (
+    "/iiif/*",
+    "/atlascope/*",
+    "*/tilejson",
+)
 
 LOGIN_URL = "/account/login/"
 
 LOGIN_REQUIRED_SITEWIDE = ast.literal_eval(os.getenv("LOGIN_REQUIRED_SITEWIDE", "False"))
 if LOGIN_REQUIRED_SITEWIDE:
-    MIDDLEWARE += ("ohmg.core.middleware.LoginRequiredMiddleware",)
+    MIDDLEWARE += ("ohmg.conf.middleware.LoginRequiredMiddleware",)
 
 ENABLE_CPROFILER = ast.literal_eval(os.getenv("ENABLE_CPROFILER", "False"))
 if ENABLE_CPROFILER:
@@ -364,9 +369,9 @@ LOCALE_PATHS = (PROJECT_DIR / "locale",)
 
 OHMG_IMPORTERS = {
     "map": {
-        "default": "ohmg.core.importers.default.DefaultImporter",
-        "loc-sanborn": "ohmg.core.importers.loc_sanborn.LOCSanbornImporter",
-        "dsl": "ohmg.core.importers.dsl_csv.DSLFileImporter",
+        "default": "ohmg.core.importer.DefaultImporter",
+        "loc-sanborn": "ohmg.extensions.loc_sanborn.LOCSanbornImporter",
+        "dsl": "ohmg.extensions.dsl.DSLFileImporter",
     }
 }
 

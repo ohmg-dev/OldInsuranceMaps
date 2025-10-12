@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class IiifConfig(AppConfig):
+class ApiConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "ohmg.iiif"
+    name = "ohmg.api"

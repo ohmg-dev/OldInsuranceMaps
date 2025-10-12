@@ -6,7 +6,13 @@ from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.utils.decorators import method_decorator
 
-from ohmg.core.http import (
+from ohmg.api.schemas import (
+    DocumentFullSchema,
+    LayerSetSchema,
+    MapFullSchema,
+    RegionFullSchema,
+)
+from ohmg.conf.http import (
     JsonResponseSuccess,
     JsonResponseFail,
     JsonResponseBadRequest,
@@ -14,36 +20,32 @@ from ohmg.core.http import (
     validate_post_request,
     generate_ohmg_context,
 )
-from ohmg.core.utils import time_this, get_file_url
-from ohmg.georeference.models import (
-    SessionBase,
-    PrepSession,
-    GeorefSession,
-)
-from ohmg.core.api.schemas import (
-    DocumentFullSchema,
-    LayerSetSchema,
-    MapFullSchema,
-    RegionFullSchema,
-)
+from ohmg.core.utils.performance import time_this_function
+from ohmg.core.storages import get_file_url
 from ohmg.core.models import (
     Document,
     Region,
 )
-from ohmg.georeference.tasks import (
+
+from .georeferencer import Georeferencer
+from .models import (
+    SessionBase,
+    PrepSession,
+    GeorefSession,
+)
+from .splitter import Splitter
+from .tasks import (
     run_preparation_session,
     bulk_run_preparation_sessions,
     run_georeference_session,
     delete_preview_vrts,
 )
-from ohmg.georeference.georeferencer import Georeferencer
-from ohmg.georeference.splitter import Splitter
 
 logger = logging.getLogger(__name__)
 
 
 class SplitView(View):
-    @time_this
+    @time_this_function
     def get(self, request, docid):
         """
         Returns the splitting interface for this document.

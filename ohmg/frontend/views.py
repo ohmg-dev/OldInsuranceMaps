@@ -7,7 +7,7 @@ from django.http import Http404
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 
-from ohmg.core.http import generate_ohmg_context
+from ohmg.conf.http import generate_ohmg_context
 from ohmg.core.models import Map
 
 from ohmg.places.models import Place

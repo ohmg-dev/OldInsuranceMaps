@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
+import shutil
 from typing import Union
 import urllib.parse
 
@@ -24,19 +25,17 @@ from django.utils.safestring import mark_safe
 from ohmg.places.models import Place
 from .utils import (
     slugify,
-    download_image,
-    copy_local_file_to_cache,
-    convert_img_format,
-    get_session_user_summary,
     MONTH_CHOICES,
-    get_file_url,
 )
-from .renderers import (
+from .utils.image import (
+    convert_img_format,
     get_image_size,
     get_extent_from_file,
     generate_document_thumbnail_content,
     generate_layer_thumbnail_content,
 )
+from .utils.requests import download_image
+from .storages import get_file_url
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +70,21 @@ class MapGroup(models.Model):
 
     def __str__(self):
         return self.title
+
+
+def get_session_user_summary(session_list):
+    users = session_list.values_list("user__username", flat=True)
+    user_dict = {}
+    for name in users:
+        user_dict[name] = user_dict.get(
+            name,
+            {
+                "ct": 0,
+                "name": name,
+            },
+        )
+        user_dict[name]["ct"] += 1
+    return sorted(user_dict.values(), key=lambda item: item.get("ct"), reverse=True)
 
 
 class Map(models.Model):
@@ -384,7 +398,7 @@ class Map(models.Model):
         return f"/map/{self.pk}/"
 
     def update_item_lookup(self):
-        from ohmg.core.api.schemas import DocumentSchema, RegionSchema, LayerSchema
+        from ohmg.api.schemas import DocumentSchema, RegionSchema, LayerSchema
 
         regions = self.regions
         items = {
@@ -585,7 +599,8 @@ class Document(models.Model):
                 logger.error(f"can't get {src_url} -- skipping")
                 return
         else:
-            copy_local_file_to_cache(src_path, tmp_path)
+            if not tmp_path.exists():
+                shutil.copyfile(src_path, tmp_path)
 
         if not src_url.endswith(".jpg"):
             tmp_path = convert_img_format(tmp_path, force=True)

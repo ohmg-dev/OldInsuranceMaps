@@ -5,34 +5,55 @@ import markdownx.models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Navbar',
+            name="Navbar",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image_url', models.CharField(default='/static/img/colored-full-linework.png', help_text='Relative or absolute url to logo image for left-hand icon.', max_length=200)),
-                ('left_side', models.JSONField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "image_url",
+                    models.CharField(
+                        default="/static/img/colored-full-linework.png",
+                        help_text="Relative or absolute url to logo image for left-hand icon.",
+                        max_length=200,
+                    ),
+                ),
+                ("left_side", models.JSONField()),
             ],
         ),
         migrations.CreateModel(
-            name='Page',
+            name="Page",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(help_text="Title will be slugified and must not conflict with other Pages or Places. Place slugs are formatted as follows: 'united-states', 'orleans-parish-la', and 'new-orleans-la'.", max_length=200)),
-                ('slug', models.CharField(blank=True, max_length=200, null=True)),
-                ('content', markdownx.models.MarkdownxField()),
-                ('extra_head', models.CharField(blank=True, max_length=600, null=True)),
-                ('published', models.BooleanField(default=False)),
-                ('render_as_html', models.BooleanField(default=False)),
-                ('date_modified', models.DateTimeField(auto_now=True)),
-                ('date_published', models.DateTimeField(auto_now_add=True)),
-                ('show_date_modified', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "title",
+                    models.CharField(
+                        help_text="Title will be slugified and must not conflict with other Pages or Places. Place slugs are formatted as follows: 'united-states', 'orleans-parish-la', and 'new-orleans-la'.",
+                        max_length=200,
+                    ),
+                ),
+                ("slug", models.CharField(blank=True, max_length=200, null=True)),
+                ("content", markdownx.models.MarkdownxField()),
+                ("extra_head", models.CharField(blank=True, max_length=600, null=True)),
+                ("published", models.BooleanField(default=False)),
+                ("render_as_html", models.BooleanField(default=False)),
+                ("date_modified", models.DateTimeField(auto_now=True)),
+                ("date_published", models.DateTimeField(auto_now_add=True)),
+                ("show_date_modified", models.BooleanField(default=False)),
             ],
         ),
     ]

@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0007_auto_20250801_1635'),
+        ("core", "0007_auto_20250801_1635"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='layer',
-            name='tilejson',
+            model_name="layer",
+            name="tilejson",
             field=models.JSONField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='layerset',
-            name='tilejson',
+            model_name="layerset",
+            name="tilejson",
             field=models.JSONField(blank=True, null=True),
         ),
     ]
