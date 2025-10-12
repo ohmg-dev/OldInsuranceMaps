@@ -6,12 +6,12 @@ from django.conf import settings
 
 from ohmg.celeryapp import app
 from ohmg.core.models import LayerSet
-from ohmg.georeference.models import (
+from ohmg.georeference.mosaicker import Mosaicker
+from .models import (
     PrepSession,
     GeorefSession,
-    delete_expired_session_locks,
 )
-from ohmg.georeference.mosaicker import Mosaicker
+from .sessions import delete_expired_session_locks
 
 logger = logging.getLogger(__name__)
 

@@ -23,7 +23,7 @@ urlpatterns = [
     path("", include("ohmg.core.urls")),
     path("", include("ohmg.accounts.urls")),
     path("", include("ohmg.georeference.urls")),
-    path("", include("ohmg.iiif.urls")),
+    path("", include("ohmg.extensions.urls")),
     path("", include("ohmg.places.urls")),
     ## Django extensions URLs
     path("grappelli/", include("grappelli.urls")),

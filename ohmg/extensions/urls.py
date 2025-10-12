@@ -1,11 +1,15 @@
-from django.urls import path
+from django.urls import path, register_converter
 
+from ohmg.places.converters import PlaceConverter
 from .views import (
     IIIFSelectorView,
     IIIFResourceView,
     IIIFGCPView,
     IIIFMosaicView,
+    AtlascopeDataView,
 )
+
+register_converter(PlaceConverter, "place-slug")
 
 urlpatterns = [
     path(
@@ -27,5 +31,10 @@ urlpatterns = [
         "iiif/mosaic/<str:mapid>/<str:layerset_category>/",
         IIIFMosaicView.as_view(),
         name="iiif_canvas_view",
+    ),
+    path(
+        "atlascope/<str:operation>/<place-slug:place>/",
+        AtlascopeDataView.as_view(),
+        name="atlascope-data",
     ),
 ]

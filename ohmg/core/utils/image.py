@@ -122,6 +122,19 @@ def generate_layer_thumbnail_content(file: FileField):
     return content
 
 
+def convert_img_format(input_img: Path, format: str = "JPEG", force: bool = False) -> Path:
+    ext_map = {"PNG": ".png", "JPEG": ".jpg", "TIFF": ".tif"}
+    outpath = input_img.with_suffix(ext_map[format])
+
+    if outpath.is_file() and not force:
+        return outpath
+
+    img = Image.open(input_img)
+    img.save(outpath, format=format)
+
+    return outpath
+
+
 def convert_img_to_pyramidal_tiff(input_image):
     in_path = Path(input_image)
 

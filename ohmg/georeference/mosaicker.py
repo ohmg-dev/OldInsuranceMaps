@@ -14,7 +14,8 @@ from django.core.files import File
 from django.core.files.storage import get_storage_class
 
 from ohmg.core.models import Layer, LayerSet
-from ohmg.core.utils import random_alnum, get_file_url
+from ohmg.core.utils import random_alnum
+from ohmg.core.storages import get_file_url
 
 from .georeferencer import Georeferencer, VRTHandler
 

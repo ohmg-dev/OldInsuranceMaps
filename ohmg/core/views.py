@@ -37,8 +37,9 @@ from .models import (
     LayerSet,
     LayerSetCategory,
 )
-from .utils import time_this, get_file_url
+from .utils.performance import time_this_function
 from .exporters.qlr import generate_qlr_content
+from .storages import get_file_url
 from .tasks import (
     load_map_documents_as_task,
     load_document_file_as_task,
@@ -72,7 +73,7 @@ class MapListView(View):
 
 
 class MapView(View):
-    @time_this
+    @time_this_function
     def get(self, request, identifier):
         map = get_object_or_404(Map.objects.prefetch_related(), pk=identifier)
 
@@ -144,7 +145,7 @@ class GenericResourceView(View):
         except self.model.DoesNotExist:
             return None
 
-    @time_this
+    @time_this_function
     def get(self, request, pk):
         resource = get_object_or_404(self.model, pk=pk)
         if not test_map_access(request.user, resource.map):

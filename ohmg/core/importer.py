@@ -8,10 +8,33 @@ from warnings import warn
 from django.conf import settings
 
 from ohmg.places.models import Place
-from ..utils import random_alnum
-from ..models import Map
+from .utils import random_alnum
+from .models import Map
 
 logger = logging.getLogger(__name__)
+
+
+def get_importer(
+    name, dry_run=False, overwrite=False, verbose=False, skip_existing=False
+) -> "BaseImporter":
+    """Creates an instance of an importer from the class specified in
+    settings.py corresponding to the name provided to this function.
+    Any kwargs passed to this function are pass directly to the new importer
+    instance that is returned."""
+
+    if name not in settings.OHMG_IMPORTERS["map"]:
+        return None
+
+    full_path = settings.OHMG_IMPORTERS["map"][name]
+    module_path = ".".join(full_path.split(".")[:-1])
+    class_name = full_path.split(".")[-1]
+    module = importlib.import_module(module_path)
+    importer_class = getattr(module, class_name)
+    importer_instance = importer_class(
+        dry_run=dry_run, overwrite=overwrite, verbose=verbose, skip_existing=skip_existing
+    )
+
+    return importer_instance
 
 
 class BaseImporter:
@@ -205,24 +228,68 @@ class BaseImporter:
             self.run_import(**item)
 
 
-def get_importer(
-    name, dry_run=False, overwrite=False, verbose=False, skip_existing=False
-) -> BaseImporter:
-    """Creates an instance of an importer from the class specified in
-    settings.py corresponding to the name provided to this function.
-    Any kwargs passed to this function are pass directly to the new importer
-    instance that is returned."""
+class DefaultImporter(BaseImporter):
+    """Default Importer
 
-    if name not in settings.OHMG_IMPORTERS["map"]:
-        return None
+    This is the default operation for loading a new Map. A single image file can be provided,
+    or a CSV that has a list of one or more files. Paths in the CSV
 
-    full_path = settings.OHMG_IMPORTERS["map"][name]
-    module_path = ".".join(full_path.split(".")[:-1])
-    class_name = full_path.split(".")[-1]
-    module = importlib.import_module(module_path)
-    importer_class = getattr(module, class_name)
-    importer_instance = importer_class(
-        dry_run=dry_run, overwrite=overwrite, verbose=verbose, skip_existing=skip_existing
-    )
+    Required opts:
 
-    return importer_instance
+        path:       path/to/image.tif OR path/to/file-list.csv
+        year:       year of publication
+        locale:     slug for locale
+
+    Optional opts:
+
+        identifier: will be used as pk for this map
+        title:      will be "Untitled map" if not provided
+        creator:    name of creator for map
+    """
+
+    required_input = [
+        "path",
+        "year",
+        "locale",
+    ]
+
+    def parse(self):
+        path = self.input_data.get("path")
+
+        # if csv provided, it will have the list of files in it
+        document_sources = []
+        if path.endswith(".csv"):
+            csv_path = Path(path)
+            with open(path, "r") as o:
+                reader = csv.DictReader(o)
+                for n, row in enumerate(reader, start=1):
+                    # treat paths in the CSV as relative to the CSV itself
+                    doc_path = row.get("path", "")
+                    if doc_path:
+                        doc_path = Path(csv_path.parent, doc_path)
+                        doc_path = str(doc_path.resolve())
+                    document_sources.append(
+                        {
+                            "path": doc_path,
+                            "iiif_info": row.get("iiif_info", ""),
+                            "page_number": row.get("page_number", str(n)),
+                        }
+                    )
+        # otherwise, this is the single file
+        else:
+            document_sources.append(
+                {
+                    "path": path,
+                    "iiif_info": self.input_data.get("iiif_info", ""),
+                    "page_number": self.input_data.get("page_number", "1"),
+                }
+            )
+
+        self.parsed_data = {
+            "locale": self.input_data["locale"],
+            "document_sources": document_sources,
+            "year": int(self.input_data["year"]),
+            "identifier": self.input_data.get("identifier"),
+            "title": self.input_data.get("title", "Untitled map"),
+            "creator": self.input_data.get("creator", "n/a"),
+        }

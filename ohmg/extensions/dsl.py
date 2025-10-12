@@ -2,9 +2,9 @@ import csv
 import logging
 from pathlib import Path
 
-from ..utils import random_alnum, STATE_ABBREV, STATE_POSTAL
-from ..models import Map
-from .base import BaseImporter
+from ohmg.core.utils import random_alnum, STATE_ABBREV, STATE_POSTAL
+from ohmg.core.models import Map
+from ohmg.core.importer import BaseImporter
 
 logger = logging.getLogger(__name__)
 

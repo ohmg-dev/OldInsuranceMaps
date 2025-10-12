@@ -87,10 +87,10 @@ INSTALLED_APPS = [
     "ohmg.api",
     "ohmg.conf",
     "ohmg.core",
+    "ohmg.extensions",
     "ohmg.frontend",
     "ohmg.georeference",
     "ohmg.places",
-    "ohmg.iiif",
 ]
 
 GRAPPELLI_ADMIN_TITLE = "OHMG"
@@ -369,9 +369,9 @@ LOCALE_PATHS = (PROJECT_DIR / "locale",)
 
 OHMG_IMPORTERS = {
     "map": {
-        "default": "ohmg.core.importers.default.DefaultImporter",
-        "loc-sanborn": "ohmg.core.importers.loc_sanborn.LOCSanbornImporter",
-        "dsl": "ohmg.core.importers.dsl_csv.DSLFileImporter",
+        "default": "ohmg.core.importer.DefaultImporter",
+        "loc-sanborn": "ohmg.extensions.loc_sanborn.LOCSanbornImporter",
+        "dsl": "ohmg.extensions.dsl.DSLFileImporter",
     }
 }
 

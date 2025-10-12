@@ -3,6 +3,24 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 
 
+def get_file_url(obj, attr_name: str = "file"):
+    f = getattr(obj, attr_name)
+    if f is None or (not f.name):
+        return ""
+
+    ## with S3 storage FileField will return an absolute url
+    if settings.ENABLE_S3_STORAGE:
+        url = f.url
+    ## this is true during local development
+    elif settings.MODE == "DEV":
+        url = f"{settings.LOCAL_MEDIA_HOST.rstrip('/')}{f.url}"
+    ## this is true in prod without S3 storage enabled
+    else:
+        url = f"{settings.SITEURL.rstrip('/')}{f.url}"
+
+    return url
+
+
 class OverwriteStorage(FileSystemStorage):
     def get_available_name(self, name, **kwargs):
         """Returns a filename that's free on the target storage system, and

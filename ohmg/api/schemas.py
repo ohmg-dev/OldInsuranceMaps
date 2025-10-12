@@ -18,15 +18,11 @@ from ohmg.core.models import (
     Region,
     Layer,
 )
-from ohmg.core.utils import get_file_url
+from ohmg.core.storages import get_file_url
 from ohmg.georeference.models import (
     PrepSession,
     GeorefSession,
     SessionLock,
-)
-from ..core.exporters.atlascope import (
-    generate_atlascope_properties,
-    generate_atlascope_geometry,
 )
 
 logger = logging.getLogger(__name__)
@@ -869,20 +865,6 @@ class ResourceFullSchema(Schema):
                 return "georeferenced" if obj.regions.all()[0].georeferenced else "prepared"
             else:
                 return "split"
-
-
-class AtlascopeLayersetFeature(Schema):
-    type: str = "Feature"
-    properties: dict
-    geometry: dict
-
-    @staticmethod
-    def resolve_properties(obj):
-        return generate_atlascope_properties(obj)
-
-    @staticmethod
-    def resolve_geometry(obj):
-        return generate_atlascope_geometry(obj)
 
 
 DocumentFullSchema.update_forward_refs()
