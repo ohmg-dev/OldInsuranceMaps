@@ -73,6 +73,11 @@ a.navbar-link {
 a.navbar-link:hover {
   text-decoration: none;
 }
+button.navbar-link:active,
+button.navbar-link:focus,
+button.navbar-link:focus-within {
+  background: none;
+}
 a.navbar-link > span,
 button.navbar-link > span {
   margin-right: 0.25em;
