@@ -13,25 +13,6 @@ const interactionPointer = new Circle({
   radius: 5,
 });
 
-const whiteFill = new Fill({
-  color: 'rgba(255,255,255,.6',
-});
-const greenFill = new Fill({
-  color: 'rgba(0,200,100,.6',
-});
-
-const mmVertex = new Circle({
-  radius: 5,
-  fill: whiteFill,
-  stroke: new Stroke({ color: 'rgba(0,0,0,.8', width: 2 }),
-});
-
-const mmModifyVertex = new Circle({
-  radius: 5,
-  fill: greenFill,
-  stroke: new Stroke({ color: 'rgba(0,0,0,.8', width: 2 }),
-});
-
 const browseMapCircle = new Style({
   image: new Circle({
     fill: new Fill({ color: '#2c689c' }),
@@ -134,15 +115,6 @@ class Styles {
     image: interactionPointer,
   });
 
-  mmDraw = new Style({
-    stroke: new Stroke({ color: 'rgba(0,0,0,.5)', width: 2 }),
-    image: mmVertex,
-  });
-
-  mmModify = new Style({
-    image: mmModifyVertex,
-  });
-
   redOutline = new Style({
     stroke: new Stroke({
       color: 'red',
@@ -155,19 +127,7 @@ class Styles {
       width: 1,
     }),
   });
-  redDashedOutline = new Style({
-    stroke: new Stroke({ color: 'red', width: 0.75, lineDash: [2] }),
-  });
   smallCross = smallCross;
-
-  vertexPoint = new Style({
-    image: mmVertex,
-    geometry: function (feature) {
-      // return the coordinates of the first ring of the polygon
-      const coordinates = feature.getGeometry().getCoordinates()[0];
-      return new MultiPoint(coordinates);
-    },
-  });
 }
 
 export default Styles;

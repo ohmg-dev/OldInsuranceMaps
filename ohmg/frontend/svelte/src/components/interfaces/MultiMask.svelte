@@ -8,6 +8,14 @@
   import Trash from 'phosphor-svelte/lib/Trash';
   import CornersOut from 'phosphor-svelte/lib/CornersOut';
 
+  import Style from 'ol/style/Style';
+  import Stroke from 'ol/style/Stroke';
+  import Circle from 'ol/style/Circle';
+  import Fill from 'ol/style/Fill';
+  import RegularShape from 'ol/style/RegularShape';
+  import MultiPoint from 'ol/geom/MultiPoint';
+  import Point from 'ol/geom/Point';
+
   import 'ol/ol.css';
 
   import VectorSource from 'ol/source/Vector';
@@ -34,10 +42,7 @@
   import { submitPostRequest } from '../../lib/requests';
   import { MapViewer } from '../../lib/viewers';
   import { LyrMousePosition } from '../../lib/controls';
-  import Styles from '../../lib/ol-styles';
   import { TileJSON } from 'ol/source';
-
-  const styles = new Styles();
 
   export let CONTEXT;
   export let LAYERSET;
@@ -80,13 +85,13 @@
         trimShapeSource.addFeature(f);
       });
     }
+    resetVertexCounts();
   }
 
   function createLayerLookup() {
     layerLookup = {};
     trimShapeSource.clear();
     LAYERSET.layers.forEach(function (layerDef) {
-      console.log(layerDef);
       let newLayer = new TileLayer({
         source: new TileJSON({
           tileJSON: layerDef.tilejson,
@@ -120,10 +125,73 @@
     unchanged = true;
   }
 
+  const trimShapeSource = new VectorSource();
+
+  let vertexCounts = {};
+
+  function resetVertexCounts() {
+    const feats = trimShapeSource.getFeatures();
+    let allVertices = [];
+    feats.forEach((f) => {
+      const featVertices = f
+        .getGeometry()
+        .getCoordinates()[0]
+        .map((i) => {
+          return i.toString();
+        });
+      const uniqueFeatVertices = [...new Set(featVertices)];
+      allVertices.push(...uniqueFeatVertices);
+    });
+    vertexCounts = allVertices.reduce((accumulator, current) => {
+      accumulator[current] = (accumulator[current] || 0) + 1;
+      return accumulator;
+    }, {});
+    trimShapeSource.changed();
+  }
+
+  const getCircle = function (colorString) {
+    return new Circle({
+      radius: 5,
+      fill: new Fill({
+        color: colorString,
+      }),
+      stroke: new Stroke({ color: 'rgb(0,0,0)', width: 2 }),
+    });
+  };
+
+  const mmStyleFunction = function (a, b) {
+    const styles = [
+      new Style({
+        stroke: new Stroke({ color: 'rgb(0,0,0)', width: 2 }),
+      }),
+      new Style({
+        image: getCircle('rgb(255, 73, 0)'),
+        geometry: function (feature) {
+          // return the coordinates of the first ring of the polygon
+          const coords = feature.getGeometry().getCoordinates()[0];
+          const filtered = coords.filter((i) => vertexCounts[i.toString()] == 1);
+          return new MultiPoint(filtered);
+        },
+      }),
+      new Style({
+        image: getCircle('rgb(97, 248, 115)'),
+        geometry: function (feature) {
+          // return the coordinates of the first ring of the polygon
+          const coords = feature.getGeometry().getCoordinates()[0];
+          const filtered = coords.filter((i) => vertexCounts[i.toString()] > 1);
+          return new MultiPoint(filtered);
+        },
+      }),
+    ];
+    return styles;
+  };
+
   function extentLayerStyle(feature, resolution) {
     const prop = feature.getProperties();
     if (prop.show) {
-      return styles.redDashOutline;
+      return new Style({
+        stroke: new Stroke({ color: 'red', width: 0.75, lineDash: [2] }),
+      });
     }
     return;
   }
@@ -135,13 +203,15 @@
   });
 
   const trimShapeLayer = new VectorLayer({
-    source: new VectorSource(),
-    style: [styles.mmDraw, styles.vertexPoint],
+    source: trimShapeSource,
+    style: mmStyleFunction,
     zIndex: 1001,
   });
-  const trimShapeSource = trimShapeLayer.getSource();
   trimShapeSource.on('addfeature', function (e) {
     layerApplyMask(e.feature);
+  });
+  trimShapeSource.on(['addfeature', 'removefeature', 'changefeature'], function (e) {
+    resetVertexCounts();
   });
 
   function resetInterface() {
@@ -171,13 +241,32 @@
     const draw = new Draw({
       source: trimShapeSource,
       type: 'Polygon',
-      style: styles.mmDraw,
+      style: [
+        new Style({
+          stroke: new Stroke({ color: 'rgb(0,0,0)', width: 2 }),
+        }),
+        new Style({
+          image: getCircle('rgb(255, 255, 255)'),
+          geometry: function (feature) {
+            const geom = feature.getGeometry();
+            if (geom.getType() == 'Point') {
+              const coords = geom.getCoordinates();
+              return new Point(coords);
+            } else if (geom.getType() == 'Polygon') {
+              const coords = geom.getCoordinates()[0];
+              return new MultiPoint(coords);
+            }
+          },
+        }),
+      ],
     });
     viewer.addInteraction('draw', draw);
 
     const modify = new Modify({
       source: trimShapeSource,
-      style: styles.mmModify,
+      style: new Style({
+        image: getCircle('rgb(255, 255, 255)'),
+      }),
     });
     modify.on('modifystart', function (e) {
       viewer.element.style.cursor = 'grabbing';
