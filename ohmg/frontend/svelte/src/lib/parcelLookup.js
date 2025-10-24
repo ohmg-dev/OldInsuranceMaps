@@ -94,4 +94,9 @@ export const parcelLookup = {
     attributionText: 'Hawaii Statewide GIS Program',
     attributionUrl: 'https://geoportal.hawaii.gov/datasets/HiStateGIS::parcels-hawaii-statewide/about',
   },
+  massachusetts: {
+    pmtilesUrl: "https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/mass-parcels.pmtiles",
+    attributionText: "MassGIS",
+    attributionUrl: "https://www.mass.gov/info-details/massgis-data-property-tax-parcels",
+  }
 };
