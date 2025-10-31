@@ -58,6 +58,22 @@
   let layerLookupUnmaskedArr = [];
   let layerLookupArr = [];
 
+  const colors = {
+    black: 'rgb(0,0,0)',
+    darkGrey: 'rgb(124,124,124)',
+    green: 'rgb(97, 248, 115)',
+    mainBlue: 'rgb(44, 104, 156',
+    brightBlue: 'rgb(65,158,182)',
+    darkBlue: 'rgb(18, 59, 79)',
+    cyan: 'rgb(129,249,245)',
+    tan: 'rgb(247, 241, 225)',
+    white: 'rgb(255,255,255)',
+  };
+
+  const unsnappedColor = colors.white;
+  const snappedColor = colors.mainBlue;
+  const highlightColor = 'red';
+
   const fullExtent = LAYERSET.extent ? transformExtent(LAYERSET.extent, 'EPSG:4326', 'EPSG:3857') : usaExtent;
 
   function updateLayerArr() {
@@ -155,26 +171,25 @@
       fill: new Fill({
         color: colorString,
       }),
-      stroke: new Stroke({ color: 'rgb(0,0,0)', width: 2 }),
+      stroke: new Stroke({ color: colors.black, width: 2 }),
     });
   };
 
   const mmStyleFunction = function (a, b) {
     const styles = [
       new Style({
-        stroke: new Stroke({ color: 'rgb(0,0,0)', width: 2 }),
+        stroke: new Stroke({ color: colors.black, width: 2 }),
       }),
       new Style({
-        image: getCircle('rgb(255, 73, 0)'),
+        image: getCircle(unsnappedColor),
         geometry: function (feature) {
-          // return the coordinates of the first ring of the polygon
           const coords = feature.getGeometry().getCoordinates()[0];
           const filtered = coords.filter((i) => vertexCounts[i.toString()] == 1);
           return new MultiPoint(filtered);
         },
       }),
       new Style({
-        image: getCircle('rgb(97, 248, 115)'),
+        image: getCircle(snappedColor),
         geometry: function (feature) {
           // return the coordinates of the first ring of the polygon
           const coords = feature.getGeometry().getCoordinates()[0];
@@ -243,16 +258,23 @@
       type: 'Polygon',
       style: [
         new Style({
-          stroke: new Stroke({ color: 'rgb(0,0,0)', width: 2 }),
+          stroke: new Stroke({ color: colors.black, width: 2 }),
         }),
         new Style({
-          image: getCircle('rgb(255, 255, 255)'),
+          image: getCircle(highlightColor),
           geometry: function (feature) {
             const geom = feature.getGeometry();
             if (geom.getType() == 'Point') {
               const coords = geom.getCoordinates();
               return new Point(coords);
-            } else if (geom.getType() == 'Polygon') {
+            }
+          },
+        }),
+        new Style({
+          image: getCircle(highlightColor),
+          geometry: function (feature) {
+            const geom = feature.getGeometry();
+            if (geom.getType() == 'Polygon') {
               const coords = geom.getCoordinates()[0];
               return new MultiPoint(coords);
             }
@@ -265,7 +287,7 @@
     const modify = new Modify({
       source: trimShapeSource,
       style: new Style({
-        image: getCircle('rgb(255, 255, 255)'),
+        image: getCircle(highlightColor),
       }),
     });
     modify.on('modifystart', function (e) {
