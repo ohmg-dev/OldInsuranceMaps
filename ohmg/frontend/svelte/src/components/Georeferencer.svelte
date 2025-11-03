@@ -30,7 +30,7 @@
   import Modify from 'ol/interaction/Modify';
   import Snap from 'ol/interaction/Snap';
 
-  import Styles from '../lib/ol-styles';
+  import { gcpStyles, parcelStyles, emptyStyle } from '../lib/ol-styles';
   import {
     makeLayerGroupFromLayerSet,
     makeTitilerXYZUrl,
@@ -62,8 +62,6 @@
   export let MAP;
   export let MAIN_LAYERSET;
   export let KEYMAP_LAYERSET;
-
-  const styles = new Styles();
 
   let previewMode = 'n/a';
   let previewUrl = '';
@@ -178,7 +176,7 @@
   });
   const docGCPLayer = new VectorLayer({
     source: docGCPSource,
-    style: styles.gcpDefault,
+    style: gcpStyles.default,
   });
 
   const mapGCPSource = new VectorSource();
@@ -193,7 +191,7 @@
         note: '',
       });
     }
-    e.feature.setStyle(styles.gcpHighlight);
+    e.feature.setStyle(gcpStyles.selected);
     // check the loadingInitial flag to save unnecessary calls to backend
     if (!loadingInitial) {
       syncGCPList();
@@ -203,7 +201,7 @@
   });
   const mapGCPLayer = new VectorLayer({
     source: mapGCPSource,
-    style: styles.gcpDefault,
+    style: gcpStyles.default,
     zIndex: 30,
   });
 
@@ -315,7 +313,7 @@
       pmLayer = makePmTilesLayer(
         parcelEntry.pmtilesUrl,
         `<a target="_blank" href="${parcelEntry.attributionUrl}">${parcelEntry.attributionText}</a>`,
-        styles.greyOutline,
+        parcelStyles.inactive,
       );
       return;
     }
@@ -325,7 +323,7 @@
   });
   const snapLayer = new VectorLayer({
     source: snapSource,
-    style: styles.empty,
+    style: emptyStyle,
   });
 
   // MAKING INTERACTIONS
@@ -334,7 +332,7 @@
   function makeModifyInteraction(source, targetElement) {
     const modify = new Modify({
       source: source,
-      style: styles.gcpHover,
+      style: gcpStyles.hover,
     });
 
     modify.on(['modifystart', 'modifyend'], function (e) {
@@ -400,7 +398,7 @@
       return containsXY(docExtent, mapBrowserEvent.coordinate[0], mapBrowserEvent.coordinate[1]);
     }
 
-    docViewer.addInteraction('draw', makeDrawInteraction(docGCPSource, drawWithinDocCondition, styles.empty));
+    docViewer.addInteraction('draw', makeDrawInteraction(docGCPSource, drawWithinDocCondition, emptyStyle));
     docViewer.addInteraction('modify', makeModifyInteraction(docGCPSource, docViewer.element));
 
     docRotate = makeRotateCenterLayer();
@@ -423,7 +421,7 @@
     mapViewer.addControl(new MapScaleLine());
 
     // create interactions
-    const mapDrawGCPStyle = pmLayer ? styles.smallCross : styles.empty;
+    const mapDrawGCPStyle = pmLayer ? gcpStyles.snapTarget : emptyStyle;
     mapViewer.addInteraction('draw', makeDrawInteraction(mapGCPSource, null, mapDrawGCPStyle));
     mapViewer.addInteraction('modify', makeModifyInteraction(mapGCPSource, mapViewer.element));
 
@@ -660,11 +658,11 @@
     if (enabled) {
       mapViewer.interactions.parcelSnap.setActive(true);
       mapViewer.map.once('rendercomplete', refreshSnapSource);
-      pmLayer.setStyle(styles.redOutline);
+      pmLayer.setStyle(parcelStyles.active);
     } else {
       snapSource.clear();
       mapViewer.interactions.parcelSnap.setActive(false);
-      pmLayer.setStyle(styles.greyOutline);
+      pmLayer.setStyle(parcelStyles.inactive);
     }
   }
   $: toggleSnap(enableParcelSnapping);
@@ -719,15 +717,15 @@
 
     // highlight features for active GCP
     docGCPSource.getFeatures().forEach(function (feat) {
-      feat.setStyle(styles.gcpDefault);
+      feat.setStyle(gcpStyles.default);
       if (feat.getProperties().listId == activeId) {
-        feat.setStyle(styles.gcpHighlight);
+        feat.setStyle(gcpStyles.selected);
       }
     });
     mapGCPSource.getFeatures().forEach(function (feat) {
-      feat.setStyle(styles.gcpDefault);
+      feat.setStyle(gcpStyles.default);
       if (feat.getProperties().listId == activeId) {
-        feat.setStyle(styles.gcpHighlight);
+        feat.setStyle(gcpStyles.selected);
       }
     });
   }

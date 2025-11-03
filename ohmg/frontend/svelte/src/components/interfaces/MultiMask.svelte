@@ -10,16 +10,14 @@
 
   import Style from 'ol/style/Style';
   import Stroke from 'ol/style/Stroke';
-  import Circle from 'ol/style/Circle';
-  import Fill from 'ol/style/Fill';
-  import RegularShape from 'ol/style/RegularShape';
   import MultiPoint from 'ol/geom/MultiPoint';
   import Point from 'ol/geom/Point';
 
   import 'ol/ol.css';
 
+  import { platformModifierKey, singleClick, noModifierKeys } from 'ol/events/condition';
   import VectorSource from 'ol/source/Vector';
-  import XYZ from 'ol/source/XYZ';
+  import TileJSON from 'ol/source/TileJSON';
 
   import { transformExtent } from 'ol/proj';
 
@@ -31,9 +29,9 @@
   import TileLayer from 'ol/layer/Tile';
   import VectorLayer from 'ol/layer/Vector';
 
-  import Crop from 'ol-ext/filter/Crop';
-
   import { Draw, Snap, Modify } from 'ol/interaction';
+
+  import Crop from 'ol-ext/filter/Crop';
 
   import ToolUIButton from '../buttons/ToolUIButton.svelte';
   import ExpandElement from '../buttons/ExpandElement.svelte';
@@ -42,7 +40,8 @@
   import { submitPostRequest } from '../../lib/requests';
   import { MapViewer } from '../../lib/viewers';
   import { LyrMousePosition } from '../../lib/controls';
-  import { TileJSON } from 'ol/source';
+
+  import { colors, mmColors, makeCircle } from '../../lib/ol-styles';
 
   export let CONTEXT;
   export let LAYERSET;
@@ -57,22 +56,6 @@
   let layerLookupMaskedArr = [];
   let layerLookupUnmaskedArr = [];
   let layerLookupArr = [];
-
-  const colors = {
-    black: 'rgb(0,0,0)',
-    darkGrey: 'rgb(124,124,124)',
-    green: 'rgb(97, 248, 115)',
-    mainBlue: 'rgb(44, 104, 156',
-    brightBlue: 'rgb(65,158,182)',
-    darkBlue: 'rgb(18, 59, 79)',
-    cyan: 'rgb(129,249,245)',
-    tan: 'rgb(247, 241, 225)',
-    white: 'rgb(255,255,255)',
-  };
-
-  const unsnappedColor = colors.white;
-  const snappedColor = colors.mainBlue;
-  const highlightColor = 'red';
 
   const fullExtent = LAYERSET.extent ? transformExtent(LAYERSET.extent, 'EPSG:4326', 'EPSG:3857') : usaExtent;
 
@@ -165,23 +148,13 @@
     trimShapeSource.changed();
   }
 
-  const getCircle = function (colorString) {
-    return new Circle({
-      radius: 5,
-      fill: new Fill({
-        color: colorString,
-      }),
-      stroke: new Stroke({ color: colors.black, width: 2 }),
-    });
-  };
-
   const mmStyleFunction = function (a, b) {
     const styles = [
       new Style({
         stroke: new Stroke({ color: colors.black, width: 2 }),
       }),
       new Style({
-        image: getCircle(unsnappedColor),
+        image: makeCircle(mmColors.unsnapped),
         geometry: function (feature) {
           const coords = feature.getGeometry().getCoordinates()[0];
           const filtered = coords.filter((i) => vertexCounts[i.toString()] == 1);
@@ -189,7 +162,7 @@
         },
       }),
       new Style({
-        image: getCircle(snappedColor),
+        image: makeCircle(mmColors.snapped),
         geometry: function (feature) {
           // return the coordinates of the first ring of the polygon
           const coords = feature.getGeometry().getCoordinates()[0];
@@ -261,7 +234,7 @@
           stroke: new Stroke({ color: colors.black, width: 2 }),
         }),
         new Style({
-          image: getCircle(highlightColor),
+          image: makeCircle(mmColors.draw),
           geometry: function (feature) {
             const geom = feature.getGeometry();
             if (geom.getType() == 'Point') {
@@ -271,7 +244,7 @@
           },
         }),
         new Style({
-          image: getCircle(highlightColor),
+          image: makeCircle(mmColors.draw),
           geometry: function (feature) {
             const geom = feature.getGeometry();
             if (geom.getType() == 'Polygon') {
@@ -286,12 +259,16 @@
 
     const modify = new Modify({
       source: trimShapeSource,
+      deleteCondition: (event) => platformModifierKey(event) && singleClick(event),
+      insertVertexCondition: noModifierKeys,
       style: new Style({
-        image: getCircle(highlightColor),
+        image: makeCircle(mmColors.hover),
       }),
     });
     modify.on('modifystart', function (e) {
-      viewer.element.style.cursor = 'grabbing';
+      if (viewer.element.style.cursor != 'no-drop') {
+        viewer.element.style.cursor = 'grabbing';
+      }
     });
     modify.on('modifyend', function (e) {
       unchanged = false;
@@ -310,7 +287,9 @@
         return;
       }
       trimShapeLayer.getFeatures(e.pixel).then(function (features) {
-        features.length > 0 ? (viewer.element.style.cursor = 'pointer') : (viewer.element.style.cursor = 'default');
+        if (viewer.element.style.cursor != 'no-drop') {
+          features.length > 0 ? (viewer.element.style.cursor = 'pointer') : (viewer.element.style.cursor = 'default');
+        }
       });
     });
 
@@ -452,8 +431,28 @@
       unchanged = false;
     }
   }
+
+  function handleKeydown(e) {
+    if (document.activeElement.id == '') {
+      switch (e.key) {
+        case 'Control':
+          viewer.element.style.cursor = 'no-drop';
+          break;
+      }
+    }
+  }
+  function handleKeyup(e) {
+    if (document.activeElement.id == '') {
+      switch (e.key) {
+        case 'Control':
+          viewer.element.style.cursor = 'default';
+          break;
+      }
+    }
+  }
 </script>
 
+<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} />
 <div id="mm-container" class="svelte-component-main">
   <div id="map-container" class="map-container" style="height: calc(100%-35px);">
     <div id="map-viewer" class="map-item rounded-bottom"></div>
