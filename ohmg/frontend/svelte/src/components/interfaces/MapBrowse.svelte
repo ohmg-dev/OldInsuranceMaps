@@ -11,10 +11,8 @@
   import VectorSource from 'ol/source/Vector';
   import VectorLayer from 'ol/layer/Vector';
 
-  import Styles from '../../lib/ol-styles';
+  import { browseMapStyle } from '../../lib/ol-styles';
   import { MapViewer } from '../../lib/viewers';
-
-  const styles = new Styles();
 
   export let CONTEXT;
   export let MAP_HEIGHT = '600px';
@@ -62,7 +60,7 @@
           featureProjection: 'EPSG:3857',
         }),
       }),
-      style: styles.browseMapStyle,
+      style: browseMapStyle,
       zIndex: 500,
     });
     viewer.addLayer(placeLayer);

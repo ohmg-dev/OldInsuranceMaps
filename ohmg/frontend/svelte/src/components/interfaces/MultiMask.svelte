@@ -8,10 +8,16 @@
   import Trash from 'phosphor-svelte/lib/Trash';
   import CornersOut from 'phosphor-svelte/lib/CornersOut';
 
+  import Style from 'ol/style/Style';
+  import Stroke from 'ol/style/Stroke';
+  import MultiPoint from 'ol/geom/MultiPoint';
+  import Point from 'ol/geom/Point';
+
   import 'ol/ol.css';
 
+  import { platformModifierKey, singleClick, noModifierKeys } from 'ol/events/condition';
   import VectorSource from 'ol/source/Vector';
-  import XYZ from 'ol/source/XYZ';
+  import TileJSON from 'ol/source/TileJSON';
 
   import { transformExtent } from 'ol/proj';
 
@@ -23,9 +29,9 @@
   import TileLayer from 'ol/layer/Tile';
   import VectorLayer from 'ol/layer/Vector';
 
-  import Crop from 'ol-ext/filter/Crop';
-
   import { Draw, Snap, Modify } from 'ol/interaction';
+
+  import Crop from 'ol-ext/filter/Crop';
 
   import ToolUIButton from '../buttons/ToolUIButton.svelte';
   import ExpandElement from '../buttons/ExpandElement.svelte';
@@ -34,10 +40,8 @@
   import { submitPostRequest } from '../../lib/requests';
   import { MapViewer } from '../../lib/viewers';
   import { LyrMousePosition } from '../../lib/controls';
-  import Styles from '../../lib/ol-styles';
-  import { TileJSON } from 'ol/source';
 
-  const styles = new Styles();
+  import { colors, mmColors, makeCircle } from '../../lib/ol-styles';
 
   export let CONTEXT;
   export let LAYERSET;
@@ -80,13 +84,13 @@
         trimShapeSource.addFeature(f);
       });
     }
+    resetVertexCounts();
   }
 
   function createLayerLookup() {
     layerLookup = {};
     trimShapeSource.clear();
     LAYERSET.layers.forEach(function (layerDef) {
-      console.log(layerDef);
       let newLayer = new TileLayer({
         source: new TileJSON({
           tileJSON: layerDef.tilejson,
@@ -120,10 +124,62 @@
     unchanged = true;
   }
 
+  const trimShapeSource = new VectorSource();
+
+  let vertexCounts = {};
+
+  function resetVertexCounts() {
+    const feats = trimShapeSource.getFeatures();
+    let allVertices = [];
+    feats.forEach((f) => {
+      const featVertices = f
+        .getGeometry()
+        .getCoordinates()[0]
+        .map((i) => {
+          return i.toString();
+        });
+      const uniqueFeatVertices = [...new Set(featVertices)];
+      allVertices.push(...uniqueFeatVertices);
+    });
+    vertexCounts = allVertices.reduce((accumulator, current) => {
+      accumulator[current] = (accumulator[current] || 0) + 1;
+      return accumulator;
+    }, {});
+    trimShapeSource.changed();
+  }
+
+  const mmStyleFunction = function (a, b) {
+    const styles = [
+      new Style({
+        stroke: new Stroke({ color: colors.black, width: 2 }),
+      }),
+      new Style({
+        image: makeCircle(mmColors.unsnapped),
+        geometry: function (feature) {
+          const coords = feature.getGeometry().getCoordinates()[0];
+          const filtered = coords.filter((i) => vertexCounts[i.toString()] == 1);
+          return new MultiPoint(filtered);
+        },
+      }),
+      new Style({
+        image: makeCircle(mmColors.snapped),
+        geometry: function (feature) {
+          // return the coordinates of the first ring of the polygon
+          const coords = feature.getGeometry().getCoordinates()[0];
+          const filtered = coords.filter((i) => vertexCounts[i.toString()] > 1);
+          return new MultiPoint(filtered);
+        },
+      }),
+    ];
+    return styles;
+  };
+
   function extentLayerStyle(feature, resolution) {
     const prop = feature.getProperties();
     if (prop.show) {
-      return styles.redDashOutline;
+      return new Style({
+        stroke: new Stroke({ color: 'red', width: 0.75, lineDash: [2] }),
+      });
     }
     return;
   }
@@ -135,13 +191,15 @@
   });
 
   const trimShapeLayer = new VectorLayer({
-    source: new VectorSource(),
-    style: [styles.mmDraw, styles.vertexPoint],
+    source: trimShapeSource,
+    style: mmStyleFunction,
     zIndex: 1001,
   });
-  const trimShapeSource = trimShapeLayer.getSource();
   trimShapeSource.on('addfeature', function (e) {
     layerApplyMask(e.feature);
+  });
+  trimShapeSource.on(['addfeature', 'removefeature', 'changefeature'], function (e) {
+    resetVertexCounts();
   });
 
   function resetInterface() {
@@ -171,16 +229,46 @@
     const draw = new Draw({
       source: trimShapeSource,
       type: 'Polygon',
-      style: styles.mmDraw,
+      style: [
+        new Style({
+          stroke: new Stroke({ color: colors.black, width: 2 }),
+        }),
+        new Style({
+          image: makeCircle(mmColors.draw),
+          geometry: function (feature) {
+            const geom = feature.getGeometry();
+            if (geom.getType() == 'Point') {
+              const coords = geom.getCoordinates();
+              return new Point(coords);
+            }
+          },
+        }),
+        new Style({
+          image: makeCircle(mmColors.draw),
+          geometry: function (feature) {
+            const geom = feature.getGeometry();
+            if (geom.getType() == 'Polygon') {
+              const coords = geom.getCoordinates()[0];
+              return new MultiPoint(coords);
+            }
+          },
+        }),
+      ],
     });
     viewer.addInteraction('draw', draw);
 
     const modify = new Modify({
       source: trimShapeSource,
-      style: styles.mmModify,
+      deleteCondition: (event) => platformModifierKey(event) && singleClick(event),
+      insertVertexCondition: noModifierKeys,
+      style: new Style({
+        image: makeCircle(mmColors.hover),
+      }),
     });
     modify.on('modifystart', function (e) {
-      viewer.element.style.cursor = 'grabbing';
+      if (viewer.element.style.cursor != 'no-drop') {
+        viewer.element.style.cursor = 'grabbing';
+      }
     });
     modify.on('modifyend', function (e) {
       unchanged = false;
@@ -199,7 +287,9 @@
         return;
       }
       trimShapeLayer.getFeatures(e.pixel).then(function (features) {
-        features.length > 0 ? (viewer.element.style.cursor = 'pointer') : (viewer.element.style.cursor = 'default');
+        if (viewer.element.style.cursor != 'no-drop') {
+          features.length > 0 ? (viewer.element.style.cursor = 'pointer') : (viewer.element.style.cursor = 'default');
+        }
       });
     });
 
@@ -341,8 +431,28 @@
       unchanged = false;
     }
   }
+
+  function handleKeydown(e) {
+    if (document.activeElement.id == '') {
+      switch (e.key) {
+        case 'Control':
+          viewer.element.style.cursor = 'no-drop';
+          break;
+      }
+    }
+  }
+  function handleKeyup(e) {
+    if (document.activeElement.id == '') {
+      switch (e.key) {
+        case 'Control':
+          viewer.element.style.cursor = 'default';
+          break;
+      }
+    }
+  }
 </script>
 
+<svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} />
 <div id="mm-container" class="svelte-component-main">
   <div id="map-container" class="map-container" style="height: calc(100%-35px);">
     <div id="map-viewer" class="map-item rounded-bottom"></div>

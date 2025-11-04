@@ -94,6 +94,16 @@ export const parcelLookup = {
     attributionText: 'Hawaii Statewide GIS Program',
     attributionUrl: 'https://geoportal.hawaii.gov/datasets/HiStateGIS::parcels-hawaii-statewide/about',
   },
+  "new-york": {
+    pmtilesUrl: "https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/new-york-parcels.pmtiles",
+    attributionText: "NYS GIS Clearinghouse",
+    attributionUrl: "https://gis.ny.gov/parcels",
+  },
+  "santa-cruz-county-ca": {
+    pmtilesUrl: "https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/santa-cruz-county-ca-parcels.pmtiles",
+    attributionText: "Santa Cruz County GIS",
+    attributionUrl: "https://opendata-sccgis.opendata.arcgis.com/datasets/bc2db3b0ba8b441b84e38f54e6d441b2_10/explore",
+  },
   massachusetts: {
     pmtilesUrl: "https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/mass-parcels.pmtiles",
     attributionText: "MassGIS",

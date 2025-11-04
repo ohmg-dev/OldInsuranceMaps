@@ -23,7 +23,7 @@
   import Snap from 'ol/interaction/Snap';
   import LineString from 'ol/geom/LineString';
 
-  import Styles from '../lib/ol-styles';
+  import { splitStyles } from '../lib/ol-styles';
   import { submitPostRequest } from '../lib/requests';
   import { MapViewer } from '../lib/viewers';
   import { makeImageLayer } from '../lib/layers';
@@ -37,8 +37,6 @@
 
   import ToolUIButton from './buttons/ToolUIButton.svelte';
   import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
-
-  const styles = new Styles();
 
   export let CONTEXT;
   export let DOCUMENT;
@@ -142,7 +140,7 @@
   const previewLayerSource = new VectorSource();
   const previewLayer = new VectorLayer({
     source: previewLayerSource,
-    style: styles.splitPreviewStyle,
+    style: splitStyles.preview,
   });
 
   const borderLayer = new VectorLayer({
@@ -153,7 +151,7 @@
         }),
       ],
     }),
-    style: styles.splitBorderStyle,
+    style: splitStyles.border,
   });
 
   const cutLayerSource = new VectorSource();
@@ -164,7 +162,7 @@
   });
   const cutLayer = new VectorLayer({
     source: cutLayerSource,
-    style: styles.splitBorderStyle,
+    style: splitStyles.border,
   });
 
   onMount(() => {
@@ -196,13 +194,13 @@
       new Draw({
         source: cutLayerSource,
         type: 'LineString',
-        style: styles.polyDraw,
+        style: splitStyles.draw,
       }),
     );
 
     const modify = new Modify({
       source: cutLayerSource,
-      style: styles.polyModify,
+      style: splitStyles.modify,
     });
 
     modify.on(['modifystart', 'modifyend'], function (evt) {
