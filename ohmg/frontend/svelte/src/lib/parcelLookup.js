@@ -103,5 +103,10 @@ export const parcelLookup = {
     pmtilesUrl: "https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/santa-cruz-county-ca-parcels.pmtiles",
     attributionText: "Santa Cruz County GIS",
     attributionUrl: "https://opendata-sccgis.opendata.arcgis.com/datasets/bc2db3b0ba8b441b84e38f54e6d441b2_10/explore",
+  },
+  massachusetts: {
+    pmtilesUrl: "https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/mass-parcels.pmtiles",
+    attributionText: "MassGIS",
+    attributionUrl: "https://www.mass.gov/info-details/massgis-data-property-tax-parcels",
   }
 };
