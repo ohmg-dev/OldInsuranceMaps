@@ -29,12 +29,15 @@ class Command(BaseCommand):
             ],
             help="Choose what operation to run.",
         )
+        parser.add_argument("--dry-run", action="store_true")
         parser.add_argument("--reset", action="store_true")
         parser.add_argument("--use-multiprocessing", action="store_true")
         parser.add_argument("--mapid")
+        parser.add_argument("--docid")
 
     def handle(self, *args, **options):
         operation = options["operation"]
+        dry_run = options["dry_run"]
 
         ## 11/20/2024 this operation created to update all existing Map.document_sources fields
         ## after the shape of that field had been changed (page number now stored within each entry)
@@ -351,7 +354,7 @@ class Command(BaseCommand):
         ## then all of its regions iterated. If one region has been georeffed, choose it
         if operation == "delete-duplicate-regions":
             from ohmg.georeference.models import PrepSession
-            from ohmg.core.models import Document
+            from ohmg.core.models import Document, Layer
 
             docids = PrepSession.objects.filter(data__split_needed=False).values_list(
                 "doc2__pk", flat=True
@@ -362,6 +365,8 @@ class Command(BaseCommand):
                 .order_by("map__pk")
             )
             for doc in docs:
+                if options["docid"] and options["docid"] != str(doc.pk):
+                    continue
                 print(doc.map.pk, doc, doc.pk)
                 print("regions:", doc.num_regions)
                 keep_reg = None
@@ -372,16 +377,29 @@ class Command(BaseCommand):
                     keep_reg = doc.regions.all()[0]
                 reg_delete = doc.regions.exclude(pk=keep_reg.pk)
                 for r in reg_delete:
-                    print("deleting:", r, r.pk)
-                    r.file = None
-                    r.thumbnail = None
-                    r.save()
-                    r.delete()
+                    print("to delete:", r, r.pk)
+                    layers = Layer.objects.filter(region=r)
+                    if layers.exists():
+                        print("to delete:", layers)
+                        if not dry_run:
+                            for l in layers:
+                                l.file = None
+                                l.thumbnail = None
+                                l.save()
+                                l.delete()
+                    if not dry_run:
+                        r.file = None
+                        r.thumbnail = None
+                        r.save()
+                        r.delete()
+                        print("deleted")
 
                 ps = PrepSession.objects.filter(doc2=doc)
                 print("prepsessions:", ps.count())
                 keep_ps_pk = ps.first().pk
                 delete_ps = ps.exclude(pk=keep_ps_pk)
                 for s in delete_ps:
-                    print("deleting:", s, s.pk)
-                delete_ps.delete()
+                    print("to delete:", s, s.pk)
+                if not dry_run:
+                    delete_ps.delete()
+                    print("deleted")
