@@ -22,7 +22,7 @@ _system-configs
 nohup.out
 
 celerybeat-schedule
-worker.state
+worker.state*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
