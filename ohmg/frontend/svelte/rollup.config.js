@@ -30,7 +30,7 @@ function serve() {
 
 function componentExportDetails(componentName) {
   return {
-    input: `./src/bundles/${componentName.toLowerCase()}.js`,
+    input: `./src/${componentName.toLowerCase()}.js`,
     output: {
       sourcemap: true,
       format: 'iife',
@@ -90,27 +90,27 @@ function componentExportDetails(componentName) {
 }
 
 export default (cliArgs) => {
-  // Add exportable to this array. These must match a lowercase file in ./src/bundles
-  // e.g. ./src/bundles/main.js
-  let exportable = [];
+  let buildComponents = [
+    'Georeference', // this comment forces prettier to multiline array
+    'Resource',
+    'Split',
+    'Viewer',
+    'Map',
+    'SessionList',
+    'MapList',
+    'ContributorList',
+    'LatestBlogPosts',
+    'MapBrowse',
+    'MapShowcase',
+    'HowItWorks',
+    'Participants',
+    'Place',
+    'Browse',
+  ];
 
   if (cliArgs.configComponent) {
-    // Only build one component if it has been specified in the configComponent arg
-    exportable.push(componentExportDetails(cliArgs.configComponent));
-  } else {
-    // Otherwise build all components
-    [
-      'Index', // this forces prettier to multiline array
-      'Georeference',
-      'Resource',
-      'Split',
-      'Viewer',
-      'Map',
-      'SessionList',
-      'MapList',
-      'ContributorList',
-    ].forEach((d) => exportable.push(componentExportDetails(d)));
+    buildComponents = cliArgs.configComponent.split(',');
   }
 
-  return exportable;
+  return buildComponents.map((d) => componentExportDetails(d));
 };
