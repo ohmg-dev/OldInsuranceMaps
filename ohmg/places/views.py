@@ -1,29 +1,27 @@
-from natsort import natsorted
-
 from django.shortcuts import render
 from django.views import View
 from django.views.decorators.clickjacking import xframe_options_sameorigin
+from natsort import natsorted
 
-from ohmg.conf.http import generate_ohmg_context
-from ohmg.core.models import Map
 from ohmg.api.schemas import (
     LayerSetSchema,
     MapFullSchema,
+    PlaceFullSchema,
 )
-
-from ohmg.api.schemas import PlaceFullSchema
+from ohmg.conf.http import generate_ohmg_context
+from ohmg.core.models import Map
 
 
 class PlaceView(View):
     def get(self, request, place):
         place_json = PlaceFullSchema.from_orm(place).dict()
         context_dict = {
-            "params": {
+            "PLACE_PARAMS": {
                 "CONTEXT": generate_ohmg_context(request),
-                "PAGE_NAME": "place",
-                "PARAMS": {
-                    "PLACE": place_json,
-                },
+                "PLACE": place_json,
+                # "PAGE_NAME": "place",
+                # "PARAMS": {
+                # },
             },
             "navlinks": [
                 {

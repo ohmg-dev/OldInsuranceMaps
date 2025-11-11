@@ -2,11 +2,11 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{{ params.PAGE_TITLE }} | {{ block.super }}{% endblock %}
+{% block title %}{{ PROFILE_USER.username }} | {{ block.super }}{% endblock %}
 
 {% block main_content %}
 
-{% include '_titlebar.html' with title=PAGE_TITLE img_url=PROFILE_USER.image_url %}
+{% include '_titlebar.html' with title=PROFILE_USER.username img_url=PROFILE_USER.image_url %}
 
 {% if CONTEXT.user.username == PROFILE_USER.username %}
 <section>

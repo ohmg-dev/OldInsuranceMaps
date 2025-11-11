@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{{ params.PARAMS.PLACE.display_name }}{% endblock title %}
+{% block title %}{{ PLACE_PARAMS.PLACE.display_name }} | {{block.super}}{% endblock title %}
 
 {% block body %}
 
-{% include '_titlebar.html' with title=params.PARAMS.PLACE.display_name lead_icon="pin" %}
+{% include '_titlebar.html' with title=PLACE_PARAMS.PLACE.display_name lead_icon="pin" %}
 
-{{ params|json_script:'index-props'}}
-{% include '_svelte_component.html' with component_name='Index' %}
+{{ PLACE_PARAMS|json_script:'place-props'}}
+{% include '_svelte_component.html' with component_name='Place' %}
 {% endblock %}
