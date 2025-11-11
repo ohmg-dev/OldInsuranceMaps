@@ -1,23 +1,23 @@
 import logging
 
 import humanize
-
 from django.conf import settings
 from django.http import Http404
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.views import View
 
 from ohmg.conf.http import generate_ohmg_context
 from ohmg.core.models import Map
-
 from ohmg.places.models import Place
+
+from .models import Partner
 
 if settings.ENABLE_NEWSLETTER:
     from newsletter.models import (
-        Newsletter,
-        Subscription,
-        Submission,
         Message,
+        Newsletter,
+        Submission,
+        Subscription,
     )
 
 logger = logging.getLogger(__name__)
@@ -50,19 +50,32 @@ class HomePage(View):
             {"title": i[0], "id": i[1]}
             for i in all_maps.filter(featured=True).values_list("title", "identifier")
         ]
+        partners = [i.serialize() for i in Partner.objects.all()]
+        partners.sort(key=lambda x: x["sortorder"])
+
+        place_ct = humanize.intcomma(Place.objects.all().exclude(volume_count=0).count())
+        map_ct = humanize.intcomma(Map.objects.all().exclude(loaded_by=None).count())
+
+        ohmg_context = generate_ohmg_context(request)
         context_dict = {
-            "params": {
-                "CONTEXT": generate_ohmg_context(request),
-                "PAGE_NAME": "home",
-                "PARAMS": {
-                    "NEWSLETTER_SLUG": newsletter_slug,
-                    "USER_SUBSCRIBED": user_subscribed,
-                    "PLACES_CT": humanize.intcomma(
-                        Place.objects.all().exclude(volume_count=0).count()
-                    ),
-                    "MAP_CT": humanize.intcomma(Map.objects.all().exclude(loaded_by=None).count()),
-                    "FEATURED_MAPS": featured_list,
-                },
+            "NEWSLETTER_SLUG": newsletter_slug,
+            "USER_SUBSCRIBED": user_subscribed,
+            "PARTNERS": partners,
+            "PLACES_CT": place_ct,
+            "MAP_CT": map_ct,
+            "MAPBROWSE_PARAMS": {
+                "MAP_HEIGHT": "100%",
+                "CONTEXT": ohmg_context,
+            },
+            "MAPSHOWCASE_PARAMS": {
+                "CONTEXT": ohmg_context,
+                "FEATURED_MAPS": featured_list,
+                "PLACES_CT": place_ct,
+                "MAP_CT": map_ct,
+            },
+            "SESSIONLIST_PARAMS": {
+                "CONTEXT": ohmg_context,
+                "showThumbs": True,
             },
         }
 
@@ -72,16 +85,10 @@ class HomePage(View):
 class Browse(View):
     def get(self, request):
         context_dict = {
-            "params": {
+            "BROWSE_PARAMS": {
                 "CONTEXT": generate_ohmg_context(request),
-                "PAGE_NAME": "browse",
-                "PAGE_TITLE": "Search",
-                "PARAMS": {
-                    "PLACES_CT": humanize.intcomma(
-                        Place.objects.all().exclude(volume_count=0).count()
-                    ),
-                    "MAP_CT": humanize.intcomma(Map.objects.all().exclude(loaded_by=None).count()),
-                },
+                "PLACES_CT": humanize.intcomma(Place.objects.all().exclude(volume_count=0).count()),
+                "MAP_CT": humanize.intcomma(Map.objects.all().exclude(loaded_by=None).count()),
             }
         }
         return render(request, "frontend/browse.html", context=context_dict)
@@ -145,11 +152,9 @@ class Participants(View):
             request,
             "accounts/profiles.html",
             context={
-                "params": {
+                "PARTICIPANTS_PARAMS": {
                     "CONTEXT": generate_ohmg_context(request),
-                    "PAGE_NAME": "profiles",
-                    "PAGE_TITLE": "Participants",
-                },
+                }
             },
         )
 

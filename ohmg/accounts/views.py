@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.views import View
 
 from ohmg.api.schemas import UserSchema
@@ -16,7 +16,6 @@ class ProfileView(View):
             "accounts/profile.html",
             context={
                 "CONTEXT": ohmg_context,
-                "PAGE_TITLE": username,
                 "PROFILE_USER": profile_user,
                 "SESSIONLIST_PROPS": {
                     "CONTEXT": ohmg_context,
