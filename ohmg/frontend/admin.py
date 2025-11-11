@@ -4,7 +4,7 @@ from markdownx.admin import MarkdownxModelAdmin
 from django.db.models import JSONField
 from django_json_widget.widgets import JSONEditorWidget
 
-from .models import Page, Navbar
+from .models import Page, Navbar, Partner
 
 
 class PageAdmin(MarkdownxModelAdmin):
@@ -21,3 +21,4 @@ class NavbarAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Navbar, NavbarAdmin)
+admin.site.register(Partner)
