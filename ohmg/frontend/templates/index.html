@@ -1,16 +1,181 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
+{% load markdown_utils %}
 
 
-
-{% block extra_head %}{% if params.extra_head %}{{params.extra_head|safe}}{% endif %}{% endblock %}
+{% block extra_head %}
+    {% if params.extra_head %}{{params.extra_head|safe}}{% endif %}
+    <link href="{{ STATIC_URL }}css/home-page.css" rel="stylesheet"/>
+{% endblock %}
 
 {% block title %}{% if params.PAGE_TITLE %}{{ params.PAGE_TITLE }} | {% endif %}{{ block.super }}{% endblock %}
 
 {% block main_content %}
+<main>
+  <section>
+    <div>
+      <h1 style="word-wrap: break-word;">OldInsuranceMaps.net</h1>
+      <p>
+        A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the
+        Library of Congress. See <a href="/#how-it-works">how it works</a> or visit the <a
+          href="https://about.oldinsurancemaps.net?utm_source=hero">about</a
+        > or <a href="/faq">FAQ</a> pages to learn more.
+      </p>
+    </div>
+  </section>
+  <section>
+    <div class="double-column-section" style="padding:0;">
+        <div style="padding:10px;">
+        <div style="border-bottom: dashed grey 1px; padding-bottom: 20px;">
+            {% include '_svelte_component.html' with component_name='LatestBlogPosts' no_css=True %}
+        </div>
+        <div class="level is-mobile" style="margin-bottom:0;">
+            <div class="level-left">
+            <div class="level-item">
+                <h3>Newsletter</h3>
+            </div>
+            </div>
+            <div class="level-right">
+            <div class="level-item">
+                <a href="/newsletter/{{NEWSLETTER_SLUG}}/archive/" rightArrow={true}>read past newsletters</a>
+            </div>
+            </div>
+        </div>
+        <form enctype="multipart/form-data" method="post" action="/newsletter/{{NEWSLETTER_SLUG}}/subscribe/">
+            <input type="hidden" name="csrfmiddlewaretoken" value={{csrf_token}} />
+            <label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe:</label>
+            <input
+            type="email"
+            name="email_field"
+            required=""
+            id="id_email_field"
+            disabled={{USER_SUBSCRIBED}}
+            />
+            {%if USER_SUBSCRIBED %}
+            <a href="/newsletter/{{NEWSLETTER_SLUG}}">manage your subscription</a>
+            {% else %}
+            <button id="id_submit" title="Subscribe to newsletter" name="submit" value="Subscribe" type="submit"
+                >Subscribe</button
+            >
+            {% endif %}
+        </form>
+        </div>
+        <div style="padding:0;">
+        <div style="padding:10px; min-height:75px;">
+            <div class="level" style="margin-bottom:0;">
+            <div class="level-left">
+                <div class="level-item">
+                <h3>{{MAP_CT}} maps in {{PLACES_CT}} cities</h3>
+                </div>
+            </div>
+            <div class="level-right">
+                <div class="level-item">
+                <a href="/united-states" rightArrow={true}>search all places</a>
+                </div>
+            </div>
+            </div>
+        </div>
+        <div class="map-container">
+            {{ MAPBROWSE_PARAMS|json_script:'mapbrowse-props'}}
+            {% include '_svelte_component.html' with component_name='MapBrowse' %}
+        </div>
+      </div>
+    </div>
+  </section>
+  <section>
+      {{ MAPSHOWCASE_PARAMS|json_script:'mapshowcase-props'}}
+      {% include '_svelte_component.html' with component_name='MapShowcase' %}
+  </section>
+  <section>
+      {% include '_svelte_component.html' with component_name='HowItWorks' %}
+  </section>
+  <section>
+    <div>
+      <div class="level is-mobile" style="margin-bottom:0;">
+        <div class="level-left">
+          <div class="level-item">
+            <h3>Latest activity</h3>
+          </div>
+        </div>
+        <div class="level-right">
+          <div class="level-item">
+            <a href="/activity">all activity</a>
+          </div>
+        </div>
+      </div>
+        {{ SESSIONLIST_PARAMS|json_script:'sessionlist-props'}}
+        {% include '_svelte_component.html' with component_name='SessionList' %}
+    </div>
+  </section>
+  <section>
+    <div class="double-column-section">
+      <div class="supporter-text" style="padding:10px;">
+        <div class="level is-mobile" style="margin-bottom:0;">
+          <div class="level-left">
+            <div class="level-item">
+              <h3>Support</h3>
+            </div>
+          </div>
+        </div>
+        <div>
+            {% markdowncontent %}
+_OldInsuranceMaps.net_ is funded in part by the National Institutes of Health (National Institute on Aging: [R01AG080401](https://reporter.nih.gov/search/bCrnkRo-rkWJJXyXqsj44g/project-details/10582012)) through a partnership with University of Michigan [Institute for Social Research](https://isr.umich.edu/), University of Richmond [Digital Scholarship Lab](https://dsl.richmond.edu/), and the [National Community Reinvestment Coalition](https://ncrc.org). Read more in the [ISR press release](https://isr.umich.edu/news-events/news-releases/grant-to-enable-creation-of-new-data-resources-for-studying-structural-racism/).
 
-{{ params|json_script:'index-props'}}
-{% include '_svelte_component.html' with component_name='Index' %}
+We have also worked in partnership with [OpenHistoricalMap](https://openhistoricalmap.org), [HistoryForge](https://historyforge.net), [Midlo Center for New Orleans Studies](https://www.uno.edu/academics/colaehd/la/history/midlo), and have supported community georeferencing events at [The Ohio State University Libraries](https://library.osu.edu/), Rowan University's [Center for Digital Humanities Research](https://www.rowan.edu/ric-edelman-college/centers/cdhr/), the [Community Mapping Lab](https://www.communitymappinglab.org/) at University of Georgia, and the [Center for Urban Health Equality at Morgan State University](https://cuhe.morgan.edu/).
 
+OIM proudly supports graduate researchers and independent mappers, especially those who find this site while on a quest to georeference Sanborn maps of their home! Making these maps more accessible is what the project is all about.
+
+And a very special thanks goes out to those individuals who have donated to the project: Kevin H., Andrew M., Peter M., Pete Z., Chris P., Hayden S., and Mike O. Thank you!
+
+To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
+            {% endmarkdowncontent %}
+
+        </div>
+      </div>
+      <div class="logo-list-container">
+        {% for partner in PARTNERS %}
+          <!-- <a href={{partner.link}} target="_blank"><img src={{partner.logo_url}} class="logo-image" alt={{partner.name}} /></a> -->
+          <article class="media">
+            <figure class="media-left">
+                <img src={{partner.logo_url}} class="logo-image" alt={{partner.name}} /></a>
+            </figure>
+            <div class="media-content">
+                <!-- <figure>
+                </figure> -->
+                <div class="content">
+                <p>
+                    <!-- <strong>{{partner.name}}</strong> -->
+                    <br />
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ornare
+                    magna eros, eu pellentesque tortor vestibulum ut. Maecenas non massa
+                    sem. Etiam finibus odio quis feugiat facilisis.
+                </p>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  <section>
+    <div>
+        <h2>Collaborators & Sponsors</h2>
+        {% for partner in PARTNERS %}
+        <article class="media">
+            <figure class="media-left">
+                <a href={{partner.link}} target="_blank" title="{{partner.name}}">
+                <img src={{partner.logo_url}} class="logo-image" alt={{partner.name}} />
+                </a>
+            </figure>
+            <div class="media-content">
+                <div class="content">
+                {% markdowncontent %}{{ partner.description }}{% endmarkdowncontent %}
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+  </section>
+</main>
 {% endblock %}
