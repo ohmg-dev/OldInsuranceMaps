@@ -6,7 +6,6 @@
   import ArrowCounterClockwise from 'phosphor-svelte/lib/ArrowCounterClockwise';
   import X from 'phosphor-svelte/lib/X';
 
-  import 'ol/ol.css';
   import View from 'ol/View';
   import Feature from 'ol/Feature';
 

@@ -5,13 +5,14 @@
   --secondary-background-color: #eae0c1;
   --footer-height: 45px;
   --title-bar-min-height: 65px;
+  scroll-behavior: smooth;
 }
 
 * {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.4px;
 }
 
 html,
@@ -110,6 +111,7 @@ h5,
 h6 {
   font-weight: 400;
   line-height: 1.1;
+  scroll-margin-top: 65px;
 }
 h1,
 h2,
@@ -145,6 +147,7 @@ input[type="range"] {
   min-height: calc(
     100vh - calc(var(--bulma-navbar-height) + var(--footer-height))
   );
+  /* scroll-behavior: smooth; */
 }
 
 a {
@@ -172,6 +175,18 @@ a.button {
 
 #map {
   background-color: var(--primary-background-color);
+}
+
+thead tr {
+  background-color: #eaeaea;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f6f6f6;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #ffffff;
 }
 
 input,
@@ -256,6 +271,10 @@ button.is-sm {
 .control-btn-group {
   display: flex;
   flex-direction: row;
+}
+
+hr {
+  background-color: rgb(149, 149, 149);
 }
 
 @media (max-width: 991px) {
@@ -491,4 +510,114 @@ img.lead-image {
   padding: 2px;
   box-shadow: gray 0px 0px 5px;
   border-radius: 4px;
+}
+
+/* primarily in MapPreview and Multimask interfaces */
+
+#map-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid gray;
+}
+
+#layer-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 20%;
+  min-width: 115px;
+  background: rgb(235, 235, 235);
+  border-top: 1px solid gray;
+  border-right: 1px solid gray;
+  border-bottom: 1px solid gray;
+}
+
+#layer-list {
+  overflow-y: auto;
+}
+
+.layer-section-header {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 1.2em;
+  border-top: 2px solid grey;
+  padding: 5px;
+  background: lightgray;
+}
+
+/* interface rules */
+
+.svelte-component-main {
+  height: 600px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px;
+  background: rgb(235, 235, 235);
+  border: 1.5px solid rgb(150, 150, 150);
+  position: relative;
+}
+
+.svelte-component-main nav {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px;
+  background: lightgrey;
+}
+
+.svelte-component-main nav label {
+  margin: 0px;
+}
+
+.svelte-component-main nav select:disabled {
+  color: grey;
+}
+
+.interface-mask {
+  height: 597px; /* 600 - 2 * 1.5px borders on the main component */
+  width: 100%;
+  position: absolute;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+  z-index: 1000;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  text-align: center;
+  padding-top: 275px;
+}
+
+#doc-viewer {
+  background: url("/static/img/sandpaper-bg-vlite.jpg");
+}
+
+.map-container {
+  display: flex;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.map-item {
+  width: 100%;
+}
+
+.rounded-bottom {
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+@media screen and (max-width: 768px) {
+  .svelte-component-main nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    margin: 5px 0px;
+    padding: 0px 5px;
+  }
 }

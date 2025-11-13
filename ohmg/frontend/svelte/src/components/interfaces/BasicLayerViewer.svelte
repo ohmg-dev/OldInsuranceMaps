@@ -3,8 +3,6 @@
 
   import CornersOut from 'phosphor-svelte/lib/CornersOut';
 
-  import 'ol/ol.css';
-
   import { transformExtent } from 'ol/proj';
 
   import { XYZ } from 'ol/source';
@@ -13,8 +11,6 @@
   import { makeTitilerXYZUrl } from '../../lib/utils';
   import { LyrMousePosition } from '../../lib/controls';
   import { MapViewer } from '../../lib/viewers';
-
-  import '../../css/ol-overrides.css';
 
   export let CONTEXT;
   export let LAYER_URL;

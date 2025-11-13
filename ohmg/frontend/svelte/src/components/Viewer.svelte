@@ -16,8 +16,6 @@
   import { fromLonLat } from 'ol/proj';
   import { createXYZ } from 'ol/tilegrid';
 
-  import 'ol/ol.css';
-
   import Control from 'ol/control/Control';
 
   import Feature from 'ol/Feature';
@@ -31,7 +29,6 @@
   import LayerGroup from 'ol/layer/Group';
   import VectorLayer from 'ol/layer/Vector';
 
-  import '../css/ol-overrides.css';
   import { makeTitilerXYZUrl, makeLayerGroupFromLayerSet, makeBasemaps } from '../lib/utils';
   import { MapViewer } from '../lib/viewers';
   import Modal, { getModal } from './modals/BaseModal.svelte';

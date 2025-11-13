@@ -13,8 +13,6 @@
 
   import SvelteMarkdown from 'svelte-markdown';
 
-  import '../../css/ol-overrides.css';
-
   // NOTE: the css for this modal component is in /static/css/modal.css, which allows
   // the same modal to be used directly in Django templates.
 

@@ -3,7 +3,6 @@
 
   import Overlay from 'ol/Overlay';
 
-  import 'ol/ol.css';
   import View from 'ol/View';
 
   import GeoJSON from 'ol/format/GeoJSON';
