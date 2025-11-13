@@ -3,8 +3,6 @@
 
   import MapPin from 'phosphor-svelte/lib/MapPin';
 
-  import 'ol/ol.css';
-
   import { getCenter } from 'ol/extent';
 
   import Link from './common/Link.svelte';
@@ -134,7 +132,7 @@
     </button>
     {#if sectionVis['preview']}
       <div transition:slide|global>
-        <div id="map-panel">
+        <div style="width:100%; height:500px;">
           {#each reinitMap as key (key)}
             {#if RESOURCE.type == 'layer'}
               <BasicLayerViewer {CONTEXT} {LAYER_URL} {EXTENT} />
@@ -293,11 +291,6 @@
 </main>
 
 <style>
-  #map-panel {
-    width: 100%;
-    height: 500px;
-  }
-
   section {
     border-bottom: 1px solid rgb(149, 149, 149);
   }

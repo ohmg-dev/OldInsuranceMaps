@@ -1,8 +1,9 @@
 main {
   display: flex;
   flex-direction: column;
-  margin-right: -15px;
-  margin-left: -15px;
+  gap: 40px;
+  padding: 40px 0;
+  margin: 0 -15px;
   background: linear-gradient(
       0deg,
       rgba(255 255 255 / 60%),
@@ -13,20 +14,26 @@ main {
 }
 
 section {
-  margin-top: 40px;
   padding: 0 20px;
+  display: flex;
+  gap: 20px;
+  scroll-margin-top: 65px;
 }
 
 section > div {
+  width: 100%;
   background: rgba(255, 255, 255, 0.85);
   border: 2px solid black;
   border-radius: 4px;
   padding: 10px;
-  margin-bottom: 10px;
 }
 
 main p {
   font-size: 1.25em;
+}
+
+.sponsor-bar {
+  width: 400px;
 }
 
 .double-column-section {
@@ -39,29 +46,31 @@ main p {
   width: 50%;
 }
 
-.map-container {
+.map-container-home {
   height: calc(100% - 75px);
   border-top: 2px solid black;
   border-left: 2px solid black;
 }
 
-.logo-list-container {
-  display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  width: 60%;
-  padding: 20px;
-  gap: 20px;
-}
-
 .logo-image {
+  margin-top: 5px;
   max-height: 45px;
   max-width: 250px;
+}
+
+article.media.partner-listing {
+  border-top: dashed grey 1px;
+  padding-top: var(--bulma-media-spacing);
 }
 
 @media only screen and (max-width: 760px) {
   main {
     max-width: none;
+  }
+
+  section {
+    flex-direction: column;
+    gap: 40px;
   }
 
   .hero-banner-inner {
@@ -78,5 +87,18 @@ main p {
 
   .map-container {
     display: none;
+  }
+
+  .sponsor-bar {
+    width: 100%;
+  }
+
+  article.media {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .partner-description {
+    margin-top: 20px;
   }
 }

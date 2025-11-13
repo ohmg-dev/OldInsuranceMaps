@@ -1,4 +1,3 @@
-import './css/interface.css';
 import Browse from './components/overviews/Browse.svelte';
 
 export default new Browse({

@@ -1,5 +1,4 @@
 <script>
-  import '../../css/shared.css';
   import MapList from '../lists/MapList.svelte';
   import Places from '../lists/Places.svelte';
   import MapBrowse from '../interfaces/MapBrowse.svelte';

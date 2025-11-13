@@ -1,4 +1,3 @@
-import './css/interface.css';
 import Resource from './components/Resource.svelte';
 
 export default new Resource({

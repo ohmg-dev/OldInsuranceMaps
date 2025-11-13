@@ -13,8 +13,6 @@
   import MultiPoint from 'ol/geom/MultiPoint';
   import Point from 'ol/geom/Point';
 
-  import 'ol/ol.css';
-
   import { platformModifierKey, singleClick, noModifierKeys } from 'ol/events/condition';
   import VectorSource from 'ol/source/Vector';
   import TileJSON from 'ol/source/TileJSON';
@@ -560,5 +558,10 @@
   }
   button.layer-entry:hover {
     color: red;
+  }
+  .layer-section-subheader {
+    padding: 5px;
+    text-align: center;
+    min-height: 35px;
   }
 </style>

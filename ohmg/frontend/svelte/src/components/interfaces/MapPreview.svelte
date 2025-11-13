@@ -1,7 +1,4 @@
 <script>
-  import 'ol/ol.css';
-  import '../../css/map-panel.css';
-
   import { onMount } from 'svelte';
 
   import CornersOut from 'phosphor-svelte/lib/CornersOut';
@@ -202,5 +199,10 @@
     align-items: end;
     padding: 0 10px;
     font-size: 0.8em;
+  }
+  .layer-section-subheader {
+    padding: 5px;
+    text-align: center;
+    min-height: 35px;
   }
 </style>

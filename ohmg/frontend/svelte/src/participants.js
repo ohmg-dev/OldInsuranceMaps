@@ -1,4 +1,3 @@
-import './css/interface.css';
 import Participants from './components/lists/Participants.svelte';
 
 export default new Participants({
