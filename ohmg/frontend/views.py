@@ -50,7 +50,7 @@ class HomePage(View):
             {"title": i[0], "id": i[1]}
             for i in all_maps.filter(featured=True).values_list("title", "identifier")
         ]
-        partners = [i.serialize() for i in Partner.objects.all()]
+        partners = [i.serialize() for i in Partner.objects.filter(published=True)]
         partners.sort(key=lambda x: x["sortorder"])
 
         place_ct = humanize.intcomma(Place.objects.all().exclude(volume_count=0).count())
