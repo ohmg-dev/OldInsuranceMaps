@@ -3,7 +3,7 @@
   import SVGIcon from '../../common/SVGIcon.svelte';
 </script>
 
-<h3>How it Works</h3>
+<h2>How it Works</h2>
 <div id="step-list">
   <div>
     <div>
@@ -88,7 +88,7 @@
   }
 
   #step-list div > p {
-    font-size: 1.1em;
+    font-size: 1.25em;
     margin-bottom: 0px;
   }
 </style>

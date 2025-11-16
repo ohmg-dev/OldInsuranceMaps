@@ -1,50 +1,69 @@
 <script>
   import Link from './common/Link.svelte';
 
+  import MapItem from './cards/MapItem.svelte';
+
   import LatestAdditions from './lists/LatestAdditions.svelte';
 
   export let CONTEXT;
   export let FEATURED_MAPS = [];
-  export let PLACES_CT;
+  export let DOC_CT;
+  export let CONT_CT;
+  export let SESH_CT;
   export let MAP_CT;
+  export let LYR_CT;
 </script>
 
 <div>
+  <div class="level">
+    <div class="level-left">
+      <h2>Content overview</h2>
+    </div>
+    <div class="level-rightn hidden-mobile">
+      <em
+        >Want to georeference a new map? Make a request through <Link
+          href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link"
+          external={true}>this form.</Link
+        ></em
+      >
+    </div>
+  </div>
   <div class="hero-banner-inner">
+    <div>
+      <ul>
+        <li>{MAP_CT} maps...</li>
+        <li>comprising {DOC_CT} pages/sheets...</li>
+        <li>georeferenced by {CONT_CT} users...</li>
+        <li>over the course of {SESH_CT} sessions...</li>
+        <li>resulting in {LYR_CT} individual layers.</li>
+      </ul>
+      <h3>Find content</h3>
+      <ul>
+        <li><Link href="/search/#map">By location</Link></li>
+        <li><Link href="/united-states">By state &gt; county &gt; city</Link></li>
+        <li><Link href="/search/#items">By map</Link></li>
+      </ul>
+    </div>
     {#if FEATURED_MAPS}
       <div>
         <h3>Featured maps</h3>
-        <ul>
-          {#each FEATURED_MAPS as map}
-            <li><Link href={`/map/${map.id}`}>{map.title}</Link></li>
-          {/each}
-        </ul>
+        {#each FEATURED_MAPS as MAP}
+          <MapItem {MAP} />
+        {/each}
       </div>
     {/if}
     <div>
       <h3>Recently added maps</h3>
       <LatestAdditions {CONTEXT} />
-      <span
-        ><em
-          >Want to see more? View <Link href="/search/#items">all items</Link> and sort by
-          <strong>Load date</strong>.</em
-        ></span
-      >
     </div>
-    <div>
-      <h3>Browse all</h3>
-      <ul>
-        <li><Link href="/search/#map">By location ({PLACES_CT})</Link></li>
-        <li><Link href="/search/#places">By place name ({PLACES_CT})</Link></li>
-        <li><Link href="/search/#places">By item ({MAP_CT})</Link></li>
-      </ul>
-      <span
-        ><em
-          ><Link
-            href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link"
-            external={true}>request more LOC Sanborn maps</Link
-          ></em
-        ></span
+  </div>
+  <div class="level hidden-non-mobile" style="margin-top:2em;">
+    <div class="level-center">
+      <em
+        >Want to georeference a new map? Make a request through <Link
+          href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link"
+          external={true}>this form.</Link
+        ></em
       >
     </div>
   </div>
@@ -54,7 +73,7 @@
   .hero-banner-inner {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-around;
   }
 
   .hero-banner-inner > div > ul {
@@ -64,5 +83,10 @@
   }
   .hero-banner-inner > div > ul li {
     padding-left: 5px;
+  }
+  @media only screen and (max-width: 760px) {
+    .hero-banner-inner {
+      flex-direction: column;
+    }
   }
 </style>

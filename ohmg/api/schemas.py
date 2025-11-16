@@ -1,27 +1,25 @@
 import json
 import logging
 from datetime import datetime
-from typing import List, Optional, Any, Literal
+from typing import Any, List, Literal, Optional
 
 import humanize
-from natsort import natsorted
-
+from avatar.templatetags.avatar_tags import avatar_url
 from django.urls import reverse
+from natsort import natsorted
 from ninja import (
     Schema,
 )
 
-from avatar.templatetags.avatar_tags import avatar_url
-
 from ohmg.core.models import (
     Document,
-    Region,
     Layer,
+    Region,
 )
 from ohmg.core.storages import get_file_url
 from ohmg.georeference.models import (
-    PrepSession,
     GeorefSession,
+    PrepSession,
     SessionLock,
 )
 
@@ -78,6 +76,7 @@ class MapListSchema(Schema):
     urls: dict
     featured: bool
     hidden: bool
+    thumbnail_url: Optional[str]
 
     @staticmethod
     def resolve_load_date(obj):
@@ -102,6 +101,12 @@ class MapListSchema(Schema):
         return {
             "summary": f"/map/{obj.identifier}",
         }
+
+    @staticmethod
+    def resolve_thumbnail_url(obj):
+        first_doc = obj.documents.all().first()
+        if first_doc and first_doc.thumbnail:
+            return first_doc.thumbnail.url
 
 
 class PlaceSchemaVeryLite(Schema):

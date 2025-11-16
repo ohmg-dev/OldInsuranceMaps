@@ -14,14 +14,30 @@
 {% block main_content %}
 <main>
   <section>
-    <div>
-      <h1 style="word-wrap: break-word;">OldInsuranceMaps.net</h1>
-      <p>
-        A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the
-        Library of Congress. See <a href="/#how-it-works">how it works</a> or visit the <a
-          href="https://about.oldinsurancemaps.net?utm_source=hero">about</a
-        > or <a href="/faq">FAQ</a> pages to learn more.
-      </p>
+    <div class="home-page-top-section">
+      <div style="width:60%">
+        <h1 style="word-wrap: break-word; display:inline;">OldInsuranceMaps.net</h1>
+        <p style="display:inline;"> provides an open, online workflow for creating georeferenced layers of historical maps, with a special focus on making seamless mosaics from multi-page atlases in the <a href="https://loc.gov/collections/sanborn-maps">Sanborn map collection</a> at the Library of Congress.</p>
+        <!-- <p>
+          A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the
+          Library of Congress. See <a href="/#how-it-works">how it works</a> or visit the <a
+            href="https://about.oldinsurancemaps.net?utm_source=hero">about</a
+          > or <a href="/faq">FAQ</a> pages to learn more.
+        </p> -->
+      </div>
+      <div style="width:20%">
+        <ul class="home-page-top-links full-width-screen">
+          <li><a href="#how">How does it work? &darr;</a></li>
+          <li><a href="#who">Who uses this platform? &darr;</a></li>
+          <li><a href="/activity">See latest activity &rarr;</a></li>
+          <!-- <li><a href="/faq">More FAQs... &rarr;</a></li> -->
+        </ul>
+      </div>
+      <div style="width:20%" class="hidden-mobile">
+        <a href="/viewer/alexandria-la/?sanborn03267_004=100#/center/-92.45451,31.31149/zoom/20.2" title="New Orleans, Vol 2, 1908">
+          <img style="border:1px solid grey; border-radius:3px;" src="{{ STATIC_URL }}img/alexandria-circus.png" alt="Roundhouse in New Orleans, 1908" />
+        </a>
+      </div>
     </div>
   </section>
   <section>
@@ -87,94 +103,68 @@
       {{ MAPSHOWCASE_PARAMS|json_script:'mapshowcase-props'}}
       {% include '_svelte_component.html' with component_name='MapShowcase' %}
   </section>
-  <section>
+  <section id="how">
       {% include '_svelte_component.html' with component_name='HowItWorks' %}
   </section>
-  <section>
+  <section id="who">
     <div>
-      <div class="level is-mobile" style="margin-bottom:0;">
-        <div class="level-left">
-          <div class="level-item">
-            <h3>Latest activity</h3>
-          </div>
-        </div>
-        <div class="level-right">
-          <div class="level-item">
-            <a href="/activity">all activity</a>
-          </div>
-        </div>
-      </div>
-        {{ SESSIONLIST_PARAMS|json_script:'sessionlist-props'}}
-        {% include '_svelte_component.html' with component_name='SessionList' %}
-    </div>
-  </section>
-  <section>
-    <div class="double-column-section">
-      <div class="supporter-text" style="padding:10px;">
-        <div class="level is-mobile" style="margin-bottom:0;">
-          <div class="level-left">
-            <div class="level-item">
-              <h3>Support</h3>
-            </div>
-          </div>
-        </div>
-        <div>
-            {% markdowncontent %}
-_OldInsuranceMaps.net_ is funded in part by the National Institutes of Health (National Institute on Aging: [R01AG080401](https://reporter.nih.gov/search/bCrnkRo-rkWJJXyXqsj44g/project-details/10582012)) through a partnership with University of Michigan [Institute for Social Research](https://isr.umich.edu/), University of Richmond [Digital Scholarship Lab](https://dsl.richmond.edu/), and the [National Community Reinvestment Coalition](https://ncrc.org). Read more in the [ISR press release](https://isr.umich.edu/news-events/news-releases/grant-to-enable-creation-of-new-data-resources-for-studying-structural-racism/).
-
-We have also worked in partnership with [OpenHistoricalMap](https://openhistoricalmap.org), [HistoryForge](https://historyforge.net), [Midlo Center for New Orleans Studies](https://www.uno.edu/academics/colaehd/la/history/midlo), and have supported community georeferencing events at [The Ohio State University Libraries](https://library.osu.edu/), Rowan University's [Center for Digital Humanities Research](https://www.rowan.edu/ric-edelman-college/centers/cdhr/), the [Community Mapping Lab](https://www.communitymappinglab.org/) at University of Georgia, and the [Center for Urban Health Equality at Morgan State University](https://cuhe.morgan.edu/).
-
-OIM proudly supports graduate researchers and independent mappers, especially those who find this site while on a quest to georeference Sanborn maps of their home! Making these maps more accessible is what the project is all about.
-
-And a very special thanks goes out to those individuals who have donated to the project: Kevin H., Andrew M., Peter M., Pete Z., Chris P., Hayden S., and Mike O. Thank you!
-
-To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
-            {% endmarkdowncontent %}
-
-        </div>
-      </div>
-      <div class="logo-list-container">
+        <h2>Who uses this platform?</h2>
+        <p>Here's how some organizations have used <em>OldInsuranceMaps.net</em> to support their research and community mapping efforts.</p>
         {% for partner in PARTNERS %}
-          <!-- <a href={{partner.link}} target="_blank"><img src={{partner.logo_url}} class="logo-image" alt={{partner.name}} /></a> -->
-          <article class="media">
+        <article class="media partner-listing" style="margin-top:15px;">
+            {% if partner.logo_url %}
             <figure class="media-left">
-                <img src={{partner.logo_url}} class="logo-image" alt={{partner.name}} /></a>
-            </figure>
-            <div class="media-content">
-                <!-- <figure>
-                </figure> -->
-                <div class="content">
-                <p>
-                    <!-- <strong>{{partner.name}}</strong> -->
-                    <br />
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ornare
-                    magna eros, eu pellentesque tortor vestibulum ut. Maecenas non massa
-                    sem. Etiam finibus odio quis feugiat facilisis.
-                </p>
-                </div>
-            </div>
-        </article>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-  <section>
-    <div>
-        <h2>Collaborators & Sponsors</h2>
-        {% for partner in PARTNERS %}
-        <article class="media">
-            <figure class="media-left">
-                <a href={{partner.link}} target="_blank" title="{{partner.name}}">
                 <img src={{partner.logo_url}} class="logo-image" alt={{partner.name}} />
-                </a>
             </figure>
+            {% endif %}
             <div class="media-content">
-                <div class="content">
+                <div class="content partner-description">
                 {% markdowncontent %}{{ partner.description }}{% endmarkdowncontent %}
                 </div>
             </div>
         </article>
         {% endfor %}
+    </div>
+    <div class="sponsor-bar content">
+        <h2>Researchers & hobbyists</h2>
+        <p>We are especially proud to provide open tools for people who find this site on their own quest to georeference Sanborn maps.</p>
+        {% markdowncontent %}
+- [nolancrees](/profile/nolancrees) in Des Moines, Iowa
+- [WallyKitty](/profile/WallyKitty) all over Louisiana
+- [ktflghm](/profile/ktflghm) in San Francisco, Calif.
+- [sanborn_again1](/profile/sanborn_again1) in Springfield, Ill.
+- [billniebel](/profile/billniebel) in Miamisburg, Ohio
+- [cliftonmr](/profile/cliftonmr) in Cleburne, Texas
+- [hdevine825](/profile/hdevine825) in Brooklyn, N.Y.
+- [hayloex](/profile/hayloex) in Cincinnati, Ohio
+- [iandees](/profile/iandees) in St. Paul, Minn.
+- [kbails](/profile/kbails) in New Orleans, La.
+- [lablakely](/profile/lablakely) in Waco, Texas
+- [Pete_Zivkov](/profile/Pete_Zivkov) in Menlo Park, Calif.
+- [Square6](/profile/Square6) in Temple, Texas
+- [maplemoths](/profile/maplemoths) in Marion, Ohio
+- [mhowell](/profile/mhowell) in Noblesville, Ind.
+- [mrileyowens](/profile/mrileyowens) in Cincinnati, Ohio
+- [Lord-Julius-de-Silva](/profile/Lord-Julius-de-Silva) in Los Gatos, Calif.
+- [CaroOkay](/profile/CaroOkay) in New Iberia, La.
+- [Gullimapozo](/profile/Gullimapozo) in Gary, Ind.
+        {% endmarkdowncontent %}
+    </div>
+  </section>
+  <section>
+    <div>
+      <h2>Funding</h2>
+      <div>
+        {% markdowncontent %}
+_OldInsuranceMaps.net_ is funded in part by the National Institutes of Health (National Institute on Aging: [R01AG080401](https://reporter.nih.gov/search/bCrnkRo-rkWJJXyXqsj44g/project-details/10582012)) through a partnership with [University of Michigan Institute for Social Research](https://isr.umich.edu/), University of Richmond [Digital Scholarship Lab](https://dsl.richmond.edu/), and the [National Community Reinvestment Coalition](https://ncrc.org). The grant seeks to [create new data resources for studying structural racism](https://isr.umich.edu/news-events/news-releases/grant-to-enable-creation-of-new-data-resources-for-studying-structural-racism/).
+
+We have also received funding to support collaboration with [Midlo Center for New Orleans Studies](https://www.uno.edu/academics/colaehd/la/history/midlo), [The Ohio State University Libraries](https://library.osu.edu/), and [Rowan University](https://www.rowan.edu).
+
+A very special thanks goes out to those individuals who have donated to the project as well: Kevin H., Andrew M., Peter M., Pete Z., Chris P., Hayden S., and Mike O. Thank you!
+
+To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
+    {% endmarkdowncontent %}
+      </div>
     </div>
   </section>
 </main>
