@@ -10,6 +10,9 @@
 
   import sync from 'ol-hashed';
 
+  import 'ol/ol.css';
+  import '../../../static/css/ol-overrides.css';
+
   import { createEmpty } from 'ol/extent';
   import { extend } from 'ol/extent';
   import { transformExtent } from 'ol/proj';

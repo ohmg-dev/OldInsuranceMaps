@@ -22,7 +22,7 @@ section {
 
 section > div {
   width: 100%;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.95);
   border: 2px solid black;
   border-radius: 4px;
   padding: 10px;
@@ -34,6 +34,23 @@ main p {
 
 .sponsor-bar {
   width: 400px;
+  height: min-content;
+}
+
+.home-page-top-section {
+  padding-top: 35px;
+  padding-bottom: 35px;
+  display: flex;
+  gap: 20px;
+}
+
+.home-page-top-links {
+  font-size: 1.25em;
+  width: 250px;
+}
+
+.map-section {
+  display: flex;
 }
 
 .double-column-section {
@@ -54,13 +71,23 @@ main p {
 
 .logo-image {
   margin-top: 5px;
-  max-height: 45px;
+  max-height: 100px;
   max-width: 250px;
 }
 
 article.media.partner-listing {
   border-top: dashed grey 1px;
   padding-top: var(--bulma-media-spacing);
+}
+
+.media + .media {
+  border-top: dashed grey 1px;
+}
+
+@media (min-width: 760px) {
+  .hidden-non-mobile {
+    display: none;
+  }
 }
 
 @media only screen and (max-width: 760px) {
@@ -85,7 +112,19 @@ article.media.partner-listing {
     width: 100%;
   }
 
+  .home-page-top-section {
+    flex-direction: column;
+  }
+
+  .home-page-top-section > div {
+    width: 100% !important;
+  }
+
   .map-container {
+    display: none;
+  }
+
+  .hidden-mobile {
     display: none;
   }
 
@@ -100,5 +139,9 @@ article.media.partner-listing {
 
   .partner-description {
     margin-top: 20px;
+  }
+
+  .full-width-screen {
+    width: 100%;
   }
 }

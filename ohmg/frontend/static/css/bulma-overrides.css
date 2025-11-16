@@ -1,7 +1,8 @@
 :root {
   --bulma-scheme-main: #123b4f;
   --bulma-scheme-main-bis: #123b4f;
-  --bulma-navbar-height: 45px;
+  --bulma-navbar-height: 55px;
+  --bulma-navbar-item-img-max-height: 50px;
   --bulma-scheme-h: 200;
   --bulma-scheme-s: 63%;
   --bulma-scheme-l: 19%;
@@ -18,6 +19,7 @@
   --bulma-text-color: #333333;
   --bulma-text-strong: #333333;
   --bulma-strong-color: #333333;
+  --bulma-block-spacing: 1em;
 }
 
 .navbar-dropdown a.navbar-item {
@@ -51,6 +53,7 @@ Force hover color here to what it was supposed to be with the delta*/
 
 nav.navbar {
   height: var(--bulma-navbar-height);
+  font-size: 1.15em;
   position: fixed;
   top: 0;
   right: 0;
