@@ -13,7 +13,7 @@
       Digital scans of Sanborn maps are available through the <Link
         href="https://loc.gov/collections/sanborn-maps"
         external={true}>Library of Congress</Link
-      > and are pulled into this site through the LOC <Link
+      > and are pulled into this site through their <Link
         href="https://www.loc.gov/apis/json-and-yaml/requests/"
         external={true}>JSON API</Link
       >, generating a "Map Summary" page (<Link href="/map/sanborn03275_001?utm_source=index">Baton Rouge, 1885</Link>).
@@ -24,7 +24,7 @@
       <SVGIcon icon="document" size="lg" />
     </div>
     <p>
-      Users <Link href="/split/244/">prepare each sheet</Link> in the volume, sometimes splitting it into multiple documents,
+      Users <Link href="/split/244/">prepare each sheet</Link> in the volume, sometimes splitting it into multiple regions,
       each to be georeferenced individually (<Link href="/document/244?utm_source=index">Baton Rouge, 1885, page 1</Link
       >).
     </p>
