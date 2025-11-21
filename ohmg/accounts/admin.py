@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .forms import CustomUserCreationForm, CustomUserChangeForm
-from .models import User, APIKey
+from .forms import CustomUserChangeForm, CustomUserCreationForm
+from .models import APIKey, User
 
 
 class LocalUserAdmin(UserAdmin):
@@ -10,6 +10,7 @@ class LocalUserAdmin(UserAdmin):
     form = CustomUserChangeForm
     model = User
     list_display = ["email", "username", "date_joined", "last_login"]
+    ordering = ("-date_joined",)
 
 
 admin.site.register(User, LocalUserAdmin)
