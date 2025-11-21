@@ -38,13 +38,13 @@ main p {
 }
 
 .home-page-top-section {
-  padding-top: 35px;
-  padding-bottom: 35px;
   display: flex;
+  justify-content: space-between;
   gap: 20px;
+  padding: 0;
 }
 
-.home-page-top-links {
+.home-page-top-links > ul {
   font-size: 1.25em;
   width: 250px;
 }
@@ -112,11 +112,12 @@ article.media.partner-listing {
     width: 100%;
   }
 
-  .home-page-top-section {
+  .home-page-top-section-content {
     flex-direction: column;
+    width: 100% !important;
   }
 
-  .home-page-top-section > div {
+  .home-page-top-section-content > div {
     width: 100% !important;
   }
 
@@ -141,7 +142,7 @@ article.media.partner-listing {
     margin-top: 20px;
   }
 
-  .full-width-screen {
+  .home-page-top-links > ul {
     width: 100%;
   }
 }
