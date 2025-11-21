@@ -1,12 +1,12 @@
 from datetime import datetime
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand
 
 from ohmg.core.importer import get_importer
 from ohmg.core.models import Map
-from ohmg.georeference.models import PrepSession, GeorefSession
+from ohmg.georeference.models import GeorefSession, PrepSession
 
 
 class Command(BaseCommand):
@@ -24,6 +24,7 @@ class Command(BaseCommand):
                     "create-documents",
                     "create-lookups",
                     "refresh-lookups",
+                    "resave-layers",
                 ],
                 help="the operation to perform",
             ),
@@ -209,3 +210,16 @@ class Command(BaseCommand):
                 map.update_item_lookup()
 
             print(f"elapsed_time: {datetime.now() - start}")
+
+        if operation == "resave-layers":
+            if options["pk"]:
+                maps = [Map.objects.get(pk=options["pk"])]
+            elif options["skip_existing"]:
+                maps = Map.objects.all().filter(item_lookup__isnull=True).order_by("title")
+            else:
+                maps = Map.objects.all().order_by("title")
+
+            for map in maps:
+                for lyr in map.layers.all():
+                    lyr.save(skip_map_lookup_update=True, set_tilejson=True, set_extent=False)
+                map.update_item_lookup()
