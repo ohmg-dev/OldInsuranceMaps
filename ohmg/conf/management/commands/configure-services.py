@@ -2,7 +2,6 @@ import os
 import sys
 from pathlib import Path
 
-
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -85,63 +84,6 @@ sudo systemctl restart uwsgi
         log_dir = self._resolve_var("LOG_DIR", settings.LOG_DIR)
         user = self._resolve_var("USER", "username")
 
-        vars = [
-            ("MODE", "PROD"),
-            ("MEDIA_ROOT", ""),
-            ("DATABASE_NAME", ""),
-            ("DATABASE_USER", ""),
-            ("DATABASE_PASSWORD", ""),
-            ("DATABASE_HOST", ""),
-            ("DATABASE_PORT", ""),
-            ("DEBUG", False),
-            ("DJANGO_SETTINGS_MODULE", None),
-            ("SITE_HOST_NAME", ""),
-            ("SITEURL", ""),
-            ("LOGIN_REQUIRED_SITEWIDE", False),
-            ("ALLOWED_HOSTS", []),
-            ("ADMIN_EMAIL", ""),
-            ("MAPBOX_API_TOKEN", None),
-            ("BROKER_URL", ""),
-            ("TITILER_HOST", ""),
-            ("SWAP_COORDINATE_ORDER", False),
-            ("ENABLE_CPROFILER", False),
-            ("ENABLE_DEBUG_TOOLBAR", False),
-            ("ENABLE_NEWSLETTER", False),
-            ("OHMG_API_KEY", ""),
-        ]
-
-        if self._resolve_var("ENABLE_S3_STORAGE", False) is True:
-            vars += [
-                ("ENABLE_S3_STORAGE", True),
-                ("AWS_ACCESS_KEY_ID", ""),
-                ("AWS_SECRET_ACCESS_KEY", ""),
-                ("AWS_STORAGE_BUCKET_NAME", ""),
-                ("AWS_S3_REGION_NAME", ""),
-                ("AWS_S3_ENDPOINT_URL", ""),
-            ]
-
-        if self._resolve_var("EMAIL_ENABLE", False) is True:
-            vars += [
-                ("EMAIL_ENABLE", True),
-                ("DJANGO_EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"),
-                ("DJANGO_EMAIL_HOST", "localhost"),
-                ("DJANGO_EMAIL_PORT", 587),
-                ("DJANGO_EMAIL_HOST_USER", ""),
-                ("DJANGO_EMAIL_HOST_PASSWORD", ""),
-                ("DJANGO_EMAIL_USE_TLS", False),
-                ("DJANGO_EMAIL_USE_SSL", False),
-                ("DEFAULT_FROM_EMAIL", "admin@localhost"),
-            ]
-
-        env_section = ""
-        for var in vars:
-            value = self._resolve_var(var[0], var[1])
-            env_section += f"env = {var[0]}={value}\n"
-
-        # this one must be quoted because it could contain # (comment tag)
-        secret = self._resolve_var("SECRET_KEY", "RanD0m%3cr3tK3y")
-        env_section += f'env = SECRET_KEY="{secret}"'
-
         file_content = f"""[uwsgi]
 # set socket and set its permissions
 socket = {settings.BASE_DIR}/{project_name}.sock
@@ -163,9 +105,6 @@ module = {wsgi_application}
 # virtual env location, not sure if both of these are needed
 home = {env_path}
 virtualenv = {env_path}
-
-# env variables needed by geonode
-{env_section}
 
 # other geonode doc-recommended settings
 #strict = false
