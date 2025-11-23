@@ -2,7 +2,7 @@ import ast
 import os
 from pathlib import Path
 
-from kombu import Queue, Exchange
+from kombu import Exchange, Queue
 
 MODE = os.getenv("MODE", "DEV")
 
@@ -226,6 +226,9 @@ AVATAR_DEFAULT_URL = os.getenv("AVATAR_DEFAULT_URL", "icons/noun-user-1213267-FF
 
 PLAUSIBLE_DATA_DOMAIN = os.getenv("PLAUSIBLE_DATA_DOMAIN")
 PLAUSIBLE_SOURCE_SCRIPT = os.getenv("PLAUSIBLE_SOURCE_SCRIPT")
+
+PROSOPO_SITE_KEY = os.getenv("PROSOPO_SITE_KEY")
+PROSOPO_SECRET_KEY = os.getenv("PROSOPO_SECRET_KEY")
 
 try:
     # try to parse python notation, default in dockerized env

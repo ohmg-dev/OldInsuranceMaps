@@ -37,4 +37,5 @@ def site_info(request):
         "CURRENT_ROUTE": request.path.split("/")[1],
         "PLAUSIBLE_DATA_DOMAIN": settings.PLAUSIBLE_DATA_DOMAIN,
         "PLAUSIBLE_SOURCE_SCRIPT": settings.PLAUSIBLE_SOURCE_SCRIPT,
+        "PROSOPO_SITE_KEY": settings.PROSOPO_SITE_KEY,
     }

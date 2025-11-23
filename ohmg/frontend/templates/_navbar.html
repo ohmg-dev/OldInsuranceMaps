@@ -99,7 +99,7 @@
 				<h2>Sign up</h2>
 				<p>If you already have an account, please <button class="is-text-link" title="Sign in" onclick="toggleSigninForm()">sign in</button>.</p>
 				<form id="signup_form" method="post" action="/account/signup/">
-					<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+					<input id="ttt" type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 					<p>
 						<label for="id_username">Username:</label>
 						<input type="text" name="username" placeholder="Username" autocomplete="username" minlength="1" maxlength="150" required="" id="id_username">
@@ -116,9 +116,14 @@
 						<label for="id_password2">Password (again):</label>
 						<input type="password" name="password2" placeholder="Password (again)" autocomplete="new-password" required="" id="id_password2">
 					</p>
-					<p><label style="width:100%;"><input id="agreement-check" type="checkbox" onclick="handleAgreementCheck()" /> I have read and understand the <a href="/data-agreement" target="_blank">Data Agreement &nearr;</a>.</label></p>
-					<button id="submit-button" class="button is-primary" type="submit" disabled>Sign Up</button>
-				</form>
+					{% if PROSOPO_SITE_KEY %}
+						<p>By signing up, you agree to the terms described<br/>in the <a href="/data-agreement" target="_blank">Data Agreement &nearr;</a>.</p>
+						{% include '_captcha_submit.html' %}
+					{% else %}
+						<p><label style="width:100%;"><input id="agreement-check" type="checkbox" onclick="handleAgreementCheck()" /> I have read and understand the <a href="/data-agreement" target="_blank">Data Agreement &nearr;</a>.</label></p>
+						<button id="submit-button" class="button is-primary" type="submit" disabled>Sign Up</button>
+					{% endif %}
+					</form>
 			</div>
 		</div>
 	</div>
@@ -149,11 +154,14 @@
 	function keyPress(ev){
 		if (ev.key=="Escape") closeSigninModal()
 	}
-	function openSigninModal() {
+	function openSigninModal(showForm) {
 		window.addEventListener("keydown", keyPress)
 		document.getElementById('topModal').style.visibility = 'visible'
 		//this prevents scrolling of the main window on larger screens
-		document.body.style.overflow="hidden" 
+		document.body.style.overflow="hidden"
+		if (showForm == "signup") {
+			toggleSigninForm()
+		}
 	}
 	function closeSigninModal() {
 		window.addEventListener("keydown", keyPress)

@@ -7,15 +7,10 @@
 {% block content %}
 {% include '_titlebar.html' with title="Sign Up" %}
 
-<p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p>
-
-<form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
-  {% csrf_token %}
-  {{ form.as_p }}
-  {% if redirect_field_value %}
-  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-  {% endif %}
-  <button class="button is-primary" title="Sign up" type="submit">{% trans "Sign Up" %} &raquo;</button>
-</form>
+<div style="display:flex; justify-content:center; margin-top:50px;">
+  <button class="button is-primary" style="width:200px;" onclick="openSigninModal('signup')">
+    <span>Open sign up form</span>
+  </button>
+</div>
 
 {% endblock %}
