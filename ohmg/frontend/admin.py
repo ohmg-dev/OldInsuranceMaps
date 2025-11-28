@@ -1,10 +1,9 @@
 from django.contrib import admin
-
-from markdownx.admin import MarkdownxModelAdmin
 from django.db.models import JSONField
 from django_json_widget.widgets import JSONEditorWidget
+from markdownx.admin import MarkdownxModelAdmin
 
-from .models import Page, Navbar
+from .models import Navbar, Page, Partner
 
 
 class PageAdmin(MarkdownxModelAdmin):
@@ -21,3 +20,10 @@ class NavbarAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Navbar, NavbarAdmin)
+
+
+class PartnerAdmin(admin.ModelAdmin):
+    list_display = ("name", "sortorder", "published", "description")
+
+
+admin.site.register(Partner, PartnerAdmin)

@@ -1,16 +1,174 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load static %}
+{% load markdown_utils %}
 
 
-
-{% block extra_head %}{% if params.extra_head %}{{params.extra_head|safe}}{% endif %}{% endblock %}
+{% block extra_head %}
+    {% if params.extra_head %}{{params.extra_head|safe}}{% endif %}
+    <link href="{{ STATIC_URL }}css/home-page.css" rel="stylesheet"/>
+{% endblock %}
 
 {% block title %}{% if params.PAGE_TITLE %}{{ params.PAGE_TITLE }} | {% endif %}{{ block.super }}{% endblock %}
 
 {% block main_content %}
+<main>
+  <section>
+    <div class="home-page-top-section">
+      <div class="home-page-top-section-content" style="display:flex; padding:35px 10px; gap:20px; width:80%;">
+        <div style="width:70%;">
+          <h1 style="word-wrap: break-word; display:inline;">OldInsuranceMaps.net</h1>
+          <p style="display:inline;"> provides an open, online workflow for creating georeferenced layers of historical maps, with a special focus on making seamless mosaics from multi-page atlases in the <a href="https://loc.gov/collections/sanborn-maps">Sanborn map collection</a> at the Library of Congress.</p>
+          <!-- <p>
+            A crowdsourcing site for creating and viewing georeferenced mosaics of historical fire insurance maps from the
+            Library of Congress. See <a href="/#how-it-works">how it works</a> or visit the <a
+              href="https://about.oldinsurancemaps.net?utm_source=hero">about</a
+            > or <a href="/faq">FAQ</a> pages to learn more.
+          </p> -->
+        </div>
+        <div class="home-page-top-links" style="width:30%;">
+          <ul>
+            <li><a href="#how">How does it work? &darr;</a></li>
+            <li><a href="#who">Who uses this platform? &darr;</a></li>
+            <li><a href="/activity">See latest activity &rarr;</a></li>
+            <!-- <li><a href="/faq">More FAQs... &rarr;</a></li> -->
+          </ul>
+        </div>
+      </div>
+      <div class="hidden-mobile" style="width:210px; display:flex; align-items:center;">
+        <a href="/viewer/plaquemine-la/?sanborn03386_005=100#/center/-91.23207,30.29195/zoom/20.6" target="_blank" title="Skating Rink in Plaquemine, La., 1906">
+          <img style="border-top-right-radius:4px; border-bottom-right-radius:4px; max-height:100%;" src="{{ STATIC_URL }}img/plaquemine-skating-1900.png" alt="Skating Rink in Plaquemine, La., 1906" />
+        </a>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="double-column-section" style="padding:0;">
+        <div style="padding:10px;">
+        <div style="border-bottom: dashed grey 1px; padding-bottom: 20px;">
+            {% include '_svelte_component.html' with component_name='LatestBlogPosts' no_css=True %}
+        </div>
+        <div class="level is-mobile" style="margin-bottom:0;">
+            <div class="level-left">
+            <div class="level-item">
+                <h3>Newsletter</h3>
+            </div>
+            </div>
+            <div class="level-right">
+            <div class="level-item">
+                <a href="/newsletter/{{NEWSLETTER_SLUG}}/archive/" rightArrow={true}>read past newsletters</a>
+            </div>
+            </div>
+        </div>
+        <form enctype="multipart/form-data" method="post" action="/newsletter/{{NEWSLETTER_SLUG}}/subscribe/">
+            <input type="hidden" name="csrfmiddlewaretoken" value={{csrf_token}} />
+            <label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe:</label>
+            <input
+            type="email"
+            name="email_field"
+            required=""
+            id="id_email_field"
+            disabled={{USER_SUBSCRIBED}}
+            />
+            {%if USER_SUBSCRIBED %}
+            <a href="/newsletter/{{NEWSLETTER_SLUG}}">manage your subscription</a>
+            {% else %}
+            <button id="id_submit" title="Subscribe to newsletter" name="submit" value="Subscribe" type="submit"
+                >Subscribe</button
+            >
+            {% endif %}
+        </form>
+        </div>
+        <div class="hidden-mobile" style="padding:0;">
+        <div style="padding:10px; min-height:75px;">
+            <div class="level" style="margin-bottom:0;">
+            <div class="level-left">
+                <div class="level-item">
+                <h3>{{MAP_CT}} maps in {{PLACES_CT}} cities</h3>
+                </div>
+            </div>
+            <div class="level-right">
+                <div class="level-item">
+                <a href="/united-states" rightArrow={true}>search all places</a>
+                </div>
+            </div>
+            </div>
+        </div>
+        <div class="map-container-home">
+            {{ MAPBROWSE_PARAMS|json_script:'mapbrowse-props'}}
+            {% include '_svelte_component.html' with component_name='MapBrowse' %}
+        </div>
+      </div>
+    </div>
+  </section>
+  <section>
+      {{ MAPSHOWCASE_PARAMS|json_script:'mapshowcase-props'}}
+      {% include '_svelte_component.html' with component_name='MapShowcase' %}
+  </section>
+  <section id="how">
+      {% include '_svelte_component.html' with component_name='HowItWorks' %}
+  </section>
+  <section id="who">
+    <div>
+        <h2>Who uses this platform?</h2>
+        <p>Here's how some organizations have used <em>OldInsuranceMaps.net</em> to support their research and community mapping efforts.</p>
+        {% for partner in PARTNERS %}
+        <article class="media partner-listing" style="margin-top:15px;">
+            {% if partner.logo_url %}
+            <figure class="media-left">
+                <img src={{partner.logo_url}} class="logo-image" alt={{partner.name}} />
+            </figure>
+            {% endif %}
+            <div class="media-content">
+                <div class="content partner-description">
+                {% markdowncontent %}{{ partner.description }}{% endmarkdowncontent %}
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    <div class="sponsor-bar content">
+        <h2>Researchers & hobbyists</h2>
+        <p>We are especially proud to provide open tools for people who find this site on their own quest to georeference Sanborn maps.</p>
+        {% markdowncontent %}
+- [nolancrees](/profile/nolancrees) in Des Moines, Iowa
+- [WallyKitty](/profile/WallyKitty) all over Louisiana
+- [ktflghm](/profile/ktflghm) in San Francisco, Calif.
+- [sanborn_again1](/profile/sanborn_again1) in Springfield, Ill.
+- [billniebel](/profile/billniebel) in Miamisburg, Ohio
+- [cliftonmr](/profile/cliftonmr) in Cleburne, Texas
+- [hdevine825](/profile/hdevine825) in Brooklyn, N.Y.
+- [hayloex](/profile/hayloex) in Cincinnati, Ohio
+- [iandees](/profile/iandees) in St. Paul, Minn.
+- [kbails](/profile/kbails) in New Orleans, La.
+- [lablakely](/profile/lablakely) in Waco, Texas
+- [thompgri](/profile/thompgri) in Grand Valley, Mich.
+- [Pete_Zivkov](/profile/Pete_Zivkov) in Menlo Park, Calif.
+- [Square6](/profile/Square6) in Temple, Texas
+- [maplemoths](/profile/maplemoths) in Marion, Ohio
+- [mhowell](/profile/mhowell) in Noblesville, Ind.
+- [mrileyowens](/profile/mrileyowens) in Cincinnati, Ohio
+- [Lord-Julius-de-Silva](/profile/Lord-Julius-de-Silva) in Los Gatos, Calif.
+- [CaroOkay](/profile/CaroOkay) in New Iberia, La.
+- [Gullimapozo](/profile/Gullimapozo) in Gary, Ind.
+        {% endmarkdowncontent %}
+    </div>
+  </section>
+  <section>
+    <div>
+      <h2>Funding</h2>
+      <div>
+        {% markdowncontent %}
+_OldInsuranceMaps.net_ is funded in part by the National Institutes of Health (National Institute on Aging: [R01AG080401](https://reporter.nih.gov/search/bCrnkRo-rkWJJXyXqsj44g/project-details/10582012)) through a partnership with [University of Michigan Institute for Social Research](https://isr.umich.edu/), University of Richmond [Digital Scholarship Lab](https://dsl.richmond.edu/), and the [National Community Reinvestment Coalition](https://ncrc.org).
 
-{{ params|json_script:'index-props'}}
-{% include '_svelte_component.html' with component_name='Index' %}
+We have also received funding to support collaboration with [Midlo Center for New Orleans Studies](https://www.uno.edu/academics/colaehd/la/history/midlo), [The Ohio State University Libraries](https://library.osu.edu/), and [Rowan University](https://www.rowan.edu).
 
+A very special thanks goes out to those individuals who have donated to the project as well: Kevin H., Andrew M., Peter M., Pete Z., Chris P., Hayden S., and Mike O. Thank you!
+
+To donate: [paypal.me/oldinsurancemaps](https://paypal.me/oldinsurancemaps)
+    {% endmarkdowncontent %}
+      </div>
+    </div>
+  </section>
+</main>
 {% endblock %}

@@ -1,6 +1,5 @@
 from django.contrib.gis.db import models
 from django.forms import ValidationError
-
 from markdownx.models import MarkdownxField
 
 from ohmg.core.utils import slugify
@@ -45,3 +44,37 @@ class Page(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(self.title)
         return super(Page, self).save(*args, **kwargs)
+
+
+class Partner(models.Model):
+    name = models.CharField(max_length=200)
+    logo = models.FileField(
+        upload_to="partner-logos",
+        null=True,
+        blank=True,
+        max_length=255,
+    )
+    url = models.CharField(max_length=400, null=True, blank=True)
+    description = MarkdownxField(null=True, blank=True)
+    sortorder = models.IntegerField(null=True, blank=True)
+    published = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+    def serialize(self):
+        return {
+            "name": self.name,
+            "logo_url": self.logo.url if self.logo else "",
+            "link": self.url,
+            "description": self.description,
+            "sortorder": self.sortorder,
+        }
+
+    def save(self, *args, **kwargs):
+        if not self.sortorder:
+            if not self.pk:
+                self.sortorder = Partner.objects.all().count() + 1
+            else:
+                self.sortorder = self.pk
+        return super(Partner, self).save(*args, **kwargs)

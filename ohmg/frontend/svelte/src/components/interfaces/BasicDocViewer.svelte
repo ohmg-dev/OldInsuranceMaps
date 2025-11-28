@@ -3,8 +3,6 @@
 
   import CornersOut from 'phosphor-svelte/lib/CornersOut';
 
-  import 'ol/ol.css';
-
   import View from 'ol/View';
 
   import { Projection } from 'ol/proj';
@@ -14,8 +12,6 @@
 
   import { DocMousePosition } from '../../lib/controls';
   import { MapViewer } from '../../lib/viewers';
-
-  import '../../css/ol-overrides.css';
 
   export let LAYER_URL;
   export let EXTENT;

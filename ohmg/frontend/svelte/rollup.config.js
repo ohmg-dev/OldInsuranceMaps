@@ -7,30 +7,9 @@ import css from 'rollup-plugin-css-only';
 
 const production = !process.env.ROLLUP_WATCH;
 
-function serve() {
-  let server;
-
-  function toExit() {
-    if (server) server.kill(0);
-  }
-
-  return {
-    writeBundle() {
-      if (server) return;
-      server = require('child_process').spawn('npm', ['run', 'start', '--', '--dev'], {
-        stdio: ['ignore', 'inherit', 'inherit'],
-        shell: true,
-      });
-
-      process.on('SIGTERM', toExit);
-      process.on('exit', toExit);
-    },
-  };
-}
-
 function componentExportDetails(componentName) {
   return {
-    input: `./src/bundles/${componentName.toLowerCase()}.js`,
+    input: `./src/${componentName.toLowerCase()}.js`,
     output: {
       sourcemap: true,
       format: 'iife',
@@ -61,10 +40,6 @@ function componentExportDetails(componentName) {
       }),
       commonjs(),
 
-      // In dev mode, call `npm run start` once
-      // the bundle has been generated
-      !production && serve(),
-
       // Watch the `public` directory and refresh the
       // browser on changes when not in production
       !production && livereload('public'),
@@ -90,27 +65,27 @@ function componentExportDetails(componentName) {
 }
 
 export default (cliArgs) => {
-  // Add exportable to this array. These must match a lowercase file in ./src/bundles
-  // e.g. ./src/bundles/main.js
-  let exportable = [];
+  let buildComponents = [
+    'Georeference', // this comment forces prettier to multiline array
+    'Resource',
+    'Split',
+    'Viewer',
+    'Map',
+    'SessionList',
+    'MapList',
+    'ContributorList',
+    'LatestBlogPosts',
+    'MapBrowse',
+    'MapShowcase',
+    'HowItWorks',
+    'Participants',
+    'Place',
+    'Browse',
+  ];
 
   if (cliArgs.configComponent) {
-    // Only build one component if it has been specified in the configComponent arg
-    exportable.push(componentExportDetails(cliArgs.configComponent));
-  } else {
-    // Otherwise build all components
-    [
-      'Index', // this forces prettier to multiline array
-      'Georeference',
-      'Resource',
-      'Split',
-      'Viewer',
-      'Map',
-      'SessionList',
-      'MapList',
-      'ContributorList',
-    ].forEach((d) => exportable.push(componentExportDetails(d)));
+    buildComponents = cliArgs.configComponent.split(',');
   }
 
-  return exportable;
+  return buildComponents.map((d) => componentExportDetails(d));
 };

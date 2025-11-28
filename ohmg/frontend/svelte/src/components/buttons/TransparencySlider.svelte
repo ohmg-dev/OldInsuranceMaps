@@ -36,3 +36,52 @@
     <i class={getClass(opacity)} />
   </button>
 </div>
+
+<style>
+  button.transparency-toggle {
+    display: flex;
+    border: none;
+    background: none;
+  }
+  button.transparency-toggle > i {
+    display: inline-block;
+    cursor: pointer;
+    color: #2c689c;
+  }
+  button.transparency-toggle:hover > i {
+    color: #1b4060;
+  }
+
+  .full-circle {
+    background: #2c689c;
+    height: 15px;
+    width: 15px;
+    border: solid #2c689c 3px;
+    border-radius: 15px;
+  }
+  .full-circle:hover {
+    background: #1b4060;
+    border-color: #1b4060;
+  }
+  .half-circle {
+    background: linear-gradient(to right, #2c689c 0%, #2c689c 50%, white 50%, white 100%);
+    height: 15px;
+    width: 15px;
+    border: solid #2c689c 3px;
+    border-radius: 15px;
+  }
+  .half-circle:hover {
+    background: linear-gradient(to right, #1b4060 0%, #1b4060 50%, white 50%, white 100%);
+    border-color: #1b4060;
+  }
+  .empty-circle {
+    background: white;
+    height: 15px;
+    width: 15px;
+    border: solid #2c689c 3px;
+    border-radius: 15px;
+  }
+  .empty-circle {
+    border-color: #1b4060;
+  }
+</style>

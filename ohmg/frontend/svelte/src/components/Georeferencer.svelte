@@ -8,7 +8,6 @@
 
   import { onMount } from 'svelte';
 
-  import 'ol/ol.css';
   import View from 'ol/View';
   import Feature from 'ol/Feature';
 

@@ -1,9 +1,18 @@
+import json
+
+import requests
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.views import View
 
 from ohmg.api.schemas import UserSchema
-from ohmg.conf.http import generate_ohmg_context
+from ohmg.conf.http import (
+    JsonResponseBadRequest,
+    JsonResponseFail,
+    JsonResponseSuccess,
+    generate_ohmg_context,
+)
 
 
 class ProfileView(View):
@@ -16,7 +25,6 @@ class ProfileView(View):
             "accounts/profile.html",
             context={
                 "CONTEXT": ohmg_context,
-                "PAGE_TITLE": username,
                 "PROFILE_USER": profile_user,
                 "SESSIONLIST_PROPS": {
                     "CONTEXT": ohmg_context,
@@ -42,3 +50,20 @@ class ContributorsView(View):
                 },
             },
         )
+
+
+def verify_prosopo_token(request):
+    if request.method == "POST":
+        if request.body:
+            body = json.loads(request.body)
+            token = body.get("token")
+            url = "https://api.prosopo.io/siteverify"
+            response = requests.post(
+                url, json={"secret": settings.PROSOPO_SECRET_KEY, "token": token}
+            )
+            success = response.json().get("verified", False)
+            return JsonResponseSuccess() if success else JsonResponseFail()
+        else:
+            return JsonResponseBadRequest()
+    else:
+        raise JsonResponseBadRequest()

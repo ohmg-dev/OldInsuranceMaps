@@ -31,6 +31,10 @@
     <script defer data-domain="{{PLAUSIBLE_DATA_DOMAIN}}" src="{{PLAUSIBLE_SOURCE_SCRIPT}}"></script>
     {% endif %}
 
+    {% if PROSOPO_SITE_KEY %}
+    <script type="module" id="procaptcha-script" src="https://js.prosopo.io/js/procaptcha.bundle.js" async defer></script>
+    {% endif %}
+
     <!-- from: https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css -->
     <link href="{{ STATIC_URL }}plugins/bulma.min.css" rel="stylesheet"/>
 
@@ -46,6 +50,9 @@
     <link href="{{ STATIC_URL }}fonts/josephine.css" rel="stylesheet"/>
     <!-- from: https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css -->
     <link href="{{ STATIC_URL }}plugins/style.css" rel="stylesheet"/>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.0.0/ol.css">
+    <link href="{{ STATIC_URL }}css/ol-overrides.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
     {# endcompress #}
 
     {# compress js #}

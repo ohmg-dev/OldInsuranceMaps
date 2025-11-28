@@ -1,0 +1,148 @@
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding: 40px 0;
+  margin: 0 -15px;
+  background: linear-gradient(
+      0deg,
+      rgba(255 255 255 / 60%),
+      rgba(255 255 255 / 60%)
+    ),
+    url(/static/img/old-basin-canal-tall-50qual-crop.jpg);
+  background-size: 100%;
+}
+
+section {
+  padding: 0 20px;
+  display: flex;
+  gap: 20px;
+  scroll-margin-top: 65px;
+}
+
+section > div {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid black;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+main p {
+  font-size: 1.25em;
+}
+
+.sponsor-bar {
+  width: 400px;
+  height: min-content;
+}
+
+.home-page-top-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0;
+}
+
+.home-page-top-links > ul {
+  font-size: 1.25em;
+  width: 250px;
+}
+
+.map-section {
+  display: flex;
+}
+
+.double-column-section {
+  display: flex;
+  gap: 10px;
+  padding: 0;
+}
+
+.double-column-section > div {
+  width: 50%;
+}
+
+.map-container-home {
+  height: calc(100% - 75px);
+  border-top: 2px solid black;
+  border-left: 2px solid black;
+}
+
+.logo-image {
+  margin-top: 5px;
+  max-height: 100px;
+  max-width: 250px;
+}
+
+article.media.partner-listing {
+  border-top: dashed grey 1px;
+  padding-top: var(--bulma-media-spacing);
+}
+
+.media + .media {
+  border-top: dashed grey 1px;
+}
+
+@media (min-width: 760px) {
+  .hidden-non-mobile {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 760px) {
+  main {
+    max-width: none;
+  }
+
+  section {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .hero-banner-inner {
+    flex-direction: column;
+  }
+
+  .double-column-section {
+    flex-direction: column-reverse;
+  }
+
+  .double-column-section > div {
+    width: 100%;
+  }
+
+  .home-page-top-section-content {
+    flex-direction: column;
+    width: 100% !important;
+  }
+
+  .home-page-top-section-content > div {
+    width: 100% !important;
+  }
+
+  .map-container {
+    display: none;
+  }
+
+  .hidden-mobile {
+    display: none;
+  }
+
+  .sponsor-bar {
+    width: 100%;
+  }
+
+  article.media {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .partner-description {
+    margin-top: 20px;
+  }
+
+  .home-page-top-links > ul {
+    width: 100%;
+  }
+}

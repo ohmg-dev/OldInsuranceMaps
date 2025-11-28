@@ -10,13 +10,14 @@
 
   import sync from 'ol-hashed';
 
+  import 'ol/ol.css';
+  import '../../../static/css/ol-overrides.css';
+
   import { createEmpty } from 'ol/extent';
   import { extend } from 'ol/extent';
   import { transformExtent } from 'ol/proj';
   import { fromLonLat } from 'ol/proj';
   import { createXYZ } from 'ol/tilegrid';
-
-  import 'ol/ol.css';
 
   import Control from 'ol/control/Control';
 
@@ -28,11 +29,9 @@
   import VectorSource from 'ol/source/Vector';
 
   import TileLayer from 'ol/layer/Tile';
-  import LayerGroup from 'ol/layer/Group';
   import VectorLayer from 'ol/layer/Vector';
 
-  import '../css/ol-overrides.css';
-  import { makeTitilerXYZUrl, makeLayerGroupFromLayerSet, makeBasemaps } from '../lib/utils';
+  import { makeTitilerXYZUrl, makeLayerGroupFromLayerSet } from '../lib/utils';
   import { MapViewer } from '../lib/viewers';
   import Modal, { getModal } from './modals/BaseModal.svelte';
   import Link from './common/Link.svelte';
@@ -231,24 +230,7 @@
   }
 
   // setup all the basemap stuff
-
-  const basemaps = makeBasemaps(CONTEXT.mapbox_api_token);
-
-  const baseGroup = new LayerGroup({
-    zIndex: 0,
-    layers: [basemaps[0].layer, basemaps[1].layer],
-  });
-
-  let currentBasemap = basemaps[1].id;
-  basemaps[0].layer.setVisible(false);
-  function toggleBasemap() {
-    basemaps.forEach(function (layerItem) {
-      layerItem.layer.setVisible(!layerItem.layer.getVisible());
-      if (layerItem.layer.getVisible()) {
-        currentBasemap = layerItem.id;
-      }
-    });
-  }
+  let currentBasemap = 'satellite';
 
   // GEOLOCATION MANAGEMENT
   const gpsSource = new VectorSource();
@@ -312,10 +294,16 @@
     setOpacitiesFromParams();
   }
 
+  $: {
+    if (viewer) {
+      viewer.setBasemap(currentBasemap);
+    }
+  }
+
   let viewer;
   onMount(() => {
     viewer = new MapViewer('map');
-    viewer.addBasemaps(CONTEXT.mapbox_api_token, 'satellite');
+    viewer.addBasemaps(CONTEXT.mapbox_api_token, currentBasemap);
     viewer.setDefaultExtent(homeExtent);
 
     if (homeExtent) {
@@ -423,7 +411,13 @@
   {#if showPanel}
     <div id="layer-panel" style="display:{showPanel == true ? 'flex' : 'none'}">
       <div class="control-panel-buttons">
-        <button class="control-btn" title="Change basemap" on:click={toggleBasemap}><MapTrifold /></button>
+        <button
+          class="control-btn"
+          title="Change basemap"
+          on:click={() => {
+            currentBasemap = currentBasemap == 'osm' ? 'satellite' : 'osm';
+          }}><MapTrifold /></button
+        >
         <button
           class="control-btn"
           title="{watchId ? 'Disable' : 'Show'} my location"
