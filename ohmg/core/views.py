@@ -2,48 +2,48 @@ import json
 import logging
 from urllib.parse import quote
 
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.contrib.gis.geos import Polygon
+from django.http import FileResponse, Http404, JsonResponse
+from django.shortcuts import HttpResponse, get_object_or_404, redirect, render
+from django.utils.decorators import method_decorator
+from django.views import View
 from natsort import natsorted
 from slugify import slugify
 
-from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.contrib.gis.geos import Polygon
-from django.http import JsonResponse, FileResponse, Http404
-from django.shortcuts import render, get_object_or_404, HttpResponse, redirect
-from django.views import View
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
-
 from ohmg.api.schemas import (
+    LayerSetSchema,
     MapFullSchema,
     MapResourcesSchema,
     PlaceFullSchema,
-    LayerSetSchema,
     ResourceFullSchema,
 )
 from ohmg.conf.http import (
-    generate_ohmg_context,
-    validate_post_request,
-    JsonResponseSuccess,
     JsonResponseFail,
     JsonResponseNotFound,
+    JsonResponseSuccess,
+    generate_ohmg_context,
+    validate_post_request,
 )
+
+from .exporters.qlr import generate_qlr_content
 from .models import (
-    Map,
     Document,
-    Region,
-    RegionCategory,
     Layer,
     LayerSet,
     LayerSetCategory,
+    Map,
+    Region,
+    RegionCategory,
 )
-from .utils.performance import time_this_function
-from .exporters.qlr import generate_qlr_content
 from .storages import get_file_url
 from .tasks import (
-    load_map_documents_as_task,
     load_document_file_as_task,
+    load_map_documents_as_task,
 )
+from .utils.performance import time_this_function
 
 logger = logging.getLogger(__name__)
 
@@ -368,7 +368,9 @@ class ResourceDerivativeView(View):
 
             if derivative == "ohm":
                 file_url_encoded = quote(get_file_url(layer), safe="")
-                xyz_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+                xyz_base = (
+                    f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}.png?"
+                )
                 xyz_url_encoded = quote(f"{xyz_base}&url={file_url_encoded}", safe="")
                 lon, lat = layer.centroid
                 u = f"https://www.openhistoricalmap.org/edit#map=16/{lat}/{lon}&background=custom:{xyz_url_encoded}"
@@ -376,7 +378,9 @@ class ResourceDerivativeView(View):
 
             if derivative == "services":
                 file_url_encoded = quote(get_file_url(layer), safe="")
-                xyz_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+                xyz_base = (
+                    f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}.png?"
+                )
                 return JsonResponse(
                     {
                         "xyz": f"{xyz_base}&url={file_url_encoded}",
@@ -478,7 +482,7 @@ class LayersetDerivativeView(View):
 
         elif derivative == "ohm":
             file_url_encoded = quote(get_file_url(layerset, "mosaic_geotiff"), safe="")
-            xyz_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+            xyz_base = f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}.png?"
             xyz_url_encoded = quote(f"{xyz_base}&url={file_url_encoded}", safe="")
             lon, lat = layerset.centroid
             u = f"https://www.openhistoricalmap.org/edit#map=16/{lat}/{lon}&background=custom:{xyz_url_encoded}"
@@ -489,7 +493,7 @@ class LayersetDerivativeView(View):
 
         elif derivative == "services":
             file_url_encoded = quote(get_file_url(layerset, "mosaic_geotiff"), safe="")
-            xyz_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+            xyz_base = f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}.png?"
             return JsonResponse(
                 {
                     "xyz": f"{xyz_base}&url={file_url_encoded}",

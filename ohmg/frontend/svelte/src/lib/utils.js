@@ -75,9 +75,9 @@ export function makeTitilerXYZUrl(options) {
 
   let finalUrl = options.host;
   if (String(options.url).endsWith('.json')) {
-    finalUrl += '/mosaicjson/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad';
+    finalUrl += '/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}.png?';
   } else {
-    finalUrl += '/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad';
+    finalUrl += '/cog/tiles/WebMercatorQuad/{z}/{x}/{y}.png?';
   }
 
   const encodedUrl = encodeURIComponent(options.url);
