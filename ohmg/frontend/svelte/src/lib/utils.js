@@ -168,6 +168,7 @@ export function makeLayerGroupFromLayerSet(options) {
       let newLayer = new TileLayer({
         source: new TileJSON({
           tileJSON: layer.tilejson,
+          tileSize: 512,
         }),
         extent: transformExtent(layer.tilejson.bounds, 'EPSG:4326', 'EPSG:3857'),
       });
