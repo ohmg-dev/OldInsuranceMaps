@@ -876,7 +876,9 @@ class Layer(models.Model):
         file_url = get_file_url(self)
         if file_url:
             encoded_url = urllib.parse.quote(file_url, safe="")
-            xyx_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+            xyx_base = (
+                f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}@2x.png?"
+            )
             return f"{xyx_base}&url={encoded_url}"
         else:
             return None
@@ -1073,7 +1075,9 @@ class LayerSet(models.Model):
         file_url = get_file_url(self, "mosaic_geotiff")
         if file_url:
             encoded_url = urllib.parse.quote(file_url, safe="")
-            xyx_base = f"{settings.TITILER_HOST}/cog/tiles/{{z}}/{{x}}/{{y}}.png?TileMatrixSetId=WebMercatorQuad"
+            xyx_base = (
+                f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}@2x.png?"
+            )
             return f"{xyx_base}&url={encoded_url}"
         else:
             return None
