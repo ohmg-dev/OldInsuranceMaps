@@ -75,9 +75,9 @@ export function makeTitilerXYZUrl(options) {
 
   let finalUrl = options.host;
   if (String(options.url).endsWith('.json')) {
-    finalUrl += '/mosaicjson/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad';
+    finalUrl += '/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}.png?';
   } else {
-    finalUrl += '/cog/tiles/{z}/{x}/{y}.png?TileMatrixSetId=WebMercatorQuad';
+    finalUrl += '/cog/tiles/WebMercatorQuad/{z}/{x}/{y}.png?';
   }
 
   const encodedUrl = encodeURIComponent(options.url);
@@ -168,6 +168,7 @@ export function makeLayerGroupFromLayerSet(options) {
       let newLayer = new TileLayer({
         source: new TileJSON({
           tileJSON: layer.tilejson,
+          tileSize: 512,
         }),
         extent: transformExtent(layer.tilejson.bounds, 'EPSG:4326', 'EPSG:3857'),
       });

@@ -213,9 +213,9 @@ class Command(BaseCommand):
 
         if operation == "resave-layers":
             if options["pk"]:
-                maps = [Map.objects.get(pk=options["pk"])]
+                maps = Map.objects.filter(pk=options["pk"])
             elif options["skip_existing"]:
-                maps = Map.objects.all().filter(item_lookup__isnull=True).order_by("title")
+                maps = Map.objects.filter(item_lookup__isnull=True).order_by("title")
             else:
                 maps = Map.objects.all().order_by("title")
 
