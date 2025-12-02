@@ -1,13 +1,13 @@
+import shutil
 import sys
 from pathlib import Path
-import shutil
 from typing import List
 
 from django.conf import settings
-from django.test import Client, LiveServerTestCase
 from django.core.management import call_command
+from django.test import Client, LiveServerTestCase
 
-from ohmg.core.models import MapGroup, Map, Document, Region, Layer, LayerSet
+from ohmg.core.models import Document, Layer, LayerSet, Map, MapGroup, Region
 
 
 def copy_files_to_media_root(file_paths: List[Path], sub_dir: str = ""):

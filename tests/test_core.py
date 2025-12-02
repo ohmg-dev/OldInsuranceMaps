@@ -1,21 +1,21 @@
-from pathlib import Path
 import filecmp
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
-from django.core.handlers.wsgi import WSGIHandler
 from django.core.handlers.asgi import ASGIHandler
-from django.test import tag, Client
+from django.core.handlers.wsgi import WSGIHandler
+from django.test import Client, tag
 
-from ohmg.core.importer import get_importer, DefaultImporter
+from ohmg.core.importer import DefaultImporter, get_importer
 from ohmg.core.models import (
-    Map,
     Document,
-    Region,
     Layer,
     LayerSet,
+    Map,
+    Region,
 )
+from ohmg.georeference.models import GeorefSession, PrepSession
 from ohmg.places.models import Place
-from ohmg.georeference.models import PrepSession, GeorefSession
 
 from .base import OHMGTestCase
 

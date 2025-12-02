@@ -5,21 +5,20 @@ from django.conf import settings
 from django.contrib.gis.geos import Polygon
 from django.db.models import F
 from django.shortcuts import get_object_or_404
-
 from ninja import NinjaAPI, Query
 from ninja.pagination import paginate
 from ninja.security import APIKeyHeader
 
 from ohmg.accounts.models import (
-    User,
     APIKey,
+    User,
 )
 from ohmg.core.models import (
-    Map,
     Document,
-    Region,
     Layer,
     LayerSet,
+    Map,
+    Region,
 )
 from ohmg.georeference.models import (
     SessionBase,
@@ -28,28 +27,28 @@ from ohmg.georeference.models import (
 from ohmg.places.models import Place
 
 from .filters import (
-    FilterSessionSchema,
-    FilterDocumentSchema,
     FilterAllDocumentsSchema,
+    FilterDocumentSchema,
     FilterRegionSchema,
+    FilterSessionSchema,
 )
 from .paginators import (
-    SessionPagination,
     MapPagination,
+    SessionPagination,
 )
 from .schemas import (
-    PlaceSchema,
+    DocumentSchema,
     LayerSchema,
     LayerSetSchema,
-    UserSchema,
     MapFullSchema,
     MapListSchema,
     MapListSchema2,
-    SessionSchema,
-    SessionLockSchema,
-    DocumentSchema,
-    RegionSchema,
     PlaceFullSchema,
+    PlaceSchema,
+    RegionSchema,
+    SessionLockSchema,
+    SessionSchema,
+    UserSchema,
 )
 
 logger = logging.getLogger(__name__)

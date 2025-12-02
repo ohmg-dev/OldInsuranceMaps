@@ -1,15 +1,13 @@
+import logging
 import os
 import sys
 import time
-import logging
+from io import StringIO
 from pathlib import Path
 from uuid import uuid4
 
-from osgeo import gdal, osr, ogr
-
-from io import StringIO
-
 from django.conf import settings
+from osgeo import gdal, ogr, osr
 
 from ohmg.core.utils.srs import retrieve_srs_wkt
 

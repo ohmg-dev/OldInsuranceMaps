@@ -1,11 +1,11 @@
-import os
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 
-from django.db.models import Count
-from django.core.management.base import BaseCommand
 from django.conf import settings
+from django.core.management.base import BaseCommand
+from django.db.models import Count
 
 
 class Command(BaseCommand):
@@ -124,7 +124,7 @@ class Command(BaseCommand):
 
         ## 12/30/2024 needed this command to clean up disk space on the prod server
         if operation == "clean-uploaded-files":
-            from ohmg.core.models import Map, Document, Region, Layer, LayerSet
+            from ohmg.core.models import Document, Layer, LayerSet, Map, Region
 
             media_dir = Path(settings.MEDIA_ROOT)
             files_on_disk = [str(i) for i in media_dir.glob("documents/*") if i.is_file()]
@@ -166,10 +166,14 @@ class Command(BaseCommand):
         if operation == "copy-layersets":
             from ohmg.core.models import (
                 LayerSet as NewLayerSet,
+            )
+            from ohmg.core.models import (
                 LayerSetCategory as NewLayerSetCategory,
             )
             from ohmg.georeference.models import (
                 LayerSet as OldLayerSet,
+            )
+            from ohmg.georeference.models import (
                 LayerSetCategory as OldLayerSetCategory,
             )
 
@@ -289,7 +293,7 @@ class Command(BaseCommand):
         ## Region.is_map field (presents more options). This operation must be run right after
         ## making the migration to update all existing Region objects accordingly.
         if operation == "set-region-categories":
-            from ohmg.core.models import Region, RegionCategory, Map
+            from ohmg.core.models import Map, Region, RegionCategory
 
             map_cat = RegionCategory.objects.get(slug="map")
             nonmap_cat = RegionCategory.objects.get(slug="non-map")
@@ -316,6 +320,7 @@ class Command(BaseCommand):
         ## server need to be fixed.
         if operation == "fix-full-region-files":
             from django.core.files import File
+
             from ohmg.core.models import Region
 
             regions = Region.objects.filter(file__startswith="regions/documents/")
@@ -353,8 +358,8 @@ class Command(BaseCommand):
         ## that should not have been split, but has multiple regions attached to it, will be selected
         ## then all of its regions iterated. If one region has been georeffed, choose it
         if operation == "delete-duplicate-regions":
-            from ohmg.georeference.models import PrepSession
             from ohmg.core.models import Document, Layer
+            from ohmg.georeference.models import PrepSession
 
             docids = PrepSession.objects.filter(data__split_needed=False).values_list(
                 "doc2__pk", flat=True
@@ -382,11 +387,11 @@ class Command(BaseCommand):
                     if layers.exists():
                         print("to delete:", layers)
                         if not dry_run:
-                            for l in layers:
-                                l.file = None
-                                l.thumbnail = None
-                                l.save()
-                                l.delete()
+                            for lyr in layers:
+                                lyr.file = None
+                                lyr.thumbnail = None
+                                lyr.save()
+                                lyr.delete()
                     if not dry_run:
                         r.file = None
                         r.thumbnail = None

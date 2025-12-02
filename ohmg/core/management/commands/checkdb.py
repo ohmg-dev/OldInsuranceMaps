@@ -1,10 +1,11 @@
 import copy
+
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 
-from ohmg.core.models import Layer, LayerSet, Document
+from ohmg.core.models import Document, Layer, LayerSet
 from ohmg.core.utils.cli import confirm_continue
-from ohmg.georeference.models import PrepSession, GeorefSession, SessionLock
+from ohmg.georeference.models import GeorefSession, PrepSession, SessionLock
 
 
 class Command(BaseCommand):

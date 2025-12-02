@@ -5,8 +5,8 @@ from django.dispatch import receiver
 
 from ohmg.core.models import (
     Document,
-    Region,
     Layer,
+    Region,
 )
 
 logger = logging.getLogger(__name__)

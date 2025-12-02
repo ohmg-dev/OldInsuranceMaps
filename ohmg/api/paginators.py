@@ -1,11 +1,9 @@
-from typing import List, Any
-
-from natsort import natsorted
+from typing import Any, List
 
 from django.contrib.auth import get_user_model
-
-from ninja.pagination import PaginationBase
+from natsort import natsorted
 from ninja import Schema
+from ninja.pagination import PaginationBase
 
 from ohmg.core.models import (
     Map,

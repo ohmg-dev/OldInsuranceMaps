@@ -1,13 +1,13 @@
 import logging
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
-
 if TYPE_CHECKING:
-    from ohmg.core.models import Document, Region, Layer
-    from .models import PrepSession, GeorefSession
+    from ohmg.core.models import Document, Layer, Region
+
+    from .models import GeorefSession, PrepSession
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ def delete_expired_session_locks():
     """Look at all current SessionLocks, and if one is expired and it's session is
     still on the "input" stage, then delete the session (the lock will be deleted as well)
     """
-    from .models import SessionLock, SessionBase
+    from .models import SessionBase, SessionLock
 
     locks = SessionLock.objects.all()
     if locks.count() > 0:

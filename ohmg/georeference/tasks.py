@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 from pathlib import Path
 
 from django.conf import settings
@@ -7,9 +7,10 @@ from django.conf import settings
 from ohmg.celeryapp import app
 from ohmg.core.models import LayerSet
 from ohmg.georeference.mosaicker import Mosaicker
+
 from .models import (
-    PrepSession,
     GeorefSession,
+    PrepSession,
 )
 from .sessions import delete_expired_session_locks
 

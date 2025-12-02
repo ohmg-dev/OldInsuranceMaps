@@ -1,19 +1,17 @@
 import json
 import logging
+import shutil
+import urllib.parse
 from datetime import datetime
 from pathlib import Path
-import shutil
 from typing import Union
-import urllib.parse
-
-from natsort import natsorted
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.contrib.gis.db import models
-from django.contrib.gis.geos import Polygon, MultiPolygon, GEOSGeometry
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.gis.db import models
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon
 from django.contrib.postgres.fields import ArrayField
 from django.core.files import File
 from django.core.files.base import ContentFile
@@ -21,21 +19,23 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
+from natsort import natsorted
 
 from ohmg.places.models import Place
+
+from .storages import get_file_url
 from .utils import (
-    slugify,
     MONTH_CHOICES,
+    slugify,
 )
 from .utils.image import (
     convert_img_format,
-    get_image_size,
-    get_extent_from_file,
     generate_document_thumbnail_content,
     generate_layer_thumbnail_content,
+    get_extent_from_file,
+    get_image_size,
 )
 from .utils.requests import download_image
-from .storages import get_file_url
 
 logger = logging.getLogger(__name__)
 
@@ -398,7 +398,7 @@ class Map(models.Model):
         return f"/map/{self.pk}/"
 
     def update_item_lookup(self):
-        from ohmg.api.schemas import DocumentSchema, RegionSchema, LayerSchema
+        from ohmg.api.schemas import DocumentSchema, LayerSchema, RegionSchema
 
         regions = self.regions
         items = {

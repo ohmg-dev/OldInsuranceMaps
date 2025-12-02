@@ -1,12 +1,11 @@
 import os
 from argparse import Namespace
 
-
 from django.conf import settings
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.management.base import BaseCommand
 from django.template.loader import render_to_string
 from django.test.client import RequestFactory
-from django.contrib.sessions.middleware import SessionMiddleware
 
 
 class Command(BaseCommand):

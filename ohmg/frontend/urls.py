@@ -6,10 +6,10 @@ from django.views.generic import RedirectView, TemplateView
 from .converters import PageConverter
 from .sitemap import sitemaps
 from .views import (
-    HomePage,
-    PageView,
     ActivityView,
     Browse,
+    HomePage,
+    PageView,
     Participants,
 )
 
@@ -45,7 +45,7 @@ urlpatterns = [
 ]
 
 if settings.ENABLE_NEWSLETTER:
-    from .views import NewsList, NewsArticle
+    from .views import NewsArticle, NewsList
 
     urlpatterns += [
         path("news/", NewsList.as_view(), name="news"),

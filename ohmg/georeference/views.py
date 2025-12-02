@@ -1,10 +1,10 @@
 import json
-from uuid import uuid4
 import logging
+from uuid import uuid4
 
-from django.shortcuts import render, get_object_or_404
-from django.views import View
+from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
+from django.views import View
 
 from ohmg.api.schemas import (
     DocumentFullSchema,
@@ -13,32 +13,32 @@ from ohmg.api.schemas import (
     RegionFullSchema,
 )
 from ohmg.conf.http import (
-    JsonResponseSuccess,
-    JsonResponseFail,
     JsonResponseBadRequest,
+    JsonResponseFail,
     JsonResponseNotFound,
-    validate_post_request,
+    JsonResponseSuccess,
     generate_ohmg_context,
+    validate_post_request,
 )
-from ohmg.core.utils.performance import time_this_function
-from ohmg.core.storages import get_file_url
 from ohmg.core.models import (
     Document,
     Region,
 )
+from ohmg.core.storages import get_file_url
+from ohmg.core.utils.performance import time_this_function
 
 from .georeferencer import Georeferencer
 from .models import (
-    SessionBase,
-    PrepSession,
     GeorefSession,
+    PrepSession,
+    SessionBase,
 )
 from .splitter import Splitter
 from .tasks import (
-    run_preparation_session,
     bulk_run_preparation_sessions,
-    run_georeference_session,
     delete_preview_vrts,
+    run_georeference_session,
+    run_preparation_session,
 )
 
 logger = logging.getLogger(__name__)

@@ -1,5 +1,6 @@
 from ohmg.celeryapp import app
-from .models import Map, Document
+
+from .models import Document, Map
 
 
 @app.task

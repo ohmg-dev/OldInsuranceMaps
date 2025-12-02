@@ -1,13 +1,12 @@
-from io import BytesIO
-from pathlib import Path
 import logging
 import subprocess
-
-from PIL import Image, ImageOps
-from osgeo import gdal, osr
+from io import BytesIO
+from pathlib import Path
 
 from django.conf import settings
 from django.db.models import FileField
+from osgeo import gdal, osr
+from PIL import Image, ImageOps
 
 Image.MAX_IMAGE_PIXELS = None
 

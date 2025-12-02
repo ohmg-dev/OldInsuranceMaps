@@ -1,8 +1,7 @@
 import json
 
 from django.conf import settings
-from django.contrib.gis.geos import MultiPolygon, GEOSGeometry
-
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 from ninja import Schema
 
 from ..core.models import LayerSet

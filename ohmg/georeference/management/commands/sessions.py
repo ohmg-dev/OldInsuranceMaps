@@ -1,10 +1,10 @@
 from django.core.management.base import BaseCommand
 
 from ohmg.georeference.models import (
-    delete_expired_session_locks,
-    SessionBase,
-    PrepSession,
     GeorefSession,
+    PrepSession,
+    SessionBase,
+    delete_expired_session_locks,
 )
 
 

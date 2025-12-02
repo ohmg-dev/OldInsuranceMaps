@@ -2,13 +2,12 @@ import uuid
 from typing import Union
 
 import lxml.etree as et
-
 from django.conf import settings
 
 from ..models import Layer, LayerSet
 from ..storages import get_file_url
-from ..utils.srs import retrieve_srs_wkt
 from ..utils.image import get_extent_from_file
+from ..utils.srs import retrieve_srs_wkt
 
 
 def generate_qlr_content(
