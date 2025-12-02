@@ -56,21 +56,21 @@ class APITestCase(OHMGTestCase):
         self.assertEqual(len(data), 1)
 
     def test_get_sessions_endpoint(self):
-        response = self.get_api_client().get("/api/beta2/sessions/")
+        response = self.get_api_client().get("/api/beta2/sessions/?offset=0&limit=10")
         self.assertEqual(response.status_code, 200)
 
         data = json.loads(response.content)
         self.assertEqual(data["count"], 3)
 
         response2 = self.get_api_client().get(
-            "/api/beta2/sessions/?date_range=2024-12-28,2024-12-29"
+            "/api/beta2/sessions/?offset=0&limit=10&date_range=2024-12-28,2024-12-29"
         )
 
         data2 = json.loads(response2.content)
         self.assertEqual(data2["count"], 0)
 
         response3 = self.get_api_client().get(
-            "/api/beta2/sessions/?date_range=2024-12-30,2024-12-30"
+            "/api/beta2/sessions/?offset=0&limit=10&date_range=2024-12-30,2024-12-30"
         )
 
         data3 = json.loads(response3.content)
