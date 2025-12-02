@@ -1,14 +1,13 @@
-import os
-import math
-import time
 import logging
+import math
+import os
+import time
 
-from PIL import Image, ImageDraw, ImageFilter
-
+from django.conf import settings
+from django.contrib.gis.geos import GEOSGeometry, LineString, Polygon
 from django.db import connection
 from django.db.models import FileField
-from django.conf import settings
-from django.contrib.gis.geos import GEOSGeometry, Polygon, LineString
+from PIL import Image, ImageDraw, ImageFilter
 
 logger = logging.getLogger(__name__)
 

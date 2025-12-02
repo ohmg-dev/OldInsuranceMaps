@@ -1,35 +1,35 @@
+import json
+import logging
 import os
 import uuid
-import json
 from datetime import timedelta
-import logging
 from pathlib import Path
-from osgeo import gdal
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import Polygon, Point
+from django.contrib.gis.geos import Point, Polygon
 from django.core.files import File
 from django.core.files.storage import get_storage_class
 from django.core.mail import send_mass_mail
 from django.utils import timezone
+from osgeo import gdal
 
 from ohmg.core.models import (
-    Map,
     Document,
+    Layer,
+    Map,
     Region,
     RegionCategory,
-    Layer,
 )
-from ohmg.georeference.georeferencer import Georeferencer
-from ohmg.georeference.splitter import Splitter
 from ohmg.core.utils import (
     full_reverse,
     random_alnum,
 )
+from ohmg.georeference.georeferencer import Georeferencer
+from ohmg.georeference.splitter import Splitter
 
 from .sessions import (
     add_lock,

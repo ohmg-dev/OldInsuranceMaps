@@ -1,7 +1,8 @@
 import csv
 import logging
-from django.db import models, transaction
+
 from django.contrib.gis.geos import Polygon
+from django.db import models, transaction
 
 from ohmg.core.utils import (
     STATE_ABBREV,

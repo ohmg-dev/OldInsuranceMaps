@@ -1,12 +1,11 @@
 import json
-from json.decoder import JSONDecodeError
 import logging
-from pathlib import Path
 import shutil
 import time
+from json.decoder import JSONDecodeError
+from pathlib import Path
 
 import requests
-
 from django.conf import settings
 
 logger = logging.getLogger(__name__)

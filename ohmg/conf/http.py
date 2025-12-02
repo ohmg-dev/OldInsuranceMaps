@@ -1,13 +1,13 @@
-import re
 import json
+import re
 from http import HTTPStatus
+
 from django.conf import settings
 from django.http import JsonResponse
 from django.middleware import csrf
 from django.urls import reverse
 
 from ohmg.api.schemas import UserSchema
-
 
 ## ~~ CONTEXT GENERATION
 

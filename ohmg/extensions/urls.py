@@ -1,12 +1,13 @@
 from django.urls import path, register_converter
 
 from ohmg.places.converters import PlaceConverter
+
 from .views import (
-    IIIFSelectorView,
-    IIIFResourceView,
+    AtlascopeDataView,
     IIIFGCPView,
     IIIFMosaicView,
-    AtlascopeDataView,
+    IIIFResourceView,
+    IIIFSelectorView,
 )
 
 register_converter(PlaceConverter, "place-slug")

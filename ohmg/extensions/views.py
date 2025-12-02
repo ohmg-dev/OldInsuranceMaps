@@ -3,6 +3,7 @@ from django.views import View
 
 from ohmg.core.models import Map
 from ohmg.core.utils import full_reverse
+
 from .atlascope import AtlascopeLayersetFeature
 from .iiif import IIIFResource
 

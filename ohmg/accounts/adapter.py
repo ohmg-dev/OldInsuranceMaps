@@ -1,6 +1,5 @@
-from django.urls import reverse
-
 from allauth.account.adapter import DefaultAccountAdapter
+from django.urls import reverse
 
 
 class AccountAdapter(DefaultAccountAdapter):

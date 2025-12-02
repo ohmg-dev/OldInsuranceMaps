@@ -1,4 +1,5 @@
 from ohmg.core.models import Map
+
 from .models import Place
 
 

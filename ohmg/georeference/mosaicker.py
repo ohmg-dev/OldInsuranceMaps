@@ -1,21 +1,20 @@
-import os
 import json
 import logging
+import os
 from datetime import datetime
 from glob import glob
 from pathlib import Path
 from typing import List
 
-from osgeo import gdal
-
 from django.conf import settings
-from django.contrib.gis.geos import Polygon, MultiPolygon
+from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.core.files import File
 from django.core.files.storage import get_storage_class
+from osgeo import gdal
 
 from ohmg.core.models import Layer, LayerSet
-from ohmg.core.utils import random_alnum
 from ohmg.core.storages import get_file_url
+from ohmg.core.utils import random_alnum
 
 from .georeferencer import Georeferencer, VRTHandler
 
@@ -135,8 +134,8 @@ class Mosaicker:
 
     def generate_mosaic_json(self, layerset, trim_all=False):
         """DEPRECATED: Currently, MosaicJSON is not used anywhere in the app."""
-        from cogeo_mosaic.mosaic import MosaicJSON
         from cogeo_mosaic.backends import MosaicBackend
+        from cogeo_mosaic.mosaic import MosaicJSON
 
         def write_trim_feature_cache(feature, file_path):
             with open(file_path, "w") as f:

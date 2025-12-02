@@ -1,5 +1,5 @@
-import string
 import random
+import string
 
 from django.conf import settings
 from django.urls import reverse

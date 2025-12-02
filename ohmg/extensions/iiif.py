@@ -1,8 +1,7 @@
-from osgeo import gdal, osr
-
 from django.conf import settings
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
 from django.contrib.gis.geos import Polygon
+from osgeo import gdal, osr
 
 from ohmg.core.models import Layer
 from ohmg.core.utils import full_reverse

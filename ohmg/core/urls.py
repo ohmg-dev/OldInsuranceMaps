@@ -1,13 +1,13 @@
 from django.urls import path
 
 from .views import (
-    MapView,
-    LayersetDerivativeView,
-    MapListView,
     DocumentView,
-    RegionView,
-    LayerView,
+    LayersetDerivativeView,
     LayerSetView,
+    LayerView,
+    MapListView,
+    MapView,
+    RegionView,
     ResourceDerivativeView,
 )
 

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from ohmg.places.models import Place
+
 from .base import OHMGTestCase
 
 

@@ -1,4 +1,5 @@
 import secrets
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -6,7 +7,7 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 
 from ohmg.core.models import Map
-from ohmg.georeference.models import SessionBase, GCP
+from ohmg.georeference.models import GCP, SessionBase
 
 
 class User(AbstractUser):

@@ -1,6 +1,6 @@
 import csv
-import json
 import importlib
+import json
 import logging
 from pathlib import Path
 from warnings import warn
@@ -8,8 +8,9 @@ from warnings import warn
 from django.conf import settings
 
 from ohmg.places.models import Place
-from .utils import random_alnum
+
 from .models import Map
+from .utils import random_alnum
 
 logger = logging.getLogger(__name__)
 

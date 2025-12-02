@@ -1,14 +1,14 @@
 from django.contrib import admin
 
 from ohmg.core.models import (
-    MapGroup,
-    Map,
     Document,
-    Region,
-    RegionCategory,
     Layer,
     LayerSet,
     LayerSetCategory,
+    Map,
+    MapGroup,
+    Region,
+    RegionCategory,
 )
 
 
