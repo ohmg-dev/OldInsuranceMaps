@@ -16,8 +16,8 @@ from ohmg.places.models import Place
 
 class SessionPagination(PaginationBase):
     class Input(Schema):
-        offset: int
-        limit: int
+        offset: int = 0
+        limit: int = 10
 
     class Output(Schema):
         items: List[Any]
@@ -67,8 +67,8 @@ class SessionPagination(PaginationBase):
 
 class MapPagination(PaginationBase):
     class Input(Schema):
-        offset: int
-        limit: int
+        offset: int = 0
+        limit: int = 10
 
     class Output(Schema):
         items: List[Any]
@@ -97,8 +97,8 @@ class MapPagination(PaginationBase):
 
 class ContributorPagination(PaginationBase):
     class Input(Schema):
-        offset: int
-        limit: int
+        offset: int = 0
+        limit: int = 50
 
     class Output(Schema):
         items: List[Any]
