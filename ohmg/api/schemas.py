@@ -26,12 +26,6 @@ from ohmg.georeference.models import (
 logger = logging.getLogger(__name__)
 
 
-class MapListSchemaUser(Schema):
-    identifier: str
-    title: str
-    year: str
-
-
 class UserSchema(Schema):
     username: str
     profile_url: str
@@ -39,9 +33,9 @@ class UserSchema(Schema):
     gsesh_ct: int
     total_ct: int = 0
     gcp_ct: int
-    maps: List[MapListSchemaUser]
     load_ct: int
     image_url: str
+    date_joined: str
 
     @staticmethod
     def resolve_total_ct(obj):
@@ -50,6 +44,10 @@ class UserSchema(Schema):
     @staticmethod
     def resolve_image_url(obj):
         return avatar_url(obj)
+
+    @staticmethod
+    def resolve_date_joined(obj):
+        return obj.date_joined.strftime("%Y-%m-%d")
 
 
 class UserSchemaLite(Schema):
@@ -60,53 +58,6 @@ class UserSchemaLite(Schema):
 class MapSchemaLite(Schema):
     identifier: str
     title: str
-
-
-class MapListSchema(Schema):
-    identifier: str
-    title: str
-    year_vol: str
-    sheet_ct: int
-    stats: dict
-    loaded_by: Optional[UserSchemaLite]
-    load_date: str
-    volume_number: Optional[str]
-    mj_exists: bool
-    gt_exists: bool
-    urls: dict
-    featured: bool
-    hidden: bool
-    thumbnail_url: Optional[str]
-
-    @staticmethod
-    def resolve_load_date(obj):
-        load_date_str = ""
-        if obj.load_date:
-            load_date_str = obj.load_date.strftime("%Y-%m-%d")
-        return load_date_str
-
-    @staticmethod
-    def resolve_year_vol(obj):
-        year_vol = obj.year
-        if obj.volume_number is not None:
-            year_vol = f"{obj.year} vol. {obj.volume_number}"
-        return str(year_vol)
-
-    @staticmethod
-    def resolve_sheet_ct(obj):
-        return len(obj.document_sources)
-
-    @staticmethod
-    def resolve_urls(obj):
-        return {
-            "summary": f"/map/{obj.identifier}",
-        }
-
-    @staticmethod
-    def resolve_thumbnail_url(obj):
-        first_doc = obj.documents.all().first()
-        if first_doc and first_doc.thumbnail:
-            return first_doc.thumbnail.url
 
 
 class PlaceSchemaVeryLite(Schema):
@@ -122,6 +73,7 @@ class MapListSchema2(Schema):
     year: int
     loaded_by: Optional[UserSchemaLite]
     load_date: str
+    sheet_ct: int
     volume_number: Optional[str]
     gt_exists: bool
     featured: bool
@@ -137,6 +89,7 @@ class MapListSchema2(Schema):
     multimask_ct: int
     multimask_rank: float
     locale: Optional[PlaceSchemaVeryLite]
+    thumbnail_url: Optional[str]
 
     @staticmethod
     def resolve_load_date(obj):
@@ -149,6 +102,16 @@ class MapListSchema2(Schema):
     @staticmethod
     def resolve_locale(obj):
         return obj.get_locale()
+
+    @staticmethod
+    def resolve_thumbnail_url(obj):
+        first_doc = obj.documents.all().first()
+        if first_doc and first_doc.thumbnail:
+            return first_doc.thumbnail.url
+
+    @staticmethod
+    def resolve_sheet_ct(obj):
+        return len(obj.document_sources)
 
 
 class DocumentFullSchema(Schema):

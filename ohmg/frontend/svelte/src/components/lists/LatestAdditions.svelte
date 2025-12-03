@@ -12,10 +12,14 @@
 
   function getInitialResults() {
     loadingItems = true;
-    getFromAPI('/api/beta2/maps/?limit=5&sort=load_date', CONTEXT.ohmg_api_headers, (result) => {
-      latestItems = result;
-      loadingItems = false;
-    });
+    getFromAPI(
+      '/api/beta2/maps2/?limit=5&sort=desc&sortby=load_date&loaded=true',
+      CONTEXT.ohmg_api_headers,
+      (result) => {
+        latestItems = result.items;
+        loadingItems = false;
+      },
+    );
   }
   getInitialResults();
 </script>

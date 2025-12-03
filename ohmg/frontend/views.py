@@ -6,7 +6,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.views import View
 
-from ohmg.api.schemas import MapListSchema
+from ohmg.api.schemas import MapListSchema2
 from ohmg.conf.http import generate_ohmg_context
 from ohmg.core.models import Document, Layer, Map
 from ohmg.georeference.models import SessionBase
@@ -51,7 +51,7 @@ class HomePage(View):
         partners.sort(key=lambda x: x["sortorder"])
 
         featured_maps = Map.objects.filter(featured=True)[:5]
-        featured_list = [MapListSchema.from_orm(i).dict() for i in featured_maps]
+        featured_list = [MapListSchema2.from_orm(i).dict() for i in featured_maps]
 
         place_ct = humanize.intcomma(Place.objects.all().exclude(volume_count=0).count())
         map_ct = humanize.intcomma(Map.objects.all().exclude(loaded_by=None).count())
