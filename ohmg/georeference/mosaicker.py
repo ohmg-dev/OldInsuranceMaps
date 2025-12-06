@@ -59,7 +59,14 @@ class Mosaicker:
         for feature in multimask_geojson["features"]:
             layer_name = feature["properties"]["layer"]
 
-            layer = Layer.objects.get(slug=layer_name, region__document__map=layerset.map)
+            print(layer_name)
+            try:
+                layer = Layer.objects.get(slug=layer_name, region__document__map=layerset.map)
+            except Layer.MultipleObjectsReturned as e:
+                print("this layer slug matched multiple layers in this map: cancelling mosaic process")
+            except Exception as  e:
+                raise e
+
             if not layer.file:
                 raise Exception(f"no layer file for this layer {layer_name}")
 
@@ -95,8 +102,6 @@ class Mosaicker:
 
         self.mosaic_vrt = VRTHandler(f"{layerset.map.identifier}-{layerset.category.slug}")
         trim_list = [str(i.get_path()) for i in self.trimmed_vrts]
-        print(trim_list)
-        print(self.mosaic_vrt.get_path())
         gdal.BuildVRT(str(self.mosaic_vrt.get_path()), trim_list, options=vo)
 
     def generate_cog(self, layerset: LayerSet):
