@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import List
 
 import humanize
 from django.contrib.auth import get_user_model
@@ -20,7 +21,7 @@ class Command(BaseCommand):
         elif options["locale"]:
             maps = Map.objects.filter(locales__slug=options["locale"])
 
-        def collapse_session_durations(sessions) -> list[dict]:
+        def collapse_session_durations(sessions) -> List[dict]:
             print("WARNING: This needs more vetting and testing...")
             grouped_deltas = []
             for s in sessions:

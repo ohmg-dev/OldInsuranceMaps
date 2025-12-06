@@ -150,7 +150,6 @@ class Georeferencer:
         self.crs_code = crs
 
         wkt_content = retrieve_srs_wkt(self.crs_code.split(":")[1])
-        print(wkt_content)
         self.crs_wkt = str(wkt_content)
 
         sr = osr.SpatialReference()
