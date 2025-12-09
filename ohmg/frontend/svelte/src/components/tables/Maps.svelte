@@ -1,7 +1,5 @@
 <script>
   import { slide } from 'svelte/transition';
-  import Select from 'svelte-select';
-  import { format } from 'date-fns';
 
   import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise';
   import Faders from 'phosphor-svelte/lib/Faders';
@@ -9,16 +7,21 @@
   import Link from '../common/Link.svelte';
   import SessionListModal from '../modals/SessionListModal.svelte';
 
-  import PaginationButtons from '../buttons/PaginationButtons.svelte';
+  import PaginationButtons from './widgets/PaginationButtons.svelte';
 
   import { getFromAPI } from '../../lib/requests';
   import InfoModalButton from '../buttons/InfoModalButton.svelte';
-  import SortButton from '../buttons/SortButton.svelte';
+  import SortableHeader from './widgets/SortableHeader.svelte';
+  import FacetFilterSelect from './widgets/FacetFilterSelect.svelte';
+  import LimitSelect from './widgets/LimitSelect.svelte';
+  import RefreshButton from './widgets/RefreshButton.svelte';
 
   export let CONTEXT;
   export let limit = '50';
   export let paginate = true;
   export let allowRefresh = true;
+  export let showUsers = true;
+  export let userFilter = null;
   export let showPlace = true;
   export let placeFilter = null;
   export let placeInclusive = false;
@@ -26,6 +29,7 @@
   export let sortDir = 'asc';
 
   let placeFilterItems = [];
+  let userFilterItems = [];
 
   let loading = false;
 
@@ -46,6 +50,9 @@
     if (placeFilter) {
       fetchUrl += `&place=${placeFilter.id}`;
     }
+    if (userFilter) {
+      fetchUrl += `&loaded_by=${userFilter.id}`;
+    }
     if (placeInclusive) {
       fetchUrl += `&place_inclusive=true`;
     }
@@ -56,12 +63,12 @@
       items = result.items;
       total = result.count;
       placeFilterItems = result.filter_items.places;
+      userFilterItems = result.filter_items.users;
       loading = false;
     });
   }
 
   let showFilters = false;
-  let limitOptions = [10, 25, 50, 100];
 </script>
 
 <SessionListModal id={'modal-session-list'} />
@@ -78,19 +85,13 @@
         ><Faders size={'1em'} />
       </button>
       {#if allowRefresh}
-        <button
-          class="is-icon-link"
-          title={loading ? 'Loading...' : 'Refresh'}
-          disabled={loading}
-          on:click={() => {
+        <RefreshButton
+          onClick={() => {
             offset = 1000;
             offset = 0;
           }}
-        >
-          <div style="height:28px" class={loading ? 'rotating' : ''}>
-            <ArrowsClockwise />
-          </div>
-        </button>
+          bind:loading
+        />
       {/if}
     </div>
     <div class="level-right">
@@ -103,30 +104,26 @@
   </div>
   {#if showFilters}
     <div transition:slide class="level" style="margin:.5em 0;">
-      <div id="" class="filter-level level-left">
+      <div class="filter-level level-left">
         {#if showPlace}
-          <Select
+          <FacetFilterSelect
             items={placeFilterItems}
             bind:value={placeFilter}
             placeholder="Filter by place..."
-            listAutoWidth={false}
-            class="filter-input"
-            containerStyles="width:300px;"
-            on:change={() => {
-              offset = 0;
-            }}
+            bind:offset
+          />
+        {/if}
+        {#if showUsers}
+          <FacetFilterSelect
+            items={userFilterItems}
+            bind:value={userFilter}
+            placeholder="Filter by user..."
+            bind:offset
           />
         {/if}
       </div>
       <div class="filter-level level-right">
-        <Select
-          items={limitOptions}
-          bind:value={currentLimit}
-          class="filter-input"
-          searchable={false}
-          clearable={false}
-          listAutoWidth={false}
-        />
+        <LimitSelect bind:value={currentLimit} />
       </div>
     </div>
   {/if}
@@ -135,78 +132,85 @@
       <table>
         <thead>
           <tr>
-            <th><SortButton title="Title" bind:sortDir bind:sortParam bind:offset value={'title'} /></th>
-            <th><SortButton title="Year" bind:sortDir bind:sortParam value={'year'} /></th>
-            <th
-              ><SortButton
-                title="Docs"
-                alt="Sort by number of documents"
+            <th><SortableHeader title="Title" value={'title'} bind:sortDir bind:sortParam bind:offset /></th>
+            <th><SortableHeader title="Year" value={'year'} bind:sortDir bind:sortParam bind:offset /></th>
+            <th><SortableHeader title="Docs" bind:sortDir bind:sortParam value={'document_ct'} bind:offset /></th>
+            {#if showPlace}
+              <th><SortableHeader title="Place" /></th>
+            {/if}
+            <th><SortableHeader title="Loaded by" /></th>
+            <th><SortableHeader title="Date" value={'load_date'} bind:sortDir bind:sortParam bind:offset /></th>
+            <th class="nul-col new-col"
+              ><SortableHeader
+                title="U"
+                value={'unprepared_ct'}
+                alt="Number of unprepared documents"
                 bind:sortDir
                 bind:sortParam
-                value={'document_ct'}
+                bind:offset
               /></th
             >
-            {#if showPlace}
-              <th title="Place" style="font-weight:400">Place</th>
-            {/if}
-            <th title="Loaded by" style="font-weight:400">Loaded by</th>
-            <th><SortButton title="Date" bind:sortDir bind:sortParam value={'load_date'} /></th>
-            <th class="number-col new-col">
-              <SortButton title="U" bind:sortDir bind:sortParam value={'unprepared_ct'} />
-            </th>
-            <th class="number-col"
-              ><SortButton
+            <th class="nul-col"
+              ><SortableHeader
                 title="P"
+                value={'prepared_ct'}
                 alt="Number of prepared regions"
                 bind:sortDir
                 bind:sortParam
-                value={'prepared_ct'}
+                bind:offset
               /></th
             >
-            <th class="number-col"
-              ><SortButton
+            <th class="nul-col"
+              ><SortableHeader
                 title="G"
+                value={'layer_ct'}
                 alt="Number of georeferenced layers"
                 bind:sortDir
                 bind:sortParam
-                value={'layer_ct'}
+                bind:offset
               /></th
             >
-            <th class="number-col"
-              ><SortButton title="S" alt="Number of skipped pieces" bind:sortDir bind:sortParam value={'skip_ct'} /></th
+            <th class="nul-col"
+              ><SortableHeader
+                title="S"
+                alt="Number of skipped pieces"
+                value={'skip_ct'}
+                bind:sortDir
+                bind:sortParam
+                bind:offset
+              /></th
             >
-            <th class="number-col"
-              ><SortButton
+            <th class="nul-col"
+              ><SortableHeader
                 title="N"
                 alt="Number of non-map pieces"
+                value={'nonmap_ct'}
                 bind:sortDir
                 bind:sortParam
-                value={'nonmap_ct'}
+                bind:offset
               /></th
             >
-            <th class="number-col new-col"
-              ><SortButton
+            <th class="nul-col"
+              ><SortableHeader
                 title="%"
                 alt="Percent complete - G/(U+P+G)"
+                value={'completion_pct'}
                 bind:sortDir
                 bind:sortParam
-                value={'completion_pct'}
+                bind:offset
               /></th
             >
-            <th class="number-col new-col" title="Layers included in multimask"
-              ><SortButton
+            <th class="nul-col new-col"
+              ><SortableHeader
                 title="MM"
                 alt="Main content layers included in multimask"
+                value={'multimask_rank'}
                 bind:sortDir
                 bind:sortParam
-                value={'multimask_rank'}
+                bind:offset
               /></th
             >
-            <th
-              class="number-col new-col"
-              title="A geotiff has been created for this map's main content"
-              style="font-weight:400;">GT</th
-            >
+            <th><SortableHeader title="GT" alt="A geotiff has been created for this map's main content" /></th>
           </tr>
         </thead>
         <tbody>
@@ -216,15 +220,14 @@
               <td>{s.year}</td>
               <td>{s.document_ct}</td>
               {#if showPlace}
-                <td
-                  >
-                   {#if s.locale }
-                   <Link href={`/${s.locale.slug}`} title={`View all ${s.locale.display_name} maps`}
-                    >{s.locale.display_name}</Link
-                  >
-                   {:else}
-                   Error: no locale
-                   {/if}
+                <td>
+                  {#if s.locale}
+                    <Link href={`/${s.locale.slug}`} title={`View all ${s.locale.display_name} maps`}
+                      >{s.locale.display_name}</Link
+                    >
+                  {:else}
+                    Error: no locale
+                  {/if}
                 </td>
               {/if}
               <td>
@@ -336,12 +339,5 @@
       -o-transform: rotate(360deg);
       transform: rotate(360deg);
     }
-  }
-  .rotating {
-    -webkit-animation: rotating 2s linear infinite;
-    -moz-animation: rotating 2s linear infinite;
-    -ms-animation: rotating 2s linear infinite;
-    -o-animation: rotating 2s linear infinite;
-    animation: rotating 2s linear infinite;
   }
 </style>

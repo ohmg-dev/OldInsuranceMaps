@@ -5,6 +5,7 @@ from .views import (
     LayersetDerivativeView,
     LayerSetView,
     LayerView,
+    MapContributorsView,
     MapListView,
     MapView,
     RegionView,
@@ -14,6 +15,9 @@ from .views import (
 urlpatterns = [
     path("maps/", MapListView.as_view(), name="map_list"),
     path("map/<str:identifier>", MapView.as_view(), name="map_summary"),
+    path(
+        "map/<str:identifier>/contributors", MapContributorsView.as_view(), name="map_contributors"
+    ),
     path(
         "map/<str:mapid>/<str:category>/<str:derivative>",
         LayersetDerivativeView.as_view(),

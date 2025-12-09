@@ -86,7 +86,7 @@ class HomePage(View):
                 "MAP_CT": map_ct,
                 "LYR_CT": lyr_ct,
             },
-            "SESSIONLIST_PARAMS": {
+            "SESSIONS_PARAMS": {
                 "CONTEXT": ohmg_context,
                 "showThumbs": True,
             },
@@ -112,7 +112,7 @@ class ActivityView(View):
         ohmg_context = generate_ohmg_context(request)
         context_dict = {
             "CONTEXT": ohmg_context,
-            "SESSIONLIST_PROPS": {
+            "SESSIONS_PROPS": {
                 "CONTEXT": ohmg_context,
                 "showThumbs": True,
                 "limit": "25",
@@ -157,19 +157,6 @@ class NewsArticle(View):
         }
 
         return render(request, "frontend/article.html", context=context_dict)
-
-
-class Participants(View):
-    def get(self, request):
-        return render(
-            request,
-            "accounts/profiles.html",
-            context={
-                "PARTICIPANTS_PARAMS": {
-                    "CONTEXT": generate_ohmg_context(request),
-                }
-            },
-        )
 
 
 class PageView(View):

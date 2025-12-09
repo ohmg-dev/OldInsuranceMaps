@@ -177,7 +177,7 @@ a.button {
   background-color: var(--primary-background-color);
 }
 
-thead tr {
+thead tr th {
   background-color: #eaeaea;
 }
 

@@ -50,6 +50,16 @@ class UserSchema(Schema):
         return obj.date_joined.strftime("%Y-%m-%d")
 
 
+class MapUserSchema(Schema):
+    username: str
+    profile_url: str
+    image_url: str
+
+    @staticmethod
+    def resolve_image_url(obj):
+        return avatar_url(obj)
+
+
 class UserSchemaLite(Schema):
     username: str
     profile_url: str
@@ -633,7 +643,7 @@ class MapFullSchema(Schema):
     @staticmethod
     def resolve_loaded_by(obj):
         loaded_by = {"name": "", "profile": "", "date": ""}
-        if obj.loaded_by is not None:
+        if obj.loaded_by and obj.load_date:
             loaded_by["name"] = obj.loaded_by.username
             loaded_by["profile"] = reverse("profile_detail", args=(obj.loaded_by.username,))
             loaded_by["date"] = obj.load_date.strftime("%Y-%m-%d")

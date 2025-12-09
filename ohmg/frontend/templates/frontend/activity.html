@@ -10,8 +10,8 @@
 
 <section>
     <div class="section-content">
-        {{ SESSIONLIST_PROPS|json_script:'sessionlist-props'}}
-        {% include '_svelte_component.html' with component_name='SessionList' %}
+        {{ SESSIONS_PROPS|json_script:'sessions-props'}}
+        {% include '_svelte_component.html' with component_name='Sessions' %}
     </div>
 </section>
 {% endblock %}

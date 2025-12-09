@@ -3,7 +3,7 @@ from typing import List
 
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
-from django.db.models import F
+from django.db.models import F, Q
 from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI, Query
 from ninja.pagination import paginate
@@ -34,6 +34,7 @@ from .filters import (
 )
 from .paginators import (
     MapPagination,
+    ProfilePagination,
     SessionPagination,
 )
 from .schemas import (
@@ -112,13 +113,21 @@ def list_users(request):
     return queryset
 
 
-@beta2.get("contributors/", response=List[UserSchema], url_name="user_list")
-@paginate
-def list_contributors(request):
-    user_ids = set(SessionBase.objects.all().values_list("user", flat=True))
-    queryset = (
-        User.objects.filter(pk__in=user_ids).exclude(username="AnonymousUser").order_by("username")
+@beta2.get("profiles/", response=List[UserSchema], url_name="user_list")
+@paginate(ProfilePagination)
+def list_profiles(
+    request,
+    sort: str = "",
+    sortby: str = "",
+):
+    users = User.objects.filter(
+        Q(load_ct__gt=0) | Q(psesh_ct__gt=0) | Q(gsesh_ct__gt=0) | Q(gcp_ct__gt=0)
     )
+    if sortby:
+        sort_arg = sortby if sort == "asc" else f"-{sortby}"
+        queryset = users.order_by(sort_arg)
+    else:
+        queryset = users.order_by("username")
     return queryset
 
 

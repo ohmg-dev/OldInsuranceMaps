@@ -6,7 +6,7 @@
   import { getCenter } from 'ol/extent';
 
   import Link from './common/Link.svelte';
-  import SessionList from './lists/SessionList.svelte';
+  import Sessions from './tables/Sessions.svelte';
   import BasicDocViewer from './interfaces/BasicDocViewer.svelte';
   import BasicLayerViewer from './interfaces/BasicLayerViewer.svelte';
   import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
@@ -276,7 +276,7 @@
     </button>
     {#if sectionVis['history']}
       <div transition:slide|global>
-        <SessionList
+        <Sessions
           {CONTEXT}
           FILTER_PARAM={`${RESOURCE.type}=${RESOURCE.id}`}
           sortDir="asc"

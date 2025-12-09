@@ -2,13 +2,17 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}Participants | {{ block.super }}{% endblock %}
+{% block title %}Profiles | {{ block.super }}{% endblock %}
 
 {% block main_content %}
 
-{% include '_titlebar.html' with title="Participants" %}
+{% include '_titlebar.html' with title="Profiles" %}
 
-{{ PARTICIPANTS_PARAMS|json_script:'participants-props'}}
-{% include '_svelte_component.html' with component_name='Participants' %}
+<section>
+    <div class="section-content">
+        {{ PROFILES_PROPS|json_script:'profiles-props'}}
+        {% include '_svelte_component.html' with component_name='Profiles' %}
+    </div>
+</section>
 
 {% endblock %}

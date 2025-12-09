@@ -20,6 +20,8 @@
   --bulma-text-strong: #333333;
   --bulma-strong-color: #333333;
   --bulma-block-spacing: 1em;
+  --bulma-link-text: var(--theme-highlight-color);
+  --bulma-border: #333333;
 }
 
 .navbar-dropdown a.navbar-item {

@@ -1,5 +1,5 @@
 <script>
-  import MapList from '../lists/MapList.svelte';
+  import Maps from '../tables/Maps.svelte';
   import Places from '../lists/Places.svelte';
   import MapBrowse from '../interfaces/MapBrowse.svelte';
 
@@ -60,7 +60,7 @@
       <Places {CONTEXT} />
     </div>
     <div style="display: {currentTab === 'items' ? 'block' : 'none'}">
-      <MapList {CONTEXT} />
+      <Maps {CONTEXT} />
     </div>
   </div>
 </main>
