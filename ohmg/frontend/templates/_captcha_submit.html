@@ -6,34 +6,20 @@
 
 <script>
 	async function onClientVerification(output) {
-		const url = "/accounts/verify-challenge/";
-		try {
-			const response = await fetch(url, {
-				method:"POST",
-				headers: {
-					"X-CSRFToken": document.getElementById("ttt").value,
-				},
-				body: JSON.stringify({token: output})
-			});
-			if (!response.ok) {
-				throw new Error(`Response status: ${response.status}`);
-			}
-			const result = await response.json();
-			if (result.success) {
-				const subBtn = document.createElement('button')
-				subBtn.setAttribute("type", "submit")
-				subBtn.classList.add("button")
-				subBtn.classList.add("is-primary")
-				subBtn.innerText = "Sign Up"
-				document.getElementById("submit-button-container").appendChild(subBtn)
-			}
-		} catch (error) {
-			console.error(error.message);
-		}
+		const payloadField = document.createElement('input')
+		payloadField.setAttribute("type", "hidden")
+		payloadField.setAttribute("name", "captcha_payload")
+		payloadField.setAttribute("value", output)
+		document.getElementById('signup_form').appendChild(payloadField)
+		const subBtn = document.createElement('button')
+		subBtn.setAttribute("type", "submit")
+		subBtn.classList.add("button")
+		subBtn.classList.add("is-primary")
+		subBtn.innerText = "Sign Up"
+		document.getElementById("submit-button-container").appendChild(subBtn)
 	}
 
 	document.getElementById('procaptcha-script').addEventListener('load', function () {
-
 		const captchaContainer = document.getElementById('procaptcha-container')
 		// Render the CAPTCHA explicitly on a container with id "procaptcha-container"
 		window.procaptcha.render(captchaContainer, {

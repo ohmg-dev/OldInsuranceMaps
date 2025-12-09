@@ -347,6 +347,7 @@ AUTH_USER_MODEL = "accounts.User"
 # while this is a module path to the adapter class
 ACCOUNT_ADAPTER = "ohmg.accounts.adapter.AccountAdapter"
 
+ACCOUNT_FORMS = {"signup": "ohmg.accounts.forms.OHMGSignupForm"}
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_SIGNUP_REDIRECT_URL = "/"
 ACCOUNT_USERNAME_VALIDATORS = "ohmg.accounts.validators.custom_username_validators"

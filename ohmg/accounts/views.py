@@ -1,16 +1,13 @@
-import json
-
 import requests
+from allauth.account.views import SignupView
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, render
 from django.views import View
 
 from ohmg.api.schemas import UserSchema
 from ohmg.conf.http import (
-    JsonResponseBadRequest,
-    JsonResponseFail,
-    JsonResponseSuccess,
     generate_ohmg_context,
 )
 
@@ -43,27 +40,27 @@ class ContributorsView(View):
             "accounts/contributors.html",
             context={
                 "CONTEXT": ohmg_context,
-                "CONTRIBUTORLIST_PROPS": {
+                "CONTRIBUTORS_PROPS": {
                     "CONTEXT": ohmg_context,
-                    # "showUser": False,
-                    # "userFilter": {"id": username, "label": username},
                 },
             },
         )
 
 
-def verify_prosopo_token(request):
-    if request.method == "POST":
-        if request.body:
-            body = json.loads(request.body)
-            token = body.get("token")
-            url = "https://api.prosopo.io/siteverify"
-            response = requests.post(
-                url, json={"secret": settings.PROSOPO_SECRET_KEY, "token": token}
-            )
-            success = response.json().get("verified", False)
-            return JsonResponseSuccess() if success else JsonResponseFail()
-        else:
-            return JsonResponseBadRequest()
-    else:
-        raise JsonResponseBadRequest()
+def verify_prosopo_token(token: str):
+    url = "https://api.prosopo.io/siteverify"
+    response = requests.post(url, json={"secret": settings.PROSOPO_SECRET_KEY, "token": token})
+    return response.json().get("verified", False)
+
+
+class OHMGSignupView(SignupView):
+    def form_valid(self, form):
+        if settings.PROSOPO_SITE_KEY:
+            token = form.data.get("captcha_payload")
+            ## first check that a payload was sent with the form
+            if not token:
+                raise ValidationError("Invalid form", code="invalid")
+            ## now check the token against prosopo endpoint
+            if not verify_prosopo_token(token):
+                raise ValidationError("Invalid token", code="invalid")
+        return super(self.__class__, self).form_valid(form)

@@ -1,12 +1,11 @@
-from django.urls import path
+from django.urls import include, path
 
-from .views import (
-    ProfileView,
-    verify_prosopo_token,
-)
+from .views import OHMGSignupView, ProfileView
 
 urlpatterns = [
-    path("accounts/verify-challenge/", verify_prosopo_token),
+    ## overwrite the default allauth signup view here
+    path("account/signup/", OHMGSignupView.as_view(), name="account_signup"),
+    path("account/", include("allauth.urls")),
     path("profile/<str:username>/", ProfileView.as_view(), name="profile_detail"),
     # path("contributors/", ContributorsView.as_view(), name="contributors"),
 ]
