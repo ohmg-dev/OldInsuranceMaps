@@ -3,9 +3,9 @@ from django.core.management.base import BaseCommand
 from ohmg.georeference.models import (
     GeorefSession,
     PrepSession,
-    SessionBase,
-    delete_expired_session_locks,
+    SessionBase
 )
+from ohmg.georeference.sessions import delete_expired_session_locks
 
 
 class Command(BaseCommand):
