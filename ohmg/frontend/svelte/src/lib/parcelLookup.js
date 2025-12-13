@@ -108,5 +108,15 @@ export const parcelLookup = {
     pmtilesUrl: "https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/mass-parcels.pmtiles",
     attributionText: "MassGIS",
     attributionUrl: "https://www.mass.gov/info-details/massgis-data-property-tax-parcels",
+  },
+  "san-bernardino-county-ca": {
+    pmtilesUrl: "https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/san-bernardino-county-ca.pmtiles",
+    attributionText: "San Bernardino County Open Data Portal",
+    attributionUrl: "https://open-data-sbcounty.hub.arcgis.com/datasets/sbcounty::san-bernardino-county-parcel-dataset/about",
+  },
+  connecticut: {
+    pmtilesUrl: "https://oldinsurancemaps.us-southeast-1.linodeobjects.com/parcels/connecticut-parcels.pmtiles",
+    attributionText: "Connecticut CAMA and Parcel Layer",
+    attributionUrl: "https://geodata.ct.gov/datasets/ctmaps::connecticut-cama-and-parcel-layer/about",
   }
 };
