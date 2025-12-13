@@ -283,6 +283,8 @@ if DEBUG and ENABLE_DEBUG_TOOLBAR:
 
 TITILER_HOST = os.getenv("TITILER_HOST", "")
 
+OPENLAYERS_MAX_TILES_LOADING = os.getenv("OPENLAYERS_MAX_TILES_LOADING", 32)
+
 ## These creds are only actually used by boto3 if ENABLE_S3_STORAGE = True,
 ## or by the initialze-s3-bucket command as default values
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")

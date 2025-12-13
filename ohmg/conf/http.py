@@ -66,6 +66,7 @@ def generate_ohmg_context(request) -> dict:
             "Content-Type": "application/json;charset=utf-8",
             "X-CSRFToken": csrf_token,
         },
+        "max_tiles_loading": settings.OPENLAYERS_MAX_TILES_LOADING,
     }
 
 

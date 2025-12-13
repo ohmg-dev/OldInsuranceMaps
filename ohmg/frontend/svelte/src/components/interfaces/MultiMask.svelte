@@ -211,7 +211,7 @@
   let viewer;
   onMount(() => {
     createLayerLookup();
-    viewer = new MapViewer('map-viewer');
+    viewer = new MapViewer('map-viewer', CONTEXT.max_tiles_loading);
     viewer.setDefaultExtent(fullExtent);
 
     // add layers

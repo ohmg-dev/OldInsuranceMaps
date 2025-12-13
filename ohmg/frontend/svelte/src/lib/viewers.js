@@ -9,11 +9,14 @@ export class MapViewer {
   interactions = {};
   currentBasemap = null;
 
-  constructor(elementId) {
+  constructor(elementId, maxTilesLoading) {
+    if (!maxTilesLoading) {
+      maxTilesLoading = 32;
+    }
     const targetElement = document.getElementById(elementId);
     const map = new Map({
       target: targetElement,
-      maxTilesLoading: 32,
+      maxTilesLoading: maxTilesLoading,
       pixelRatio: 2,
     });
 

@@ -302,7 +302,7 @@
 
   let viewer;
   onMount(() => {
-    viewer = new MapViewer('map');
+    viewer = new MapViewer('map', CONTEXT.max_tiles_loading);
     viewer.addBasemaps(CONTEXT.mapbox_api_token, currentBasemap);
     viewer.setDefaultExtent(homeExtent);
 

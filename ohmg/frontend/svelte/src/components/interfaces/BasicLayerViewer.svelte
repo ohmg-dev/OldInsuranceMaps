@@ -19,7 +19,7 @@
   let currentZoom;
 
   onMount(() => {
-    const viewer = new MapViewer('map-viewer');
+    const viewer = new MapViewer('map-viewer', CONTEXT.max_tiles_loading);
 
     const extent = transformExtent(EXTENT, 'EPSG:4326', 'EPSG:3857');
     viewer.addZoomToExtentControl(extent, 'extent-icon-doc');
