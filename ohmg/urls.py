@@ -28,7 +28,6 @@ urlpatterns = [
     ## Django extensions URLs
     path("grappelli/", include("grappelli.urls")),
     path("admin/", admin.site.urls, name="admin"),
-    path("account/", include("allauth.urls")),
     path("avatar/", include("avatar.urls")),
     path("api/beta2/", beta2.urls),
     path("markdownx/", include("markdownx.urls")),

@@ -407,7 +407,7 @@
     docViewer.map.on('click', selectGCPOnClick);
 
     // CREATE THE RIGHT-SIDE MAP INTERFACE
-    mapViewer = new MapViewer('map-viewer');
+    mapViewer = new MapViewer('map-viewer', CONTEXT.max_tiles_loading);
     mapViewer.setDefaultExtent(defaultExtent);
 
     mapViewer.addBasemaps(CONTEXT.mapbox_api_token);

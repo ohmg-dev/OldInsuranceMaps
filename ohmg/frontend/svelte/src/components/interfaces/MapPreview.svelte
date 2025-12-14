@@ -111,7 +111,7 @@
   }
 
   onMount(() => {
-    mapViewer = new MapViewer('map');
+    mapViewer = new MapViewer('map', CONTEXT.max_tiles_loading);
     mapViewer.addBasemaps(CONTEXT.mapbox_api_token, 'satellite');
     mapViewer.addControl(new LyrMousePosition('pointer-coords-preview', null));
     mapViewer.setDefaultExtent(mapExtent3857);

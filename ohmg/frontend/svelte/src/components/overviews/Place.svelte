@@ -1,6 +1,6 @@
 <script>
   import PlaceBreadcrumbsSelect from '../breadcrumbs/PlaceBreadcrumbsSelect.svelte';
-  import MapList from '../lists/MapList.svelte';
+  import Maps from '../tables/Maps.svelte';
 
   export let CONTEXT;
   export let PLACE;
@@ -78,7 +78,7 @@
   </div>
   <div id="items-panel" style="flex-grow:1; overflow-x:auto;">
     <h3>Maps</h3>
-    <MapList
+    <Maps
       {CONTEXT}
       placeFilter={{ id: freezePlace.slug, label: freezePlace.displayname }}
       placeInclusive={true}

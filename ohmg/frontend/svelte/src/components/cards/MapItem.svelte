@@ -10,7 +10,7 @@
   </figure>
   <div class="">
     <div class="">
-      <strong><Link href={MAP.urls.summary} title="{MAP.title} summary">{MAP.title}</Link></strong>
+      <strong><Link href={`map/${MAP.identifier}`} title="{MAP.title} summary">{MAP.title}</Link></strong>
       <small style="color:#6f6f6f">{MAP.sheet_ct == 1 ? 'single page' : `${MAP.sheet_ct} pages`}</small>
       <br />
       <em>Loaded by <Link href={MAP.loaded_by.profile_url}>{MAP.loaded_by.username}</Link>, {MAP.load_date}</em>

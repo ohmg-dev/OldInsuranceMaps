@@ -5,6 +5,7 @@ from natsort import natsorted
 from ninja import Schema
 from ninja.pagination import PaginationBase
 
+from ohmg.accounts.models import User
 from ohmg.core.models import (
     Map,
 )
@@ -16,8 +17,8 @@ from ohmg.places.models import Place
 
 class SessionPagination(PaginationBase):
     class Input(Schema):
-        offset: int
-        limit: int
+        offset: int = 0
+        limit: int = 10
 
     class Output(Schema):
         items: List[Any]
@@ -67,8 +68,8 @@ class SessionPagination(PaginationBase):
 
 class MapPagination(PaginationBase):
     class Input(Schema):
-        offset: int
-        limit: int
+        offset: int = 0
+        limit: int = 10
 
     class Output(Schema):
         items: List[Any]
@@ -83,8 +84,16 @@ class MapPagination(PaginationBase):
             key=lambda k: k["id"],
         )
 
+        user_ids = set(queryset.values_list("loaded_by", flat=True))
+        users = User.objects.filter(pk__in=user_ids)
+        user_items = natsorted(
+            [{"id": i.username, "label": i.username} for i in users],
+            key=lambda k: k["id"],
+        )
+
         filter_items = {
             "places": place_items,
+            "users": user_items,
         }
 
         offset = pagination.offset
@@ -95,10 +104,10 @@ class MapPagination(PaginationBase):
         }
 
 
-class ContributorPagination(PaginationBase):
+class ProfilePagination(PaginationBase):
     class Input(Schema):
-        offset: int
-        limit: int
+        offset: int = 0
+        limit: int = 50
 
     class Output(Schema):
         items: List[Any]
@@ -106,9 +115,7 @@ class ContributorPagination(PaginationBase):
         filter_items: dict
 
     def paginate_queryset(self, queryset, pagination: Input, **params):
-        filter_items = {
-            "maps": ["sdf"],
-        }
+        filter_items = {}
 
         offset = pagination.offset
         return {

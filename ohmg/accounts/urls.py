@@ -1,12 +1,16 @@
-from django.urls import path
+from django.urls import include, path
+from django.views.generic import RedirectView
 
-from .views import (
-    ProfileView,
-    verify_prosopo_token,
-)
+from .views import OHMGSignupView, ProfilesView, ProfileView
 
 urlpatterns = [
-    path("accounts/verify-challenge/", verify_prosopo_token),
+    ## overwrite the default allauth signup view here
+    path("account/signup/", OHMGSignupView.as_view(), name="account_signup"),
+    path("account/", include("allauth.urls")),
     path("profile/<str:username>/", ProfileView.as_view(), name="profile_detail"),
-    # path("contributors/", ContributorsView.as_view(), name="contributors"),
+    path("profiles/", ProfilesView.as_view(), name="profiles"),
+    ## these are all past versions of the profiles page
+    path("participants/", RedirectView.as_view(pattern_name="profiles", permanent=False)),
+    path("participation/", RedirectView.as_view(pattern_name="profiles", permanent=False)),
+    path("people/", RedirectView.as_view(pattern_name="profiles", permanent=False)),
 ]

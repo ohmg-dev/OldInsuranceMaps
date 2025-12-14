@@ -3,7 +3,6 @@ import logging
 from urllib.parse import quote
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Polygon
 from django.http import FileResponse, Http404, JsonResponse
@@ -13,10 +12,12 @@ from django.views import View
 from natsort import natsorted
 from slugify import slugify
 
+from ohmg.accounts.models import User
 from ohmg.api.schemas import (
     LayerSetSchema,
     MapFullSchema,
     MapResourcesSchema,
+    MapUserSchema,
     PlaceFullSchema,
     ResourceFullSchema,
 )
@@ -27,6 +28,7 @@ from ohmg.conf.http import (
     generate_ohmg_context,
     validate_post_request,
 )
+from ohmg.georeference.models import GCP, SessionBase
 
 from .exporters.qlr import generate_qlr_content
 from .models import (
@@ -65,7 +67,7 @@ def test_map_access(user, map):
 class MapListView(View):
     def get(self, request):
         context_dict = {
-            "MAPLIST_PARAMS": {
+            "MAPS_PARAMS": {
                 "CONTEXT": generate_ohmg_context(request),
             }
         }
@@ -89,12 +91,6 @@ class MapView(View):
         layersets = [LayerSetSchema.from_orm(i).dict() for i in map.layerset_set.all()]
         layerset_categories = list(LayerSetCategory.objects.all().values("slug", "display_name"))
 
-        users = get_user_model().objects.all()
-        user_filter_list = natsorted(
-            [{"title": i, "id": i} for i in users.values_list("username", flat=True)],
-            key=lambda k: k["id"],
-        )
-
         context_dict = {
             "svelte_params": {
                 "CONTEXT": generate_ohmg_context(request),
@@ -103,7 +99,6 @@ class MapView(View):
                 "SESSION_SUMMARY": session_summary,
                 "LAYERSETS": layersets,
                 "LAYERSET_CATEGORIES": layerset_categories,
-                "userFilterItems": user_filter_list,
             },
             "navlinks": [
                 {
@@ -133,6 +128,32 @@ class MapView(View):
             map.update_item_lookup()
             map_json = MapFullSchema.from_orm(map).dict()
             return JsonResponse(map_json)
+
+
+class MapContributorsView(View):
+    def get(self, request, identifier):
+        sort = request.GET.get("sort")
+        sortby = request.GET.get("sortby")
+        map = get_object_or_404(Map.objects.prefetch_related(), pk=identifier)
+        sessions = SessionBase.objects.filter(map=map)
+        users_by_type = sessions.values_list("user", "type")
+        user_ids = set([i[0] for i in users_by_type])
+        users_json = []
+        for u in User.objects.filter(pk__in=user_ids):
+            user_json = MapUserSchema.from_orm(u).dict()
+            user_json["psesh_ct"] = len([i for i in users_by_type if i[0] == u.pk and i[1] == "p"])
+            user_json["gsesh_ct"] = len([i for i in users_by_type if i[0] == u.pk and i[1] == "g"])
+            user_json["gcp_ct"] = GCP.objects.filter(
+                created_by=u, gcp_group__region2__in=map.regions.all()
+            ).count()
+            users_json.append(user_json)
+        if sortby:
+            users_json = natsorted(
+                users_json,
+                key=lambda x: x[sortby].lower() if isinstance(x[sortby], str) else x[sortby],
+                reverse=sort == "des",
+            )
+        return JsonResponse({"items": users_json})
 
 
 class GenericResourceView(View):
@@ -440,7 +461,6 @@ class LayerSetView(View):
                     map_id=payload["map-id"], category__slug=payload["category"]
                 )
                 errors = layerset.update_multimask_from_geojson(payload["multimask-geojson"])
-                print(errors)
                 if errors:
                     return JsonResponseFail("; ".join([f"\n-- {i[0]}: {i[1]}" for i in errors]))
                 else:

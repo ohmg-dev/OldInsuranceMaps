@@ -10,7 +10,6 @@ from .views import (
     Browse,
     HomePage,
     PageView,
-    Participants,
 )
 
 register_converter(PageConverter, "page-slug")
@@ -20,13 +19,9 @@ urlpatterns = [
     path("", HomePage.as_view(), name="home"),
     path("activity/", ActivityView.as_view(), name="activity"),
     path("search/", Browse.as_view(), name="search"),
-    path("profiles/", Participants.as_view(), name="profiles"),
     path("<page-slug:page>/", PageView.as_view(), name="page-view"),
     # make sure old links go to the proper page, use permanent=False for now...
     path("browse/", RedirectView.as_view(pattern_name="search"), name="browse"),
-    path("participants/", RedirectView.as_view(pattern_name="profiles", permanent=False)),
-    path("participation/", RedirectView.as_view(pattern_name="profiles", permanent=False)),
-    path("people/", RedirectView.as_view(pattern_name="profiles", permanent=False)),
     ## conventional url paths
     path(
         "robots.txt",

@@ -3,7 +3,7 @@ from typing import List
 
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
-from django.db.models import F
+from django.db.models import F, Q
 from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI, Query
 from ninja.pagination import paginate
@@ -34,6 +34,7 @@ from .filters import (
 )
 from .paginators import (
     MapPagination,
+    ProfilePagination,
     SessionPagination,
 )
 from .schemas import (
@@ -41,7 +42,6 @@ from .schemas import (
     LayerSchema,
     LayerSetSchema,
     MapFullSchema,
-    MapListSchema,
     MapListSchema2,
     PlaceFullSchema,
     PlaceSchema,
@@ -113,13 +113,21 @@ def list_users(request):
     return queryset
 
 
-@beta2.get("contributors/", response=List[UserSchema], url_name="user_list")
-@paginate
-def list_contributors(request):
-    user_ids = set(SessionBase.objects.all().values_list("user", flat=True))
-    queryset = (
-        User.objects.filter(pk__in=user_ids).exclude(username="AnonymousUser").order_by("username")
+@beta2.get("profiles/", response=List[UserSchema], url_name="user_list")
+@paginate(ProfilePagination)
+def list_profiles(
+    request,
+    sort: str = "",
+    sortby: str = "",
+):
+    users = User.objects.filter(
+        Q(load_ct__gt=0) | Q(psesh_ct__gt=0) | Q(gsesh_ct__gt=0) | Q(gcp_ct__gt=0)
     )
+    if sortby:
+        sort_arg = sortby if sort == "asc" else f"-{sortby}"
+        queryset = users.order_by(sort_arg)
+    else:
+        queryset = users.order_by("username")
     return queryset
 
 
@@ -128,56 +136,23 @@ def get_map(request, map: str):
     return get_object_or_404(Map, pk=map)
 
 
-@beta2.get("maps/", response=List[MapListSchema], url_name="map_list")
-def list_maps(
-    request,
-    # filters: MapFilterSchema = Query(...),
-    sort: str = "default",
-    limit: int = None,
-    loaded: bool = True,
-    loaded_by: str = None,
-    locale: str = None,
-    locale_inclusive: bool = False,
-):
-    # overall, not really optimized. should refactor at some point...
-    maps = Map.objects.exclude(hidden=True)
-    if sort == "load_date":
-        maps = maps.order_by("-load_date")
-    else:
-        maps = maps.order_by("title")
-
-    if locale:
-        place = Place.objects.get(slug=locale)
-        if locale_inclusive:
-            if locale in ["united-states", "mexico", "canada", "cuba"]:
-                pass
-            else:
-                pks = place.get_inclusive_pks()
-                maps = maps.filter(locales__in=pks)
-        else:
-            maps = maps.filter(locales=place.pk)
-
-    if loaded:
-        maps = maps.exclude(loaded_by=None)
-    if loaded_by:
-        maps = maps.filter(loaded_by__username=loaded_by)
-
-    if limit:
-        maps = maps[:limit]
-    return maps
-
-
 @beta2.get("maps2/", response=List[MapListSchema2], url_name="maps_list2")
 @paginate(MapPagination)
 def list_maps2(
     request,
     place: str = None,
     place_inclusive: bool = False,
+    loaded: bool = False,
+    loaded_by: str = "",
+    sort: str = "",
+    sortby: str = "",
 ):
-    sort_param = request.GET.get("sortby", "")
-    sort_dir = request.GET.get("sort", "")
-
-    maps = Map.objects.all()
+    if loaded:
+        maps = Map.objects.filter(load_date__isnull=False)
+    else:
+        maps = Map.objects.all()
+    if loaded_by:
+        maps = maps.filter(loaded_by__username=loaded_by)
     if place:
         if place_inclusive:
             p = Place.objects.get(slug=place)
@@ -185,10 +160,10 @@ def list_maps2(
             maps = maps.filter(locales__in=place_ids)
         else:
             maps = maps.filter(locales__slug__exact=place)
-    if sort_param:
-        if sort_param == "loaded_by":
-            sort_param = "loaded_by__username"
-        sort_arg = sort_param if sort_dir == "asc" else f"-{sort_param}"
+    if sortby:
+        if sortby == "loaded_by":
+            sortby = "loaded_by__username"
+        sort_arg = sortby if sort == "asc" else f"-{sortby}"
         queryset = maps.order_by(sort_arg)
     else:
         queryset = maps.order_by("title")

@@ -43,20 +43,20 @@ class APITestCase(OHMGTestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_maps_endpoint(self):
-        response = self.get_api_client().get("/api/beta2/maps/")
+        response = self.get_api_client().get("/api/beta2/maps2/")
         self.assertEqual(response.status_code, 200)
 
         data = json.loads(response.content)
-        self.assertEqual(len(data), 1)
+        self.assertEqual(len(data["items"]), 1)
 
-        response = self.get_api_client().get("/api/beta2/maps/", {"locale": "new-iberia-la"})
+        response = self.get_api_client().get("/api/beta2/maps2/", {"place": "new-iberia-la"})
         self.assertEqual(response.status_code, 200)
 
         data = json.loads(response.content)
-        self.assertEqual(len(data), 1)
+        self.assertEqual(len(data["items"]), 1)
 
     def test_get_sessions_endpoint(self):
-        response = self.get_api_client().get("/api/beta2/sessions/?offset=0&limit=10")
+        response = self.get_api_client().get("/api/beta2/sessions/")
         self.assertEqual(response.status_code, 200)
 
         data = json.loads(response.content)

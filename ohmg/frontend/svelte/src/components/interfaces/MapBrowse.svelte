@@ -22,7 +22,7 @@
 
   let viewer;
   onMount(async function () {
-    viewer = new MapViewer('map-viewer');
+    viewer = new MapViewer('map-viewer', CONTEXT.max_tiles_loading);
     viewer.addBasemaps();
 
     container = document.getElementById('popup');

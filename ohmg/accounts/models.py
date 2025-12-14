@@ -14,24 +14,10 @@ class User(AbstractUser):
     class Meta:
         db_table = "auth_user"
 
-    def __str__(self):
-        return self.username
-
-    @cached_property
-    def load_ct(self):
-        return Map.objects.filter(loaded_by=self).count()
-
-    @cached_property
-    def psesh_ct(self):
-        return SessionBase.objects.filter(user=self, type="p").count()
-
-    @cached_property
-    def gsesh_ct(self):
-        return SessionBase.objects.filter(user=self, type="g").count()
-
-    @cached_property
-    def gcp_ct(self):
-        return GCP.objects.filter(created_by=self).count()
+    load_ct = models.IntegerField(default=0)
+    psesh_ct = models.IntegerField(default=0)
+    gsesh_ct = models.IntegerField(default=0)
+    gcp_ct = models.IntegerField(default=0)
 
     @cached_property
     def maps(self):
@@ -44,6 +30,20 @@ class User(AbstractUser):
     @cached_property
     def api_keys(self):
         return [i for i in APIKey.objects.filter(account=self).values_list("value", flat=True)]
+
+    def update_sesh_counts(self):
+        self.load_ct = Map.objects.filter(loaded_by=self).count()
+        self.psesh_ct = SessionBase.objects.filter(user=self, type="p").count()
+        self.gsesh_ct = SessionBase.objects.filter(user=self, type="g").count()
+        self.gcp_ct = GCP.objects.filter(created_by=self).count()
+        self.save(
+            update_fields=["load_ct", "psesh_ct", "gsesh_ct", "gcp_ct"], skip_stats_update=True
+        )
+
+    def save(self, skip_stats_update=False, *args, **kwargs):
+        if self.pk and not skip_stats_update:
+            self.update_sesh_counts()
+        return super(self.__class__, self).save(*args, **kwargs)
 
 
 def generate_key():

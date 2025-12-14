@@ -283,6 +283,8 @@ if DEBUG and ENABLE_DEBUG_TOOLBAR:
 
 TITILER_HOST = os.getenv("TITILER_HOST", "")
 
+OPENLAYERS_MAX_TILES_LOADING = os.getenv("OPENLAYERS_MAX_TILES_LOADING", 32)
+
 ## These creds are only actually used by boto3 if ENABLE_S3_STORAGE = True,
 ## or by the initialze-s3-bucket command as default values
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
@@ -347,6 +349,7 @@ AUTH_USER_MODEL = "accounts.User"
 # while this is a module path to the adapter class
 ACCOUNT_ADAPTER = "ohmg.accounts.adapter.AccountAdapter"
 
+ACCOUNT_FORMS = {"signup": "ohmg.accounts.forms.OHMGSignupForm"}
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_SIGNUP_REDIRECT_URL = "/"
 ACCOUNT_USERNAME_VALIDATORS = "ohmg.accounts.validators.custom_username_validators"

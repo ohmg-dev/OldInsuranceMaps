@@ -207,7 +207,7 @@ docker run --name titiler \
   -e WORKERS_PER_CORE=1 \
   --rm \
   -it \
-  ghcr.io/mradamcox/titiler:0.11.6-ohmg
+  ghcr.io/mradamcox/titiler:0.26.0-ohmg
 ```
 
 Or the same command is wrapped in:

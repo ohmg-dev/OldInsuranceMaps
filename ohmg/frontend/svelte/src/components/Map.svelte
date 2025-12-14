@@ -39,7 +39,6 @@
   import NonMapCard from './cards/NonMapCard.svelte';
 
   import { getFromAPI, submitPostRequest } from '../lib/requests';
-  import { makeTitilerXYZUrl } from '../lib/utils';
   import SkippedSectionHelpModal from './modals/SkippedSectionHelpModal.svelte';
 
   export let CONTEXT;
