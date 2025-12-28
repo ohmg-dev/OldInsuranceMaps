@@ -18,8 +18,9 @@ def debug_page_not_found(request):
 def debug_server_error(request):
     return server_error(request)
 
+urlpatterns = [path(s, RedirectView.as_view(url=d)) for s, d in load_custom_redirects()]
 
-urlpatterns = [
+urlpatterns += [
     ## OHMG app urls
     path("", include("ohmg.frontend.urls")),
     path("", include("ohmg.core.urls")),
@@ -34,11 +35,6 @@ urlpatterns = [
     path("api/beta2/", beta2.urls),
     path("markdownx/", include("markdownx.urls")),
 ]
-
-
-# r = load_custom_redirects()
-# print(r)
-urlpatterns += [path(s, RedirectView.as_view(url=d)) for s, d in load_custom_redirects()]
 
 urlpatterns += staticfiles_urlpatterns()
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
