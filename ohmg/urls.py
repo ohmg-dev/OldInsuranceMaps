@@ -4,8 +4,10 @@ from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
 from django.views.defaults import page_not_found, server_error
+from django.views.generic import RedirectView
 
 from ohmg.api.routes import beta2
+from ohmg.conf.http import load_custom_redirects
 
 
 def debug_page_not_found(request):
@@ -32,6 +34,11 @@ urlpatterns = [
     path("api/beta2/", beta2.urls),
     path("markdownx/", include("markdownx.urls")),
 ]
+
+
+# r = load_custom_redirects()
+# print(r)
+urlpatterns += [path(s, RedirectView.as_view(url=d)) for s, d in load_custom_redirects()]
 
 urlpatterns += staticfiles_urlpatterns()
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
