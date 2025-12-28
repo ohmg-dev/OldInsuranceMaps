@@ -3,7 +3,7 @@ from django.db.models import JSONField
 from django_json_widget.widgets import JSONEditorWidget
 from markdownx.admin import MarkdownxModelAdmin
 
-from .models import Navbar, Page, Partner
+from .models import Navbar, Page, Partner, Redirect
 
 
 class PageAdmin(MarkdownxModelAdmin):
@@ -27,3 +27,10 @@ class PartnerAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Partner, PartnerAdmin)
+
+
+class RedirectAdmin(admin.ModelAdmin):
+    list_display = ("src", "dest")
+
+
+admin.site.register(Redirect, RedirectAdmin)

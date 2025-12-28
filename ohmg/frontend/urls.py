@@ -4,6 +4,7 @@ from django.urls import path, register_converter
 from django.views.generic import RedirectView, TemplateView
 
 from .converters import PageConverter
+from .models import Redirect
 from .sitemap import sitemaps
 from .views import (
     ActivityView,
@@ -14,7 +15,9 @@ from .views import (
 
 register_converter(PageConverter, "page-slug")
 
-urlpatterns = [
+urlpatterns = [path(r.src, RedirectView.as_view(url=r.dest)) for r in Redirect.objects.all()]
+
+urlpatterns += [
     ## app urls paths
     path("", HomePage.as_view(), name="home"),
     path("activity/", ActivityView.as_view(), name="activity"),

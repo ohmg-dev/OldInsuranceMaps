@@ -230,8 +230,6 @@ PLAUSIBLE_SOURCE_SCRIPT = os.getenv("PLAUSIBLE_SOURCE_SCRIPT")
 PROSOPO_SITE_KEY = os.getenv("PROSOPO_SITE_KEY")
 PROSOPO_SECRET_KEY = os.getenv("PROSOPO_SECRET_KEY")
 
-OHMG_REDIRECTS_FILE = BASE_DIR / "_redirects.txt"
-
 try:
     # try to parse python notation, default in dockerized env
     AVATAR_PROVIDERS = ast.literal_eval(os.getenv("AVATAR_PROVIDERS"))

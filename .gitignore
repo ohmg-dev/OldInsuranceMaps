@@ -1,6 +1,6 @@
 tests/root
 .ohmg_api_key
-_redirects.txt
+
 plugins
 static_root
 uploaded

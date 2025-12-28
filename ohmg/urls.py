@@ -4,10 +4,8 @@ from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import include, path
 from django.views.defaults import page_not_found, server_error
-from django.views.generic import RedirectView
 
 from ohmg.api.routes import beta2
-from ohmg.conf.http import load_custom_redirects
 
 
 def debug_page_not_found(request):
@@ -18,9 +16,8 @@ def debug_page_not_found(request):
 def debug_server_error(request):
     return server_error(request)
 
-urlpatterns = [path(s, RedirectView.as_view(url=d)) for s, d in load_custom_redirects()]
 
-urlpatterns += [
+urlpatterns = [
     ## OHMG app urls
     path("", include("ohmg.frontend.urls")),
     path("", include("ohmg.core.urls")),

@@ -1,8 +1,6 @@
 import json
 import re
 from http import HTTPStatus
-from pathlib import Path
-from typing import List, Tuple
 
 from django.conf import settings
 from django.http import JsonResponse
@@ -46,23 +44,6 @@ def user_info_from_request(request):
             "is_staff": False,
         }
     return user_info
-
-
-def load_custom_redirects() -> List[Tuple]:
-    redirects = []
-    redirects_file = settings.OHMG_REDIRECTS_FILE
-    if Path(redirects_file).is_file():
-        with open(redirects_file) as o:
-            for line in o.readlines():
-                items = line.split(",")
-                if len(items) == 2:
-                    redirects.append(
-                        (
-                            items[0].lstrip().rstrip(),
-                            items[1].lstrip().rstrip(),
-                        )
-                    )
-    return redirects
 
 
 def generate_ohmg_context(request) -> dict:
