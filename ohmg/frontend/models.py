@@ -78,8 +78,3 @@ class Partner(models.Model):
             else:
                 self.sortorder = self.pk
         return super(Partner, self).save(*args, **kwargs)
-
-
-class Redirect(models.Model):
-    src = models.CharField(max_length=255)
-    dest = models.CharField(max_length=255)

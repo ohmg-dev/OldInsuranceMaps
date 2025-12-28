@@ -4,7 +4,8 @@ from django.urls import path, register_converter
 from django.views.generic import RedirectView, TemplateView
 
 from .converters import PageConverter
-from .models import Redirect
+
+# from .models import Redirect
 from .sitemap import sitemaps
 from .views import (
     ActivityView,
@@ -15,16 +16,12 @@ from .views import (
 
 register_converter(PageConverter, "page-slug")
 
-urlpatterns = [path(r.src, RedirectView.as_view(url=r.dest)) for r in Redirect.objects.all()]
-
-urlpatterns += [
+urlpatterns = [
     ## app urls paths
     path("", HomePage.as_view(), name="home"),
     path("activity/", ActivityView.as_view(), name="activity"),
     path("search/", Browse.as_view(), name="search"),
     path("<page-slug:page>/", PageView.as_view(), name="page-view"),
-    # make sure old links go to the proper page, use permanent=False for now...
-    path("browse/", RedirectView.as_view(pattern_name="search"), name="browse"),
     ## conventional url paths
     path(
         "robots.txt",

@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.sessions",
     "django.contrib.sites",
+    "django.contrib.redirects",
     "django.contrib.admin",
     "django.contrib.sitemaps",
     "django.contrib.staticfiles",
@@ -256,6 +257,7 @@ MIDDLEWARE = (
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "django.contrib.redirects.middleware.RedirectFallbackMiddleware",
     "ohmg.conf.middleware.CORSMiddleware",
 )
 
