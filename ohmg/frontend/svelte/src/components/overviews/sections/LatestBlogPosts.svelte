@@ -3,21 +3,23 @@
 
   $: blogItems = [];
 
-  fetch('https://blog.oldinsurancemaps.net/rss.xml')
+  fetch('https://blog.oldinsurancemaps.net/feed.xml')
     .then((response) => response.text())
     .then((str) => new window.DOMParser().parseFromString(str, 'text/xml'))
     .then((data) => {
       const items = data.querySelectorAll('item');
       items.forEach((el) => {
-        blogItems = [
-          ...blogItems,
-          {
-            title: el.querySelector('title').innerHTML,
-            link: el.querySelector('link').innerHTML,
-            pubDate: el.querySelector('pubDate').innerHTML,
-            date: new Date(el.querySelector('pubDate').innerHTML).toDateString(),
-          },
-        ];
+        if (el.querySelector('title').innerHTML) {
+          blogItems = [
+            ...blogItems,
+            {
+              title: el.querySelector('title').innerHTML,
+              link: el.querySelector('link').innerHTML,
+              pubDate: el.querySelector('pubDate').innerHTML,
+              date: new Date(el.querySelector('pubDate').innerHTML).toDateString(),
+            },
+          ];
+        }
       });
       blogItems.sort(function (a, b) {
         return new Date(b.pubDate) - new Date(a.pubDate);
