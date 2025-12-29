@@ -35,8 +35,6 @@
     <script type="module" id="procaptcha-script" src="https://js.prosopo.io/js/procaptcha.bundle.js" async defer></script>
     {% endif %}
 
-    {% block extra_head %}{% endblock %}
-
     {% compress css %}
     <!-- plugins -->
     <!-- from: https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css -->
@@ -55,9 +53,9 @@
     <link href="{{ STATIC_URL }}plugins/style.css" rel="stylesheet"/>
 
     <link href="{{ STATIC_URL }}css/ol-overrides.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
-    <!-- custom stylesheets -->
-    <link href="{{ STATIC_URL }}css/bulma-overrides.css" rel="stylesheet"/>
     {% endcompress %}
+
+    {% block extra_head %}{% endblock %}
 
     {% compress js %}
     <!-- dependencies for pinax-announcements -->
