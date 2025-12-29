@@ -31,16 +31,17 @@
     <script defer data-domain="{{PLAUSIBLE_DATA_DOMAIN}}" src="{{PLAUSIBLE_SOURCE_SCRIPT}}"></script>
     {% endif %}
 
-    {% if PROSOPO_SITE_KEY %}
+    {% if PROSOPO_SITE_KEY and not user.is_authenticated %}
     <script type="module" id="procaptcha-script" src="https://js.prosopo.io/js/procaptcha.bundle.js" async defer></script>
     {% endif %}
 
+    {% compress css %}
+    <!-- plugins -->
     <!-- from: https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css -->
     <link href="{{ STATIC_URL }}plugins/bulma.min.css" rel="stylesheet"/>
+    <!-- from: https://cdn.jsdelivr.net/npm/ol@v10.0.0/ol.css -->
+    <link rel="stylesheet" href="{{ STATIC_URL }}plugins/ol.css">
 
-    {% block extra_head %}{% endblock %}
-
-    {# compress css #}
     <!-- custom stylesheets -->
     <link href="{{ STATIC_URL }}css/bulma-overrides.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
     <link href="{{ STATIC_URL }}css/site_base.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
@@ -51,22 +52,22 @@
     <!-- from: https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css -->
     <link href="{{ STATIC_URL }}plugins/style.css" rel="stylesheet"/>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.0.0/ol.css">
     <link href="{{ STATIC_URL }}css/ol-overrides.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
-    {# endcompress #}
+    {% endcompress %}
 
-    {# compress js #}
+    {% block extra_head %}{% endblock %}
+
+    {% compress js %}
     <!-- dependencies for pinax-announcements -->
     <!-- from: https://code.jquery.com/jquery-2.2.4.min.js -->
     <script src="{{ STATIC_URL }}plugins/jquery-2.2.4.min.js"></script>
     <!-- from: https://cdn.jsdelivr.net/npm/eldarion-ajax@0.16.0/js/eldarion-ajax.min.js -->
     <script src="{{ STATIC_URL }}plugins/eldarion-ajax.min.js"></script>
-    {# endcompress #}
-
     <script>
-        var siteUrl = '{{ SITEURL }}'.replace(/\/?$/, '/');
-        var staticUrl = '{% static "" %}';
+      var siteUrl = '{{ SITEURL }}'.replace(/\/?$/, '/');
+      var staticUrl = '{% static "" %}';
     </script>
+    {% endcompress %}
 
   </head>
 
@@ -74,7 +75,6 @@
     {% block header %}{% endblock header %}
 
     {% include '_navbar.html' %}
-
     {% block middle %}
     <div id="main-container" class="container">
         {% include "_status_message.html" %}

@@ -9,7 +9,7 @@ PROJECT_ROOT=$SCRIPT_DIR/..
 
 echo "building frontend"
 CURRENT_DIR=$PWD
-cd $PROJECT_ROOT/ohmg/frontend/svelte
+cd $PROJECT_ROOT/ohmg/frontend/svelte_components
 pnpm install
 rm -rf ./public/build
 pnpm run build
