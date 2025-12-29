@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from ohmg.settings import *  # noqa: F403
+from ohmg.conf.settings import *  # noqa: F403
 
 BASE_DIR = Path(__file__).parent / "root"
 BASE_DIR.mkdir(exist_ok=True)

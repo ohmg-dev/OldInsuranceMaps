@@ -6,7 +6,7 @@ import sys
 
 from dotenv import load_dotenv
 
-settings_module = "ohmg.settings"
+settings_module = "ohmg.conf.settings"
 
 is_testing = "test" in sys.argv
 if is_testing:
