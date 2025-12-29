@@ -649,9 +649,6 @@ class Document(models.Model):
                 title += f" {self.map.DOCUMENT_PREFIX_ABBREVIATIONS[self.map.document_page_type]}{self.page_number}"
             self.slug = slugify(title, join_char="_")
 
-        if self.regions.all().count() > 0:
-            self.prepared = True
-
         self.title = self.map.title
         if self.page_number:
             self.title += f" {self.map.DOCUMENT_PREFIX_ABBREVIATIONS[self.map.document_page_type]}{self.page_number}"
@@ -662,6 +659,9 @@ class Document(models.Model):
 
         if set_image_size or not self.image_size:
             self.image_size = get_image_size(self.file) if self.file else None
+
+        if self._state.adding is False:
+            self.prepared = self.regions.all().count() > 0
 
         return super(self.__class__, self).save(*args, **kwargs)
 
@@ -1136,26 +1136,27 @@ class LayerSet(models.Model):
         self.save(update_fields=["multimask"])
 
     def save(self, set_tilejson: bool = False, *args, **kwargs):
-        extents = self.layer_set.all().values_list("extent", flat=True)
-        layer_extents = []
-        for extent in extents:
-            if extent:
-                poly = Polygon().from_bbox(extent)
-                layer_extents.append(poly)
-        if layer_extents:
-            combined = MultiPolygon(layer_extents)
-            self.extent = combined.extent
-        if (set_tilejson or self.tilejson is None) and self.mosaic_geotiff:
-            self.tilejson = {
-                "tilejson": "2.2.0",
-                "version": "1.0.0",
-                "scheme": "xyz",
-                "tiles": [self.create_xyz_url()],
-                "minzoom": 10,
-                "maxzoom": 21,
-                "bounds": self.extent,
-                "center": [self.centroid[0], self.centroid[1], 16],
-                "attribution": "<a href='https://oldinsurancemaps.net'>OldInsuranceMaps</a>; <a href='https://loc.gov/collections/sanborn-maps'>LOC</a>",
-            }
+        if self._state.adding is False:
+            extents = self.layer_set.all().values_list("extent", flat=True)
+            layer_extents = []
+            for extent in extents:
+                if extent:
+                    poly = Polygon().from_bbox(extent)
+                    layer_extents.append(poly)
+            if layer_extents:
+                combined = MultiPolygon(layer_extents)
+                self.extent = combined.extent
+            if (set_tilejson or self.tilejson is None) and self.mosaic_geotiff:
+                self.tilejson = {
+                    "tilejson": "2.2.0",
+                    "version": "1.0.0",
+                    "scheme": "xyz",
+                    "tiles": [self.create_xyz_url()],
+                    "minzoom": 10,
+                    "maxzoom": 21,
+                    "bounds": self.extent,
+                    "center": [self.centroid[0], self.centroid[1], 16],
+                    "attribution": "<a href='https://oldinsurancemaps.net'>OldInsuranceMaps</a>; <a href='https://loc.gov/collections/sanborn-maps'>LOC</a>",
+                }
 
         return super(self.__class__, self).save(*args, **kwargs)
