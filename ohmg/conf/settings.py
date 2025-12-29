@@ -284,6 +284,7 @@ if DEBUG and ENABLE_DEBUG_TOOLBAR:
     INTERNAL_IPS = ["127.0.0.1"]
 
 TITILER_HOST = os.getenv("TITILER_HOST", "")
+TITILER_PREVIEW_HOST = os.getenv("TITILER_PREVIEW_HOST", TITILER_HOST)
 
 OPENLAYERS_MAX_TILES_LOADING = os.getenv("OPENLAYERS_MAX_TILES_LOADING", 32)
 
@@ -388,7 +389,7 @@ LOGGING = {
     "disable_existing_loggers": True,
     "formatters": {
         "verbose": {
-            "format": "%(levelname)s %(asctime)s %(name)s %(funcName)s %(process)d " "%(message)s"
+            "format": "%(levelname)s %(asctime)s %(name)s %(funcName)s %(process)d %(message)s"
         },
         "moderate": {"format": "%(levelname)s %(asctime)s %(module)s %(message)s"},
         "simple": {
