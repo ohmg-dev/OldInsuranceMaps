@@ -116,7 +116,7 @@
 						<label for="id_password2">Password (again):</label>
 						<input type="password" name="password2" placeholder="Password (again)" autocomplete="new-password" required="" id="id_password2">
 					</p>
-					{% if PROSOPO_SITE_KEY %}
+					{% if PROSOPO_SITE_KEY and not user.is_authenticated %}
 						<p>By signing up, you agree to the terms described<br/>in the <a href="/data-agreement" target="_blank">Data Agreement &nearr;</a>.</p>
 						{% include '_captcha_submit.html' %}
 					{% else %}

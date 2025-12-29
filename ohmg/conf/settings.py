@@ -21,7 +21,7 @@ if BUILD_FILE.is_file():
         BUILD_NUMBER = o.read()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
-WSGI_APPLICATION = "ohmg.wsgi.application"
+WSGI_APPLICATION = "ohmg.conf.wsgi.application"
 
 # Location of url mappings
 ROOT_URLCONF = "ohmg.conf.urls"
@@ -169,10 +169,10 @@ PLUGIN_ASSETS = (
     "https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/Phosphor-Bold.ttf",
     "https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/Phosphor-Bold.woff",
     "https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/Phosphor-Bold.woff2",
+    "https://cdn.jsdelivr.net/npm/ol@v10.0.0/ol.css",
 )
 
-COMPRESS_ENABLED = False
-# COMPRESS_OFFLINE = True
+COMPRESS_ENABLED = True
 
 MEDIA_URL = os.getenv("MEDIA_URL", "/uploaded/")
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", BASE_DIR / "uploaded")
