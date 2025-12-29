@@ -1,4 +1,4 @@
-from ohmg.celeryapp import app
+from ohmg.conf.celery import app
 
 from .models import Document, Map
 

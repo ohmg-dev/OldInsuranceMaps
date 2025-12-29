@@ -4,7 +4,7 @@ from pathlib import Path
 
 from django.conf import settings
 
-from ohmg.celeryapp import app
+from ohmg.conf.celery import app
 from ohmg.core.models import LayerSet
 from ohmg.georeference.mosaicker import Mosaicker
 

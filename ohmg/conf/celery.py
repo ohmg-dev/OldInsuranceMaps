@@ -7,7 +7,7 @@ from celery import Celery
 
 dotenv.load_dotenv()
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ohmg.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ohmg.conf.settings")
 
 app = Celery("ohmg")
 

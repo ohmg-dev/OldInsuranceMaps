@@ -78,8 +78,8 @@ sudo systemctl restart uwsgi
 
     def generate_uwsgi_ini(self):
         project_name = settings.WSGI_APPLICATION.split(".")[0]
-        wsgi_file = settings.BASE_DIR / project_name / "wsgi.py"
-        wsgi_application = f"{project_name}.wsgi:application"
+        wsgi_file = settings.BASE_DIR / project_name / "conf" / "wsgi.py"
+        wsgi_application = f"{project_name}.conf.wsgi:application"
         env_path = os.path.dirname(os.path.dirname(sys.executable))
         log_dir = self._resolve_var("LOG_DIR", settings.LOG_DIR)
         user = self._resolve_var("USER", "username")
@@ -178,12 +178,12 @@ Requires=rabbitmq-server.service
 [Service]
 EnvironmentFile={settings.BASE_DIR}/.env
 ExecStart={self.python_env}/celery \\
-    -A ohmg.celeryapp:app worker \\
+    -A ohmg.conf.celery:app worker \\
     --without-gossip --without-mingle \\
     -Ofair -B -E \\
     --statedb=worker.state \\
     -s celerybeat-schedule \\
-    --loglevel=DEBUG \\
+    --loglevel=INFO \\
     --logfile={log_dir}/celery.log \\
     --concurrency=10 -n worker1@%h
 Restart=always

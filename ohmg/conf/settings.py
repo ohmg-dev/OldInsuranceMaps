@@ -8,7 +8,7 @@ MODE = os.getenv("MODE", "DEV")
 
 # set the repo root as the BASE_DIR, project root at PROJECT_DIR
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-PROJECT_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 # set BASE_DIR which is used to locate log, cache, temp, static, and uploaded dirs
 BASE_DIR = PROJECT_DIR.parent
@@ -24,7 +24,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 WSGI_APPLICATION = "ohmg.wsgi.application"
 
 # Location of url mappings
-ROOT_URLCONF = "ohmg.urls"
+ROOT_URLCONF = "ohmg.conf.urls"
 
 DEBUG = ast.literal_eval(os.getenv("DEBUG", "False"))
 

@@ -2,7 +2,6 @@ import filecmp
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
-from django.core.handlers.asgi import ASGIHandler
 from django.core.handlers.wsgi import WSGIHandler
 from django.test import Client, tag
 
@@ -22,14 +21,9 @@ from .base import OHMGTestCase
 
 class BasicTests(OHMGTestCase):
     def test_wsgi(self):
-        from ohmg.wsgi import application
+        from ohmg.conf.wsgi import application
 
         self.assertIsInstance(application, WSGIHandler)
-
-    def test_asgi(self):
-        from ohmg.asgi import application
-
-        self.assertIsInstance(application, ASGIHandler)
 
     def test_sitemap(self):
         response = Client().get("/sitemap.xml/")
