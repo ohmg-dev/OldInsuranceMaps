@@ -756,7 +756,7 @@
       previewLayer = new TileLayer({
         source: new XYZ({
           url: makeTitilerXYZUrl({
-            host: CONTEXT.titiler_host,
+            host: CONTEXT.titiler_preview_host,
             url: previewUrl,
           }),
         }),
