@@ -30,19 +30,36 @@ Other components include:
 - [TiTiler](https://developmentseed.org/titiler)
   - Tileserver for georeferencing COGs (Cloud Optimized GeoTIFFs)
 
-## Development Installation
+## Installation
 
 Running the application requires a number of components to be installed and configured properly. The following commands assume a Debian-based Linux distribution.
 
 ### Install system dependencies
 
-You will need the following packages (at least... I still need to figure out the exact list of these dependencies):
+You will need a few system packages. These two don't require a specific build version:
 
 ```bash
-sudo apt install build-essential gdal-bin python3.8-dev libgdal-dev libgeos-dev
+sudo apt install build-essential libgeos-dev
 ```
 
-### Get the source code and set up Python environment
+Extra dependencies helpful during development:
+
+```bash
+sudo apt install graphviz graphviz-dev pre-commit
+```
+
+However, GDAL does require a specific version for two reasons:
+
+1. The application code depends on GDAL version >= 3.5, and 
+2. The Python bindings listed in `pyproject.toml` must match exactly the version of GDAL that is installed here.
+
+The following works for Ubuntu 24. If you are targeting a different distro, then you'll need to check the apt packages (`apt list | grep gdal`) to find an appropriate version, and then also update `pyproject.toml` before installing the Python dependencies below.
+
+```bash
+sudo apt install python3-gdal=3.8.4+dfsg-3ubuntu3 gdal-bin=3.8.4+dfsg-3ubuntu3 libgdal-dev=3.8.4+dfsg-3ubuntu3
+```
+
+### Get the source code
 
 Clone the repo and enter the local directory
 
@@ -50,27 +67,23 @@ Clone the repo and enter the local directory
 git clone https://github.com/ohmg-dev/OldInsuranceMaps && cd OldInsuranceMaps
 ```
 
-Make virtual env & upgrade pip
+### Install with `uv`
+
+First, [install `uv`](https://docs.astral.sh/uv/getting-started/installation/), an all-in-one Python version and package manager.
+
+With `uv` installed, run this command inside the cloned repo:
 
 ```bash
-python3 -m venv env
-source env/bin/activate
-python -m pip install pip --upgrade
+uv sync --extra dev
 ```
 
-Install GDAL Python bindings. These must match exactly the version of GDAL you have on your system, so use this command:
+This will:
 
-```bash
-pip install gdal=="`gdal-config --version`.*"
-```
+1. Install the proper version of Python
+2. Create a new virtual environment in `.venv`
+3. Install all Python dependencies into that environment.
 
-Install the `ohmg` package into your virtual environment
-
-```bash
-pip install -e .[dev]
-```
-
-Install pre-commit hook (if you will be writing code)
+Next, install pre-commit hook (if you will be writing code)
 
 ```bash
 pre-commit install
@@ -94,12 +107,6 @@ psql -U postgres -c "CREATE DATABASE oldinsurancemaps WITH OWNER ohmg;"
 psql -U postgres -d oldinsurancemaps -c "CREATE EXTENSION PostGIS;"
 ```
 
-Alternatively, if you have set all of the  `DATABASE_*` variables in `.env`, you can use the included script to complete the database setup:
-
-```bash
-source ./scripts/setup_database.sh
-```
-
 Run migrations and create admin user to access the Django admin panel (and login to the site once it's running)
 
 ```bash
@@ -107,17 +114,21 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-Load all the place objects to create geography scaffolding (this will take a minute or two)
+Load a few other fixtures with some default objects:
 
 ```bash
-python manage.py place import-all
+python manage.py loaddata default-region-categories
+python manage.py loaddata default-layerset-categories
+python manage.py loaddata default-navbar
 ```
 
-Download plugin assets
+Alternatively, if you have set all of the  `DATABASE_*` variables in `.env`, you can use the included script to perform all of the actions described above:
 
 ```bash
-python manage.py configure get-plugins
+source ./scripts/setup_database.sh
 ```
+
+The superuser created by this script is username: `admin`, password: `admin`.
 
 Load test data into database (optional)
 
@@ -127,45 +138,58 @@ source ./scripts/load_dev_data.sh
 
 ### Build frontend
 
-The frontend uses a suite of independently built svelte components. During development use the following command to auto-build these components and reload your browser.
+There are a few js and css plugins that must be downloaded to the local static directory:
 
 ```bash
-cd ohmg/frontend/svelte
+python manage.py get-plugins
+```
+
+The frontend uses a suite of independently built svelte components. First install `pnpm`: https://pnpm.io/installation. Then:
+
+```bash
+cd ohmg/frontend/svelte_components
 pnpm install
+```
+
+During development use the following command to auto-build the components and reload your browser.
+
+```bash
 pnpm run dev
 ```
 
-<!--
 In production, use the `build` command instead, and then Django's `collectstatic` to consolidate all static assets.
 
 ```bash
-cd ohmg/frontend/svelte
-pnpm install
 pnpm run build 
 cd ../../..
 python manage.py collectstatic --noinput
 ```
 
-See
+This bash script combines all steps into one:
 
 ```bash
 source ./scripts/deploy_frontend.sh
 ```
 
-for more context.
--->
-
 ### Run Django dev server
 
-You can now run
+You can now activate the virtual environment and then run the django dev server:
 
 ```bash
+source .venv/bin/activate
 python manage.py runserver
 ```
 
 and view the site at `http://localhost:8000`.
 
 However, a few more pieces need to be set up independently before the app will be fully functional. Complete the following sections and then restart the dev server so that any new `.env` values will be properly acquired.
+
+> [!NOTE]
+> You can also skip the virtualenv activation and use uv to run management commands like this:
+>
+> ```bash
+> uv run manage.py runserver
+> ```
 
 ### Rabbit + Celery
 
@@ -250,6 +274,14 @@ To skip the tests that make external calls to the LOC API, use the following com
 
 ```bash
 python manage.py test --exclude-tag=loc
+```
+
+## Install the Place scaffolding
+
+Load all the place objects to create geography scaffolding (this will take a minute or two)
+
+```bash
+python manage.py place import-all
 ```
 
 ## Environment variables
