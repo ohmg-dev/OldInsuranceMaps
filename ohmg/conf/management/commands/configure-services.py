@@ -32,7 +32,7 @@ class Command(BaseCommand):
         out_dir.mkdir(exist_ok=True)
 
         cs_path = Path(out_dir, "celery.service")
-        self._write_file(self.generate_celery_service(), cs_path)
+        self._write_file(self.generate_celery_service(out_dir), cs_path)
 
         ui_path = Path(out_dir, "uwsgi.ini")
         self._write_file(self.generate_uwsgi_ini(), ui_path)
@@ -167,7 +167,7 @@ WantedBy=multi-user.target
 """
         return file_content
 
-    def generate_celery_service(self):
+    def generate_celery_service(self, state_path: Path):
         log_dir = self._resolve_var("LOG_DIR", settings.LOG_DIR)
 
         file_content = f"""[Unit]
@@ -181,8 +181,8 @@ ExecStart={self.python_env}/celery \\
     -A ohmg.conf.celery:app worker \\
     --without-gossip --without-mingle \\
     -Ofair -B -E \\
-    --statedb=worker.state \\
-    -s celerybeat-schedule \\
+    --statedb={str(state_path.resolve())}/worker.state \\
+    --schedule-filename={str(state_path.resolve())}/celerybeat-schedule \\
     --loglevel=INFO \\
     --logfile={log_dir}/celery.log \\
     --concurrency=10 -n worker1@%h
