@@ -591,7 +591,9 @@ class Document(models.Model):
             return
 
         src_path = Path(src_url)
-        tmp_path = Path(settings.CACHE_DIR, "images", src_path.name)
+        tmp_img_dir = Path(settings.CACHE_DIR, "images")
+        tmp_img_dir.mkdir(exist_ok=True, parents=True)
+        tmp_path = Path(tmp_img_dir, src_path.name)
 
         if src_url.startswith("http"):
             out_file = download_image(src_url, tmp_path, use_cache=not overwrite)
