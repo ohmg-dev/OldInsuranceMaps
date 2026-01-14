@@ -22,13 +22,12 @@ Other components include:
 
 - [Postgres + PostGIS](https://postgis.net/)
   - Database
-- [GDAL (3.5+ release)](https://gdal.org/en/stable/)
+- [GDAL](https://gdal.org/en/stable/)
   - A dependency of PostGIS, and also used directly for all warping/mosaicking operations.
 - [Celery + RabbitMQ](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/rabbitmq.html)
   - Background task management (a handful of loading/splitting/warping processes run in the background)
-  - Presumably, Redis could be used for the broker instead of RabbitMQ.
 - [TiTiler](https://developmentseed.org/titiler)
-  - Tileserver for georeferencing COGs (Cloud Optimized GeoTIFFs)
+  - Tileserver for COGs (Cloud Optimized GeoTIFFs)
 
 ## Installation
 
@@ -36,10 +35,10 @@ Running the application requires a number of components to be installed and conf
 
 ### Install system dependencies
 
-You will need a few system packages. These two don't require a specific build version:
+You will need a few system packages.
 
 ```bash
-sudo apt install build-essential libgeos-dev
+sudo apt install build-essential gdal-bin python3-gdal libgeos-dev libgdal-dev
 ```
 
 Extra dependencies helpful during development:
@@ -48,16 +47,8 @@ Extra dependencies helpful during development:
 sudo apt install graphviz graphviz-dev pre-commit
 ```
 
-However, GDAL does require a specific version for two reasons:
-
-1. The application code depends on GDAL version >= 3.5, and 
-2. The Python bindings listed in `pyproject.toml` must match exactly the version of GDAL that is installed here.
-
-The following works for Ubuntu 24. If you are targeting a different distro, then you'll need to check the apt packages (`apt list | grep gdal`) to find an appropriate version, and then also update `pyproject.toml` before installing the Python dependencies below.
-
-```bash
-sudo apt install python3-gdal=3.8.4+dfsg-3ubuntu3 gdal-bin=3.8.4+dfsg-3ubuntu3 libgdal-dev=3.8.4+dfsg-3ubuntu3
-```
+> [!NOTE]
+> 3.5 is the minimum GDAL version that the app requires, so the system gdal installation must be >= or higher than that, however, the version of the Python bindings must be <= to the system version. While pinning a specific Python version is easy, anticipating the exact system gdal across distros is trickier (Debian 13: 3.10.3, Debian 12: 3.6.2, Ubuntu 24: 3.8.4, [etc.](https://pkgs.org/download/gdal)). The solution here is to install whatever GDAL comes with the distro, and pin the Python bindings in `pyproject.toml` very low (between 3.5 and 3.6), to ensure maximum liklihood of a smooth installation.
 
 ### Get the source code
 

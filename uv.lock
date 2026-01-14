@@ -504,9 +504,9 @@ wheels = [
 
 [[package]]
 name = "gdal"
-version = "3.8.4"
+version = "3.5.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/21/6f/7f76d6ff3673fa18e9edd8d76679968d682f937cded93311f82fa172697f/GDAL-3.8.4.tar.gz", hash = "sha256:7c51e0ae7a7ccf43ad9e4bf435176baa9276653dfa16fd167c3632f6e7275207", size = 802459, upload-time = "2024-02-18T15:35:29.047Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8b/9f/c9fe38625e8d9ea814d4c3935773341cffb226b12ce2356bad80a9c0e4e8/GDAL-3.5.3.tar.gz", hash = "sha256:ff11ff32b400086930e0e0d15e35da598dfae548423512759e111ea9ad65b19b", size = 756836, upload-time = "2022-10-31T16:40:05.87Z" }
 
 [[package]]
 name = "humanize"
@@ -707,7 +707,7 @@ requires-dist = [
     { name = "django-ninja", specifier = "==0.21.0" },
     { name = "django-oauth2-provider", specifier = "==0.2.6.1" },
     { name = "django-storages", specifier = "==1.13.2" },
-    { name = "gdal", specifier = "==3.8.4" },
+    { name = "gdal", specifier = ">=3.5,<3.6" },
     { name = "humanize" },
     { name = "kombu", specifier = "==5.2.4" },
     { name = "lxml" },
