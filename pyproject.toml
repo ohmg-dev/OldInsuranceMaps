@@ -59,6 +59,7 @@ dev = [
 ]
 prod = [
     "uwsgi",
+    "boto3",
 ]
 
 [tool.setuptools]
