@@ -4,6 +4,8 @@ from .base import OHMGTestCase
 
 
 class APITestCase(OHMGTestCase):
+    uploaded_files = [("regions", OHMGTestCase.Files.new_iberia_p1__1)]
+
     fixtures = [
         OHMGTestCase.Fixtures.admin_user,
         OHMGTestCase.Fixtures.layerset_categories,

@@ -9,9 +9,13 @@
 
 {% block title %}{{ PAGE_TITLE }} | {{ block.super }}{% endblock %}
 
-{% block main_content %}
+{% block middle %}
+<div id="main-container" class="container" style="max-width:800px;">
+        {% include "_status_message.html" %}
+        {% include "_announcements.html" %}
+        {% include "_messages.html" %}
+        {% include '_titlebar.html' with title=PAGE_TITLE %}
 
-{% include '_titlebar.html' with title=PAGE_TITLE %}
 
 <section class="content markdown-page">
     <div class="columns" style="margin:0">
@@ -27,8 +31,6 @@
         </div>
     </div>
 </section>
-
-<!-- {{ params|json_script:'index-props'}}
-{% include '_svelte_component.html' with component_name='Index' %} -->
+</div>
 
 {% endblock %}

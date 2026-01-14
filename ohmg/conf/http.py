@@ -53,6 +53,7 @@ def generate_ohmg_context(request) -> dict:
     return {
         "site_url": settings.SITEURL,
         "titiler_host": settings.TITILER_HOST,
+        "titiler_preview_host": settings.TITILER_PREVIEW_HOST,
         "mapbox_api_token": settings.MAPBOX_API_TOKEN,
         "csrf_token": (csrf_token := csrf.get_token(request)),
         "session_length": settings.GEOREFERENCE_SESSION_LENGTH,
