@@ -13,7 +13,7 @@ authors = [
     {name = "Adam Cox", email = "adam@legiongis.com"},
 ]
 dependencies = [
-    "django==3.2.18",
+    "django>4,<5",
     "django-storages==1.13.2",
     "django-avatar==7.1.1",
     "django_extensions==3.2.1",
