@@ -2,7 +2,7 @@ import ast
 import os
 from pathlib import Path
 
-from kombu import Exchange, Queue
+from kombu.entity import Exchange, Queue
 
 MODE = os.getenv("MODE", "DEV")
 

@@ -16,7 +16,7 @@ from ohmg.core.models import (
 from ohmg.georeference.models import GeorefSession, PrepSession
 from ohmg.places.models import Place
 
-from .base import OHMGTestCase
+from .base import DATA_DIR, OHMGTestCase
 
 
 class BasicTests(OHMGTestCase):
@@ -160,6 +160,11 @@ class MapTestCase(OHMGTestCase):
 
 @tag("sessions")
 class PreparationSessionTestCase(OHMGTestCase):
+    uploaded_files = [
+        ("documents", OHMGTestCase.Files.new_iberia_p1_original),
+        ("documents", OHMGTestCase.Files.new_iberia_p2_original),
+    ]
+
     fixtures = [
         OHMGTestCase.Fixtures.region_categories,
         OHMGTestCase.Fixtures.region_categories_sanborn,
@@ -207,7 +212,7 @@ class PreparationSessionTestCase(OHMGTestCase):
 
         for region in regions:
             file_path = Path(region.file.path)
-            control_file_path = self.DATA_DIR / "files/regions" / file_path.name
+            control_file_path = DATA_DIR / "files/regions" / file_path.name
 
             self.assertTrue(filecmp.cmp(control_file_path, file_path, shallow=False))
 
@@ -231,6 +236,13 @@ class PreparationSessionTestCase(OHMGTestCase):
 
 @tag("sessions")
 class GeoreferenceSessionTestCase(OHMGTestCase):
+    uploaded_files = [("regions", OHMGTestCase.Files.new_iberia_p1__1)]
+
+    cleanup_files = [
+        ("regions", OHMGTestCase.Files.new_iberia_p1__1.name),
+        ("layers", OHMGTestCase.Files.new_iberia_p1__1_lyr.name),
+    ]
+
     fixtures = [
         OHMGTestCase.Fixtures.region_categories,
         OHMGTestCase.Fixtures.region_categories_sanborn,
