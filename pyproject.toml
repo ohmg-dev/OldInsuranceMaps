@@ -20,7 +20,7 @@ dependencies = [
     "django-oauth2-provider==0.2.6.1",
     "django-allauth==0.55.2",
     "django-markdownx==4.0.7",
-    "django-newsletter==0.9.1",
+    "django-newsletter==1.1",
     "django-grappelli==2.15.7",
     "django-ninja==0.21.0",
     "psycopg2==2.9.5",
