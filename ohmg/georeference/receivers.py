@@ -3,18 +3,14 @@ import logging
 from django.db.models import signals
 from django.dispatch import receiver
 
-from .models import SessionBase
+from .models import GeorefSession, PrepSession
 
 logger = logging.getLogger(__name__)
 
 
-@receiver(signals.post_save, sender=SessionBase)
-def update_user_sesh_cts_on_save(sender, instance, created, **kwargs):
-    if created and instance.user:
-        instance.user.update_sesh_counts()
-
-
-@receiver(signals.post_delete, sender=SessionBase)
-def update_user_sesh_cts_on_delete(sender, instance, **kwargs):
+@receiver([signals.post_save, signals.post_delete], sender=PrepSession)
+@receiver([signals.post_save, signals.post_delete], sender=GeorefSession)
+def update_user_sesh_cts(sender, instance, **kwargs):
     if instance.user:
+        logger.debug(f"updating session counts for {instance.user.username}")
         instance.user.update_sesh_counts()

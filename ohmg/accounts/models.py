@@ -37,13 +37,8 @@ class User(AbstractUser):
         self.gsesh_ct = SessionBase.objects.filter(user=self, type="g").count()
         self.gcp_ct = GCP.objects.filter(created_by=self).count()
         self.save(
-            update_fields=["load_ct", "psesh_ct", "gsesh_ct", "gcp_ct"], skip_stats_update=True
+            update_fields=["load_ct", "psesh_ct", "gsesh_ct", "gcp_ct"],
         )
-
-    def save(self, skip_stats_update=False, *args, **kwargs):
-        if self.pk and not skip_stats_update:
-            self.update_sesh_counts()
-        return super(self.__class__, self).save(*args, **kwargs)
 
 
 def generate_key():
