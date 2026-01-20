@@ -18,6 +18,7 @@ class User(AbstractUser):
     psesh_ct = models.IntegerField(default=0)
     gsesh_ct = models.IntegerField(default=0)
     gcp_ct = models.IntegerField(default=0)
+    added_to_newsletter = models.BooleanField(default=False)
 
     @cached_property
     def maps(self):

@@ -9,8 +9,11 @@ class LocalUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
     model = User
-    list_display = ["email", "username", "date_joined", "last_login"]
+    list_display = ["email", "username", "date_joined", "last_login", "added_to_newsletter"]
     ordering = ("-date_joined",)
+
+    ## reference: https://stackoverflow.com/a/15013810
+    fieldsets = UserAdmin.fieldsets + ((None, {"fields": ("added_to_newsletter",)}),)
 
 
 admin.site.register(User, LocalUserAdmin)
