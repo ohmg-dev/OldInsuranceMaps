@@ -15,7 +15,7 @@ class CustomUserCreationForm(UserCreationForm):
 class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = User
-        fields = ("username", "email")
+        fields = ("username", "email", "added_to_newsletter")
 
 
 class OHMGSignupForm(SignupForm):

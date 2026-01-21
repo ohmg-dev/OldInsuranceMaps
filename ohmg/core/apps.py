@@ -6,4 +6,4 @@ class CoreConfig(AppConfig):
     name = "ohmg.core"
 
     def ready(self):
-        import ohmg.core.receivers  # noqa: F401
+        from . import signals  # noqa: F401

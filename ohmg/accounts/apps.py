@@ -5,4 +5,4 @@ class AccountsConfig(AppConfig):
     name = "ohmg.accounts"
 
     def ready(self):
-        import ohmg.accounts.receivers  # noqa: F401
+        from . import signals  # noqa: F401
