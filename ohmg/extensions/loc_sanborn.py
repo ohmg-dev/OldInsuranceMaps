@@ -1,8 +1,6 @@
 import logging
 import os
-from datetime import datetime
-
-import pytz
+from datetime import datetime, timezone
 
 from ohmg.core.importer import BaseImporter
 from ohmg.core.utils import (
@@ -208,7 +206,9 @@ class LOCParser(object):
                         logger.warning("problem parsing date: " + date_tag)
                         dt = datetime.strptime("1415-10-25", "%Y-%m-%d")
 
-        d = pytz.utc.localize(dt)
+        ## set timezone to UTC, but, is this really necessary??
+        d = dt.replace(tzinfo=timezone.utc)
+
         self.datetime = d
         self.year = d.year
         if good_month:
