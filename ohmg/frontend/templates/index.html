@@ -48,44 +48,6 @@
           <div style="padding-bottom: 20px;">
               {% include '_svelte_component.html' with component_name='LatestBlogPosts' no_css=True %}
           </div>
-          {% if NEWSLETTER_SLUG %}
-          <div class="level is-mobile" style="margin-bottom:0;">
-              <div class="level-left">
-              <div class="level-item">
-                  <h3>Newsletter</h3>
-              </div>
-              </div>
-              <div class="level-right">
-              <div class="level-item">
-                  <a href="/newsletter/{{NEWSLETTER_SLUG}}/archive/" rightArrow={true}>read past newsletters</a>
-              </div>
-              </div>
-          </div>
-          <form enctype="multipart/form-data" method="post" action="/newsletter/{{NEWSLETTER_SLUG}}/subscribe/">
-              <input type="hidden" name="csrfmiddlewaretoken" value={{csrf_token}} />
-              <label for="id_email_field" style="margin-right:0; font-size: 1.15em;">Subscribe:</label>
-              <input
-              type="email"
-              name="email_field"
-              required=""
-              id="id_email_field"
-              {% if USER_SUBSCRIBED %}
-              disabled
-              {% endif %}
-              />
-              {%if USER_SUBSCRIBED %}
-              <a href="/newsletter/{{NEWSLETTER_SLUG}}">manage your subscription</a>
-              {% else %}
-                {% if PROSOPO_SITE_KEY %}
-                  {% include '_captcha_submit.html' %}
-                {% else %}
-              <button id="id_submit" title="Subscribe to newsletter" name="submit" value="Subscribe" type="submit"
-                  >Subscribe</button
-              >
-                {% endif %}
-              {% endif %}
-          </form>
-          {% endif %}
         </div>
         <div class="hidden-mobile" style="padding:0;">
         <div style="padding:10px; min-height:75px;">

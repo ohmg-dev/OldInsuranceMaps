@@ -1,9 +1,7 @@
 import logging
 
 import humanize
-from django.conf import settings
-from django.http import Http404
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render
 from django.views import View
 
 from ohmg.api.schemas import MapListSchema2
@@ -14,39 +12,11 @@ from ohmg.places.models import Place
 
 from .models import Partner
 
-if settings.ENABLE_NEWSLETTER:
-    from newsletter.models import (
-        Message,
-        Newsletter,
-        Submission,
-        Subscription,
-    )
-
 logger = logging.getLogger(__name__)
-
-
-def newsletter_context(request):
-    newsletter_slug = None
-    user_subscribed = False
-    newsletter = None
-    if Newsletter.objects.all().exists():
-        newsletter = Newsletter.objects.all()[0]
-        newsletter_slug = newsletter.slug
-    if newsletter is not None and request.user.is_authenticated:
-        user_subscription = Subscription.objects.filter(newsletter=newsletter, user=request.user)
-        if user_subscription.exists() and user_subscription[0].subscribed is True:
-            user_subscribed = True
-
-    return (newsletter_slug, user_subscribed)
 
 
 class HomePage(View):
     def get(self, request):
-        if settings.ENABLE_NEWSLETTER:
-            newsletter_slug, user_subscribed = newsletter_context(request)
-        else:
-            newsletter_slug, user_subscribed = None, False
-
         partners = [i.serialize() for i in Partner.objects.filter(published=True)]
         partners.sort(key=lambda x: x["sortorder"])
 
@@ -67,8 +37,6 @@ class HomePage(View):
 
         ohmg_context = generate_ohmg_context(request)
         context_dict = {
-            "NEWSLETTER_SLUG": newsletter_slug,
-            "USER_SUBSCRIBED": user_subscribed,
             "PARTNERS": partners,
             "PLACES_CT": place_ct,
             "MAP_CT": map_ct,
@@ -120,43 +88,6 @@ class ActivityView(View):
         }
 
         return render(request, "frontend/activity.html", context=context_dict)
-
-
-class NewsList(View):
-    def get(self, request):
-        newsletter_slug, user_subscribed = newsletter_context(request)
-
-        submissions = Submission.objects.filter(publish=True).order_by("-publish_date")
-        for s in submissions:
-            ## consider it a "newsletter" post if it's been sent to more than one subscription
-            ## the assumption being that a "blog" post will be sent to only the admin email address.
-            if s.subscriptions.all().count() > 1:
-                s.is_newsletter = True
-            else:
-                s.is_newsletter = False
-
-        context_dict = {
-            "submissions": submissions,
-            "NEWSLETTER_SLUG": newsletter_slug,
-            "USER_SUBSCRIBED": user_subscribed,
-        }
-
-        return render(request, "frontend/article_list.html", context=context_dict)
-
-
-class NewsArticle(View):
-    def get(self, request, slug):
-        message = get_object_or_404(Message, slug=slug)
-        submissions = Submission.objects.filter(message=message).order_by("-publish_date")
-        if not submissions.exists():
-            return Http404
-
-        context_dict = {
-            "message": message,
-            "publish_date": submissions[0].publish_date,
-        }
-
-        return render(request, "frontend/article.html", context=context_dict)
 
 
 class PageView(View):

@@ -293,18 +293,6 @@ hr {
   }
 }
 
-#newsletter-container {
-  padding-top: 15px;
-}
-#newsletter-container table {
-  width: 100%;
-}
-#newsletter-container th {
-  font-size: 1.1em;
-  background-color: #eaeaea;
-  padding: 5px;
-}
-
 @media (min-width: 769px) {
   .markdown-page-content {
     height: calc(
