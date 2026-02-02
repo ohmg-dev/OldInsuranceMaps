@@ -14,7 +14,7 @@ Please don't hesitate to [open a ticket](https://github.com/ohmg-dev/OldInsuranc
 
 ## Software Details
 
-OHMG uses the [Django](https://www.djangoproject.com/) web framework for URL routing, auth, and the ORM, and [Django Ninja](https://django-ninja.dev) to create an API. A newsletter is implemented with [Django Newsletter](https://github.com/jazzband/django-newsletter).
+OHMG uses the [Django](https://www.djangoproject.com/) web framework for URL routing, auth, and the ORM, and [Django Ninja](https://django-ninja.dev) to create an API.
 
 The frontend is built (mostly) with [Svelte](https://svelte.dev), using [OpenLayers](https://openlayers.org) for all map interfaces. [OpenStreetMap](https://openstreetmap.org) and [Mapbox](https://www.mapbox.com) are the basemap sources.
 
