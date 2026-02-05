@@ -45,5 +45,11 @@ jobs:
       - name: Install the project
         run: uv sync --locked --all-extras --dev
 
+      - name: Get static asset plugins
+        run: uv run manage.py get-plugins
+
+      - name: Run collectstatic
+        run: uv run manage.py collectstatic --noinput
+
       - name: Run test suite
         run: uv run manage.py test --exclude-tag loc --exclude-tag api --exclude-tag client
