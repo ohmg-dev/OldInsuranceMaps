@@ -17,8 +17,9 @@ jobs:
         image: postgis/postgis:16-3.4
         env:
           # must specify password for PG Docker container image, see: https://registry.hub.docker.com/_/postgres?tab=description&page=1&name=10
-          POSTGRES_PASSWORD: ohmg_password
-          POSTGRES_DB: oldinsurancemaps
+          # use values that match defaults in settings.py
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ohmg
         ports:
           - 5432:5432
         # needed because the postgres container does not provide a healthcheck
