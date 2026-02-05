@@ -46,6 +46,8 @@ dependencies = [
     "humanize",
     "lxml",
     "setuptools",
+    # for celery beat
+    "pytz"
 ]
 
 [project.optional-dependencies]
