@@ -1,8 +1,11 @@
 import json
 
+from django.test import tag
+
 from .base import OHMGTestCase
 
 
+@tag("api")
 class APITestCase(OHMGTestCase):
     uploaded_files = [("regions", OHMGTestCase.Files.new_iberia_p1__1)]
 

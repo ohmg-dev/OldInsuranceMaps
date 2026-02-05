@@ -20,7 +20,7 @@ if BUILD_FILE.is_file():
     with open(BUILD_FILE, "r") as o:
         BUILD_NUMBER = o.read()
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY", "anyrandomstring")
 WSGI_APPLICATION = "ohmg.conf.wsgi.application"
 
 # Location of url mappings
