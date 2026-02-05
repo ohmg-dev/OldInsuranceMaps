@@ -2,6 +2,9 @@ from pathlib import Path
 
 from ohmg.conf.settings import *  # noqa: F403
 
+# ref: https://www.inerciasensorial.com.br/2021/01/02/programacao/python/django-postgresql-used-session-on-github-actions-test-error/
+DATABASES["default"]["CONN_MAX_AGE"] = 0  # noqa: F405
+
 BASE_DIR = Path(__file__).parent / "root"
 BASE_DIR.mkdir(exist_ok=True)
 
