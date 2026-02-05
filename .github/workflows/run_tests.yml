@@ -1,0 +1,58 @@
+name: Test suite
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - 'ohmg'
+
+jobs:
+  run-tests:
+    name: run-tests
+    runs-on: ubuntu-latest
+
+    services:
+      # ref: https://medium.com/chrisrbailey/github-actions-using-postgres-postgis-and-psql-e920a2aea7e1
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          # must specify password for PG Docker container image, see: https://registry.hub.docker.com/_/postgres?tab=description&page=1&name=10
+          # use values that match defaults in settings.py
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ohmg
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt-get -y install build-essential gdal-bin python3-gdal libgeos-dev libgdal-dev
+
+      - name: Install dev system dependencies
+        run: |
+          sudo apt-get -y install graphviz graphviz-dev
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Get static asset plugins
+        run: uv run manage.py get-plugins
+
+      - name: Run collectstatic
+        run: uv run manage.py collectstatic --noinput
+
+      - name: Generate API key
+        run: source scripts/generate_api_key.sh > .ohmg_api_key
+
+      - name: Run test suite
+        run: uv run manage.py test --exclude-tag loc

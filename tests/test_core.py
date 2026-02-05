@@ -19,6 +19,7 @@ from ohmg.places.models import Place
 from .base import DATA_DIR, OHMGTestCase
 
 
+@tag("client")
 class BasicTests(OHMGTestCase):
     def test_wsgi(self):
         from ohmg.conf.wsgi import application
