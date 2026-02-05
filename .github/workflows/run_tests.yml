@@ -11,6 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt-get -y install build-essential gdal-bin python3-gdal libgeos-dev libgdal-dev
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 
