@@ -52,4 +52,4 @@ jobs:
         run: uv run manage.py collectstatic --noinput
 
       - name: Run test suite
-        run: uv run manage.py test --exclude-tag loc --exclude-tag api --exclude-tag client
+        run: uv run manage.py test --exclude-tag loc --exclude-tag api
