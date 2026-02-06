@@ -47,6 +47,10 @@ def rebreak_postal_slugs(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
+    dependencies = [
+        ('frontend', '0002_partner'),
+    ]
+
     operations = [
         migrations.RunPython(fix_postal_slugs, rebreak_postal_slugs),
     ]
