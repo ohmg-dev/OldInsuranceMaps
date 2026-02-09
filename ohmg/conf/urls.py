@@ -37,11 +37,6 @@ urlpatterns += staticfiles_urlpatterns()
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.VRT_URL, document_root=settings.VRT_ROOT)
 
-
-## Optionally included URLs
-if settings.ENABLE_NEWSLETTER:
-    urlpatterns += [path("newsletter/", include("newsletter.urls"))]
-
 if "pinax.announcements" in settings.INSTALLED_APPS:
     urlpatterns += [
         path(

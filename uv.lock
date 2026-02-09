@@ -139,15 +139,6 @@ wheels = [
 ]
 
 [[package]]
-name = "chardet"
-version = "5.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f3/0d/f7b6ab21ec75897ed80c17d79b15951a719226b9fababf1e40ea74d69079/chardet-5.2.0.tar.gz", hash = "sha256:1b3b6ff479a8c414bc3fa2c0852995695c4a026dcd6d0633b2dd092ca39c1cf7", size = 2069618, upload-time = "2023-08-01T19:23:02.662Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/38/6f/f5fbc992a329ee4e0f288c1fe0e2ad9485ed064cac731ed2fe47dcc38cbf/chardet-5.2.0-py3-none-any.whl", hash = "sha256:e1cf59446890a00105fe7b7912492ea04b6e6f06d4b742b2c788469e34c82970", size = 199385, upload-time = "2023-08-01T19:23:00.661Z" },
-]
-
-[[package]]
 name = "charset-normalizer"
 version = "3.4.4"
 source = { registry = "https://pypi.org/simple" }
@@ -461,17 +452,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-newsletter"
-version = "1.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "chardet" },
-    { name = "django" },
-    { name = "pillow" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/01/82/bfb571e83270be158e7b0dda068d92385b43d7cef0f922b3058d89305a9f/django_newsletter-1.1.tar.gz", hash = "sha256:234576a5535ba84e5512d01c3d0def97da80f6ccf36a29912e6de02e22cf3008", size = 425232, upload-time = "2025-09-09T20:03:52.898Z" }
-
-[[package]]
 name = "django-ninja"
 version = "0.21.0"
 source = { registry = "https://pypi.org/simple" }
@@ -689,7 +669,6 @@ dependencies = [
     { name = "django-grappelli" },
     { name = "django-json-widget" },
     { name = "django-markdownx" },
-    { name = "django-newsletter" },
     { name = "django-ninja" },
     { name = "django-oauth2-provider" },
     { name = "django-storages" },
@@ -744,7 +723,6 @@ requires-dist = [
     { name = "django-grappelli", specifier = "==2.15.7" },
     { name = "django-json-widget" },
     { name = "django-markdownx", specifier = "==4.0.7" },
-    { name = "django-newsletter", specifier = "==1.1" },
     { name = "django-ninja", specifier = "==0.21.0" },
     { name = "django-oauth2-provider", specifier = "==0.2.6.1" },
     { name = "django-storages", specifier = "==1.13.2" },

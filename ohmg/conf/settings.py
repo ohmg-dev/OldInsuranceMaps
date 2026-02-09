@@ -207,18 +207,6 @@ else:
         "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
     )
 
-ENABLE_NEWSLETTER = ast.literal_eval(os.getenv("ENABLE_NEWSLETTER", "False"))
-if ENABLE_NEWSLETTER:
-    INSTALLED_APPS += (
-        "sorl.thumbnail",
-        "newsletter",
-    )
-    NEWSLETTER_THUMBNAIL = "sorl-thumbnail"
-    NEWSLETTER_CONFIRM_EMAIL_SUBSCRIBE = True
-    NEWSLETTER_CONFIRM_EMAIL_UNSUBSCRIBE = False
-    NEWSLETTER_CONFIRM_EMAIL_UPDATE = False
-    NEWSLETTER_RICHTEXT_WIDGET = "markdownx.widgets.AdminMarkdownxWidget"
-
 # gravatar settings
 AUTO_GENERATE_AVATAR_SIZES = (20, 30, 32, 40, 50, 65, 70, 80, 100, 140, 200, 240)
 AVATAR_GRAVATAR_SSL = ast.literal_eval(os.getenv("AVATAR_GRAVATAR_SSL", "False"))

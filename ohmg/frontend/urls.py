@@ -38,11 +38,3 @@ urlpatterns = [
         name="django.contrib.sitemaps.views.sitemap",
     ),
 ]
-
-if settings.ENABLE_NEWSLETTER:
-    from .views import NewsArticle, NewsList
-
-    urlpatterns += [
-        path("news/", NewsList.as_view(), name="news"),
-        path("news/<str:slug>/", NewsArticle.as_view(), name="article"),
-    ]
