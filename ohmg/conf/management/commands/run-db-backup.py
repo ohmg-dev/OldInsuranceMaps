@@ -61,7 +61,7 @@ class Command(BaseCommand):
         bucket = options["bucket-name"]
         now = datetime.now()
 
-        backup_dir = Path(Path(settings.APP_ROOT).parent, ".db_backups", "daily")
+        backup_dir = Path(settings.BASE_DIR, ".db_backups", "daily")
         backup_dir.mkdir(exist_ok=True, parents=True)
 
         db_name = settings.DATABASES["default"]["NAME"]

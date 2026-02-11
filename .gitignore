@@ -10,6 +10,7 @@ uploaded
 .temp
 .services
 .celery_results
+.db_backups
 
 .ruff_cache
 
