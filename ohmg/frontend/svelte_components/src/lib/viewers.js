@@ -136,8 +136,7 @@ export class MapViewer {
 
     const refreshSnapSource = () => {
       snapSource.clear();
-      // const usedX = [];
-      // const usedY = [];
+      const usedCoords = []
       const mapExtent = this.map.getView().calculateExtent()
       if (this.getZoom() >= snapMinZoom) {
         const features = layer.getFeaturesInExtent(mapExtent);
@@ -155,20 +154,16 @@ export class MapViewer {
           );
           coordsArray.forEach((lineCoords) => {
             lineCoords.forEach((coord) => {
-              if (!usedX.includes[coord[0]] && !usedY.includes[coord[1]]) {
-                if (containsXY(mapExtent, coord[0], coord[1])) {
-                  const geoJsonGeom = { coordinates: coord, type: 'Point' };
+              const coordRnd = [parseFloat(coord[0].toFixed(6)), parseFloat(coord[1].toFixed(6))]
+              const coordStr = coordRnd.toString()
+              if (!usedCoords.includes(coordStr)) {
+                if (containsXY(mapExtent, coordRnd[0], coordRnd[1])) {
+                  const geoJsonGeom = { coordinates: coordRnd, type: 'Point' };
                   const pnt = new GeoJSON().readFeature(geoJsonGeom, {
                     dataProjection: 'EPSG:3857',
                   });
-                  // This doesn't work but it would be nice to fix it so that
-                  // each coordinate really is only added once time.
-                  if (!snapSource.hasFeature(pnt)) {
-                    snapSource.addFeature(pnt);
-                  }
-                  // this also doesn't work...
-                  // usedX.push(coord[0])
-                  // usedY.push(coord[1])
+                  snapSource.addFeature(pnt);
+                  usedCoords.push(coordStr)
                 }
               }
             });
