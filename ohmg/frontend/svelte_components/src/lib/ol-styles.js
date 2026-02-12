@@ -105,7 +105,12 @@ export const gcpStyles = {
   default: [gcpOutline, makeGcpX(gcpColors.default)],
   hover: [gcpOutline, makeGcpX(gcpColors.hover)],
   selected: [gcpOutline, makeGcpX(gcpColors.selected)],
-  snapTarget: smallCross,
+  snapTarget: new Style({
+    image: new Circle({
+      fill: new Fill({ color: 'red' }),
+      radius: 3,
+    }),
+  })
 };
 
 export const parcelStyles = {
@@ -122,6 +127,13 @@ export const parcelStyles = {
     }),
   }),
 };
+
+export const snapVertexStyle = new Style({
+  image: new Circle({
+    stroke: new Stroke({ color: colors.black, width: 1 }),
+    radius: 4,
+  }),
+});
 
 export const emptyStyle = new Style();
 

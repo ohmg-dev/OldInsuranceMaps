@@ -1,7 +1,15 @@
 import Map from 'ol/Map';
 import ZoomToExtent from 'ol/control/ZoomToExtent';
-import Draw from 'ol/interaction/Draw';
+import Snap from 'ol/interaction/Snap';
 import Link from 'ol/interaction/Link.js';
+import VectorSource from 'ol/source/Vector';
+import VectorLayer from 'ol/layer/Vector';
+import GeoJSON from 'ol/format/GeoJSON';
+import { inflateCoordinatesArray } from 'ol/geom/flat/inflate';
+
+import { containsXY } from 'ol/extent';
+
+import { snapVertexStyle } from '../lib/ol-styles';
 
 import { makeBasemaps } from './utils';
 
@@ -108,5 +116,100 @@ export class MapViewer {
 
   getZoom() {
     return Math.round(this.map.getView().getZoom() * 10) / 10;
+  }
+
+  addSnappableVectorLayer(layer, visMinZoom, snapMinZoom, activeStyle, inactiveStyle) {
+
+    const snapSource = new VectorSource({
+      overlaps: false,
+    });
+    const snapLayer = new VectorLayer({
+      source: snapSource,
+      zIndex: layer.get("zIndex") + 1,
+      style: snapVertexStyle,
+    });
+
+    const snap = new Snap({
+      source: snapSource,
+    });
+    this.addInteraction('parcelSnap', snap);
+
+    const refreshSnapSource = () => {
+      snapSource.clear();
+      // const usedX = [];
+      // const usedY = [];
+      const mapExtent = this.map.getView().calculateExtent()
+      if (this.getZoom() >= snapMinZoom) {
+        const features = layer.getFeaturesInExtent(mapExtent);
+        features.forEach((feature) => {
+          // IDEA: used these later to check and exclude exact corner coords
+          // (i.e. corners of the actual vector tiles)
+          // ref: https://github.com/openlayers/openlayers/issues/17328
+          // const [minX, minY, maxX, maxY] = feature.getExtent()
+          // const cornerCoords = [[minX, minY], [maxX, minY], [minX, maxY], [maxX, maxY]]
+          const coordsArray = inflateCoordinatesArray(
+            feature.getFlatCoordinates(), // flat coordinates
+            0, // offset
+            feature.getEnds(), // geometry end indices
+            2, // stride
+          );
+          coordsArray.forEach((lineCoords) => {
+            lineCoords.forEach((coord) => {
+              if (!usedX.includes[coord[0]] && !usedY.includes[coord[1]]) {
+                if (containsXY(mapExtent, coord[0], coord[1])) {
+                  const geoJsonGeom = { coordinates: coord, type: 'Point' };
+                  const pnt = new GeoJSON().readFeature(geoJsonGeom, {
+                    dataProjection: 'EPSG:3857',
+                  });
+                  // This doesn't work but it would be nice to fix it so that
+                  // each coordinate really is only added once time.
+                  if (!snapSource.hasFeature(pnt)) {
+                    snapSource.addFeature(pnt);
+                  }
+                  // this also doesn't work...
+                  // usedX.push(coord[0])
+                  // usedY.push(coord[1])
+                }
+              }
+            });
+          });
+        });
+      }
+    }
+
+    this.map.on('moveend', () => {
+      refreshSnapSource()
+    });
+
+    layer.on('change:visible', () => {
+      if (layer.getVisible()) {
+        layer.once('postrender', () => {
+          setTimeout(refreshSnapSource, 500)
+        })
+      } else {
+        snapSource.clear()
+      }
+    })
+
+    this.map.getView().on('change:resolution', () => {
+      const currentZoom = this.getZoom();
+      // first handle the presence of this layer at all
+      if (currentZoom < visMinZoom) {
+        this.map.removeLayer(layer)
+      } else {
+        if (!this.map.getLayers().getArray().includes(layer)) {
+          this.map.addLayer(layer)
+        }
+      }
+      // now handle style based on whether it is snappable or not
+      if (currentZoom < snapMinZoom) {
+        layer.setStyle(inactiveStyle)
+      } else {
+        layer.setStyle(activeStyle)
+        if (!this.map.getLayers().getArray().includes(snapLayer)) {
+          this.map.addLayer(snapLayer)
+        }
+      }
+    });
   }
 }
