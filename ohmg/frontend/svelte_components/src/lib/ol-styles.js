@@ -107,8 +107,8 @@ export const gcpStyles = {
   selected: [gcpOutline, makeGcpX(gcpColors.selected)],
   snapTarget: new Style({
     image: new Circle({
-      fill: new Fill({ color: colors.white }),
-      radius: 3,
+      fill: new Fill({ color: colors.black }),
+      radius: 4,
     }),
   })
 };

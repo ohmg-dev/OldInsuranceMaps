@@ -5,9 +5,10 @@ import Link from 'ol/interaction/Link.js';
 import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
-import { inflateCoordinatesArray } from 'ol/geom/flat/inflate';
 
-import { containsXY } from 'ol/extent';
+import { toGeometry } from 'ol/render/Feature';
+
+import { containsXY, intersects } from 'ol/extent';
 
 import { snapVertexStyle } from '../lib/ol-styles';
 
@@ -16,6 +17,8 @@ import { makeBasemaps } from './utils';
 export class MapViewer {
   interactions = {};
   currentBasemap = null;
+  currentVectorTileExtents = [];
+  snapCandidates = []
 
   constructor(elementId, maxTilesLoading) {
     if (!maxTilesLoading) {
@@ -134,41 +137,77 @@ export class MapViewer {
     });
     this.addInteraction('parcelSnap', snap);
 
+    const collapseNestedCoordinates = (array, outCoords) => {
+      if (!outCoords) { outCoords = [] }
+      // if the first item in the list is not an array, then this is a coord
+      if (!Array.isArray(array[0])) {
+        outCoords.push(array)
+      } else {
+        array.forEach((a) => collapseNestedCoordinates(a, outCoords))
+      }
+      return outCoords
+    }
+
+    // this.map.on("moveend", () => {
+    //   getTilesInCurrentView()
+    // })
+
+    const self = this;
+    function getTilesInCurrentView() {
+      const zoom = Math.floor(self.getZoom()); // Get current integer zoom level
+      const tileGrid = layer.getSource().getTileGrid(); // Get the tile grid from the source
+      // console.log(extent)
+      // console.log(tileGrid)
+      const tiles = [];
+      
+      const [minX, minY, maxX, maxY] = self.map.getView().calculateExtent(self.map.getSize())
+      const cornerCoords = [[minX, minY], [maxX, minY], [minX, maxY], [maxX, maxY]]
+      cornerCoords.forEach((coord) => {
+        const tc = tileGrid.getTileCoordForCoordAndZ([coord[0], coord[1]], zoom)
+        console.log(tc)
+        const tile = layer.getSource().getTile(tc[0], tc[1], tc[2], 1, layer.getSource().getProjection())
+
+      });
+      // const blTc = tileGrid.getTileCoordForCoordAndZ([extent[0], extent[1]], zoom)
+      // const tlTc = tileGrid.getTileCoordForCoordAndZ([extent[0], extent[1]], zoom)
+      
+      // const tileCoord = tileGrid.getTileCoordForCoordAndZ([extent[0], extent[1]], zoom)
+      // console.log(tile)
+
+
+      console.log(`Tiles intersecting view at zoom ${zoom}:`, tiles);
+      return tiles;
+    }
+
+    layer.getSource().on("tileloadend", (evt) => {
+      evt.tile.getFeatures().forEach((f) => {
+        const featCoords = collapseNestedCoordinates(toGeometry(f).getCoordinates());
+        const featCoordsInTileExtent = featCoords.filter(i => containsXY(evt.tile.extent, i[0], i[1]))
+        self.snapCandidates.push(...featCoordsInTileExtent)
+      });
+    })
+
     const refreshSnapSource = () => {
       snapSource.clear();
-      const usedCoords = []
-      const mapExtent = this.map.getView().calculateExtent()
-      if (this.getZoom() >= snapMinZoom) {
-        const features = layer.getFeaturesInExtent(mapExtent);
-        features.forEach((feature) => {
-          // IDEA: used these later to check and exclude exact corner coords
-          // (i.e. corners of the actual vector tiles)
-          // ref: https://github.com/openlayers/openlayers/issues/17328
-          // const [minX, minY, maxX, maxY] = feature.getExtent()
-          // const cornerCoords = [[minX, minY], [maxX, minY], [minX, maxY], [maxX, maxY]]
-          const coordsArray = inflateCoordinatesArray(
-            feature.getFlatCoordinates(), // flat coordinates
-            0, // offset
-            feature.getEnds(), // geometry end indices
-            2, // stride
-          );
-          coordsArray.forEach((lineCoords) => {
-            lineCoords.forEach((coord) => {
-              const coordRnd = [parseFloat(coord[0].toFixed(6)), parseFloat(coord[1].toFixed(6))]
-              const coordStr = coordRnd.toString()
-              if (!usedCoords.includes(coordStr)) {
-                if (containsXY(mapExtent, coordRnd[0], coordRnd[1])) {
-                  const geoJsonGeom = { coordinates: coordRnd, type: 'Point' };
-                  const pnt = new GeoJSON().readFeature(geoJsonGeom, {
-                    dataProjection: 'EPSG:3857',
-                  });
-                  snapSource.addFeature(pnt);
-                  usedCoords.push(coordStr)
-                }
+      if (this.getZoom() >= snapMinZoom && layer.getVisible()) {
+
+        const currentExtent = this.map.getView().calculateExtent()
+
+        const usedCoords = []
+        this.snapCandidates.forEach((coord) => {
+          const coordRnd = [parseFloat(coord[0].toFixed(6)), parseFloat(coord[1].toFixed(6))]
+          const coordStr = coordRnd.toString()
+            if (!usedCoords.includes(coordStr)) {
+              if (containsXY(currentExtent, coord[0], coord[1])) {
+                const geoJsonGeom = { coordinates: coordRnd, type: 'Point' };
+                const pnt = new GeoJSON().readFeature(geoJsonGeom, {
+                  dataProjection: 'EPSG:3857',
+                });
+                snapSource.addFeature(pnt);
+                usedCoords.push(coordStr)
               }
-            });
-          });
-        });
+            }
+        })
       }
     }
 
