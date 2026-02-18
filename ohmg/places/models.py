@@ -349,3 +349,19 @@ class Place(models.Model):
                         for parent in parents.split(","):
                             p.direct_parents.add(parent)
                     p.save(set_slug=True)
+
+
+class ReferenceLayer(models.Model):
+    name = models.CharField(
+        max_length=200,
+    )
+    source_name = models.CharField(
+        max_length=200,
+    )
+    source_href = models.CharField(
+        max_length=200,
+    )
+    pmtiles_url = models.CharField(
+        max_length=200,
+    )
+    locale = models.ForeignKey(Place, null=True, blank=True, on_delete=models.SET_NULL)
