@@ -207,12 +207,16 @@ class GeoreferenceView(View):
         if akm:
             keymap_layerset = LayerSetSchema.from_orm(akm).dict()
 
+        parcel_layer = region.map.get_locale().get_parcels()
+        parcel_json = parcel_layer.serialize() if parcel_layer else None
+
         georeference_params = {
             "CONTEXT": generate_ohmg_context(request),
             "REGION": region_json,
             "MAP": map_json,
             "MAIN_LAYERSET": main_layerset,
             "KEYMAP_LAYERSET": keymap_layerset,
+            "PARCEL_LAYER": parcel_json,
         }
 
         return render(
