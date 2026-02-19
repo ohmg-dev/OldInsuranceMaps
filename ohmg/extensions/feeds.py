@@ -1,24 +1,32 @@
 from django.contrib.syndication.views import Feed
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.urls import reverse
 
 from ohmg.places.models import Place
 from ohmg.georeference.models import SessionBase
 
+# Maximum number of SessionBase objects to return
 NUM_RSS_RETURNS = 100
 
 
 class PlaceFeed(Feed):
+    """
+    Given a place slug, returns a feed of SessionBase info for that place.
+    """
 
     title = "Places"
     link = "/activity/"
     description = "Recent edits to this place"
 
     def get_object(self, request, place: Place) -> Place:
-        # Simply pass on the place already looked up using the converter
+        """Simply pass on the place already looked up using the URL converter"""
         return place
 
-    def items(self, item: Place):
+    def items(self, item: Place) -> QuerySet[SessionBase]:
+        """
+        Performs a lookup to find SessionBases with a Document, Region, Layer, or Map associated with the Place.
+        Also looks in direct parents of the Place.
+        """
         q = (
             # Checking this place directly
             Q(doc2__map__locales=item)
@@ -37,6 +45,9 @@ class PlaceFeed(Feed):
         return sessions
 
     def item_title(self, item: SessionBase) -> str:
+        """
+        Returns the title of the associated Document, Region, Layer, or Map
+        """
         if item.doc2 is not None:
             return item.doc2.title
         elif item.reg2 is not None:
@@ -49,6 +60,9 @@ class PlaceFeed(Feed):
             return ""
 
     def item_description(self, item: SessionBase) -> str:
+        """
+        Returns useful info of the associated Document, Region, Layer, or Map
+        """
         if item.doc2 is not None:
             init_desc = f"Document: {item.doc2}; "
         elif item.reg2 is not None:
@@ -63,6 +77,9 @@ class PlaceFeed(Feed):
         return base_desc
 
     def item_link(self, item: SessionBase) -> str:
+        """
+        Returns a direct link to the associated Document, Region, Layer, or Map.
+        """
         if item.doc2 is not None:
             return reverse("document_view", kwargs={"pk": item.doc2.pk})
         elif item.reg2 is not None:
