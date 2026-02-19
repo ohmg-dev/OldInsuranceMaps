@@ -39,9 +39,15 @@ class PlaceFeed(Feed):
             | Q(lyr2__region__document__map__locales__direct_parents=item)
             | Q(map__locales__direct_parents=item)
         )
-        sessions = SessionBase.objects.filter(
-            q,
-        ).order_by("-date_modified")[:NUM_RSS_RETURNS]
+        sessions = (
+            SessionBase.objects
+            .filter(
+                q,
+            )
+            .select_related("doc2", "reg2", "lyr2", "map", "user")
+            .order_by("-date_modified")
+            [:NUM_RSS_RETURNS]
+        )
         return sessions
 
     def item_title(self, item: SessionBase) -> str:
