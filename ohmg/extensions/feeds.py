@@ -1,6 +1,6 @@
 from django.contrib.syndication.views import Feed
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
+from django.urls import reverse
 
 from ohmg.places.models import Place
 from ohmg.georeference.models import SessionBase
@@ -11,7 +11,7 @@ NUM_RSS_RETURNS = 100
 class PlaceFeed(Feed):
 
     title = "Places"
-    link = "/latestplaces/"
+    link = "/activity/"
     description = "Recent edits to this place"
 
     def get_object(self, request, place: Place) -> Place:
@@ -19,9 +19,6 @@ class PlaceFeed(Feed):
         return place
 
     def items(self, item: Place):
-        # TODO: Ultimately return SessionBase for georef/prep
-        #   Get map locales, then document, layer
-        #   Return last X changes sorted by date_modified
         q = (
             # Checking this place directly
             Q(doc2__map__locales=item)
@@ -39,10 +36,40 @@ class PlaceFeed(Feed):
         ).order_by("-date_modified")[:NUM_RSS_RETURNS]
         return sessions
 
-    def item_title(self, item: Place) -> str:
-        # TODO: Not Place, more like SessionBase
-        return item.name
+    def item_title(self, item: SessionBase) -> str:
+        if item.doc2 is not None:
+            return item.doc2.title
+        elif item.reg2 is not None:
+            return item.reg2.title
+        elif item.lyr2 is not None:
+            return item.lyr2.title
+        elif item.map is not None:
+            return item.map.title
+        else:
+            return ""
 
-    def item_description(self, item: Place) -> str:
-        # TODO: Not Place, more like SessionBase
-        return item.display_name
+    def item_description(self, item: SessionBase) -> str:
+        if item.doc2 is not None:
+            init_desc = f"Document: {item.doc2}; "
+        elif item.reg2 is not None:
+            init_desc = f"Region: {item.reg2}; "
+        elif item.lyr2 is not None:
+            init_desc = f"Layer: {item.lyr2}; "
+        elif item.map is not None:
+            init_desc = f"Map: {item.map}; "
+        else:
+            init_desc = ""
+        base_desc = f"{init_desc}Type: {item.type}; Stage: {item.stage}; Status: {item.status}; User: {item.user}"
+        return base_desc
+
+    def item_link(self, item: SessionBase) -> str:
+        if item.doc2 is not None:
+            return reverse("document_view", kwargs={"pk": item.doc2.pk})
+        elif item.reg2 is not None:
+            return reverse("region_view", kwargs={"pk": item.reg2.pk})
+        elif item.lyr2 is not None:
+            return reverse("layer_view", kwargs={"pk": item.lyr2.pk})
+        elif item.map is not None:
+            return reverse("map_view", kwargs={"pk": item.map.pk})
+        else:
+            return ""
