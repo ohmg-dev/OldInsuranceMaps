@@ -10,9 +10,13 @@ NUM_RSS_RETURNS = 100
 
 class PlaceFeed(Feed):
 
-    def get_object(self, request, place: str) -> Place:
-        res = get_object_or_404(Place, slug=place)
-        return res
+    title = "Places"
+    link = "/latestplaces/"
+    description = "Recent edits to this place"
+
+    def get_object(self, request, place: Place) -> Place:
+        # Simply pass on the place already looked up using the converter
+        return place
 
     def items(self, item: Place):
         # TODO: Ultimately return SessionBase for georef/prep
@@ -28,7 +32,7 @@ class PlaceFeed(Feed):
             | Q(doc2__map__locales__place__direct_parents=item)
             | Q(reg2__document__map__locales__place__direct_parents=item)
             | Q(lyr2__region__document__map__locales__place__direct_parents=item)
-            | Q(map__locales__plac__direct_parentse=item)
+            | Q(map__locales__place__direct_parents=item)
         )
         sessions = SessionBase.objects.filter(
             q,
