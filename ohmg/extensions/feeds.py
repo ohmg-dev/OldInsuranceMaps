@@ -64,16 +64,33 @@ class PlaceFeed(Feed):
         Returns useful info of the associated Document, Region, Layer, or Map
         """
         if item.doc2 is not None:
-            init_desc = f"Document: {item.doc2}; "
+            init_desc = item.doc2
+            map = item.doc2.map
         elif item.reg2 is not None:
-            init_desc = f"Region: {item.reg2}; "
+            init_desc = item.reg2
+            map = item.reg2.document.map
         elif item.lyr2 is not None:
-            init_desc = f"Layer: {item.lyr2}; "
+            init_desc = item.lyr2
+            map = item.lyr2.region.document.map
         elif item.map is not None:
-            init_desc = f"Map: {item.map}; "
+            init_desc = item.map
+            map = item.map
         else:
             init_desc = ""
-        base_desc = f"{init_desc}Type: {item.type}; Stage: {item.stage}; Status: {item.status}; User: {item.user}"
+            map = ""
+        map_desc = map.title
+        if map.volume_number is not None:
+            map_desc += f" | {map.volume_number}"
+        session_type = "Georef" if item.type == "g" else "Prep"
+        base_desc = (f"ID: {item.pk}; "
+                     f"Type: {session_type}; "
+                     f"User: {item.user}; "
+                     f"Map: {map_desc}; "
+                     f"Resource: {init_desc}; "
+                     f"Stage: {item.stage}; "
+                     f"Result: {item.note}; "
+                     f"Duration: {item.user_input_duration}; "
+                     f"Date: {item.date_modified.strftime('%Y-%m-%d %H:%M:%S')}")
         return base_desc
 
     def item_link(self, item: SessionBase) -> str:
