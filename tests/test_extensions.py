@@ -1,4 +1,5 @@
 from django.test import tag
+from django.urls import reverse
 
 from .base import OHMGTestCase
 
@@ -30,5 +31,6 @@ class ExtensionsTestCase(OHMGTestCase):
     ]
 
     def test_rss_feeds(self):
-        response = self.get_api_client().get("/iberia-parish-la/feed/rss/")
+        url = reverse("place-feed-rss", kwargs={"place": "iberia-parish-la"})
+        response = self.get_api_client().get(url)
         self.assertEqual(response.status_code, 200)
