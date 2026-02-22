@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.syndication.views import Feed
 from django.db.models import Q, QuerySet
 from django.urls import reverse
@@ -14,13 +16,35 @@ class PlaceFeed(Feed):
     Given a place slug, returns a feed of SessionBase info for that place.
     """
 
-    title = "Places"
+    # TODO: If we ever have a activity page solely for a Place or Map, this can be dynamic.
     link = "/activity/"
-    description = "Recent edits to this place"
+
+    def __init__(self):
+        """Needed to create absolute URL for the item author's profile page."""
+        self.request = None
 
     def get_object(self, request, place: Place) -> Place:
-        """Simply pass on the place already looked up using the URL converter"""
+        """
+        Simply pass on the place already looked up using the URL converter
+        Save request for later.
+        """
+        self.request = request
         return place
+
+    def title(self, item: Place) -> str:
+        """
+        Returns the title of the Place
+        """
+        title = f"Georeferencing and preparation activity for {item.display_name}"
+        return title
+
+    def description(self, place: Place) -> str:
+        """
+        Returns the description of the Place
+        """
+        description = f"The last {NUM_RSS_RETURNS} (or less) georeference or preparations for {place.display_name}."
+        return description
+
 
     def items(self, item: Place) -> QuerySet[SessionBase]:
         """
@@ -90,7 +114,7 @@ class PlaceFeed(Feed):
         session_type = "Georef" if item.type == "g" else "Prep"
         base_desc = (f"ID: {item.pk}; "
                      f"Type: {session_type}; "
-                     f"User: {item.user}; "
+                     f"User: {item.user.username}; "
                      f"Map: {map_desc}; "
                      f"Resource: {init_desc}; "
                      f"Stage: {item.stage}; "
@@ -113,3 +137,23 @@ class PlaceFeed(Feed):
             return reverse("map_view", kwargs={"pk": item.map.pk})
         else:
             return ""
+
+    def item_author_name(self, item: SessionBase) -> str:
+        """
+        Returns the username of the SessionBase.
+        """
+        return item.user.username
+
+    def item_author_link(self, item: SessionBase) -> str:
+        """
+        Returns a link to the user's profile page.
+
+        NOTE: The RSS feed (class Rss201rev2Feed) does not include this attribute. Only author name and email
+        See https://cyber.harvard.edu/rss/rss.html#ltauthorgtSubelementOfLtitemgt
+        """
+        user_url = reverse("profile_detail", kwargs={"username": item.user.username})
+        full_url = self.request.build_absolute_uri(user_url)
+        return full_url
+
+    def item_pubdate(self, item: SessionBase) -> datetime:
+        return item.date_created
