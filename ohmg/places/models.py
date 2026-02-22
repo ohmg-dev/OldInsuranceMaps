@@ -375,6 +375,9 @@ class ParcelLayer(models.Model):
         on_delete=models.SET_NULL,
     )
 
+    def __str__(self):
+        return self.source_name
+
     def serialize(self) -> dict:
         return {
             "source_name": self.source_name,
