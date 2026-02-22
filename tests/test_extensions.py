@@ -34,3 +34,8 @@ class ExtensionsTestCase(OHMGTestCase):
         url = reverse("place-feed-rss", kwargs={"place": "new-iberia-la"})
         response = self.get_api_client().get(url)
         self.assertEqual(response.status_code, 200)
+
+    def test_rss_feeds_no_such_place(self):
+        url = reverse("place-feed-rss", kwargs={"place": "no-such-place"})
+        response = self.get_api_client().get(url)
+        self.assertEqual(response.status_code, 404)
