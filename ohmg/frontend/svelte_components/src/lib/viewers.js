@@ -8,7 +8,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 
 import { toGeometry } from 'ol/render/Feature';
 
-import { containsXY, intersects } from 'ol/extent';
+import { containsXY } from 'ol/extent';
 
 import { snapVertexStyle } from '../lib/ol-styles';
 
@@ -17,8 +17,7 @@ import { makeBasemaps } from './utils';
 export class MapViewer {
   interactions = {};
   currentBasemap = null;
-  currentVectorTileExtents = [];
-  snapCandidates = []
+  // snapCandidates = []
 
   constructor(elementId, maxTilesLoading) {
     if (!maxTilesLoading) {
@@ -152,40 +151,39 @@ export class MapViewer {
     //   getTilesInCurrentView()
     // })
 
-    const self = this;
-    function getTilesInCurrentView() {
-      const zoom = Math.floor(self.getZoom()); // Get current integer zoom level
-      const tileGrid = layer.getSource().getTileGrid(); // Get the tile grid from the source
-      // console.log(extent)
-      // console.log(tileGrid)
-      const tiles = [];
+    // const self = this;
+    // function getTilesInCurrentView() {
+    //   const zoom = Math.floor(self.getZoom()); // Get current integer zoom level
+    //   const tileGrid = layer.getSource().getTileGrid(); // Get the tile grid from the source
+    //   // console.log(extent)
+    //   // console.log(tileGrid)
+    //   const tiles = [];
       
-      const [minX, minY, maxX, maxY] = self.map.getView().calculateExtent(self.map.getSize())
-      const cornerCoords = [[minX, minY], [maxX, minY], [minX, maxY], [maxX, maxY]]
-      cornerCoords.forEach((coord) => {
-        const tc = tileGrid.getTileCoordForCoordAndZ([coord[0], coord[1]], zoom)
-        console.log(tc)
-        const tile = layer.getSource().getTile(tc[0], tc[1], tc[2], 1, layer.getSource().getProjection())
+    //   const [minX, minY, maxX, maxY] = self.map.getView().calculateExtent(self.map.getSize())
+    //   const cornerCoords = [[minX, minY], [maxX, minY], [minX, maxY], [maxX, maxY]]
+    //   cornerCoords.forEach((coord) => {
+    //     const tc = tileGrid.getTileCoordForCoordAndZ([coord[0], coord[1]], zoom)
+    //     const tile = layer.getSource().getTile(tc[0], tc[1], tc[2], 1, layer.getSource().getProjection())
 
-      });
-      // const blTc = tileGrid.getTileCoordForCoordAndZ([extent[0], extent[1]], zoom)
-      // const tlTc = tileGrid.getTileCoordForCoordAndZ([extent[0], extent[1]], zoom)
+    //   });
+    //   // const blTc = tileGrid.getTileCoordForCoordAndZ([extent[0], extent[1]], zoom)
+    //   // const tlTc = tileGrid.getTileCoordForCoordAndZ([extent[0], extent[1]], zoom)
       
-      // const tileCoord = tileGrid.getTileCoordForCoordAndZ([extent[0], extent[1]], zoom)
-      // console.log(tile)
+    //   // const tileCoord = tileGrid.getTileCoordForCoordAndZ([extent[0], extent[1]], zoom)
+    //   // console.log(tile)
 
 
-      console.log(`Tiles intersecting view at zoom ${zoom}:`, tiles);
-      return tiles;
-    }
+    //   console.log(`Tiles intersecting view at zoom ${zoom}:`, tiles);
+    //   return tiles;
+    // }
 
-    layer.getSource().on("tileloadend", (evt) => {
-      evt.tile.getFeatures().forEach((f) => {
-        const featCoords = collapseNestedCoordinates(toGeometry(f).getCoordinates());
-        const featCoordsInTileExtent = featCoords.filter(i => containsXY(evt.tile.extent, i[0], i[1]))
-        self.snapCandidates.push(...featCoordsInTileExtent)
-      });
-    })
+    // layer.getSource().on("tileloadend", (evt) => {
+    //   evt.tile.getFeatures().forEach((f) => {
+    //     const featCoords = collapseNestedCoordinates(toGeometry(f).getCoordinates());
+    //     const featCoordsInTileExtent = featCoords.filter(i => containsXY(evt.tile.extent, i[0], i[1]))
+    //     self.snapCandidates.push(...featCoordsInTileExtent)
+    //   });
+    // })
 
     const refreshSnapSource = () => {
       snapSource.clear();
@@ -194,20 +192,41 @@ export class MapViewer {
         const currentExtent = this.map.getView().calculateExtent()
 
         const usedCoords = []
-        this.snapCandidates.forEach((coord) => {
-          const coordRnd = [parseFloat(coord[0].toFixed(6)), parseFloat(coord[1].toFixed(6))]
-          const coordStr = coordRnd.toString()
+
+        // method 1: pull from all points that have been loaded and add those in view
+        // this.snapCandidates.forEach((coord) => {
+        //   const coordRnd = [parseFloat(coord[0].toFixed(6)), parseFloat(coord[1].toFixed(6))]
+        //   const coordStr = coordRnd.toString()
+        //     if (!usedCoords.includes(coordStr)) {
+        //       if (containsXY(currentExtent, coord[0], coord[1])) {
+        //         const geoJsonGeom = { coordinates: coordRnd, type: 'Point' };
+        //         const pnt = new GeoJSON().readFeature(geoJsonGeom, {
+        //           dataProjection: 'EPSG:3857',
+        //         });
+        //         snapSource.addFeature(pnt);
+        //         usedCoords.push(coordStr)
+        //       }
+        //     }
+        // })
+
+        // method 2: iterate visible features and only add points that are within view
+        layer.getFeaturesInExtent(currentExtent).forEach((f) => {
+          const featCoords = collapseNestedCoordinates(toGeometry(f).getCoordinates());
+          featCoords.forEach((coord) => {
+            const coordRnd = [parseFloat(coord[0].toFixed(6)), parseFloat(coord[1].toFixed(6))]
+            const coordStr = coordRnd.toString()
             if (!usedCoords.includes(coordStr)) {
               if (containsXY(currentExtent, coord[0], coord[1])) {
                 const geoJsonGeom = { coordinates: coordRnd, type: 'Point' };
                 const pnt = new GeoJSON().readFeature(geoJsonGeom, {
                   dataProjection: 'EPSG:3857',
                 });
-                snapSource.addFeature(pnt);
-                usedCoords.push(coordStr)
+                  snapSource.addFeature(pnt);
+                  usedCoords.push(coordStr)
+                }
               }
-            }
-        })
+          });
+        });
       }
     }
 
