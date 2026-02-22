@@ -43,7 +43,6 @@
   import { makeImageLayer, makePmTilesLayer } from '../lib/layers';
   import { DocMousePosition, LyrMousePosition, MapScaleLine } from '../lib/controls';
   import { MapViewer } from '../lib/viewers';
-  import { parcelLookup } from '../lib/parcelLookup';
 
   import Modal, { getModal } from './modals/BaseModal.svelte';
   import LoadingEllipsis from './common/LoadingEllipsis.svelte';
@@ -59,6 +58,7 @@
   export let MAP;
   export let MAIN_LAYERSET;
   export let KEYMAP_LAYERSET;
+  export let PARCEL_LAYER;
 
   let previewMode = 'n/a';
   let previewUrl = '';
@@ -299,8 +299,6 @@
 
   // SNAP LAYER STUFF
   let parcelLayer;
-  let parcelEntry;
-  let localeMatch;
 
   // MAKING INTERACTIONS
 
@@ -399,7 +397,7 @@
 
     // create interactions
     function drawStyleFunction() {
-      return parcelLayer.getVisible() ? gcpStyles.snapTarget : emptyStyle
+      return parcelLayer?.getVisible() ? gcpStyles.snapTarget : emptyStyle
     }
     mapViewer.addInteraction('draw', makeDrawInteraction(mapGCPSource, null, drawStyleFunction));
     mapViewer.addInteraction('modify', makeModifyInteraction(mapGCPSource, mapViewer.element));
@@ -418,20 +416,16 @@
     mapViewer.addLayer(mainLayerGroup);
     mapViewer.addLayer(mainLayerGroup50);
 
-    MAP.locale_lineage.forEach((slug) => {
-      if (parcelLookup[slug]) {
-        localeMatch = slug
-        parcelLayer = makePmTilesLayer(
-          parcelLookup[slug].pmtilesUrl,
-          `<a target="_blank" href="${parcelLookup[slug].attributionUrl}">${parcelLookup[slug].attributionText}</a>`,
-          parcelStyles.inactive,
-        );
-        parcelLayer.setZIndex(30)
-        parcelLayer.setVisible(false)
-        mapViewer.addSnappableVectorLayer(parcelLayer, 10, 17, parcelStyles.active, parcelStyles.inactive)
-        return;
-      }
-    });
+    if (PARCEL_LAYER) {
+      parcelLayer = makePmTilesLayer(
+        PARCEL_LAYER.pmtiles_url,
+        `<a target="_blank" href="${PARCEL_LAYER.source_href}">${PARCEL_LAYER.source_name}</a>`,
+        parcelStyles.inactive,
+      );
+      parcelLayer.setZIndex(30)
+      parcelLayer.setVisible(false)
+      mapViewer.addSnappableVectorLayer(parcelLayer, 10, 16, parcelStyles.active, parcelStyles.inactive)
+    }
 
     currentZoom = mapViewer.getZoom();
     mapViewer.map.getView().on('change:resolution', () => {
@@ -899,7 +893,6 @@
   >
 </Modal>
 <Modal id="modal-parcels">
-  <h3>A parcel layer is available for this locale!</h3>
   <p>It can be helpful to use modern-day property lines when georeferencing historical maps.</p>
   <p>When you are zoomed in far enough, you will be able to add the parcels layer.</p>
   <p>
@@ -908,11 +901,15 @@
     points to parcel corners.
   </p>
   <hr />
-  {#if parcelEntry}
+  {#if PARCEL_LAYER}
+    <h3>A parcel layer is available for this locale!</h3>
     <ul>
-      <li>Locale match: <code>{localeMatch}</code></li>
-      <li>Source: <Link href={parcelEntry.attributionUrl} external={true}>{parcelEntry.attributionText}</Link></li>
+      <li>Locale match: <code>{PARCEL_LAYER.locale_slug}</code></li>
+      <li>Source: <Link href={PARCEL_LAYER.source_href} external={true}>{PARCEL_LAYER.source_name}</Link></li>
     </ul>
+  {:else}
+    <h3>No parcel layer is available for this locale :(</h3>
+    <p>If you are seeing this, please get in touch: <code>hello@oldinsurancemaps.net</code>. We'd love to add one for you!</p>
   {/if}
 </Modal>
 
@@ -996,15 +993,15 @@
           {/each}
         </select>
       </label>
-      {#if parcelLayer}
-        <div style="display:flex; align-items:end;">
-          <label class="checkbox">
-            Parcels
-            <input type="checkbox" on:click={(evt) => {parcelLayer.setVisible(evt.target.checked)}} />
-          </label>
-          <InfoModalButton modalId="modal-parcels" size=".75em" />
-        </div>
-      {/if}
+      <div style="display:flex; align-items:end;">
+        <label class="checkbox">
+          Parcels
+          <input type="checkbox" on:click={(evt) => {
+              if (parcelLayer) {parcelLayer.setVisible(evt.target.checked)}}
+            } disabled={!parcelLayer || currentZoom < 10} />
+        </label>
+        <InfoModalButton modalId="modal-parcels" size=".75em" />
+      </div>
       <label title="Change basemap">
         Basemap (b)
         <select style="width:151px;" bind:value={currentBasemap}>

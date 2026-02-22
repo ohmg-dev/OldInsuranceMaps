@@ -308,6 +308,13 @@ class Place(models.Model):
                     break
         return coords
 
+    def get_parcels(self):
+        def check_parents(place: Place = self):
+            for i in place.direct_parents.all():
+                return i.parcellayer if hasattr(i, "parcellayer") else check_parents(i)
+
+        return self.parcellayer if hasattr(self, "parcellayer") else check_parents()
+
     def save(self, set_slug=True, *args, **kwargs):
         if set_slug is True:
             state_postal = self.get_state_postal()
@@ -349,3 +356,32 @@ class Place(models.Model):
                         for parent in parents.split(","):
                             p.direct_parents.add(parent)
                     p.save(set_slug=True)
+
+
+class ParcelLayer(models.Model):
+    source_name = models.CharField(
+        max_length=200,
+    )
+    source_href = models.CharField(
+        max_length=200,
+    )
+    pmtiles_url = models.CharField(
+        max_length=200,
+    )
+    locale = models.OneToOneField(
+        Place,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+
+    def __str__(self):
+        return self.source_name
+
+    def serialize(self) -> dict:
+        return {
+            "source_name": self.source_name,
+            "source_href": self.source_href,
+            "pmtiles_url": self.pmtiles_url,
+            "locale_slug": self.locale.slug if self.locale else None,
+        }

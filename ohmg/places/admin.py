@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from ohmg.places.models import Place
+from ohmg.places.models import ParcelLayer, Place
 
 
 class PlaceAdmin(admin.ModelAdmin):
@@ -12,3 +12,10 @@ class PlaceAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Place, PlaceAdmin)
+
+
+class ParcelLayerAdmin(admin.ModelAdmin):
+    autocomplete_fields = ("locale",)
+
+
+admin.site.register(ParcelLayer, ParcelLayerAdmin)
