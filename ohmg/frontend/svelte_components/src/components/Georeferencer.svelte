@@ -23,11 +23,9 @@
 
   import { transformExtent } from 'ol/proj';
   import { containsXY } from 'ol/extent';
-  import { inflateCoordinatesArray } from 'ol/geom/flat/inflate';
 
   import Draw from 'ol/interaction/Draw';
   import Modify from 'ol/interaction/Modify';
-  import Snap from 'ol/interaction/Snap';
 
   import { gcpStyles, parcelStyles, emptyStyle } from '../lib/ol-styles';
   import {
@@ -92,8 +90,6 @@
 
   let currentBasemap;
   let currentZoom;
-
-  let enableSnapLayer = false;
 
   let currentPreviewId;
 
@@ -201,7 +197,7 @@
   const mapGCPLayer = new VectorLayer({
     source: mapGCPSource,
     style: gcpStyles.default,
-    zIndex: 30,
+    zIndex: 100,
   });
 
   // CREATE DISPLAY LAYERS
@@ -302,28 +298,9 @@
   }
 
   // SNAP LAYER STUFF
-  let pmLayer;
+  let parcelLayer;
   let parcelEntry;
   let localeMatch;
-  MAP.locale_lineage.forEach((slug) => {
-    if (parcelLookup[slug]) {
-      localeMatch = slug;
-      parcelEntry = parcelLookup[slug];
-      pmLayer = makePmTilesLayer(
-        parcelEntry.pmtilesUrl,
-        `<a target="_blank" href="${parcelEntry.attributionUrl}">${parcelEntry.attributionText}</a>`,
-        parcelStyles.inactive,
-      );
-      return;
-    }
-  });
-  const snapSource = new VectorSource({
-    overlaps: false,
-  });
-  const snapLayer = new VectorLayer({
-    source: snapSource,
-    style: emptyStyle,
-  });
 
   // MAKING INTERACTIONS
 
@@ -397,6 +374,7 @@
       return containsXY(docExtent, mapBrowserEvent.coordinate[0], mapBrowserEvent.coordinate[1]);
     }
 
+    
     docViewer.addInteraction('draw', makeDrawInteraction(docGCPSource, drawWithinDocCondition, emptyStyle));
     docViewer.addInteraction('modify', makeModifyInteraction(docGCPSource, docViewer.element));
 
@@ -420,8 +398,10 @@
     mapViewer.addControl(new MapScaleLine());
 
     // create interactions
-    const mapDrawGCPStyle = pmLayer ? gcpStyles.snapTarget : emptyStyle;
-    mapViewer.addInteraction('draw', makeDrawInteraction(mapGCPSource, null, mapDrawGCPStyle));
+    function drawStyleFunction() {
+      return parcelLayer.getVisible() ? gcpStyles.snapTarget : emptyStyle
+    }
+    mapViewer.addInteraction('draw', makeDrawInteraction(mapGCPSource, null, drawStyleFunction));
     mapViewer.addInteraction('modify', makeModifyInteraction(mapGCPSource, mapViewer.element));
 
     // add some event listening to the map
@@ -438,17 +418,20 @@
     mapViewer.addLayer(mainLayerGroup);
     mapViewer.addLayer(mainLayerGroup50);
 
-    // snap to parcels --- work-in-progress!
-    const snap = new Snap({
-      source: snapSource,
-      edge: false,
+    MAP.locale_lineage.forEach((slug) => {
+      if (parcelLookup[slug]) {
+        localeMatch = slug
+        parcelLayer = makePmTilesLayer(
+          parcelLookup[slug].pmtilesUrl,
+          `<a target="_blank" href="${parcelLookup[slug].attributionUrl}">${parcelLookup[slug].attributionText}</a>`,
+          parcelStyles.inactive,
+        );
+        parcelLayer.setZIndex(30)
+        parcelLayer.setVisible(false)
+        mapViewer.addSnappableVectorLayer(parcelLayer, 10, 17, parcelStyles.active, parcelStyles.inactive)
+        return;
+      }
     });
-    mapViewer.addInteraction('parcelSnap', snap);
-    mapViewer.interactions.parcelSnap.setActive(false);
-    // tried map.on('rendercomplete') here but sometimes it would fire constantly,
-    // so using these more specific event listeners
-    mapViewer.map.getView().on('change:resolution', refreshSnapSource);
-    mapViewer.map.on('moveend', refreshSnapSource);
 
     currentZoom = mapViewer.getZoom();
     mapViewer.map.getView().on('change:resolution', () => {
@@ -619,70 +602,6 @@
       mapViewer.element.style.cursor = mapCursorStyle;
     }
   }
-
-  $: {
-    if (currentZoom < 17) {
-      enableParcelSnapping = false;
-    }
-  }
-
-  $: enableParcelSnapping = currentZoom >= 17;
-
-  function refreshSnapSource() {
-    if (!enableParcelSnapping || !pmLayer) {
-      return;
-    }
-    snapSource.clear();
-    const features = pmLayer.getFeaturesInExtent(mapViewer.map.getView().calculateExtent());
-    features.forEach(function (feature) {
-      const lineCoords = inflateCoordinatesArray(
-        feature.getFlatCoordinates(), // flat coordinates
-        0, // offset
-        feature.getEnds(), // geometry end indices
-        2, // stride
-      );
-      const geoJsonGeom = { coordinates: lineCoords, type: 'Polygon' };
-      const f = new GeoJSON().readFeature(geoJsonGeom, {
-        dataProjection: 'EPSG:3857',
-      });
-      if (!snapSource.hasFeature(f)) {
-        snapSource.addFeature(f);
-      }
-    });
-  }
-  function toggleSnap(enabled) {
-    if (!mapViewer || !pmLayer) {
-      return;
-    }
-    if (enabled) {
-      mapViewer.interactions.parcelSnap.setActive(true);
-      mapViewer.map.once('rendercomplete', refreshSnapSource);
-      pmLayer.setStyle(parcelStyles.active);
-    } else {
-      snapSource.clear();
-      mapViewer.interactions.parcelSnap.setActive(false);
-      pmLayer.setStyle(parcelStyles.inactive);
-    }
-  }
-  $: toggleSnap(enableParcelSnapping);
-
-  function toggleParcelLayer(enabled) {
-    if (!mapViewer || !pmLayer) {
-      return;
-    }
-    if (currentZoom < 10) {
-      enableParcelSnapping = false;
-    }
-    if (enabled) {
-      mapViewer.addLayer(snapLayer);
-      mapViewer.addLayer(pmLayer);
-    } else {
-      snapSource.clear();
-      mapViewer.map.removeLayer(snapLayer);
-      mapViewer.map.removeLayer(pmLayer);
-    }
-  }
-  $: toggleParcelLayer(enableSnapLayer);
 
   function setPreviewVisibility(mode) {
     if (!mapViewer) {
@@ -1077,11 +996,11 @@
           {/each}
         </select>
       </label>
-      {#if pmLayer}
+      {#if parcelLayer}
         <div style="display:flex; align-items:end;">
           <label class="checkbox">
             Parcels
-            <input type="checkbox" bind:checked={enableSnapLayer} disabled={currentZoom <= 10} />
+            <input type="checkbox" on:click={(evt) => {parcelLayer.setVisible(evt.target.checked)}} />
           </label>
           <InfoModalButton modalId="modal-parcels" size=".75em" />
         </div>
