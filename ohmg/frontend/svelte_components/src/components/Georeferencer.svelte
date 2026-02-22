@@ -397,7 +397,7 @@
 
     // create interactions
     function drawStyleFunction() {
-      return parcelLayer.getVisible() ? gcpStyles.snapTarget : emptyStyle
+      return parcelLayer?.getVisible() ? gcpStyles.snapTarget : emptyStyle
     }
     mapViewer.addInteraction('draw', makeDrawInteraction(mapGCPSource, null, drawStyleFunction));
     mapViewer.addInteraction('modify', makeModifyInteraction(mapGCPSource, mapViewer.element));
