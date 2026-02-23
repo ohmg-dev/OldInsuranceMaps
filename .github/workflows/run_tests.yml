@@ -1,6 +1,7 @@
 name: Test suite
 on:
   workflow_dispatch:
+  push:
   pull_request:
     paths:
       - '.github/workflows/**'
