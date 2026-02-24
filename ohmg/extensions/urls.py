@@ -9,6 +9,7 @@ from .views import (
     IIIFResourceView,
     IIIFSelectorView,
 )
+from ohmg.extensions.feeds import PlaceFeed
 
 register_converter(PlaceConverter, "place-slug")
 
@@ -37,5 +38,10 @@ urlpatterns = [
         "atlascope/<str:operation>/<place-slug:place>/",
         AtlascopeDataView.as_view(),
         name="atlascope-data",
+    ),
+    path(
+        "<place-slug:place>/feed/rss/",
+        PlaceFeed(),
+        name="place-feed-rss",
     ),
 ]
