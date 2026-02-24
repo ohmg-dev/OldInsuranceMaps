@@ -5,7 +5,7 @@
 
 {% block body %}
 
-{% include '_titlebar.html' with title=PLACE_PARAMS.PLACE.display_name lead_icon="pin" %}
+{% include '_titlebar.html' with title=PLACE_PARAMS.PLACE.display_name lead_icon="pin" feed_url="feed/rss" %}
 
 {{ PLACE_PARAMS|json_script:'place-props'}}
 {% include '_svelte_component.html' with component_name='Place' %}

@@ -16,7 +16,7 @@
             </span>
             {% endif %}
         </div>
-        {% if navlinks %}
+        {% if navlinks or feed_url %}
         <div class="new-title-bar-row-item icon-box">
             {% for link in navlinks %}
             <span style="display:inline; height:100%; width:100%;">
@@ -29,6 +29,13 @@
                 {% endif %}
             </span>
             {% endfor %}
+            {% if feed_url %}
+            <span style="display:inline; height:100%; width:100%;">
+                <a style="display:flex; align-items:center; height:100%; width:100%;" href="{{feed_url}}" title="Subscribe to RSS feed">
+                    <i style="font-size:2em;" class="ph-bold ph-rss-simple"></i>
+                </a>
+            </span>
+            {% endif %}
         </div>
         {% endif %}
     </div>
