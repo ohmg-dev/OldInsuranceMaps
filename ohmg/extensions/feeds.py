@@ -18,7 +18,7 @@ class PlaceFeed(Feed):
 
     # TODO: If we ever have a activity page solely for a Place or Map, this can be dynamic.
     link = "/activity/"
-
+item_guid_is_permalink = False
     def __init__(self):
         """Needed to create absolute URL for the item author's profile page."""
         self.request = None
@@ -51,7 +51,7 @@ class PlaceFeed(Feed):
         Performs a lookup to find SessionBases with a Document, Region, Layer, or Map associated with the Place.
         Also looks in direct parents of the Place.
         """
-        all_places = [item]
+        all_places = item.get_inclusive_pks()
         # Very similar to get_inclusive_pks, except picks up volume_count_inclusive = 0
         descendants = item.get_descendants()
         while descendants:
@@ -68,7 +68,7 @@ class PlaceFeed(Feed):
         )
         sessions = (
             SessionBase.objects
-            .filter(
+            .filter(map__locales__in=all_places)
                 q,
             )
             .select_related("doc2", "reg2", "lyr2", "map", "user")
@@ -125,7 +125,12 @@ class PlaceFeed(Feed):
                      f"Duration: {item.user_input_duration}; "
                      f"Date: {item.date_modified.strftime('%Y-%m-%d %H:%M:%S')}")
         return base_desc
-
+    def item_guid(self, obj):
+        """
+        Set a random UUID for each item, so that the exact same session can appear in
+        multiple feeds if necessary and won't be filtered by RSS clients.
+        """
+        return str(uuid.uuid4())
     def item_link(self, item: SessionBase) -> str:
         """
         Returns a direct link to the associated Document, Region, Layer, or Map.
