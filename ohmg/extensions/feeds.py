@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 from django.contrib.syndication.views import Feed
@@ -16,9 +17,8 @@ class PlaceFeed(Feed):
     Given a place slug, returns a feed of SessionBase info for that place.
     """
 
-    # TODO: If we ever have a activity page solely for a Place or Map, this can be dynamic.
-    link = "/activity/"
-item_guid_is_permalink = False
+    item_guid_is_permalink = False
+
     def __init__(self):
         """Needed to create absolute URL for the item author's profile page."""
         self.request = None
@@ -45,6 +45,11 @@ item_guid_is_permalink = False
         description = f"The last {NUM_RSS_RETURNS} (or less) georeference or preparations for {place.display_name}."
         return description
 
+    def link(self, place: Place) -> str:
+        """
+        Link to the page for each place.
+        """
+        return f"/{place.slug}/"
 
     def items(self, item: Place) -> QuerySet[SessionBase]:
         """
@@ -52,25 +57,9 @@ item_guid_is_permalink = False
         Also looks in direct parents of the Place.
         """
         all_places = item.get_inclusive_pks()
-        # Very similar to get_inclusive_pks, except picks up volume_count_inclusive = 0
-        descendants = item.get_descendants()
-        while descendants:
-            all_places.extend(descendants)
-            new_descendants = []
-            for d in descendants:
-                new_descendants.extend(d.get_descendants())
-            descendants = new_descendants
-        q = (
-            Q(doc2__map__locales__in=all_places)
-            | Q(reg2__document__map__locales__in=all_places)
-            | Q(lyr2__region__document__map__locales__in=all_places)
-            | Q(map__locales__in=all_places)
-        )
         sessions = (
             SessionBase.objects
-            .filter(map__locales__in=all_places)
-                q,
-            )
+            .filter(map__locales__id__in=all_places)
             .select_related("doc2", "reg2", "lyr2", "map", "user")
             .order_by("-date_modified")
             [:NUM_RSS_RETURNS]
@@ -131,6 +120,7 @@ item_guid_is_permalink = False
         multiple feeds if necessary and won't be filtered by RSS clients.
         """
         return str(uuid.uuid4())
+
     def item_link(self, item: SessionBase) -> str:
         """
         Returns a direct link to the associated Document, Region, Layer, or Map.
