@@ -7,6 +7,10 @@ from .base import OHMGTestCase
 @tag("extensions")
 class ExtensionsTestCase(OHMGTestCase):
     uploaded_files = [("regions", OHMGTestCase.Files.new_iberia_p1__1)]
+    state_slug = "louisiana"
+    parish_slug = "iberia-parish-la"
+    city_slug = "new-iberia-la"
+    all_slugs = [state_slug, parish_slug, city_slug]
 
     fixtures = [
         OHMGTestCase.Fixtures.admin_user,
@@ -31,9 +35,13 @@ class ExtensionsTestCase(OHMGTestCase):
     ]
 
     def test_rss_feeds(self):
-        url = reverse("place-feed-rss", kwargs={"place": "new-iberia-la"})
-        response = self.get_api_client().get(url)
-        self.assertEqual(response.status_code, 200)
+        # Loop through nested slugs. The "bottom" city place should be in all.
+        for slug in self.all_slugs:
+            url = reverse("place-feed-rss", kwargs={"place": slug})
+            response = self.get_api_client().get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertIn(slug.encode(), response.content)
+            self.assertIn(b'New Iberia, La.', response.content)
 
     def test_rss_feeds_no_such_place(self):
         url = reverse("place-feed-rss", kwargs={"place": "no-such-place"})
