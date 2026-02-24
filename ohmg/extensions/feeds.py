@@ -51,17 +51,20 @@ class PlaceFeed(Feed):
         Performs a lookup to find SessionBases with a Document, Region, Layer, or Map associated with the Place.
         Also looks in direct parents of the Place.
         """
+        all_places = [item]
+        # Very similar to get_inclusive_pks, except picks up volume_count_inclusive = 0
+        descendants = item.get_descendants()
+        while descendants:
+            all_places.extend(descendants)
+            new_descendants = []
+            for d in descendants:
+                new_descendants.extend(d.get_descendants())
+            descendants = new_descendants
         q = (
-            # Checking this place directly
-            Q(doc2__map__locales=item)
-            | Q(reg2__document__map__locales=item)
-            | Q(lyr2__region__document__map__locales=item)
-            | Q(map__locales=item)
-            # Checking this place's parents now
-            | Q(doc2__map__locales__direct_parents=item)
-            | Q(reg2__document__map__locales__direct_parents=item)
-            | Q(lyr2__region__document__map__locales__direct_parents=item)
-            | Q(map__locales__direct_parents=item)
+            Q(doc2__map__locales__in=all_places)
+            | Q(reg2__document__map__locales__in=all_places)
+            | Q(lyr2__region__document__map__locales__in=all_places)
+            | Q(map__locales__in=all_places)
         )
         sessions = (
             SessionBase.objects
