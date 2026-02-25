@@ -107,30 +107,60 @@ export function copyToClipboard(elementId) {
   alert('Copied the text: ' + copyText.value);
 }
 
-export function makeSatelliteLayer(apiKey) {
-  return new TileLayer({
+export function makeOFMLayer() {
+  const openfreemap = new LayerGroup();
+  apply(openfreemap, 'https://tiles.openfreemap.org/styles/liberty');
+  return openfreemap;
+}
+
+export function makeOFMSatelliteLayer(apiKey) {
+
+  // first make the XYZ tile layer with satellite imagery in it (mapbox raster tiles)
+  const mapboxSatellite = new TileLayer({
     source: new XYZ({
-      url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/{z}/{x}/{y}?access_token=' + apiKey,
+      url: 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.jpg?access_token=' + apiKey,
       tileSize: 512,
       attributions: [
         `© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>`,
       ],
     }),
-  });
-}
+  })
 
-export function makeOSMLayer() {
-  return new TileLayer({
-    source: new OSM({
-      attributions: [`© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.`],
-    }),
-  });
-}
+  // now create a layer group with this layer in it
+  const openfreemap = new LayerGroup({ layers: [mapboxSatellite]});
 
-export function makeOFMLayer() {
-  const openfreemap = new LayerGroup();
-  apply(openfreemap, 'https://tiles.openfreemap.org/styles/liberty');
-  return openfreemap;
+  // finally, fetch the full OFM Liberty style JSON, alter it, and apply to the LayerGroup
+  fetch("https://tiles.openfreemap.org/styles/liberty")
+  .then((response) => response.json())
+  .then((result) => {
+    const style = {...result};
+
+    // make an array of the layers that are labels (all layers from waterway_line_label on)
+    const filteredLayers = [];
+    let useFlag;
+    style.layers.forEach((layer) => {
+      if (layer.id == "waterway_line_label") { useFlag = true }
+      if (useFlag) {
+        const newLayer = {...layer}
+        filteredLayers.push(newLayer)
+      }
+    });
+
+    // force all labels to white with grey halo
+    filteredLayers.forEach((layer) => {
+      if (layer.paint) {
+          layer.paint['text-color'] = "#fff";
+          layer.paint['text-halo-color'] = "#3e3e3e";
+          layer.paint['text-halo-blur'] = .5;
+          layer.paint['text-halo-width'] = 1;
+        }
+    })
+
+    // now apply the altered style to the LayerGroup.
+    style.layers = filteredLayers;
+    apply(openfreemap, style)
+  });
+  return openfreemap
 }
 
 export function makeBasemaps(mapboxKey) {
@@ -142,7 +172,7 @@ export function makeBasemaps(mapboxKey) {
     },
     {
       id: 'satellite',
-      layer: makeSatelliteLayer(mapboxKey),
+      layer: makeOFMSatelliteLayer(mapboxKey),
       label: 'Streets+Satellite',
     },
   ];
