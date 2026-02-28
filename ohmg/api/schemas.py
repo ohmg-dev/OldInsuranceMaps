@@ -651,7 +651,7 @@ class MapFullSchema(Schema):
     @staticmethod
     def resolve_locks(obj):
         locks = [
-            i for i in SessionLock.objects.all().prefetch_related() if i.target.map.pk == obj.pk
+            i for i in SessionLock.objects.all().prefetch_related() if i.target and i.target.map.pk == obj.pk
         ]
         return locks
 
