@@ -794,7 +794,7 @@ class SessionLock(models.Model):
     def __str__(self):
         return (
             f"{self.session} --> {self.target._meta.object_name} ({self.target} {self.target_id})"
-        )
+        ) if self.target else f"{self.session} --> (no target)"
 
     def extend(self):
         self.expiration += timedelta(seconds=settings.GEOREFERENCE_SESSION_LENGTH)
