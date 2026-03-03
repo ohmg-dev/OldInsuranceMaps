@@ -12,5 +12,6 @@ Please don't hesitate to [open a ticket](https://github.com/ohmg-dev/OldInsuranc
 
 ---
 
-## Contributing
+## Documentation
 
+See: [docs.oldinsurancemaps.net](https://docs.oldinsurancemaps.net)
