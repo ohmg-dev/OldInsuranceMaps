@@ -128,38 +128,7 @@ export function makeOFMSatelliteLayer(apiKey) {
 
   // now create a layer group with this layer in it
   const openfreemap = new LayerGroup({ layers: [mapboxSatellite]});
-
-  // finally, fetch the full OFM Liberty style JSON, alter it, and apply to the LayerGroup
-  fetch("https://tiles.openfreemap.org/styles/liberty")
-  .then((response) => response.json())
-  .then((result) => {
-    const style = {...result};
-
-    // make an array of the layers that are labels (all layers from waterway_line_label on)
-    const filteredLayers = [];
-    let useFlag;
-    style.layers.forEach((layer) => {
-      if (layer.id == "waterway_line_label") { useFlag = true }
-      if (useFlag) {
-        const newLayer = {...layer}
-        filteredLayers.push(newLayer)
-      }
-    });
-
-    // force all labels to white with grey halo
-    filteredLayers.forEach((layer) => {
-      if (layer.paint) {
-          layer.paint['text-color'] = "#fff";
-          layer.paint['text-halo-color'] = "#3e3e3e";
-          layer.paint['text-halo-blur'] = .5;
-          layer.paint['text-halo-width'] = 1;
-        }
-    })
-
-    // now apply the altered style to the LayerGroup.
-    style.layers = filteredLayers;
-    apply(openfreemap, style)
-  });
+  apply(openfreemap, "/static/aerialiberty/style-no-non-us-shield.json")
   return openfreemap
 }
 
