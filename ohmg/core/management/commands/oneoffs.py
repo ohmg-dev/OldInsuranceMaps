@@ -26,6 +26,7 @@ class Command(BaseCommand):
                 "fix-full-region-files",
                 "set-tilejson",
                 "delete-duplicate-regions",
+                "add-masks-to-layers",
             ],
             help="Choose what operation to run.",
         )
@@ -408,3 +409,19 @@ class Command(BaseCommand):
                 if not dry_run:
                     delete_ps.delete()
                     print("deleted")
+
+        ## Mar 11th, 2026
+        elif operation == "add-masks-to-layers":
+            from django.contrib.gis.geos import GEOSGeometry
+
+            from ohmg.core.models import Layer, LayerSet
+
+            for ls in LayerSet.objects.all():
+                print(ls)
+                if ls.multimask:
+                    for k, v in ls.multimask.items():
+                        layer = Layer.objects.get(slug=k, region__document__map=ls.map)
+                        print(k, end=", ")
+                        layer.mask = GEOSGeometry(json.dumps(v["geometry"]))
+                        layer.save(skip_map_lookup_update=True)
+                print("")

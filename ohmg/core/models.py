@@ -833,6 +833,7 @@ class Layer(models.Model):
         null=True,
         blank=True,
     )
+    mask = models.PolygonField(blank=True, null=True)
     file = models.FileField(
         upload_to="layers",
         null=True,
