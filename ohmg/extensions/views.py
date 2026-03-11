@@ -41,7 +41,7 @@ class IIIFMosaicView(View):
                 "label": f"Mosaic of {ls.category.display_name.lower()}, {ls.map}",
                 "items": [
                     IIIFResource(i.pk, trimmed=trim, extended=extended).get_annotation()
-                    for i in [k for k in ls.layer_set.all()]
+                    for i in [k for k in ls.get_layers()]
                 ],
             }
         )

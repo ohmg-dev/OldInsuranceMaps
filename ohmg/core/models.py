@@ -4,7 +4,7 @@ import shutil
 import urllib.parse
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Iterable, Union
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -284,7 +284,7 @@ class Map(models.Model):
 
         main_layerset = self.get_layerset("main-content")
         if main_layerset:
-            main_lyrs_ct = main_layerset.layer_set.count()
+            main_lyrs_ct = main_layerset.get_layers().count()
         else:
             main_lyrs_ct = 0
         mm_ct, mm_todo, mm_percent = 0, 0, 0
@@ -441,7 +441,7 @@ class Map(models.Model):
         multimask_ct, multimask_rank = 0, 0
         main_layerset = self.get_layerset("main-content")
         if main_layerset:
-            main_lyrs_ct = main_layerset.layer_set.count()
+            main_lyrs_ct = main_layerset.get_layers().count()
         else:
             main_lyrs_ct = 0
 
@@ -922,7 +922,7 @@ class Layer(models.Model):
                 logger.info(
                     f"Layer {self.pk} removed from existing multimask in LayerSet {existing_obj.pk}"
                 )
-            if existing_obj.layer_set.all().count() == 1:
+            if existing_obj.get_layers().count() == 1:
                 delete_existing = True
         self.layerset2 = layerset
         self.save(update_fields=["layerset2"])
@@ -1050,12 +1050,14 @@ class LayerSet(models.Model):
     def layer_display_list(self):
         """For display in the admin interface only."""
         li = [
-            f"<li><a href='/admin/core/layer/{i.pk}/change'>{i}</a></li>"
-            for i in self.layer_set.all()
+            f"<li><a href='/admin/core/layer/{i.pk}/change'>{i}</a></li>" for i in self.get_layers()
         ]
         return mark_safe("<ul>" + "".join(li) + "</ul>")
 
     layer_display_list.short_description = "Layers"
+
+    def get_layers(self) -> Iterable[Layer]:
+        return self.layer_set.all()
 
     @cached_property
     def centroid(self):
@@ -1139,7 +1141,7 @@ class LayerSet(models.Model):
 
     def save(self, set_tilejson: bool = False, *args, **kwargs):
         if self._state.adding is False:
-            extents = self.layer_set.all().values_list("extent", flat=True)
+            extents = self.get_layers().values_list("extent", flat=True)
             layer_extents = []
             for extent in extents:
                 if extent:
