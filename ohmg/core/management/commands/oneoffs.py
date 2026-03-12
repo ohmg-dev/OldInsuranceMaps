@@ -420,8 +420,13 @@ class Command(BaseCommand):
                 print(ls)
                 if ls.multimask:
                     for k, v in ls.multimask.items():
-                        layer = Layer.objects.get(slug=k, region__document__map=ls.map)
-                        print(k, end=", ")
-                        layer.mask = GEOSGeometry(json.dumps(v["geometry"]))
-                        layer.save(skip_map_lookup_update=True)
+                        print(k)
+                        ## there SHOULD only be one layer here, but per ticket
+                        ## #308 some regions got duplicated, and some of the
+                        ## duplicates got georeferenced :(. Can't clean all of
+                        ## that up now, so... using filter here
+                        layers = Layer.objects.filter(slug=k, region__document__map=ls.map)
+                        for layer in layers:
+                            layer.mask = GEOSGeometry(json.dumps(v["geometry"]))
+                            layer.save(skip_map_lookup_update=True)
                 print("")
