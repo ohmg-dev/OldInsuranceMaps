@@ -1135,7 +1135,13 @@ class LayerSet(models.Model):
         if multimask_geojson["features"]:
             self.multimask = {}
             for feature in multimask_geojson["features"]:
+                layer_slug = feature["properties"]["layer"]
                 self.multimask[feature["properties"]["layer"]] = feature
+
+                ## future patch: save mask directly to layers
+                layer = Layer.objects.get(slug=layer_slug, region__document__map=self.map)
+                layer.mask = GEOSGeometry(json.dumps(feature["geometry"]))
+                layer.save(skip_map_lookup_update=True)
         else:
             self.multimask = None
         self.save(update_fields=["multimask"])
