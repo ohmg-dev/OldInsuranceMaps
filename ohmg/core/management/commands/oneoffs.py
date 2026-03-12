@@ -416,7 +416,7 @@ class Command(BaseCommand):
 
             from ohmg.core.models import Layer, LayerSet
 
-            for ls in LayerSet.objects.all():
+            for ls in LayerSet.objects.all().order_by("map__title"):
                 print(ls)
                 if ls.multimask:
                     for k, v in ls.multimask.items():
@@ -428,5 +428,5 @@ class Command(BaseCommand):
                         layers = Layer.objects.filter(slug=k, region__document__map=ls.map)
                         for layer in layers:
                             layer.mask = GEOSGeometry(json.dumps(v["geometry"]))
-                            layer.save(skip_map_lookup_update=True)
+                            layer.save(skip_map_lookup_update=True, set_extent=False)
                 print("")
