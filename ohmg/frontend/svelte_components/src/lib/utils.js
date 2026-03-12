@@ -107,6 +107,31 @@ export function copyToClipboard(elementId) {
   alert('Copied the text: ' + copyText.value);
 }
 
+export function makeMBSatelliteStyleLayer(apiKey) {
+  return new TileLayer({
+    source: new XYZ({
+      url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/{z}/{x}/{y}?access_token=' + apiKey,
+      tileSize: 512,
+      attributions: [
+        `© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>`,
+      ],
+    }),
+  });
+}
+
+export function makeMBSatelliteRasterLayer(apiKey) {
+  return new TileLayer({
+    source: new XYZ({
+      url: 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.jpg?access_token=' + apiKey,
+      tileSize: 512,
+      attributions: [
+        `© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>`,
+      ],
+    }),
+    opacity: .9
+  })
+}
+
 export function makeOFMLayer() {
   const openfreemap = new LayerGroup();
   apply(openfreemap, 'https://tiles.openfreemap.org/styles/liberty');
@@ -115,20 +140,13 @@ export function makeOFMLayer() {
 
 export function makeOFMSatelliteLayer(apiKey) {
 
-  // first make the XYZ tile layer with satellite imagery in it (mapbox raster tiles)
-  const mapboxSatellite = new TileLayer({
-    source: new XYZ({
-      url: 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.jpg?access_token=' + apiKey,
-      tileSize: 512,
-      attributions: [
-        `© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>`,
-      ],
-    }),
-  })
-
   // now create a layer group with this layer in it
-  const openfreemap = new LayerGroup({ layers: [mapboxSatellite]});
-  apply(openfreemap, "/static/aerialiberty/style-no-non-us-shield.json")
+  const openfreemap = new LayerGroup({ layers: [
+    makeMBSatelliteRasterLayer(apiKey)
+  ]});
+
+  // and apply the vector tile layers on top
+  apply(openfreemap, "/static/aerialiberty/style.json")
   return openfreemap
 }
 
@@ -141,7 +159,7 @@ export function makeBasemaps(mapboxKey) {
     },
     {
       id: 'satellite',
-      layer: makeOFMSatelliteLayer(mapboxKey),
+      layer: makeMBSatelliteStyleLayer(mapboxKey),
       label: 'Streets+Satellite',
     },
   ];
