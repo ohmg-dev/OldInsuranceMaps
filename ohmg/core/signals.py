@@ -61,5 +61,5 @@ def handle_layer_deletion(sender, instance, **kwargs):
 
     # remove layerset if this was the last layer attached to it
     if instance.layerset2:
-        if instance.layerset2.layer_set.all().count() == 0:
+        if instance.layerset2.get_layers().count() == 0:
             instance.layerset2.delete()

@@ -22,6 +22,7 @@ from ohmg.conf.http import (
 )
 from ohmg.core.models import (
     Document,
+    Map,
     Region,
 )
 from ohmg.core.storages import get_file_url
@@ -210,12 +211,23 @@ class GeoreferenceView(View):
         parcel_layer = region.map.get_locale().get_parcels()
         parcel_json = parcel_layer.serialize() if parcel_layer else None
 
+        place = region.map.locales.first()
+        other_maps = []
+        if place:
+            other_maps = list(
+                Map.objects.filter(locales__id__exact=place.id, hidden=False)
+                .exclude(pk=region.map.pk)
+                .values_list("identifier", "title")
+            )
+            other_maps = [{"identifier": i[0], "title": i[1]} for i in other_maps]
+
         georeference_params = {
             "CONTEXT": generate_ohmg_context(request),
             "REGION": region_json,
             "MAP": map_json,
             "MAIN_LAYERSET": main_layerset,
             "KEYMAP_LAYERSET": keymap_layerset,
+            "OTHER_MAPS": other_maps,
             "PARCEL_LAYER": parcel_json,
         }
 

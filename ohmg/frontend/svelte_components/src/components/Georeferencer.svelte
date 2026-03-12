@@ -58,6 +58,7 @@
   export let MAP;
   export let MAIN_LAYERSET;
   export let KEYMAP_LAYERSET;
+  export let OTHER_MAPS;
   export let PARCEL_LAYER;
 
   let previewMode = 'n/a';
