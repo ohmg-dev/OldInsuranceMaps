@@ -165,8 +165,11 @@ class LayerSet(models.Model):
 
                 ## future patch: save mask directly to layers
                 layer = Layer.objects.get(slug=layer_slug, region__document__map=self.map)
-                layer.mask = GEOSGeometry(json.dumps(feature["geometry"]))
-                layer.save(skip_map_lookup_update=True)
+                new_mask = GEOSGeometry(json.dumps(feature["geometry"]))
+                if new_mask != layer.mask:
+                    logger.debug(f"updating mask on layer {layer.slug} ({layer.pk})")
+                    layer.mask = new_mask
+                    layer.save(skip_map_lookup_update=True, set_extent=False)
         else:
             self.multimask = None
         self.save(update_fields=["multimask"])
