@@ -512,7 +512,7 @@ class LayerSetDisplaySchema(Schema):
     category: str
     extent: Optional[tuple]
     layers_tilejson: list[dict]
-    multimask_geojson: Optional[dict]
+    is_mosaic: bool
 
     @staticmethod
     def resolve_category(obj):
@@ -529,6 +529,10 @@ class LayerSetDisplaySchema(Schema):
                 tilejson["mask"] = json.loads(layer.mask.geojson) if layer.mask else None
                 layers_tilejson.append(tilejson)
         return layers_tilejson
+
+    @staticmethod
+    def resolve_is_mosaic(obj):
+        return True if obj.mosaic_geotiff else False
 
 
 class PlaceSchema(Schema):

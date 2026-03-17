@@ -46,8 +46,6 @@
   export let PLACE;
   export let MAPS;
 
-  console.log(MAPS)
-
   let showPanel = true;
 
   let volumeIds = [];
@@ -147,7 +145,7 @@
       completion_pct: vol.completion_pct,
       mainLayer: mainGroup,
       mainLayerO: opacity,
-      mosaicType: mosaicType,
+      mosaicType: vol.main_layerset.is_mosaic ? "gt" : null,
     };
     volumeIds.push(vol.identifier);
     volumeLookup[vol.identifier] = volumeObj;
@@ -386,7 +384,7 @@
     In early 2022, participants in a <Link href="https://digitalcommons.lsu.edu/gradschool_theses/5641/" external={true}
       >crowdsourcing project</Link
     > georeferenced all of the Louisiana maps you see here, eventually creating these seamless mosaic overlays. These comprise
-    1,500 individual sheets from 270 different Sanborn atlases, covering of over <Link href="/browse"
+    1,500 individual sheets from 270 different Sanborn atlases, covering of over <Link href="/search"
       >130 different locations</Link
     >.
   </p>
@@ -504,12 +502,12 @@
           {/each}
         {:else}
           <div class="volume-item">
-            <p>No volumes for this place. <Link href="/browse" title="Back to browse">Back to browse &rarr;</Link></p>
+            <p>No volumes for this place. <Link href="/search" title="Back to browse">Back to browse &rarr;</Link></p>
           </div>
         {/if}
       </div>
       <div class="control-panel-footer">
-        <Link title="Find another city" href="/browse" classes={['white']}>&larr; switch city</Link>
+        <Link title="Find another city" href="/search" classes={['white']}>&larr; switch city</Link>
         <span>|</span>
         <Link title="Go to home page" href="/" classes={['white']}>home</Link>
         <span>|</span>
@@ -591,7 +589,7 @@
     top: 0.5em;
     right: 0.5em;
     max-width: 100%;
-    min-width: 250px;
+    min-width: 300px;
     background: var(--primary-background-color);
     border-radius: 4px;
     border: 1px solid #333333;
@@ -753,6 +751,7 @@
       bottom: 3em;
       margin-right: auto;
       margin-left: auto;
+      width: 100%;
     }
   }
 </style>
