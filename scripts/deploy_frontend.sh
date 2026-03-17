@@ -16,10 +16,13 @@ pnpm run build
 cd $CURRENT_DIR
 
 echo "getting static plugin assets"
-$VIRTUAL_ENV/bin/python $PROJECT_ROOT/manage.py get-plugins
+uv run $PROJECT_ROOT/manage.py get-plugins
 
 echo "running collectstatic"
-$VIRTUAL_ENV/bin/python $PROJECT_ROOT/manage.py collectstatic --noinput
+uv run $PROJECT_ROOT/manage.py collectstatic --noinput
 
 echo "update build number"
-$VIRTUAL_ENV/bin/python $PROJECT_ROOT/manage.py update_build
+uv run $PROJECT_ROOT/manage.py update_build
+
+echo "touch wsgi.py to reset uwsgi"
+touch ohmg/conf/wsgi.py
