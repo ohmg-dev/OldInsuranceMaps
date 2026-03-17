@@ -5,7 +5,7 @@ from natsort import natsorted
 
 from ohmg.api.schemas import (
     LayerSetDisplaySchema,
-    MapFullSchema,
+    MapListSchema2,
     PlaceFullSchema,
 )
 from ohmg.conf.http import generate_ohmg_context
@@ -42,7 +42,7 @@ class Viewer(View):
 
         place_data = place.serialize()
         for map in Map.objects.filter(locales__id__exact=place.id, hidden=False).prefetch_related():
-            map_json = MapFullSchema.from_orm(map).dict()
+            map_json = MapListSchema2.from_orm(map).dict()
             ls = map.get_layerset("main-content")
             if ls:
                 map_json["main_layerset"] = LayerSetDisplaySchema.from_orm(ls).dict()

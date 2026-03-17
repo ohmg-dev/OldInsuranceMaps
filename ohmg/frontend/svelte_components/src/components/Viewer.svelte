@@ -139,9 +139,12 @@
 
     const volumeObj = {
       id: vol.identifier,
-      summaryUrl: vol.urls.summary,
+      summaryUrl: `/map/${vol.identifier}`,
       displayName: vol.volume_number ? `${vol.year} vol. ${vol.volume_number}` : vol.year,
-      progress: vol.progress,
+      unprepared_ct: vol.unprepared_ct,
+      prepared_ct: vol.prepared_ct,
+      layer_ct: vol.layer_ct,
+      completion_pct: vol.completion_pct,
       mainLayer: mainGroup,
       mainLayerO: opacity,
       mosaicType: mosaicType,
@@ -357,7 +360,7 @@
   }
 
   function getCompletedStr(id) {
-    return `${volumeLookup[id].progress.georef_ct}/${volumeLookup[id].progress.unprep_ct + volumeLookup[id].progress.prep_ct + volumeLookup[id].progress.georef_ct}`;
+    return `${volumeLookup[id].layer_ct}/${volumeLookup[id].unprepared_ct + volumeLookup[id].prepared_ct + volumeLookup[id].layer_ct}`;
   }
 </script>
 
@@ -479,7 +482,7 @@
               <div {id} class="volume-detail">
                 <div>
                   <span title="{getCompletedStr(id)} georeferenced">
-                    {volumeLookup[id].progress.percent}&percnt; ({getCompletedStr(id)})
+                    {volumeLookup[id].completion_pct}&percnt; ({getCompletedStr(id)})
                   </span>
                   {#if volumeLookup[id].mosaicType}
                     <span
