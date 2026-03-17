@@ -526,7 +526,7 @@ class LayerSetDisplaySchema(Schema):
         else:
             for layer in natsorted(obj.get_layers(), key=lambda k: k.title):
                 tilejson = layer.tilejson
-                tilejson["mask"] = json.loads(layer.mask.geojson)
+                tilejson["mask"] = json.loads(layer.mask.geojson) if layer.mask else None
                 layers_tilejson.append(tilejson)
         return layers_tilejson
 
