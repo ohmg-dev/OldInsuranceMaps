@@ -27,19 +27,26 @@
 
   import XYZ from 'ol/source/XYZ';
   import VectorSource from 'ol/source/Vector';
+  import TileJSON from 'ol/source/TileJSON';
+
+  import GeoJSON from 'ol/format/GeoJSON';
 
   import TileLayer from 'ol/layer/Tile';
   import VectorLayer from 'ol/layer/Vector';
+  import LayerGroup from 'ol/layer/Group';
 
-  import { makeTitilerXYZUrl, makeLayerGroupFromLayerSet } from '../lib/utils';
   import { MapViewer } from '../lib/viewers';
   import Modal, { getModal } from './modals/BaseModal.svelte';
   import Link from './common/Link.svelte';
   import MapboxLogoLink from './common/MapboxLogoLink.svelte';
 
+  import Crop from 'ol-ext/filter/Crop';
+
   export let CONTEXT;
   export let PLACE;
   export let MAPS;
+
+  console.log(MAPS)
 
   let showPanel = true;
 
@@ -90,29 +97,33 @@
 
     let mainGroup;
     let mosaicType;
-    if (vol.main_layerset.layers.length > 0 && vol.main_layerset.extent) {
+
+    if (vol.main_layerset.layers_tilejson.length > 0) {
       const mainExtent = transformExtent(vol.main_layerset.extent, 'EPSG:4326', 'EPSG:3857');
       extend(homeExtent, mainExtent);
-      if (vol.main_layerset.mosaic_cog_url) {
-        mainGroup = new TileLayer({
-          source: new XYZ({
-            transition: 0,
-            url: makeTitilerXYZUrl({
-              host: CONTEXT.titiler_host,
-              url: vol.main_layerset.mosaic_cog_url,
-            }),
+
+      mainGroup = new LayerGroup();
+
+      vol.main_layerset.layers_tilejson.forEach((tilejson) => {
+        const lyr = new TileLayer({
+          source: new TileJSON({
+            tileJSON: tilejson,
+            tileSize: 512,
           }),
-          extent: transformExtent(vol.main_layerset.multimask_extent, 'EPSG:4326', 'EPSG:3857'),
+          extent: transformExtent(tilejson.bounds, 'EPSG:4326', 'EPSG:3857'),
         });
-        mosaicType = 'gt';
-      } else {
-        mainGroup = makeLayerGroupFromLayerSet({
-          layerSet: vol.main_layerset,
-          zIndex: 400 + n,
-          titilerHost: CONTEXT.titiler_host,
-          applyMultiMask: true,
-        });
-      }
+        if (tilejson.mask) {
+          const feature = new GeoJSON().readFeature(tilejson.mask);
+          feature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
+          const crop = new Crop({
+            feature: feature,
+            wrapX: true,
+            inner: false,
+          });
+          lyr.addFilter(crop);
+        }
+        mainGroup.getLayers().push(lyr);
+      });
     }
 
     let opacity = 0;

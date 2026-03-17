@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import Any, List, Literal, Optional
+from typing import TYPE_CHECKING, Any, List, Literal, Optional
 
 import humanize
 from avatar.templatetags.avatar_tags import avatar_url
@@ -22,6 +22,9 @@ from ohmg.georeference.models import (
     PrepSession,
     SessionLock,
 )
+
+if TYPE_CHECKING:
+    from ohmg.core.models import LayerSet
 
 logger = logging.getLogger(__name__)
 
@@ -502,6 +505,30 @@ class LayerSetSchema(Schema):
     @staticmethod
     def resolve_name(obj):
         return str(obj.category)
+
+
+class LayerSetDisplaySchema(Schema):
+    map_id: str
+    category: str
+    extent: Optional[tuple]
+    layers_tilejson: list[dict]
+    multimask_geojson: Optional[dict]
+
+    @staticmethod
+    def resolve_category(obj):
+        return str(obj.category)
+
+    @staticmethod
+    def resolve_layers_tilejson(obj: "LayerSet"):
+        layers_tilejson = []
+        if obj.mosaic_geotiff:
+            layers_tilejson.append(obj.tilejson)
+        else:
+            for layer in natsorted(obj.get_layers(), key=lambda k: k.title):
+                tilejson = layer.tilejson
+                tilejson["mask"] = json.loads(layer.mask.geojson)
+                layers_tilejson.append(tilejson)
+        return layers_tilejson
 
 
 class PlaceSchema(Schema):

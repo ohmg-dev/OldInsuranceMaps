@@ -4,7 +4,7 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from natsort import natsorted
 
 from ohmg.api.schemas import (
-    LayerSetSchema,
+    LayerSetDisplaySchema,
     MapFullSchema,
     PlaceFullSchema,
 )
@@ -45,7 +45,7 @@ class Viewer(View):
             map_json = MapFullSchema.from_orm(map).dict()
             ls = map.get_layerset("main-content")
             if ls:
-                map_json["main_layerset"] = LayerSetSchema.from_orm(ls).dict()
+                map_json["main_layerset"] = LayerSetDisplaySchema.from_orm(ls).dict()
                 maps.append(map_json)
 
         maps_sorted = natsorted(maps, key=lambda x: x["title"], reverse=True)
