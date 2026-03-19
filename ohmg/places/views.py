@@ -4,8 +4,8 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from natsort import natsorted
 
 from ohmg.api.schemas import (
-    LayerSetSchema,
-    MapFullSchema,
+    LayerSetDisplaySchema,
+    MapListSchema2,
     PlaceFullSchema,
 )
 from ohmg.conf.http import generate_ohmg_context
@@ -37,15 +37,13 @@ class PlaceView(View):
 class Viewer(View):
     @xframe_options_sameorigin
     def get(self, request, place):
-        place_data = {}
-        maps = []
-
         place_data = place.serialize()
+        maps = []
         for map in Map.objects.filter(locales__id__exact=place.id, hidden=False).prefetch_related():
-            map_json = MapFullSchema.from_orm(map).dict()
+            map_json = MapListSchema2.from_orm(map).dict()
             ls = map.get_layerset("main-content")
             if ls:
-                map_json["main_layerset"] = LayerSetSchema.from_orm(ls).dict()
+                map_json["main_layerset"] = LayerSetDisplaySchema.from_orm(ls).dict()
                 maps.append(map_json)
 
         maps_sorted = natsorted(maps, key=lambda x: x["title"], reverse=True)

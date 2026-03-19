@@ -27,15 +27,20 @@
 
   import XYZ from 'ol/source/XYZ';
   import VectorSource from 'ol/source/Vector';
+  import TileJSON from 'ol/source/TileJSON';
+
+  import GeoJSON from 'ol/format/GeoJSON';
 
   import TileLayer from 'ol/layer/Tile';
   import VectorLayer from 'ol/layer/Vector';
+  import LayerGroup from 'ol/layer/Group';
 
-  import { makeTitilerXYZUrl, makeLayerGroupFromLayerSet } from '../lib/utils';
   import { MapViewer } from '../lib/viewers';
   import Modal, { getModal } from './modals/BaseModal.svelte';
   import Link from './common/Link.svelte';
   import MapboxLogoLink from './common/MapboxLogoLink.svelte';
+
+  import Crop from 'ol-ext/filter/Crop';
 
   export let CONTEXT;
   export let PLACE;
@@ -90,29 +95,33 @@
 
     let mainGroup;
     let mosaicType;
-    if (vol.main_layerset.layers.length > 0 && vol.main_layerset.extent) {
+
+    if (vol.main_layerset.layers_tilejson.length > 0) {
       const mainExtent = transformExtent(vol.main_layerset.extent, 'EPSG:4326', 'EPSG:3857');
       extend(homeExtent, mainExtent);
-      if (vol.main_layerset.mosaic_cog_url) {
-        mainGroup = new TileLayer({
-          source: new XYZ({
-            transition: 0,
-            url: makeTitilerXYZUrl({
-              host: CONTEXT.titiler_host,
-              url: vol.main_layerset.mosaic_cog_url,
-            }),
+
+      mainGroup = new LayerGroup();
+
+      vol.main_layerset.layers_tilejson.forEach((tilejson) => {
+        const lyr = new TileLayer({
+          source: new TileJSON({
+            tileJSON: tilejson,
+            tileSize: 512,
           }),
-          extent: transformExtent(vol.main_layerset.multimask_extent, 'EPSG:4326', 'EPSG:3857'),
+          extent: transformExtent(tilejson.bounds, 'EPSG:4326', 'EPSG:3857'),
         });
-        mosaicType = 'gt';
-      } else {
-        mainGroup = makeLayerGroupFromLayerSet({
-          layerSet: vol.main_layerset,
-          zIndex: 400 + n,
-          titilerHost: CONTEXT.titiler_host,
-          applyMultiMask: true,
-        });
-      }
+        if (tilejson.mask) {
+          const feature = new GeoJSON().readFeature(tilejson.mask);
+          feature.getGeometry().transform('EPSG:4326', 'EPSG:3857');
+          const crop = new Crop({
+            feature: feature,
+            wrapX: true,
+            inner: false,
+          });
+          lyr.addFilter(crop);
+        }
+        mainGroup.getLayers().push(lyr);
+      });
     }
 
     let opacity = 0;
@@ -128,12 +137,15 @@
 
     const volumeObj = {
       id: vol.identifier,
-      summaryUrl: vol.urls.summary,
+      summaryUrl: `/map/${vol.identifier}`,
       displayName: vol.volume_number ? `${vol.year} vol. ${vol.volume_number}` : vol.year,
-      progress: vol.progress,
+      unprepared_ct: vol.unprepared_ct,
+      prepared_ct: vol.prepared_ct,
+      layer_ct: vol.layer_ct,
+      completion_pct: vol.completion_pct,
       mainLayer: mainGroup,
       mainLayerO: opacity,
-      mosaicType: mosaicType,
+      mosaicType: vol.main_layerset.is_mosaic ? "gt" : null,
     };
     volumeIds.push(vol.identifier);
     volumeLookup[vol.identifier] = volumeObj;
@@ -346,7 +358,7 @@
   }
 
   function getCompletedStr(id) {
-    return `${volumeLookup[id].progress.georef_ct}/${volumeLookup[id].progress.unprep_ct + volumeLookup[id].progress.prep_ct + volumeLookup[id].progress.georef_ct}`;
+    return `${volumeLookup[id].layer_ct}/${volumeLookup[id].unprepared_ct + volumeLookup[id].prepared_ct + volumeLookup[id].layer_ct}`;
   }
 </script>
 
@@ -372,7 +384,7 @@
     In early 2022, participants in a <Link href="https://digitalcommons.lsu.edu/gradschool_theses/5641/" external={true}
       >crowdsourcing project</Link
     > georeferenced all of the Louisiana maps you see here, eventually creating these seamless mosaic overlays. These comprise
-    1,500 individual sheets from 270 different Sanborn atlases, covering of over <Link href="/browse"
+    1,500 individual sheets from 270 different Sanborn atlases, covering of over <Link href="/search"
       >130 different locations</Link
     >.
   </p>
@@ -468,7 +480,7 @@
               <div {id} class="volume-detail">
                 <div>
                   <span title="{getCompletedStr(id)} georeferenced">
-                    {volumeLookup[id].progress.percent}&percnt; ({getCompletedStr(id)})
+                    {volumeLookup[id].completion_pct}&percnt; ({getCompletedStr(id)})
                   </span>
                   {#if volumeLookup[id].mosaicType}
                     <span
@@ -490,12 +502,12 @@
           {/each}
         {:else}
           <div class="volume-item">
-            <p>No volumes for this place. <Link href="/browse" title="Back to browse">Back to browse &rarr;</Link></p>
+            <p>No volumes for this place. <Link href="/search" title="Back to browse">Back to browse &rarr;</Link></p>
           </div>
         {/if}
       </div>
       <div class="control-panel-footer">
-        <Link title="Find another city" href="/browse" classes={['white']}>&larr; switch city</Link>
+        <Link title="Find another city" href="/search" classes={['white']}>&larr; switch city</Link>
         <span>|</span>
         <Link title="Go to home page" href="/" classes={['white']}>home</Link>
         <span>|</span>
@@ -577,7 +589,7 @@
     top: 0.5em;
     right: 0.5em;
     max-width: 100%;
-    min-width: 250px;
+    min-width: 300px;
     background: var(--primary-background-color);
     border-radius: 4px;
     border: 1px solid #333333;
@@ -739,6 +751,7 @@
       bottom: 3em;
       margin-right: auto;
       margin-left: auto;
+      width: 100%;
     }
   }
 </style>
