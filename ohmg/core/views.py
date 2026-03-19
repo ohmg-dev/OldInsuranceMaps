@@ -415,11 +415,7 @@ class ResourceDerivativeView(View):
 
 
 class LayerSetView(View):
-    @method_decorator(
-        validate_post_request(
-            operations=["bulk-classify-layers", "check-for-existing-mask", "set-mask"]
-        )
-    )
+    @method_decorator(validate_post_request(operations=["bulk-classify-layers", "set-mask"]))
     def post(self, request):
         body = json.loads(request.body)
         operation = body.get("operation")
@@ -441,19 +437,6 @@ class LayerSetView(View):
                 return JsonResponseFail("; ".join(errors))
             else:
                 return JsonResponseSuccess("Layers classified successfully.")
-
-        if operation == "check-for-existing-mask":
-            r = get_object_or_404(Layer, pk=payload.get("resource-id"))
-
-            if r.layerset2:
-                if not r.layerset2.category.slug == payload.get("category"):
-                    if r.layerset2.multimask and r.slug in r.layerset2.multimask:
-                        return JsonResponseFail(
-                            f"Layer already in {r.layerset2.category} multimask.",
-                            payload=payload,
-                        )
-
-            return JsonResponseSuccess(payload=payload)
 
         if operation == "set-mask":
             try:

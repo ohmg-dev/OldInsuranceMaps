@@ -22,17 +22,16 @@ class IIIFResource:
     def get_target(self):
         ## create coordinates for the selector
         coords_str = [
-            f"{int(i[0])},{self.d_height-int(i[1])}" for i in self.region.boundary.coords[0]
+            f"{int(i[0])},{self.d_height - int(i[1])}" for i in self.region.boundary.coords[0]
         ]
 
-        ## next step is to look for the multimask for this layer if one exists, and then
+        ## next step is to look for the mask for this layer if one exists, and then
         ## transform it back to the selector coordinates.
-        mm = self.layer.layerset2.multimask
-        if mm and self.layer.slug in mm and self.trimmed:
+        if self.layer.mask:
             wgs84 = osr.SpatialReference()
             wgs84.ImportFromEPSG(4326)
 
-            coords = mm[self.layer.slug]["geometry"]["coordinates"][0]
+            coords = self.layer.mask.geojson["coordinates"][0]
             ct = CoordTransform(SpatialReference("WGS84"), SpatialReference("EPSG:3857"))
             polygon = Polygon(coords)
             polygon.transform(ct)
@@ -82,9 +81,7 @@ class IIIFResource:
         }
 
         if self.extended:
-            target["mask"] = None
-            if mm and self.layer.slug in mm:
-                target["mask"] = mm[self.layer.slug]
+            target["mask"] = self.layer.mask_geojson_feature
 
         return target
 

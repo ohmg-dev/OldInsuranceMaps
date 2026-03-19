@@ -232,8 +232,8 @@ class Map(models.Model):
             # make sure 0/0 appears at the very bottom, then 0/1, 0/2, etc.
             mm_percent = main_lyrs_ct * 0.000001
         mm_display = f"0/{main_lyrs_ct}"
-        if main_layerset and main_layerset.multimask is not None:
-            mm_ct = len(main_layerset.multimask)
+        if main_layerset:
+            mm_ct = len(main_layerset.multimask_geojson["features"])
             mm_todo = main_lyrs_ct - mm_ct
             if mm_ct > 0 and main_lyrs_ct > 0:
                 mm_display = f"{mm_ct}/{main_lyrs_ct}"
@@ -393,8 +393,8 @@ class Map(models.Model):
             # make sure 0/0 appears at the very bottom, then 0/1, 0/2, etc.
             multimask_rank = main_lyrs_ct * 0.000001
 
-        if main_layerset and main_layerset.multimask is not None:
-            multimask_ct = len(main_layerset.multimask)
+        if main_layerset:
+            multimask_ct = len(main_layerset.multimask_geojson["features"])
             if multimask_ct > 0 and main_lyrs_ct > 0:
                 pct = multimask_ct / main_lyrs_ct
                 multimask_rank += pct * 0.000001

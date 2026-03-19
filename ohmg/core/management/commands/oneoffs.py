@@ -411,6 +411,8 @@ class Command(BaseCommand):
                     print("deleted")
 
         ## Mar 11th, 2026
+        ## Pushing all multimask entries directly onto Layers, now that masks are
+        ## stored on Layers, not as a collected set of GeoJSON in LayerSet.multimask
         elif operation == "add-masks-to-layers":
             from django.contrib.gis.geos import GEOSGeometry
 

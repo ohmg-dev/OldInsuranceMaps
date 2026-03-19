@@ -1,3 +1,4 @@
+import json
 import logging
 import urllib.parse
 from pathlib import Path
@@ -103,6 +104,19 @@ class Layer(models.Model):
         no COG exists, return None."""
         return urllib.parse.quote(self.file_url, safe="")
 
+    @property
+    def mask_geojson_feature(self) -> Union[dict | None]:
+        """Returns a GeoJSON feature representation of the Layer mask, or None if no mask"""
+        return (
+            {
+                "type": "Feature",
+                "geometry": json.loads(self.mask.geojson),
+                "properties": {"layer": self.slug},
+            }
+            if self.mask
+            else None
+        )
+
     def create_xyz_url(self) -> Union[str, None]:
         file_url = get_file_url(self)
         if file_url:
@@ -145,16 +159,7 @@ class Layer(models.Model):
 
         # make sure to clean up the existing multimask in the current vrs if necessary
         existing_obj = LayerSet.objects.get(pk=self.layerset2.pk) if self.layerset2 else None
-        delete_existing = False
-        if existing_obj:
-            if existing_obj.multimask and self.slug in existing_obj.multimask:
-                del existing_obj.multimask[self.slug]
-                existing_obj.save(update_fields=["multimask"])
-                logger.info(
-                    f"Layer {self.pk} removed from existing multimask in LayerSet {existing_obj.pk}"
-                )
-            if existing_obj.get_layers().count() == 1:
-                delete_existing = True
+        delete_existing = existing_obj and existing_obj.get_layers().count() == 1
         self.layerset2 = layerset
         self.save(update_fields=["layerset2"])
         logger.info(f"Layer {self.pk} added to LayerSet {self.layerset2} ({self.layerset2.pk})")
