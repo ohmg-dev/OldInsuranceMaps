@@ -448,7 +448,7 @@
           {#each volumeIds as id}
             <div class="volume-item">
               <div class="volume-header">
-                <div>
+                <div style="display:flex; flex-direction:row;">
                   <button
                     class="toggle-button"
                     title="Toggle layer transparency"
@@ -461,7 +461,7 @@
                       )}"
                       style={volumeLookup[id].mainLayer != undefined ? '' : 'background:grey;border-color:grey;'}
                     />
-                    <span>{volumeLookup[id].displayName}</span>
+                    <span style="text-wrap:nowrap;">{volumeLookup[id].displayName}</span>
                   </button>
                   <input
                     type="range"
@@ -589,11 +589,12 @@
     top: 0.5em;
     right: 0.5em;
     max-width: 100%;
-    min-width: 300px;
+    min-width: 320px;
     background: var(--primary-background-color);
     border-radius: 4px;
     border: 1px solid #333333;
     z-index: 999;
+    max-height: calc(100vh - 3em);
   }
 
   .toggle-button {
