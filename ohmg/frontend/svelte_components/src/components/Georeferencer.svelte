@@ -425,7 +425,7 @@
       );
       parcelLayer.setZIndex(30)
       parcelLayer.setVisible(false)
-      mapViewer.addSnappableVectorLayer(parcelLayer, 10, 16, parcelStyles.active, parcelStyles.inactive)
+      mapViewer.addSnappableVectorLayer(parcelLayer, 12, 16, parcelStyles.active, parcelStyles.inactive)
     }
 
     currentZoom = mapViewer.getZoom();
@@ -999,7 +999,7 @@
           Parcels
           <input type="checkbox" on:click={(evt) => {
               if (parcelLayer) {parcelLayer.setVisible(evt.target.checked)}}
-            } disabled={!parcelLayer || currentZoom < 10} />
+            } disabled={!parcelLayer || currentZoom < 12} />
         </label>
         <InfoModalButton modalId="modal-parcels" size=".75em" />
       </div>
