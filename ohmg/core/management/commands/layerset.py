@@ -39,4 +39,4 @@ class Command(BaseCommand):
             )
 
         if options.operation == "inspect":
-            print(ls.multimask_extent)
+            print(ls, len(ls.get_layers()))

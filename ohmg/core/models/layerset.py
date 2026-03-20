@@ -1,11 +1,10 @@
-import json
 import logging
 import urllib.parse
 from typing import TYPE_CHECKING, Iterable, Union
 
 from django.conf import settings
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon
+from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.contrib.postgres.fields import ArrayField
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
@@ -112,67 +111,25 @@ class LayerSet(models.Model):
 
     @property
     def multimask_extent(self):
-        """Calculate an extent based on all layers in this layerset's
-        multimask. If there is no multimask, return None."""
-        extent = None
-        if self.multimask:
-            feature_polygons = []
-            for v in self.multimask.values():
-                poly = Polygon(v["geometry"]["coordinates"][0])
-                feature_polygons.append(poly)
-            if len(feature_polygons) > 0:
-                extent = MultiPolygon(feature_polygons, srid=4326).extent
-        return extent
+        """Calculate an extent based any existing masks of layers in this LayerSet.
+        If no layer have masks then return None."""
+        feature_polygons = []
+        for feat in self.multimask_geojson["features"]:
+            poly = Polygon(feat["geometry"]["coordinates"][0])
+            feature_polygons.append(poly)
+        return (
+            MultiPolygon(feature_polygons, srid=4326).extent if len(feature_polygons) > 0 else None
+        )
 
     @property
-    def multimask_geojson(self):
-        if self.multimask:
-            multimask_geojson = {"type": "FeatureCollection", "features": []}
-            for layer, geojson in self.multimask.items():
-                geojson["properties"] = {"layer": layer}
-                multimask_geojson["features"].append(geojson)
-            return multimask_geojson
-        else:
-            return None
-
-    def validate_multimask_geojson(self, multimask_geojson):
-        errors = []
-        for feature in multimask_geojson["features"]:
-            lyr = feature["properties"]["layer"]
-            try:
-                geom_str = json.dumps(feature["geometry"])
-                g = GEOSGeometry(geom_str)
-                if not g.valid:
-                    logger.warning(f"{self} | invalid mask: {lyr} - {g.valid_reason}")
-                    errors.append((lyr, g.valid_reason))
-            except Exception as e:
-                logger.warning(f"{self} | improper GeoJSON in multimask")
-                errors.append((lyr, e))
-        return errors
-
-    def update_multimask_from_geojson(self, multimask_geojson):
-        from .layer import Layer
-
-        errors = self.validate_multimask_geojson(multimask_geojson)
-        if errors:
-            return errors
-
-        if multimask_geojson["features"]:
-            self.multimask = {}
-            for feature in multimask_geojson["features"]:
-                layer_slug = feature["properties"]["layer"]
-                self.multimask[feature["properties"]["layer"]] = feature
-
-                ## future patch: save mask directly to layers
-                layer = Layer.objects.get(slug=layer_slug, region__document__map=self.map)
-                new_mask = GEOSGeometry(json.dumps(feature["geometry"]))
-                if new_mask != layer.mask:
-                    logger.debug(f"updating mask on layer {layer.slug} ({layer.pk})")
-                    layer.mask = new_mask
-                    layer.save(skip_map_lookup_update=True, set_extent=False)
-        else:
-            self.multimask = None
-        self.save(update_fields=["multimask"])
+    def multimask_geojson(self) -> dict:
+        """Collect all masks from layers in this layerset and return as GeoJSON Feature Collection"""
+        fc = {"type": "FeatureCollection", "features": []}
+        for layer in self.get_layers():
+            mask_geojson = layer.mask_geojson_feature
+            if mask_geojson:
+                fc["features"].append(mask_geojson)
+        return fc
 
     def save(self, set_tilejson: bool = False, *args, **kwargs):
         if self._state.adding is False:
