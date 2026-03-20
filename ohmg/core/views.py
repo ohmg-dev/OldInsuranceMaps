@@ -4,7 +4,7 @@ from urllib.parse import quote
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import HttpResponse, get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
@@ -439,17 +439,43 @@ class LayerSetView(View):
                 return JsonResponseSuccess("Layers classified successfully.")
 
         if operation == "set-mask":
-            try:
-                layerset = LayerSet.objects.get(
-                    map_id=payload["map-id"], category__slug=payload["category"]
-                )
-                errors = layerset.update_multimask_from_geojson(payload["multimask-geojson"])
-                if errors:
-                    return JsonResponseFail("; ".join([f"\n-- {i[0]}: {i[1]}" for i in errors]))
+            layerset = LayerSet.objects.get(
+                map_id=payload["map-id"], category__slug=payload["category"]
+            )
+
+            ## first validate the incoming geojson for each mask
+            errors = []
+            geom_lookup = {}
+            for feature in payload["multimask-geojson"]["features"]:
+                lyr_slug = feature["properties"]["layer"]
+                try:
+                    geom_str = json.dumps(feature["geometry"])
+                    g = GEOSGeometry(geom_str)
+                    if not g.valid:
+                        logger.warning(f"{layerset} | invalid mask: {lyr_slug} - {g.valid_reason}")
+                        errors.append((lyr_slug, g.valid_reason))
+                    geom_lookup[lyr_slug] = g
+                except Exception as e:
+                    logger.warning(f"{self} | improper GeoJSON in multimask")
+                    errors.append((lyr_slug, e))
+            if errors:
+                return JsonResponseFail("; ".join([f"\n-- {i[0]}: {i[1]}" for i in errors]))
+
+            for layer in layerset.get_layers():
+                # if there is no mask to set and the layer doesn't need a mask removed, skip
+                if layer.mask is None and layer.slug not in geom_lookup:
+                    continue
+                # update all layers with provided masks
+                if layer.slug in geom_lookup:
+                    if layer.mask != geom_lookup[layer.slug]:
+                        layer.mask = geom_lookup[layer.slug]
+                        logger.debug(f"updating mask on layer {layer.slug} ({layer.pk})")
+                # remove mask from any layers that previously had one but has since been deleted
                 else:
-                    return JsonResponseSuccess()
-            except LayerSet.DoesNotExist:
-                return JsonResponseNotFound()
+                    logger.debug(f"removing mask from layer {layer.slug} ({layer.pk})")
+                    layer.mask = None
+                layer.save(set_extent=False, skip_map_lookup_update=True)
+            return JsonResponseSuccess()
 
 
 class LayersetDerivativeView(View):

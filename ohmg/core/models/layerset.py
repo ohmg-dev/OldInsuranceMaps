@@ -1,11 +1,10 @@
-import json
 import logging
 import urllib.parse
 from typing import TYPE_CHECKING, Iterable, Union
 
 from django.conf import settings
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon
+from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.contrib.postgres.fields import ArrayField
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
@@ -131,34 +130,6 @@ class LayerSet(models.Model):
             if mask_geojson:
                 fc["features"].append(mask_geojson)
         return fc
-
-    def validate_multimask_geojson(self, multimask_geojson):
-        errors = []
-        for feature in multimask_geojson["features"]:
-            lyr = feature["properties"]["layer"]
-            try:
-                geom_str = json.dumps(feature["geometry"])
-                g = GEOSGeometry(geom_str)
-                if not g.valid:
-                    logger.warning(f"{self} | invalid mask: {lyr} - {g.valid_reason}")
-                    errors.append((lyr, g.valid_reason))
-            except Exception as e:
-                logger.warning(f"{self} | improper GeoJSON in multimask")
-                errors.append((lyr, e))
-        return errors
-
-    def update_multimask_from_geojson(self, multimask_geojson):
-        from .layer import Layer
-
-        errors = self.validate_multimask_geojson(multimask_geojson)
-        if errors:
-            return errors
-
-        for feature in multimask_geojson["features"]:
-            layer_slug = feature["properties"]["layer"]
-            layer = Layer.objects.get(slug=layer_slug, region__document__map=self.map)
-            layer.mask = GEOSGeometry(json.dumps(feature["geometry"]))
-            layer.save(skip_map_lookup_update=True)
 
     def save(self, set_tilejson: bool = False, *args, **kwargs):
         if self._state.adding is False:
