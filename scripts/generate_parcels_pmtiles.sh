@@ -32,7 +32,7 @@ fi
 SECONDS=0
 
 tippecanoe \
-	-z15 -Z10 \
+	-z15 -Z12 \
 	--no-simplification-of-shared-nodes \
 	--coalesce-densest-as-needed \
 	--extend-zooms-if-still-dropping \
