@@ -1,7 +1,10 @@
 
-# Creating a development installation
+# Creating a local install
 
 Running the application requires a number of components to be installed and configured properly. The following commands assume a Debian-based Linux distribution.
+
+!!! note
+    If you are only planning to contribute documentation, see [docs install](docs-install) instead.
 
 ## Stack overview
 
@@ -233,7 +236,7 @@ This will start a container running TiTiler and expose it to `localhost:8008`.
 
 Make sure you have `TITILER_HOST=http://localhost:8008` in `.env` (see [environment variables](#environment-variables)).
 
-### You need a atatic file server
+### You need a static file server
 
 During development, a separate HTTP server must be used to supply TiTiler with COG endpoints, because the Django dev server does not serve HTTP range requests (more on this [here](https://code.djangoproject.com/ticket/22479) and [here](https://github.com/python/cpython/issues/86809)). The easiest workaround is to use node's [http-server](https://www.npmjs.com/package/http-server).
 

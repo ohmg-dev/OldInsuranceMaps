@@ -4,14 +4,8 @@ OHMG is a web application that facilitates public participation in the process o
 
 - **Home page:** [ohmg.dev](https://ohmg.dev)
 - **Implementation:** [oldinsurancemaps.net](https://oldinsurancemaps.net)
-- **Documentation:** [about.oldinsurancemaps.net](https://about.oldinsurancemaps.net)
+- **Documentation:** [docs.oldinsurancemaps.net](https://docs.oldinsurancemaps.net)
 
 ---
 
 Please don't hesitate to [open a ticket](https://github.com/ohmg-dev/OldInsuranceMaps/issues/new/choose) if you have trouble with the site, find a bug, or have suggestions otherwise.
-
----
-
-## Documentation
-
-See: [docs.oldinsurancemaps.net](https://docs.oldinsurancemaps.net)

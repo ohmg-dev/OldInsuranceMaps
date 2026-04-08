@@ -863,7 +863,7 @@
 />
 <div style="height:25px;">
   Create 3 or more ground control points to georeference this document. <Link
-    href="https://about.oldinsurancemaps.net/guides/georeferencing/"
+    href="https://docs.oldinsurancemaps.net/guides/georeferencing/"
     external={true}>Learn more</Link
   >
 </div>

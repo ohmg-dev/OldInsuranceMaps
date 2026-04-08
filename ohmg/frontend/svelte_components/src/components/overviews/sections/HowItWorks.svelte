@@ -63,7 +63,7 @@
     </p>
   </div>
   <h4>
-    Want to learn more? Visit the <Link href="https://about.oldinsurancemaps.net?utm_source=index" external={true}
+    Want to learn more? Visit the <Link href="https://docs.oldinsurancemaps.net?utm_source=index" external={true}
       >documentation site</Link
     >.
   </h4>

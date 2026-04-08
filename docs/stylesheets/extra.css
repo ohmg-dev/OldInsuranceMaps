@@ -1,5 +1,16 @@
 [data-md-color-scheme="default"] {
+  --md-default-bg-color: #f7f1e1;
+  --md-default-bg-color--light: #f7f1e1;
   --md-primary-fg-color:        #123b4f;
   --md-primary-fg-color--light: #eae0c1;
   --md-primary-fg-color--dark:  #123b4f;
+}
+
+
+.md-typeset {
+  font-size: .8rem;
+}
+
+.md-typeset .admonition, .md-typeset details {
+  font-size: .75rem;
 }

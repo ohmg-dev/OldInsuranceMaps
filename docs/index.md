@@ -1,27 +1,16 @@
 # Welcome!
 
-This documentation site will help you understand [OldInsuranceMaps.net](https://oldinsurancemaps.net), crowdsourcing platform for creating and viewing georeferenced mosaics of historical fire insurance maps, primarily from the Library of Congress [Sanborn Maps collection](https://loc.gov/collections/sanborn-maps).
+This documentation site will help you understand [OldInsuranceMaps.net](https://oldinsurancemaps.net), a crowdsourcing platform for creating and viewing georeferenced mosaics of historical fire insurance maps, primarily from the Library of Congress [Sanborn Maps collection](https://loc.gov/collections/sanborn-maps).
 
 ## Quick links
 
 - [OldInsuranceMaps.net](https://oldinsurancemaps.net) - The main platform and georeferencing application.
+- [OSMUS Slack channel](https://openstreetmap.us/get-involved/slack/) - OpenStreetMap US maintains a very active Slack workspace, and we have our own channel `#oldinsurancemaps` where people discuss this platform.
+- [OHM Discussion Forum](https://forum.openhistoricalmap.org/c/oldinsurancemaps/13) - We have a dedicated category in the OpenHistoricalMap forum, drop by and introduce yourself there, and feel free to ask questions about the project and how people are using it.
+- [Blog & Newsletter](https://blog.oldinsurancemaps.net) - The latest news about the project, plus the full archive of newsletters going back to 2022.
 - [Online Historical Map Georeferencer (OHMG)](https://ohmg.dev) - Information about the concepts and open source software behind this project, including architecture and installation docs.
-- [OpenHistoricalMap Forum &rarr; OldInsuranceMaps.net](https://forum.openhistoricalmap.org/c/oldinsurancemaps/13) - Drop by to introduce yourself, and feel free to ask questions about the project and how people are using it.
+- [Github Repo](https://github.com/ohmg-dev/OldInsuranceMaps) - For bug reports, feature requests, and technical discussion.
 
-## Site Overview
+## Contact
 
-You can browse content in the platform by map, by place name, or by map name. To learn more about these search methods, see [Finding maps](./guides/finding-maps.md).
-
-![Homepage](images/browse.jpg)
-
-Each volume's summary page has an interactive Map Overview showing all of the sheets that have been georeferenced so far.
-
-![Volume Summary - Map Overview](images/vsummary-031922.jpg)
-
-Each volume's summary page also lists the progress and georeferencing stage of each sheet.
-
-![Volume Summary - Georeferencing Overview](images/vsummary2-031922.jpg)
-
-Finally, each resource itself has its own page, showing a complete lineage of the work that has been performed on it by various users.
-
-![Alexandria, La, 1900, p1 [2]](images/example-resource-alex-1900.jpg)
+Questions, concerns, or feedback: [hello@oldinsurancemaps.net](mailto:hello@oldinsurancemaps.net).

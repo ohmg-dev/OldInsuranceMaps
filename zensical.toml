@@ -50,14 +50,12 @@ Copyright &copy; 2026 Adam Cox
 # Read more: https://zensical.org/docs/setup/navigation/
 nav = [
     { "Welcome!" = "index.md"},
-    { "Contact" = "contact.md"},
-    {"Getting started" = [
+    { "Getting started" = [
         "getting-started/georeferencing.md",
         "getting-started/finding-maps.md",
         "getting-started/viewer.md",
     ]},
     { "Using the tools" = [
-        "guides/workflow-overview.md",
         "guides/preparation.md",
         "guides/georeferencing.md",
         "guides/trimming.md",
@@ -67,6 +65,7 @@ nav = [
     ] },
     { "For developers" = [
         "developers/install.md",
+        "developers/docs-install.md",
         "developers/data-model.md",
         "developers/loading-maps.md",
     ] },

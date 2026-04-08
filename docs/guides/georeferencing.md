@@ -29,11 +29,6 @@ Deleting a control point:
 - Select an existing control point via the list in the bottom left, or by clicking on it in the panels.
 - Click <i class="fa fa-trash"></i> or type <code>d</code> to delete.
 
-!!! warning
-
-    There is currently an error that causes ground control points to get scrambled when is deleted.
-
-
 Saving Control Points:
 
 - You can only save the control points once you have 3 or more.
