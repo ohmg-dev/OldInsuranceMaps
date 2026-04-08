@@ -4,7 +4,7 @@ Currently, maps are loaded only through the command line. The application can be
 
 Each import module has its own set of required extra options, and these are provided through the `--opts` parameter.
 
-The most common load pattern is to use the importer for items from the LOC Sanborn map collection (`-c loc-sanborn`), which requires two extra options (`--opts identifier=<loc item id> locale=<locale slug>`). The New Iberia, La., 1892 map would be loaded like this:
+The most common load pattern is to use the importer for items from the LOC Sanborn map collection (`-c loc-sanborn`), which requires two extra options (`--opts identifier=<loc item id> locale=<locale slug>`). The [New Iberia, La., 1892 map](https://www.loc.gov/item/sanborn03375_002/) would be loaded like this:
 
 ```
 uv run manage.py map add -c loc-sanborn --opts identifier=sanborn03375_002 locale=new-iberia-la

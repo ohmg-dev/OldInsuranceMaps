@@ -1,4 +1,4 @@
-# Data model & concepts (in progress)
+# Data model & concepts (WIP)
 
 !!! note
 

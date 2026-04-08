@@ -1,6 +1,6 @@
 # Finding maps
 
-You can search for map content in three different ways, all of which are accessible in the main [Browse](https://oldinsurancemaps.net/browse) page.
+You can search for map content in three different ways, all of which are accessible in the main [Search](https://oldinsurancemaps.net/search) page.
 
 1. [Browse by Map](#browse-by-map)
 2. [Browse by Place](#browse-by-place)
@@ -8,7 +8,7 @@ You can search for map content in three different ways, all of which are accessi
 
 Generally, each method can be used to find any map in the system, but there are a few subtleties to be aware of.
 
-## Browse by Map
+## Browse by location
 
 Click a point on the map to view its georeferenced Sanborn Maps. Click **view &rarr;** to open the [viewer](./viewer.md) for all volumes at once, or choose a volume/edition to go to its detailed summary.
 

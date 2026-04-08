@@ -22,7 +22,7 @@ The end result is a web map which can be viewed in the site or embedded with an 
 
 ## Load the Volume
 
-From the [Volumes page](https://oldinsurancemaps.net/browse), we begin by finding the city and year we are interested in.
+From the [Volumes page](https://oldinsurancemaps.net/search), we begin by finding the city and year we are interested in.
 
 ![Choosing Alexandria on the left reveals a list of all available volumes. Out of 11 total volumes, 6 are available to be loaded.](../images/alex-search-volumes.png)
 
