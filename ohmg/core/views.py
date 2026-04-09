@@ -456,7 +456,7 @@ class LayerSetView(View):
                         errors.append((lyr_slug, g.valid_reason))
                     geom_lookup[lyr_slug] = g
                 except Exception as e:
-                    logger.warning(f"{self} | improper GeoJSON in multimask")
+                    logger.warning(f"{self} | improper GeoJSON in mask")
                     errors.append((lyr_slug, e))
             if errors:
                 return JsonResponseFail("; ".join([f"\n-- {i[0]}: {i[1]}" for i in errors]))

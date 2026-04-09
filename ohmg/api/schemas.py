@@ -337,7 +337,7 @@ class LayerSchema(Schema):
 
     @staticmethod
     def resolve_mask(obj: Layer):
-        return obj.mask.geojson if obj.mask else None
+        return json.loads(obj.mask.geojson) if obj.mask else None
 
     @staticmethod
     def resolve_image_url(obj: Layer):
