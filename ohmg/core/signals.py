@@ -52,13 +52,6 @@ def handle_layer_deletion(sender, instance, **kwargs):
     except Exception as e:
         logger.warning(f"instance.region.gcpgroup.delete(): {e}")
 
-    # remove layer mask from layerset if present
-    if instance.layerset2:
-        if instance.layerset2.multimask:
-            if instance.slug in instance.layerset2.multimask:
-                del instance.layerset2.multimask[instance.slug]
-                instance.layerset2.save()
-
     # remove layerset if this was the last layer attached to it
     if instance.layerset2:
         if instance.layerset2.get_layers().count() == 0:
