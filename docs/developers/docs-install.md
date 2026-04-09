@@ -33,6 +33,12 @@ This documentation is built with [Zensical](https://zensical.org), and is very e
 
 You can now view the docs in a browser at `http://localhost:8000`.
 
-## Editing content
+## Writing content
 
-All documention is written in Markdown (.md) files inside of the `/docs` directory. CSS modifications are in `docs/stylesheets/extra.css`.
+All documention is written in Markdown (.md) files inside of the `/docs` directory. Here's an introduction to [basic syntax for Markdown](https://www.markdownguide.org/basic-syntax/).
+
+Place any images/screenshots into `/docs/images/` and reference them with relative paths (find an exising example of an image in the docs to follow).
+
+The table of contents is defined in the top-level `zensical.toml` file.
+
+CSS modifications are in `docs/stylesheets/extra.css`.
