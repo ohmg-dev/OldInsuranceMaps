@@ -327,7 +327,7 @@ class LayerSchema(Schema):
     extent: Optional[list]
 
     @staticmethod
-    def resolve_urls(obj):
+    def resolve_urls(obj: Layer):
         return {
             "resource": f"/layer/{obj.pk}",
             "thumbnail": obj.thumbnail.url if obj.thumbnail else "",
@@ -336,21 +336,15 @@ class LayerSchema(Schema):
         }
 
     @staticmethod
-    def resolve_mask(obj):
-        if obj.layerset2 and obj.layerset2.multimask and obj.slug in obj.layerset2.multimask:
-            return obj.layerset2.multimask[obj.slug]
-        else:
-            return None
+    def resolve_mask(obj: Layer):
+        return json.loads(obj.mask.geojson) if obj.mask else None
 
     @staticmethod
-    def resolve_image_url(obj):
-        if obj.region and obj.region.file:
-            return obj.region.file.url
-        else:
-            return None
+    def resolve_image_url(obj: Layer):
+        return obj.region.file.url if obj.region and obj.region.file else None
 
     @staticmethod
-    def resolve_gcps_geojson(obj):
+    def resolve_gcps_geojson(obj: Layer):
         if not obj.region:
             logger.warning(f"[WARNING] Layer {obj.pk} has no associated region")
             return None
@@ -362,18 +356,12 @@ class LayerSchema(Schema):
         return obj.region.gcpgroup.as_geojson
 
     @staticmethod
-    def resolve_created_by(obj):
-        if obj.created_by:
-            return obj.created_by.username
-        else:
-            return ""
+    def resolve_created_by(obj: Layer):
+        return obj.created_by.username if obj.created_by else ""
 
     @staticmethod
-    def resolve_last_updated_by(obj):
-        if obj.last_updated_by:
-            return obj.last_updated_by.username
-        else:
-            return ""
+    def resolve_last_updated_by(obj: Layer):
+        return obj.last_updated_by.username if obj.last_updated_by else ""
 
 
 class LayerFullSchema(Schema):
@@ -398,11 +386,8 @@ class LayerFullSchema(Schema):
         }
 
     @staticmethod
-    def resolve_mask(obj):
-        if obj.layerset2 and obj.layerset2.multimask and obj.slug in obj.layerset2.multimask:
-            return obj.layerset2.multimask[obj.slug]
-        else:
-            return None
+    def resolve_mask(obj: Layer):
+        return obj.mask.geojson if obj.mask else None
 
     @staticmethod
     def resolve_image_url(obj):

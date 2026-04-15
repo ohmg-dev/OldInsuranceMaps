@@ -273,33 +273,6 @@
     );
   }
 
-  function handleExistingMaskResponse(response) {
-    if (response.success) {
-      layersToUpdate[response.payload['resource-id']] = response.payload['category'];
-    } else {
-      const msg =
-        'This layer is already included in the multimask for its ' +
-        'current classification, and that mask will be deleted if ' +
-        'you continue with this change. Set the layer back to its ' +
-        'original classification to stop the change.';
-      if (confirm(msg)) {
-        layersToUpdate[response.payload['resource-id']] = response.payload['category'];
-      }
-    }
-  }
-  function checkForExistingMask(category, layerId) {
-    submitPostRequest(
-      `/layerset/`,
-      CONTEXT.ohmg_post_headers,
-      'check-for-existing-mask',
-      {
-        'resource-id': layerId,
-        category: category,
-      },
-      handleExistingMaskResponse,
-    );
-  }
-
   let classifyingLayers = false;
   let bulkPreparing = false;
   let bulkPrepareList = [];
@@ -635,9 +608,9 @@
                   bind:reinitModalMap
                   bind:undoGeorefLayerId
                   bind:classifyingLayers
+                  bind:layersToUpdate
                   {layerToLayerSetLookup}
                   downloadEnabled={!MAP.hidden}
-                  {checkForExistingMask}
                 />
               {/each}
             </div>

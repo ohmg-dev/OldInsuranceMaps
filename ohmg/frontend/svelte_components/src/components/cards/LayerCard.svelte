@@ -24,8 +24,8 @@
   export let classifyingLayers;
   export let layerToLayerSetLookup;
   export let undoGeorefLayerId;
+  export let layersToUpdate;
   export let downloadEnabled = true;
-  export let checkForExistingMask;
 </script>
 
 <BaseCard>
@@ -151,7 +151,7 @@
       <select
         bind:value={layerToLayerSetLookup[layer.slug]}
         on:change={(e) => {
-          checkForExistingMask(e.target.options[e.target.selectedIndex].value, layer.id);
+          layersToUpdate[layer.id] = e.target.options[e.target.selectedIndex].value
         }}
       >
         {#each LAYERSET_CATEGORIES as opt}

@@ -54,9 +54,7 @@ class AtlascopeDataView(View):
             ls = [i.get_layerset("main-content") for i in maps]
 
             features = [
-                AtlascopeLayersetFeature.from_orm(i).dict()
-                for i in ls
-                if i and i.multimask and i.mosaic_geotiff
+                AtlascopeLayersetFeature.from_orm(i).dict() for i in ls if i and i.mosaic_geotiff
             ]
 
             feature_collection = {

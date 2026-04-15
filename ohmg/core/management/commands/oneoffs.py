@@ -411,6 +411,8 @@ class Command(BaseCommand):
                     print("deleted")
 
         ## Mar 11th, 2026
+        ## Pushing all multimask entries directly onto Layers, now that masks are
+        ## stored on Layers, not as a collected set of GeoJSON in LayerSet.multimask
         elif operation == "add-masks-to-layers":
             from django.contrib.gis.geos import GEOSGeometry
 
@@ -418,15 +420,13 @@ class Command(BaseCommand):
 
             for ls in LayerSet.objects.all().order_by("map__title"):
                 print(ls)
-                if ls.multimask:
-                    for k, v in ls.multimask.items():
-                        print(k)
-                        ## there SHOULD only be one layer here, but per ticket
-                        ## #308 some regions got duplicated, and some of the
-                        ## duplicates got georeferenced :(. Can't clean all of
-                        ## that up now, so... using filter here
-                        layers = Layer.objects.filter(slug=k, region__document__map=ls.map)
-                        for layer in layers:
-                            layer.mask = GEOSGeometry(json.dumps(v["geometry"]))
-                            layer.save(skip_map_lookup_update=True, set_extent=False)
-                print("")
+                for layer in ls.get_layers():
+                    print(f"  {layer.slug}")
+                    if ls.multimask and layer.slug in ls.multimask:
+                        print("  -> setting mask from layerset multimask")
+                        mask_geom = ls.multimask[layer.slug]
+                        layer.mask = GEOSGeometry(json.dumps(mask_geom["geometry"]))
+                    else:
+                        print("  -> setting mask to None")
+                        layer.mask = None
+                    layer.save(skip_map_lookup_update=True, set_extent=False)
