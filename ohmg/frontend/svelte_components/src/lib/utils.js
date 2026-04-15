@@ -107,7 +107,7 @@ export function copyToClipboard(elementId) {
   alert('Copied the text: ' + copyText.value);
 }
 
-export function makeSatelliteLayer(apiKey) {
+export function makeMBSatelliteStyleLayer(apiKey) {
   return new TileLayer({
     source: new XYZ({
       url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v10/tiles/{z}/{x}/{y}?access_token=' + apiKey,
@@ -119,18 +119,35 @@ export function makeSatelliteLayer(apiKey) {
   });
 }
 
-export function makeOSMLayer() {
+export function makeMBSatelliteRasterLayer(apiKey) {
   return new TileLayer({
-    source: new OSM({
-      attributions: [`© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.`],
+    source: new XYZ({
+      url: 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.jpg?access_token=' + apiKey,
+      tileSize: 512,
+      attributions: [
+        `© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>`,
+      ],
     }),
-  });
+    opacity: .9
+  })
 }
 
 export function makeOFMLayer() {
   const openfreemap = new LayerGroup();
   apply(openfreemap, 'https://tiles.openfreemap.org/styles/liberty');
   return openfreemap;
+}
+
+export function makeOFMSatelliteLayer(apiKey) {
+
+  // now create a layer group with this layer in it
+  const openfreemap = new LayerGroup({ layers: [
+    makeMBSatelliteRasterLayer(apiKey)
+  ]});
+
+  // and apply the vector tile layers on top
+  apply(openfreemap, "/static/aerialiberty/style.json")
+  return openfreemap
 }
 
 export function makeBasemaps(mapboxKey) {
@@ -142,7 +159,7 @@ export function makeBasemaps(mapboxKey) {
     },
     {
       id: 'satellite',
-      layer: makeSatelliteLayer(mapboxKey),
+      layer: makeMBSatelliteStyleLayer(mapboxKey),
       label: 'Streets+Satellite',
     },
   ];
@@ -260,12 +277,5 @@ export function showRotateCenter(map, layer, feature) {
 export function removeRotateCenter(layer) {
   if (layer) {
     layer.setVisible(false);
-  }
-}
-
-export function setMapExtent(map, extent4326) {
-  if (map) {
-    const extent3857 = transformExtent(extent4326, 'EPSG:4326', 'EPSG:3857');
-    map.getView().fit(extent3857);
   }
 }
