@@ -1,9 +1,7 @@
-import copy
-
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 
-from ohmg.core.models import Document, Layer, LayerSet
+from ohmg.core.models import Document
 from ohmg.core.utils.cli import confirm_continue
 from ohmg.georeference.models import GeorefSession, PrepSession, SessionLock
 
@@ -61,34 +59,6 @@ class Command(BaseCommand):
                     return slug4
             else:
                 return None
-
-        if options["operation"] == "multimasks":
-            valid_slugs = list(Layer.objects.all().values_list("slug", flat=True))
-            layersets = LayerSet.objects.exclude(multimask=None).order_by("map_id")
-            to_save = set()
-            errors = []
-            for ls in layersets:
-                new_mm = copy.deepcopy(ls.multimask)
-                for k, v in ls.multimask.items():
-                    newslug = fix_layer_slug(k, valid_slugs)
-                    if not newslug:
-                        errors.append(f"ERROR: {k}")
-                    elif newslug != k:
-                        print(f"{k} -> {newslug}")
-                        new_mm[newslug] = new_mm.pop(k)
-                        new_mm[newslug]["properties"] = {"layer": newslug}
-                        to_save.add(ls)
-                ls.multimask = new_mm
-
-            for e in errors:
-                print(e)
-            print(f"{len(errors)} layer slugs have errors")
-
-            print(f"{len(to_save)} multimasks to fix")
-            if options["fix"]:
-                for ls in to_save:
-                    print(f"saving {ls}")
-                    ls.save()
 
         if options["operation"] == "sessions":
             print("\nchecking PrepSessions...")

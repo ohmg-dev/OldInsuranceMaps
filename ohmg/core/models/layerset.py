@@ -46,7 +46,6 @@ class LayerSet(models.Model):
         blank=True,
         null=True,
     )
-    multimask = models.JSONField(null=True, blank=True)
     mosaic_geotiff = models.FileField(
         upload_to="mosaics",
         null=True,
