@@ -15,7 +15,7 @@
 
   import MapboxLogoLink from '../common/MapboxLogoLink.svelte';
 
-  import { getModal } from '../modals/BaseModal.svelte';
+  import { getModal } from '../base/Modal.svelte';
   import LegendModal from '../modals/LegendModal.svelte';
 
   import { makeLayerGroupFromLayerSet } from '../../lib/utils';

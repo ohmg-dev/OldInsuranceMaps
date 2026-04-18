@@ -36,7 +36,7 @@
   import LayerGroup from 'ol/layer/Group';
 
   import { MapViewer } from '../lib/viewers';
-  import Modal, { getModal } from './modals/BaseModal.svelte';
+  import Modal, { getModal } from './base/Modal.svelte';
   import Link from './common/Link.svelte';
   import MapboxLogoLink from './common/MapboxLogoLink.svelte';
 

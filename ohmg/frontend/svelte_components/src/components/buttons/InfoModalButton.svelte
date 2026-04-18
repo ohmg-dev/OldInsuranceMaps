@@ -1,7 +1,7 @@
 <script>
   import Question from 'phosphor-svelte/lib/Question';
 
-  import { getModal } from '../modals/BaseModal.svelte';
+  import { getModal } from '../base/Modal.svelte';
 
   export let modalId;
   export let size = '1em';

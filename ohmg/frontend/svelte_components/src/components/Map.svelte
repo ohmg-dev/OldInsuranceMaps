@@ -9,7 +9,7 @@
   import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
   import InfoModalButton from './buttons/InfoModalButton.svelte';
 
-  import Modal, { getModal } from './modals/BaseModal.svelte';
+  import Modal, { getModal } from './base/Modal.svelte';
   import MapPreviewModal from './modals/MapPreviewModal.svelte';
   import GeoreferenceOverviewModal from './modals/GeoreferenceOverviewModal.svelte';
   import UnpreparedSectionModal from './modals/UnpreparedSectionModal.svelte';

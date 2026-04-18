@@ -31,7 +31,7 @@
   import Link from './common/Link.svelte';
   import ExpandElement from './buttons/ExpandElement.svelte';
 
-  import Modal, { getModal } from './modals/BaseModal.svelte';
+  import Modal, { getModal } from './base/Modal.svelte';
   import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
 
   import ToolUIButton from './buttons/ToolUIButton.svelte';

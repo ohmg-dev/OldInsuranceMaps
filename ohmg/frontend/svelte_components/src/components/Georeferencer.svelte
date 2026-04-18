@@ -44,7 +44,7 @@
   import { DocMousePosition, LyrMousePosition, MapScaleLine } from '../lib/controls';
   import { MapViewer } from '../lib/viewers';
 
-  import Modal, { getModal } from './modals/BaseModal.svelte';
+  import Modal, { getModal } from './base/Modal.svelte';
   import LoadingEllipsis from './common/LoadingEllipsis.svelte';
   import Link from './common/Link.svelte';
   import ToolUIButton from './buttons/ToolUIButton.svelte';
