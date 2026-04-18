@@ -46,6 +46,18 @@ export function uuid() {
   return uuidValue;
 }
 
+export function slugify(text) {
+  return text
+      .toString()                     // Cast to string
+      .toLowerCase()                  // Convert to lowercase
+      .trim()                         // Remove leading/trailing whitespace
+      .normalize('NFD')               // Separate accents from letters
+      .replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/\s+/g, '-')           // Replace spaces with hyphens
+      .replace(/[^\w-]+/g, '')        // Remove non-word characters (except hyphens)
+      .replace(/--+/g, '-');          // Replace multiple hyphens with one
+  }
+
 // set the extent and projection with 0, 0 at the **top left** of the image
 // this is currently the setup for the Georeference interfance, but not for the Splitter!
 export function extentFromImageSize(imageSize) {

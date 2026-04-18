@@ -9,6 +9,8 @@
   import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
   import InfoModalButton from './buttons/InfoModalButton.svelte';
 
+  import ExpandableSection from './base/ExpandableSection.svelte';
+
   import Modal, { getModal } from './base/Modal.svelte';
   import MapPreviewModal from './modals/MapPreviewModal.svelte';
   import GeoreferenceOverviewModal from './modals/GeoreferenceOverviewModal.svelte';
@@ -324,50 +326,17 @@
 {/if}
 <main>
   <MapBreadcrumbs {LOCALE} {MAP} />
-  <section>
-    <div class="section-title-bar">
-      <button
-        class="section-toggle-btn"
-        title={sectionVis['summary'] ? 'Collapse section' : 'Expand section'}
-        on:click={() => {
-          toggleSection('summary');
-        }}
-      >
-        <ConditionalDoubleChevron down={sectionVis['summary']} />
-        <a id="summary"><h2>Summary</h2></a>
-      </button>
-    </div>
-    {#if sectionVis['summary']}
-      <div style="margin-bottom:10px;" transition:slide|global>
-        <MapDetails {CONTEXT} {MAP} {SESSION_SUMMARY} {LAYERSETS} {userFilterItems} />
-      </div>
-    {/if}
-  </section>
-  <section>
-    <div class="section-title-bar">
-      <button
-        class="section-toggle-btn"
-        title={sectionVis['preview'] ? 'Collapse section' : 'Expand section'}
-        disabled={MAP.item_lookup.georeferenced.length == 0}
-        on:click={() => {
-          toggleSection('preview');
-        }}
-      >
-        <ConditionalDoubleChevron down={sectionVis['preview']} />
-        <a id="preview"
-          ><h2>
-            Mosaic Preview ({MAP.item_lookup.georeferenced.length} layers)
-          </h2></a
-        >
-      </button>
-      <InfoModalButton modalId="modal-preview-map" />
-    </div>
-    {#if sectionVis['preview']}
-      <div class="section-content" transition:slide|global>
-        <MapPreview {CONTEXT} mapId={MAP.identifier} mapExtent={MAP.extent} bind:refreshable={previewRefreshable} />
-      </div>
-    {/if}
-  </section>
+  <ExpandableSection TITLE="Summary" bind:EXPANDED={sectionVis['summary']}>
+    <MapDetails {CONTEXT} {MAP} {SESSION_SUMMARY} {LAYERSETS} {userFilterItems} />
+  </ExpandableSection>
+  <ExpandableSection 
+      TITLE="Mosaic"
+      DISABLED={MAP.item_lookup.georeferenced.length == 0}
+      bind:EXPANDED={sectionVis['preview']}
+      INFO_MODAL_ID="modal-preview-map"
+    >
+    <MapPreview {CONTEXT} mapId={MAP.identifier} mapExtent={MAP.extent} bind:refreshable={previewRefreshable} />
+  </ExpandableSection>
   <section>
     <div class="section-title-bar">
       <div>
@@ -418,279 +387,200 @@
       {#if !CONTEXT.user.is_authenticated}
         <SigninReminder csrfToken={CONTEXT.csrf_token} />
       {/if}
-      <section class="subsection">
-        <div class="subsection-title-bar">
-          <button
-            class="section-toggle-btn"
-            disabled={MAP.item_lookup.unprepared.length == 0}
-            title={sectionVis['unprepared'] ? 'Collapse section' : 'Expand section'}
-            on:click={() => toggleSection('unprepared')}
-          >
-            <ConditionalDoubleChevron down={sectionVis['unprepared']} />
-            <a id="unprepared">
-              <h3>
-                Unprepared ({MAP.item_lookup.unprepared.length})
-                {#if docsLockedCt}
-                  &ndash; {docsLockedCt} locked...
-                {/if}
-              </h3>
-            </a>
-          </button>
-          <InfoModalButton modalId="modal-unprepared" />
-        </div>
-        {#if sectionVis['unprepared']}
-          <div transition:slide|global>
-            <div style="margin: 10px 0px;">
-              {#if MAP.item_lookup.unprepared.length > 0 && !bulkPreparing}
-                <button
-                  class="button is-primary"
-                  disabled={!CONTEXT.user.is_authenticated}
-                  title={!CONTEXT.user.is_authenticated
-                    ? 'You must be signed in to prepare documents'
-                    : 'Begin bulk preparation'}
-                  on:click={() => (bulkPreparing = !bulkPreparing)}>Bulk prepare documents</button
-                >
-              {/if}
-              {#if bulkPreparing}
-                <button
-                  class="button is-success"
-                  disabled={bulkPrepareList.length === 0}
-                  title="Submit documents for bulk preparation"
-                  on:click={() => {
-                    getModal('modal-confirm-bulk-no-split').open();
-                    bulkPreparing = false;
-                  }}>Submit</button
-                >
-                <button
-                  class="button is-danger"
-                  title="Cancel bulk preparation"
-                  on:click={() => {
-                    bulkPreparing = false;
-                    layersToUpdate = {};
-                    bulkPrepareList = [];
-                  }}>Cancel</button
-                >
-              {/if}
-            </div>
-            <div class="documents-column">
-              {#each MAP.item_lookup.unprepared as document}
-                <UnpreparedCard
-                  {CONTEXT}
-                  {document}
-                  {sessionLocks}
-                  {userCanEdit}
-                  bind:modalLyrUrl
-                  bind:modalExtent
-                  bind:modalIsGeospatial
-                  bind:reinitModalMap
-                  {postLoadDocument}
-                  bind:documentsLoading
-                  bind:splitDocumentId
-                  bind:bulkPreparing
-                  bind:bulkPrepareList
-                />
-              {/each}
-            </div>
-          </div>
-        {/if}
-      </section>
-      <section class="subsection">
-        <div class="subsection-title-bar">
-          <button
-            class="section-toggle-btn"
-            on:click={() => toggleSection('prepared')}
-            disabled={MAP.item_lookup.prepared.length === 0}
-            title={sectionVis['prepared'] ? 'Collapse section' : 'Expand section'}
-          >
-            <ConditionalDoubleChevron down={sectionVis['prepared']} />
-            <a id="prepared"
-              ><h3>
-                Prepared ({MAP.item_lookup.prepared.length})
-                {#if regsLockedCt}
-                  &ndash; {regsLockedCt} locked...
-                {/if}
-              </h3></a
-            >
-          </button>
-          <InfoModalButton modalId="modal-prepared" />
-        </div>
-        {#if sectionVis['prepared']}
-          <div transition:slide|global>
-            <div class="documents-column">
-              {#each MAP.item_lookup.prepared as region}
-                <PreparedCard
-                  {CONTEXT}
-                  {region}
-                  {sessionLocks}
-                  {userCanEdit}
-                  bind:modalLyrUrl
-                  bind:modalExtent
-                  bind:modalIsGeospatial
-                  bind:reinitModalMap
-                  {postDocumentUnprepare}
-                  {postRegionCategory}
-                  {postSkipRegion}
-                />
-              {/each}
-            </div>
-          </div>
-        {/if}
-      </section>
-      <section class="subsection">
-        <div class="subsection-title-bar">
-          <button
-            class="section-toggle-btn"
-            on:click={() => toggleSection('georeferenced')}
-            disabled={MAP.item_lookup.georeferenced.length == 0}
-            title={sectionVis['georeferenced'] ? 'Collapse section' : 'Expand section'}
-          >
-            <ConditionalDoubleChevron down={sectionVis['georeferenced']} />
-            <a id="georeferenced">
-              <h3>
-                Georeferenced ({MAP.item_lookup.georeferenced.length})
-                {#if lyrsLockedCt}
-                  &ndash; {lyrsLockedCt} locked...
-                {/if}
-              </h3>
-            </a>
-          </button>
-          <InfoModalButton modalId="modal-georeferenced" />
-        </div>
-        {#if sectionVis['georeferenced']}
-          <div transition:slide|global>
-            <div style="margin: 10px 0px;">
-              {#if MAP.item_lookup.georeferenced.length > 0 && !classifyingLayers}
-                <button
-                  class="button is-primary"
-                  on:click={() => (classifyingLayers = !classifyingLayers)}
-                  disabled={!CONTEXT.user.is_authenticated}
-                  title={!CONTEXT.user.is_authenticated
-                    ? 'You must be signed in to classify layers'
-                    : 'Click to enable layer classification'}>Classify layers</button
-                >
-              {/if}
-              {#if classifyingLayers}
-                <button
-                  class="button is-success"
-                  disabled={Object.keys(layersToUpdate).length === 0}
-                  title="Submit layer classification"
-                  on:click={() => {
-                    submitClassifiedLayers();
-                    classifyingLayers = false;
-                    layersToUpdate = {};
-                    reinitMultimask();
-                  }}>Submit</button
-                >
-                <button
-                  class="button is-danger"
-                  title="Cancel layer classification"
-                  on:click={() => {
-                    classifyingLayers = false;
-                    layersToUpdate = {};
-                    Object.keys(layerToLayerSetLookupOrig).forEach(function (k) {
-                      layerToLayerSetLookup[k] = layerToLayerSetLookupOrig[k];
-                    });
-                  }}>Cancel</button
-                >
-              {/if}
-            </div>
-            <div class="documents-column">
-              {#each MAP.item_lookup.georeferenced as layer}
-                <LayerCard
-                  {CONTEXT}
-                  {LAYERSET_CATEGORIES}
-                  {layer}
-                  {sessionLocks}
-                  {userCanEdit}
-                  bind:modalLyrUrl
-                  bind:modalExtent
-                  bind:modalIsGeospatial
-                  bind:reinitModalMap
-                  bind:undoGeorefLayerId
-                  bind:classifyingLayers
-                  bind:layersToUpdate
-                  {layerToLayerSetLookup}
-                  downloadEnabled={!MAP.hidden}
-                />
-              {/each}
-            </div>
-          </div>
-        {/if}
-      </section>
-      <section class="subsection">
-        <div class="subsection-title-bar">
-          <button
-            class="section-toggle-btn"
-            on:click={() => toggleSection('skipped')}
-            disabled={MAP.item_lookup.skipped.length === 0}
-            title={sectionVis['skipped'] ? 'Collapse section' : 'Expand section'}
-          >
-            <ConditionalDoubleChevron down={sectionVis['skipped']} />
-            <a id="skipped"
-              ><h3>
-                Skipped ({MAP.item_lookup.skipped.length})
-              </h3></a
-            >
-          </button>
-          <InfoModalButton modalId="modal-skipped" />
-        </div>
-        {#if sectionVis['skipped']}
-          <div transition:slide|global>
-            <div class="documents-column">
-              {#each MAP.item_lookup.skipped as region}
-                <SkippedCard
-                  {region}
-                  {sessionLocks}
-                  {userCanEdit}
-                  bind:modalLyrUrl
-                  bind:modalExtent
-                  bind:modalIsGeospatial
-                  bind:reinitModalMap
-                  {postSkipRegion}
-                />
-              {/each}
-            </div>
-          </div>
-        {/if}
-      </section>
-      <section class="subsection" style="border-bottom:none;">
-        <div class="subsection-title-bar">
-          <button
-            class="section-toggle-btn"
-            on:click={() => toggleSection('nonmaps')}
-            disabled={MAP.item_lookup.nonmaps.length == 0}
-            title={sectionVis['nonmaps'] ? 'Collapse section' : 'Expand section'}
-          >
-            <ConditionalDoubleChevron down={sectionVis['nonmaps']} />
-            <a id="georeferenced"
-              ><h3>
-                Non-Map Content ({MAP.item_lookup.nonmaps.length})
-              </h3></a
-            >
-          </button>
-          <InfoModalButton modalId="modal-non-map" />
-        </div>
-        {#if sectionVis['nonmaps']}
-          <div transition:slide|global>
-            <div class="documents-column">
-              {#each MAP.item_lookup.nonmaps as nonmap}
-                <NonMapCard
-                  {nonmap}
-                  {sessionLocks}
-                  {userCanEdit}
-                  bind:modalLyrUrl
-                  bind:modalExtent
-                  bind:modalIsGeospatial
-                  bind:reinitModalMap
-                  {postRegionCategory}
-                />
-              {/each}
-            </div>
-          </div>
-        {/if}
-      </section>
     </div>
   </section>
+  <ExpandableSection
+      TITLE={`Unprepared (${MAP.item_lookup.unprepared.length})${docsLockedCt ? `&ndash; ${docsLockedCt} locked...` : ''}`}
+      DISABLED={MAP.item_lookup.unprepared.length == 0}
+      INFO_MODAL_ID="modal-unprepared"
+      IS_SUBSECTION={true}
+      bind:EXPANDED={sectionVis['unprepared']}
+    >
+    <div style="margin: 10px 0px;">
+      {#if MAP.item_lookup.unprepared.length > 0 && !bulkPreparing}
+        <button
+          class="button is-primary"
+          disabled={!CONTEXT.user.is_authenticated}
+          title={!CONTEXT.user.is_authenticated
+            ? 'You must be signed in to prepare documents'
+            : 'Begin bulk preparation'}
+          on:click={() => (bulkPreparing = !bulkPreparing)}>Bulk prepare documents</button
+        >
+      {/if}
+      {#if bulkPreparing}
+        <button
+          class="button is-success"
+          disabled={bulkPrepareList.length === 0}
+          title="Submit documents for bulk preparation"
+          on:click={() => {
+            getModal('modal-confirm-bulk-no-split').open();
+            bulkPreparing = false;
+          }}>Submit</button
+        >
+        <button
+          class="button is-danger"
+          title="Cancel bulk preparation"
+          on:click={() => {
+            bulkPreparing = false;
+            layersToUpdate = {};
+            bulkPrepareList = [];
+          }}>Cancel</button
+        >
+      {/if}
+    </div>
+    <div class="documents-column">
+      {#each MAP.item_lookup.unprepared as document}
+        <UnpreparedCard
+          {CONTEXT}
+          {document}
+          {sessionLocks}
+          {userCanEdit}
+          bind:modalLyrUrl
+          bind:modalExtent
+          bind:modalIsGeospatial
+          bind:reinitModalMap
+          {postLoadDocument}
+          bind:documentsLoading
+          bind:splitDocumentId
+          bind:bulkPreparing
+          bind:bulkPrepareList
+        />
+      {/each}
+    </div>
+  </ExpandableSection>
+  <ExpandableSection
+      TITLE={`Prepared (${MAP.item_lookup.prepared.length})${regsLockedCt ? `&ndash; ${regsLockedCt} locked...` : ''}`}
+      DISABLED={MAP.item_lookup.prepared.length == 0}
+      INFO_MODAL_ID="modal-prepared"
+      IS_SUBSECTION={true}
+      bind:EXPANDED={sectionVis['prepared']}
+    >
+      <div class="documents-column">
+        {#each MAP.item_lookup.prepared as region}
+          <PreparedCard
+            {CONTEXT}
+            {region}
+            {sessionLocks}
+            {userCanEdit}
+            bind:modalLyrUrl
+            bind:modalExtent
+            bind:modalIsGeospatial
+            bind:reinitModalMap
+            {postDocumentUnprepare}
+            {postRegionCategory}
+            {postSkipRegion}
+          />
+        {/each}
+      </div>
+   </ExpandableSection>
+   <ExpandableSection
+      TITLE={`Georeferenced (${MAP.item_lookup.georeferenced.length})${regsLockedCt ? `&ndash; ${regsLockedCt} locked...` : ''}`}
+      DISABLED={MAP.item_lookup.georeferenced.length == 0}
+      INFO_MODAL_ID="modal-georeferenced"
+      IS_SUBSECTION={true}
+      bind:EXPANDED={sectionVis['georeferenced']}
+    >
+      <div style="margin: 10px 0px;">
+      {#if MAP.item_lookup.georeferenced.length > 0 && !classifyingLayers}
+        <button
+          class="button is-primary"
+          on:click={() => (classifyingLayers = !classifyingLayers)}
+          disabled={!CONTEXT.user.is_authenticated}
+          title={!CONTEXT.user.is_authenticated
+            ? 'You must be signed in to classify layers'
+            : 'Click to enable layer classification'}>Classify layers</button
+        >
+      {/if}
+      {#if classifyingLayers}
+        <button
+          class="button is-success"
+          disabled={Object.keys(layersToUpdate).length === 0}
+          title="Submit layer classification"
+          on:click={() => {
+            submitClassifiedLayers();
+            classifyingLayers = false;
+            layersToUpdate = {};
+            reinitMultimask();
+          }}>Submit</button
+        >
+        <button
+          class="button is-danger"
+          title="Cancel layer classification"
+          on:click={() => {
+            classifyingLayers = false;
+            layersToUpdate = {};
+            Object.keys(layerToLayerSetLookupOrig).forEach(function (k) {
+              layerToLayerSetLookup[k] = layerToLayerSetLookupOrig[k];
+            });
+          }}>Cancel</button
+        >
+      {/if}
+    </div>
+    <div class="documents-column">
+      {#each MAP.item_lookup.georeferenced as layer}
+        <LayerCard
+          {CONTEXT}
+          {LAYERSET_CATEGORIES}
+          {layer}
+          {sessionLocks}
+          {userCanEdit}
+          bind:modalLyrUrl
+          bind:modalExtent
+          bind:modalIsGeospatial
+          bind:reinitModalMap
+          bind:undoGeorefLayerId
+          bind:classifyingLayers
+          bind:layersToUpdate
+          {layerToLayerSetLookup}
+          downloadEnabled={!MAP.hidden}
+        />
+      {/each}
+    </div>
+   </ExpandableSection>
+   <ExpandableSection
+      TITLE={`Skipped (${MAP.item_lookup.skipped.length})`}
+      DISABLED={MAP.item_lookup.skipped.length == 0}
+      INFO_MODAL_ID="modal-skipped"
+      IS_SUBSECTION={true}
+      bind:EXPANDED={sectionVis['skipped']}
+    >
+      <div class="documents-column">
+        {#each MAP.item_lookup.skipped as region}
+          <SkippedCard
+            {region}
+            {sessionLocks}
+            {userCanEdit}
+            bind:modalLyrUrl
+            bind:modalExtent
+            bind:modalIsGeospatial
+            bind:reinitModalMap
+            {postSkipRegion}
+          />
+        {/each}
+      </div>
+   </ExpandableSection>
+   <ExpandableSection
+      TITLE={`Non-Map Content (${MAP.item_lookup.nonmaps.length})`}
+      DISABLED={MAP.item_lookup.skipped.length == 0}
+      INFO_MODAL_ID="modal-nonmaps"
+      IS_SUBSECTION={true}
+      bind:EXPANDED={sectionVis['nonmaps']}
+    >
+      <div class="documents-column">
+        {#each MAP.item_lookup.nonmaps as nonmap}
+          <NonMapCard
+            {nonmap}
+            {sessionLocks}
+            {userCanEdit}
+            bind:modalLyrUrl
+            bind:modalExtent
+            bind:modalIsGeospatial
+            bind:reinitModalMap
+            {postRegionCategory}
+          />
+        {/each}
+      </div>
+   </ExpandableSection>
   <section>
     <div class="section-title-bar">
       <button
@@ -751,26 +641,10 @@
 </main>
 
 <style>
-  #summary,
-  #preview,
-  #unprepared,
-  #prepared,
-  #georeferenced,
-  #multimask {
-    scroll-margin-top: 50px;
-  }
 
   a.no-link {
     color: unset;
     text-decoration: unset;
-  }
-
-  section {
-    border-bottom: 1px solid rgb(149, 149, 149);
-  }
-
-  section.subsection {
-    border-bottom: 1px dashed rgb(149, 149, 149);
   }
 
   button.section-toggle-btn {
@@ -802,13 +676,6 @@
   }
 
   .section-title-bar {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .subsection-title-bar {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
