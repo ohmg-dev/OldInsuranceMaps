@@ -27,10 +27,12 @@
   import MapPreview from './interfaces/MapPreview.svelte';
   import BasicDocViewer from './interfaces/BasicDocViewer.svelte';
   import BasicLayerViewer from './interfaces/BasicLayerViewer.svelte';
-  import MapDetails from './overviews/sections/MapDetails.svelte';
   import SigninReminder from './common/SigninReminder.svelte';
   import LoadingEllipsis from './common/LoadingEllipsis.svelte';
   import LoadingMask from './common/LoadingMask.svelte';
+
+  import Summary from './map/sections/Summary.svelte';
+  import Mosaic from './map/sections/Mosaic.svelte';
 
   import MapBreadcrumbs from './breadcrumbs/MapBreadcrumbs.svelte';
 
@@ -327,7 +329,7 @@
 <main>
   <MapBreadcrumbs {LOCALE} {MAP} />
   <ExpandableSection TITLE="Summary" bind:EXPANDED={sectionVis['summary']}>
-    <MapDetails {CONTEXT} {MAP} {SESSION_SUMMARY} {LAYERSETS} {userFilterItems} />
+    <Summary {CONTEXT} {MAP} {SESSION_SUMMARY} {LAYERSETS} {userFilterItems} />
   </ExpandableSection>
   <ExpandableSection 
       TITLE="Mosaic"
@@ -335,12 +337,22 @@
       bind:EXPANDED={sectionVis['preview']}
       INFO_MODAL_ID="modal-preview-map"
     >
-    <MapPreview {CONTEXT} mapId={MAP.identifier} mapExtent={MAP.extent} bind:refreshable={previewRefreshable} />
+    <Mosaic
+      {CONTEXT}
+      {MAP}
+      {SESSION_SUMMARY}
+      {LAYERSETS}
+      bind:previewRefreshable
+      bind:currentLayerSet
+      bind:layerSetLookup
+      {userCanEdit}
+      {previewKey}
+      {reinitPreview}
+    />
   </ExpandableSection>
   <section>
     <div class="section-title-bar">
       <div>
-        <ConditionalDoubleChevron down={true} />
         <a id="overview" class="no-link">
           <h2 style="margin-right:10px; display:inline-block;">Georeferencing Overview</h2>
         </a>
@@ -390,7 +402,7 @@
     </div>
   </section>
   <ExpandableSection
-      TITLE={`Unprepared (${MAP.item_lookup.unprepared.length})${docsLockedCt ? `&ndash; ${docsLockedCt} locked...` : ''}`}
+      TITLE={`Unprepared (${MAP.item_lookup.unprepared.length})${docsLockedCt ? ` – ${docsLockedCt} locked...` : ''}`}
       DISABLED={MAP.item_lookup.unprepared.length == 0}
       INFO_MODAL_ID="modal-unprepared"
       IS_SUBSECTION={true}
@@ -449,7 +461,7 @@
     </div>
   </ExpandableSection>
   <ExpandableSection
-      TITLE={`Prepared (${MAP.item_lookup.prepared.length})${regsLockedCt ? `&ndash; ${regsLockedCt} locked...` : ''}`}
+      TITLE={`Prepared (${MAP.item_lookup.prepared.length})${regsLockedCt ? ` – ${regsLockedCt} locked...` : ''}`}
       DISABLED={MAP.item_lookup.prepared.length == 0}
       INFO_MODAL_ID="modal-prepared"
       IS_SUBSECTION={true}
@@ -474,7 +486,7 @@
       </div>
    </ExpandableSection>
    <ExpandableSection
-      TITLE={`Georeferenced (${MAP.item_lookup.georeferenced.length})${regsLockedCt ? `&ndash; ${regsLockedCt} locked...` : ''}`}
+      TITLE={`Georeferenced (${MAP.item_lookup.georeferenced.length})${regsLockedCt ? ` – ${regsLockedCt} locked...` : ''}`}
       DISABLED={MAP.item_lookup.georeferenced.length == 0}
       INFO_MODAL_ID="modal-georeferenced"
       IS_SUBSECTION={true}
