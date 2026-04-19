@@ -8,6 +8,8 @@
   import { createEmpty, extend } from 'ol/extent';
   import { transformExtent } from 'ol/proj';
 
+  import Link from '../common/Link.svelte';
+
   import ExpandElement from '../buttons/ExpandElement.svelte';
   import RefreshMapButton from '../buttons/RefreshMapButton.svelte';
   import TransparencySlider from '../buttons/TransparencySlider.svelte';
@@ -26,7 +28,10 @@
   export let CONTEXT;
   export let mapId;
   export let mapExtent;
+  export let locale;
   export let refreshable = false;
+
+  console.log(locale)
 
   let mapViewer;
   let currentZoom;
@@ -128,6 +133,13 @@
 </script>
 
 <LegendModal id={'modal-legend'} legendUrl={'/static/img/key-nola-1940.png'} legendAlt={'Sanborn Map Key'} />
+<p>
+    This preview shows progress toward a full mosaic of this map's content&mdash;as documents are processed they will automatically appear here. Compare with other years <Link
+      href={`/viewer/${locale.slug}?${mapId}=100`}
+      external={true}
+      title={`Open viewer for ${locale.display_name}`}>in the viewer</Link
+    >.
+  </p>
 <div id="map-container" class="map-container" style="display:flex; justify-content: center; height:550px">
   <div id="map-panel">
     {#if refreshable}

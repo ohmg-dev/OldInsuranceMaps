@@ -1,19 +1,14 @@
 <script>
-  import { slide } from 'svelte/transition';
 
   import Wrench from 'phosphor-svelte/lib/Wrench';
 
   import { getCenter } from 'ol/extent';
-
-  import MultiMask from './interfaces/MultiMask.svelte';
-  import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
   import InfoModalButton from './buttons/InfoModalButton.svelte';
 
   import ExpandableSection from './base/ExpandableSection.svelte';
   import TabbedSection from './base/TabbedSection.svelte';
 
   import Modal, { getModal } from './base/Modal.svelte';
-  import MapPreviewModal from './modals/MapPreviewModal.svelte';
   import GeoreferenceOverviewModal from './modals/GeoreferenceOverviewModal.svelte';
   import UnpreparedSectionModal from './modals/UnpreparedSectionModal.svelte';
   import PreparedSectionModal from './modals/PreparedSectionModal.svelte';
@@ -309,7 +304,6 @@
     });
   }}
 />
-<MapPreviewModal id={'modal-preview-map'} placeName={LOCALE.display_name} viewerUrl={MAP.urls.viewer} />
 <GeoreferenceOverviewModal id={'modal-georeference-overview'} />
 <UnpreparedSectionModal id={'modal-unprepared'} />
 <PreparedSectionModal id={'modal-prepared'} />
@@ -366,7 +360,6 @@
       TITLE="Mosaic"
       DISABLED={MAP.item_lookup.georeferenced.length == 0}
       bind:EXPANDED={sectionVis['preview']}
-      INFO_MODAL_ID="modal-preview-map"
     >
     <TabbedSection tabs={[
       {id: "preview", title: "Preview"},
@@ -378,6 +371,7 @@
             <MapPreview {CONTEXT}
               mapId={MAP.identifier}
               mapExtent={MAP.extent}
+              locale={LOCALE}
               bind:refreshable={previewRefreshable} />
         {/key}
       {:else if mosaicSectionActiveTab == "multimask"}
