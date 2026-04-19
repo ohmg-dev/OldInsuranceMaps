@@ -30,7 +30,7 @@
   }
 
   div.section-tabs > ul > li > button {
-    font-size: 1.4em;
+    font-size: 1.25em;
   }
 
   div.section-tabs > ul > li.active {

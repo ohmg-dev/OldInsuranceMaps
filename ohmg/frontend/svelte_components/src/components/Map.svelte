@@ -10,6 +10,7 @@
   import InfoModalButton from './buttons/InfoModalButton.svelte';
 
   import ExpandableSection from './base/ExpandableSection.svelte';
+  import TabbedSection from './base/TabbedSection.svelte';
 
   import Modal, { getModal } from './base/Modal.svelte';
   import MapPreviewModal from './modals/MapPreviewModal.svelte';
@@ -31,8 +32,12 @@
   import LoadingEllipsis from './common/LoadingEllipsis.svelte';
   import LoadingMask from './common/LoadingMask.svelte';
 
-  import Summary from './map/sections/Summary.svelte';
-  import Mosaic from './map/sections/Mosaic.svelte';
+  import MultimaskSection from './map/MultimaskSection.svelte'
+  import MosaicDownload from './map/MosaicDownload.svelte';
+  import Details from './map/Details.svelte';
+
+  import MapContributors from './tables/MapContributors.svelte';
+  import Sessions from './tables/Sessions.svelte';
 
   import MapBreadcrumbs from './breadcrumbs/MapBreadcrumbs.svelte';
 
@@ -51,7 +56,6 @@
   export let SESSION_SUMMARY;
   export let LAYERSETS;
   export let LAYERSET_CATEGORIES;
-  export let userFilterItems;
 
   const sessionLocks = { docs: {}, regs: {}, lyrs: {} };
   $: {
@@ -293,6 +297,9 @@
   let processing = false;
 
   let previewRefreshable = false;
+
+  let mosaicSectionActiveTab = "preview";
+  let detailsSectionActiveTab = "details";
 </script>
 
 <svelte:window
@@ -329,7 +336,31 @@
 <main>
   <MapBreadcrumbs {LOCALE} {MAP} />
   <ExpandableSection TITLE="Summary" bind:EXPANDED={sectionVis['summary']}>
-    <Summary {CONTEXT} {MAP} {SESSION_SUMMARY} {LAYERSETS} {userFilterItems} />
+    <TabbedSection tabs={[
+      {id: "details", title: "Details"},
+      {id: "stats", title: "Stats"},
+      {id: "activity", title: "Activity"},
+    ]} bind:activeTab={detailsSectionActiveTab}>
+      {#if detailsSectionActiveTab == "details"}
+        <Details {MAP} {SESSION_SUMMARY} />
+      {:else if detailsSectionActiveTab == "stats"}
+        <div style="margin-top:10px;">
+          <p>
+            These users have contributed to the creation of the content within this map, by preparing or georeferencing
+            images. Currently, trimming or "multimask" work is not reflected in this table.
+          </p>
+        </div>
+        <MapContributors {CONTEXT} mapId={MAP.identifier} />
+      {:else if detailsSectionActiveTab == "activity"}
+        <div style="margin-top:10px;">
+          <p>
+            Below is complete record of all preparation or georeferencing actions that have been performed on documents
+            within this map. Currently, trimming or "multimask" work is not reflected in this table.
+          </p>
+        </div>
+        <Sessions {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false} paginate={true} limit="50" />
+      {/if}
+    </TabbedSection>
   </ExpandableSection>
   <ExpandableSection 
       TITLE="Mosaic"
@@ -337,18 +368,34 @@
       bind:EXPANDED={sectionVis['preview']}
       INFO_MODAL_ID="modal-preview-map"
     >
-    <Mosaic
-      {CONTEXT}
-      {MAP}
-      {SESSION_SUMMARY}
-      {LAYERSETS}
-      bind:previewRefreshable
-      bind:currentLayerSet
-      bind:layerSetLookup
-      {userCanEdit}
-      {previewKey}
-      {reinitPreview}
-    />
+    <TabbedSection tabs={[
+      {id: "preview", title: "Preview"},
+      {id: "multimask", title: "MultiMask"},
+      {id: "download", title: "Downloads etc."},
+    ]} bind:activeTab={mosaicSectionActiveTab}>
+      {#if mosaicSectionActiveTab == "preview"}
+        {#key previewKey}
+            <MapPreview {CONTEXT}
+              mapId={MAP.identifier}
+              mapExtent={MAP.extent}
+              bind:refreshable={previewRefreshable} />
+        {/key}
+      {:else if mosaicSectionActiveTab == "multimask"}
+        <MultimaskSection
+          {CONTEXT}
+          {reinitMultimask}
+          bind:multimaskKey
+          {LAYERSETS}
+          bind:layerSetLookup
+          {userCanEdit}
+          {reinitPreview} />
+      {:else if mosaicSectionActiveTab == "download"}
+        <MosaicDownload
+          {CONTEXT}
+          {MAP}
+          {LAYERSETS} />
+      {/if}
+    </TabbedSection>
   </ExpandableSection>
   <section>
     <div class="section-title-bar">
@@ -593,63 +640,6 @@
         {/each}
       </div>
    </ExpandableSection>
-  <section>
-    <div class="section-title-bar">
-      <button
-        class="section-toggle-btn"
-        on:click={() => toggleSection('multimask')}
-        disabled={MAP.item_lookup.georeferenced.length == 0}
-        title={sectionVis['multimask'] ? 'Collapse section' : 'Expand section'}
-      >
-        <ConditionalDoubleChevron down={sectionVis['multimask']} />
-        <a id="multimask"><h2>MultiMask</h2></a>
-      </button>
-      <InfoModalButton modalId="modal-multimask" />
-    </div>
-    {#if sectionVis['multimask']}
-      <div transition:slide|global>
-        {#if !CONTEXT.user.is_authenticated}
-          <SigninReminder csrfToken={CONTEXT.csrf_token} />
-        {/if}
-        <select
-          class="item-select"
-          bind:value={currentLayerSet}
-          on:change={(e) => {
-            reinitMultimask();
-          }}
-        >
-          {#each LAYERSETS as ls}
-            {#if ls.layers}
-              <option value={ls.id}>{ls.name}</option>
-            {/if}
-          {/each}
-        </select>
-        <span>
-          Masked layers:
-          {#if layerSetLookup[currentLayerSet].multimask_geojson}
-            {layerSetLookup[currentLayerSet].multimask_geojson.features.length}/{layerSetLookup[currentLayerSet].layers
-              .length}
-          {:else}
-            0/{layerSetLookup[currentLayerSet].layers.length}
-          {/if}
-        </span>
-        <span>
-          <em
-            >&mdash; <strong>Important:</strong> Do not work on a multimask while there is other work in progress on this
-            map (you could lose work).</em
-          >
-        </span>
-        {#key multimaskKey}
-          <MultiMask
-            LAYERSET={layerSetLookup[currentLayerSet]}
-            {CONTEXT}
-            DISABLED={!userCanEdit}
-            resetMosaic={reinitPreview}
-          />
-        {/key}
-      </div>
-    {/if}
-  </section>
 </main>
 
 <style>
@@ -657,30 +647,6 @@
   a.no-link {
     color: unset;
     text-decoration: unset;
-  }
-
-  button.section-toggle-btn {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    background: none;
-    border: none;
-    color: #2c689c;
-    padding: 0;
-  }
-
-  button.section-toggle-btn,
-  a {
-    text-decoration: none;
-  }
-
-  button.section-toggle-btn:hover {
-    color: #1b4060;
-  }
-
-  button.section-toggle-btn:disabled,
-  button.section-toggle-btn:disabled > a {
-    color: grey;
   }
 
   button:disabled {
@@ -700,12 +666,6 @@
     flex-wrap: wrap;
     gap: 20px;
     padding-bottom: 15px;
-  }
-
-  select.item-select {
-    margin-right: 3px;
-    color: #2c689c;
-    cursor: pointer;
   }
 
   @media screen and (max-width: 768px) {
