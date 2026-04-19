@@ -93,7 +93,6 @@
     });
   }
 
-  let currentLayerSet = 'main-content';
   let layerSetLookup = {};
   let layerToLayerSetLookup = {};
   let layerToLayerSetLookupOrig = {};
@@ -377,10 +376,9 @@
       {:else if mosaicSectionActiveTab == "multimask"}
         <MultimaskSection
           {CONTEXT}
+          mapId={MAP.identifier}
           {reinitMultimask}
           bind:multimaskKey
-          {LAYERSETS}
-          bind:layerSetLookup
           {userCanEdit}
           {reinitPreview} />
       {:else if mosaicSectionActiveTab == "download"}

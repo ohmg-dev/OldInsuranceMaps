@@ -1,24 +1,25 @@
 <script>
-    import SigninReminder from "../common/SigninReminder.svelte";
+    import { getFromAPI } from "../../lib/requests";
     import MultiMask from "../interfaces/MultiMask.svelte";
 
     export let CONTEXT;
-    export let LAYERSETS;
-    export let layerSetLookup;
+    export let mapId;
     export let multimaskKey;
     export let reinitMultimask = () => {};
     export let reinitPreview = () => {};
     export let userCanEdit;
 
-    
-    
     let currentLayerSet = "main-content";
+    let layerSetLookup = {};
+
+    getFromAPI(`/api/beta2/layersets/?map=${mapId}`, CONTEXT.ohmg_api_headers, (response) => {
+        layerSetLookup = {};
+        response.forEach(function (ls) {
+            layerSetLookup[ls.id] = ls
+        });
+    });
 </script>
 
-
-{#if !CONTEXT.user.is_authenticated}
-    <SigninReminder csrfToken={CONTEXT.csrf_token} />
-{/if}
 <select
     class="item-select"
     bind:value={currentLayerSet}
@@ -26,12 +27,13 @@
         reinitMultimask();
     }}
 >
-    {#each LAYERSETS as ls}
+    {#each Object.entries(layerSetLookup) as [id, ls]}
     {#if ls.layers}
-        <option value={ls.id}>{ls.name}</option>
+        <option value={id}>{ls.name}</option>
     {/if}
     {/each}
 </select>
+{#if layerSetLookup[currentLayerSet]}
 <span>
     Masked layers:
     {#if layerSetLookup[currentLayerSet].multimask_geojson}
@@ -41,12 +43,14 @@
     0/{layerSetLookup[currentLayerSet].layers.length}
     {/if}
 </span>
+{/if}
 <span>
     <em
     >&mdash; <strong>Important:</strong> Do not work on a multimask while there is other work in progress on this
     map (you could lose work).</em
     >
 </span>
+{#if layerSetLookup[currentLayerSet]}
 {#key multimaskKey}
     <MultiMask
     LAYERSET={layerSetLookup[currentLayerSet]}
@@ -55,6 +59,7 @@
     resetMosaic={reinitPreview}
     />
 {/key}
+{/if}
 
 <style>
   select.item-select {

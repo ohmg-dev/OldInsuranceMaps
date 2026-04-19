@@ -295,7 +295,7 @@
   });
 
   $: {
-    if (viewer) {
+    if (viewer && !DISABLED) {
       viewer.interactions.draw.setActive(currentLayer != null);
       viewer.interactions.modify.setActive(!viewer.interactions.draw.getActive());
     }
@@ -475,7 +475,7 @@
         <div class="layer-section-subheader" style="overflow-y:auto">
           {#each layerLookupUnmaskedArr as layer}
             <div style="display:flex;">
-              <ToolUIButton title="add mask for this layer" action={() => addMask(layer)}>
+              <ToolUIButton title="add mask for this layer" action={() => addMask(layer)} disabled={DISABLED}>
                 <CropIcon />
               </ToolUIButton>
               {#if CONTEXT.user.is_authenticated}
@@ -484,6 +484,7 @@
                   action={() => {
                     window.location.href = layer.georeferenceUrl;
                   }}
+                  disabled={DISABLED}
                 >
                   <MapPin />
                 </ToolUIButton>
@@ -509,7 +510,7 @@
         <div class="layer-section-subheader" style="overflow-y:auto">
           {#each layerLookupMaskedArr as layer}
             <div style="display:flex;">
-              <ToolUIButton action={() => layerRemoveMask(layer)} title="remove this mask">
+              <ToolUIButton action={() => layerRemoveMask(layer)} title="remove this layer's mask" disabled={DISABLED}>
                 <Trash />
               </ToolUIButton>
               {#if CONTEXT.user.is_authenticated}
