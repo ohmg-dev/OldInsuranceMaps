@@ -457,6 +457,11 @@ class LayerSetLayer(Schema):
     tilejson: Optional[dict]
     urls: dict
     extent: Optional[list]
+    mask: Optional[dict]
+
+    @staticmethod
+    def resolve_mask(obj: Layer):
+        return json.loads(obj.mask.geojson) if obj.mask else None
 
     @staticmethod
     def resolve_urls(obj):
@@ -474,6 +479,7 @@ class LayerSetSchema(Schema):
     map_id: str
     tilejson: Optional[dict]
     layers: List[LayerSetLayer]
+    layers_masked_ct: int
     multimask_geojson: Optional[dict]
     extent: Optional[tuple]
     multimask_extent: Optional[tuple]
@@ -486,6 +492,10 @@ class LayerSetSchema(Schema):
     @staticmethod
     def resolve_layers(obj):
         return natsorted(obj.get_layers(), key=lambda k: k.title)
+
+    @staticmethod
+    def resolve_layers_masked_ct(obj):
+        return obj.get_layers().filter(mask__isnull=False).count()
 
     @staticmethod
     def resolve_name(obj):

@@ -1,64 +1,82 @@
 <script>
     import { getFromAPI } from "../../lib/requests";
+    import { submitPostRequest } from "../../lib/requests";
     import MultiMask from "../interfaces/MultiMask.svelte";
 
     export let CONTEXT;
     export let mapId;
     export let multimaskKey;
     export let reinitMultimask = () => {};
-    export let reinitPreview = () => {};
     export let userCanEdit;
 
-    let currentLayerSet = "main-content";
+    let dirty = false;
+
+    let currentLayerSetId = "main-content";
     let layerSetLookup = {};
+    $: currentLayerSet = layerSetLookup[currentLayerSetId]
 
-    getFromAPI(`/api/beta2/layersets/?map=${mapId}`, CONTEXT.ohmg_api_headers, (response) => {
-        layerSetLookup = {};
-        response.forEach(function (ls) {
-            layerSetLookup[ls.id] = ls
+    const initLayersets = () => {
+        getFromAPI(`/api/beta2/layersets/?map=${mapId}`, CONTEXT.ohmg_api_headers, (response) => {
+            layerSetLookup = {};
+            response.forEach(function (ls) {
+                layerSetLookup[ls.id] = ls
+            });
         });
-    });
-</script>
+    }
+    initLayersets()
 
+    function handleMultimaskSubmitResponse(response) {
+        if (response.success) {
+            window.alert('Masks saved successfully.');
+            dirty = false;
+            initLayersets();
+        } else {
+            let errMsg = 'Error! MultiMask not saved. You must remove and remake the following masks:\n';
+            errMsg += response.message;
+            alert(errMsg);
+        }
+    }
+
+    function submit(geojson) {
+        submitPostRequest(
+        '/layerset/',
+        CONTEXT.ohmg_post_headers,
+        'set-mask',
+        {
+            'multimask-geojson': geojson,
+            'map-id': mapId,
+            category: currentLayerSetId,
+        },
+        handleMultimaskSubmitResponse,
+        );
+    }
+</script>
+<span>
+    Select which multimask to work on:
+</span>
 <select
     class="item-select"
-    bind:value={currentLayerSet}
+    bind:value={currentLayerSetId}
     on:change={(e) => {
         reinitMultimask();
     }}
 >
     {#each Object.entries(layerSetLookup) as [id, ls]}
     {#if ls.layers}
-        <option value={id}>{ls.name}</option>
+        <option value={id}>{`${ls.name} (${ls.layers_masked_ct}/${ls.layers.length})`}</option>
     {/if}
     {/each}
 </select>
-{#if layerSetLookup[currentLayerSet]}
-<span>
-    Masked layers:
-    {#if layerSetLookup[currentLayerSet].multimask_geojson}
-    {layerSetLookup[currentLayerSet].multimask_geojson.features.length}/{layerSetLookup[currentLayerSet].layers
-        .length}
-    {:else}
-    0/{layerSetLookup[currentLayerSet].layers.length}
-    {/if}
-</span>
-{/if}
-<span>
-    <em
-    >&mdash; <strong>Important:</strong> Do not work on a multimask while there is other work in progress on this
-    map (you could lose work).</em
-    >
-</span>
-{#if layerSetLookup[currentLayerSet]}
-{#key multimaskKey}
-    <MultiMask
-    LAYERSET={layerSetLookup[currentLayerSet]}
-    {CONTEXT}
-    DISABLED={!userCanEdit}
-    resetMosaic={reinitPreview}
-    />
-{/key}
+{#if currentLayerSet}
+    {#key multimaskKey}
+        <MultiMask
+            {CONTEXT}
+            LAYERS={currentLayerSet.layers}
+            DISABLED={!userCanEdit}
+            handleSubmit={submit}
+            bind:dirty
+            />
+    {/key}
 {/if}
 
 <style>

@@ -2,7 +2,6 @@
 
   import Wrench from 'phosphor-svelte/lib/Wrench';
 
-  import { getCenter } from 'ol/extent';
   import InfoModalButton from './buttons/InfoModalButton.svelte';
 
   import ExpandableSection from './base/ExpandableSection.svelte';
@@ -151,14 +150,6 @@
     multimask: hash == 'multimask',
     download: hash == 'download',
   };
-
-  function toggleSection(sectionId) {
-    sectionVis[sectionId] = !sectionVis[sectionId];
-  }
-
-  function setHash(hash) {
-    history.replaceState(null, document.title, `#${hash}`);
-  }
 
   let intervalId;
   function manageAutoReload(run) {
@@ -379,8 +370,7 @@
           mapId={MAP.identifier}
           {reinitMultimask}
           bind:multimaskKey
-          {userCanEdit}
-          {reinitPreview} />
+          {userCanEdit} />
       {:else if mosaicSectionActiveTab == "download"}
         <MosaicDownload
           {CONTEXT}
@@ -525,7 +515,7 @@
       </div>
    </ExpandableSection>
    <ExpandableSection
-      TITLE={`Georeferenced (${MAP.item_lookup.georeferenced.length})${regsLockedCt ? ` – ${regsLockedCt} locked...` : ''}`}
+      TITLE={`Georeferenced (${MAP.item_lookup.georeferenced.length})${lyrsLockedCt ? ` – ${lyrsLockedCt} locked...` : ''}`}
       DISABLED={MAP.item_lookup.georeferenced.length == 0}
       INFO_MODAL_ID="modal-georeferenced"
       IS_SUBSECTION={true}
