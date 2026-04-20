@@ -5,12 +5,12 @@
 
   import { getCenter } from 'ol/extent';
 
-  import Link from './common/Link.svelte';
+  import Link from './base/Link.svelte';
   import Sessions from './tables/Sessions.svelte';
   import BasicDocViewer from './interfaces/BasicDocViewer.svelte';
   import BasicLayerViewer from './interfaces/BasicLayerViewer.svelte';
   import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
-  import ToolUIButton from './buttons/ToolUIButton.svelte';
+  import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';
 
   import ResourceDetails from './overviews/sections/ResourceDetails.svelte';
 

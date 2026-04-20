@@ -1,6 +1,6 @@
 <script>
     import InfoModalButton from "../buttons/InfoModalButton.svelte";
-    import Link from "../common/Link.svelte";
+    import Link from "../base/Link.svelte";
 
     export let CONTEXT;
     export let MAP;

@@ -37,8 +37,8 @@
 
   import { MapViewer } from '../lib/viewers';
   import Modal, { getModal } from './base/Modal.svelte';
-  import Link from './common/Link.svelte';
-  import MapboxLogoLink from './common/MapboxLogoLink.svelte';
+  import Link from './base/Link.svelte';
+  import MapboxLogoLink from './interfaces/widgets/MapboxLogoLink.svelte';
 
   import Crop from 'ol-ext/filter/Crop';
 

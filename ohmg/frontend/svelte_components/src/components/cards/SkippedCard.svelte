@@ -3,7 +3,7 @@
 
   import { getModal } from '../base/Modal.svelte';
 
-  import Link from '../common/Link.svelte';
+  import Link from '../base/Link.svelte';
 
   import BaseCard from '../base/Card.svelte';
 

@@ -1,5 +1,5 @@
 <script>
-  import Link from '../common/Link.svelte';
+  import Link from '../base/Link.svelte';
   import SessionListModal from '../modals/SessionListModal.svelte';
 
   import { getFromAPI } from '../../lib/requests';

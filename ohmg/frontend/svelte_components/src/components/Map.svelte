@@ -6,8 +6,8 @@
 
   import ExpandableSection from './base/ExpandableSection.svelte';
   import TabbedSection from './base/TabbedSection.svelte';
-
   import Modal, { getModal } from './base/Modal.svelte';
+
   import GeoreferenceOverviewModal from './modals/GeoreferenceOverviewModal.svelte';
   import UnpreparedSectionModal from './modals/UnpreparedSectionModal.svelte';
   import PreparedSectionModal from './modals/PreparedSectionModal.svelte';
@@ -22,6 +22,7 @@
   import MapPreview from './interfaces/MapPreview.svelte';
   import BasicDocViewer from './interfaces/BasicDocViewer.svelte';
   import BasicLayerViewer from './interfaces/BasicLayerViewer.svelte';
+
   import SigninReminder from './common/SigninReminder.svelte';
   import LoadingEllipsis from './common/LoadingEllipsis.svelte';
   import LoadingMask from './common/LoadingMask.svelte';

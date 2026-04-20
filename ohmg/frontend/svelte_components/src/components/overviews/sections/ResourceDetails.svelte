@@ -1,7 +1,7 @@
 <script>
   import { getCenter } from 'ol/extent';
 
-  import Link from '../../common/Link.svelte';
+  import Link from '../../base/Link.svelte';
   import ResourceDownloadSectionModal from '../../modals/ResourceDownloadSectionModal.svelte';
 
   import { makeTitilerXYZUrl } from '../../../lib/utils';

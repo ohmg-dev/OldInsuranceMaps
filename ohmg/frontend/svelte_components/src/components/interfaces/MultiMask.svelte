@@ -31,8 +31,8 @@
 
   import Crop from 'ol-ext/filter/Crop';
 
-  import ToolUIButton from '../buttons/ToolUIButton.svelte';
-  import ExpandElement from '../buttons/ExpandElement.svelte';
+  import ToolUIButton from './widgets/ToolUIButton.svelte';
+  import ExpandElement from './widgets/ExpandElement.svelte';
 
   import { usaExtent } from '../../lib/utils';
   import { MapViewer } from '../../lib/viewers';

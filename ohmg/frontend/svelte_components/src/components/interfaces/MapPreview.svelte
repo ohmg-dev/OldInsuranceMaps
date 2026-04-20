@@ -8,14 +8,13 @@
   import { createEmpty, extend } from 'ol/extent';
   import { transformExtent } from 'ol/proj';
 
-  import Link from '../common/Link.svelte';
+  import Link from '../base/Link.svelte';
 
-  import ExpandElement from '../buttons/ExpandElement.svelte';
-  import RefreshMapButton from '../buttons/RefreshMapButton.svelte';
-  import TransparencySlider from '../buttons/TransparencySlider.svelte';
-  import ToolUIButton from '../buttons/ToolUIButton.svelte';
-
-  import MapboxLogoLink from '../common/MapboxLogoLink.svelte';
+  import ExpandElement from './widgets/ExpandElement.svelte';
+  import RefreshMapButton from './widgets/RefreshMapButton.svelte';
+  import TransparencySlider from './widgets/TransparencySlider.svelte';
+  import ToolUIButton from './widgets/ToolUIButton.svelte';
+  import MapboxLogoLink from './widgets/MapboxLogoLink.svelte';
 
   import { getModal } from '../base/Modal.svelte';
   import LegendModal from '../modals/LegendModal.svelte';

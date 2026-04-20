@@ -1,5 +1,5 @@
 <script>
-  import Link from '../../common/Link.svelte';
+  import Link from '../../base/Link.svelte';
 </script>
 
 <h4>How to use XYZ tiles in desktop software</h4>
