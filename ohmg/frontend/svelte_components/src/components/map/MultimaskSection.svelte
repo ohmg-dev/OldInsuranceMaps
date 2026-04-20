@@ -51,22 +51,24 @@
         );
     }
 </script>
-<span>
-    Select which multimask to work on:
-</span>
-<select
-    class="item-select"
-    bind:value={currentLayerSetId}
-    on:change={(e) => {
-        reinitMultimask();
-    }}
->
-    {#each Object.entries(layerSetLookup) as [id, ls]}
-    {#if ls.layers}
-        <option value={id}>{`${ls.name} (${ls.layers_masked_ct}/${ls.layers.length})`}</option>
-    {/if}
-    {/each}
-</select>
+<p>
+    <span>
+        Select which multimask to work on:
+    </span>
+    <select
+        class="item-select"
+        bind:value={currentLayerSetId}
+        on:change={(e) => {
+            reinitMultimask();
+        }}
+    >
+        {#each Object.entries(layerSetLookup) as [id, ls]}
+        {#if ls.layers}
+            <option value={id}>{`${ls.name} (${ls.layers_masked_ct}/${ls.layers.length})`}</option>
+        {/if}
+        {/each}
+    </select>
+</p>
 {#if currentLayerSet}
     {#key multimaskKey}
         <MultiMask

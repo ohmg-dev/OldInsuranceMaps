@@ -328,7 +328,7 @@
       {#if detailsSectionActiveTab == "details"}
         <Details {MAP} {SESSION_SUMMARY} />
       {:else if detailsSectionActiveTab == "stats"}
-        <div style="margin-top:10px;">
+        <div>
           <p>
             These users have contributed to the creation of the content within this map, by preparing or georeferencing
             images. Currently, trimming or "multimask" work is not reflected in this table.
@@ -336,7 +336,7 @@
         </div>
         <MapContributors {CONTEXT} mapId={MAP.identifier} />
       {:else if detailsSectionActiveTab == "activity"}
-        <div style="margin-top:10px;">
+        <div>
           <p>
             Below is complete record of all preparation or georeferencing actions that have been performed on documents
             within this map. Currently, trimming or "multimask" work is not reflected in this table.

@@ -31,8 +31,6 @@
   export let locale;
   export let refreshable = false;
 
-  console.log(locale)
-
   let mapViewer;
   let currentZoom;
 
