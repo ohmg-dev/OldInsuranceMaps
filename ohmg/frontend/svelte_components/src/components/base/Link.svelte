@@ -6,7 +6,7 @@
   export let href;
   export let external = false;
   export let rightArrow = false;
-  export let download = null;
+  export let download = false;
   export let title = '';
   export let classes = [];
 

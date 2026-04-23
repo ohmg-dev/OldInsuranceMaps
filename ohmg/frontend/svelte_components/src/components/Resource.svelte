@@ -12,7 +12,7 @@
   import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
   import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';
 
-  import ResourceDetails from './overviews/sections/ResourceDetails.svelte';
+  import Details from './resource/Details.svelte';
 
   import ResourceBreadcrumbs from './breadcrumbs/ResourceBreadcrumbs.svelte';
 
@@ -116,7 +116,7 @@
     </button>
     {#if sectionVis['summary']}
       <div transition:slide|global>
-        <ResourceDetails {CONTEXT} {RESOURCE} {MAP} />
+        <Details {CONTEXT} {RESOURCE} {MAP} />
       </div>
     {/if}
   </section>
