@@ -69,7 +69,7 @@
   <dd>{RESOURCE.status}</dd>
 </dl>
 {#if !MAP.hidden}
-<h4 class="dl-title">Downloads & Web Services</h4>
+<h4 class="dl-title">Downloads & Services</h4>
 <dl>
   <dt>Image</dt>
   <dd>

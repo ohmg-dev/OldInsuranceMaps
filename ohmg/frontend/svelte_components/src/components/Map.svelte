@@ -355,7 +355,7 @@
     <TabbedSection tabs={[
       {id: "preview", title: "Preview"},
       {id: "multimask", title: "MultiMask"},
-      {id: "download", title: "Downloads etc."},
+      {id: "download", title: "Downloads & Services"},
     ]} bind:activeTab={mosaicSectionActiveTab}>
       {#if mosaicSectionActiveTab == "preview"}
         {#key previewKey}
