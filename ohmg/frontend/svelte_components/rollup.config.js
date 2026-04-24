@@ -77,7 +77,6 @@ export default (cliArgs) => {
     'LatestBlogPosts',
     'MapBrowse',
     'MapShowcase',
-    'HowItWorks',
     'Participants',
     'Place',
     'Browse',

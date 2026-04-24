@@ -28,13 +28,13 @@
   import { makeImageLayer } from '../lib/layers';
   import { DocMousePosition } from '../lib/controls';
 
-  import Link from './common/Link.svelte';
-  import ExpandElement from './buttons/ExpandElement.svelte';
+  import Link from './base/Link.svelte';
+  import ExpandElement from './interfaces/widgets/ExpandElement.svelte';
 
-  import Modal, { getModal } from './modals/BaseModal.svelte';
+  import Modal, { getModal } from './base/Modal.svelte';
   import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
 
-  import ToolUIButton from './buttons/ToolUIButton.svelte';
+  import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';
   import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
 
   export let CONTEXT;

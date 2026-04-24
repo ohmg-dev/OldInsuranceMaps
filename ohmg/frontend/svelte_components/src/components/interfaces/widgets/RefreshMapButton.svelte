@@ -1,5 +1,5 @@
 <script>
-  import LoadingEllipsis from '../common/LoadingEllipsis.svelte';
+  import LoadingEllipsis from '../../common/LoadingEllipsis.svelte';
 
   export let handleRefresh;
   export let label = 'click to refresh content';

@@ -1,5 +1,5 @@
 <script>
-  import Link from './common/Link.svelte';
+  import Link from './base/Link.svelte';
 
   import MapItem from './cards/MapItem.svelte';
 

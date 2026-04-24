@@ -609,3 +609,25 @@ img.lead-image {
     padding: 0px 5px;
   }
 }
+
+#step-list > div {
+  display: flex;
+  align-items: center;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  border-bottom: dashed grey 1px;
+}
+
+#step-list > div:first-child {
+  padding-top: 5px;
+  border-top: dashed grey 1px;
+}
+
+#step-list div > div {
+  min-width: 85px;
+}
+
+#step-list div > p {
+  font-size: 1.25em;
+  margin-bottom: 0px;
+}

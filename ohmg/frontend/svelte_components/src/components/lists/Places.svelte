@@ -1,6 +1,6 @@
 <script>
   import { TableSort } from 'svelte-tablesort';
-  import Link from '../common/Link.svelte';
+  import Link from '../base/Link.svelte';
   import LoadingEllipsis from '../common/LoadingEllipsis.svelte';
 
   import { getFromAPI } from '../../lib/requests';

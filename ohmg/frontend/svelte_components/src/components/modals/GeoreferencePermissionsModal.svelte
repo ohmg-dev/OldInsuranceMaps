@@ -1,5 +1,5 @@
 <script>
-  import Modal from './BaseModal.svelte';
+  import Modal from '../base/Modal.svelte';
   export let id;
   export let user;
   export let userCanEdit;

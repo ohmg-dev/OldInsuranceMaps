@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
 from django.contrib.gis.geos import Polygon
@@ -30,8 +32,8 @@ class IIIFResource:
         if self.layer.mask:
             wgs84 = osr.SpatialReference()
             wgs84.ImportFromEPSG(4326)
-
-            coords = self.layer.mask.geojson["coordinates"][0]
+            mask_geojson = json.loads(self.layer.mask.geojson)
+            coords = mask_geojson["coordinates"][0]
             ct = CoordTransform(SpatialReference("WGS84"), SpatialReference("EPSG:3857"))
             polygon = Polygon(coords)
             polygon.transform(ct)

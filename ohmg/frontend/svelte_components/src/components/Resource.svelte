@@ -5,14 +5,14 @@
 
   import { getCenter } from 'ol/extent';
 
-  import Link from './common/Link.svelte';
+  import Link from './base/Link.svelte';
   import Sessions from './tables/Sessions.svelte';
   import BasicDocViewer from './interfaces/BasicDocViewer.svelte';
   import BasicLayerViewer from './interfaces/BasicLayerViewer.svelte';
   import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
-  import ToolUIButton from './buttons/ToolUIButton.svelte';
+  import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';
 
-  import ResourceDetails from './overviews/sections/ResourceDetails.svelte';
+  import Details from './resource/Details.svelte';
 
   import ResourceBreadcrumbs from './breadcrumbs/ResourceBreadcrumbs.svelte';
 
@@ -116,7 +116,7 @@
     </button>
     {#if sectionVis['summary']}
       <div transition:slide|global>
-        <ResourceDetails {CONTEXT} {RESOURCE} {MAP} />
+        <Details {CONTEXT} {RESOURCE} {MAP} />
       </div>
     {/if}
   </section>

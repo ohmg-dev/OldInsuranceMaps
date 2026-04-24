@@ -1,7 +1,11 @@
 <script>
+  import { slide } from 'svelte/transition';
   import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+  import DotsThree from 'phosphor-svelte/lib/DotsThree';
 
-  import Link from '../common/Link.svelte';
+  import { onMobile } from '../../lib/utils';
+
+  import Link from '../base/Link.svelte';
 
   export let LOCALE;
   export let MAP;
@@ -14,19 +18,32 @@
   function goToDocument() {
     window.location = '/document/' + currentDoc;
   }
+
+  let expandLocale = !onMobile();
 </script>
 
 <section>
-  <div style="flex-wrap:wrap">
-    <i class="fancy fancy-xs i-pin" style="margin-top: -5px;"></i>
-    {#each LOCALE.breadcrumbs as bc, n}
-      <Link href="/{bc.slug}">{bc.name}</Link>
-      {#if n != LOCALE.breadcrumbs.length - 1}
-        <span class="arrow">
-          <ArrowRight size={12} />
-        </span>
-      {/if}
-    {/each}
+  <div style="min-height:2em;">
+    <button style="display:flex; align-content: center;"
+      on:click={() => {expandLocale = !expandLocale}}>
+      <i class="fancy fancy-xs i-pin" style="margin-top: -5px;"></i>
+    </button>
+    {#if expandLocale}
+    <div transition:slide={{axis: "y", duration:200}} style="display:flex; flex-wrap:wrap;">
+      {#each LOCALE.breadcrumbs as bc, n}
+        <Link href="/{bc.slug}">{bc.name}</Link>
+        {#if n != LOCALE.breadcrumbs.length - 1}
+          <span class="arrow">
+            <ArrowRight size={12} />
+          </span>
+        {/if}
+      {/each}
+    </div>
+    {:else}
+    <div in:slide={{delay:200, duration:0}}>
+      <button on:click={() => {expandLocale = !expandLocale}}><DotsThree /></button>
+    </div>
+    {/if}
     <span class="arrow hideable">
       <ArrowRight size={12} />
     </span>
@@ -85,15 +102,8 @@
   }
 
   @media (max-width: 768px) {
-    section {
-      flex-direction: column;
-    }
     select {
       margin-bottom: 2px;
-      width: 100%;
-    }
-    section > div {
-      width: 100%;
     }
     .hideable {
       display: none;

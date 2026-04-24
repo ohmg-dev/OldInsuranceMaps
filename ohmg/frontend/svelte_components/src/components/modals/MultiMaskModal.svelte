@@ -4,7 +4,7 @@
   import CropIcon from 'phosphor-svelte/lib/Crop';
   import Trash from 'phosphor-svelte/lib/Trash';
 
-  import Modal from './BaseModal.svelte';
+  import Modal from '../base/Modal.svelte';
   export let id;
 </script>
 

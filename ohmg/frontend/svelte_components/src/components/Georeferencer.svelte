@@ -44,12 +44,12 @@
   import { DocMousePosition, LyrMousePosition, MapScaleLine } from '../lib/controls';
   import { MapViewer } from '../lib/viewers';
 
-  import Modal, { getModal } from './modals/BaseModal.svelte';
+  import Modal, { getModal } from './base/Modal.svelte';
   import LoadingEllipsis from './common/LoadingEllipsis.svelte';
-  import Link from './common/Link.svelte';
-  import ToolUIButton from './buttons/ToolUIButton.svelte';
+  import Link from './base/Link.svelte';
+  import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';
 
-  import ExpandElement from './buttons/ExpandElement.svelte';
+  import ExpandElement from './interfaces/widgets/ExpandElement.svelte';
   import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
   import InfoModalButton from './buttons/InfoModalButton.svelte';
 

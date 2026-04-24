@@ -8,14 +8,15 @@
   import { createEmpty, extend } from 'ol/extent';
   import { transformExtent } from 'ol/proj';
 
-  import ExpandElement from '../buttons/ExpandElement.svelte';
-  import RefreshMapButton from '../buttons/RefreshMapButton.svelte';
-  import TransparencySlider from '../buttons/TransparencySlider.svelte';
-  import ToolUIButton from '../buttons/ToolUIButton.svelte';
+  import Link from '../base/Link.svelte';
 
-  import MapboxLogoLink from '../common/MapboxLogoLink.svelte';
+  import ExpandElement from './widgets/ExpandElement.svelte';
+  import RefreshMapButton from './widgets/RefreshMapButton.svelte';
+  import TransparencySlider from './widgets/TransparencySlider.svelte';
+  import ToolUIButton from './widgets/ToolUIButton.svelte';
+  import MapboxLogoLink from './widgets/MapboxLogoLink.svelte';
 
-  import { getModal } from '../modals/BaseModal.svelte';
+  import { getModal } from '../base/Modal.svelte';
   import LegendModal from '../modals/LegendModal.svelte';
 
   import { makeLayerGroupFromLayerSet } from '../../lib/utils';
@@ -26,6 +27,7 @@
   export let CONTEXT;
   export let mapId;
   export let mapExtent;
+  export let locale;
   export let refreshable = false;
 
   let mapViewer;
@@ -128,6 +130,13 @@
 </script>
 
 <LegendModal id={'modal-legend'} legendUrl={'/static/img/key-nola-1940.png'} legendAlt={'Sanborn Map Key'} />
+<p>
+    This preview shows progress toward a full mosaic of this map's content&mdash;as documents are processed they will automatically appear here. Compare with other years <Link
+      href={`/viewer/${locale.slug}?${mapId}=100`}
+      external={true}
+      title={`Open viewer for ${locale.display_name}`}>in the viewer</Link
+    >.
+  </p>
 <div id="map-container" class="map-container" style="display:flex; justify-content: center; height:550px">
   <div id="map-panel">
     {#if refreshable}

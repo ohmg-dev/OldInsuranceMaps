@@ -5,7 +5,7 @@
   import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise';
   import Faders from 'phosphor-svelte/lib/Faders';
 
-  import Link from '../common/Link.svelte';
+  import Link from '../base/Link.svelte';
   import SessionListModal from '../modals/SessionListModal.svelte';
 
   import DatePicker from './widgets/DatePicker.svelte';

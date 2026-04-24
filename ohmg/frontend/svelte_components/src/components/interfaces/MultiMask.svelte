@@ -31,31 +31,29 @@
 
   import Crop from 'ol-ext/filter/Crop';
 
-  import ToolUIButton from '../buttons/ToolUIButton.svelte';
-  import ExpandElement from '../buttons/ExpandElement.svelte';
+  import ToolUIButton from './widgets/ToolUIButton.svelte';
+  import ExpandElement from './widgets/ExpandElement.svelte';
 
   import { usaExtent } from '../../lib/utils';
-  import { submitPostRequest } from '../../lib/requests';
   import { MapViewer } from '../../lib/viewers';
   import { LyrMousePosition } from '../../lib/controls';
 
   import { colors, mmColors, makeCircle } from '../../lib/ol-styles';
 
   export let CONTEXT;
-  export let LAYERSET;
+  export let LAYERS;
   export let DISABLED;
-  export let resetMosaic;
+  export let handleSubmit;
+  export let dirty = false;
 
   let currentLayer = null;
-
-  let unchanged = true;
 
   let layerLookup = {};
   let layerLookupMaskedArr = [];
   let layerLookupUnmaskedArr = [];
   let layerLookupArr = [];
 
-  const fullExtent = LAYERSET.extent ? transformExtent(LAYERSET.extent, 'EPSG:4326', 'EPSG:3857') : usaExtent;
+  let fullExtent = usaExtent;
 
   function updateLayerArr() {
     layerLookupArr = [];
@@ -74,21 +72,22 @@
   }
 
   function addIncomingMasks() {
-    if (LAYERSET.multimask_geojson) {
-      const feats = new GeoJSON().readFeatures(LAYERSET.multimask_geojson, {
-        featureProjection: 'EPSG:3857',
-      });
-      feats.forEach(function (f) {
-        trimShapeSource.addFeature(f);
-      });
-    }
+    LAYERS.forEach((lyr) => {
+      if (lyr.mask) {
+        const maskGeojson = {type: "Feature", properties: {layer: lyr.slug}, geometry: lyr.mask}
+        const feat = new GeoJSON().readFeature(maskGeojson, {
+          featureProjection: 'EPSG:3857',
+        });
+        trimShapeSource.addFeature(feat);
+      }
+    })
     resetVertexCounts();
   }
 
   function createLayerLookup() {
     layerLookup = {};
     trimShapeSource.clear();
-    LAYERSET.layers.forEach(function (layerDef) {
+    LAYERS.forEach(function (layerDef) {
       let newLayer = new TileLayer({
         source: new TileJSON({
           tileJSON: layerDef.tilejson,
@@ -116,10 +115,11 @@
       };
       layerLookup[layerDef.slug] = layer;
     });
+    fullExtent = extentLayer.getSource().getExtent();
     // now iterate the incoming mask features and apply all existing
     addIncomingMasks();
     updateLayerArr();
-    unchanged = true;
+    dirty = false;
   }
 
   const trimShapeSource = new VectorSource();
@@ -205,7 +205,7 @@
       layerRemoveMask(layer, true);
     });
     addIncomingMasks();
-    unchanged = true;
+    dirty = false;
   }
 
   let viewer;
@@ -269,7 +269,7 @@
       }
     });
     modify.on('modifyend', function (e) {
-      unchanged = false;
+      dirty = true;
     });
     viewer.addInteraction('modify', modify);
 
@@ -295,23 +295,12 @@
   });
 
   $: {
-    if (viewer) {
+    if (viewer && !DISABLED) {
       viewer.interactions.draw.setActive(currentLayer != null);
       viewer.interactions.modify.setActive(!viewer.interactions.draw.getActive());
     }
   }
 
-  function handleMultimaskSubmitResponse(response) {
-    if (response.success) {
-      window.alert('Masks saved successfully.');
-      unchanged = true;
-      resetMosaic();
-    } else {
-      let errMsg = 'Error! MultiMask not saved. You must remove and remake the following masks:\n';
-      errMsg += response.message;
-      alert(errMsg);
-    }
-  }
   function submitMultiMask() {
     if (DISABLED) {
       window.alert('You do not have edit permissions for this multimask.');
@@ -331,17 +320,7 @@
       }
     });
 
-    submitPostRequest(
-      '/layerset/',
-      CONTEXT.ohmg_post_headers,
-      'set-mask',
-      {
-        'multimask-geojson': outGeoJSON,
-        'map-id': LAYERSET.map_id,
-        category: LAYERSET.id,
-      },
-      handleMultimaskSubmitResponse,
-    );
+    handleSubmit(outGeoJSON)
   }
 
   function zoomToLayer(layer) {
@@ -411,7 +390,7 @@
     }
     currentLayer = null;
     updateLayerArr();
-    unchanged = false;
+    dirty = true;
   }
 
   function layerRemoveMask(layer, confirm) {
@@ -426,7 +405,7 @@
       layer.crop = null;
       layer.feature = null;
       updateLayerArr();
-      unchanged = false;
+      dirty = true;
     }
   }
 
@@ -475,7 +454,7 @@
         <div class="layer-section-subheader" style="overflow-y:auto">
           {#each layerLookupUnmaskedArr as layer}
             <div style="display:flex;">
-              <ToolUIButton title="add mask for this layer" action={() => addMask(layer)}>
+              <ToolUIButton title="add mask for this layer" action={() => addMask(layer)} disabled={DISABLED}>
                 <CropIcon />
               </ToolUIButton>
               {#if CONTEXT.user.is_authenticated}
@@ -484,6 +463,7 @@
                   action={() => {
                     window.location.href = layer.georeferenceUrl;
                   }}
+                  disabled={DISABLED}
                 >
                   <MapPin />
                 </ToolUIButton>
@@ -509,7 +489,7 @@
         <div class="layer-section-subheader" style="overflow-y:auto">
           {#each layerLookupMaskedArr as layer}
             <div style="display:flex;">
-              <ToolUIButton action={() => layerRemoveMask(layer)} title="remove this mask">
+              <ToolUIButton action={() => layerRemoveMask(layer)} title="remove this layer's mask" disabled={DISABLED}>
                 <Trash />
               </ToolUIButton>
               {#if CONTEXT.user.is_authenticated}
@@ -539,10 +519,10 @@
         </div>
       </div>
       <div class="layer-section-header">
-        <ToolUIButton action={resetInterface} title="Cancel (reset)" disabled={unchanged || DISABLED}>
+        <ToolUIButton action={resetInterface} title="Cancel (reset)" disabled={!dirty || DISABLED}>
           <X />
         </ToolUIButton>
-        <ToolUIButton action={submitMultiMask} title="Submit" disabled={unchanged || DISABLED}>
+        <ToolUIButton action={submitMultiMask} title="Submit" disabled={!dirty || DISABLED}>
           <Check />
         </ToolUIButton>
       </div>

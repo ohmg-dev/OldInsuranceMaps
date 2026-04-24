@@ -1,11 +1,18 @@
 <script>
-  import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+  import { slide } from "svelte/transition";
 
-  import Link from '../common/Link.svelte';
+  import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
+  import DotsThree from 'phosphor-svelte/lib/DotsThree';
+
+  import Link from '../base/Link.svelte';
+
+  import { onMobile } from '../../lib/utils';
 
   export let LOCALE;
   export let MAP;
   export let RESOURCE;
+
+  let expandLocale = !onMobile()
 
   let currentDoc = RESOURCE.type == 'document' ? RESOURCE.id : RESOURCE.document.id;
   function goToDocument() {
@@ -25,14 +32,26 @@
 </script>
 
 <section class="breadcrumbs">
-  <div style="flex-wrap:wrap">
-    <i class="fancy fancy-xs i-pin" style="margin-top: -5px;"></i>
-    {#each LOCALE.breadcrumbs as bc, n}
-      <Link href="/{bc.slug}">{bc.name}</Link>{#if n != LOCALE.breadcrumbs.length - 1}<ArrowRight size={12} />{/if}
-    {/each}
+  <div style="min-height:2em;">
+    <button style="display:flex; align-content: center;"
+      on:click={() => {expandLocale = !expandLocale}}>
+      <i class="fancy fancy-xs i-pin" style="margin-top: -5px;"></i>
+    </button>
+    {#if expandLocale}
+    <div transition:slide={{axis: "y", duration:200}} style="display:flex; flex-wrap:wrap;">
+      {#each LOCALE.breadcrumbs as bc, n}
+        <Link href="/{bc.slug}">{bc.name}</Link>{#if n != LOCALE.breadcrumbs.length - 1}<ArrowRight size={12} />{/if}
+      {/each}
+    </div>
+    {:else}
+    <div in:slide={{delay:200, duration:0}}>
+      <button on:click={() => {expandLocale = !expandLocale}}><DotsThree /></button>
+    </div>
+    {/if}
     <span class="arrow hideable">
       <ArrowRight size={12} />
     </span>
+
   </div>
   <div>
     <Link href={`/map/${MAP.identifier}`}>
@@ -46,29 +65,31 @@
     </span>
   </div>
   <div>
-    <Link href={`/document/${currentDoc}`}>
-      <span style="display:flex;">
-        <i class="fancy fancy-xs i-document"></i>
+    <div style="display:flex; align-items:center;">
+      <Link href={`/document/${currentDoc}`}>
+        <span style="display:flex;">
+          <i class="fancy fancy-xs i-document"></i>
+        </span>
+      </Link>
+      <select class="item-select" bind:value={currentDoc} on:change={goToDocument}>
+        <option value="---" disabled>document</option>
+        {#each MAP.documents as d}
+          <option value={d.id}>{d.nickname}</option>
+        {/each}
+      </select>
+      <span class="arrow hideable">
+        <ArrowRight size={12} />
       </span>
-    </Link>
-    <select class="item-select" bind:value={currentDoc} on:change={goToDocument}>
-      <option value="---" disabled>document</option>
-      {#each MAP.documents as d}
-        <option value={d.id}>{d.nickname}</option>
-      {/each}
-    </select>
-    <span class="arrow hideable">
-      <ArrowRight size={12} />
-    </span>
-  </div>
-  <div>
-    <i class="fancy fancy-xs i-layer {RESOURCE.regions.length == 0 ? 'disabled' : ''}"></i>
-    <select disabled={RESOURCE.regions.length == 0} class="item-select" bind:value={currentReg} on:change={goToRegion}>
-      <option value="---" disabled>region/layer</option>
-      {#each RESOURCE.regions as r}
-        <option value={r.id}>{r.nickname}</option>
-      {/each}
-    </select>
+    </div>
+    <div style="display:flex; align-items:center;">
+      <i class="fancy fancy-xs i-layer {RESOURCE.regions.length == 0 ? 'disabled' : ''}"></i>
+      <select disabled={RESOURCE.regions.length == 0} class="item-select" bind:value={currentReg} on:change={goToRegion}>
+        <option value="---" disabled>region/layer</option>
+        {#each RESOURCE.regions as r}
+          <option value={r.id}>{r.nickname}</option>
+        {/each}
+      </select>
+    </div>
   </div>
 </section>
 
@@ -113,15 +134,8 @@
   }
 
   @media (max-width: 768px) {
-    section {
-      flex-direction: column;
-    }
     select {
       margin-bottom: 2px;
-      width: 100%;
-    }
-    section > div {
-      width: 100%;
     }
     .hideable {
       display: none;
