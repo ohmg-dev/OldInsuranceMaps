@@ -128,6 +128,8 @@ class LOCParser(object):
         # get state from the last item in the item title, easy
         state_names = [i[1] for i in STATE_CHOICES]
         state_seg = title_segs[-1]
+        if state_seg.endswith("(Mexico)"):
+            state_seg = state_seg[:-8].rstrip()
         if state_seg in state_names:
             self.state = state_seg.lower()
             # remove the location tag for the state
