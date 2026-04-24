@@ -34,7 +34,7 @@
   import Modal, { getModal } from './base/Modal.svelte';
   import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
 
-  import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';s
+  import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';
   import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
 
   export let CONTEXT;
