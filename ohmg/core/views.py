@@ -475,6 +475,7 @@ class LayerSetView(View):
                     logger.debug(f"removing mask from layer {layer.slug} ({layer.pk})")
                     layer.mask = None
                 layer.save(set_extent=False, skip_map_lookup_update=True)
+            layerset.map.update_item_lookup()
             return JsonResponseSuccess()
 
 
