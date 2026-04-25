@@ -23,6 +23,7 @@ class MapAdmin(admin.ModelAdmin):
         "region_ct",
         "prepared_ct",
         "layer_ct",
+        "main_layer_ct",
         "skip_ct",
         "nonmap_ct",
         "completion_pct",
