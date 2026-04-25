@@ -96,6 +96,7 @@ class MapListSchema2(Schema):
     region_ct: int
     prepared_ct: int
     layer_ct: int
+    main_layer_ct: int
     skip_ct: int
     nonmap_ct: int
     completion_pct: int

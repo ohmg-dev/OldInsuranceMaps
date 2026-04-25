@@ -249,7 +249,7 @@
               <td class="number-col">{s.skip_ct}</td>
               <td class="number-col">{s.nonmap_ct}</td>
               <td class="number-col new-col"><div class="box" style="--p:{s.completion_pct};"></div></td>
-              <td class="number-col new-col">{s.multimask_ct}/{s.layer_ct}</td>
+              <td class="number-col new-col">{s.multimask_ct}/{s.main_layer_ct}</td>
               <td class="number-col new-col"
                 >{#if s.gt_exists}
                   <span style="color:green">✓</span>

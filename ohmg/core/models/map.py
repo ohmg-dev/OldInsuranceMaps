@@ -150,6 +150,9 @@ class Map(models.Model):
     layer_ct = models.IntegerField(
         default=0,
     )
+    main_layer_ct = models.IntegerField(
+        default=0,
+    )
     skip_ct = models.IntegerField(
         default=0,
     )
@@ -404,6 +407,7 @@ class Map(models.Model):
         self.region_ct = region_ct
         self.prepared_ct = prepared_ct
         self.layer_ct = layer_ct
+        self.main_layer_ct = main_lyrs_ct
         self.skip_ct = skip_ct
         self.nonmap_ct = nonmap_ct
         self.completion_pct = completion_pct
@@ -418,6 +422,7 @@ class Map(models.Model):
                 "region_ct",
                 "prepared_ct",
                 "layer_ct",
+                "main_layer_ct",
                 "skip_ct",
                 "nonmap_ct",
                 "completion_pct",
