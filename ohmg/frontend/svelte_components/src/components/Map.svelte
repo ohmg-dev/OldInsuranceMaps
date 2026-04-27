@@ -603,8 +603,8 @@
    </ExpandableSection>
    <ExpandableSection
       TITLE={`Non-Map Content (${MAP.item_lookup.nonmaps.length})`}
-      DISABLED={MAP.item_lookup.skipped.length == 0}
-      INFO_MODAL_ID="modal-nonmaps"
+      DISABLED={MAP.item_lookup.nonmaps.length == 0}
+      INFO_MODAL_ID="modal-non-map"
       IS_SUBSECTION={true}
       bind:EXPANDED={sectionVis['nonmaps']}
     >
