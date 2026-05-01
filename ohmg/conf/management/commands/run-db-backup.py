@@ -19,7 +19,7 @@ class Command(BaseCommand):
     Daily backups are stored locally and rotated everyday. Directory structure:
     LOCAL
       .db_backups/daily/
-        <YYYYMMDD>__<db name>.sql
+        <db name>__<YYYYMMDD>.sql
         (repeated for the last 10 days)
 
     S3
@@ -70,7 +70,7 @@ class Command(BaseCommand):
         db_pass = settings.DATABASES["default"]["PASSWORD"]
         db_port = settings.DATABASES["default"]["PORT"]
 
-        fname = now.strftime(f"%Y%m%d__{db_name}.sql")
+        fname = now.strftime(f"{db_name}__%Y%m%d.sql")
         fpath = Path(backup_dir, fname)
 
         cmd = [
