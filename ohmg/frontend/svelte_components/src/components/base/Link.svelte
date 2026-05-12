@@ -14,16 +14,21 @@
 </script>
 
 {#if external || rightArrow || download}
-  <a {href} class={classStr} target={external ? '_blank' : null} {title} {download}>
+  {#if download }
+  <a {href} class={classStr} target={external ? '_blank' : null} {title} download>
+    <slot></slot>
+    <DownloadSimple />
+  </a>
+  {:else}
+  <a {href} class={classStr} target={external ? '_blank' : null} {title}>
     <slot></slot>
     {#if external}
       <ArrowSquareOut />
     {:else if rightArrow}
       <ArrowRight />
-    {:else if download}
-      <DownloadSimple />
     {/if}
   </a>
+  {/if}
 {:else}
   <a {href} class={classStr} {title}>
     <slot></slot>
