@@ -15,6 +15,7 @@ class Command(BaseCommand):
             "operation",
             choices=[
                 "generate-cog",
+                "generate-tiles",
             ],
             help="the operation to perform",
         )
@@ -48,10 +49,18 @@ class Command(BaseCommand):
                 map__identifier=options.mapid, category__slug=options.category
             )
 
+        m = Mosaicker()
+
+        if options.operation == "generate-tiles":
+            if options.background:
+                create_mosaic_cog.delay(ls.pk)
+            else:
+                m.generate_xyz_tiles(ls)
+                m.cleanup_files()
+
         if options.operation == "generate-cog":
             if options.background:
                 create_mosaic_cog.delay(ls.pk)
             else:
-                m = Mosaicker()
                 m.generate_cog(ls)
                 m.cleanup_files()

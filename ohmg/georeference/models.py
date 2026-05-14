@@ -711,7 +711,7 @@ class GeorefSession(SessionBase):
         ## regardless of whether there was an old layer or not, overwrite
         ## the file with the newly georeferenced tif.
         session_ct = GeorefSession.objects.filter(reg2=self.reg2).exclude(pk=self.pk).count()
-        file_name = f"{layer.slug}__{random_alnum(6)}_{str(session_ct).zfill(2)}.tif"
+        file_name = f"{layer.slug}__{random_alnum()}_{str(session_ct).zfill(2)}.tif"
 
         with open(g.cog, "rb") as openf:
             layer.file.save(file_name, File(openf))
@@ -793,8 +793,10 @@ class SessionLock(models.Model):
 
     def __str__(self):
         return (
-            f"{self.session} --> {self.target._meta.object_name} ({self.target} {self.target_id})"
-        ) if self.target else f"{self.session} --> (no target)"
+            (f"{self.session} --> {self.target._meta.object_name} ({self.target} {self.target_id})")
+            if self.target
+            else f"{self.session} --> (no target)"
+        )
 
     def extend(self):
         self.expiration += timedelta(seconds=settings.GEOREFERENCE_SESSION_LENGTH)

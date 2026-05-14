@@ -1,6 +1,8 @@
 import json
 import logging
 import os
+import shutil
+import subprocess
 from datetime import datetime
 from glob import glob
 from pathlib import Path
@@ -14,7 +16,7 @@ from osgeo import gdal
 
 from ohmg.core.models import Layer, LayerSet
 from ohmg.core.storages import get_file_url
-from ohmg.core.utils import random_alnum
+from ohmg.core.utils import get_boto3_s3_client, random_alnum
 
 from .georeferencer import Georeferencer, VRTHandler
 
@@ -62,9 +64,11 @@ class Mosaicker:
             print(layer_name)
             try:
                 layer = Layer.objects.get(slug=layer_name, region__document__map=layerset.map)
-            except Layer.MultipleObjectsReturned as e:
-                print("this layer slug matched multiple layers in this map: cancelling mosaic process")
-            except Exception as  e:
+            except Layer.MultipleObjectsReturned:
+                print(
+                    "this layer slug matched multiple layers in this map: cancelling mosaic process"
+                )
+            except Exception as e:
                 raise e
 
             if not layer.file:
@@ -124,7 +128,7 @@ class Mosaicker:
 
         existing_file_name = layerset.mosaic_geotiff.name if layerset.mosaic_geotiff else None
 
-        file_name = f"{layerset.map.identifier}-{layerset.category.slug}__{datetime.now().strftime('%Y-%m-%d')}__{random_alnum(6)}.tif"
+        file_name = f"{layerset.map.identifier}-{layerset.category.slug}__{datetime.now().strftime('%Y-%m-%d')}__{random_alnum()}.tif"
 
         with open(self.cog, "rb") as f:
             layerset.mosaic_geotiff.save(file_name, File(f))
@@ -136,6 +140,78 @@ class Mosaicker:
         layerset.save(set_tilejson=True)
 
         print(f"completed - elapsed time: {datetime.now() - start}")
+
+    def generate_xyz_tiles(self, layerset: LayerSet):
+        start = datetime.now()
+
+        self.generate_mosaic_vrt(layerset)
+
+        prefix = f"tiles/{layerset.map.identifier}/{layerset.category.slug}/{random_alnum()}"
+        logger.info(f"creating new tileset {prefix}")
+        if settings.ENABLE_S3_STORAGE:
+            out_path = Path(settings.TEMP_DIR, prefix)
+        else:
+            out_path = Path(settings.MEDIA_ROOT, prefix)
+
+        cmd = [
+            "gdal2tiles.py",
+            "--xyz",
+            "-z",
+            "13-20",
+            str(self.mosaic_vrt.get_path()),
+            out_path,
+        ]
+
+        try:
+            subprocess.run(cmd, check=True)
+            logger.info(f"{prefix} tileset created, elapsed time: {datetime.now() - start}")
+        except subprocess.CalledProcessError as e:
+            raise Exception(f"Error during tile generation: {e}")
+
+        if settings.ENABLE_S3_STORAGE:
+            s3 = get_boto3_s3_client()
+
+            all_files = []
+            for root, dirs, files in os.walk(out_path):
+                for f in files:
+                    all_files.append(
+                        {"path": Path(root, f), "key": Path(root, f).relative_to(settings.TEMP_DIR)}
+                    )
+
+            logger.debug(
+                f"uploading {len(all_files)} tiles to bucket: {settings.AWS_STORAGE_BUCKET_NAME}"
+            )
+            for f in all_files:
+                s3.upload_file(
+                    f["path"],
+                    settings.AWS_STORAGE_BUCKET_NAME,
+                    str(f["key"]),
+                    ExtraArgs={"ACL": "public-read"},
+                )
+
+            logger.debug("deleting temp local tileset")
+            shutil.rmtree(out_path)
+
+        existing_tileset_prefix = layerset.xyz_tiles_prefix
+        layerset.xyz_tiles_prefix = prefix
+        layerset.save()
+
+        ## clean up existing tileset
+        if existing_tileset_prefix:
+            logger.info(f"deleting existing tileset {existing_tileset_prefix}")
+            if settings.ENABLE_S3_STORAGE:
+                s3 = get_boto3_s3_client()
+                response = s3.list_objects_v2(
+                    Bucket=settings.AWS_STORAGE_BUCKET_NAME, Prefix=existing_tileset_prefix
+                )
+                logger.info(f"deleting {len(response['Contents'])} tiles")
+                for object in response["Contents"]:
+                    s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object["Key"])
+            else:
+                shutil.rmtree(
+                    Path(settings.MEDIA_ROOT, existing_tileset_prefix),
+                    ignore_errors=True,
+                )
 
     def generate_mosaic_json(self, layerset, trim_all=False):
         """DEPRECATED: Currently, MosaicJSON is not used anywhere in the app."""
@@ -188,7 +264,7 @@ class Mosaicker:
                 cached_feature = None
                 write_trim_feature_cache(feature, feat_cache_path)
 
-            unique_id = random_alnum(6)
+            unique_id = random_alnum()
             trim_vrt_path = in_path.replace(".tif", f"_{unique_id}_trim.vrt")
             out_path = trim_vrt_path.replace(".vrt", ".tif")
 
