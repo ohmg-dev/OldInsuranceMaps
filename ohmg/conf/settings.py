@@ -307,25 +307,25 @@ CELERY_RESULT_BACKEND = "rpc://"
 
 # basic independent setup for Celery Exchange/Queue
 DEFAULT_EXCHANGE = Exchange("default", type="topic")
-# CELERY_TASK_QUEUES += (
+
 CELERY_TASK_QUEUES = (
-    Queue("split", DEFAULT_EXCHANGE, routing_key="split", priority=0),
-    Queue("georeference", DEFAULT_EXCHANGE, routing_key="georeference", priority=0),
-    Queue("map", DEFAULT_EXCHANGE, routing_key="map", priority=0),
-    Queue("mosaic", DEFAULT_EXCHANGE, routing_key="mosaic", priority=0),
-    Queue("housekeeping", DEFAULT_EXCHANGE, routing_key="housekeeping", priority=0),
+    ## these queues run on the same worker
+    Queue("main", DEFAULT_EXCHANGE, routing_key="main"),
+    Queue("background", DEFAULT_EXCHANGE, routing_key="background"),
+    ## this queue runs on its own worker
+    Queue("mosaic", DEFAULT_EXCHANGE, routing_key="mosaic"),
 )
 
 CELERY_TASK_ROUTES = {
-    "ohmg.georeference.tasks.run_preparation_session": {"queue": "split"},
-    "ohmg.georeference.tasks.bulk_run_preparation_sessions": {"queue": "split"},
-    "ohmg.georeference.tasks.run_georeference_session": {"queue": "georeference"},
-    "ohmg.georeference.tasks.delete_stale_sessions": {"queue": "housekeeping"},
-    "ohmg.georeference.tasks.delete_preview_vrts": {"queue": "housekeeping"},
+    "ohmg.georeference.tasks.run_preparation_session": {"queue": "main"},
+    "ohmg.georeference.tasks.bulk_run_preparation_sessions": {"queue": "main"},
+    "ohmg.georeference.tasks.run_georeference_session": {"queue": "main"},
+    "ohmg.core.tasks.load_map_documents_as_task": {"queue": "main"},
+    "ohmg.core.tasks.load_document_file_as_task": {"queue": "main"},
+    "ohmg.georeference.tasks.delete_stale_sessions": {"queue": "background"},
+    "ohmg.georeference.tasks.delete_preview_vrts": {"queue": "background"},
     "ohmg.georeference.tasks.create_mosaic_cog": {"queue": "mosaic"},
     "ohmg.georeference.tasks.create_mosaic_tileset": {"queue": "mosaic"},
-    "ohmg.core.tasks.load_map_documents_as_task": {"queue": "map"},
-    "ohmg.core.tasks.load_document_file_as_task": {"queue": "map"},
 }
 
 # empty celery beat schedule of default GeoNode jobs

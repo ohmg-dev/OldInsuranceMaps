@@ -1,7 +1,7 @@
 #! /usr/bin/bash
 
 uv run celery -A ohmg.conf.celery:app worker \
-	-Q split,georeference,map,housekeeping \
+	-Q main,background \
 	--without-gossip \
 	--without-mingle \
 	-Ofair -B -E \
