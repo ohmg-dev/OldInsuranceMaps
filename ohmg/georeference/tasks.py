@@ -39,7 +39,7 @@ def run_georeference_session(sessionid):
     return session.pk
 
 
-@app.task()
+@app.task
 def delete_stale_sessions():
     delete_expired_session_locks()
 
@@ -58,4 +58,15 @@ def create_mosaic_cog(layersetid):
         logger.warning(f"LayerSet does not exist: {layersetid}. Cancelling mosaic creation.")
     m = Mosaicker()
     m.generate_cog(layerset)
+    m.cleanup_files()
+
+
+@app.task
+def create_mosaic_tileset(layersetid):
+    try:
+        layerset = LayerSet.objects.get(pk=layersetid)
+    except LayerSet.DoesNotExist:
+        logger.warning(f"LayerSet does not exist: {layersetid}. Cancelling mosaic creation.")
+    m = Mosaicker()
+    m.generate_xyz_tiles(layerset)
     m.cleanup_files()

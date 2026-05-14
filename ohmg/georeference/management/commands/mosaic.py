@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 
 from ohmg.core.models import LayerSet
 from ohmg.georeference.mosaicker import Mosaicker
-from ohmg.georeference.tasks import create_mosaic_cog
+from ohmg.georeference.tasks import create_mosaic_cog, create_mosaic_tileset
 
 
 class Command(BaseCommand):
@@ -53,7 +53,7 @@ class Command(BaseCommand):
 
         if options.operation == "generate-tiles":
             if options.background:
-                create_mosaic_cog.delay(ls.pk)
+                create_mosaic_tileset.delay(ls.pk)
             else:
                 m.generate_xyz_tiles(ls)
                 m.cleanup_files()
