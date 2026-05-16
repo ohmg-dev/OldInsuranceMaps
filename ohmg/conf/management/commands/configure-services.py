@@ -186,7 +186,7 @@ Requires=rabbitmq-server.service
 EnvironmentFile={settings.BASE_DIR}/.env
 ExecStart={self.python_env}/celery \\
     -A ohmg.conf.celery:app worker \\
-    -Q split,georeference,map,housekeeping \\
+    -Q main,background \\
     --without-gossip --without-mingle \\
     -Ofair -B -E \\
     --statedb={str(state_path.resolve())}/celery_main_worker.state \\
