@@ -2,23 +2,25 @@ import json
 import logging
 import os
 import shutil
-import subprocess
 from datetime import datetime
 from glob import glob
 from pathlib import Path
 from typing import List
 
+import morecantile
 from django.conf import settings
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.core.files import File
 from django.core.files.storage import get_storage_class
 from osgeo import gdal
+from rio_tiler.io import Reader
 
 from ohmg.core.models import Layer, LayerSet
 from ohmg.core.storages import get_file_url
 from ohmg.core.utils import get_boto3_s3_client, random_alnum
 
 from .georeferencer import Georeferencer, VRTHandler
+from .tasks import cleanup_existing_tileset
 
 gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
 gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")
@@ -141,10 +143,11 @@ class Mosaicker:
 
         print(f"completed - elapsed time: {datetime.now() - start}")
 
-    def generate_xyz_tiles(self, layerset: LayerSet):
+    def generate_xyz_tiles(self, layerset: LayerSet, min_zoom: int = 13, max_zoom: int = 20):
         start = datetime.now()
 
         self.generate_mosaic_vrt(layerset)
+        tms = morecantile.tms.get("WebMercatorQuad")
 
         prefix = f"tiles/{layerset.map.identifier}/{layerset.category.slug}/{random_alnum()}"
         logger.info(f"creating new tileset {prefix}")
@@ -153,20 +156,19 @@ class Mosaicker:
         else:
             out_path = Path(settings.MEDIA_ROOT, prefix)
 
-        cmd = [
-            "gdal2tiles.py",
-            "--xyz",
-            "-z",
-            "13-20",
-            str(self.mosaic_vrt.get_path()),
-            out_path,
-        ]
+        with Reader(self.mosaic_vrt.get_path()) as src:
+            for coords in tms.tiles(*src.geographic_bounds, zooms=range(min_zoom, max_zoom + 1)):
+                tile = src.tile(coords.x, coords.y, coords.z)
+                ## only make a tile if there is valid data (skip empty tiles)
+                if tile.data_as_image().any():
+                    rendered_bytes = tile.render()
+                    out_dir = Path(out_path, str(coords.z), str(coords.x))
+                    out_dir.mkdir(parents=True, exist_ok=True)
+                    tile_path = Path(out_dir, f"{coords.y}.png")
+                    with open(tile_path, "wb") as file:
+                        file.write(rendered_bytes)
 
-        try:
-            subprocess.run(cmd, check=True)
-            logger.info(f"{prefix} tileset created, elapsed time: {datetime.now() - start}")
-        except subprocess.CalledProcessError as e:
-            raise Exception(f"Error during tile generation: {e}")
+        logger.info(f"{prefix} tileset created, elapsed time: {datetime.now() - start}")
 
         if settings.ENABLE_S3_STORAGE:
             s3 = get_boto3_s3_client()
@@ -198,20 +200,7 @@ class Mosaicker:
 
         ## clean up existing tileset
         if existing_tileset_prefix:
-            logger.info(f"deleting existing tileset {existing_tileset_prefix}")
-            if settings.ENABLE_S3_STORAGE:
-                s3 = get_boto3_s3_client()
-                response = s3.list_objects_v2(
-                    Bucket=settings.AWS_STORAGE_BUCKET_NAME, Prefix=existing_tileset_prefix
-                )
-                logger.info(f"deleting {len(response['Contents'])} tiles")
-                for object in response["Contents"]:
-                    s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object["Key"])
-            else:
-                shutil.rmtree(
-                    Path(settings.MEDIA_ROOT, existing_tileset_prefix),
-                    ignore_errors=True,
-                )
+            cleanup_existing_tileset.delay(existing_tileset_prefix)
 
     def generate_mosaic_json(self, layerset, trim_all=False):
         """DEPRECATED: Currently, MosaicJSON is not used anywhere in the app."""

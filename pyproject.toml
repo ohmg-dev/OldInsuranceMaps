@@ -45,7 +45,8 @@ dependencies = [
     "lxml",
     "setuptools",
     # for celery beat
-    "pytz"
+    "pytz",
+    "rio-tiler>=5.0.3",
 ]
 
 [project.optional-dependencies]
