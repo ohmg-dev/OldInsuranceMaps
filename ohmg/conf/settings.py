@@ -324,6 +324,7 @@ CELERY_TASK_ROUTES = {
     "ohmg.core.tasks.load_document_file_as_task": {"queue": "main"},
     "ohmg.georeference.tasks.delete_stale_sessions": {"queue": "background"},
     "ohmg.georeference.tasks.delete_preview_vrts": {"queue": "background"},
+    "ohmg.georeference.tasks.cleanup_existing_tileset": {"queue": "background"},
     "ohmg.georeference.tasks.create_mosaic_cog": {"queue": "mosaic"},
     "ohmg.georeference.tasks.create_mosaic_tileset": {"queue": "mosaic"},
 }
