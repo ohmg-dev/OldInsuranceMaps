@@ -1,6 +1,8 @@
 import io
 import logging
+import os
 from datetime import datetime
+from multiprocessing import Pool
 from pathlib import Path
 from typing import Union
 
@@ -12,6 +14,72 @@ from ohmg.core.utils import get_boto3_s3_client
 
 logger = logging.getLogger(__name__)
 
+TMS = morecantile.tms.get("WebMercatorQuad")
+
+
+def extract_tile_for_multiprocessing(info):
+    """This is a standalone function to be called within a multiprocessing iteration,
+    and should only be used in that context. It needs to re-instantiate the Reader
+    object, and also needs to recreate the s3 client. This is inefficient..."""
+
+    src_url = info.get("src_url")
+    tile_coords = info.get("tile_coords")
+    prefix = info.get("prefix")
+
+    with Reader(src_url) as src:
+        tile = src.tile(tile_coords.x, tile_coords.y, tile_coords.z)
+
+        ## only make a tile if there is valid data (skip empty tiles)
+        if tile.data_as_image().any():
+            rendered_bytes = tile.render()
+            if settings.ENABLE_S3_STORAGE:
+                s3 = get_boto3_s3_client()
+                key = f"{prefix}/{tile_coords.z}/{tile_coords.x}/{tile_coords.y}.png"
+                file_like = io.BytesIO(rendered_bytes)
+                s3.upload_fileobj(
+                    file_like,
+                    settings.AWS_STORAGE_BUCKET_NAME,
+                    key,
+                )
+            else:
+                out_root = Path(settings.MEDIA_ROOT, prefix)
+                out_dir = Path(out_root, str(tile_coords.z), str(tile_coords.x))
+                out_dir.mkdir(parents=True, exist_ok=True)
+                file_path = Path(out_dir, f"{tile_coords.y}.png")
+                with open(file_path, "wb") as file:
+                    file.write(rendered_bytes)
+
+
+def make_xyz_tiles_with_multiprocessing(
+    data_source: Union[str | Path],
+    prefix: Union[str | Path],
+    min_zoom: int = 13,
+    max_zoom: int = 20,
+):
+    start = datetime.now()
+
+    logger.info(f"creating new tileset with multiprocessing {prefix}")
+
+    with Reader(data_source) as src:
+        zooms = range(min_zoom, max_zoom + 1)
+        bounds = src.geographic_bounds
+        tile_info_list = [
+            {
+                "src_url": data_source,
+                "tile_coords": i,
+                "prefix": prefix,
+            }
+            for i in TMS.tiles(*bounds, zooms=zooms)
+        ]
+        tiles_total_ct = len(tile_info_list)
+        logger.info(f"{tiles_total_ct} tile coordinate sets")
+        process_ct = os.cpu_count()
+        logger.info(f"generating tiles using {process_ct} parallel processes")
+        with Pool(process_ct) as p:
+            p.map(extract_tile_for_multiprocessing, tile_info_list)
+
+    logger.info(f"{prefix} completed, elapsed time: {datetime.now() - start}")
+
 
 def make_xyz_tiles(
     data_source: Union[str | Path],
@@ -20,8 +88,6 @@ def make_xyz_tiles(
     max_zoom: int = 20,
 ):
     start = datetime.now()
-
-    tms = morecantile.tms.get("WebMercatorQuad")
 
     logger.info(f"creating new tileset {prefix}")
 
@@ -43,9 +109,11 @@ def make_xyz_tiles(
     with Reader(data_source) as src:
         zooms = range(min_zoom, max_zoom + 1)
         bounds = src.geographic_bounds
-        tiles_total_ct = sum(1 for i in tms.tiles(*bounds, zooms=zooms))
+        tile_coords = list(TMS.tiles(*bounds, zooms=zooms))
+        tiles_total_ct = len(tile_coords)
+        logger.info(f"{tiles_total_ct} tile coordinate sets")
         tiles_written_ct = 0
-        for coords in tms.tiles(*bounds, zooms=zooms):
+        for coords in TMS.tiles(*bounds, zooms=zooms):
             tile = src.tile(coords.x, coords.y, coords.z)
             ## only make a tile if there is valid data (skip empty tiles)
             if tile.data_as_image().any():

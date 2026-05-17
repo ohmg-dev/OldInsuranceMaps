@@ -18,7 +18,7 @@ from ohmg.core.utils import random_alnum
 
 from .georeferencer import Georeferencer, VRTHandler
 from .tasks import cleanup_existing_tileset
-from .utils import make_xyz_tiles
+from .utils import make_xyz_tiles, make_xyz_tiles_with_multiprocessing
 
 gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
 gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")
@@ -141,13 +141,29 @@ class Mosaicker:
 
         print(f"completed - elapsed time: {datetime.now() - start}")
 
-    def generate_xyz_tiles(self, layerset: LayerSet, min_zoom: int = 13, max_zoom: int = 20):
-        self.generate_mosaic_vrt(layerset)
+    def generate_xyz_tiles(
+        self,
+        layerset: LayerSet,
+        min_zoom: int = 13,
+        max_zoom: int = 20,
+        use_multiprocessing: bool = False,
+    ):
+        if layerset.mosaic_geotiff:
+            in_path = f"/vsicurl/{layerset.mosaic_cog_url}"
+        else:
+            self.generate_mosaic_vrt(layerset)
+            in_path = self.mosaic_vrt.get_path()
 
         prefix = f"tiles/{layerset.map.identifier}/{layerset.category.slug}/{random_alnum()}"
         logger.info(f"creating new tileset {prefix}")
+        logger.info(f"source dataset: {in_path}")
 
-        make_xyz_tiles(self.mosaic_vrt.get_path(), prefix, min_zoom=min_zoom, max_zoom=max_zoom)
+        if use_multiprocessing:
+            make_xyz_tiles_with_multiprocessing(
+                in_path, prefix, min_zoom=min_zoom, max_zoom=max_zoom
+            )
+        else:
+            make_xyz_tiles(in_path, prefix, min_zoom=min_zoom, max_zoom=max_zoom)
 
         existing_tileset_prefix = layerset.xyz_tiles_prefix
         layerset.xyz_tiles_prefix = prefix
