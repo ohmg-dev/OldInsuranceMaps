@@ -1,7 +1,7 @@
+import io
 import json
 import logging
 import os
-import shutil
 from datetime import datetime
 from glob import glob
 from pathlib import Path
@@ -151,48 +151,56 @@ class Mosaicker:
 
         prefix = f"tiles/{layerset.map.identifier}/{layerset.category.slug}/{random_alnum()}"
         logger.info(f"creating new tileset {prefix}")
-        if settings.ENABLE_S3_STORAGE:
-            out_path = Path(settings.TEMP_DIR, prefix)
-        else:
-            out_path = Path(settings.MEDIA_ROOT, prefix)
 
-        with Reader(self.mosaic_vrt.get_path()) as src:
-            for coords in tms.tiles(*src.geographic_bounds, zooms=range(min_zoom, max_zoom + 1)):
-                tile = src.tile(coords.x, coords.y, coords.z)
-                ## only make a tile if there is valid data (skip empty tiles)
-                if tile.data_as_image().any():
-                    rendered_bytes = tile.render()
-                    out_dir = Path(out_path, str(coords.z), str(coords.x))
-                    out_dir.mkdir(parents=True, exist_ok=True)
-                    tile_path = Path(out_dir, f"{coords.y}.png")
-                    with open(tile_path, "wb") as file:
-                        file.write(rendered_bytes)
-
-        logger.info(f"{prefix} tileset created, elapsed time: {datetime.now() - start}")
+        p = {
+            10: False,
+            20: False,
+            30: False,
+            40: False,
+            50: False,
+            60: False,
+            70: False,
+            80: False,
+            90: False,
+        }
 
         if settings.ENABLE_S3_STORAGE:
             s3 = get_boto3_s3_client()
 
-            all_files = []
-            for root, dirs, files in os.walk(out_path):
-                for f in files:
-                    all_files.append(
-                        {"path": Path(root, f), "key": Path(root, f).relative_to(settings.TEMP_DIR)}
-                    )
+        with Reader(self.mosaic_vrt.get_path()) as src:
+            zooms = range(min_zoom, max_zoom + 1)
+            bounds = src.geographic_bounds
+            tiles_total_ct = sum(1 for i in tms.tiles(*bounds, zooms=zooms))
+            tiles_written_ct = 0
+            for coords in tms.tiles(*bounds, zooms=zooms):
+                tile = src.tile(coords.x, coords.y, coords.z)
+                ## only make a tile if there is valid data (skip empty tiles)
+                if tile.data_as_image().any():
+                    rendered_bytes = tile.render()
+                    key = f"{prefix}/{coords.z}/{coords.x}/{coords.y}.png"
+                    if settings.ENABLE_S3_STORAGE:
+                        file_like = io.BytesIO(rendered_bytes)
+                        s3.upload_fileobj(
+                            file_like,
+                            settings.AWS_STORAGE_BUCKET_NAME,
+                            key,
+                        )
+                    else:
+                        out_root = Path(settings.MEDIA_ROOT, prefix)
+                        out_dir = Path(out_root, str(coords.z), str(coords.x))
+                        out_dir.mkdir(parents=True, exist_ok=True)
+                        file_path = Path(out_dir, f"{coords.y}.png")
+                        with open(file_path, "wb") as file:
+                            file.write(rendered_bytes)
+                ## progress logging
+                tiles_written_ct += 1
+                pct = int((tiles_written_ct / tiles_total_ct) * 100)
+                for k in p.keys():
+                    if pct > k and not p[k]:
+                        logger.debug(f"{prefix} {k}% written")
+                        p[k] = True
 
-            logger.debug(
-                f"uploading {len(all_files)} tiles to bucket: {settings.AWS_STORAGE_BUCKET_NAME}"
-            )
-            for f in all_files:
-                s3.upload_file(
-                    f["path"],
-                    settings.AWS_STORAGE_BUCKET_NAME,
-                    str(f["key"]),
-                    ExtraArgs={"ACL": "public-read"},
-                )
-
-            logger.debug("deleting temp local tileset")
-            shutil.rmtree(out_path)
+        logger.info(f"{prefix} completed, elapsed time: {datetime.now() - start}")
 
         existing_tileset_prefix = layerset.xyz_tiles_prefix
         layerset.xyz_tiles_prefix = prefix
