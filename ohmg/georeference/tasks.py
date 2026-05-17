@@ -87,7 +87,10 @@ def cleanup_existing_tileset(prefix):
         for object in response["Contents"]:
             s3.delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object["Key"])
     else:
-        shutil.rmtree(
-            Path(settings.MEDIA_ROOT, prefix),
-            ignore_errors=True,
-        )
+        try:
+            shutil.rmtree(
+                Path(settings.MEDIA_ROOT, prefix),
+                ignore_errors=True,
+            )
+        except FileNotFoundError:
+            pass

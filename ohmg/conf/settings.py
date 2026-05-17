@@ -451,7 +451,6 @@ LOGGING = {
 if DEBUG:
     celery_log_level = "DEBUG"
     LOGGING["loggers"]["ohmg"]["handlers"].append("console")
-    LOGGING["loggers"]["ohmg.georeference"]["handlers"].append("console")
 else:
     celery_log_level = "INFO"
 

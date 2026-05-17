@@ -152,7 +152,7 @@ class Mosaicker:
         prefix = f"tiles/{layerset.map.identifier}/{layerset.category.slug}/{random_alnum()}"
         logger.info(f"creating new tileset {prefix}")
 
-        p = {
+        progress_pct = {
             10: False,
             20: False,
             30: False,
@@ -177,8 +177,8 @@ class Mosaicker:
                 ## only make a tile if there is valid data (skip empty tiles)
                 if tile.data_as_image().any():
                     rendered_bytes = tile.render()
-                    key = f"{prefix}/{coords.z}/{coords.x}/{coords.y}.png"
                     if settings.ENABLE_S3_STORAGE:
+                        key = f"{prefix}/{coords.z}/{coords.x}/{coords.y}.png"
                         file_like = io.BytesIO(rendered_bytes)
                         s3.upload_fileobj(
                             file_like,
@@ -195,10 +195,10 @@ class Mosaicker:
                 ## progress logging
                 tiles_written_ct += 1
                 pct = int((tiles_written_ct / tiles_total_ct) * 100)
-                for k in p.keys():
-                    if pct > k and not p[k]:
+                for k in progress_pct.keys():
+                    if pct > k and not progress_pct[k]:
                         logger.debug(f"{prefix} {k}% written")
-                        p[k] = True
+                        progress_pct[k] = True
 
         logger.info(f"{prefix} completed, elapsed time: {datetime.now() - start}")
 
