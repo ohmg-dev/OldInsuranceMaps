@@ -64,6 +64,11 @@ class LayerSet(models.Model):
         null=True,
         blank=True,
     )
+    xyz_tiles_prefix = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+    )
     tilejson = models.JSONField(null=True, blank=True)
 
     def __str__(self):
@@ -80,6 +85,17 @@ class LayerSet(models.Model):
 
     def get_layers(self) -> Iterable["Layer"]:
         return self.layer_set.all()
+
+    @property
+    def xyz_tiles_url(self):
+        if self.xyz_tiles_prefix:
+            if settings.ENABLE_S3_STORAGE:
+                base_url = f"{settings.AWS_S3_ENDPOINT_URL}/{settings.AWS_STORAGE_BUCKET_NAME}"
+            else:
+                base_url = f"{settings.SITEURL.rstrip('/')}{settings.MEDIA_URL}"
+            return f"{base_url.rstrip('/')}/{self.xyz_tiles_prefix}"
+        else:
+            return None
 
     @cached_property
     def centroid(self):

@@ -31,8 +31,11 @@ class Command(BaseCommand):
         out_dir = Path(options["destination"])
         out_dir.mkdir(exist_ok=True)
 
-        cs_path = Path(out_dir, "celery.service")
-        self._write_file(self.generate_celery_service(out_dir), cs_path)
+        cs1_path = Path(out_dir, "celery_main.service")
+        self._write_file(self.generate_celery_main_service(out_dir), cs1_path)
+
+        cs2_path = Path(out_dir, "celery_mosaic.service")
+        self._write_file(self.generate_celery_mosaic_service(out_dir), cs2_path)
 
         ui_path = Path(out_dir, "uwsgi.ini")
         self._write_file(self.generate_uwsgi_ini(), ui_path)
@@ -43,21 +46,25 @@ class Command(BaseCommand):
         print(f"""services created. to deploy, run the following commands:
 
 # initial deployment (first time only)
-sudo ln -sf {cs_path.absolute()} /etc/systemd/system
+sudo ln -sf {cs1_path.absolute()} /etc/systemd/system
+sudo ln -sf {cs2_path.absolute()} /etc/systemd/system
 sudo ln -sf {us_path.absolute()} /etc/systemd/system
 sudo systemctl daemon-reload
-sudo systemctl enable celery
+sudo systemctl enable celery_main
+sudo systemctl enable celery_mosaic
 sudo systemctl enable uwsgi
-sudo systemctl start celery
+sudo systemctl start celery_main
+sudo systemctl start celery_mosaic
 sudo systemctl start uwsgi
 
-# reload services
+# reload services after changes
 sudo systemctl daemon-reload
-sudo systemctl restart celery
+sudo systemctl restart celery_main
+sudo systemctl restart celery_mosaic
 sudo systemctl restart uwsgi
 """)
 
-        output_files = [cs_path, ui_path, us_path]
+        output_files = [cs1_path, cs2_path, ui_path, us_path]
 
         if self.verbose:
             print(f"~~~\noutput directory: {out_dir.absolute()}")
@@ -167,7 +174,7 @@ WantedBy=multi-user.target
 """
         return file_content
 
-    def generate_celery_service(self, state_path: Path):
+    def generate_celery_main_service(self, state_path: Path):
         log_dir = self._resolve_var("LOG_DIR", settings.LOG_DIR)
 
         file_content = f"""[Unit]
@@ -179,13 +186,41 @@ Requires=rabbitmq-server.service
 EnvironmentFile={settings.BASE_DIR}/.env
 ExecStart={self.python_env}/celery \\
     -A ohmg.conf.celery:app worker \\
+    -Q main,background \\
     --without-gossip --without-mingle \\
     -Ofair -B -E \\
-    --statedb={str(state_path.resolve())}/worker.state \\
+    --statedb={str(state_path.resolve())}/celery_main_worker.state \\
     --schedule-filename={str(state_path.resolve())}/celerybeat-schedule \\
     --loglevel=INFO \\
-    --logfile={log_dir}/celery.log \\
+    --logfile={log_dir}/celery_main.log \\
     --concurrency=10 -n worker1@%h
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+        return file_content
+
+    def generate_celery_mosaic_service(self, state_path: Path):
+        log_dir = self._resolve_var("LOG_DIR", settings.LOG_DIR)
+
+        file_content = f"""[Unit]
+Description=Celery
+After=rabbitmq-server.service
+Requires=rabbitmq-server.service
+
+[Service]
+EnvironmentFile={settings.BASE_DIR}/.env
+ExecStart={self.python_env}/celery \\
+    -A ohmg.conf.celery:app worker \\
+    -Q mosaic \\
+    --without-gossip --without-mingle \\
+    -Ofair -B -E \\
+    --statedb={str(state_path.resolve())}/celery_mosaic_worker.state \\
+    --loglevel=INFO \\
+    --logfile={log_dir}/celery_mosaic.log \\
+    --concurrency=1 -n worker2@%h
 Restart=always
 
 [Install]

@@ -66,6 +66,7 @@ class LayerSetAdmin(admin.ModelAdmin):
         "layer_display_list",
         "extent",
         "multimask_extent",
+        "xyz_tiles_url",
     )
     search_fields = ("map__title",)
     list_filter = ("category",)

@@ -17,6 +17,8 @@ from ohmg.core.storages import get_file_url
 from ohmg.core.utils import random_alnum
 
 from .georeferencer import Georeferencer, VRTHandler
+from .tasks import cleanup_existing_tileset
+from .utils import make_xyz_tiles, make_xyz_tiles_with_multiprocessing
 
 gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
 gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")
@@ -62,9 +64,11 @@ class Mosaicker:
             print(layer_name)
             try:
                 layer = Layer.objects.get(slug=layer_name, region__document__map=layerset.map)
-            except Layer.MultipleObjectsReturned as e:
-                print("this layer slug matched multiple layers in this map: cancelling mosaic process")
-            except Exception as  e:
+            except Layer.MultipleObjectsReturned:
+                print(
+                    "this layer slug matched multiple layers in this map: cancelling mosaic process"
+                )
+            except Exception as e:
                 raise e
 
             if not layer.file:
@@ -124,7 +128,7 @@ class Mosaicker:
 
         existing_file_name = layerset.mosaic_geotiff.name if layerset.mosaic_geotiff else None
 
-        file_name = f"{layerset.map.identifier}-{layerset.category.slug}__{datetime.now().strftime('%Y-%m-%d')}__{random_alnum(6)}.tif"
+        file_name = f"{layerset.map.identifier}-{layerset.category.slug}__{datetime.now().strftime('%Y-%m-%d')}__{random_alnum()}.tif"
 
         with open(self.cog, "rb") as f:
             layerset.mosaic_geotiff.save(file_name, File(f))
@@ -136,6 +140,38 @@ class Mosaicker:
         layerset.save(set_tilejson=True)
 
         print(f"completed - elapsed time: {datetime.now() - start}")
+
+    def generate_xyz_tiles(
+        self,
+        layerset: LayerSet,
+        min_zoom: int = 13,
+        max_zoom: int = 20,
+        use_multiprocessing: bool = False,
+    ):
+        if layerset.mosaic_geotiff:
+            in_path = f"/vsicurl/{layerset.mosaic_cog_url}"
+        else:
+            self.generate_mosaic_vrt(layerset)
+            in_path = self.mosaic_vrt.get_path()
+
+        prefix = f"tiles/{layerset.map.identifier}/{layerset.category.slug}/{random_alnum()}"
+        logger.info(f"creating new tileset {prefix}")
+        logger.info(f"source dataset: {in_path}")
+
+        if use_multiprocessing:
+            make_xyz_tiles_with_multiprocessing(
+                in_path, prefix, min_zoom=min_zoom, max_zoom=max_zoom
+            )
+        else:
+            make_xyz_tiles(in_path, prefix, min_zoom=min_zoom, max_zoom=max_zoom)
+
+        existing_tileset_prefix = layerset.xyz_tiles_prefix
+        layerset.xyz_tiles_prefix = prefix
+        layerset.save()
+
+        ## clean up existing tileset
+        if existing_tileset_prefix:
+            cleanup_existing_tileset.delay(existing_tileset_prefix)
 
     def generate_mosaic_json(self, layerset, trim_all=False):
         """DEPRECATED: Currently, MosaicJSON is not used anywhere in the app."""
@@ -188,7 +224,7 @@ class Mosaicker:
                 cached_feature = None
                 write_trim_feature_cache(feature, feat_cache_path)
 
-            unique_id = random_alnum(6)
+            unique_id = random_alnum()
             trim_vrt_path = in_path.replace(".tif", f"_{unique_id}_trim.vrt")
             out_path = trim_vrt_path.replace(".vrt", ".tif")
 
