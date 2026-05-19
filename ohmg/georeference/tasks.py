@@ -7,7 +7,7 @@ from django.conf import settings
 
 from ohmg.conf.celery import app
 from ohmg.core.models import LayerSet
-from ohmg.core.utils import get_boto3_s3_client
+from ohmg.core.utils.s3 import get_boto3_s3_client
 
 from .models import (
     GeorefSession,
