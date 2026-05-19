@@ -10,7 +10,7 @@ import morecantile
 from django.conf import settings
 from rio_tiler.io import Reader
 
-from ohmg.core.utils import get_boto3_s3_client
+from ohmg.core.utils.s3 import get_boto3_s3_client
 
 logger = logging.getLogger(__name__)
 
