@@ -56,10 +56,13 @@
 		</div>
 		{% else %}
 		<div class="navbar-item is-right">
-			<button class="navbar-link is-arrowless" onclick="openSigninModal()">
+			<!-- <button class="navbar-link is-arrowless" onclick="openSigninModal()">
 				<span>Sign in</span>
 				<i class="ph-bold ph-sign-in"></i>
-			</button>
+			</button> -->
+			<a class="navbar-link is-arrowless" href="/account/login/?next={{ request.path }}">
+				<span>Sign in</span>
+			</a>
 		</div>
 		{% endif %}
 		</div>
