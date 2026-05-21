@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
+    "allauth.socialaccount.providers.openid_connect",
     "pinax.announcements",
     "storages",
     "django_extensions",
@@ -246,6 +247,7 @@ MIDDLEWARE = (
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.redirects.middleware.RedirectFallbackMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "ohmg.conf.middleware.CORSMiddleware",
 )
 
@@ -343,9 +345,35 @@ AUTH_USER_MODEL = "accounts.User"
 ACCOUNT_ADAPTER = "ohmg.accounts.adapter.AccountAdapter"
 
 ACCOUNT_FORMS = {"signup": "ohmg.accounts.forms.OHMGSignupForm"}
-ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_SIGNUP_REDIRECT_URL = "/"
 ACCOUNT_USERNAME_VALIDATORS = "ohmg.accounts.validators.custom_username_validators"
+
+ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
+
+## create empty holder for providers and add them only if credentials have been
+## provided
+SOCIALACCOUNT_PROVIDERS = {
+    "openid_connect": {"APPS": []},
+}
+
+## look for OSM auth credentials and use them if present
+OSM_OAUTH_APP_CLIENT_ID = os.getenv("OSM_OAUTH_APP_CLIENT_ID")
+OSM_OAUTH_APP_SECRET = os.getenv("OSM_OAUTH_APP_SECRET")
+
+if OSM_OAUTH_APP_CLIENT_ID:
+    SOCIALACCOUNT_PROVIDERS["openid_connect"]["APPS"].append(
+        {
+            "provider_id": "openstreetmap",
+            "name": "OpenStreetMap",
+            "client_id": OSM_OAUTH_APP_CLIENT_ID,
+            "secret": OSM_OAUTH_APP_SECRET,
+            "settings": {
+                "server_url": "https://www.openstreetmap.org/.well-known/openid-configuration",
+                "scope": ["openid", "read_prefs"],
+            },
+        }
+    )
+
 
 # prep/georef session duration before expiration (seconds)
 GEOREFERENCE_SESSION_LENGTH = int(os.getenv("GEOREFERENCE_SESSION_LENGTH", 600))
