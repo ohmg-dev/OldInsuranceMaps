@@ -18,7 +18,7 @@
                 {% endif %}
                 {% url 'account_change_password' as change_password_url_ %}
                 {% if change_password_url_ %}
-                    <li class="{% if request.path == change_password_url_ %}is-active{% endif %}">
+                    <li class="{% if '/account/password/' in request.path %}is-active{% endif %}">
                         <a href="{{ change_password_url_ }}">{% trans "Change Password" %}</a>
                     </li>
                 {% endif %}
@@ -52,7 +52,7 @@
             {% else %}
                 {% url 'account_login' as login_url_ %}
                 {% if login_url_ %}
-                    <li class="{% if request.path == login_url_ %}is-active{% endif %}">
+                    <li class="{% if '/login/' in request.path %}is-active{% endif %}">
                         <a href="{{ login_url_ }}">{% trans "Sign In" %}</a>
                     </li>
                 {% endif %}

@@ -51,17 +51,15 @@
 			</button>
 			<div class="navbar-dropdown navbar-menu">
 				<a class="navbar-item" href="/profile/{{ user.username }}" title="Go to my profile">My profile</a>
+				<a class="navbar-item" href="/account/" title="Go to my account">My account</a>
 				<a class="navbar-item" href="/account/logout" title="Sign out">Sign out</a>
 			</div>
 		</div>
 		{% else %}
 		<div class="navbar-item is-right">
-			<!-- <button class="navbar-link is-arrowless" onclick="openSigninModal()">
-				<span>Sign in</span>
-				<i class="ph-bold ph-sign-in"></i>
-			</button> -->
 			<a class="navbar-link is-arrowless" href="/account/login/?next={{ request.path }}">
 				<span>Sign in</span>
+				<i class="ph-bold ph-sign-in"></i>
 			</a>
 		</div>
 		{% endif %}

@@ -86,7 +86,7 @@ samp {
 }
 
 h1 {
-  font-size: 2em;
+  font-size: 1.8em;
 }
 h2 {
   font-size: 1.6em;
@@ -630,4 +630,30 @@ img.lead-image {
 #step-list div > p {
   font-size: 1.25em;
   margin-bottom: 0px;
+}
+
+/* ALLAUTH TEMPLATE STYLES */
+
+.allauth-form > p {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+
+.allauth-form > p:has(input[type="radio"]), .allauth-form > p:has(input[type="checkbox"]) {
+  display: block;
+  font-size: unset;
+}
+
+.allauth-form > p > label {
+  font-size: .8em;
+}
+
+
+.allauth-form > p > input {
+  text-align: left;
+}
+
+.allauth-form button {
+  width: fit-content !important;
 }
