@@ -657,3 +657,13 @@ img.lead-image {
 .allauth-form button {
   width: fit-content !important;
 }
+
+/* AVATAR MANAGEMENT TEMPLATES */
+
+ul#avatar-select-form {
+  margin-bottom: .5em;
+}
+ul#avatar-select-form > li > div {
+  display: flex;
+  gap: 15px;
+}

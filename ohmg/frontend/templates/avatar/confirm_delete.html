@@ -6,12 +6,21 @@
         {% url 'avatar_change' as avatar_change_url %}
         <p>{% blocktrans %}You have no avatars to delete. Please <a href="{{ avatar_change_url }}">upload one</a> now.{% endblocktrans %}</p>
     {% else %}
-        <p>{% trans "Please select the avatars that you would like to delete." %}</p>
+        <p>{% trans "Select the avatars that you would like to delete." %}</p>
         <form method="POST" action="{% url 'avatar_delete' %}">
-            <ul>
+            <ul id="avatar-select-form">
                 {{ delete_avatar_form.as_ul }}
             </ul>
-            <p>{% csrf_token %}<input type="submit" value="{% trans "Delete These" %}" /></p>
+            <p>{% csrf_token %}<input id="submit-delete-btn" class="button is-danger" disabled type="submit" value="{% trans 'Delete' %}" /></p>
         </form>
     {% endif %}
+    <script>
+        const choiceInputs = document.querySelectorAll("[id*=id_choices_]");
+        const submitBtn = document.getElementById('submit-delete-btn');
+        choiceInputs.forEach(el => {
+                el.addEventListener('change', function() {
+                submitBtn.disabled = false;
+            });
+        })
+    </script>
 {% endblock %}
