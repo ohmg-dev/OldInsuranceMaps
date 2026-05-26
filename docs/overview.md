@@ -1,9 +1,5 @@
 # Overview
 
-## Sign up to begin georeferencing
-
-All you need to do to begin contributing on _OldInsuranceMaps.net_ is create an account. You must agree that any contributions you make will be licensed [CC0](https://creativecommons.org/public-domain/cc0/) ("No Rights Reserved"), meaning that your work is effectively in the public domain. See the [Data Agreement](https://oldinsurancemaps.net/data-agreement) for more details about this.
-
 ## How the site is structured
 
 You can browse content in the platform by map, by place name, or by map name. To learn more about these search methods, see [Finding maps](./guides/finding-maps.md).
