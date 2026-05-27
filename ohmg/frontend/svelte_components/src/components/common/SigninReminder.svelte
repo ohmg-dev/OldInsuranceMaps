@@ -1,5 +1,12 @@
+<script>
+  export let msg;
+  export let next;
+</script>
+
 <div class="notification is-light signin-reminder">
-  <em><a href="/account/login">Sign in</a> or <a href="/account/signup">sign up</a> to work on this content.</em>
+  <em>
+    <a href={`/account/login/${next ? '?next=' + next : ''}`}>Sign in</a> or <a href="/account/signup">sign up</a> to work on
+    this content.{msg ? ` ${msg}` : ""}</em>
 </div>
 
 <style>

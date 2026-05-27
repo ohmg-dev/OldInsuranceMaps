@@ -68,6 +68,7 @@ def generate_ohmg_context(request) -> dict:
             "X-CSRFToken": csrf_token,
         },
         "max_tiles_loading": settings.OPENLAYERS_MAX_TILES_LOADING,
+        "path": request.path,
     }
 
 
