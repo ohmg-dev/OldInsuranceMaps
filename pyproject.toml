@@ -17,7 +17,7 @@ dependencies = [
     "django-storages==1.13.2",
     "django-avatar==7.1.1",
     "django_extensions==3.2.1",
-    "django-allauth==65.17.0",
+    "django-allauth[socialaccount]==65.17.0",
     "django-markdownx==4.0.7",
     "django-grappelli==2.15.7",
     "django-ninja==0.21.0",
