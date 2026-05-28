@@ -22,7 +22,7 @@
                         <a href="{{ change_password_url_ }}">{% trans "Change Password" %}</a>
                     </li>
                 {% endif %}
-                <li class="{% if request.path == '/avatar/change/' %}is-active{% endif %}">
+                <li class="{% if '/avatar/' in request.path %}is-active{% endif %}">
                     <a href="{% url 'avatar_change' %}">{% trans "Change Avatar" %}</a>
                 </li>
                 {% url 'socialaccount_connections' as connections_url_ %}
