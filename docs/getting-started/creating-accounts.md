@@ -29,6 +29,8 @@ Now, whenever you login to OldInsuranceMaps.net, just click the OSM icon and you
 
 If you already have an OldInsuranceMaps.net account, but would like to be able to login with a 3rd-party identity provider, you can easily create a linkage between the accounts.
 
+0. *Make sure you are already signed in with your username and password like usual.*
+    - If you aren't already signed in you could inadvertedly create a duplicate account.
 1. In your OldInsuranceMaps.net account (https://oldinsurancemaps.net/account/), go to **Account Connections**
 2. Click the OpenStreetMap logo and follow the prompts
     - You will be redirected to `openstreetmap.org` to sign into your OSM account
