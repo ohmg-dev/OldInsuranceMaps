@@ -486,6 +486,7 @@ class LayerSetSchema(Schema):
     extent: Optional[tuple]
     multimask_extent: Optional[tuple]
     mosaic_cog_url: Optional[str]
+    xyz_tiles_url: Optional[str]
 
     @staticmethod
     def resolve_id(obj):
