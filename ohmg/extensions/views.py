@@ -1,6 +1,10 @@
+import json
+
+import topojson
 from django.http import JsonResponse
 from django.views import View
 
+from ohmg.conf.http import JsonResponseNotFound
 from ohmg.core.models import Map
 from ohmg.core.utils import full_reverse
 
@@ -62,7 +66,16 @@ class AtlascopeDataView(View):
                 "name": f"{place.slug}-volume-extents",
                 "features": features,
             }
-            return JsonResponse(feature_collection)
+            topo = topojson.Topology(feature_collection)
+            topo_json = json.loads(topo.to_json())
+
+            ## extra key needed for atlascope detroit
+            if place.slug == "detroit-mi":
+                topo_json["objects"]["detroit-volume-extents"] = topo_json["objects"]["data"]
+            return JsonResponse(topo_json)
 
         elif operation == "coverages":
             return JsonResponse([{"name": str(place), "center": place.get_center()}], safe=False)
+
+        else:
+            return JsonResponseNotFound("invalid operation. must be 'footprints' or 'coverages'")
