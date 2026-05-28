@@ -1,16 +1,47 @@
 # Creating an account
 
-## Sign up
+All you need to do to begin contributing on _OldInsuranceMaps.net_ is [create an account](https://oldinsurancemaps.net/account/signup/).
 
-All you need to do to begin contributing on _OldInsuranceMaps.net_ is create an account. 
+## Sign up with email
 
-!!! info 
+Choose a **username**, **password**, and valid **email address**. Your username will be publicly visible, so you cannot use your email address as a username.
+
+!!! note 
     You must agree that any contributions you make will be licensed [CC0](https://creativecommons.org/public-domain/cc0/) ("No Rights Reserved"), meaning that your work is effectively in the public domain. See the [Data Agreement](https://oldinsurancemaps.net/data-agreement) for more details about this.
 
-## 3rd-party authentication
+## Sign up via 3rd-party authentication
 
-If you have already have an account on [OpenStreetMap](https://openstreetmap.org), you can use that account as an authentication provider whenever you login into OIM. How does this work? The process differs a bit based on whether you are creating a new OIM account or already have one and want to link OSM to it, but the result is the same: An OIM account that is completely independent of OpenStreetMap, *but*, instead of entering a password to signin you will login to OSM and be redirected back to OIM.
+You can optionally use a 3rd-party identity provider. Currently, only **OpenStreetMap** (OSM) is supported, but more identity providers will be configured in the future.
 
-When creating a new account, you can use an existing account on **OpenStreetMap** as your authentication provider. Using a 3rd-party during account creation means you will not need to create a new password for your OIM account (though you can create an password later if you want).
+### Creating a new account
 
-You can ease the signin process by linking your OIM account with an existing account on another platform, such as OpenStreetMap. 
+1. On the signup screen, click the OpenStreetMap logo and follow the prompts
+    - You will be redirected to `openstreetmap.org` to sign into your OSM account
+    - You will need to grant OldInsuranceMaps.net limited privileges on your OSM account
+2. You will then be redirected back to OldInsuranceMaps.net to complete the creation of your account
+    - Your username will be prepopulated with your OSM username
+    - You will still need to enter an e-mail address
+    - You will not create a password, because OSM is (effectively) now your password!
+
+Now, whenever you login to OldInsuranceMaps.net, just click the OSM icon and you'll be logged in automatically.
+
+### Link an existing account
+
+If you already have an OldInsuranceMaps.net account, but would like to be able to login with a 3rd-party identity provider, you can easily create a linkage between the accounts.
+
+1. In your OldInsuranceMaps.net account (https://oldinsurancemaps.net/account/), go to **Account Connections**
+2. Click the OpenStreetMap logo and follow the prompts
+    - You will be redirected to `openstreetmap.org` to sign into your OSM account
+    - You will need to grant OldInsuranceMaps.net limited privileges on your OSM account
+
+Now, whenever you login to OldInsuranceMaps.net, just click the OSM icon and you'll be logged in automatically.
+
+### Unlink your account
+
+You can unlink your OIM account with any 3rd-party identity provider at any time&mdash;this has no affect on your OIM account but you will just not be able to login through that provider any more.
+
+To remove a connection to OpenStreetMap you will need to:
+
+1. In your OldInsuranceMaps.net account (https://oldinsurancemaps.net/account/), go to **Account Connections**, select the OSM connection and click **Remove**.
+    - If your account does not yet have a password set (which would be the case if you intially created the account through the 3rd-party provider as described above) use the **Change password** form to set a password before trying to remove the connection.
+2. In your OpenStreetMap account (https://www.openstreetmap.org/account), go to **OAuth 2 Authorizations** and then click **Revoke Access** for the `OldInsuranceMaps.net` entry.
