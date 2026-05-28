@@ -89,6 +89,7 @@ class MapListSchema2(Schema):
     sheet_ct: int
     volume_number: Optional[str]
     gt_exists: bool
+    xyz_tiles_exists: bool
     featured: bool
     hidden: bool
     document_ct: int
