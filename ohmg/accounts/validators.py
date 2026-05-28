@@ -7,7 +7,7 @@ class OHMGUnicodeUsernameValidator(UnicodeUsernameValidator):
     """
 
     regex = r"^[\w.+-]+\Z"
-    message = "Username may contain only letters, numbers, and . + - _"
+    message = "Username may contain only letters, numbers, and these characters: + - _ ."
 
 
 custom_username_validators = [

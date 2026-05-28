@@ -1,8 +1,13 @@
+{% load avatar_tags %}
+
 <div class="new-title-bar">
     <div class="new-title-bar-row">
         <div class="new-title-bar-row-item">
             {% if img_url %}
             <img class="lead-image" src="{{ img_url }}" alt="profile pic" title="{{ img_url }}" />
+            {% endif %}
+            {% if show_avatar %}
+            <img class="lead-image" src="{% avatar_url user 128 %}" alt="profile pic" title="Profile picture" />
             {% endif %}
             {% if lead_icon %}
             <span class="lead-icon">
@@ -13,6 +18,10 @@
             {% if subtitle %}
             <span style="margin-left:8px;">
                 <h2 class="page-subtitle">{{subtitle}}</h2>
+            </span>
+            {% elif show_profile_link %}
+            <span style="margin-left:8px;">
+                <h2 class="page-subtitle"><a href='/profile/{{user.username}}'> view public profile &rarr;</a></h2>
             </span>
             {% endif %}
         </div>

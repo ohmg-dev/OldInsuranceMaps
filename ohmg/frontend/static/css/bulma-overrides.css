@@ -125,3 +125,29 @@ button.button.is-primary {
 button.button > span.icon > svg {
   font-size: 2em;
 }
+
+.tabs > ul {
+  border: none;
+  margin-top: 1em;
+}
+
+.tabs a {
+  border: none;
+}
+
+.tabs > ul > li {
+  border-bottom: 1px solid transparent;
+}
+
+.tabs > ul > li > a {
+  color: var(--bulma-text-color)
+}
+
+.tabs > ul > li.is-active > a, .tabs > ul > li:hover > a {
+  color: var(--theme-highlight-color);
+  text-decoration: none;
+}
+
+.tabs > ul > li.is-active, .tabs > ul > li:hover {
+  border-bottom-color: var(--theme-highlight-color);
+}

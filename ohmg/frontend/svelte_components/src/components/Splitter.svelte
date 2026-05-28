@@ -37,6 +37,8 @@
   import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';
   import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
 
+  import SigninReminder from './common/SigninReminder.svelte';
+
   export let CONTEXT;
   export let DOCUMENT;
 
@@ -364,6 +366,7 @@
     clearTimeout(autoRedirect);
     setTimeout(promptRefresh, CONTEXT.session_length * 1000 - 10000);
   }
+  console.log(CONTEXT)
 </script>
 
 <svelte:window
@@ -378,11 +381,7 @@
 
 <ExtendSessionModal {CONTEXT} {sessionId} callback={handleExtendSession} bind:countdown />
 <Modal id="modal-anonymous">
-  <p>
-    Feel free to experiment with the interface, but to submit your work you must
-    <Link href={'/account/login'}>sign in</Link> or
-    <Link href={'/account/signup'}>sign up</Link>.
-  </p>
+  <SigninReminder next={CONTEXT.path} msg="Without an account you can experiment with the interface, but cannot submit your work."/>
 </Modal>
 
 <Modal id="modal-finished">

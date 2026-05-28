@@ -1,0 +1,11 @@
+{% load static %}
+
+<li>
+    {% if attrs.name == "OpenStreetMap" %}
+    <a title="{{ attrs.name }}" href="{{ attrs.href }}">
+        <img height="50" width="50" src="{% static '/img/OpenStreetMap logo 2011.svg' %}" />
+    </a>
+    {% else %}
+    <a title="{{ attrs.name }}" href="{{ attrs.href }}">{{ attrs.name }}</a>
+    {% endif %}
+</li>

@@ -6,30 +6,12 @@
 
 {% block main_content %}
 
+{% if user.username == PROFILE_USER.username %}
+{% include '_titlebar.html' with title=PROFILE_USER.username img_url=PROFILE_USER.image_url subtitle="<a href='/account/'>manage my account &rarr;</a>" %}
+{% else %}
 {% include '_titlebar.html' with title=PROFILE_USER.username img_url=PROFILE_USER.image_url %}
-
-{% if CONTEXT.user.username == PROFILE_USER.username %}
-<section>
-    <div class="section-title-bar">
-    <h2>My Account</h2>
-    </div>
-    <div class="section-content">
-    <ul>
-        <li><a href="/account/password/change/" title="Change password">Change my password</a></li>
-        <li>
-        <a href="{{params.CONTEXT.change_avatar_url}}" title="Change profile picture">Change my profile picture</Link>
-        </li>
-        <li><a href="/account/logout">Sign out</a></li>
-    </ul>
-    {% if CONTEXT.user.api_keys|length > 0 %}
-        <h4>API Keys</h4>
-        {% for key in CONTEXT.user.api_keys %}
-        <pre>{{key}}</pre>
-        {% endfor %}
-    {% endif %}
-    </div>
-</section>
 {% endif %}
+
 <section>
     <div class="section-title-bar">
     <h2>Session History</h2>

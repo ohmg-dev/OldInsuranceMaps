@@ -1,0 +1,47 @@
+{% extends "avatar/base.html" %}
+{% load i18n avatar_tags %}
+
+{% block content %}
+    <h2>{% trans "Current avatar: " %}</h2>
+    {% avatar user %}
+    {% if not avatars %}
+        <span><em>(default)</em></span>
+    {% elif avatars|length == 1 %}
+        <a href="/avatar/delete" title="remove images">remove image &rarr;</a>
+    {% endif %}
+    {% if avatars|length > 1 %}
+        <form method="POST" action="{% url 'avatar_change' %}">
+            <ul id="avatar-select-form">
+                {{ primary_avatar_form.as_ul }}
+            </ul>
+            <p>{% csrf_token %}
+                <input id="submit-change-btn" class="button" disabled type="submit" value="{% trans 'Use selected image' %}" />
+                <a href="/avatar/delete" title="remove images">remove images &rarr;</a>
+            </p>
+        </form>
+    {% endif %}
+    <hr>
+    <p>Upload a new image to change your avatar:</p>
+    <form enctype="multipart/form-data" method="POST" action="{% url 'avatar_add' %}">
+        {% csrf_token %}
+        {{ upload_avatar_form.as_p }}
+    </form>
+    <script>
+        const fileInput = document.getElementById('id_avatar');
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files.length) {
+                this.form.submit();
+            }
+        });
+
+        const choiceInputs = document.querySelectorAll("[id*=id_choice_]");
+        const submitBtn = document.getElementById('submit-change-btn');
+        choiceInputs.forEach(el => {
+                el.addEventListener('change', function() {
+                submitBtn.disabled = false;
+            });
+        })
+    </script>
+{% endblock %}
+

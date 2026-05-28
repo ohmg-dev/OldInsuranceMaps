@@ -52,6 +52,7 @@
   import ExpandElement from './interfaces/widgets/ExpandElement.svelte';
   import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
   import InfoModalButton from './buttons/InfoModalButton.svelte';
+  import SigninReminder from './common/SigninReminder.svelte';
 
   export let CONTEXT;
   export let REGION;
@@ -869,11 +870,7 @@
 </div>
 
 <Modal id="modal-anonymous">
-  <p>
-    Feel free to experiment with the interface, but to submit your work you must
-    <Link href="/account/login">sign in</Link> or
-    <Link href="/account/signup">sign up</Link>.
-  </p>
+  <SigninReminder next={CONTEXT.path} msg="Without an account you can experiment with the interface, but cannot submit your work."/>
 </Modal>
 <Modal id="modal-cancel">
   <p>Are you sure you want to cancel this session?</p>
@@ -919,12 +916,7 @@
     <div class="interface-mask">
       <div class="signin-reminder">
         {#if disableReason == 'unauthenticated'}
-          <p>
-            <em>
-              <Link href="/account/login">Sign in</Link> or
-              <Link href="/account/signup">sign up</Link> to proceed.
-            </em>
-          </p>
+          <SigninReminder />
         {:else if disableReason == 'input' || disableReason == 'processing'}
           <!-- svelte-ignore a11y-invalid-attribute -->
           <p>
