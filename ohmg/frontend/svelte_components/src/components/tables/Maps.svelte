@@ -209,7 +209,8 @@
                 bind:offset
               /></th
             >
-            <th><SortableHeader title="GT" alt="A geotiff has been created for this map's main content" /></th>
+            <th class="new-col"><SortableHeader title="GT" alt="A geotiff has been created for this map's main content" /></th>
+            <th><SortableHeader title="XYZ" alt="An XYZ tileset has been created for this map's main content" /></th>
           </tr>
         </thead>
         <tbody>
@@ -252,6 +253,13 @@
               <td class="number-col new-col">{s.multimask_ct}/{s.main_layer_ct}</td>
               <td class="number-col new-col"
                 >{#if s.gt_exists}
+                  <span style="color:green">✓</span>
+                {:else}
+                  <span style="color:red">x</span>
+                {/if}</td
+              >
+              <td class="number-col"
+                >{#if s.xyz_tiles_exists}
                   <span style="color:green">✓</span>
                 {:else}
                   <span style="color:red">x</span>

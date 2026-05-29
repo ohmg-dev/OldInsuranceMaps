@@ -46,6 +46,7 @@ dependencies = [
     # for celery beat
     "pytz",
     "rio-tiler>=5.0.3",
+    "topojson>=1.10",
 ]
 
 [project.optional-dependencies]

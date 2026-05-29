@@ -208,6 +208,14 @@ class Map(models.Model):
         )
 
     @property
+    def xyz_tiles_exists(self):
+        return (
+            True
+            if self.get_layerset("main-content") and self.get_layerset("main-content").xyz_tiles_url
+            else False
+        )
+
+    @property
     def mj_exists(self):
         return (
             True

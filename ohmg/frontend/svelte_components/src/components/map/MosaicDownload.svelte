@@ -75,6 +75,12 @@
         n/a
     {/if}
     </dd>
+    {#if ls.xyz_tiles_url}
+    <dt>XYZ tileset</dt>
+    <dd>
+        <pre style="margin:0;">{`${ls.xyz_tiles_url}/{z}/{x}/{y}.png`}</pre>
+    </dd>
+    {/if}
     <dt>IIIF Georef AnnotationPage (JSON)</dt>
     <dd>
         <Link
