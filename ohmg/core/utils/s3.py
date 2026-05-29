@@ -1,3 +1,5 @@
+from django.conf import settings
+
 def get_boto3_s3_client():
     import boto3
 
