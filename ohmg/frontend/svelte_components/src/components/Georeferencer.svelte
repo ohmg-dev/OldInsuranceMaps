@@ -54,6 +54,8 @@
   import InfoModalButton from './buttons/InfoModalButton.svelte';
   import SigninReminder from './common/SigninReminder.svelte';
 
+  import ConfirmModal from './modals/ConfirmModal.svelte';
+
   export let CONTEXT;
   export let REGION;
   export let MAP;
@@ -119,7 +121,7 @@
     leaveOkay = false;
     enableButtons = true;
   }
-  $: enableSave = gcpList.length >= 3 && enableButtons;
+  $: enableSave = gcpList.length >= 2 && enableButtons;
 
   let countdown = 10;
   let timer;
@@ -150,9 +152,11 @@
   const noteInputElId = 'note-input';
 
   let currentTransformation = 'poly1';
+  $: currentTransformation = gcpList.length == 2 ? 'helmert' : currentTransformation
   const transformations = [
     { id: 'poly1', name: 'Polynomial' },
     { id: 'tps', name: 'Thin Plate Spline' },
+    { id: 'helmert', name: 'Helmert' },
   ];
 
   let currentTargetProjection = 'EPSG:3857';
@@ -703,7 +707,7 @@
   };
 
   function getPreview() {
-    if (gcpList.length < 3) {
+    if (gcpList.length < 2) {
       previewMode = 'n/a';
       return;
     }
@@ -713,7 +717,7 @@
       'preview',
       {
         gcp_geojson: asGeoJSON(),
-        transformation: currentTransformation,
+        transformation: gcpList.length == 2 ? 'helmert' : currentTransformation,
         projection: currentTargetProjection,
         sesh_id: sessionId,
         last_preview_id: currentPreviewId,
@@ -729,7 +733,7 @@
   }
 
   function submitSession() {
-    if (gcpList.length < 3) {
+    if (gcpList.length < 2) {
       previewMode = 'n/a';
       return;
     }
@@ -869,6 +873,12 @@
   >
 </div>
 
+<ConfirmModal id="modal-submit-helmert" yesAction={submitSession}>
+  <p>
+    You have only two GCPs, but it is highly advisable to have three or more.
+    Please add more, unless you are unable to do so.
+  </p>
+</ConfirmModal>
 <Modal id="modal-anonymous">
   <SigninReminder next={CONTEXT.path} msg="Without an account you can experiment with the interface, but cannot submit your work."/>
 </Modal>
@@ -944,7 +954,13 @@
       <label><input type="checkbox" bind:checked={syncPanelWidth} /> autosize</label>
     </div>
     <div class="control-btn-group">
-      <ToolUIButton action={submitSession} title="Save control points" disabled={!enableSave}><Check /></ToolUIButton>
+      <ToolUIButton action={() => {
+        if (gcpList.length == 2) {
+          getModal('modal-submit-helmert').open()
+        } else {
+          submitSession()
+        }
+      }} title="Save control points" disabled={!enableSave}><Check /></ToolUIButton>
       <ToolUIButton
         action={() => {
           getModal('modal-cancel').open();
