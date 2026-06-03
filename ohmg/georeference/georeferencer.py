@@ -1,9 +1,11 @@
 import logging
+import math
 import os
 import sys
 import time
 from io import StringIO
 from pathlib import Path
+from typing import List, Tuple
 from uuid import uuid4
 
 from django.conf import settings
@@ -11,11 +13,19 @@ from osgeo import gdal, ogr, osr
 
 from ohmg.core.utils.srs import retrieve_srs_wkt
 
+from .geometry import angle_from_coords
+
 logger = logging.getLogger(__name__)
 
 gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
 
 TRANSFORMATION_LOOKUP = {
+    "helmert": {
+        "id": "helmert",
+        "gdal_code": None,
+        "name": "Helmert",
+        "desc": "implemented as four-parameter transformation",
+    },
     "tps": {
         "id": "tps",
         "gdal_code": -1,
@@ -139,7 +149,7 @@ class Georeferencer:
         crs="EPSG:3857",
         transformation="poly1",
         # three different ways to add GCPs, one must be provided
-        gcps_gdal=None,
+        gcps_gdal: List[gdal.GCP] = [],
         gcps_geojson=None,
         gcps_points_file=None,
         verbose=False,
@@ -164,7 +174,8 @@ class Georeferencer:
 
         # handle the input GCPs to GDAL GCPs, method depends on the input
         # format. self.gcps should be a list of gdal.GCP objects.
-        if gcps_gdal:
+        self.gcps = []
+        if len(gcps_gdal) > 0:
             self.gcps = gcps_gdal
         elif gcps_geojson:
             self._load_gcps_from_geojson(gcps_geojson)
@@ -233,6 +244,111 @@ class Georeferencer:
             )
             self.gcps.append(gcp)
 
+    def _geo_coords_from_gcp(self, gcp: gdal.GCP) -> Tuple[float, float]:
+        """Return the geographic x, y coords from the input GCP"""
+        return (gcp.GCPX, gcp.GCPY)
+
+    def _pixel_coords_from_gcp(self, gcp: gdal.GCP) -> Tuple[float, float]:
+        """Return the image pixel coords from the input GCP"""
+        return (gcp.GCPPixel, gcp.GCPLine)
+
+    def _calculate_scale(self) -> float:
+        """Compares two GCPs and returns a scale factor."""
+        print("CALCULATE SCALE")
+        if len(self.gcps) < 2:
+            raise Exception("Two GCPs are needed to calculate a scale factor")
+
+        gcp1_pt = self._geo_coords_from_gcp(self.gcps[0])
+        gcp2_pt = self._geo_coords_from_gcp(self.gcps[1])
+        gcp1_px = self._pixel_coords_from_gcp(self.gcps[0])
+        gcp2_px = self._pixel_coords_from_gcp(self.gcps[1])
+
+        # distance between the geographic coords in each GCP
+        pt_dist = math.dist(gcp1_pt, gcp2_pt)
+
+        # distance between the pixel coords in each GCP
+        px_dist = math.dist(gcp1_px, gcp2_px)
+
+        return pt_dist / px_dist
+
+    def _calculate_rotation(self) -> float:
+        """Compares two GCPs and calculates the difference in the angles
+        between the geometric points and the pixel points.
+
+        Returns the angle in degrees"""
+        print("CALCULATE ROTATION")
+        if len(self.gcps) < 2:
+            raise Exception("Two GCPs are needed to calculate a scale factor")
+
+        gcp1_pt = self._geo_coords_from_gcp(self.gcps[0])
+        gcp2_pt = self._geo_coords_from_gcp(self.gcps[1])
+        gcp1_px = self._pixel_coords_from_gcp(self.gcps[0])
+        gcp2_px = self._pixel_coords_from_gcp(self.gcps[1])
+
+        print("gcp1_pt", gcp1_pt)
+        print("gcp2_pt", gcp2_pt)
+        print("gcp1_px", gcp1_px)
+        print("gcp2_px", gcp2_px)
+
+        pt_degrees = angle_from_coords(gcp1_pt, gcp2_pt)
+        px_degrees = -angle_from_coords(gcp1_px, gcp2_px)
+
+        print("pt_degrees", pt_degrees)
+        print("px_degrees", px_degrees)
+
+        difference = pt_degrees - px_degrees
+        print("difference", difference)
+        return difference
+
+    def _calculate_offsets(self, scale: float, rotation: float) -> Tuple[float, float]:
+        """Calculates the x and y offsets needed for helmert transformation, based
+        on GCP
+        """
+        print("CALCULATE OFFSETS")
+        gcp1 = self.gcps[0]
+        print("offset gcp", gcp1.GCPLine, gcp1.GCPPixel)
+
+        geo_dist_to_page_edge = gcp1.GCPLine * scale
+        geo_dist_to_page_top = gcp1.GCPPixel * scale
+        geo_dist_to_page_corner = math.sqrt(geo_dist_to_page_edge**2 + geo_dist_to_page_top**2)
+
+        print("geo_dist_to_page_edge", geo_dist_to_page_edge)
+        print("geo_dist_to_page_top", geo_dist_to_page_top)
+        print("geo_dist_to_page_corner", geo_dist_to_page_corner)
+
+        print("rotation", rotation)
+        print("rotation used", rotation + 270)
+        theta1 = 90 - rotation
+        print("theta1", theta1)
+        if theta1 < 0:
+            theta1 += 180
+        if theta1 > 180:
+            theta1 -= 180
+        print("theta1", theta1)
+
+        m_degrees = 180 - (90 + theta1)
+        m_radians = math.radians(m_degrees)
+        n_radians = math.atan(geo_dist_to_page_edge / geo_dist_to_page_top)
+        theta3 = n_radians + m_radians
+
+        print("m_radians", m_radians)
+        print("n_radians", n_radians)
+        print("theta3", theta3)
+        print("m_degrees", math.degrees(m_radians))
+        print("n_degrees", math.degrees(n_radians))
+        print("theta3_degrees", math.degrees(theta3))
+
+        a2 = math.cos(theta3) * geo_dist_to_page_corner
+        o2 = math.sin(theta3) * geo_dist_to_page_corner
+
+        print("a2", a2)
+        print("o2", o2)
+
+        dx = gcp1.GCPX - a2
+        dy = gcp1.GCPY + o2
+
+        return (dx, dy)
+
     def cleanup_files(self):
         for vrt in [
             self.gcps_vrt,
@@ -288,34 +404,68 @@ class Georeferencer:
         self.make_gcps_vrt(src_path, out_name)
         self.warped_vrt = VRTHandler(out_name, as_variant="modified")
 
-        wo = gdal.WarpOptions(
-            creationOptions=[
-                #     "NUM_THREADS=ALL_CPUS",
-                #     ## originally used this set of flags used
-                #     # "COMPRESS=DEFLATE",
-                #     ## should have been used PREDICTOR=2 with DEFLATE but didn't know about it
-                #     # "PREDICTOR=2"
-                #     ## useful in general but not needed when using COG driver
-                "BLOCKXSIZE=512",
-                "BLOCKYSIZE=512",
-                #     ## advisable if using JPEG with GTiff, but not supported in COG
-                #     # "JPEG_QUALITY=75",
-                #     # "PHOTOMETRIC=YCBCR",
-                #     ## Use JPEG, as recommended by Paul Ramsey article:
-                #     ## https://blog.cleverelephant.ca/2015/02/geotiff-compression-for-dummies.html
-                # "COMPRESS=JPEG",
-            ],
-            transformerOptions=[
-                f"DST_SRS={self.crs_wkt}",
-                f'MAX_GCP_ORDER={self.transformation["gdal_code"]}',
-            ],
-            format="VRT",
-            dstSRS=f"{self.crs_code}",
-            # srcNodata=src_nodata,
-            # srcAlpha=True,
-            dstAlpha=True,
-            resampleAlg="nearest",
-        )
+        if len(self.gcps) == 2 and self.transformation["id"] == "helmert":
+            ## get scale factor
+            scale = self._calculate_scale()
+
+            ## get rotation
+            rotation_degrees = self._calculate_rotation()
+            ## adjust to north = 0 and convert to arcseconds
+            arcseconds = (rotation_degrees + 270) * 3600
+
+            ## get the x y offsets
+            dx, dy = self._calculate_offsets(scale, rotation_degrees)
+
+            pipeline = (
+                "+proj=pipeline "
+                "+step +proj=axisswap +order=2,1 "
+                f"+step +proj=helmert +x={dx} +y={dy} +theta={arcseconds} +s={scale}"
+            )
+
+            print(pipeline)
+
+            wo = gdal.WarpOptions(
+                creationOptions=[
+                    "BLOCKXSIZE=512",
+                    "BLOCKYSIZE=512",
+                ],
+                coordinateOperation=pipeline,
+                format="VRT",
+                dstSRS="EPSG:3857",
+                transformerOptions=["SRC_METHOD=NO_GEOTRANSFORM"],
+                dstAlpha=True,
+                resampleAlg="nearest",
+            )
+        else:
+            wo = gdal.WarpOptions(
+                creationOptions=[
+                    #     "NUM_THREADS=ALL_CPUS",
+                    #     ## originally used this set of flags used
+                    #     # "COMPRESS=DEFLATE",
+                    #     ## should have been used PREDICTOR=2 with DEFLATE but didn't know about it
+                    #     # "PREDICTOR=2"
+                    #     ## useful in general but not needed when using COG driver
+                    "BLOCKXSIZE=512",
+                    "BLOCKYSIZE=512",
+                    #     ## advisable if using JPEG with GTiff, but not supported in COG
+                    #     # "JPEG_QUALITY=75",
+                    #     # "PHOTOMETRIC=YCBCR",
+                    #     ## Use JPEG, as recommended by Paul Ramsey article:
+                    #     ## https://blog.cleverelephant.ca/2015/02/geotiff-compression-for-dummies.html
+                    # "COMPRESS=JPEG",
+                ],
+                transformerOptions=[
+                    f"DST_SRS={self.crs_wkt}",
+                    f'MAX_GCP_ORDER={self.transformation["gdal_code"]}',
+                ],
+                format="VRT",
+                dstSRS=f"{self.crs_code}",
+                # srcNodata=src_nodata,
+                # srcAlpha=True,
+                dstAlpha=True,
+                resampleAlg="nearest",
+            )
+
         try:
             gdal.Warp(str(self.warped_vrt.get_path()), self.gcps_vrt.get_vsi_url(), options=wo)
         except Exception as e:
