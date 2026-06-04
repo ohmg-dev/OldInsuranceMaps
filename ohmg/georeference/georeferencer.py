@@ -302,24 +302,15 @@ class Georeferencer:
         upper_gcp = min(self.gcps, key=lambda x: x.GCPLine)
         lower_gcp = max(self.gcps, key=lambda x: x.GCPLine)
 
-        upper_gcp_pt = self._geo_coords_from_gcp(upper_gcp)
-        lower_gcp_pt = self._geo_coords_from_gcp(lower_gcp)
-        upper_gcp_px = self._pixel_coords_from_gcp(upper_gcp, cartesian_y=True)
-        lower_gcp_px = self._pixel_coords_from_gcp(lower_gcp, cartesian_y=True)
-
-        print("upper_gcp_pt", upper_gcp_pt)
-        print("lower_gcp_pt", lower_gcp_pt)
-        print("upper_gcp_px", upper_gcp_px)
-        print("lower_gcp_px", lower_gcp_px)
-
-        pt_degrees = angle_from_coords(upper_gcp_pt, lower_gcp_pt)
-        px_degrees = angle_from_coords(upper_gcp_px, lower_gcp_px)
-
-        print("pt_degrees", pt_degrees)
-        print("px_degrees", px_degrees)
+        pt_degrees = angle_from_coords(
+            self._geo_coords_from_gcp(upper_gcp), self._geo_coords_from_gcp(lower_gcp)
+        )
+        px_degrees = angle_from_coords(
+            self._pixel_coords_from_gcp(upper_gcp, cartesian_y=True),
+            self._pixel_coords_from_gcp(lower_gcp, cartesian_y=True),
+        )
 
         difference = pt_degrees - px_degrees
-        print("difference", difference)
         return difference
 
     def _calculate_helmert_offsets(self, scale: float, rotation: float) -> Tuple[float, float]:
