@@ -121,7 +121,7 @@
     leaveOkay = false;
     enableButtons = true;
   }
-  $: enableSave = gcpList.length >= 2 && enableButtons;
+  $: enableSave = gcpList.length >= minGCPs && enableButtons;
 
   let countdown = 10;
   let timer;
@@ -152,12 +152,27 @@
   const noteInputElId = 'note-input';
 
   let currentTransformation = 'poly1';
-  $: currentTransformation = gcpList.length == 2 ? 'helmert' : currentTransformation
-  const transformations = [
-    { id: 'poly1', name: 'Polynomial' },
-    { id: 'tps', name: 'Thin Plate Spline' },
-    { id: 'helmert', name: 'Helmert' },
+  let minGCPs = 3;
+  $: transformations = [
+    { id: 'poly1', name: 'Polynomial', enabled: true },
+    { id: 'tps', name: 'Thin Plate Spline', enabled: true },
+    { id: 'helmert', name: 'Helmert 4-param', enabled: gcpList.length == 2 },
   ];
+  $: {
+    if (gcpList.length == 3 && currentTransformation == "helmert") {
+      currentTransformation = "poly1"
+    }
+    if (currentTransformation == "helmert") {
+      minGCPs = 2;
+    } else {
+      minGCPs = 3;
+    }
+  }
+  $: {
+    if (gcpList.length <= 2 && currentTransformation != "helmert") {
+      previewMode = "n/a"
+    }
+  }
 
   let currentTargetProjection = 'EPSG:3857';
   const availableProjections = [
@@ -707,7 +722,12 @@
   };
 
   function getPreview() {
-    if (gcpList.length < 2) {
+    if (currentTransformation == "helmert") {
+      minGCPs = 2;
+    } else {
+      minGCPs = 3;
+    }
+    if (gcpList.length < minGCPs) {
       previewMode = 'n/a';
       return;
     }
@@ -717,7 +737,7 @@
       'preview',
       {
         gcp_geojson: asGeoJSON(),
-        transformation: gcpList.length == 2 ? 'helmert' : currentTransformation,
+        transformation: currentTransformation,
         projection: currentTargetProjection,
         sesh_id: sessionId,
         last_preview_id: currentPreviewId,
@@ -1026,7 +1046,7 @@
         Transformation:
         <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={getPreview}>
           {#each transformations as trans}
-            <option value={trans.id}>{trans.name}</option>
+            <option value={trans.id} disabled={!trans.enabled}>{trans.name}</option>
           {/each}
         </select>
       </label>
