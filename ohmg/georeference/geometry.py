@@ -7,7 +7,7 @@ from django.contrib.gis.geos import LineString
 def angle_from_coords(pt1: Tuple[float, float], pt2: Tuple[float, float]) -> float:
     """
     Calculates the absolute Cartesian angle (in degrees) of the vector
-    pointing from p1 to p2, relative to the positive X-axis.
+    pointing from p1 to p2, relative to the positive Y-axis.
     """
 
     # Calculate differences

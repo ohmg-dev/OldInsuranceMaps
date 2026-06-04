@@ -248,50 +248,72 @@ class Georeferencer:
         """Return the geographic x, y coords from the input GCP"""
         return (gcp.GCPX, gcp.GCPY)
 
-    def _pixel_coords_from_gcp(self, gcp: gdal.GCP) -> Tuple[float, float]:
-        """Return the image pixel coords from the input GCP"""
-        return (gcp.GCPPixel, gcp.GCPLine)
+    def _pixel_coords_from_gcp(
+        self, gcp: gdal.GCP, cartesian_y: bool = False
+    ) -> Tuple[float, float]:
+        """Return the image pixel coords from the input GCP.
+
+        Y coordinate is measured down from the top of the image.
+
+        If cartesian_y=True, then invert the Y coordinate against the height
+        of the dataset, to match a cartesian plane with 0,0 at the bottom left of the
+        image."""
+        x, y = gcp.GCPPixel, gcp.GCPLine
+        if cartesian_y:
+            ds = gdal.Open(self.gcps_vrt.get_vsi_url())
+            y = ds.RasterYSize - y
+        return (x, y)
 
     def _calculate_scale(self) -> float:
         """Compares two GCPs and returns a scale factor."""
-        print("CALCULATE SCALE")
-        if len(self.gcps) < 2:
+
+        if len(self.gcps) != 2:
             raise Exception("Two GCPs are needed to calculate a scale factor")
 
-        gcp1_pt = self._geo_coords_from_gcp(self.gcps[0])
-        gcp2_pt = self._geo_coords_from_gcp(self.gcps[1])
-        gcp1_px = self._pixel_coords_from_gcp(self.gcps[0])
-        gcp2_px = self._pixel_coords_from_gcp(self.gcps[1])
+        gcp1, gcp2 = self.gcps
 
         # distance between the geographic coords in each GCP
-        pt_dist = math.dist(gcp1_pt, gcp2_pt)
+        # this distance is absolute so the order of the coords doesn't matter
+        pt_dist = math.dist(
+            self._geo_coords_from_gcp(gcp1),
+            self._geo_coords_from_gcp(gcp2),
+        )
 
         # distance between the pixel coords in each GCP
-        px_dist = math.dist(gcp1_px, gcp2_px)
+        # this distance is absolute so the order of the coords doesn't matter
+        px_dist = math.dist(
+            self._pixel_coords_from_gcp(gcp1),
+            self._pixel_coords_from_gcp(gcp2),
+        )
 
         return pt_dist / px_dist
 
-    def _calculate_rotation(self) -> float:
+    def _calculate_rotation_from_north(self) -> float:
         """Compares two GCPs and calculates the difference in the angles
         between the geometric points and the pixel points.
 
-        Returns the angle in degrees"""
-        print("CALCULATE ROTATION")
-        if len(self.gcps) < 2:
+        Returns the angle in degrees from 'north', i.e. the positive Y axis"""
+        if len(self.gcps) != 2:
             raise Exception("Two GCPs are needed to calculate a scale factor")
 
-        gcp1_pt = self._geo_coords_from_gcp(self.gcps[0])
-        gcp2_pt = self._geo_coords_from_gcp(self.gcps[1])
-        gcp1_px = self._pixel_coords_from_gcp(self.gcps[0])
-        gcp2_px = self._pixel_coords_from_gcp(self.gcps[1])
+        ## the GCPLine value is the number of pixels DOWN from the top of the
+        ## image, so we'll call it "upper" because it appears the higher of the
+        ## two on the page
+        upper_gcp = min(self.gcps, key=lambda x: x.GCPLine)
+        lower_gcp = max(self.gcps, key=lambda x: x.GCPLine)
 
-        print("gcp1_pt", gcp1_pt)
-        print("gcp2_pt", gcp2_pt)
-        print("gcp1_px", gcp1_px)
-        print("gcp2_px", gcp2_px)
+        upper_gcp_pt = self._geo_coords_from_gcp(upper_gcp)
+        lower_gcp_pt = self._geo_coords_from_gcp(lower_gcp)
+        upper_gcp_px = self._pixel_coords_from_gcp(upper_gcp, cartesian_y=True)
+        lower_gcp_px = self._pixel_coords_from_gcp(lower_gcp, cartesian_y=True)
 
-        pt_degrees = angle_from_coords(gcp1_pt, gcp2_pt)
-        px_degrees = -angle_from_coords(gcp1_px, gcp2_px)
+        print("upper_gcp_pt", upper_gcp_pt)
+        print("lower_gcp_pt", lower_gcp_pt)
+        print("upper_gcp_px", upper_gcp_px)
+        print("lower_gcp_px", lower_gcp_px)
+
+        pt_degrees = angle_from_coords(upper_gcp_pt, lower_gcp_pt)
+        px_degrees = angle_from_coords(upper_gcp_px, lower_gcp_px)
 
         print("pt_degrees", pt_degrees)
         print("px_degrees", px_degrees)
@@ -300,52 +322,51 @@ class Georeferencer:
         print("difference", difference)
         return difference
 
-    def _calculate_offsets(self, scale: float, rotation: float) -> Tuple[float, float]:
+    def _calculate_helmert_offsets(self, scale: float, rotation: float) -> Tuple[float, float]:
         """Calculates the x and y offsets needed for helmert transformation, based
         on GCP
         """
-        print("CALCULATE OFFSETS")
-        gcp1 = self.gcps[0]
-        print("offset gcp", gcp1.GCPLine, gcp1.GCPPixel)
 
-        geo_dist_to_page_edge = gcp1.GCPLine * scale
-        geo_dist_to_page_top = gcp1.GCPPixel * scale
-        geo_dist_to_page_corner = math.sqrt(geo_dist_to_page_edge**2 + geo_dist_to_page_top**2)
+        ## get the gcp that is closest to the top of the page
+        use_gcp = min(self.gcps, key=lambda x: x.GCPPixel)
 
-        print("geo_dist_to_page_edge", geo_dist_to_page_edge)
-        print("geo_dist_to_page_top", geo_dist_to_page_top)
-        print("geo_dist_to_page_corner", geo_dist_to_page_corner)
+        ## use the scale factor to calculate the real distance to page extent
+        dist_to_page_edge = use_gcp.GCPLine * scale
+        dist_to_page_top = use_gcp.GCPPixel * scale
 
-        print("rotation", rotation)
-        print("rotation used", rotation + 270)
+        ## rotation is degrees from positive y-axis, adjust to be degrees from
+        ## positive x-axis
         theta1 = 90 - rotation
-        print("theta1", theta1)
+        ## further adjustments to normalize
         if theta1 < 0:
             theta1 += 180
         if theta1 > 180:
             theta1 -= 180
-        print("theta1", theta1)
 
-        m_degrees = 180 - (90 + theta1)
-        m_radians = math.radians(m_degrees)
-        n_radians = math.atan(geo_dist_to_page_edge / geo_dist_to_page_top)
-        theta3 = n_radians + m_radians
+        ## calculate the target angle q, the angle from the GCP coord
+        ## to the top left corner of the image, relative to negative
+        ## x-axis
+        r_degrees = 180 - (90 + theta1)
+        r_radians = math.radians(r_degrees)
+        s_radians = math.atan(dist_to_page_edge / dist_to_page_top)
+        q_radians = r_radians + s_radians
 
-        print("m_radians", m_radians)
-        print("n_radians", n_radians)
-        print("theta3", theta3)
-        print("m_degrees", math.degrees(m_radians))
-        print("n_degrees", math.degrees(n_radians))
-        print("theta3_degrees", math.degrees(theta3))
+        ## get the real distance between the GCP coord and the page corner
+        dist_to_page_corner = math.sqrt(dist_to_page_edge**2 + dist_to_page_top**2)
 
-        a2 = math.cos(theta3) * geo_dist_to_page_corner
-        o2 = math.sin(theta3) * geo_dist_to_page_corner
+        ## calculate the offset distances using q angle and distance from
+        ## GCP to page corner as hypotenuse
+        x_offset = math.cos(q_radians) * dist_to_page_corner
+        y_offset = math.sin(q_radians) * dist_to_page_corner
 
-        print("a2", a2)
-        print("o2", o2)
-
-        dx = gcp1.GCPX - a2
-        dy = gcp1.GCPY + o2
+        ## adjust the GCP's coords by adding/subtracting the offsets based
+        ## on whether the top of the page is above or below the x-axis
+        if abs(rotation) > 90:
+            dx = use_gcp.GCPX + x_offset
+            dy = use_gcp.GCPY - y_offset
+        else:
+            dx = use_gcp.GCPX - x_offset
+            dy = use_gcp.GCPY + y_offset
 
         return (dx, dy)
 
@@ -409,12 +430,12 @@ class Georeferencer:
             scale = self._calculate_scale()
 
             ## get rotation
-            rotation_degrees = self._calculate_rotation()
-            ## adjust to north = 0 and convert to arcseconds
-            arcseconds = (rotation_degrees + 270) * 3600
+            rotation = self._calculate_rotation_from_north()
+            ## adjust and convert to arcseconds
+            arcseconds = (rotation + 90) * 3600
 
             ## get the x y offsets
-            dx, dy = self._calculate_offsets(scale, rotation_degrees)
+            dx, dy = self._calculate_helmert_offsets(scale, rotation)
 
             pipeline = (
                 "+proj=pipeline "
@@ -422,7 +443,7 @@ class Georeferencer:
                 f"+step +proj=helmert +x={dx} +y={dy} +theta={arcseconds} +s={scale}"
             )
 
-            print(pipeline)
+            logger.debug(f"applying: {pipeline}")
 
             wo = gdal.WarpOptions(
                 creationOptions=[
