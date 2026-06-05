@@ -443,7 +443,7 @@ class Georeferencer:
                 ],
                 coordinateOperation=pipeline,
                 format="VRT",
-                dstSRS="EPSG:3857",
+                dstSRS=f"{self.crs_code}",
                 transformerOptions=["SRC_METHOD=NO_GEOTRANSFORM"],
                 dstAlpha=True,
                 resampleAlg="nearest",
@@ -472,8 +472,6 @@ class Georeferencer:
                 ],
                 format="VRT",
                 dstSRS=f"{self.crs_code}",
-                # srcNodata=src_nodata,
-                # srcAlpha=True,
                 dstAlpha=True,
                 resampleAlg="nearest",
             )
