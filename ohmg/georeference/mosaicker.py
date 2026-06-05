@@ -61,7 +61,7 @@ class Mosaicker:
         for feature in multimask_geojson["features"]:
             layer_name = feature["properties"]["layer"]
 
-            print(layer_name)
+            logger.debug(layer_name)
             try:
                 layer = Layer.objects.get(slug=layer_name, region__document__map=layerset.map)
             except Layer.MultipleObjectsReturned:
@@ -102,18 +102,16 @@ class Mosaicker:
             outputBounds=bounds,
             separate=False,
         )
-        print("building vrt")
+        logger.info("building mosaic vrt")
 
         self.mosaic_vrt = VRTHandler(f"{layerset.map.identifier}-{layerset.category.slug}")
         trim_list = [str(i.get_path()) for i in self.trimmed_vrts]
         gdal.BuildVRT(str(self.mosaic_vrt.get_path()), trim_list, options=vo)
 
     def generate_cog(self, layerset: LayerSet):
-        start = datetime.now()
-
         self.generate_mosaic_vrt(layerset)
 
-        print("building final geotiff")
+        logger.info("begin writing mosaic geotiff")
 
         to = gdal.TranslateOptions(
             format="COG",
@@ -138,8 +136,6 @@ class Mosaicker:
             storage.delete(name=existing_file_name)
 
         layerset.save(set_tilejson=True)
-
-        print(f"completed - elapsed time: {datetime.now() - start}")
 
     def generate_xyz_tiles(
         self,

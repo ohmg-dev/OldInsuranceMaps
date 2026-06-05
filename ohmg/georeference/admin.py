@@ -73,8 +73,18 @@ class JobAdmin(admin.ModelAdmin):
         "date_ended",
         "run_duration",
     )
-    list_display = ("operation", "target", "stage", "message", "run_duration")
-    list_filter = ("operation", "stage")
+    list_display = (
+        "target",
+        "operation",
+        "stage",
+        "date_created",
+        "date_queued",
+        "date_started",
+        "date_ended",
+        "message",
+        "run_duration",
+    )
+    list_filter = ("operation", "stage", "map")
     actions = [enqueue_job]
 
 

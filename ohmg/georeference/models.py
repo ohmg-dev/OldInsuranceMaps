@@ -825,7 +825,7 @@ class Job(models.Model):
         and the input data. Return dict with valid bool and message."""
 
         valid = True
-        message = "--"
+        message = None
         if self.operation == "layerset_to_cog":
             if not isinstance(self.target, LayerSet):
                 valid = False
