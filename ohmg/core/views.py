@@ -476,6 +476,7 @@ class LayerSetView(View):
                     layer.mask = None
                 layer.save(set_extent=False, skip_map_lookup_update=True)
             layerset.map.update_item_lookup()
+            layerset.queue_mosaic_cog()
             return JsonResponseSuccess()
 
 

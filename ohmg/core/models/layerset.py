@@ -3,6 +3,7 @@ import urllib.parse
 from typing import TYPE_CHECKING, Iterable, Union
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.contrib.postgres.fields import ArrayField
@@ -145,6 +146,17 @@ class LayerSet(models.Model):
             if mask_geojson:
                 fc["features"].append(mask_geojson)
         return fc
+
+    def queue_mosaic_cog(self) -> None:
+        from ohmg.georeference.models import Job
+
+        j, created = Job.objects.get_or_create(
+            stage="queued",
+            operation="layerset_to_cog",
+            target_id=self.pk,
+            target_type=ContentType.objects.get_for_model(self),
+        )
+        j.enqueue()
 
     def save(self, set_tilejson: bool = False, *args, **kwargs):
         if self._state.adding is False:
