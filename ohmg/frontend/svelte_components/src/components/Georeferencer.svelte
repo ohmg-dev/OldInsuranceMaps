@@ -154,9 +154,24 @@
   let currentTransformation = 'poly1';
   let minGCPs = 3;
   $: transformations = [
-    { id: 'poly1', name: 'Polynomial', enabled: true },
-    { id: 'tps', name: 'Thin Plate Spline', enabled: true },
-    { id: 'helmert', name: 'Helmert 4-param', enabled: gcpList.length == 2 },
+    {
+      id: 'poly1',
+      name: 'Polynomial',
+      enabled: true,
+      available: true
+    },
+    {
+      id: 'tps',
+      name: 'Thin Plate Spline',
+      enabled: true,
+      available: true
+    },
+    {
+      id: 'helmert',
+      name: 'Helmert 4-param',
+      enabled: gcpList.length == 2,
+      available: CONTEXT.user.perms.includes("core.use_helmert")
+    },
   ];
   $: {
     if (gcpList.length == 3 && currentTransformation == "helmert") {
@@ -753,7 +768,7 @@
   }
 
   function submitSession() {
-    if (gcpList.length < 2) {
+    if (gcpList.length < minGCPs) {
       previewMode = 'n/a';
       return;
     }
@@ -1046,7 +1061,9 @@
         Transformation:
         <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={getPreview}>
           {#each transformations as trans}
-            <option value={trans.id} disabled={!trans.enabled}>{trans.name}</option>
+            {#if trans.available}
+              <option value={trans.id} disabled={!trans.enabled}>{trans.name}</option>
+            {/if}
           {/each}
         </select>
       </label>
