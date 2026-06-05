@@ -303,6 +303,8 @@ if ENABLE_S3_STORAGE:
 # this will be removed once Django is upgraded
 SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", "False"))
 
+MAX_CONCURRENT_MOSAIC_JOBS = os.getenv("MAX_CONCURRENT_MOSAIC_JOBS", 1)
+
 # CONFIGURE CELERY
 CELERY_BROKER_URL = os.getenv("BROKER_URL")
 CELERY_RESULT_BACKEND = "rpc://"
@@ -327,6 +329,7 @@ CELERY_TASK_ROUTES = {
     "ohmg.georeference.tasks.delete_stale_sessions": {"queue": "background"},
     "ohmg.georeference.tasks.delete_preview_vrts": {"queue": "background"},
     "ohmg.georeference.tasks.cleanup_existing_tileset": {"queue": "background"},
+    "ohmg.georeference.tasks.run_queued_mosaic_jobs": {"queue": "background"},
     "ohmg.georeference.tasks.create_mosaic_cog": {"queue": "mosaic"},
     "ohmg.georeference.tasks.create_mosaic_tileset": {"queue": "mosaic"},
 }
@@ -336,7 +339,11 @@ CELERY_BEAT_SCHEDULE = {
     "remove_stale_sessions": {
         "task": "ohmg.georeference.tasks.delete_stale_sessions",
         "schedule": 60.0,
-    }
+    },
+    "run_queued_mosaic_jobs": {
+        "task": "ohmg.georeference.tasks.run_queued_mosaic_jobs",
+        "schedule": 30.0,
+    },
 }
 
 # note: this is app_label.ModelClass,

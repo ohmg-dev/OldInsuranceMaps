@@ -220,7 +220,7 @@ ExecStart={self.python_env}/celery \\
     --statedb={str(state_path.resolve())}/celery_mosaic_worker.state \\
     --loglevel=INFO \\
     --logfile={log_dir}/celery_mosaic.log \\
-    --concurrency=1 -n worker2@%h
+    --concurrency={settings.MAX_CONCURRENT_MOSAIC_JOBS} -n worker2@%h
 Restart=always
 
 [Install]
