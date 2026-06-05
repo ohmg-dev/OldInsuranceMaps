@@ -38,10 +38,13 @@ def user_info_from_request(request):
         user_info["api_keys"] = user.api_keys
         user_info["is_authenticated"] = True
         user_info["is_staff"] = user.is_staff
+        user_info["perms"] = list(user.get_all_permissions())
+        print(json.dumps(user_info, indent=1))
     else:
         user_info = {
             "is_authenticated": False,
             "is_staff": False,
+            "perms": [],
         }
     return user_info
 
