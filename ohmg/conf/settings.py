@@ -342,7 +342,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "run_queued_mosaic_jobs": {
         "task": "ohmg.georeference.tasks.run_queued_mosaic_jobs",
-        "schedule": 30.0,
+        "schedule": 60.0,
     },
 }
 
