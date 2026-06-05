@@ -4,6 +4,7 @@ from ohmg.georeference.models import (
     GCP,
     GCPGroup,
     GeorefSession,
+    Job,
     PrepSession,
     SessionLock,
 )
@@ -55,3 +56,26 @@ class SessionLockAdmin(admin.ModelAdmin):
 
 
 admin.site.register(SessionLock, SessionLockAdmin)
+
+
+@admin.action(description="Enqueue selected jobs")
+def enqueue_job(modeladmin, request, queryset):
+    for obj in queryset.all():
+        obj.enqueue()
+
+
+class JobAdmin(admin.ModelAdmin):
+    readonly_fields = (
+        "stage",
+        "date_created",
+        "date_queued",
+        "date_started",
+        "date_ended",
+        "run_duration",
+    )
+    list_display = ("operation", "target", "stage", "message", "run_duration")
+    list_filter = ("operation", "stage")
+    actions = [enqueue_job]
+
+
+admin.site.register(Job, JobAdmin)

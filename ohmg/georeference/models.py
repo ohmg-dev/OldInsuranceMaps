@@ -20,16 +20,17 @@ from osgeo import gdal
 from ohmg.core.models import (
     Document,
     Layer,
+    LayerSet,
     Map,
     Region,
     RegionCategory,
 )
 from ohmg.core.utils import (
-    full_reverse,
     random_alnum,
 )
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
+from ohmg.georeference.tasks import create_mosaic_cog
 
 from .sessions import (
     add_lock,
@@ -213,11 +214,6 @@ class GCPGroup(models.Model):
         return group
 
 
-def set_upload_location(instance, filename):
-    """this function has to return the location to upload the file"""
-    return os.path.join(f"{instance.type}s", filename)
-
-
 def get_default_session_data(session_type):
     """Return a dict of the keys/types for a sessions's data field.
     Also used for type-checking during validation."""
@@ -381,43 +377,6 @@ class SessionBase(models.Model):
         Quiet fail if the resources are not currently locked."""
         for lock in self.locks.all():
             lock.extend()
-
-    def serialize(self):
-        # handle the non- js-serializable attributes
-        doc_id, layer_alt, d_create, d_mod, d_run = None, None, None, None, None
-        d_run_d, d_run_t = None, None
-        if self.doc:
-            doc_id = self.doc.pk
-        if self.lyr:
-            layer_alt = self.lyr.pk
-        if self.date_created:
-            d_create = self.date_created.strftime("%Y-%m-%d - %H:%M")
-        if self.date_modified:
-            d_mod = self.date_modified.strftime("%Y-%m-%d - %H:%M")
-        if self.date_run:
-            d_run = self.date_run.strftime("%Y-%m-%d - %H:%M")
-            d_run_d = self.date_run.strftime("%Y-%m-%d")
-            d_run_t = self.date_run.strftime("%H:%M")
-
-        return {
-            "id": self.pk,
-            "type": self.get_type_display(),
-            "document": doc_id,
-            "layer": layer_alt,
-            "stage": self.stage,
-            "status": self.status,
-            "note": self.note,
-            "data": self.data,
-            "user": {
-                "name": self.user.username,
-                "profile": full_reverse("profile_detail", args=(self.user.username,)),
-            },
-            "date_created": d_create,
-            "date_modified": d_mod,
-            "date_run": d_run,
-            "date_run_date": d_run_d,
-            "date_run_time": d_run_t,
-        }
 
     def update_stage(self, stage, save=True):
         self.stage = stage
@@ -801,3 +760,129 @@ class SessionLock(models.Model):
     def extend(self):
         self.expiration += timedelta(seconds=settings.GEOREFERENCE_SESSION_LENGTH)
         self.save()
+
+
+JOB_OPERATIONS = (
+    ("load_documents", "load_documents"),
+    ("split_document", "split_document"),
+    ("region_to_cog", "region_to_cog"),
+    ("layerset_to_cog", "layerset_to_cog"),
+    ("layerset_to_xyz", "layerset_to_xyz"),
+)
+
+JOB_STAGES = (
+    ("queued", "queued"),
+    ("running", "running"),
+    ("completed", "completed"),
+    ("errored", "errored"),
+)
+
+
+class Job(models.Model):
+    """Submits and tracks backend operations."""
+
+    date_created = models.DateTimeField(
+        default=timezone.now,
+    )
+    date_queued = models.DateTimeField(blank=True, null=True)
+    date_started = models.DateTimeField(blank=True, null=True)
+    date_ended = models.DateTimeField(blank=True, null=True)
+    operation = models.CharField(
+        max_length=25,
+        choices=JOB_OPERATIONS,
+    )
+    stage = models.CharField(
+        max_length=25,
+        choices=JOB_STAGES,
+        blank=True,
+        null=True,
+    )
+    run_duration = models.IntegerField(
+        blank=True,
+        null=True,
+    )
+    target_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    target_id = models.PositiveIntegerField()
+    target = GenericForeignKey("target_type", "target_id")
+    data = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+    map = models.ForeignKey(
+        Map,
+        models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    message = models.CharField(
+        blank=True,
+        null=True,
+        max_length=255,
+    )
+
+    def validate(self):
+        """Test the requested operation against the attached resource
+        and the input data. Return dict with valid bool and message."""
+
+        valid = True
+        message = "--"
+        if self.operation == "layerset_to_cog":
+            if not isinstance(self.target, LayerSet):
+                valid = False
+                message = f"invalid target {self.target} for {self.operation} job"
+        else:
+            valid = False
+            message = "invalid operation (or operation not yet supported)"
+
+        return {"success": valid, "message": message}
+
+    def run(self):
+        """Run the operation, there is bespoke logic here for each operation."""
+
+        validation = self.validate()
+        if not validation["success"]:
+            self.stage = "errored"
+            self.message = validation["message"]
+            self.save()
+            return
+
+        self.start()
+        if self.operation == "layerset_to_cog":
+            create_mosaic_cog.delay(self.target.pk, self.pk)
+
+    def enqueue(self):
+        self.stage = "queued"
+        self.date_queued = timezone.now()
+        self.date_started = None
+        self.date_ended = None
+        self.run_duration = None
+        self.save()
+
+    def start(self):
+        self.stage = "running"
+        self.date_started = timezone.now()
+        self.save()
+
+    def end(self, success: bool = True, message: str = ""):
+        self.date_ended = timezone.now()
+        self.message = message
+        self.stage = "completed" if success else "errored"
+        elapsed_delta = self.date_ended - self.date_started
+        self.run_duration = elapsed_delta.seconds
+        self.save()
+
+    def save(self, *args, **kwargs):
+        if not self.map:
+            if isinstance(
+                self.target,
+                (
+                    Document,
+                    Region,
+                    Layer,
+                    LayerSet,
+                ),
+            ):
+                self.map = self.target.map
+            if isinstance(self.target, Map):
+                self.maps = self.target
+        return super(Job, self).save(*args, **kwargs)
