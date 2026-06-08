@@ -54,6 +54,8 @@
   import InfoModalButton from './buttons/InfoModalButton.svelte';
   import SigninReminder from './common/SigninReminder.svelte';
 
+  import ConfirmModal from './modals/ConfirmModal.svelte';
+
   export let CONTEXT;
   export let REGION;
   export let MAP;
@@ -119,7 +121,7 @@
     leaveOkay = false;
     enableButtons = true;
   }
-  $: enableSave = gcpList.length >= 3 && enableButtons;
+  $: enableSave = gcpList.length >= minGCPs && enableButtons;
 
   let countdown = 10;
   let timer;
@@ -150,10 +152,42 @@
   const noteInputElId = 'note-input';
 
   let currentTransformation = 'poly1';
-  const transformations = [
-    { id: 'poly1', name: 'Polynomial' },
-    { id: 'tps', name: 'Thin Plate Spline' },
+  let minGCPs = 3;
+  $: transformations = [
+    {
+      id: 'poly1',
+      name: 'Polynomial',
+      enabled: true,
+      available: true
+    },
+    {
+      id: 'tps',
+      name: 'Thin Plate Spline',
+      enabled: true,
+      available: true
+    },
+    {
+      id: 'helmert',
+      name: 'Helmert 4-param',
+      enabled: gcpList.length == 2,
+      available: CONTEXT.user.perms.includes("core.use_helmert")
+    },
   ];
+  $: {
+    if (gcpList.length == 3 && currentTransformation == "helmert") {
+      currentTransformation = "poly1"
+    }
+    if (currentTransformation == "helmert") {
+      minGCPs = 2;
+    } else {
+      minGCPs = 3;
+    }
+  }
+  $: {
+    if (gcpList.length <= 2 && currentTransformation != "helmert") {
+      previewMode = "n/a"
+    }
+  }
 
   let currentTargetProjection = 'EPSG:3857';
   const availableProjections = [
@@ -703,7 +737,12 @@
   };
 
   function getPreview() {
-    if (gcpList.length < 3) {
+    if (currentTransformation == "helmert") {
+      minGCPs = 2;
+    } else {
+      minGCPs = 3;
+    }
+    if (gcpList.length < minGCPs) {
       previewMode = 'n/a';
       return;
     }
@@ -729,7 +768,7 @@
   }
 
   function submitSession() {
-    if (gcpList.length < 3) {
+    if (gcpList.length < minGCPs) {
       previewMode = 'n/a';
       return;
     }
@@ -869,6 +908,12 @@
   >
 </div>
 
+<ConfirmModal id="modal-submit-helmert" yesAction={submitSession}>
+  <p>
+    You have only two GCPs, but it is highly advisable to have three or more.
+    Please add more, unless you are unable to do so.
+  </p>
+</ConfirmModal>
 <Modal id="modal-anonymous">
   <SigninReminder next={CONTEXT.path} msg="Without an account you can experiment with the interface, but cannot submit your work."/>
 </Modal>
@@ -944,7 +989,13 @@
       <label><input type="checkbox" bind:checked={syncPanelWidth} /> autosize</label>
     </div>
     <div class="control-btn-group">
-      <ToolUIButton action={submitSession} title="Save control points" disabled={!enableSave}><Check /></ToolUIButton>
+      <ToolUIButton action={() => {
+        if (gcpList.length == 2) {
+          getModal('modal-submit-helmert').open()
+        } else {
+          submitSession()
+        }
+      }} title="Save control points" disabled={!enableSave}><Check /></ToolUIButton>
       <ToolUIButton
         action={() => {
           getModal('modal-cancel').open();
@@ -1010,7 +1061,9 @@
         Transformation:
         <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={getPreview}>
           {#each transformations as trans}
-            <option value={trans.id}>{trans.name}</option>
+            {#if trans.available}
+              <option value={trans.id} disabled={!trans.enabled}>{trans.name}</option>
+            {/if}
           {/each}
         </select>
       </label>

@@ -1,5 +1,4 @@
 import logging
-import math
 import os
 import time
 
@@ -8,6 +7,8 @@ from django.contrib.gis.geos import GEOSGeometry, LineString, Polygon
 from django.db import connection
 from django.db.models import FileField
 from PIL import Image, ImageDraw, ImageFilter
+
+from .geometry import extend_linestring
 
 logger = logging.getLogger(__name__)
 
@@ -39,41 +40,6 @@ class Splitter(object):
             coords.append((x, img_height - y))
         return coords
 
-    def extend_vector(self, p1, p2, distance):
-        """https://math.stackexchange.com/a/3346108 (credit to Oliver Roche)
-        takes the two input points, which represent a vector, and creates a
-        third point that would extend that vector by the given distance."""
-
-        x1, y1 = p1
-        x2, y2 = p2
-        rise = y2 - y1
-        run = x2 - x1
-
-        norm = math.sqrt((run**2) + (rise**2))
-
-        # if negative coords are used norm will be 0.0, silently return original point
-        if norm == 0.0:
-            return (x2, y2)
-
-        x3 = x2 + distance * (run / norm)
-        y3 = y2 + distance * (rise / norm)
-
-        return (x3, y3)
-
-    def extend_linestring(self, linestring, distance=10):
-        """takes the input GEOS LineString and extends it in both directions
-        (following the trajectory of each end segment) by the given distance."""
-
-        coord_list = list(linestring.coords)
-
-        new_start = self.extend_vector(coord_list[1], coord_list[0], distance)
-        new_end = self.extend_vector(coord_list[-2], coord_list[-1], distance)
-
-        coord_list.insert(0, new_start)
-        coord_list.append(new_end)
-
-        return LineString(coord_list)
-
     def generate_divisions(self, cutlines):
         """takes the input border and then tries to cut it with the cutlines.
         any sub polygons resulting from the cut are also compared to the cutlines,
@@ -86,7 +52,7 @@ class Splitter(object):
         for line in cutlines:
             ## this function extends each end of the original line by 10 pixels.
             ## this facilitates a more robust splitting process.
-            ls_extended = self.extend_linestring(LineString(line))
+            ls_extended = extend_linestring(LineString(line))
             cut_shapes.append({"geom": ls_extended, "used": False})
 
         ## candidates is a list of polygons that may be the final polygons
