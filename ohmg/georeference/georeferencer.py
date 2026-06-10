@@ -5,7 +5,7 @@ import sys
 import time
 from io import StringIO
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from uuid import uuid4
 
 from django.conf import settings
@@ -249,7 +249,10 @@ class Georeferencer:
         return (gcp.GCPX, gcp.GCPY)
 
     def _pixel_coords_from_gcp(
-        self, gcp: gdal.GCP, cartesian_y: bool = False
+        self,
+        gcp: gdal.GCP,
+        cartesian_y: bool = False,
+        img_height: Union[float, None] = None,
     ) -> Tuple[float, float]:
         """Return the image pixel coords from the input GCP.
 
@@ -260,8 +263,10 @@ class Georeferencer:
         image."""
         x, y = gcp.GCPPixel, gcp.GCPLine
         if cartesian_y:
-            ds = gdal.Open(self.gcps_vrt.get_vsi_url())
-            y = ds.RasterYSize - y
+            if img_height is None:
+                ds = gdal.Open(self.gcps_vrt.get_vsi_url())
+                img_height = ds.RasterYSize
+            y = img_height - y
         return (x, y)
 
     def _calculate_scale(self) -> float:
@@ -288,7 +293,7 @@ class Georeferencer:
 
         return pt_dist / px_dist
 
-    def _calculate_rotation_from_north(self) -> float:
+    def _calculate_azimuth(self, img_height: Union[float, None] = None) -> float:
         """Compares two GCPs and calculates the difference in the angles
         between the geometric points and the pixel points.
 
@@ -306,8 +311,8 @@ class Georeferencer:
             self._geo_coords_from_gcp(upper_gcp), self._geo_coords_from_gcp(lower_gcp)
         )
         px_degrees = angle_from_coords(
-            self._pixel_coords_from_gcp(upper_gcp, cartesian_y=True),
-            self._pixel_coords_from_gcp(lower_gcp, cartesian_y=True),
+            self._pixel_coords_from_gcp(upper_gcp, cartesian_y=True, img_height=img_height),
+            self._pixel_coords_from_gcp(lower_gcp, cartesian_y=True, img_height=img_height),
         )
 
         difference = pt_degrees - px_degrees
@@ -421,7 +426,7 @@ class Georeferencer:
             scale = self._calculate_scale()
 
             ## get rotation
-            rotation = self._calculate_rotation_from_north()
+            rotation = self._calculate_azimuth()
             ## adjust and convert to arcseconds
             arcseconds = (rotation + 90) * 3600
 
