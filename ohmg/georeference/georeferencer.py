@@ -13,7 +13,7 @@ from osgeo import gdal, ogr, osr
 
 from ohmg.core.utils.srs import retrieve_srs_wkt
 
-from .geometry import angle_from_coords
+from .geometry import azimuth_from_coords
 
 logger = logging.getLogger(__name__)
 
@@ -244,78 +244,57 @@ class Georeferencer:
             )
             self.gcps.append(gcp)
 
-    def _geo_coords_from_gcp(self, gcp: gdal.GCP) -> Tuple[float, float]:
-        """Return the geographic x, y coords from the input GCP"""
-        return (gcp.GCPX, gcp.GCPY)
-
-    def _pixel_coords_from_gcp(
-        self,
-        gcp: gdal.GCP,
-        cartesian_y: bool = False,
-        img_height: Union[float, None] = None,
-    ) -> Tuple[float, float]:
-        """Return the image pixel coords from the input GCP.
-
-        Y coordinate is measured down from the top of the image.
-
-        If cartesian_y=True, then invert the Y coordinate against the height
-        of the dataset, to match a cartesian plane with 0,0 at the bottom left of the
-        image."""
-        x, y = gcp.GCPPixel, gcp.GCPLine
-        if cartesian_y:
-            if img_height is None:
-                ds = gdal.Open(self.gcps_vrt.get_vsi_url())
-                img_height = ds.RasterYSize
-            y = img_height - y
-        return (x, y)
-
     def _calculate_scale(self) -> float:
         """Compares two GCPs and returns a scale factor."""
 
-        if len(self.gcps) != 2:
-            raise Exception("Two GCPs are needed to calculate a scale factor")
+        if len(self.gcps) < 2:
+            raise Exception("At least GCPs are needed to calculate a scale factor")
 
-        gcp1, gcp2 = self.gcps
+        gcp1, gcp2 = self.gcps[0], self.gcps[1]
 
         # distance between the geographic coords in each GCP
         # this distance is absolute so the order of the coords doesn't matter
-        pt_dist = math.dist(
-            self._geo_coords_from_gcp(gcp1),
-            self._geo_coords_from_gcp(gcp2),
+        geo_dist = math.dist(
+            (gcp1.GCPX, gcp1.GCPY),
+            (gcp2.GCPX, gcp2.GCPY),
         )
 
         # distance between the pixel coords in each GCP
         # this distance is absolute so the order of the coords doesn't matter
-        px_dist = math.dist(
-            self._pixel_coords_from_gcp(gcp1),
-            self._pixel_coords_from_gcp(gcp2),
+        img_dist = math.dist(
+            (gcp1.GCPPixel, gcp1.GCPLine),
+            (gcp2.GCPPixel, gcp2.GCPLine),
         )
 
-        return pt_dist / px_dist
+        return geo_dist / img_dist
 
-    def _calculate_azimuth(self, img_height: Union[float, None] = None) -> float:
+    def _calculate_rotation(self, img_height: Union[float, None] = None) -> float:
         """Compares two GCPs and calculates the difference in the angles
         between the geometric points and the pixel points.
 
         Returns the angle in degrees from 'north', i.e. the positive Y axis"""
-        if len(self.gcps) != 2:
-            raise Exception("Two GCPs are needed to calculate a scale factor")
 
-        ## the GCPLine value is the number of pixels DOWN from the top of the
-        ## image, so we'll call it "upper" because it appears the higher of the
-        ## two on the page
-        upper_gcp = min(self.gcps, key=lambda x: x.GCPLine)
-        lower_gcp = max(self.gcps, key=lambda x: x.GCPLine)
+        if len(self.gcps) < 2:
+            raise Exception("At least two GCPs are needed to calculate a scale factor")
 
-        pt_degrees = angle_from_coords(
-            self._geo_coords_from_gcp(upper_gcp), self._geo_coords_from_gcp(lower_gcp)
-        )
-        px_degrees = angle_from_coords(
-            self._pixel_coords_from_gcp(upper_gcp, cartesian_y=True, img_height=img_height),
-            self._pixel_coords_from_gcp(lower_gcp, cartesian_y=True, img_height=img_height),
-        )
+        # sort the GCPs so they are ordered from lowest to highest,
+        # then right to left, as they appear on the source image.
+        # this allows us to figure out the orientation
+        self.gcps.sort(key=lambda x: x.GCPPixel)
+        self.gcps.sort(key=lambda x: x.GCPLine, reverse=True)
 
-        difference = pt_degrees - px_degrees
+        # make sure img height is set because it is needed to properly
+        # handle the inverted Y coords.
+        if not img_height:
+            ds = gdal.Open(self.gcps_vrt.get_vsi_url())
+            img_height = ds.RasterYSize
+        img_coords = [(i.GCPPixel, img_height - i.GCPLine) for i in self.gcps]
+        img_azimuth = azimuth_from_coords(img_coords)
+
+        geo_coords = [(i.GCPX, i.GCPY) for i in self.gcps]
+        geo_azimuth = azimuth_from_coords(geo_coords)
+
+        difference = geo_azimuth - img_azimuth
         return difference
 
     def _calculate_helmert_offsets(self, scale: float, rotation: float) -> Tuple[float, float]:
@@ -330,8 +309,8 @@ class Georeferencer:
         dist_to_page_edge = use_gcp.GCPLine * scale
         dist_to_page_top = use_gcp.GCPPixel * scale
 
-        ## rotation is degrees from positive y-axis, adjust to be degrees from
-        ## positive x-axis
+        ## rotation is azimuth, i.e. degrees from positive y-axis,
+        ## must adjust to be degrees from positive x-axis
         theta1 = 90 - rotation
         ## further adjustments to normalize
         if theta1 < 0:
@@ -426,7 +405,7 @@ class Georeferencer:
             scale = self._calculate_scale()
 
             ## get rotation
-            rotation = self._calculate_azimuth()
+            rotation = self._calculate_rotation()
             ## adjust and convert to arcseconds
             arcseconds = (rotation + 90) * 3600
 
