@@ -32,7 +32,7 @@ dependencies = [
     "dialogos==0.4",
     "pinax==0.9a2",
     "pinax-announcements==4.0.1",
-    "gdal>=3.5,<3.6",
+    "gdal==3.8.4",
     "Pillow<10.0.0",
     "django_compressor",
     "natsort",
