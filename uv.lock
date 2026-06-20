@@ -863,7 +863,7 @@ requires-dist = [
     { name = "django-markdownx", specifier = "==4.0.7" },
     { name = "django-ninja", specifier = "==0.21.0" },
     { name = "django-storages", specifier = "==1.13.2" },
-    { name = "gdal", specifier = ">=3.8,<3.8.5" },
+    { name = "gdal", specifier = "==3.8.4" },
     { name = "humanize" },
     { name = "kombu", specifier = "==5.6.0" },
     { name = "lxml" },
