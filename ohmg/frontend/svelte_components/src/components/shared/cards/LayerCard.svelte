@@ -4,7 +4,7 @@
   import DownloadSimple from 'phosphor-svelte/lib/DownloadSimple';
   import MapPin from 'phosphor-svelte/lib/MapPin';
 
-  import { getModal } from '../../base/Modal.svelte';
+  import { openModal } from '../../base/Modal.svelte';
   import Link from '../../base/Link.svelte';
   import BaseCard from '../../base/Card.svelte';
 
@@ -38,7 +38,7 @@
         modalLyrUrl = layer.urls.cog;
         modalExtent = layer.extent;
         modalIsGeospatial = true;
-        getModal('modal-simple-viewer').open();
+        openModal('modal-simple-viewer');
         reinitModalMap = [{}];
       }}
     >
@@ -68,7 +68,7 @@
                 : 'Undo georeferencing for this layer'}
               on:click={() => {
                 undoGeorefLayerId = layer.id;
-                getModal('modal-confirm-ungeoreference').open();
+                openModal('modal-confirm-ungeoreference');
               }}
             >
               <ArrowCounterClockwise /> ungeoreference

@@ -1,7 +1,7 @@
 <script>
   import Broom from 'phosphor-svelte/lib/Broom';
 
-  import { getModal } from '../../base/Modal.svelte';
+  import { openModal } from '../../base/Modal.svelte';
   import Link from '../../base/Link.svelte';
   import BaseCard from '../../base/Card.svelte';
 
@@ -12,7 +12,7 @@
   export let modalExtent;
   export let modalIsGeospatial;
   export let reinitModalMap;
-  export let postSkipRegion;
+  export let regionToUnskip;
 </script>
 
 <BaseCard>
@@ -27,7 +27,7 @@
         modalLyrUrl = region.urls.image;
         modalExtent = [0, -region.image_size[1], region.image_size[0], 0];
         modalIsGeospatial = false;
-        getModal('modal-simple-viewer').open();
+        openModal('modal-simple-viewer');
         reinitModalMap = [{}];
       }}
     >
@@ -47,7 +47,8 @@
             class="is-text-link"
             title="Move to the Prepared section"
             on:click={() => {
-              postSkipRegion(region.id, false);
+              regionToUnskip = region.id
+              openModal('modal-confirm-unskip-region')
             }}
           >
             <Broom /> unskip this piece</button

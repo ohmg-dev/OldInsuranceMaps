@@ -16,7 +16,7 @@
   import ToolUIButton from './widgets/ToolUIButton.svelte';
   import MapboxLogoLink from './widgets/MapboxLogoLink.svelte';
 
-  import { getModal } from '../base/Modal.svelte';
+  import { openModal } from '../base/Modal.svelte';
   import LegendModal from '../shared/modals/LegendModal.svelte';
 
   import { makeLayerGroupFromLayerSet } from '../../lib/utils';
@@ -152,7 +152,7 @@
     <div class="layer-section-header" style="border-top-width: 1px;">
       <ToolUIButton
         action={() => {
-          getModal('modal-legend').open();
+          openModal('modal-legend');
         }}
         title="Show map key"
       >

@@ -34,6 +34,9 @@
   import ToolUIButton from './widgets/ToolUIButton.svelte';
   import ExpandElement from './widgets/ExpandElement.svelte';
 
+  import Modal, { openModal } from '../base/Modal.svelte';
+  import ModalConfirm from '../base/ModalConfirm.svelte';
+
   import { usaExtent } from '../../lib/utils';
   import { MapViewer } from '../../lib/viewers';
   import { LyrMousePosition } from '../../lib/controls';
@@ -47,6 +50,9 @@
   export let dirty = false;
 
   let currentLayer = null;
+
+  let layerToRemove;
+  let layerToGeoreference;
 
   let layerLookup = {};
   let layerLookupMaskedArr = [];
@@ -202,7 +208,8 @@
 
   function resetInterface() {
     layerLookupArr.forEach(function (layer) {
-      layerRemoveMask(layer, true);
+      layerToRemove = layer
+      layerRemoveMask();
     });
     addIncomingMasks();
     dirty = false;
@@ -303,7 +310,7 @@
 
   function submitMultiMask() {
     if (DISABLED) {
-      window.alert('You do not have edit permissions for this multimask.');
+      openModal('modal-no-permission')
       return;
     }
     const outGeoJSON = { type: 'FeatureCollection', features: [] };
@@ -393,20 +400,15 @@
     dirty = true;
   }
 
-  function layerRemoveMask(layer, confirm) {
-    if (confirm != true) {
-      confirm = window.confirm('Remove this mask?');
+  function layerRemoveMask() {
+    if (layerToRemove.crop) {
+      layerToRemove.crop.set('active', false);
     }
-    if (confirm) {
-      if (layer.crop) {
-        layer.crop.set('active', false);
-      }
-      trimShapeSource.removeFeature(layer.feature);
-      layer.crop = null;
-      layer.feature = null;
-      updateLayerArr();
-      dirty = true;
-    }
+    trimShapeSource.removeFeature(layerToRemove.feature);
+    layerToRemove.crop = null;
+    layerToRemove.feature = null;
+    updateLayerArr();
+    dirty = true;
   }
 
   function handleKeydown(e) {
@@ -430,6 +432,33 @@
 </script>
 
 <svelte:window on:keydown={handleKeydown} on:keyup={handleKeyup} />
+<Modal id="modal-no-permission">
+  <p>You do not have edit permissions for this multimask.</p>
+</Modal>
+<ModalConfirm id="modal-confirm-remove-mask"
+  yesAction={layerRemoveMask}
+>
+  <p>Remove this layer's mask?</p>
+</ModalConfirm>
+<ModalConfirm id="modal-confirm-reset"
+  yesAction={resetInterface}
+>
+  <p>Reset the interface? All work will be undone up to the last time you saved the multimask,
+    or up to the state of the multimask when you loaded this page if you haven't yet saved.
+  </p>
+</ModalConfirm>
+<ModalConfirm id="modal-confirm-leave-to-georeference"
+  yesAction={() => {
+    window.location.href = layerToGeoreference.georeferenceUrl;
+  }}
+>
+  <p>Update georeferencing for this layer? You will be taken to the georeferencing interface for this layer.
+  </p>
+  <ul>
+    <li>You will lose any unsaved work here, so make sure to save before you go!</li>
+    <li>Editing a layer's GCPs does not change its mask (if it already has a mask).</li>
+  </ul>
+</ModalConfirm>
 <div id="mm-container" class="svelte-component-main">
   <div id="map-container" class="map-container" style="height: calc(100%-35px);">
     <div id="map-viewer" class="map-item rounded-bottom"></div>
@@ -489,14 +518,21 @@
         <div class="layer-section-subheader" style="overflow-y:auto">
           {#each layerLookupMaskedArr as layer}
             <div style="display:flex;">
-              <ToolUIButton action={() => layerRemoveMask(layer)} title="remove this layer's mask" disabled={DISABLED}>
+              <ToolUIButton
+                action={() => {
+                  layerToRemove = layer;
+                  openModal('modal-confirm-remove-mask')
+                }}
+                title="remove this layer's mask" disabled={DISABLED}
+              >
                 <Trash />
               </ToolUIButton>
               {#if CONTEXT.user.is_authenticated}
                 <ToolUIButton
                   title="Edit georeferencing for this layer"
                   action={() => {
-                    window.location.href = layer.georeferenceUrl;
+                    layerToGeoreference = layer;
+                    openModal('modal-confirm-leave-to-georeference');
                   }}
                 >
                   <MapPin />
@@ -519,7 +555,9 @@
         </div>
       </div>
       <div class="layer-section-header">
-        <ToolUIButton action={resetInterface} title="Cancel (reset)" disabled={!dirty || DISABLED}>
+        <ToolUIButton action={() => {
+              openModal('modal-confirm-reset');
+            }} title="Cancel (reset)" disabled={!dirty || DISABLED}>
           <X />
         </ToolUIButton>
         <ToolUIButton action={submitMultiMask} title="Submit" disabled={!dirty || DISABLED}>

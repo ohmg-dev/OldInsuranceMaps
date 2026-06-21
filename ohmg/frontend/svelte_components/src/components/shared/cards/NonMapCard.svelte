@@ -1,7 +1,7 @@
 <script>
   import MapTrifold from 'phosphor-svelte/lib/MapTrifold';
 
-  import { getModal } from '../../base/Modal.svelte';
+  import { openModal } from '../../base/Modal.svelte';
   import Link from '../../base/Link.svelte';
   import BaseCard from '../../base/Card.svelte';
 
@@ -11,7 +11,7 @@
   export let modalExtent;
   export let modalIsGeospatial;
   export let reinitModalMap;
-  export let postRegionCategory;
+  export let regionToSetAsMap;
 </script>
 
 <BaseCard>
@@ -26,7 +26,7 @@
         modalLyrUrl = nonmap.urls.image;
         modalExtent = [0, -nonmap.image_size[1], nonmap.image_size[0], 0];
         modalIsGeospatial = false;
-        getModal('modal-simple-viewer').open();
+        openModal('modal-simple-viewer');
         reinitModalMap = [{}];
       }}
     >
@@ -41,7 +41,8 @@
             <button
               class="is-text-link"
               on:click={() => {
-                postRegionCategory(nonmap.id, 'map');
+                regionToSetAsMap = nonmap.id;
+                openModal('modal-confirm-set-map')
               }}
               title="click to set this document back to 'prepared' so it can be georeferenced"
             >

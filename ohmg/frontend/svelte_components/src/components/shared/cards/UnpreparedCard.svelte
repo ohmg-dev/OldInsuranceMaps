@@ -5,7 +5,7 @@
   import CheckSquareOffset from 'phosphor-svelte/lib/CheckSquareOffset';
   import ArrowClockwise from 'phosphor-svelte/lib/ArrowClockwise';
 
-  import { getModal } from '../../base/Modal.svelte';
+  import { openModal } from '../../base/Modal.svelte';
   import BaseCard from '../../base/Card.svelte';
   import Link from '../../base/Link.svelte';
 
@@ -20,7 +20,7 @@
   export let modalIsGeospatial;
   export let reinitModalMap;
   export let postLoadDocument;
-  export let splitDocumentId;
+  export let documentToNoSplit;
   export let documentsLoading;
   export let bulkPreparing;
   export let bulkPrepareList;
@@ -53,7 +53,7 @@
           modalLyrUrl = document.urls.image;
           modalExtent = [0, -document.image_size[1], document.image_size[0], 0];
           modalIsGeospatial = false;
-          getModal('modal-simple-viewer').open();
+          openModal('modal-simple-viewer');
           reinitModalMap = [{}];
         }}
       >
@@ -113,28 +113,29 @@
       </ul>
     {:else if userCanEdit}
       <ul>
+        {#if bulkPreparing}
         <li>
-          {#if bulkPreparing}
-            <button class="is-text-link" title="This document does not need to be split" on:click={handleChange}>
-              {#if bulkPrepare}
-                <CheckSquare />
-              {:else}
-                <Square />
-              {/if}
-              no split needed
-            </button>
-          {:else}
-            <button
-              class="is-text-link"
-              title="This document does not need to be split"
-              on:click={() => {
-                splitDocumentId = document.id;
-                getModal('modal-confirm-no-split').open();
-              }}
-            >
-              <CheckSquareOffset /> no split needed
-            </button>
-          {/if}
+          <button class="is-text-link" title="This document does not need to be split" on:click={handleChange}>
+            {#if bulkPrepare}
+              <CheckSquare />
+            {:else}
+              <Square />
+            {/if}
+            no split needed
+          </button>
+        </li>
+        {:else}
+        <li>
+          <button
+            class="is-text-link"
+            title="This document does not need to be split"
+            on:click={() => {
+              documentToNoSplit = document.id;
+              openModal('modal-confirm-no-split');
+            }}
+          >
+            <CheckSquareOffset /> no split needed
+          </button>
         </li>
         <li>
           <Link href={`/split/${document.id}`} title="Split this document">
@@ -155,6 +156,7 @@
               <ArrowClockwise /> force reload
             </button>
           </li>
+        {/if}
         {/if}
       </ul>
     {/if}

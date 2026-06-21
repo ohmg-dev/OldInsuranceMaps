@@ -36,7 +36,7 @@
   import LayerGroup from 'ol/layer/Group';
 
   import { MapViewer } from '../lib/viewers';
-  import Modal, { getModal } from './base/Modal.svelte';
+  import Modal, { openModal } from './base/Modal.svelte';
   import Link from './base/Link.svelte';
   import MapboxLogoLink from './interfaces/widgets/MapboxLogoLink.svelte';
 
@@ -514,7 +514,7 @@
         <button
           title="About this viewer"
           on:click={() => {
-            getModal('modal-about').open();
+            openModal('modal-about');
           }}>info</button
         >
       </div>

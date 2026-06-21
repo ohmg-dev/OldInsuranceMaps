@@ -1,5 +1,5 @@
 <script>
-  import Modal, { getModal } from './Modal.svelte';
+  import Modal, { closeModal } from './Modal.svelte';
 
   export let id;
   export let yesButtonText = "Yes"
@@ -18,7 +18,7 @@
     title={yesButtonText}
     on:click={() => {
       yesAction();
-      getModal(id).close();
+      closeModal(id);
     }}>{yesButtonText}</button
   >
   <button
@@ -26,7 +26,7 @@
     title={noButtonText}
     on:click={() => {
       noAction()
-      getModal(id).close();
+      closeModal(id);
     }}>{noButtonText}</button
   >
 </Modal>

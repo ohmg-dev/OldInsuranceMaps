@@ -459,7 +459,7 @@ class LayerSetView(View):
                     logger.warning(f"{self} | improper GeoJSON in mask")
                     errors.append((lyr_slug, e))
             if errors:
-                return JsonResponseFail("; ".join([f"\n-- {i[0]}: {i[1]}" for i in errors]))
+                return JsonResponseFail("<br/>".join([f"{i[0]}: {i[1]}" for i in errors]))
 
             for layer in layerset.get_layers():
                 # if there is no mask to set and the layer doesn't need a mask removed, skip

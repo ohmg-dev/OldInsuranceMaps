@@ -44,7 +44,7 @@
   import { DocMousePosition, LyrMousePosition, MapScaleLine } from '../../lib/controls';
   import { MapViewer } from '../../lib/viewers';
 
-  import Modal, { getModal } from '../base/Modal.svelte';
+  import Modal, { openModal } from '../base/Modal.svelte';
   import LoadingEllipsis from '../shared/LoadingEllipsis.svelte';
   import Link from '../base/Link.svelte';
   import ToolUIButton from './widgets/ToolUIButton.svelte';
@@ -140,7 +140,7 @@
   let autoRedirect;
   function promptRefresh() {
     if (!leaveOkay) {
-      getModal('modal-extend-session').open();
+      openModal('modal-extend-session');
       leaveOkay = true;
       autoRedirect = setTimeout(cancelSession, 10000);
       timer = setInterval(() => {
@@ -472,7 +472,7 @@
     setPreviewVisibility(previewMode);
     loadIncomingGCPs();
     if (!CONTEXT.user.is_authenticated) {
-      getModal('modal-anonymous').open();
+      openModal('modal-anonymous');
     }
   });
 
@@ -914,26 +914,14 @@
     Please add more, unless you are unable to do so.
   </p>
 </ModalConfirm>
+<ModalConfirm id="modal-cancel"
+  yesButtonText="Yes - return to overview"
+  yesAction={cancelSession}
+  noButtonText="No - keep working">
+  <p>Are you sure you want to cancel this session?</p>
+</ModalConfirm>
 <Modal id="modal-anonymous">
   <SigninReminder next={CONTEXT.path} msg="Without an account you can experiment with the interface, but cannot submit your work."/>
-</Modal>
-<Modal id="modal-cancel">
-  <p>Are you sure you want to cancel this session?</p>
-  <button
-    class="button is-success"
-    title="Cancel session and return to map overview"
-    on:click={() => {
-      cancelSession();
-      getModal('modal-cancel').close();
-    }}>Yes - return to overview</button
-  >
-  <button
-    class="button is-danger"
-    title="Continue working"
-    on:click={() => {
-      getModal('modal-cancel').close();
-    }}>No - keep working</button
-  >
 </Modal>
 <Modal id="modal-parcels">
   <p>It can be helpful to use modern-day property lines when georeferencing historical maps.</p>
@@ -991,14 +979,14 @@
     <div class="control-btn-group">
       <ToolUIButton action={() => {
         if (gcpList.length == 2) {
-          getModal('modal-submit-helmert').open()
+          openModal('modal-submit-helmert')
         } else {
           submitSession()
         }
       }} title="Save control points" disabled={!enableSave}><Check /></ToolUIButton>
       <ToolUIButton
         action={() => {
-          getModal('modal-cancel').open();
+          openModal('modal-cancel');
         }}
         title="Cancel georeferencing"
         disabled={!enableButtons}><X /></ToolUIButton

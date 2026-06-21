@@ -29,10 +29,10 @@
   import { DocMousePosition } from '../../lib/controls';
 
   import Link from '../base/Link.svelte';
-  import Modal, { getModal } from '../base/Modal.svelte';
+  import Modal, { openModal } from '../base/Modal.svelte';
+  import ModalConfirm from '../base/ModalConfirm.svelte';
 
   import SigninReminder from '../shared/SigninReminder.svelte';
-  import ConfirmNoSplitModal from '../shared/modals/ConfirmNoSplitModal.svelte';
   import ExtendSessionModal from '../shared/modals/ExtendSessionModal.svelte';
 
   import ExpandElement from './widgets/ExpandElement.svelte';
@@ -43,6 +43,7 @@
 
   let viewer;
   let showPreview = true;
+  let errMsg;
 
   let cutLines = [];
   let divisions = [];
@@ -79,7 +80,7 @@
   let autoRedirect;
   function promptRefresh() {
     if (!leaveOkay) {
-      getModal('modal-extend-session').open();
+      openModal('modal-extend-session');
       leaveOkay = true;
       autoRedirect = setTimeout(cancelSplit, 10000);
       timer = setInterval(() => {
@@ -238,7 +239,7 @@
 
     // resetInterface();
     if (!CONTEXT.user.is_authenticated) {
-      getModal('modal-anonymous').open();
+      openModal('modal-anonymous');
     }
   });
 
@@ -299,7 +300,8 @@
         if (result.success) {
           window.location.href = `/map/${DOCUMENT.map}`;
         } else {
-          alert(result.message);
+          errMsg = result.message;
+          openModal("modal-error")
         }
       },
     );
@@ -322,7 +324,8 @@
         if (result.success) {
           window.location.href = `/map/${DOCUMENT.map}`;
         } else {
-          alert(result.message);
+          errMsg = result.message;
+          openModal("modal-error")
         }
       },
     );
@@ -365,7 +368,6 @@
     clearTimeout(autoRedirect);
     setTimeout(promptRefresh, CONTEXT.session_length * 1000 - 10000);
   }
-  console.log(CONTEXT)
 </script>
 
 <svelte:window
@@ -379,40 +381,39 @@
 />
 
 <ExtendSessionModal {CONTEXT} {sessionId} callback={handleExtendSession} bind:countdown />
+
+<Modal id="modal-error">
+  <p>Error!</p>
+  <p>{errMsg}</p>
+</Modal>
 <Modal id="modal-anonymous">
   <SigninReminder next={CONTEXT.path} msg="Without an account you can experiment with the interface, but cannot submit your work."/>
 </Modal>
-
 <Modal id="modal-finished">
   <p>This document has already been prepared!</p>
 </Modal>
-<Modal id="modal-cancel">
-  <p>Are you sure you want to cancel this session?</p>
-  <button
-    class="button is-success"
-    title="Cancel and redirect"
-    on:click={() => {
-      cancelSplit();
-      getModal('modal-cancel').close();
-    }}>Yes</button
-  >
-  <button
-    class="button is-danger"
-    title="Continue session"
-    on:click={() => {
-      getModal('modal-cancel').close();
-    }}>No - keep working</button
-  >
-</Modal>
-<ConfirmNoSplitModal
-  documentId={DOCUMENT.id}
-  {CONTEXT}
-  {sessionId}
-  callback={() => {
-    leaveOkay = true;
-    window.location.href = `/map/${DOCUMENT.map}`;
-  }}
-/>
+<ModalConfirm id="modal-cancel"
+  yesButtonText="Yes - return to overview"
+  yesAction={cancelSplit}
+  noButtonText="No - keep working">
+  <p>Do you want to cancel this session? If this document does not need to be split,
+    you can choose <strong>no split needed</strong> from the map overview.
+  </p>
+</ModalConfirm>
+<ModalConfirm id="modal-confirm-split"
+  yesButtonText={`Yes - split into ${divisions.length} pieces`}
+  yesAction={submitSplit}
+  noButtonText="No - keep working"
+>
+  <p>
+    Is this document ready to be split? Each section should be clearly defined with no slivers or unecessary pieces.
+  </p>
+</ModalConfirm>
+<ModalConfirm id="modal-confirm-reset"
+  yesAction={resetInterface}
+>
+  <p>Reset cutlines to start over?</p>
+</ModalConfirm>
 <div style="height:25px">
   {currentTxt}
   <Link href="https://about.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link>
@@ -449,28 +450,30 @@
       </label>
     </div>
     <div class="control-btn-group">
-      <ToolUIButton action={submitSplit} title="Run split operation" disabled={divisions.length <= 1 || !enableButtons}>
+      <ToolUIButton action={() => {
+          openModal('modal-confirm-split');
+        }}
+        title="Run split operation"
+        disabled={divisions.length <= 1 || !enableButtons}
+      >
         <Scissors />
       </ToolUIButton>
       <ToolUIButton
         action={() => {
-          getModal('modal-confirm-no-split').open();
-        }}
-        title="No split needed"
-        disabled={divisions.length > 0 || !enableButtons}
-      >
-        <CheckSquareOffset />
-      </ToolUIButton>
-      <ToolUIButton
-        action={() => {
-          getModal('modal-cancel').open();
+          openModal('modal-cancel');
         }}
         title="Cancel this preparation"
         disabled={sessionId == null || !enableButtons}
       >
         <X />
       </ToolUIButton>
-      <ToolUIButton action={resetInterface} title="Reset interface" disabled={unchanged}>
+      <ToolUIButton 
+        action={() => {
+          openModal('modal-confirm-reset');
+        }}
+        title="Reset interface"
+        disabled={unchanged}
+      >
         <ArrowCounterClockwise />
       </ToolUIButton>
       <ExpandElement elementId="map-container" />

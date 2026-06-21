@@ -4,7 +4,7 @@
   import FileText from 'phosphor-svelte/lib/FileText';
   import MapPin from 'phosphor-svelte/lib/MapPin';
 
-  import { getModal } from '../../base/Modal.svelte';
+  import { openModal } from '../../base/Modal.svelte';
   import Link from '../../base/Link.svelte';
   import BaseCard from '../../base/Card.svelte';
 
@@ -16,9 +16,9 @@
   export let modalExtent;
   export let modalIsGeospatial;
   export let reinitModalMap;
-  export let postDocumentUnprepare;
-  export let postRegionCategory;
-  export let postSkipRegion;
+  export let documentToUnprepare;
+  export let regionToSetAsNonMap;
+  export let regionToSkip;
 </script>
 
 <BaseCard>
@@ -33,7 +33,7 @@
         modalLyrUrl = region.urls.image;
         modalExtent = [0, -region.image_size[1], region.image_size[0], 0];
         modalIsGeospatial = false;
-        getModal('modal-simple-viewer').open();
+        openModal('modal-simple-viewer');
         reinitModalMap = [{}];
       }}
     >
@@ -62,7 +62,8 @@
               : 'Undo preparation'}
             style="display:flex; align-items:center;"
             on:click={() => {
-              postDocumentUnprepare(region.document_id);
+              documentToUnprepare = region.document_id;
+              openModal('modal-confirm-unprepare')
             }}
           >
             <ArrowCounterClockwise /> unprepare</button
@@ -73,7 +74,8 @@
             class="is-text-link"
             title="Move to Non-map section"
             on:click={() => {
-              postRegionCategory(region.id, 'non-map');
+              regionToSetAsNonMap = region.id;
+              openModal('modal-confirm-set-nonmap')
             }}
           >
             <FileText /> set as non-map</button
@@ -84,7 +86,8 @@
             class="is-text-link"
             title="Skip this piece (for now)"
             on:click={() => {
-              postSkipRegion(region.id, true);
+              regionToSkip = region.id;
+              openModal("modal-confirm-skip-region")
             }}
           >
             <Broom /> skip this piece</button

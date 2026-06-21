@@ -6,7 +6,8 @@
 
   import ExpandableSection from '../base/ExpandableSection.svelte';
   import TabbedSection from '../base/TabbedSection.svelte';
-  import Modal, { getModal } from '../base/Modal.svelte';
+  import Modal, { openModal } from '../base/Modal.svelte';
+  import ModalConfirm from '../base/ModalConfirm.svelte';
 
   import GeoreferenceOverviewModal from '../shared/modals/GeoreferenceOverviewModal.svelte';
   import UnpreparedSectionModal from '../shared/modals/UnpreparedSectionModal.svelte';
@@ -15,9 +16,6 @@
   import MultiMaskModal from '../shared/modals/MultiMaskModal.svelte';
   import NonMapContentModal from '../shared/modals/NonMapContentModal.svelte';
   import GeoreferencePermissionsModal from '../shared/modals/GeoreferencePermissionsModal.svelte';
-  import ConfirmNoSplitModal from '../shared/modals/ConfirmNoSplitModal.svelte';
-  import ConfirmUngeoreferenceModal from '../shared/modals/ConfirmUngeoreferenceModal.svelte';
-  import ModalConfirm from '../base/ModalConfirm.svelte';
 
   import MapPreview from '../interfaces/MapPreview.svelte';
   import BasicDocViewer from '../interfaces/BasicDocViewer.svelte';
@@ -211,14 +209,21 @@
     if (response.success) {
       pollMapSummary();
     } else {
-      alert(response.message);
+      errMsg = response.message;
+      openModal("modal-error")
     }
     processing = false;
     bulkPrepareList = [];
   }
-  function postDocumentUnprepare(documentId) {
+  function postDocumentUnprepare() {
     processing = true;
-    submitPostRequest(`/document/${documentId}`, CONTEXT.ohmg_post_headers, 'unprepare', {}, pollMapSummaryIfSuccess);
+    submitPostRequest(
+      `/document/${documentToUnprepare}`,
+      CONTEXT.ohmg_post_headers,
+      'unprepare',
+      {},
+      pollMapSummaryIfSuccess
+    );
   }
   function postLoadDocument(documentId) {
     documentsLoading = true;
@@ -236,13 +241,13 @@
     );
   }
 
-  function postSkipRegion(regionId, setTo) {
+  function postSkipRegion(setSkipped) {
     processing = true;
     submitPostRequest(
-      `/region/${regionId}`,
+      `/region/${regionToSkip}`,
       CONTEXT.ohmg_post_headers,
       'set-skip',
-      { skipped: setTo },
+      { skipped: setSkipped },
       pollMapSummaryIfSuccess,
     );
   }
@@ -259,7 +264,8 @@
       },
       (response) => {
         if (!response.success) {
-          alert(response.message);
+          errMsg = response.message;
+          openModal("modal-error")
         }
         previewRefreshable = true;
         processing = false;
@@ -280,6 +286,30 @@
     );
   }
 
+  function postNoSplit() {
+    processing = true;
+    submitPostRequest(
+      `/split/${documentToNoSplit}/`,
+      CONTEXT.ohmg_post_headers,
+      'no-split',
+      {},
+      pollMapSummaryIfSuccess,
+    );
+  }
+
+  function postUngeoreference() {
+    processing = true;
+    submitPostRequest(
+      `/layer/${undoGeorefLayerId}`,
+      CONTEXT.ohmg_post_headers,
+      'ungeoreference',
+      {},
+      pollMapSummaryIfSuccess,
+    );
+  }
+
+  let errMsg;
+
   let classifyingLayers = false;
   let bulkPreparing = false;
   let bulkPrepareList = [];
@@ -290,7 +320,12 @@
   let modalLyrUrl = '';
   let modalExtent = [];
 
-  let splitDocumentId;
+  let documentToNoSplit;
+  let documentToUnprepare;
+  let regionToSetAsNonMap;
+  let regionToSetAsMap;
+  let regionToSkip;
+  let regionToUnskip;
   let undoGeorefLayerId;
 
   let processing = false;
@@ -308,14 +343,107 @@
     });
   }}
 />
+<Modal id="modal-error">
+  <p>Error!</p>
+  <p>{errMsg}</p>
+</Modal>
 
+<ModalConfirm id="modal-confirm-no-split"
+  yesAction={postNoSplit}
+>
+  <p>Are you sure this document does not need to be split?</p>
+</ModalConfirm>
 <ModalConfirm
   id="modal-confirm-bulk-no-split"
-  yesButtonText={`Yes - ${bulkPrepareList.length > 1 ? `each one only contains` : 'it only contains'} one map`}
-  yesAction={postBulkNoSplit}>
+  yesButtonText="Yes - each one only contains one map"}
+  yesAction={postBulkNoSplit}
+>
   <p>
-    Are you sure {bulkPrepareList.length > 1 ? `these ${bulkPrepareList.length} documents do` : 'this document does'} not
-    need to be split?
+    Are you sure these documents do not need to be split?
+    ({bulkPrepareList.length} selected)
+  </p>
+</ModalConfirm>
+<ModalConfirm
+  id="modal-confirm-unprepare"
+  yesAction={postDocumentUnprepare}
+>
+  <p>
+    Are you sure you want to unprepare this document?
+  </p>
+  <p>If it has been split into multiple pieces, and any of those pieces have been georeferenced,
+    you will not be able to proceed&mdash;you must <strong>ungeoreference</strong> each piece first.
+  </p>
+</ModalConfirm>
+<ModalConfirm
+  id="modal-confirm-set-nonmap"
+  yesAction={() => {
+    postRegionCategory(regionToSetAsNonMap, 'non-map');
+  }}
+>
+  <p>
+    Are you sure you want to set this as a "non-map"? Use this for non-cartographic
+    content like title pages and text index pages.
+  </p>
+  <p>This action will move the piece to the "non-map" section. It can easily be undone
+    by clicking <strong>this <em>is</em> a map</strong>.
+  </p>
+</ModalConfirm>
+<ModalConfirm
+  id="modal-confirm-skip-region"
+  yesAction={() => {
+    postSkipRegion(true);
+  }}
+>
+  <p>
+    Are you sure you want to skip this piece?
+  </p>
+  <p>Skipping a piece will remove it from the overall georeferencing workflow, so
+    it will not contribute to completion percentages or progress calculations. This 
+    is appropriate for small pieces that are exceedingly difficult, or impossible,
+    to georeference with the current tools available.
+  </p>
+</ModalConfirm>
+<ModalConfirm
+  id="modal-confirm-unprepare"
+  yesAction={postDocumentUnprepare}
+>
+  <p>
+    Are you sure you want to unprepare this document?
+  </p>
+  <p>If it has been split into multiple pieces, and any of those pieces have been georeferenced,
+    you will not be able to proceed&mdash;you must <strong>ungeoreference</strong> each piece first.
+  </p>
+</ModalConfirm>
+<ModalConfirm id="modal-confirm-ungeoreference"
+  yesAction={postUngeoreference}>
+  <p>
+    Are you sure you want to remove all georeferencing information for this layer? This operation cannot be reversed,
+    and is only necessary if the preparation step for this document needs to be redone.
+  </p>
+  <p>
+    If you only need to improve the ground control points for this layer, click <strong>edit georeferencing</strong>.
+  </p>
+</ModalConfirm>
+<ModalConfirm
+  id="modal-confirm-set-map"
+  yesAction={() => {
+    postRegionCategory(regionToSetAsMap, 'map');
+  }}
+>
+  <p>
+    Unskip this piece? Doing so will move it back into the <strong>Prepared</strong> section
+    where it can be georeferenced.
+  </p>
+</ModalConfirm>
+<ModalConfirm
+  id="modal-confirm-unskip-region"
+  yesAction={() => {
+    postSkipRegion(false);
+  }}
+>
+  <p>
+    Are you sure you want to unskip this piece? Doing so will move it back into the
+    <strong>Prepared</strong> section where it can be georeferenced.
   </p>
 </ModalConfirm>
 
@@ -336,8 +464,6 @@
     {/if}
   {/each}
 </Modal>
-<ConfirmNoSplitModal bind:processing {CONTEXT} documentId={splitDocumentId} callback={pollMapSummaryIfSuccess} />
-<ConfirmUngeoreferenceModal bind:processing {CONTEXT} layerId={undoGeorefLayerId} callback={pollMapSummaryIfSuccess} />
 {#if processing}
   <LoadingMask />
 {/if}
@@ -478,7 +604,7 @@
           disabled={bulkPrepareList.length === 0}
           title="Submit documents for bulk preparation"
           on:click={() => {
-            getModal('modal-confirm-bulk-no-split').open();
+            openModal('modal-confirm-bulk-no-split');
             bulkPreparing = false;
           }}>Submit</button
         >
@@ -506,9 +632,9 @@
           bind:reinitModalMap
           {postLoadDocument}
           bind:documentsLoading
-          bind:splitDocumentId
           bind:bulkPreparing
           bind:bulkPrepareList
+          bind:documentToNoSplit
         />
       {/each}
     </div>
@@ -531,9 +657,9 @@
             bind:modalExtent
             bind:modalIsGeospatial
             bind:reinitModalMap
-            {postDocumentUnprepare}
-            {postRegionCategory}
-            {postSkipRegion}
+            bind:documentToUnprepare
+            bind:regionToSetAsNonMap
+            bind:regionToSkip
           />
         {/each}
       </div>
@@ -619,7 +745,7 @@
             bind:modalExtent
             bind:modalIsGeospatial
             bind:reinitModalMap
-            {postSkipRegion}
+            bind:regionToUnskip
           />
         {/each}
       </div>
@@ -641,7 +767,7 @@
             bind:modalExtent
             bind:modalIsGeospatial
             bind:reinitModalMap
-            {postRegionCategory}
+            bind:regionToSetAsMap
           />
         {/each}
       </div>

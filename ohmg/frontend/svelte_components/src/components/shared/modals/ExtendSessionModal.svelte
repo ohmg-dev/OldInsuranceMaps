@@ -1,5 +1,5 @@
 <script>
-  import Modal, { getModal } from '../../base/Modal.svelte';
+  import Modal, { closeModal } from '../../base/Modal.svelte';
   import { submitPostRequest } from '../../../lib/requests';
 
   export let CONTEXT;
@@ -20,7 +20,7 @@
       title="Extend this session"
       on:click={() => {
         postExtendSession();
-        getModal('modal-extend-session').close();
+        closeModal('modal-extend-session');
       }}>Give me more time!</button
     >
     <span style="margin-left: 10px;"><em>Redirecting in {countdown}...</em></span>

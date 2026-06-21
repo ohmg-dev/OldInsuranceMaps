@@ -1,4 +1,4 @@
-import Splitter from './components/Splitter.svelte';
+import Splitter from './components/interfaces/Splitter.svelte';
 
 export default new Splitter({
   target: document.getElementById('split-target'),
