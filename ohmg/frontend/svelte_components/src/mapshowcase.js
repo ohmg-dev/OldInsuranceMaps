@@ -1,4 +1,4 @@
-import MapShowcase from './components/MapShowcase.svelte';
+import MapShowcase from './components/home/MapShowcase.svelte';
 
 export default new MapShowcase({
   target: document.getElementById('mapshowcase-target'),

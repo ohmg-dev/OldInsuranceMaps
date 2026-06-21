@@ -1,9 +1,9 @@
 <script>
-  import Link from './base/Link.svelte';
+  import Link from '../base/Link.svelte';
 
-  import MapItem from './shared/cards/MapItem.svelte';
+  import MapItem from '../shared/cards/MapItem.svelte';
 
-  import LatestAdditions from './lists/LatestAdditions.svelte';
+  import LatestAdditions from './LatestAdditions.svelte';
 
   export let CONTEXT;
   export let FEATURED_MAPS = [];

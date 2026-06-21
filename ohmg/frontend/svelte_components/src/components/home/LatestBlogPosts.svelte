@@ -1,5 +1,5 @@
 <script>
-  import Link from '../../base/Link.svelte';
+  import Link from '../base/Link.svelte';
 
   $: blogItems = [];
 
