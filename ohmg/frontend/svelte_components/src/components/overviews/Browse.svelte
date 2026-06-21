@@ -1,6 +1,6 @@
 <script>
   import Maps from '../tables/Maps.svelte';
-  import Places from '../lists/Places.svelte';
+  import Places from '../tables/Places.svelte';
   import MapBrowse from '../interfaces/MapBrowse.svelte';
 
   export let CONTEXT;
