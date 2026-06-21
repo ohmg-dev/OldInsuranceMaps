@@ -1,8 +1,9 @@
 <script>
-  import Link from '../base/Link.svelte';
-  import SessionListModal from '../modals/SessionListModal.svelte';
-
   import { getFromAPI } from '../../lib/requests';
+
+  import Link from '../base/Link.svelte';
+  import SessionListModal from '../shared/modals/SessionListModal.svelte';
+
   import SortableHeader from './widgets/SortableHeader.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';
 

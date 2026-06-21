@@ -2,11 +2,10 @@
   import { slide } from 'svelte/transition';
   import { format } from 'date-fns';
 
-  import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise';
   import Faders from 'phosphor-svelte/lib/Faders';
 
   import Link from '../base/Link.svelte';
-  import SessionListModal from '../modals/SessionListModal.svelte';
+  import SessionListModal from '../shared/modals/SessionListModal.svelte';
 
   import DatePicker from './widgets/DatePicker.svelte';
   import PaginationButtons from './widgets/PaginationButtons.svelte';
@@ -16,7 +15,7 @@
   import RefreshButton from './widgets/RefreshButton.svelte';
 
   import { getFromAPI } from '../../lib/requests';
-  import InfoModalButton from '../buttons/InfoModalButton.svelte';
+  import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
 
   export let CONTEXT;
   export let FILTER_PARAM = '';

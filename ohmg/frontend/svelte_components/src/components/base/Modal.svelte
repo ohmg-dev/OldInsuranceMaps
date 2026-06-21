@@ -6,6 +6,14 @@
   export function getModal(id = '') {
     return modals[id];
   }
+
+  export function openModal(id = '') {
+    getModal(id).open()
+  }
+
+  export function closeModal(id = '') {
+    getModal(id).close()
+  }
 </script>
 
 <script lang="ts">
@@ -63,6 +71,9 @@
     delete modals[id];
     window.removeEventListener('keydown', keyPress);
   });
+
+  let className = "content"
+  if (full) {className += " full-modal-content"}
 </script>
 
 <!-- this modal works fine with keyboard interaction, disabling a11y warnings -->
@@ -80,7 +91,7 @@
 >
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div id="modal" class={full ? 'full-modal' : ''} on:click|stopPropagation={() => {}}>
+  <div id="modal" class={full ? 'full-modal' : 'content'} on:click|stopPropagation={() => {}}>
     <!-- svelte-ignore a11y-click-events-have-key-events -->
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     {#if closable}
@@ -90,7 +101,7 @@
         <line x1="9" y1="3" x2="3" y2="9" />
       </svg>
     {/if}
-    <div id="modal-content" class={full ? 'full-modal-content' : ''}>
+    <div id="modal-content" class={className}>
       {#if mdContent}
         <SvelteMarkdown source={mdContent} />
       {:else}

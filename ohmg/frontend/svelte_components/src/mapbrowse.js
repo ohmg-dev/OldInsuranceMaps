@@ -1,4 +1,4 @@
-import MapBrowse from './components/interfaces/MapBrowse.svelte';
+import MapBrowse from './components/search/MapBrowse.svelte';
 
 export default new MapBrowse({
   target: document.getElementById('mapbrowse-target'),

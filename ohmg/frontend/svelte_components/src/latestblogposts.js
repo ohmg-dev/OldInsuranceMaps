@@ -1,4 +1,4 @@
-import LatestBlogPosts from './components/overviews/sections/LatestBlogPosts.svelte';
+import LatestBlogPosts from './components/home/LatestBlogPosts.svelte';
 
 export default new LatestBlogPosts({
   target: document.getElementById('latestblogposts-target'),

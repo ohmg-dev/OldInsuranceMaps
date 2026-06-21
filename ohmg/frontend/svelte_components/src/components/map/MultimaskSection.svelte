@@ -1,4 +1,5 @@
 <script>
+    import Modal, { openModal } from "../base/Modal.svelte";
     import { getFromAPI } from "../../lib/requests";
     import { submitPostRequest } from "../../lib/requests";
     import MultiMask from "../interfaces/MultiMask.svelte";
@@ -10,6 +11,8 @@
     export let userCanEdit;
 
     let dirty = false;
+
+    let errMsg;
 
     let currentLayerSetId = "main-content";
     let layerSetLookup = {};
@@ -27,13 +30,12 @@
 
     function handleMultimaskSubmitResponse(response) {
         if (response.success) {
-            window.alert('Masks saved successfully.');
+            openModal("modal-save-success")
             dirty = false;
             initLayersets();
         } else {
-            let errMsg = 'Error! MultiMask not saved. You must remove and remake the following masks:\n';
-            errMsg += response.message;
-            alert(errMsg);
+            errMsg = response.message;
+            openModal("modal-save-error");
         }
     }
 
@@ -51,6 +53,16 @@
         );
     }
 </script>
+<Modal id="modal-save-success">
+    <p>Masks saved successfully.</p>
+</Modal>
+<Modal id="modal-save-error">
+    <p>Error! MultiMask not saved. The following layers have errors:</p>
+    <p>{@html errMsg}</p>
+    <p>You must fix these errors before you can save your work. Keep in mind it is
+        sometimes easier to remove and recreate a mask than track down and fix
+        specific issues.</p>
+</Modal>
 <p>
     <span>
         Select which multimask to work on:

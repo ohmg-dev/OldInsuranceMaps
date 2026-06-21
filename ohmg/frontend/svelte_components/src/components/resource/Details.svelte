@@ -4,10 +4,10 @@
   import { Download } from "phosphor-svelte";
 
   import Link from '../base/Link.svelte';
-  import ResourceDownloadSectionModal from '../modals/ResourceDownloadSectionModal.svelte';
+  import ResourceDownloadSectionModal from '../shared/modals/ResourceDownloadSectionModal.svelte';
 
   import { makeTitilerXYZUrl } from '../../lib/utils';
-  import InfoModalButton from '../buttons/InfoModalButton.svelte';
+  import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
 
   export let CONTEXT;
   export let RESOURCE;
