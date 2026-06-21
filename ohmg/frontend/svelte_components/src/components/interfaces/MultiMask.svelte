@@ -490,7 +490,8 @@
                 <ToolUIButton
                   title="edit georeferencing for this layer"
                   action={() => {
-                    window.location.href = layer.georeferenceUrl;
+                    layerToGeoreference = layer;
+                    openModal('modal-confirm-leave-to-georeference');
                   }}
                   disabled={DISABLED}
                 >

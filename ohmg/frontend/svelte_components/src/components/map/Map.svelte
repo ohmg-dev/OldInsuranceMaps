@@ -172,6 +172,12 @@
       }
       MAP = result;
       processing = false;
+      // force close any sections that have been emptied
+      if (MAP.item_lookup.unprepared.length == 0) {sectionVis['unprepared'] = false}
+      if (MAP.item_lookup.prepared.length == 0) {sectionVis['prepared'] = false}
+      if (MAP.item_lookup.georeferenced.length == 0) {sectionVis['georeferenced'] = false}
+      if (MAP.item_lookup.skipped.length == 0) {sectionVis['skipped'] = false}
+      if (MAP.item_lookup.nonmaps.length == 0) {sectionVis['nonmaps'] = false}
     });
   }
 
@@ -431,7 +437,7 @@
   }}
 >
   <p>
-    Unskip this piece? Doing so will move it back into the <strong>Prepared</strong> section
+    Set this piece as a map? Doing so will move it back into the <strong>Prepared</strong> section
     where it can be georeferenced.
   </p>
 </ModalConfirm>
