@@ -1,5 +1,5 @@
 <script>
-  import Modal, { getModal } from '../base/Modal.svelte';
+  import Modal, { getModal } from './Modal.svelte';
 
   export let id;
   export let yesButtonText = "Yes"

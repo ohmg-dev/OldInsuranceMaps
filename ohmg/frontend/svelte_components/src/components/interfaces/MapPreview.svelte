@@ -17,7 +17,7 @@
   import MapboxLogoLink from './widgets/MapboxLogoLink.svelte';
 
   import { getModal } from '../base/Modal.svelte';
-  import LegendModal from '../modals/LegendModal.svelte';
+  import LegendModal from '../shared/modals/LegendModal.svelte';
 
   import { makeLayerGroupFromLayerSet } from '../../lib/utils';
   import { LyrMousePosition } from '../../lib/controls';

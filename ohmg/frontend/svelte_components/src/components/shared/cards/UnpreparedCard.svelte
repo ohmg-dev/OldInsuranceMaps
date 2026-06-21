@@ -5,12 +5,11 @@
   import CheckSquareOffset from 'phosphor-svelte/lib/CheckSquareOffset';
   import ArrowClockwise from 'phosphor-svelte/lib/ArrowClockwise';
 
-  import { getModal } from '../base/Modal.svelte';
+  import { getModal } from '../../base/Modal.svelte';
+  import BaseCard from '../../base/Card.svelte';
+  import Link from '../../base/Link.svelte';
 
-  import Link from '../base/Link.svelte';
-  import LoadingEllipsis from '../common/LoadingEllipsis.svelte';
-
-  import BaseCard from '../base/Card.svelte';
+  import LoadingEllipsis from '../LoadingEllipsis.svelte';
 
   export let CONTEXT;
   export let document;

@@ -1,7 +1,7 @@
 <script>
   import { TableSort } from 'svelte-tablesort';
   import Link from '../base/Link.svelte';
-  import LoadingEllipsis from '../common/LoadingEllipsis.svelte';
+  import LoadingEllipsis from '../shared/LoadingEllipsis.svelte';
 
   import { getFromAPI } from '../../lib/requests';
 

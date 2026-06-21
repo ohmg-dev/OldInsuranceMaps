@@ -45,16 +45,16 @@
   import { MapViewer } from '../lib/viewers';
 
   import Modal, { getModal } from './base/Modal.svelte';
-  import LoadingEllipsis from './common/LoadingEllipsis.svelte';
+  import LoadingEllipsis from './shared/LoadingEllipsis.svelte';
   import Link from './base/Link.svelte';
   import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';
 
   import ExpandElement from './interfaces/widgets/ExpandElement.svelte';
-  import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
-  import InfoModalButton from './buttons/InfoModalButton.svelte';
-  import SigninReminder from './common/SigninReminder.svelte';
+  import ExtendSessionModal from './shared/modals/ExtendSessionModal.svelte';
+  import InfoModalButton from './shared/buttons/InfoModalButton.svelte';
+  import SigninReminder from './shared//SigninReminder.svelte';
 
-  import ConfirmModal from './modals/ConfirmModal.svelte';
+  import ModalConfirm from './base/ModalConfirm.svelte';
 
   export let CONTEXT;
   export let REGION;
@@ -908,12 +908,12 @@
   >
 </div>
 
-<ConfirmModal id="modal-submit-helmert" yesAction={submitSession}>
+<ModalConfirm id="modal-submit-helmert" yesAction={submitSession}>
   <p>
     You have only two GCPs, but it is highly advisable to have three or more.
     Please add more, unless you are unable to do so.
   </p>
-</ConfirmModal>
+</ModalConfirm>
 <Modal id="modal-anonymous">
   <SigninReminder next={CONTEXT.path} msg="Without an account you can experiment with the interface, but cannot submit your work."/>
 </Modal>

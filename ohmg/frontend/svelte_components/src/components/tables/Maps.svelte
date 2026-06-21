@@ -3,13 +3,14 @@
 
   import Faders from 'phosphor-svelte/lib/Faders';
 
+  import { getFromAPI } from '../../lib/requests';
+
   import Link from '../base/Link.svelte';
-  import SessionListModal from '../modals/SessionListModal.svelte';
+
+  import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
+  import SessionListModal from '../shared/modals/SessionListModal.svelte';
 
   import PaginationButtons from './widgets/PaginationButtons.svelte';
-
-  import { getFromAPI } from '../../lib/requests';
-  import InfoModalButton from '../buttons/InfoModalButton.svelte';
   import SortableHeader from './widgets/SortableHeader.svelte';
   import FacetFilterSelect from './widgets/FacetFilterSelect.svelte';
   import LimitSelect from './widgets/LimitSelect.svelte';

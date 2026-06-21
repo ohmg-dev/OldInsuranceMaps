@@ -4,11 +4,9 @@
   import FileText from 'phosphor-svelte/lib/FileText';
   import MapPin from 'phosphor-svelte/lib/MapPin';
 
-  import { getModal } from '../base/Modal.svelte';
-
-  import Link from '../base/Link.svelte';
-
-  import BaseCard from '../base/Card.svelte';
+  import { getModal } from '../../base/Modal.svelte';
+  import Link from '../../base/Link.svelte';
+  import BaseCard from '../../base/Card.svelte';
 
   export let CONTEXT;
   export let region;

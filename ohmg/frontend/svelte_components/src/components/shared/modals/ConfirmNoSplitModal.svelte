@@ -1,6 +1,6 @@
 <script>
-  import Modal, { getModal } from '../base/Modal.svelte';
-  import { submitPostRequest } from '../../lib/requests';
+  import Modal, { getModal } from '../../base/Modal.svelte';
+  import { submitPostRequest } from '../../../lib/requests';
 
   export let CONTEXT;
   export let documentId;
@@ -30,7 +30,7 @@
     on:click={() => {
       postNoSplit();
       getModal('modal-confirm-no-split').close();
-    }}>Yes - it only contains one map</button
+    }}> </button
   >
   <button
     class="button is-danger"

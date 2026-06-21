@@ -1,7 +1,7 @@
 <script>
-  import LoadingEllipsis from '../common/LoadingEllipsis.svelte';
+  import LoadingEllipsis from '../shared/LoadingEllipsis.svelte';
 
-  import MapItem from '../cards/MapItem.svelte';
+  import MapItem from '../shared/cards/MapItem.svelte';
 
   import { getFromAPI } from '../../lib/requests';
 

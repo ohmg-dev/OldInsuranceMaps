@@ -1,5 +1,5 @@
 <script>
-  import PlaceBreadcrumbsSelect from '../breadcrumbs/PlaceBreadcrumbsSelect.svelte';
+  import PlaceBreadcrumbsSelect from '../shared/breadcrumbs/PlaceBreadcrumbsSelect.svelte';
   import Maps from '../tables/Maps.svelte';
 
   export let CONTEXT;

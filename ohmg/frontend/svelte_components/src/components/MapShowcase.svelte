@@ -1,7 +1,7 @@
 <script>
   import Link from './base/Link.svelte';
 
-  import MapItem from './cards/MapItem.svelte';
+  import MapItem from './shared/cards/MapItem.svelte';
 
   import LatestAdditions from './lists/LatestAdditions.svelte';
 

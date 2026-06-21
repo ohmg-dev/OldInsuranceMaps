@@ -2,8 +2,8 @@
     import { slide } from 'svelte/transition';
     import {slugify} from '../../lib/utils';
 
-    import InfoModalButton from "../buttons/InfoModalButton.svelte";
-    import ConditionalDoubleChevron from "../buttons/ConditionalDoubleChevron.svelte";
+    import InfoModalButton from "../shared/buttons/InfoModalButton.svelte";
+    import ConditionalDoubleChevron from "../shared/buttons/ConditionalDoubleChevron.svelte";
 
     export let TITLE;
     export let EXPANDED = false;

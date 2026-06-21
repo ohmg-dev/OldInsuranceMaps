@@ -1,11 +1,9 @@
 <script>
   import Broom from 'phosphor-svelte/lib/Broom';
 
-  import { getModal } from '../base/Modal.svelte';
-
-  import Link from '../base/Link.svelte';
-
-  import BaseCard from '../base/Card.svelte';
+  import { getModal } from '../../base/Modal.svelte';
+  import Link from '../../base/Link.svelte';
+  import BaseCard from '../../base/Card.svelte';
 
   export let region;
   export let sessionLocks;

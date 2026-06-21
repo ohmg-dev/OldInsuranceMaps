@@ -4,13 +4,11 @@
   import DownloadSimple from 'phosphor-svelte/lib/DownloadSimple';
   import MapPin from 'phosphor-svelte/lib/MapPin';
 
-  import { getModal } from '../base/Modal.svelte';
+  import { getModal } from '../../base/Modal.svelte';
+  import Link from '../../base/Link.svelte';
+  import BaseCard from '../../base/Card.svelte';
 
-  import Link from '../base/Link.svelte';
-
-  import BaseCard from '../base/Card.svelte';
-
-  import { copyToClipboard } from '../../lib/utils';
+  import { copyToClipboard } from '../../../lib/utils';
 
   export let CONTEXT;
   export let LAYERSET_CATEGORIES;

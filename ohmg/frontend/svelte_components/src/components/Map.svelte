@@ -2,30 +2,30 @@
 
   import Wrench from 'phosphor-svelte/lib/Wrench';
 
-  import InfoModalButton from './buttons/InfoModalButton.svelte';
+  import InfoModalButton from './shared/buttons/InfoModalButton.svelte';
 
   import ExpandableSection from './base/ExpandableSection.svelte';
   import TabbedSection from './base/TabbedSection.svelte';
   import Modal, { getModal } from './base/Modal.svelte';
 
-  import GeoreferenceOverviewModal from './modals/GeoreferenceOverviewModal.svelte';
-  import UnpreparedSectionModal from './modals/UnpreparedSectionModal.svelte';
-  import PreparedSectionModal from './modals/PreparedSectionModal.svelte';
-  import GeoreferencedSectionModal from './modals/GeoreferencedSectionModal.svelte';
-  import MultiMaskModal from './modals/MultiMaskModal.svelte';
-  import NonMapContentModal from './modals/NonMapContentModal.svelte';
-  import GeoreferencePermissionsModal from './modals/GeoreferencePermissionsModal.svelte';
-  import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
-  import ConfirmBulkNoSplitModal from './modals/ConfirmBulkNoSplitModal.svelte';
-  import ConfirmUngeoreferenceModal from './modals/ConfirmUngeoreferenceModal.svelte';
+  import GeoreferenceOverviewModal from './shared/modals/GeoreferenceOverviewModal.svelte';
+  import UnpreparedSectionModal from './shared/modals/UnpreparedSectionModal.svelte';
+  import PreparedSectionModal from './shared/modals/PreparedSectionModal.svelte';
+  import GeoreferencedSectionModal from './shared/modals/GeoreferencedSectionModal.svelte';
+  import MultiMaskModal from './shared/modals/MultiMaskModal.svelte';
+  import NonMapContentModal from './shared/modals/NonMapContentModal.svelte';
+  import GeoreferencePermissionsModal from './shared/modals/GeoreferencePermissionsModal.svelte';
+  import ConfirmNoSplitModal from './shared/modals/ConfirmNoSplitModal.svelte';
+  import ConfirmUngeoreferenceModal from './shared/modals/ConfirmUngeoreferenceModal.svelte';
+  import ModalConfirm from './base/ModalConfirm.svelte';
 
   import MapPreview from './interfaces/MapPreview.svelte';
   import BasicDocViewer from './interfaces/BasicDocViewer.svelte';
   import BasicLayerViewer from './interfaces/BasicLayerViewer.svelte';
 
-  import SigninReminder from './common/SigninReminder.svelte';
-  import LoadingEllipsis from './common/LoadingEllipsis.svelte';
-  import LoadingMask from './common/LoadingMask.svelte';
+  import SigninReminder from './shared/SigninReminder.svelte';
+  import LoadingEllipsis from './shared/LoadingEllipsis.svelte';
+  import LoadingMask from './shared/LoadingMask.svelte';
 
   import MultimaskSection from './map/MultimaskSection.svelte'
   import MosaicDownload from './map/MosaicDownload.svelte';
@@ -34,16 +34,16 @@
   import MapContributors from './tables/MapContributors.svelte';
   import Sessions from './tables/Sessions.svelte';
 
-  import MapBreadcrumbs from './breadcrumbs/MapBreadcrumbs.svelte';
+  import MapBreadcrumbs from './shared/breadcrumbs/MapBreadcrumbs.svelte';
 
-  import UnpreparedCard from './cards/UnpreparedCard.svelte';
-  import PreparedCard from './cards/PreparedCard.svelte';
-  import LayerCard from './cards/LayerCard.svelte';
-  import SkippedCard from './cards/SkippedCard.svelte';
-  import NonMapCard from './cards/NonMapCard.svelte';
+  import UnpreparedCard from './shared/cards/UnpreparedCard.svelte';
+  import PreparedCard from './shared/cards/PreparedCard.svelte';
+  import LayerCard from './shared/cards/LayerCard.svelte';
+  import SkippedCard from './shared/cards/SkippedCard.svelte';
+  import NonMapCard from './shared/cards/NonMapCard.svelte';
 
   import { getFromAPI, submitPostRequest } from '../lib/requests';
-  import SkippedSectionHelpModal from './modals/SkippedSectionHelpModal.svelte';
+  import SkippedSectionHelpModal from './shared/modals/SkippedSectionHelpModal.svelte';
 
   export let CONTEXT;
   export let MAP;
@@ -267,6 +267,19 @@
     );
   }
 
+  function postBulkNoSplit() {
+    processing = true;
+    submitPostRequest(
+      `/split/`,
+      CONTEXT.ohmg_post_headers,
+      'bulk-no-split',
+      {
+        bulkNoSplitIds: bulkPrepareList,
+      },
+      pollMapSummaryIfSuccess,
+    );
+  }
+
   let classifyingLayers = false;
   let bulkPreparing = false;
   let bulkPrepareList = [];
@@ -295,6 +308,17 @@
     });
   }}
 />
+
+<ModalConfirm
+  id="modal-confirm-bulk-no-split"
+  yesButtonText={`Yes - ${bulkPrepareList.length > 1 ? `each one only contains` : 'it only contains'} one map`}
+  yesAction={postBulkNoSplit}>
+  <p>
+    Are you sure {bulkPrepareList.length > 1 ? `these ${bulkPrepareList.length} documents do` : 'this document does'} not
+    need to be split?
+  </p>
+</ModalConfirm>
+
 <GeoreferenceOverviewModal id={'modal-georeference-overview'} />
 <UnpreparedSectionModal id={'modal-unprepared'} />
 <PreparedSectionModal id={'modal-prepared'} />
@@ -313,7 +337,6 @@
   {/each}
 </Modal>
 <ConfirmNoSplitModal bind:processing {CONTEXT} documentId={splitDocumentId} callback={pollMapSummaryIfSuccess} />
-<ConfirmBulkNoSplitModal bind:processing {CONTEXT} bind:bulkPrepareList callback={pollMapSummaryIfSuccess} />
 <ConfirmUngeoreferenceModal bind:processing {CONTEXT} layerId={undoGeorefLayerId} callback={pollMapSummaryIfSuccess} />
 {#if processing}
   <LoadingMask />

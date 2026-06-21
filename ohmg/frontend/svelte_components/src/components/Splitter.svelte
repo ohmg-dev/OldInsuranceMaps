@@ -32,12 +32,12 @@
   import ExpandElement from './interfaces/widgets/ExpandElement.svelte';
 
   import Modal, { getModal } from './base/Modal.svelte';
-  import ConfirmNoSplitModal from './modals/ConfirmNoSplitModal.svelte';
+  import ConfirmNoSplitModal from './shared/modals/ConfirmNoSplitModal.svelte';
 
   import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';
-  import ExtendSessionModal from './modals/ExtendSessionModal.svelte';
+  import ExtendSessionModal from './shared/modals/ExtendSessionModal.svelte';
 
-  import SigninReminder from './common/SigninReminder.svelte';
+  import SigninReminder from './shared//SigninReminder.svelte';
 
   export let CONTEXT;
   export let DOCUMENT;

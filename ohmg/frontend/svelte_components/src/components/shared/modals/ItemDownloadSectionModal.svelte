@@ -1,6 +1,6 @@
 <script>
-  import Modal from '../base/Modal.svelte';
-  import HowToUseXyz from '../overviews/sections/HowToUseXYZ.svelte';
+  import Modal from '../../base/Modal.svelte';
+  import HowToUseXyz from '../../overviews/sections/HowToUseXYZ.svelte';
 
   export let id;
 </script>

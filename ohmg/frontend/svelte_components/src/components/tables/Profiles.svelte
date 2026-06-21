@@ -4,12 +4,12 @@
   import Faders from 'phosphor-svelte/lib/Faders';
 
   import Link from '../base/Link.svelte';
-  import SessionListModal from '../modals/SessionListModal.svelte';
+  import SessionListModal from '../shared/modals/SessionListModal.svelte';
 
   import PaginationButtons from './widgets/PaginationButtons.svelte';
 
   import { getFromAPI } from '../../lib/requests';
-  import InfoModalButton from '../buttons/InfoModalButton.svelte';
+  import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
   import LimitSelect from './widgets/LimitSelect.svelte';
   import SortableHeader from './widgets/SortableHeader.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';

@@ -9,12 +9,12 @@
   import Sessions from './tables/Sessions.svelte';
   import BasicDocViewer from './interfaces/BasicDocViewer.svelte';
   import BasicLayerViewer from './interfaces/BasicLayerViewer.svelte';
-  import ConditionalDoubleChevron from './buttons/ConditionalDoubleChevron.svelte';
+  import ConditionalDoubleChevron from './shared/buttons/ConditionalDoubleChevron.svelte';
   import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';
 
   import Details from './resource/Details.svelte';
 
-  import ResourceBreadcrumbs from './breadcrumbs/ResourceBreadcrumbs.svelte';
+  import ResourceBreadcrumbs from './shared/breadcrumbs/ResourceBreadcrumbs.svelte';
 
   import { makeTitilerXYZUrl } from '../lib/utils';
 
