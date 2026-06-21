@@ -1,4 +1,4 @@
-import Browse from './components/overviews/Browse.svelte';
+import Browse from './components/search/Browse.svelte';
 
 export default new Browse({
   target: document.getElementById('browse-target'),

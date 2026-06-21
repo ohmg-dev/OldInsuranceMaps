@@ -1,4 +1,4 @@
-import Georeferencer from './components/Georeferencer.svelte';
+import Georeferencer from './components/interfaces/Georeferencer.svelte';
 
 export default new Georeferencer({
   target: document.getElementById('georeference-target'),

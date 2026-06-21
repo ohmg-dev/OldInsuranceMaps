@@ -1,7 +1,7 @@
 <script>
   import Maps from '../tables/Maps.svelte';
   import Places from '../tables/Places.svelte';
-  import MapBrowse from '../interfaces/MapBrowse.svelte';
+  import MapBrowse from './MapBrowse.svelte';
 
   export let CONTEXT;
   export let PLACES_CT;

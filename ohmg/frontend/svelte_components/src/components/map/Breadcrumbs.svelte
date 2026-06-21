@@ -3,9 +3,9 @@
   import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
   import DotsThree from 'phosphor-svelte/lib/DotsThree';
 
-  import { onMobile } from '../../../lib/utils';
+  import { onMobile } from '../../lib/utils';
 
-  import Link from '../../base/Link.svelte';
+  import Link from '../base/Link.svelte';
 
   export let LOCALE;
   export let MAP;

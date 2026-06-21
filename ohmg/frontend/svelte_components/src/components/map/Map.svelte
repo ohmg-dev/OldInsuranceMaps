@@ -2,48 +2,48 @@
 
   import Wrench from 'phosphor-svelte/lib/Wrench';
 
-  import InfoModalButton from './shared/buttons/InfoModalButton.svelte';
+  import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
 
-  import ExpandableSection from './base/ExpandableSection.svelte';
-  import TabbedSection from './base/TabbedSection.svelte';
-  import Modal, { getModal } from './base/Modal.svelte';
+  import ExpandableSection from '../base/ExpandableSection.svelte';
+  import TabbedSection from '../base/TabbedSection.svelte';
+  import Modal, { getModal } from '../base/Modal.svelte';
 
-  import GeoreferenceOverviewModal from './shared/modals/GeoreferenceOverviewModal.svelte';
-  import UnpreparedSectionModal from './shared/modals/UnpreparedSectionModal.svelte';
-  import PreparedSectionModal from './shared/modals/PreparedSectionModal.svelte';
-  import GeoreferencedSectionModal from './shared/modals/GeoreferencedSectionModal.svelte';
-  import MultiMaskModal from './shared/modals/MultiMaskModal.svelte';
-  import NonMapContentModal from './shared/modals/NonMapContentModal.svelte';
-  import GeoreferencePermissionsModal from './shared/modals/GeoreferencePermissionsModal.svelte';
-  import ConfirmNoSplitModal from './shared/modals/ConfirmNoSplitModal.svelte';
-  import ConfirmUngeoreferenceModal from './shared/modals/ConfirmUngeoreferenceModal.svelte';
-  import ModalConfirm from './base/ModalConfirm.svelte';
+  import GeoreferenceOverviewModal from '../shared/modals/GeoreferenceOverviewModal.svelte';
+  import UnpreparedSectionModal from '../shared/modals/UnpreparedSectionModal.svelte';
+  import PreparedSectionModal from '../shared/modals/PreparedSectionModal.svelte';
+  import GeoreferencedSectionModal from '../shared/modals/GeoreferencedSectionModal.svelte';
+  import MultiMaskModal from '../shared/modals/MultiMaskModal.svelte';
+  import NonMapContentModal from '../shared/modals/NonMapContentModal.svelte';
+  import GeoreferencePermissionsModal from '../shared/modals/GeoreferencePermissionsModal.svelte';
+  import ConfirmNoSplitModal from '../shared/modals/ConfirmNoSplitModal.svelte';
+  import ConfirmUngeoreferenceModal from '../shared/modals/ConfirmUngeoreferenceModal.svelte';
+  import ModalConfirm from '../base/ModalConfirm.svelte';
 
-  import MapPreview from './interfaces/MapPreview.svelte';
-  import BasicDocViewer from './interfaces/BasicDocViewer.svelte';
-  import BasicLayerViewer from './interfaces/BasicLayerViewer.svelte';
+  import MapPreview from '../interfaces/MapPreview.svelte';
+  import BasicDocViewer from '../interfaces/BasicDocViewer.svelte';
+  import BasicLayerViewer from '../interfaces/BasicLayerViewer.svelte';
 
-  import SigninReminder from './shared/SigninReminder.svelte';
-  import LoadingEllipsis from './shared/LoadingEllipsis.svelte';
-  import LoadingMask from './shared/LoadingMask.svelte';
+  import SigninReminder from '../shared/SigninReminder.svelte';
+  import LoadingEllipsis from '../shared/LoadingEllipsis.svelte';
+  import LoadingMask from '../shared/LoadingMask.svelte';
 
-  import MultimaskSection from './map/MultimaskSection.svelte'
-  import MosaicDownload from './map/MosaicDownload.svelte';
-  import Details from './map/Details.svelte';
+  import MultimaskSection from './MultimaskSection.svelte'
+  import MosaicDownload from './MosaicDownload.svelte';
+  import Details from './Details.svelte';
 
-  import MapContributors from './tables/MapContributors.svelte';
-  import Sessions from './tables/Sessions.svelte';
+  import MapContributors from '../tables/MapContributors.svelte';
+  import Sessions from '../tables/Sessions.svelte';
 
-  import MapBreadcrumbs from './shared/breadcrumbs/MapBreadcrumbs.svelte';
+  import Breadcrumbs from './Breadcrumbs.svelte';
 
-  import UnpreparedCard from './shared/cards/UnpreparedCard.svelte';
-  import PreparedCard from './shared/cards/PreparedCard.svelte';
-  import LayerCard from './shared/cards/LayerCard.svelte';
-  import SkippedCard from './shared/cards/SkippedCard.svelte';
-  import NonMapCard from './shared/cards/NonMapCard.svelte';
+  import UnpreparedCard from '../shared/cards/UnpreparedCard.svelte';
+  import PreparedCard from '../shared/cards/PreparedCard.svelte';
+  import LayerCard from '../shared/cards/LayerCard.svelte';
+  import SkippedCard from '../shared/cards/SkippedCard.svelte';
+  import NonMapCard from '../shared/cards/NonMapCard.svelte';
 
-  import { getFromAPI, submitPostRequest } from '../lib/requests';
-  import SkippedSectionHelpModal from './shared/modals/SkippedSectionHelpModal.svelte';
+  import { getFromAPI, submitPostRequest } from '../../lib/requests';
+  import SkippedSectionHelpModal from '../shared/modals/SkippedSectionHelpModal.svelte';
 
   export let CONTEXT;
   export let MAP;
@@ -342,7 +342,7 @@
   <LoadingMask />
 {/if}
 <main>
-  <MapBreadcrumbs {LOCALE} {MAP} />
+  <Breadcrumbs {LOCALE} {MAP} />
   <ExpandableSection TITLE="Summary" bind:EXPANDED={sectionVis['summary']}>
     <TabbedSection tabs={[
       {id: "details", title: "Details"},

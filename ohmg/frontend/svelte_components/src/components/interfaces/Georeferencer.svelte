@@ -27,7 +27,7 @@
   import Draw from 'ol/interaction/Draw';
   import Modify from 'ol/interaction/Modify';
 
-  import { gcpStyles, parcelStyles, emptyStyle } from '../lib/ol-styles';
+  import { gcpStyles, parcelStyles, emptyStyle } from '../../lib/ol-styles';
   import {
     makeLayerGroupFromLayerSet,
     makeTitilerXYZUrl,
@@ -38,23 +38,23 @@
     extentFromImageSize,
     projectionFromImageExtent,
     usaExtent,
-  } from '../lib/utils';
-  import { submitPostRequest } from '../lib/requests';
-  import { makeImageLayer, makePmTilesLayer } from '../lib/layers';
-  import { DocMousePosition, LyrMousePosition, MapScaleLine } from '../lib/controls';
-  import { MapViewer } from '../lib/viewers';
+  } from '../../lib/utils';
+  import { submitPostRequest } from '../../lib/requests';
+  import { makeImageLayer, makePmTilesLayer } from '../../lib/layers';
+  import { DocMousePosition, LyrMousePosition, MapScaleLine } from '../../lib/controls';
+  import { MapViewer } from '../../lib/viewers';
 
-  import Modal, { getModal } from './base/Modal.svelte';
-  import LoadingEllipsis from './shared/LoadingEllipsis.svelte';
-  import Link from './base/Link.svelte';
-  import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';
+  import Modal, { getModal } from '../base/Modal.svelte';
+  import LoadingEllipsis from '../shared/LoadingEllipsis.svelte';
+  import Link from '../base/Link.svelte';
+  import ToolUIButton from './widgets/ToolUIButton.svelte';
 
-  import ExpandElement from './interfaces/widgets/ExpandElement.svelte';
-  import ExtendSessionModal from './shared/modals/ExtendSessionModal.svelte';
-  import InfoModalButton from './shared/buttons/InfoModalButton.svelte';
-  import SigninReminder from './shared//SigninReminder.svelte';
+  import ExpandElement from './widgets/ExpandElement.svelte';
+  import ExtendSessionModal from '../shared/modals/ExtendSessionModal.svelte';
+  import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
+  import SigninReminder from '../shared/SigninReminder.svelte';
 
-  import ModalConfirm from './base/ModalConfirm.svelte';
+  import ModalConfirm from '../base/ModalConfirm.svelte';
 
   export let CONTEXT;
   export let REGION;

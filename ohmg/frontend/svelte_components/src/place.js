@@ -1,4 +1,4 @@
-import Place from './components/overviews/Place.svelte';
+import Place from './components/place/Place.svelte';
 
 export default new Place({
   target: document.getElementById('place-target'),

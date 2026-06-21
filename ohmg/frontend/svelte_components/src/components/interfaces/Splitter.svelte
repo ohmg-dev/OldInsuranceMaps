@@ -22,22 +22,21 @@
   import Snap from 'ol/interaction/Snap';
   import LineString from 'ol/geom/LineString';
 
-  import { splitStyles } from '../lib/ol-styles';
-  import { submitPostRequest } from '../lib/requests';
-  import { MapViewer } from '../lib/viewers';
-  import { makeImageLayer } from '../lib/layers';
-  import { DocMousePosition } from '../lib/controls';
+  import { splitStyles } from '../../lib/ol-styles';
+  import { submitPostRequest } from '../../lib/requests';
+  import { MapViewer } from '../../lib/viewers';
+  import { makeImageLayer } from '../../lib/layers';
+  import { DocMousePosition } from '../../lib/controls';
 
-  import Link from './base/Link.svelte';
-  import ExpandElement from './interfaces/widgets/ExpandElement.svelte';
+  import Link from '../base/Link.svelte';
+  import Modal, { getModal } from '../base/Modal.svelte';
 
-  import Modal, { getModal } from './base/Modal.svelte';
-  import ConfirmNoSplitModal from './shared/modals/ConfirmNoSplitModal.svelte';
+  import SigninReminder from '../shared/SigninReminder.svelte';
+  import ConfirmNoSplitModal from '../shared/modals/ConfirmNoSplitModal.svelte';
+  import ExtendSessionModal from '../shared/modals/ExtendSessionModal.svelte';
 
-  import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';
-  import ExtendSessionModal from './shared/modals/ExtendSessionModal.svelte';
-
-  import SigninReminder from './shared//SigninReminder.svelte';
+  import ExpandElement from './widgets/ExpandElement.svelte';
+  import ToolUIButton from './widgets/ToolUIButton.svelte';
 
   export let CONTEXT;
   export let DOCUMENT;

@@ -5,18 +5,18 @@
 
   import { getCenter } from 'ol/extent';
 
-  import Link from './base/Link.svelte';
-  import Sessions from './tables/Sessions.svelte';
-  import BasicDocViewer from './interfaces/BasicDocViewer.svelte';
-  import BasicLayerViewer from './interfaces/BasicLayerViewer.svelte';
-  import ConditionalDoubleChevron from './shared/buttons/ConditionalDoubleChevron.svelte';
-  import ToolUIButton from './interfaces/widgets/ToolUIButton.svelte';
+  import Link from '../base/Link.svelte';
+  import Sessions from '../tables/Sessions.svelte';
+  import BasicDocViewer from '../interfaces/BasicDocViewer.svelte';
+  import BasicLayerViewer from '../interfaces/BasicLayerViewer.svelte';
+  import ConditionalDoubleChevron from '../shared/buttons/ConditionalDoubleChevron.svelte';
+  import ToolUIButton from '../interfaces/widgets/ToolUIButton.svelte';
 
-  import Details from './resource/Details.svelte';
+  import Details from './Details.svelte';
 
-  import ResourceBreadcrumbs from './shared/breadcrumbs/ResourceBreadcrumbs.svelte';
+  import ResourceBreadcrumbs from './Breadcrumbs.svelte';
 
-  import { makeTitilerXYZUrl } from '../lib/utils';
+  import { makeTitilerXYZUrl } from '../../lib/utils';
 
   export let CONTEXT;
   export let RESOURCE;

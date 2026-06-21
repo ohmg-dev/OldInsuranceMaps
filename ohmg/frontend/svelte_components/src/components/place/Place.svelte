@@ -1,5 +1,5 @@
 <script>
-  import PlaceBreadcrumbsSelect from '../shared/breadcrumbs/PlaceBreadcrumbsSelect.svelte';
+  import Breadcrumbs from './Breadcrumbs.svelte';
   import Maps from '../tables/Maps.svelte';
 
   export let CONTEXT;
@@ -27,7 +27,7 @@
   }
 </script>
 
-<PlaceBreadcrumbsSelect bind:PLACE {update} />
+<Breadcrumbs bind:PLACE {update} />
 
 <div style="display:flex;">
   <div id="sub-locale-panel" style="margin-right:15px; min-width:250px;">
