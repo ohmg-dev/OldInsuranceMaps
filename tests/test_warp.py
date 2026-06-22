@@ -10,14 +10,12 @@ from .base import OHMGTestCase
 
 @tag("warp")
 class HelmertTransformationTestCase(OHMGTestCase):
+
     def test_helmert_transformation_calculations(self):
         """This test runs through 8 permutations of GCPs, and makes
         sure that the calculations used to set up the helmert
         transformations return the right values for every permutation.
         """
-
-        # assume an image with these dimensions
-        img_width, img_height = 5, 8  # noqa: F841
 
         # inner (smallest) angle for a 3,4,5 triangle
         theta_345 = math.degrees(math.asin(3 / 5))
@@ -49,11 +47,8 @@ class HelmertTransformationTestCase(OHMGTestCase):
 
             g = Georeferencer(crs="EPSG:3857", transformation="helmert", gcps_gdal=[gcp1, gcp2])
 
-            scale = g._calculate_scale()
-            self.assertEqual(scale, 0.5)
-            rotation = g._calculate_rotation(img_height=img_height)
-            self.assertEqual(rotation, target_rotation)
-
-            dx, dy = g._calculate_helmert_offsets(scale=scale, rotation=rotation)
-            self.assertAlmostEqual(dx, x_offset)
-            self.assertAlmostEqual(dy, y_offset)
+            params = g._get_helmert_params()
+            self.assertAlmostEqual(params.scale, 0.5)
+            self.assertAlmostEqual(params.rotation, target_rotation)
+            self.assertAlmostEqual(params.offset_x, x_offset)
+            self.assertAlmostEqual(params.offset_y, y_offset)
