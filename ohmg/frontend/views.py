@@ -90,6 +90,21 @@ class ActivityView(View):
         return render(request, "frontend/activity.html", context=context_dict)
 
 
+class JobsView(View):
+    def get(self, request):
+        ohmg_context = generate_ohmg_context(request)
+        context_dict = {
+            "CONTEXT": ohmg_context,
+            "JOBS_PROPS": {
+                "CONTEXT": ohmg_context,
+                "showThumbs": True,
+                "limit": "25",
+            },
+        }
+
+        return render(request, "frontend/jobs.html", context=context_dict)
+
+
 class PageView(View):
     def get(self, request, page):
         m_date = page.date_modified.strftime("%B %d, %Y")

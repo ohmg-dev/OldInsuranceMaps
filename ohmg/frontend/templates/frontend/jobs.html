@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}Jobs | {{ block.super }}{% endblock %}
+
+{% block main_content %}
+
+{% include '_titlebar.html' with title="Jobs" subtitle="see also: <a href='/activity'>sessions</a>" lead_icon="wrench" %}
+
+<section>
+    <div class="section-content">
+        {{ JOBS_PROPS|json_script:'jobs-props'}}
+        {% include '_svelte_component.html' with component_name='Jobs' %}
+    </div>
+</section>
+{% endblock %}

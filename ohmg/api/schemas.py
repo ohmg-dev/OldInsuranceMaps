@@ -29,6 +29,13 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def _datefield_to_timestamp(obj, field: str) -> float | None:
+    try:
+        return getattr(obj, field).timestamp()
+    except (AttributeError, ValueError):
+        return None
+
+
 class UserSchema(Schema):
     username: str
     profile_url: str
@@ -884,6 +891,48 @@ class ResourceFullSchema(Schema):
                 return "georeferenced" if obj.regions.all()[0].georeferenced else "prepared"
             else:
                 return "split"
+
+
+class JobTargetSchema(Schema):
+    name: str
+    url: str
+
+    @staticmethod
+    def resolve_name(obj):
+        return str(obj)
+
+    @staticmethod
+    def resolve_url(obj):
+        return f"/map/{obj.map.pk}"
+
+
+class JobSchema(Schema):
+    id: int
+    operation: str
+    stage: str
+    message: Optional[str]
+    target: JobTargetSchema
+    date_created: Optional[float]
+    date_queued: Optional[float]
+    date_started: Optional[float]
+    date_ended: Optional[float]
+    run_duration: Optional[int]
+
+    @staticmethod
+    def resolve_date_created(obj):
+        return _datefield_to_timestamp(obj, "date_created")
+
+    @staticmethod
+    def resolve_date_queued(obj):
+        return _datefield_to_timestamp(obj, "date_queued")
+
+    @staticmethod
+    def resolve_date_started(obj):
+        return _datefield_to_timestamp(obj, "date_started")
+
+    @staticmethod
+    def resolve_date_ended(obj):
+        return _datefield_to_timestamp(obj, "date_ended")
 
 
 DocumentFullSchema.update_forward_refs()

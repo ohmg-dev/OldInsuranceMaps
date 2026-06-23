@@ -17,6 +17,11 @@ class FilterSessionSchema(FilterSchema):
     type: Optional[str]
 
 
+class FilterJobSchema(FilterSchema):
+    operation: Optional[str] = Field(q="operation")
+    stage: Optional[str] = Field(q="stage")
+
+
 class FilterDocumentSchema(FilterSchema):
     map: str = Field(q="map_id")
     prepared: Optional[bool] = Field(q="prepared")
