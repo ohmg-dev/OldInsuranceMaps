@@ -476,6 +476,7 @@ class LayerSetLayer(Schema):
 
 
 class LayerSetSchema(Schema):
+    pk: int
     id: str
     name: str
     map_id: str
@@ -486,7 +487,10 @@ class LayerSetSchema(Schema):
     extent: Optional[tuple]
     multimask_extent: Optional[tuple]
     mosaic_cog_url: Optional[str]
+    mosaic_geotiff_date: Optional[str]
     xyz_tiles_url: Optional[str]
+    xyz_tiles_date: Optional[str]
+    multimask_date: Optional[float]
 
     @staticmethod
     def resolve_id(obj):
@@ -503,6 +507,27 @@ class LayerSetSchema(Schema):
     @staticmethod
     def resolve_name(obj):
         return str(obj.category)
+
+    @staticmethod
+    def resolve_mosaic_geotiff_date(obj):
+        try:
+            return obj.mosaic_geotiff_date.timestamp()
+        except AttributeError:
+            return None
+
+    @staticmethod
+    def resolve_xyz_tiles_date(obj):
+        try:
+            return obj.xyz_tiles_date.timestamp()
+        except AttributeError:
+            return None
+
+    @staticmethod
+    def resolve_multimask_date(obj):
+        try:
+            return obj.multimask_date.timestamp()
+        except AttributeError:
+            return None
 
 
 class LayerSetDisplaySchema(Schema):

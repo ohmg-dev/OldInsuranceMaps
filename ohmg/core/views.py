@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime
 from urllib.parse import quote
 
 from django.conf import settings
@@ -25,6 +26,7 @@ from ohmg.conf.http import (
     JsonResponseFail,
     JsonResponseNotFound,
     JsonResponseSuccess,
+    JsonResponseUnauthorized,
     generate_ohmg_context,
     validate_post_request,
 )
@@ -415,7 +417,16 @@ class ResourceDerivativeView(View):
 
 
 class LayerSetView(View):
-    @method_decorator(validate_post_request(operations=["bulk-classify-layers", "set-mask"]))
+    @method_decorator(
+        validate_post_request(
+            operations=[
+                "bulk-classify-layers",
+                "set-mask",
+                "queue-cog-creation",
+                "queue-tileset-creation",
+            ]
+        )
+    )
     def post(self, request):
         body = json.loads(request.body)
         operation = body.get("operation")
@@ -475,9 +486,28 @@ class LayerSetView(View):
                     logger.debug(f"removing mask from layer {layer.slug} ({layer.pk})")
                     layer.mask = None
                 layer.save(set_extent=False, skip_map_lookup_update=True)
+            layerset.multimask_date = datetime.now()
+            layerset.save()
             layerset.map.update_item_lookup()
-            layerset.queue_mosaic_cog()
             return JsonResponseSuccess()
+
+        if operation == "queue-cog-creation":
+            if not request.user.has_perm("core.queue_mosaic_cog"):
+                return JsonResponseUnauthorized()
+            layerset = LayerSet.objects.get(
+                map_id=payload["map-id"], category__slug=payload["category"]
+            )
+            job_id = layerset.queue_mosaic_cog()
+            return JsonResponseSuccess(payload={"job": job_id})
+
+        if operation == "queue-tileset-creation":
+            if not request.user.has_perm("core.queue_mosaic_xyz"):
+                return JsonResponseUnauthorized()
+            layerset = LayerSet.objects.get(
+                map_id=payload["map-id"], category__slug=payload["category"]
+            )
+            job_id = layerset.queue_mosaic_tileset()
+            return JsonResponseSuccess(payload={"job": job_id})
 
 
 class LayersetDerivativeView(View):

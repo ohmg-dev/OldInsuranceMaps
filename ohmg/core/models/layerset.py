@@ -53,6 +53,7 @@ class LayerSet(models.Model):
         blank=True,
         max_length=255,
     )
+    mosaic_geotiff_date = models.DateTimeField(blank=True, null=True)
     mosaic_json = models.FileField(
         upload_to="mosaics",
         null=True,
@@ -70,7 +71,9 @@ class LayerSet(models.Model):
         blank=True,
         null=True,
     )
+    xyz_tiles_date = models.DateTimeField(blank=True, null=True)
     tilejson = models.JSONField(null=True, blank=True)
+    multimask_date = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.map} - {self.category}"
@@ -95,6 +98,17 @@ class LayerSet(models.Model):
             else:
                 base_url = f"{settings.SITEURL.rstrip('/')}{settings.MEDIA_URL}"
             return f"{base_url.rstrip('/')}/{self.xyz_tiles_prefix}"
+        else:
+            return None
+
+    @property
+    def xyz_tiles_download_url(self):
+        if self.xyz_tiles_prefix:
+            if settings.ENABLE_S3_STORAGE:
+                base_url = f"{settings.AWS_S3_ENDPOINT_URL}/{settings.AWS_STORAGE_BUCKET_NAME}"
+            else:
+                base_url = f"{settings.SITEURL.rstrip('/')}{settings.MEDIA_URL}"
+            return f"{base_url.rstrip('/')}/{self.xyz_tiles_prefix}/{self.mosaic_xyz_tiles_date}"
         else:
             return None
 
@@ -147,7 +161,11 @@ class LayerSet(models.Model):
                 fc["features"].append(mask_geojson)
         return fc
 
-    def queue_mosaic_cog(self) -> None:
+    def queue_mosaic_cog(self) -> int:
+        """Creates a new job to generate a mosaic cog from this layerset.
+        If a job already exists for this action, it is re-queued.
+
+        Returns the job id."""
         from ohmg.georeference.models import Job
 
         j, created = Job.objects.get_or_create(
@@ -157,6 +175,23 @@ class LayerSet(models.Model):
             target_type=ContentType.objects.get_for_model(self),
         )
         j.enqueue()
+        return j.pk
+
+    def queue_mosaic_tileset(self) -> int:
+        """Creates a new job to generate a XYZ tileset from this layerset.
+        If a job already exists for this action, it is re-queued.
+
+        Returns the job id."""
+        from ohmg.georeference.models import Job
+
+        j, created = Job.objects.get_or_create(
+            stage="queued",
+            operation="layerset_to_xyz",
+            target_id=self.pk,
+            target_type=ContentType.objects.get_for_model(self),
+        )
+        j.enqueue()
+        return j.pk
 
     def save(self, set_tilejson: bool = False, *args, **kwargs):
         if self._state.adding is False:
