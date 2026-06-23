@@ -26,7 +26,7 @@
   import LoadingMask from '../shared/LoadingMask.svelte';
 
   import MultimaskSection from './MultimaskSection.svelte'
-  import MosaicDownload from './MosaicDownload.svelte';
+  import MosaicDerivatives from './MosaicDerivatives.svelte';
   import Details from './Details.svelte';
 
   import MapContributors from '../tables/MapContributors.svelte';
@@ -331,7 +331,6 @@
   let regionToSetAsNonMap;
   let regionToSetAsMap;
   let regionToSkip;
-  let regionToUnskip;
   let undoGeorefLayerId;
 
   let processing = false;
@@ -510,7 +509,7 @@
     <TabbedSection tabs={[
       {id: "preview", title: "Preview"},
       {id: "multimask", title: "MultiMask"},
-      {id: "download", title: "Downloads & Services"},
+      {id: "download", title: "Derivatives"},
     ]} bind:activeTab={mosaicSectionActiveTab}>
       {#if mosaicSectionActiveTab == "preview"}
         {#key previewKey}
@@ -528,10 +527,9 @@
           bind:multimaskKey
           {userCanEdit} />
       {:else if mosaicSectionActiveTab == "download"}
-        <MosaicDownload
+        <MosaicDerivatives
           {CONTEXT}
-          {MAP}
-          {LAYERSETS} />
+          mapId={MAP.identifier}/>
       {/if}
     </TabbedSection>
   </ExpandableSection>
@@ -751,7 +749,7 @@
             bind:modalExtent
             bind:modalIsGeospatial
             bind:reinitModalMap
-            bind:regionToUnskip
+            bind:regionToSkip
           />
         {/each}
       </div>

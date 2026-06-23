@@ -122,7 +122,6 @@ export function copyToClipboard(elementId) {
   const copyText = document.getElementById(elementId);
   copyText.select();
   navigator.clipboard.writeText(copyText.value);
-  alert('Copied the text: ' + copyText.value);
 }
 
 export function makeSatelliteLayer(apiKey) {
