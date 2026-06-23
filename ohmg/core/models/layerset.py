@@ -53,7 +53,6 @@ class LayerSet(models.Model):
         blank=True,
         max_length=255,
     )
-    mosaic_geotiff_date = models.DateTimeField(blank=True, null=True)
     mosaic_json = models.FileField(
         upload_to="mosaics",
         null=True,
@@ -71,7 +70,6 @@ class LayerSet(models.Model):
         blank=True,
         null=True,
     )
-    xyz_tiles_date = models.DateTimeField(blank=True, null=True)
     tilejson = models.JSONField(null=True, blank=True)
     multimask_date = models.DateTimeField(blank=True, null=True)
 
@@ -89,6 +87,28 @@ class LayerSet(models.Model):
 
     def get_layers(self) -> Iterable["Layer"]:
         return self.layer_set.all()
+
+    def get_latest_cog_job(self):
+        from ohmg.georeference.models import Job
+
+        ct = ContentType.objects.get_for_model(self)
+        job = (
+            Job.objects.filter(operation="layerset_to_cog", target_type=ct, target_id=self.pk)
+            .order_by("-date_queued")
+            .first()
+        )
+        return job
+
+    def get_latest_xyz_job(self):
+        from ohmg.georeference.models import Job
+
+        ct = ContentType.objects.get_for_model(self)
+        job = (
+            Job.objects.filter(operation="layerset_to_xyz", target_type=ct, target_id=self.pk)
+            .order_by("-date_queued")
+            .first()
+        )
+        return job
 
     @property
     def xyz_tiles_url(self):
@@ -108,7 +128,7 @@ class LayerSet(models.Model):
                 base_url = f"{settings.AWS_S3_ENDPOINT_URL}/{settings.AWS_STORAGE_BUCKET_NAME}"
             else:
                 base_url = f"{settings.SITEURL.rstrip('/')}{settings.MEDIA_URL}"
-            return f"{base_url.rstrip('/')}/{self.xyz_tiles_prefix}/{self.mosaic_xyz_tiles_date}"
+            return f"{base_url.rstrip('/')}/{self.xyz_tiles_prefix}/"
         else:
             return None
 

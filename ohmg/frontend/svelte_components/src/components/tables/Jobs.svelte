@@ -238,9 +238,6 @@
     position: sticky;
     top: 0;
   }
-  th > * {
-    display: flex;
-  }
   td {
     white-space: nowrap;
     padding: 2px 0.5em 2px 0;

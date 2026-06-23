@@ -29,11 +29,7 @@ from ohmg.core.storages import get_file_url
 from ohmg.core.utils.performance import time_this_function
 
 from .georeferencer import Georeferencer
-from .models import (
-    GeorefSession,
-    PrepSession,
-    SessionBase,
-)
+from .models import GeorefSession, Job, PrepSession, SessionBase
 from .splitter import Splitter
 from .tasks import (
     bulk_run_preparation_sessions,
@@ -360,4 +356,18 @@ class SessionView(View):
                 session.extend_locks()
             except Exception as e:
                 return JsonResponseFail(e)
+            return JsonResponseSuccess()
+
+
+class JobView(View):
+    @method_decorator(validate_post_request(operations=["queue"]))
+    def post(self, request, jobid):
+        print(jobid)
+        job = get_object_or_404(Job, pk=jobid)
+        print(job)
+        body = json.loads(request.body)
+        operation = body.get("operation")
+
+        if operation == "queue":
+            job.enqueue()
             return JsonResponseSuccess()

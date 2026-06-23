@@ -1,21 +1,16 @@
 <script>
-
     import Queue from 'phosphor-svelte/lib/Queue';
-    import Copy from 'phosphor-svelte/lib/Copy';
     import CopyableText from '../shared/buttons/CopyableText.svelte';
-  import ArrowSquareOut from 'phosphor-svelte/lib/ArrowSquareOut';
-  import ArrowRight from 'phosphor-svelte/lib/ArrowRight';
-  import DownloadSimple from 'phosphor-svelte/lib/DownloadSimple';
 
     import { getFromAPI } from "../../lib/requests";
     import { submitPostRequest } from "../../lib/requests";
     import Link from "../base/Link.svelte";
     import ModalConfirm from '../base/ModalConfirm.svelte';
     import { openModal } from '../base/Modal.svelte';
-    import { onMount } from 'svelte';
 
     import DerivativeItem from '../shared/DerivativeItem.svelte';
     import DerivativeSubheader from '../shared/DerivativeSubheader.svelte';
+    import ModalInfo from '../base/ModalInfo.svelte';
 
     export let CONTEXT;
     export let mapId;
@@ -28,6 +23,7 @@
     ]
 
     const initLayersets = () => {
+        layersets = [];
         getFromAPI(`/api/beta2/layersets/?map=${mapId}`, CONTEXT.ohmg_api_headers, (response) => {
             const orderedLayersets = []
             // first force the most important layersets to the top of the list
@@ -50,21 +46,45 @@
                 i.allmapsUrl = `https://viewer.allmaps.org/?url=${encodeURIComponent(i.iiifAnnoUrl)}`
                 i.ohmUrl = `${CONTEXT.site_url}map/${mapId}/${i.id}/ohm`
                 i.tileJsonUrl = `${CONTEXT.site_url}map/${mapId}/${i.id}/tilejson`
-                i.localeDateMasks = i.multimask_date ? new Date(i.multimask_date*1000).toLocaleString() : null;
-                i.localeDateCog = i.mosaic_geotiff_date ? new Date(i.mosaic_geotiff_date*1000).toLocaleString() : null;
-                i.localeDateTiles = i.xyz_tiles_date ? new Date(i.xyz_tiles_date*1000).toLocaleString() : null;
-                i.cogStale = i.mosaic_geotiff_date < i.multimask_date
-                i.tilesStale = i.xyz_tiles_date < i.multimask_date
+                i.masksDateDisplay = i.multimask_date ? new Date(i.multimask_date*1000).toLocaleString() : null;
+
+                i.cogStale = false;
+                i.cogDateDisplay = "---"
+                if (i.latest_cog_job) {
+                    if (i.latest_cog_job.stage == "completed") {
+                        i.cogDate = new Date(i.latest_cog_job.date_started * 1000).toLocaleString();
+                        i.cogDateDisplay = i.cogDate;
+                        i.cogStale = i.multimask_date ? i.latest_cog_job.date_started < i.multimask_date : false
+                    } else {
+                        i.cogDateDisplay = i.latest_cog_job.stage
+                    }
+                } else {
+                    i.cogDateDisplay = "not generated"
+                }
+
+                i.xyzStale = false;
+                i.xyzDateDisplay = "---"
+                if (i.latest_xyz_job) {
+                    if (i.latest_xyz_job.stage == "completed") {
+                        i.xyzDate = new Date(i.latest_xyz_job.date_started * 1000).toLocaleString();
+                        i.xyzDateDisplay = i.xyzDate;
+                        i.xyzStale = i.multimask_date ? i.latest_xyz_job.date_started < i.multimask_date : false;
+                    } else {
+                        i.xyzDateDisplay = i.latest_xyz_job.stage;
+                    }
+                } else {
+                    i.xyzDateDisplay = "not generated"
+                }
                 console.log(i)
                 return i
             });
         });
     }
-
     initLayersets()
 
     function handleQueueRequestResponse(response) {
-        console.log(response)
+        initLayersets()
+        openModal('modal-job-submitted')
     }
 
     let layersetToQueueForCog;
@@ -82,6 +102,9 @@
     }
 </script>
 
+<ModalInfo id="modal-job-submitted">
+    <p>Job submitted. You can track its completion on the <Link href="/jobs/" external={true}>jobs page</Link>.</p>
+</ModalInfo>
 <ModalConfirm id="modal-confirm-cog-queue"
     yesAction={() => {submitQueueRequest('queue-cog-creation')}}
 >
@@ -90,27 +113,28 @@
 <ModalConfirm id="modal-confirm-xyz-queue"
     yesAction={() => {submitQueueRequest('queue-tileset-creation')}}
 >
-    <p>Submit tileset generation to queue?</p>
+    <p>Submit XYZ tileset generation to queue?</p>
 </ModalConfirm>
 
 <div>
     <p>
-    Once layers have been trimmed in the <strong>MultiMask</strong>, a background process can be run
-    to combine them into a single mosaic file, which serves as a basis for downloads and web services.
-    If you see <strong>n/a</strong> below, the mosaic has not yet been created. You can still access 
-    individual layers through the <strong>Georeferenced</strong> section, or view the mosaic in Allmaps
-    (powered by IIIF).
+    Once layers have been trimmed in the <strong>MultiMask</strong> they can be combined into a single
+    layer, which takes the form of a "cloud-optimized GeoTIFF" (COG) and/or static XYZ tileset.
+    These formats form the basis for many other data access methods as displayed below.
+    </p>
+    <p>If the MultiMask is updated after a mosaic has been generated, dates will be shown here in
+        red until the mosaic artifacts are re-generated.
     </p>
 </div>
 {#each layersets as ls}
 {#if ls.layers.length >= 1}
     <h4 class="dl-title">
         <span>
-            {`${ls.name} (${ls.layers.length} layer${ls.layers.length > 1 ? 's' : ''})`}
+            {`${ls.name} (${ls.layers.length}/${ls.layers_masked_ct} layers masked)`}
         </span>
         {#if ls.multimask_date}
         <span class="mask-timestamp">
-            masks last updated: {ls.localeDateMasks}
+            masks last updated: {ls.masksDateDisplay}
         </span>
         {/if}
     </h4>
@@ -118,8 +142,8 @@
     <DerivativeSubheader title="Downloads"/>
     <DerivativeItem
         title="COG (cloud-optimized GeoTIFF)"
-        dateTimestamp={ls.mosaic_geotiff_date}
-        dateStale={ls.mosaic_geotiff_date < ls.multimask_date}
+        dateString={ls.cogDateDisplay}
+        dateStale={ls.cogStale}
     >
         {#if ls.mosaic_cog_url}
         <Link
@@ -132,8 +156,8 @@
     </DerivativeItem>
     <DerivativeItem
         title="XYZ tileset (archive)"
-        dateTimestamp={ls.xyz_tiles_date}
-        dateStale={ls.xyz_tiles_date < ls.multimask_date}
+        dateString={ls.xyzDateDisplay}
+        dateStale={ls.xyzStale}
     >
         {#if ls.xyz_tiles_archive}
         <Link
@@ -145,9 +169,9 @@
     </DerivativeItem>
     <DerivativeSubheader title="Service URLs"/>
     <DerivativeItem
-        title="XYZ dynamic tiles"
-        dateTimestamp={ls.mosaic_geotiff_date}
-        dateStale={ls.mosaic_geotiff_date < ls.multimask_date}
+        title="TileJSON"
+        dateString={ls.cogDateDisplay}
+        dateStale={ls.cogStale}
         naMessage="requires COG"
     >
         {#if ls.tileJsonUrl}
@@ -156,8 +180,8 @@
     </DerivativeItem>
     <DerivativeItem
         title="XYZ dynamic tiles"
-        dateTimestamp={ls.mosaic_geotiff_date}
-        dateStale={ls.mosaic_geotiff_date < ls.multimask_date}
+        dateString={ls.cogDateDisplay}
+        dateStale={ls.cogStale}
         naMessage="requires COG"
     >
         {#if ls.mosaic_cog_url}
@@ -166,8 +190,8 @@
     </DerivativeItem>
     <DerivativeItem
         title="XYZ static tiles"
-        dateTimestamp={ls.xyz_tiles_date}
-        dateStale={ls.xyz_tiles_date < ls.multimask_date}
+        dateString={ls.xyzDateDisplay}
+        dateStale={ls.xyzStale}
         naMessage="requires XYZ tileset"
     >
         {#if ls.xyz_tiles_url}
@@ -187,8 +211,8 @@
     <DerivativeSubheader title="Open in..."/>
     <DerivativeItem
         title="OpenHistoricalMap iD editor"
-        dateTimestamp={ls.mosaic_geotiff_date}
-        dateStale={ls.mosaic_geotiff_date < ls.multimask_date}
+        dateString={ls.cogDateDisplay}
+        dateStale={ls.cogStale}
         naMessage="requires COG"
     >
     {#if ls.mosaic_cog_url}

@@ -64,8 +64,7 @@ class LayerSetAdmin(admin.ModelAdmin):
     list_display = (
         "map",
         "category",
-        "mosaic_geotiff_date",
-        "xyz_tiles_date",
+        "multimask_date",
     )
     raw_id_fields = ("map",)
     readonly_fields = (
@@ -73,8 +72,7 @@ class LayerSetAdmin(admin.ModelAdmin):
         "extent",
         "multimask_extent",
         "xyz_tiles_url",
-        "mosaic_geotiff_date",
-        "xyz_tiles_date",
+        "multimask_date",
     )
     search_fields = ("map__title",)
     list_filter = ("category",)

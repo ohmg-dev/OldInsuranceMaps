@@ -128,8 +128,11 @@ def run_queued_mosaic_jobs():
     ## if there are already max mosaic jobs running, don't start another one
     running_jobs_ct = mosaic_jobs.filter(stage="running").count()
     spots_left = max_jobs_ct - running_jobs_ct
+    started = []
     if spots_left:
         queued_jobs = mosaic_jobs.filter(stage="queued").order_by("date_queued")
         for job in queued_jobs[:spots_left]:
             logger.info(f"starting queued job {job.pk}: {job.operation}, {job.target}")
             job.run()
+            started.append(job.pk)
+    return {"jobs": started}

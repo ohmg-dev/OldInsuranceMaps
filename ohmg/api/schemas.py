@@ -494,10 +494,10 @@ class LayerSetSchema(Schema):
     extent: Optional[tuple]
     multimask_extent: Optional[tuple]
     mosaic_cog_url: Optional[str]
-    mosaic_geotiff_date: Optional[str]
     xyz_tiles_url: Optional[str]
-    xyz_tiles_date: Optional[str]
     multimask_date: Optional[float]
+    latest_cog_job: Optional["JobSchema"]
+    latest_xyz_job: Optional["JobSchema"]
 
     @staticmethod
     def resolve_id(obj):
@@ -516,25 +516,16 @@ class LayerSetSchema(Schema):
         return str(obj.category)
 
     @staticmethod
-    def resolve_mosaic_geotiff_date(obj):
-        try:
-            return obj.mosaic_geotiff_date.timestamp()
-        except AttributeError:
-            return None
-
-    @staticmethod
-    def resolve_xyz_tiles_date(obj):
-        try:
-            return obj.xyz_tiles_date.timestamp()
-        except AttributeError:
-            return None
-
-    @staticmethod
     def resolve_multimask_date(obj):
-        try:
-            return obj.multimask_date.timestamp()
-        except AttributeError:
-            return None
+        return _datefield_to_timestamp(obj, "multimask_date")
+
+    @staticmethod
+    def resolve_latest_cog_job(obj):
+        return obj.get_latest_cog_job()
+
+    @staticmethod
+    def resolve_latest_xyz_job(obj):
+        return obj.get_latest_xyz_job()
 
 
 class LayerSetDisplaySchema(Schema):
@@ -938,3 +929,4 @@ class JobSchema(Schema):
 DocumentFullSchema.update_forward_refs()
 RegionFullSchema.update_forward_refs()
 MapListSchema2.update_forward_refs()
+LayerSetSchema.update_forward_refs()
