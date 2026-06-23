@@ -59,7 +59,7 @@ class Command(BaseCommand):
             if options.background:
                 create_mosaic_tileset.delay(ls.pk)
             else:
-                m.generate_xyz_tiles(ls, use_multiprocessing=options.multiprocessing)
+                m.generate_tileset(ls, use_multiprocessing=options.multiprocessing)
                 m.cleanup_files()
 
         if options.operation == "generate-cog":

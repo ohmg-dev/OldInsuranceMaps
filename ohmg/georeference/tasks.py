@@ -54,7 +54,7 @@ def delete_preview_vrts(id):
 
 
 @app.task
-def create_mosaic_cog(layersetid, jobid=None):
+def create_mosaic_cog(layersetid: int, jobid: int | None = None):
     from .models import Job
     from .mosaicker import Mosaicker
 
@@ -77,16 +77,25 @@ def create_mosaic_cog(layersetid, jobid=None):
 
 
 @app.task
-def create_mosaic_tileset(layersetid):
-    from ohmg.georeference.mosaicker import Mosaicker
+def create_mosaic_tileset(layersetid: int, jobid: int | None = None):
+    from .models import Job
+    from .mosaicker import Mosaicker
 
     try:
         layerset = LayerSet.objects.get(pk=layersetid)
     except LayerSet.DoesNotExist:
         logger.warning(f"LayerSet does not exist: {layersetid}. Cancelling mosaic creation.")
-    m = Mosaicker()
-    m.generate_xyz_tiles(layerset)
-    m.cleanup_files()
+    try:
+        m = Mosaicker()
+        success = True
+        message = m.generate_tileset(layerset)
+        m.cleanup_files()
+    except Exception as e:
+        success = False
+        message = e
+
+    if jobid:
+        Job.objects.get(pk=jobid).end(success=success, message=message)
 
 
 @app.task

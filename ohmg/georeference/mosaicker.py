@@ -135,9 +135,10 @@ class Mosaicker:
         if existing_file_name and storage.exists(name=existing_file_name):
             storage.delete(name=existing_file_name)
 
+        layerset.mosaic_geotiff_date = datetime.now()
         layerset.save(set_tilejson=True)
 
-    def generate_xyz_tiles(
+    def generate_tileset(
         self,
         layerset: LayerSet,
         min_zoom: int = 13,
@@ -163,6 +164,7 @@ class Mosaicker:
 
         existing_tileset_prefix = layerset.xyz_tiles_prefix
         layerset.xyz_tiles_prefix = prefix
+        layerset.xyz_tiles_date = datetime.now()
         layerset.save()
 
         ## clean up existing tileset

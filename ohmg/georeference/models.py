@@ -30,7 +30,7 @@ from ohmg.core.utils import (
 )
 from ohmg.georeference.georeferencer import Georeferencer
 from ohmg.georeference.splitter import Splitter
-from ohmg.georeference.tasks import create_mosaic_cog
+from ohmg.georeference.tasks import create_mosaic_cog, create_mosaic_tileset
 
 from .sessions import (
     add_lock,
@@ -826,7 +826,7 @@ class Job(models.Model):
 
         valid = True
         message = None
-        if self.operation == "layerset_to_cog":
+        if self.operation in ["layerset_to_cog", "layerset_to_xyz"]:
             if not isinstance(self.target, LayerSet):
                 valid = False
                 message = f"invalid target {self.target} for {self.operation} job"
@@ -849,6 +849,8 @@ class Job(models.Model):
         self.start()
         if self.operation == "layerset_to_cog":
             create_mosaic_cog.delay(self.target.pk, self.pk)
+        elif self.operation == "layerset_to_xyz":
+            create_mosaic_tileset.delay(self.target.pk, self.pk)
 
     def enqueue(self):
         self.stage = "queued"
