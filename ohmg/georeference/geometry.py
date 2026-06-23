@@ -1,60 +1,7 @@
 import math
-from typing import List, Tuple
+from typing import Tuple
 
-import numpy as np
 from django.contrib.gis.geos import LineString
-
-
-def azimuth_from_coords(coords: List[Tuple[float, float]]) -> float:
-    """Calculate the least-squares slope of the input coordinates, return
-    as degrees relative to the x axis."""
-
-    x_coords = [i[0] for i in coords]
-    y_coords = [i[1] for i in coords]
-    x_diff = x_coords[-1] - x_coords[0]
-    y_diff = y_coords[-1] - y_coords[0]
-
-    # handle cases where the fit line would be horizontal or vertical,
-    # as well as an issue where passing all 0s to np.polyfit (e.g. all
-    # of the x values are 0, even though there are different y values)
-    # raises an exception
-    if len(set(x_coords)) == 1:
-        if y_diff > 0:
-            azimuth = 0
-        else:
-            azimuth = 180
-    elif len(set(y_coords)) == 1:
-        if x_diff > 0:
-            azimuth = 90
-        else:
-            azimuth = 270
-    # now handle all other cases by calculating the slope
-    else:
-        slope, intercept = np.polyfit(x_coords, y_coords, 1)
-
-        # this is the angle from 0 axis
-        angle = math.degrees(math.atan(slope))
-
-        # now convert the angle to degrees from north by comparing
-        # the first and last set of coords to determine the general
-        # orientation of the fit line
-        x_diff = coords[-1][0] - coords[0][0]
-        y_diff = coords[-1][1] - coords[0][1]
-
-        # orientation: ne
-        if x_diff > 0 and y_diff > 0:
-            azimuth = 90 - angle
-        # orientation: se
-        elif x_diff > 0 and y_diff < 0:
-            azimuth = 90 + abs(angle)
-        # orientation: sw
-        elif x_diff < 0 and y_diff < 0:
-            azimuth = 270 - angle
-        # orientation: nw
-        elif x_diff < 0 and y_diff > 0:
-            azimuth = 270 + abs(angle)
-
-    return azimuth
 
 
 def extend_vector(
