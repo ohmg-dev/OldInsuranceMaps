@@ -46,8 +46,9 @@
                 i.allmapsUrl = `https://viewer.allmaps.org/?url=${encodeURIComponent(i.iiifAnnoUrl)}`
                 i.ohmUrl = `${CONTEXT.site_url}map/${mapId}/${i.id}/ohm`
                 i.tileJsonUrl = `${CONTEXT.site_url}map/${mapId}/${i.id}/tilejson`
+                i.dynamicXyzUrl = i.mosaic_cog_url ? `${CONTEXT.titiler_host}/cog/tiles/WebMercatorQuad/{z}/{x}/{y}.png?${encodeURIComponent(i.mosaic_cog_url)}` : null;
                 i.masksDateDisplay = i.multimask_date ? new Date(i.multimask_date*1000).toLocaleString() : null;
-
+                i.xyz_tiles_archive = i.xyz_tiles_url ? `${i.xyz_tiles_url}/archive.tar.gz` : null;
                 i.cogStale = false;
                 i.cogDateDisplay = "---"
                 if (i.latest_cog_job) {
@@ -76,6 +77,7 @@
                     i.xyzDateDisplay = "not generated"
                 }
                 console.log(i)
+                console.log(CONTEXT)
                 return i
             });
         });
@@ -143,7 +145,8 @@
     <DerivativeItem
         title="COG (cloud-optimized GeoTIFF)"
         dateString={ls.cogDateDisplay}
-        dateStale={ls.cogStale}
+        isStale={ls.cogStale}
+        naMessage="not generated"
     >
         {#if ls.mosaic_cog_url}
         <Link
@@ -152,12 +155,14 @@
             download={true}
         >{ls.mosaic_cog_url}</Link
         >
+        {:else}
+        <span class="na-message">not generated</span>
         {/if}
     </DerivativeItem>
     <DerivativeItem
         title="XYZ tileset (archive)"
         dateString={ls.xyzDateDisplay}
-        dateStale={ls.xyzStale}
+        isStale={ls.xyzStale}
     >
         {#if ls.xyz_tiles_archive}
         <Link
@@ -165,37 +170,42 @@
             title="Download XYZ tiles archive file"
             download={true}
         >{ls.xyz_tiles_archive}</Link>
+        {:else}
+        <span class="na-message">not generated</span>
         {/if}
     </DerivativeItem>
     <DerivativeSubheader title="Service URLs"/>
     <DerivativeItem
         title="TileJSON"
         dateString={ls.cogDateDisplay}
-        dateStale={ls.cogStale}
-        naMessage="requires COG"
+        isStale={ls.cogStale}
     >
         {#if ls.tileJsonUrl}
         <CopyableText text={ls.tileJsonUrl} />
+        {:else}
+        <span class="na-message">requires COG</span>
         {/if}
     </DerivativeItem>
     <DerivativeItem
         title="XYZ dynamic tiles"
         dateString={ls.cogDateDisplay}
-        dateStale={ls.cogStale}
-        naMessage="requires COG"
+        isStale={ls.cogStale}
     >
-        {#if ls.mosaic_cog_url}
-        <CopyableText text={ls.mosaic_cog_url} />
+        {#if ls.dynamicXyzUrl}
+        <CopyableText text={ls.dynamicXyzUrl} />
+        {:else}
+        <span class="na-message">requires COG</span>
         {/if}
     </DerivativeItem>
     <DerivativeItem
         title="XYZ static tiles"
         dateString={ls.xyzDateDisplay}
-        dateStale={ls.xyzStale}
-        naMessage="requires XYZ tileset"
+        isStale={ls.xyzStale}
     >
         {#if ls.xyz_tiles_url}
         <CopyableText text={`${ls.xyz_tiles_url}/{z}/{x}/{y}.png`} />
+        {:else}
+        <span class="na-message">requires XYZ tileset</span>
         {/if}
     </DerivativeItem>
     <DerivativeItem
@@ -212,8 +222,7 @@
     <DerivativeItem
         title="OpenHistoricalMap iD editor"
         dateString={ls.cogDateDisplay}
-        dateStale={ls.cogStale}
-        naMessage="requires COG"
+        isStale={ls.cogStale}
     >
     {#if ls.mosaic_cog_url}
         <Link
@@ -221,6 +230,8 @@
             title="Open mosaic in OpenHistoricalMap iD Editor"
             external={true}>{ls.ohmUrl}
         </Link>
+        {:else}
+        <span class="na-message">requires COG</span>
     {/if}
     </DerivativeItem>
     <DerivativeItem title="Allmaps" dateString="always current">
@@ -285,5 +296,11 @@
     }
     button > span {
         margin-left: 5px;
+    }
+    .na-message {
+        font-size: .8em;
+    }
+    .na-message::before {
+        content: "-- "
     }
 </style>

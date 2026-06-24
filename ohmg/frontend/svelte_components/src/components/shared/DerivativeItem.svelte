@@ -2,10 +2,9 @@
     export let title;
     export let dateTimestamp = null;
     export let dateString = null;
-    export let dateStale = false;
-    export let naMessage = "not generated";
+    export let isStale = false;
 
-    let dateClass = dateStale ? "timestamp stale" : "timestamp";
+    let dateClass = isStale ? "timestamp stale" : "timestamp";
 </script>
 
 
@@ -18,9 +17,7 @@
     {/if}
 </dt>
 <dd>
-    <slot>
-        <span class="na-message">{naMessage}</span>
-    </slot>
+    <slot />
 </dd>
 
 <style>

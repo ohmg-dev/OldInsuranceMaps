@@ -150,7 +150,9 @@ class Mosaicker:
             self.generate_mosaic_vrt(layerset)
             in_path = self.mosaic_vrt.get_path()
 
-        prefix = f"tiles/{layerset.map.identifier}/{layerset.category.slug}/{random_alnum()}"
+        prefix = f"tiles/{layerset.map.identifier}/{layerset.category.slug}/"
+        # prefix += f"{datetime.now().strftime('%Y%m%d')}__{random_alnum()}"
+        prefix += datetime.now().strftime("%Y%m%d%H%M%S")
         logger.info(f"creating new tileset {prefix}")
         logger.info(f"source dataset: {in_path}")
 
