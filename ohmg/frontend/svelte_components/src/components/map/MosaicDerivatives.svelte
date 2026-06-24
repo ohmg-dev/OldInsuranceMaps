@@ -132,7 +132,7 @@
 {#if ls.layers.length >= 1}
     <h4 class="dl-title">
         <span>
-            {`${ls.name} (${ls.layers.length}/${ls.layers_masked_ct} layers masked)`}
+            {`${ls.name} (${ls.layers_masked_ct}/${ls.layers.length} layers masked)`}
         </span>
         {#if ls.multimask_date}
         <span class="mask-timestamp">
