@@ -102,7 +102,6 @@
   }
 
   function submitJobToQueue() {
-    console.log(jobDetails.id)
     submitPostRequest(
       `/job/${jobDetails.id}/`,
       CONTEXT.ohmg_post_headers,
@@ -116,6 +115,7 @@
 <ModalConfirm id="modal-job-details"
   yesAction={submitJobToQueue}
   yesButtonText="Re-queue job"
+  yesButtonEnabled={CONTEXT.user.perms.includes("core.queue_mosaic_cog") || CONTEXT.user.perms.includes("core.queue_mosaic_xyz")}
   noButtonText="Close"
 >
   <dl>

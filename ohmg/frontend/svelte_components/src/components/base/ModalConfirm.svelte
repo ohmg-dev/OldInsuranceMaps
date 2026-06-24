@@ -3,6 +3,7 @@
 
   export let id;
   export let yesButtonText = "Yes"
+  export let yesButtonEnabled = true;
   export let noButtonText = "No"
   export let yesAction = () => {};
   export let noAction = () => {};
@@ -16,6 +17,7 @@
   <button
     class="button is-success"
     title={yesButtonText}
+    disabled={!yesButtonEnabled}
     on:click={() => {
       yesAction();
       closeModal(id);

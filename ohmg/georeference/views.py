@@ -17,6 +17,7 @@ from ohmg.conf.http import (
     JsonResponseFail,
     JsonResponseNotFound,
     JsonResponseSuccess,
+    JsonResponseUnauthorized,
     generate_ohmg_context,
     validate_post_request,
 )
@@ -362,9 +363,9 @@ class SessionView(View):
 class JobView(View):
     @method_decorator(validate_post_request(operations=["queue"]))
     def post(self, request, jobid):
-        print(jobid)
+        if not request.user.is_superuser:
+            return JsonResponseUnauthorized()
         job = get_object_or_404(Job, pk=jobid)
-        print(job)
         body = json.loads(request.body)
         operation = body.get("operation")
 

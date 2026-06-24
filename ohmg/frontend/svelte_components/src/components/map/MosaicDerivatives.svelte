@@ -39,7 +39,6 @@
                 if (!orderedCategories.includes(ls.id)) {
                     orderedLayersets.push(ls)
                 }
-                console.log(ls)
             })
             layersets = orderedLayersets.map(i => {
                 i.iiifAnnoUrl = `${CONTEXT.site_url}iiif/mosaic/${mapId}/${i.id}/?trim=true`
@@ -76,8 +75,6 @@
                 } else {
                     i.xyzDateDisplay = "not generated"
                 }
-                console.log(i)
-                console.log(CONTEXT)
                 return i
             });
         });
