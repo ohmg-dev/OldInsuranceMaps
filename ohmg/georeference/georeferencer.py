@@ -3,19 +3,32 @@ import math
 import os
 import sys
 import time
+from dataclasses import dataclass
 from io import StringIO
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List
 from uuid import uuid4
 
+import numpy as np
 from django.conf import settings
 from osgeo import gdal, ogr, osr
 
 from ohmg.core.utils.srs import retrieve_srs_wkt
 
-from .geometry import azimuth_from_coords
-
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class HelmertParams:
+    """The four parameters of a Helmert (similarity) transformation that maps
+    image pixel/line coordinates to geographic coordinates."""
+
+    scale: float
+    # rotation in degrees, measured as an azimuth from north (the positive Y axis)
+    rotation: float
+    # geographic coordinates that the image origin (pixel=0, line=0) maps to
+    offset_x: float
+    offset_y: float
 
 gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
 
@@ -244,106 +257,48 @@ class Georeferencer:
             )
             self.gcps.append(gcp)
 
-    def _calculate_scale(self) -> float:
-        """Compares two GCPs and returns a scale factor."""
+    def _get_helmert_params(self) -> HelmertParams:
+        """Fit a Helmert (four-parameter similarity) transformation to the GCPs
+        using least squares, returning the scale, rotation, and offsets.
 
-        if len(self.gcps) < 2:
-            raise Exception("At least GCPs are needed to calculate a scale factor")
+        The transformation maps image pixel/line coordinates to geographic
+        coordinates as:
 
-        gcp1, gcp2 = self.gcps[0], self.gcps[1]
+            geoX = offset_x + a * line - b * pixel
+            geoY = offset_y + a * pixel + b * line
 
-        # distance between the geographic coords in each GCP
-        # this distance is absolute so the order of the coords doesn't matter
-        geo_dist = math.dist(
-            (gcp1.GCPX, gcp1.GCPY),
-            (gcp2.GCPX, gcp2.GCPY),
-        )
-
-        # distance between the pixel coords in each GCP
-        # this distance is absolute so the order of the coords doesn't matter
-        img_dist = math.dist(
-            (gcp1.GCPPixel, gcp1.GCPLine),
-            (gcp2.GCPPixel, gcp2.GCPLine),
-        )
-
-        return geo_dist / img_dist
-
-    def _calculate_rotation(self, img_height: Union[float, None] = None) -> float:
-        """Compares two GCPs and calculates the difference in the angles
-        between the geometric points and the pixel points.
-
-        Returns the angle in degrees from 'north', i.e. the positive Y axis"""
-
-        if len(self.gcps) < 2:
-            raise Exception("At least two GCPs are needed to calculate a scale factor")
-
-        # sort the GCPs so they are ordered from lowest to highest,
-        # then right to left, as they appear on the source image.
-        # this allows us to figure out the orientation
-        self.gcps.sort(key=lambda x: x.GCPPixel)
-        self.gcps.sort(key=lambda x: x.GCPLine, reverse=True)
-
-        # make sure img height is set because it is needed to properly
-        # handle the inverted Y coords.
-        if not img_height:
-            ds = gdal.Open(self.gcps_vrt.get_vsi_url())
-            img_height = ds.RasterYSize
-        img_coords = [(i.GCPPixel, img_height - i.GCPLine) for i in self.gcps]
-        img_azimuth = azimuth_from_coords(img_coords)
-
-        geo_coords = [(i.GCPX, i.GCPY) for i in self.gcps]
-        geo_azimuth = azimuth_from_coords(geo_coords)
-
-        difference = geo_azimuth - img_azimuth
-        return difference
-
-    def _calculate_helmert_offsets(self, scale: float, rotation: float) -> Tuple[float, float]:
-        """Calculates the x and y offsets needed for helmert transformation, based
-        on GCP
+        where (a, b) = (scale * cos(angle), scale * sin(angle)). Because this is
+        linear in the four unknowns (a, b, offset_x, offset_y), it can be solved
+        directly from two equations per GCP -- exactly determined with two GCPs,
+        and a best fit with more. This handles every orientation without any
+        special-casing.
         """
 
-        ## get the gcp that is closest to the top of the page
-        use_gcp = min(self.gcps, key=lambda x: x.GCPPixel)
+        if len(self.gcps) < 2:
+            raise Exception("At least two GCPs are needed to fit a Helmert transformation")
 
-        ## use the scale factor to calculate the real distance to page extent
-        dist_to_page_edge = use_gcp.GCPLine * scale
-        dist_to_page_top = use_gcp.GCPPixel * scale
+        # build two rows (the geoX and geoY equations) per GCP
+        matrix, targets = [], []
+        for gcp in self.gcps:
+            matrix.append([gcp.GCPLine, -gcp.GCPPixel, 1, 0])
+            targets.append(gcp.GCPX)
+            matrix.append([gcp.GCPPixel, gcp.GCPLine, 0, 1])
+            targets.append(gcp.GCPY)
 
-        ## rotation is azimuth, i.e. degrees from positive y-axis,
-        ## must adjust to be degrees from positive x-axis
-        theta1 = 90 - rotation
-        ## further adjustments to normalize
-        if theta1 < 0:
-            theta1 += 180
-        if theta1 > 180:
-            theta1 -= 180
+        (a, b, offset_x, offset_y), *_ = np.linalg.lstsq(
+            np.array(matrix, dtype=float), np.array(targets, dtype=float), rcond=None
+        )
 
-        ## calculate the target angle q, the angle from the GCP coord
-        ## to the top left corner of the image, relative to negative
-        ## x-axis
-        r_degrees = 180 - (90 + theta1)
-        r_radians = math.radians(r_degrees)
-        s_radians = math.atan(dist_to_page_edge / dist_to_page_top)
-        q_radians = r_radians + s_radians
+        scale = math.hypot(a, b)
+        # convert the fitted angle to an azimuth in degrees from north
+        rotation = (270 - math.degrees(math.atan2(b, a))) % 360
 
-        ## get the real distance between the GCP coord and the page corner
-        dist_to_page_corner = math.sqrt(dist_to_page_edge**2 + dist_to_page_top**2)
-
-        ## calculate the offset distances using q angle and distance from
-        ## GCP to page corner as hypotenuse
-        x_offset = math.cos(q_radians) * dist_to_page_corner
-        y_offset = math.sin(q_radians) * dist_to_page_corner
-
-        ## adjust the GCP's coords by adding/subtracting the offsets based
-        ## on whether the top of the page is above or below the x-axis
-        if abs(rotation) > 90:
-            dx = use_gcp.GCPX + x_offset
-            dy = use_gcp.GCPY - y_offset
-        else:
-            dx = use_gcp.GCPX - x_offset
-            dy = use_gcp.GCPY + y_offset
-
-        return (dx, dy)
+        return HelmertParams(
+            scale=scale,
+            rotation=rotation,
+            offset_x=offset_x,
+            offset_y=offset_y,
+        )
 
     def cleanup_files(self):
         for vrt in [
@@ -400,22 +355,18 @@ class Georeferencer:
         self.make_gcps_vrt(src_path, out_name)
         self.warped_vrt = VRTHandler(out_name, as_variant="modified")
 
-        if len(self.gcps) == 2 and self.transformation["id"] == "helmert":
-            ## get scale factor
-            scale = self._calculate_scale()
+        if self.transformation["id"] == "helmert":
+            ## fit the four-parameter Helmert model in one shot
+            params = self._get_helmert_params()
 
-            ## get rotation
-            rotation = self._calculate_rotation()
-            ## adjust and convert to arcseconds
-            arcseconds = (rotation + 90) * 3600
-
-            ## get the x y offsets
-            dx, dy = self._calculate_helmert_offsets(scale, rotation)
+            ## convert the rotation to arcseconds for the proj pipeline
+            arcseconds = (params.rotation + 90) * 3600
 
             pipeline = (
                 "+proj=pipeline "
                 "+step +proj=axisswap +order=2,1 "
-                f"+step +proj=helmert +x={dx} +y={dy} +theta={arcseconds} +s={scale}"
+                f"+step +proj=helmert +x={params.offset_x} +y={params.offset_y} "
+                f"+theta={arcseconds} +s={params.scale}"
             )
 
             logger.debug(f"applying: {pipeline}")
