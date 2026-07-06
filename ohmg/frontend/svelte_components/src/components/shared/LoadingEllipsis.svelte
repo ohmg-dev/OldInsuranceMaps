@@ -1,9 +1,10 @@
 <script>
   export let color = 'black';
-  export let small = false;
+  export let size = 'large';
+  export let centered = true;
 </script>
 
-<div class="lds-ellipsis{small ? ' small' : ''}">
+<div class="lds-ellipsis {size}{centered ? ' centered' : ''}">
   <div style:background={color}></div>
   <div style:background={color}></div>
   <div style:background={color}></div>
@@ -13,24 +14,46 @@
 <style>
   /* pure css loading bar */
   /* from https://loading.io/css/ */
+
+  /* base properties */
   .lds-ellipsis {
     display: inline-block;
     position: relative;
-    width: 80px;
-    height: 50px;
-    margin: 0 auto;
-  }
-  .lds-ellipsis.small {
-    width: 40px;
-    height: 15px;
   }
   .lds-ellipsis div {
     position: absolute;
+    border-radius: 50%;
+    animation-timing-function: cubic-bezier(0, 1, 1, 0);
+  }
+  
+  .lds-ellipsis.centered {
+    margin: 0 auto;
+  }
+
+  /* different sizes */
+  .lds-ellipsis.large {
+    width: 80px;
+    height: 50px;
+  }
+  .lds-ellipsis.large div {
     top: 20px;
     width: 10px;
     height: 10px;
-    border-radius: 50%;
-    animation-timing-function: cubic-bezier(0, 1, 1, 0);
+  }
+
+  .lds-ellipsis.medium {
+    width: 80px;
+    height: 25px;
+  }
+  .lds-ellipsis.medium div {
+    top: 10px;
+    width: 10px;
+    height: 10px;
+  }
+
+  .lds-ellipsis.small {
+    width: 40px;
+    height: 15px;
   }
   .lds-ellipsis.small div {
     top: 8px;

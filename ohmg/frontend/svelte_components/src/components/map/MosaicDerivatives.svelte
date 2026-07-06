@@ -11,11 +11,13 @@
     import DerivativeItem from '../shared/DerivativeItem.svelte';
     import DerivativeSubheader from '../shared/DerivativeSubheader.svelte';
     import ModalInfo from '../base/ModalInfo.svelte';
+    import LoadingEllipsis from '../shared/LoadingEllipsis.svelte';
 
     export let CONTEXT;
     export let mapId;
 
     let layersets = []
+    let loading = false;
 
     const orderedCategories = [
         "main-content",
@@ -23,6 +25,7 @@
     ]
 
     const initLayersets = () => {
+        loading = true;
         layersets = [];
         getFromAPI(`/api/beta2/layersets/?map=${mapId}`, CONTEXT.ohmg_api_headers, (response) => {
             const orderedLayersets = []
@@ -77,13 +80,14 @@
                 }
                 return i
             });
+            loading = false;
         });
     }
     initLayersets()
 
     function handleQueueRequestResponse(response) {
-        initLayersets()
         openModal('modal-job-submitted')
+        initLayersets()
     }
 
     let layersetToQueueForCog;
@@ -122,9 +126,12 @@
     These formats form the basis for many other data access methods as displayed below.
     </p>
     <p>If the MultiMask is updated after a mosaic has been generated, dates will be shown here in
-        red until the mosaic artifacts are re-generated.
+        red until the mosaic artifacts are re-generated. <button class="is-text-link" on:click={initLayersets}>refresh</button>
     </p>
 </div>
+{#if loading}
+<LoadingEllipsis />
+{/if}
 {#each layersets as ls}
 {#if ls.layers.length >= 1}
     <h4 class="dl-title">
