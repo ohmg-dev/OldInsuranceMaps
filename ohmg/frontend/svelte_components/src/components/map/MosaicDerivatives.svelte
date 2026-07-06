@@ -243,6 +243,7 @@
     <div class="bottom-row" style="">
         <div class="buttons has-addons">
             <button class="button"
+                style="color:white;"
                 disabled={!CONTEXT.user.perms.includes("core.queue_mosaic_cog")}
                 title={CONTEXT.user.perms.includes("core.queue_mosaic_cog") ?
                     "Queue creation of COG" : "You do not have permission for this action"}
@@ -253,6 +254,7 @@
                 <Queue /><span>COG</span>
             </button>
             <button class="button"
+                style="color:white;"
                 disabled={!CONTEXT.user.perms.includes("core.queue_mosaic_xyz")}
                 title={CONTEXT.user.perms.includes("core.queue_mosaic_xyz") ?
                     "Queue creation of XYZ tileset" : "You do not have permission for this action"}
