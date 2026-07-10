@@ -8,10 +8,9 @@
     import ModalConfirm from '../base/ModalConfirm.svelte';
     import { openModal } from '../base/Modal.svelte';
 
-    import DerivativeItem from '../shared/DerivativeItem.svelte';
-    import DerivativeSubheader from '../shared/DerivativeSubheader.svelte';
     import ModalInfo from '../base/ModalInfo.svelte';
     import LoadingEllipsis from '../shared/LoadingEllipsis.svelte';
+    import DerivativeDD from '../shared/DerivativeDD.svelte';
 
     export let CONTEXT;
     export let mapId;
@@ -56,13 +55,17 @@
                 if (i.latest_cog_job) {
                     if (i.latest_cog_job.stage == "completed") {
                         i.cogDate = new Date(i.latest_cog_job.date_started * 1000).toLocaleString();
-                        i.cogDateDisplay = i.cogDate;
+                        i.cogDateDisplay = `last updated: ${i.cogDate}`;
                         i.cogStale = i.multimask_date ? i.latest_cog_job.date_started < i.multimask_date : false
                     } else {
-                        i.cogDateDisplay = i.latest_cog_job.stage
+                        i.cogDateDisplay = i.latest_cog_job.stage;
                     }
                 } else {
                     i.cogDateDisplay = "not generated"
+                }
+                i.enableXyzQueue = false
+                if (i.mosaic_cog_url && !i.cogStale) {
+                    i.enableXyzQueue = true
                 }
 
                 i.xyzStale = false;
@@ -70,7 +73,7 @@
                 if (i.latest_xyz_job) {
                     if (i.latest_xyz_job.stage == "completed") {
                         i.xyzDate = new Date(i.latest_xyz_job.date_started * 1000).toLocaleString();
-                        i.xyzDateDisplay = i.xyzDate;
+                        i.xyzDateDisplay = `last updated: ${i.xyzDate}`;
                         i.xyzStale = i.multimask_date ? i.latest_xyz_job.date_started < i.multimask_date : false;
                     } else {
                         i.xyzDateDisplay = i.latest_xyz_job.stage;
@@ -126,7 +129,7 @@
     These formats form the basis for many other data access methods as displayed below.
     </p>
     <p>If the MultiMask is updated after a mosaic has been generated, dates will be shown here in
-        red until the mosaic artifacts are re-generated. <button class="is-text-link" on:click={initLayersets}>refresh</button>
+        red until the mosaic artifacts are re-generated. <button class="is-text-link" on:click={initLayersets}>reload</button>
     </p>
 </div>
 {#if loading}
@@ -144,135 +147,89 @@
         </span>
         {/if}
     </h4>
-    <dl>
-    <DerivativeSubheader title="Downloads"/>
-    <DerivativeItem
-        title="COG (cloud-optimized GeoTIFF)"
-        dateString={ls.cogDateDisplay}
-        isStale={ls.cogStale}
-        naMessage="not generated"
-    >
-        {#if ls.mosaic_cog_url}
-        <Link
-            href={ls.mosaic_cog_url}
-            title="Download COG"
-            download={true}
-        >{ls.mosaic_cog_url}</Link
-        >
-        {:else}
-        <span class="na-message">not generated</span>
-        {/if}
-    </DerivativeItem>
-    <DerivativeItem
-        title="XYZ tileset (archive)"
-        dateString={ls.xyzDateDisplay}
-        isStale={ls.xyzStale}
-    >
-        {#if ls.xyz_tiles_archive}
-        <Link
-            href={ls.xyz_tiles_archive}
-            title="Download XYZ tiles archive file"
-            download={true}
-        >{ls.xyz_tiles_archive}</Link>
-        {:else}
-        <span class="na-message">not generated</span>
-        {/if}
-    </DerivativeItem>
-    <DerivativeSubheader title="Service URLs"/>
-    <DerivativeItem
-        title="TileJSON"
-        dateString={ls.cogDateDisplay}
-        isStale={ls.cogStale}
-    >
-        {#if ls.tileJsonUrl}
-        <CopyableText text={ls.tileJsonUrl} />
-        {:else}
-        <span class="na-message">requires COG</span>
-        {/if}
-    </DerivativeItem>
-    <DerivativeItem
-        title="XYZ dynamic tiles"
-        dateString={ls.cogDateDisplay}
-        isStale={ls.cogStale}
-    >
-        {#if ls.dynamicXyzUrl}
-        <CopyableText text={ls.dynamicXyzUrl} />
-        {:else}
-        <span class="na-message">requires COG</span>
-        {/if}
-    </DerivativeItem>
-    <DerivativeItem
-        title="XYZ static tiles"
-        dateString={ls.xyzDateDisplay}
-        isStale={ls.xyzStale}
-    >
-        {#if ls.xyz_tiles_url}
-        <CopyableText text={`${ls.xyz_tiles_url}/{z}/{x}/{y}.png`} />
-        {:else}
-        <span class="na-message">requires XYZ tileset</span>
-        {/if}
-    </DerivativeItem>
-    <DerivativeItem
-        title="IIIF Georef AnnotationPage"
-        dateString="always current"
-    >
-        <Link
-        href={ls.iiifAnnoUrl}
-        title="View full AnnotationPage JSON for this mosaic"
-        external={true}>{ls.iiifAnnoUrl}</Link
-        >
-    </DerivativeItem>
-    <DerivativeSubheader title="Open in..."/>
-    <DerivativeItem
-        title="OpenHistoricalMap iD editor"
-        dateString={ls.cogDateDisplay}
-        isStale={ls.cogStale}
-    >
-    {#if ls.mosaic_cog_url}
-        <Link
-            href={ls.ohmUrl}
-            title="Open mosaic in OpenHistoricalMap iD Editor"
-            external={true}>{ls.ohmUrl}
-        </Link>
-        {:else}
-        <span class="na-message">requires COG</span>
-    {/if}
-    </DerivativeItem>
-    <DerivativeItem title="Allmaps" dateString="always current">
-        <Link
-            href={ls.allmapsUrl}
-            title="Open mosaic in Allmaps Viewer"
-            external={true}
-            >{ls.allmapsUrl}
-        </Link>
-    </DerivativeItem>
+    <dl style="margin-bottom: 1em;">
+        <dt class="derivative-subheader">
+            Cloud Optimized GeoTIFF
+            <span class="timestamp{ls.cogStale ? ' stale' : ''}">
+                {ls.cogDateDisplay}
+                {#if ls.cogStale}
+                <button class="is-text-link" on:click={() => {
+                        layersetToQueueForCog=ls.id;
+                        openModal('modal-confirm-cog-queue')
+                    }}>queue rebuild</button>
+                {/if}
+            </span>
+        </dt>
+        <dt>Direct download (.tif)</dt>
+        <DerivativeDD
+            linkUrl={ls.mosaic_cog_url}
+            linkType="download"
+            naMessage="requires COG"
+        />
+        <dt>TileJSON</dt>
+        <DerivativeDD
+            linkUrl={ls.tileJsonUrl}
+            linkType="copytext"
+            naMessage="requires COG"
+        />
+        <dt>XYZ tile endpoint (dynamic)</dt>
+        <DerivativeDD
+            linkUrl={ls.dynamicXyzUrl}
+            linkType="copytext"
+            naMessage="requires COG"
+        />
+        <dt class="derivative-subheader">
+            XYZ Tileset
+            <span class="timestamp{ls.xyzStale ? ' stale' : ''}">
+                {ls.xyzDateDisplay}
+                {#if ls.xyzStale}
+                <button class="is-text-link"
+                    disabled={!ls.enableXyzQueue}
+                    title={ls.enableXyzQueue ? 
+                        'Queue creation of XYZ tileset' :
+                        'COG must be rebuilt before tileset can be created'}
+                    on:click={() => {
+                        layersetToQueueForCog=ls.id;
+                        openModal('modal-confirm-xyz-queue')
+                    }}>queue rebuild</button>
+                {/if}
+            </span>
+        </dt>
+        <dt>Direct download (.tar archive)</dt>
+        <DerivativeDD
+            linkUrl={ls.xyz_tiles_archive}
+            linkType="download"
+            naMessage="not yet generated"
+        />
+        <dt>XYZ tile endpoint (static)</dt>
+        <DerivativeDD
+            linkUrl={ls.xyz_tiles_url}
+            linkType="copytext"
+            naMessage="not yet generated"
+        />
+        <dt class="derivative-subheader">
+            Extensions...
+            <span class="timestamp">
+                always current, unless noted
+            </span>
+        </dt>
+        <dt>Open in OpenHistoricalMap editor (uses XYZ tile endpoint)</dt>
+        <DerivativeDD
+            linkUrl={ls.ohmUrl}
+            linkType="external"
+            naMessage="requires COG"
+        />
+        <dt>IIIF Georef AnnotationPage</dt>
+        <DerivativeDD
+            linkUrl={ls.iiifAnnoUrl}
+            linkType="external"
+        />
+        <dt>Open in Allmaps Viewer</dt>
+        <DerivativeDD
+            linkUrl={ls.allmapsUrl}
+            linkType="external"
+        />
     </dl>
-    <div class="bottom-row" style="">
-        <div class="buttons has-addons">
-            <button class="button"
-                style="color:white;"
-                disabled={!CONTEXT.user.perms.includes("core.queue_mosaic_cog")}
-                title={CONTEXT.user.perms.includes("core.queue_mosaic_cog") ?
-                    "Queue creation of COG" : "You do not have permission for this action"}
-                on:click={() => {
-                    layersetToQueueForCog=ls.id;
-                    openModal('modal-confirm-cog-queue')
-                }}>
-                <Queue /><span>COG</span>
-            </button>
-            <button class="button"
-                style="color:white;"
-                disabled={!CONTEXT.user.perms.includes("core.queue_mosaic_xyz")}
-                title={CONTEXT.user.perms.includes("core.queue_mosaic_xyz") ?
-                    "Queue creation of XYZ tileset" : "You do not have permission for this action"}
-                on:click={() => {
-                    layersetToQueueForCog=ls.id;
-                    openModal('modal-confirm-xyz-queue')
-                }}>
-                <Queue/><span>XYZ tileset</span>
-            </button>
-        </div>
-    </div>
 {/if}
 {/each}
 
@@ -293,20 +250,22 @@
     dl {
         background-color: #ffffff;
     }
-    .bottom-row {
-        display:flex;
-        justify-content:end;
-        background-color: #ffffff;
-        border-bottom-right-radius: 6px;
-        border-bottom-left-radius: 6px;
+    dt {
+        padding: .25em .5em;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        font-weight: 700;
+        font-size: .85em;
+        background-color: #f6f6f6;
     }
-    button > span {
-        margin-left: 5px;
+    dt.derivative-subheader {
+        background-color: rgb(188, 241, 253);
     }
-    .na-message {
-        font-size: .8em;
+    .timestamp {
+        color: rgb(128, 128, 128);
     }
-    .na-message::before {
-        content: "-- "
+    .timestamp.stale {
+        color: red;
     }
 </style>

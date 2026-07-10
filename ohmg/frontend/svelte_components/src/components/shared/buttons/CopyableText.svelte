@@ -32,13 +32,11 @@
         color: var(--theme-highlight-color);
     }
     button.text-as-label {
-        font-family: mono;
-        font-size: 0.9em;
         text-align: start;
     }
     .report-copied {
         background:rgb(245,245,245);
         padding:5px;
-        font-family: mono;
+        font-family: 'Fira Code', mono;
     }
 </style>
