@@ -1,7 +1,4 @@
 <script>
-    import Queue from 'phosphor-svelte/lib/Queue';
-    import CopyableText from '../shared/buttons/CopyableText.svelte';
-
     import { getFromAPI } from "../../lib/requests";
     import { submitPostRequest } from "../../lib/requests";
     import Link from "../base/Link.svelte";
@@ -48,22 +45,33 @@
                 i.ohmUrl = `${CONTEXT.site_url}map/${mapId}/${i.id}/ohm`
                 i.tileJsonUrl = `${CONTEXT.site_url}map/${mapId}/${i.id}/tilejson`
                 i.dynamicXyzUrl = i.mosaic_cog_url ? `${CONTEXT.titiler_host}/cog/tiles/WebMercatorQuad/{z}/{x}/{y}.png?${encodeURIComponent(i.mosaic_cog_url)}` : null;
+                i.wmsUrl = i.mosaic_cog_url ? `${CONTEXT.titiler_preview_host}/cog/wms/?LAYERS=${encodeURIComponent(i.mosaic_cog_url)}&VERSION=1.1.1` : null;
                 i.masksDateDisplay = i.multimask_date ? new Date(i.multimask_date*1000).toLocaleString() : null;
-                i.xyz_tiles_archive = i.xyz_tiles_url ? `${i.xyz_tiles_url}/archive.tar.gz` : null;
+                i.xyzStaticArchiveURL = i.xyz_tiles_url ? `${i.xyz_tiles_url}/archive.tar.gz` : null;
+                i.xyzStaticTilesURL = i.xyz_tiles_url ? `${i.xyz_tiles_url}/{z}/{y}/{x}.png` : null;
                 i.cogStale = false;
-                i.cogDateDisplay = "---"
+                i.cogDateDisplay = "---";
+                i.showCogQueueBtn = false;
                 if (i.latest_cog_job) {
                     if (i.latest_cog_job.stage == "completed") {
                         i.cogDate = new Date(i.latest_cog_job.date_started * 1000).toLocaleString();
                         i.cogDateDisplay = `last updated: ${i.cogDate}`;
                         i.cogStale = i.multimask_date ? i.latest_cog_job.date_started < i.multimask_date : false
+                        i.showCogQueueBtn = i.cogStale;
                     } else {
                         i.cogDateDisplay = i.latest_cog_job.stage;
+                        if (i.latest_cog_job.stage != "queued" && i.latest_cog_job.stage != "running") {
+                            i.showCogQueueBtn = true;
+                        }
                     }
                 } else {
-                    i.cogDateDisplay = "not generated"
+                    i.showCogQueueBtn = true;
+                    i.cogDateDisplay = "not generated";
                 }
-                i.enableXyzQueue = false
+
+                // same thing now but for the XYZ tileset build
+                i.showXyzQueueBtn = false;
+                i.enableXyzQueue = false;
                 if (i.mosaic_cog_url && !i.cogStale) {
                     i.enableXyzQueue = true
                 }
@@ -75,10 +83,16 @@
                         i.xyzDate = new Date(i.latest_xyz_job.date_started * 1000).toLocaleString();
                         i.xyzDateDisplay = `last updated: ${i.xyzDate}`;
                         i.xyzStale = i.multimask_date ? i.latest_xyz_job.date_started < i.multimask_date : false;
+                        i.showXyzQueueBtn = i.xyzStale;
                     } else {
                         i.xyzDateDisplay = i.latest_xyz_job.stage;
+                        if (i.latest_xyz_job.stage != "queued" && i.latest_xyz_job.stage != "running") {
+                            i.showXyzQueueBtn = true;
+                            i.enableXyzQueue = true;
+                        }
                     }
                 } else {
+                    i.showXyzQueueBtn = true;
                     i.xyzDateDisplay = "not generated"
                 }
                 return i
@@ -123,20 +137,17 @@
 </ModalConfirm>
 
 <div>
-    <p>
-    Once layers have been trimmed in the <strong>MultiMask</strong> they can be combined into a single
-    layer, which takes the form of a "cloud-optimized GeoTIFF" (COG) and/or static XYZ tileset.
-    These formats form the basis for many other data access methods as displayed below.
-    </p>
-    <p>If the MultiMask is updated after a mosaic has been generated, dates will be shown here in
-        red until the mosaic artifacts are re-generated. <button class="is-text-link" on:click={initLayersets}>reload</button>
-    </p>
+    <p>Once layers have been trimmed in the <strong>MultiMask</strong> they can be combined into a single
+    mosaic. We provide access to this mosaic in the form of file downloads, web service endpoints, and direct integrations
+    into other platforms. Read more <Link href="https://docs.oldinsurancemaps.net/guides/generating-mosaics" rightArrow={true}>in the docs</Link></p>
+    <p>If the MultiMask has been updated <em>after</em> one of these artifacts was generated, dates will be shown in
+    red and you can queue that mosaic to be rebuilt. <button class="is-text-link" on:click={initLayersets}>refresh table</button></p>
 </div>
 {#if loading}
 <LoadingEllipsis />
 {/if}
 {#each layersets as ls}
-{#if ls.layers.length >= 1}
+{#if ls.layers.length >= 2 || ls.id == "main-content"}
     <h4 class="dl-title">
         <span>
             {`${ls.name} (${ls.layers_masked_ct}/${ls.layers.length} layers masked)`}
@@ -152,7 +163,7 @@
             Cloud Optimized GeoTIFF
             <span class="timestamp{ls.cogStale ? ' stale' : ''}">
                 {ls.cogDateDisplay}
-                {#if ls.cogStale}
+                {#if ls.showCogQueueBtn}
                 <button class="is-text-link" on:click={() => {
                         layersetToQueueForCog=ls.id;
                         openModal('modal-confirm-cog-queue')
@@ -178,11 +189,17 @@
             linkType="copytext"
             naMessage="requires COG"
         />
+        <dt>WMS endpoint</dt>
+        <DerivativeDD
+            linkUrl={ls.wmsUrl}
+            linkType="copytext"
+            naMessage="requires COG"
+        />
         <dt class="derivative-subheader">
-            XYZ Tileset
+            Static XYZ Tileset
             <span class="timestamp{ls.xyzStale ? ' stale' : ''}">
                 {ls.xyzDateDisplay}
-                {#if ls.xyzStale}
+                {#if ls.showXyzQueueBtn}
                 <button class="is-text-link"
                     disabled={!ls.enableXyzQueue}
                     title={ls.enableXyzQueue ? 
@@ -195,15 +212,15 @@
                 {/if}
             </span>
         </dt>
-        <dt>Direct download (.tar archive)</dt>
+        <dt>Direct download (gzipped tarfile)</dt>
         <DerivativeDD
-            linkUrl={ls.xyz_tiles_archive}
+            linkUrl={ls.xyzStaticArchiveURL}
             linkType="download"
             naMessage="not yet generated"
         />
-        <dt>XYZ tile endpoint (static)</dt>
+        <dt>Tiles endpoint</dt>
         <DerivativeDD
-            linkUrl={ls.xyz_tiles_url}
+            linkUrl={ls.xyzStaticTilesURL}
             linkType="copytext"
             naMessage="not yet generated"
         />
