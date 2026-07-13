@@ -12,7 +12,7 @@
   export let modalExtent;
   export let modalIsGeospatial;
   export let reinitModalMap;
-  export let regionToUnskip;
+  export let regionToSkip;
 </script>
 
 <BaseCard>
@@ -47,7 +47,7 @@
             class="is-text-link"
             title="Move to the Prepared section"
             on:click={() => {
-              regionToUnskip = region.id
+              regionToSkip = region.id
               openModal('modal-confirm-unskip-region')
             }}
           >

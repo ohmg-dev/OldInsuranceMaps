@@ -36,6 +36,7 @@
 
   import Modal, { openModal } from '../base/Modal.svelte';
   import ModalConfirm from '../base/ModalConfirm.svelte';
+  import LoadingEllipsis from '../shared/LoadingEllipsis.svelte';
 
   import { usaExtent } from '../../lib/utils';
   import { MapViewer } from '../../lib/viewers';
@@ -60,6 +61,8 @@
   let layerLookupArr = [];
 
   let fullExtent = usaExtent;
+
+  let loading = false;
 
   function updateLayerArr() {
     layerLookupArr = [];

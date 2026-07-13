@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script context="module">
   let onTop; //keeping track of which open modal is on top
   const modals = {}; //all modals get registered here for easy future access
 
@@ -16,7 +16,7 @@
   }
 </script>
 
-<script lang="ts">
+<script>
   import { onDestroy } from 'svelte';
 
   import SvelteMarkdown from 'svelte-markdown';

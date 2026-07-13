@@ -16,4 +16,8 @@ class Permissions(models.Model):
         default_permissions = ()  # disable "add", "change", "delete"
         # and "view" default permissions
 
-        permissions = (("use_helmert", "Can use Helmert transformation"),)
+        permissions = (
+            ("use_helmert", "Can use Helmert transformation"),
+            ("queue_mosaic_cog", "Can queue creation of mosaic COG"),
+            ("queue_mosaic_xyz", "Can queue creation of mosaic XYZ tileset"),
+        )

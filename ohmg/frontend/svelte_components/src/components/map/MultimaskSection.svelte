@@ -1,8 +1,10 @@
 <script>
-    import Modal, { openModal } from "../base/Modal.svelte";
+    import { openModal } from "../base/Modal.svelte";
     import { getFromAPI } from "../../lib/requests";
     import { submitPostRequest } from "../../lib/requests";
     import MultiMask from "../interfaces/MultiMask.svelte";
+    import ModalInfo from "../base/ModalInfo.svelte";
+    import LoadingEllipsis from "../shared/LoadingEllipsis.svelte";
 
     export let CONTEXT;
     export let mapId;
@@ -11,6 +13,7 @@
     export let userCanEdit;
 
     let dirty = false;
+    let loading = false;
 
     let errMsg;
 
@@ -19,14 +22,16 @@
     $: currentLayerSet = layerSetLookup[currentLayerSetId]
 
     const initLayersets = () => {
+        loading = true;
         getFromAPI(`/api/beta2/layersets/?map=${mapId}`, CONTEXT.ohmg_api_headers, (response) => {
             layerSetLookup = {};
             response.forEach(function (ls) {
                 layerSetLookup[ls.id] = ls
             });
+            loading = false;
         });
     }
-    initLayersets()
+    initLayersets();
 
     function handleMultimaskSubmitResponse(response) {
         if (response.success) {
@@ -53,20 +58,23 @@
         );
     }
 </script>
-<Modal id="modal-save-success">
+<ModalInfo id="modal-save-success">
     <p>Masks saved successfully.</p>
-</Modal>
-<Modal id="modal-save-error">
+</ModalInfo>
+<ModalInfo id="modal-save-error">
     <p>Error! MultiMask not saved. The following layers have errors:</p>
     <p>{@html errMsg}</p>
     <p>You must fix these errors before you can save your work. Keep in mind it is
         sometimes easier to remove and recreate a mask than track down and fix
         specific issues.</p>
-</Modal>
-<p>
+</ModalInfo>
+<div style="height:30px; margin-bottom:.5em; display:flex; align-items:center; gap:.5em;">
     <span>
         Select which multimask to work on:
     </span>
+    {#if loading}
+        <LoadingEllipsis size='medium' centered={false}/>
+    {:else}
     <select
         class="item-select"
         bind:value={currentLayerSetId}
@@ -80,7 +88,8 @@
         {/if}
         {/each}
     </select>
-</p>
+    {/if}
+</div>
 {#if currentLayerSet}
     {#key multimaskKey}
         <MultiMask

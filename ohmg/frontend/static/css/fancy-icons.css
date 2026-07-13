@@ -14,6 +14,7 @@
     --pushpin-svg: url(/static/icons/pushpin-60.svg);
     --envelope-svg: url(/static/icons/envelope-60.svg);
     --clipboard-svg: url(/static/icons/clipboard-60.svg);
+    --wrench-svg: url(/static/icons/noun-spanner-937070.svg);
 }
 
 i.fancy {
@@ -119,4 +120,9 @@ i.fancy-xs {
 .i-clipboard {
     mask-image: var(--clipboard-svg);
     -webkit-mask-image: var(--clipboard-svg);
+}
+
+.i-wrench {
+    mask-image: var(--wrench-svg);
+    -webkit-mask-image: var(--wrench-svg);
 }

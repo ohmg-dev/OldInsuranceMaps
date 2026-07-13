@@ -21,6 +21,7 @@ from ohmg.core.models import (
     Region,
 )
 from ohmg.georeference.models import (
+    Job,
     SessionBase,
     SessionLock,
 )
@@ -29,6 +30,7 @@ from ohmg.places.models import Place
 from .filters import (
     FilterAllDocumentsSchema,
     FilterDocumentSchema,
+    FilterJobSchema,
     FilterRegionSchema,
     FilterSessionSchema,
 )
@@ -39,6 +41,7 @@ from .paginators import (
 )
 from .schemas import (
     DocumentSchema,
+    JobSchema,
     LayerSchema,
     LayerSetSchema,
     MapFullSchema,
@@ -74,6 +77,14 @@ beta2 = NinjaAPI(
     version="beta2",
     description="An API for accessing content on OldInsuranceMaps.net.",
 )
+
+
+@beta2.get("jobs/", response=List[JobSchema], url_name="job_list")
+@paginate
+def list_jobs(request, filters: FilterJobSchema = Query(...)):
+    queryset = Job.objects.all().order_by("-date_queued")
+    queryset = filters.filter(queryset)
+    return queryset
 
 
 @beta2.get("sessions/", response=List[SessionSchema], url_name="session_list")

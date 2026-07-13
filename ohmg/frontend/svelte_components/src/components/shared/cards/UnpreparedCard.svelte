@@ -74,7 +74,7 @@
   <div slot="card-bottom">
     {#if document.loading_file}
       <ul>
-        <li>loading <LoadingEllipsis small={true} /></li>
+        <li>loading <LoadingEllipsis size='small' /></li>
         {#if CONTEXT.user.is_authenticated}
           <button
             class="is-text-link"

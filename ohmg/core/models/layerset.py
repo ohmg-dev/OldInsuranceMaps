@@ -3,6 +3,7 @@ import urllib.parse
 from typing import TYPE_CHECKING, Iterable, Union
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.contrib.postgres.fields import ArrayField
@@ -70,6 +71,7 @@ class LayerSet(models.Model):
         null=True,
     )
     tilejson = models.JSONField(null=True, blank=True)
+    multimask_date = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.map} - {self.category}"
@@ -86,6 +88,28 @@ class LayerSet(models.Model):
     def get_layers(self) -> Iterable["Layer"]:
         return self.layer_set.all()
 
+    def get_latest_cog_job(self):
+        from ohmg.georeference.models import Job
+
+        ct = ContentType.objects.get_for_model(self)
+        job = (
+            Job.objects.filter(operation="layerset_to_cog", target_type=ct, target_id=self.pk)
+            .order_by("-date_queued")
+            .first()
+        )
+        return job
+
+    def get_latest_xyz_job(self):
+        from ohmg.georeference.models import Job
+
+        ct = ContentType.objects.get_for_model(self)
+        job = (
+            Job.objects.filter(operation="layerset_to_xyz", target_type=ct, target_id=self.pk)
+            .order_by("-date_queued")
+            .first()
+        )
+        return job
+
     @property
     def xyz_tiles_url(self):
         if self.xyz_tiles_prefix:
@@ -94,6 +118,17 @@ class LayerSet(models.Model):
             else:
                 base_url = f"{settings.SITEURL.rstrip('/')}{settings.MEDIA_URL}"
             return f"{base_url.rstrip('/')}/{self.xyz_tiles_prefix}"
+        else:
+            return None
+
+    @property
+    def xyz_tiles_download_url(self):
+        if self.xyz_tiles_prefix:
+            if settings.ENABLE_S3_STORAGE:
+                base_url = f"{settings.AWS_S3_ENDPOINT_URL}/{settings.AWS_STORAGE_BUCKET_NAME}"
+            else:
+                base_url = f"{settings.SITEURL.rstrip('/')}{settings.MEDIA_URL}"
+            return f"{base_url.rstrip('/')}/{self.xyz_tiles_prefix}/"
         else:
             return None
 
@@ -145,6 +180,38 @@ class LayerSet(models.Model):
             if mask_geojson:
                 fc["features"].append(mask_geojson)
         return fc
+
+    def queue_mosaic_cog(self) -> int:
+        """Creates a new job to generate a mosaic cog from this layerset.
+        If a job already exists for this action, it is re-queued.
+
+        Returns the job id."""
+        from ohmg.georeference.models import Job
+
+        j, created = Job.objects.get_or_create(
+            stage="queued",
+            operation="layerset_to_cog",
+            target_id=self.pk,
+            target_type=ContentType.objects.get_for_model(self),
+        )
+        j.enqueue()
+        return j.pk
+
+    def queue_mosaic_tileset(self) -> int:
+        """Creates a new job to generate a XYZ tileset from this layerset.
+        If a job already exists for this action, it is re-queued.
+
+        Returns the job id."""
+        from ohmg.georeference.models import Job
+
+        j, created = Job.objects.get_or_create(
+            stage="queued",
+            operation="layerset_to_xyz",
+            target_id=self.pk,
+            target_type=ContentType.objects.get_for_model(self),
+        )
+        j.enqueue()
+        return j.pk
 
     def save(self, set_tilejson: bool = False, *args, **kwargs):
         if self._state.adding is False:

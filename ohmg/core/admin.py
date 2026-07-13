@@ -61,12 +61,18 @@ admin.site.register(Layer, LayerAdmin)
 
 
 class LayerSetAdmin(admin.ModelAdmin):
+    list_display = (
+        "map",
+        "category",
+        "multimask_date",
+    )
     raw_id_fields = ("map",)
     readonly_fields = (
         "layer_display_list",
         "extent",
         "multimask_extent",
         "xyz_tiles_url",
+        "multimask_date",
     )
     search_fields = ("map__title",)
     list_filter = ("category",)

@@ -61,7 +61,7 @@ class Mosaicker:
         for feature in multimask_geojson["features"]:
             layer_name = feature["properties"]["layer"]
 
-            print(layer_name)
+            logger.debug(layer_name)
             try:
                 layer = Layer.objects.get(slug=layer_name, region__document__map=layerset.map)
             except Layer.MultipleObjectsReturned:
@@ -102,18 +102,16 @@ class Mosaicker:
             outputBounds=bounds,
             separate=False,
         )
-        print("building vrt")
+        logger.info("building mosaic vrt")
 
         self.mosaic_vrt = VRTHandler(f"{layerset.map.identifier}-{layerset.category.slug}")
         trim_list = [str(i.get_path()) for i in self.trimmed_vrts]
         gdal.BuildVRT(str(self.mosaic_vrt.get_path()), trim_list, options=vo)
 
     def generate_cog(self, layerset: LayerSet):
-        start = datetime.now()
-
         self.generate_mosaic_vrt(layerset)
 
-        print("building final geotiff")
+        logger.info("begin writing mosaic geotiff")
 
         to = gdal.TranslateOptions(
             format="COG",
@@ -139,9 +137,7 @@ class Mosaicker:
 
         layerset.save(set_tilejson=True)
 
-        print(f"completed - elapsed time: {datetime.now() - start}")
-
-    def generate_xyz_tiles(
+    def generate_tileset(
         self,
         layerset: LayerSet,
         min_zoom: int = 13,
@@ -154,7 +150,9 @@ class Mosaicker:
             self.generate_mosaic_vrt(layerset)
             in_path = self.mosaic_vrt.get_path()
 
-        prefix = f"tiles/{layerset.map.identifier}/{layerset.category.slug}/{random_alnum()}"
+        prefix = f"tiles/{layerset.map.identifier}/{layerset.category.slug}/"
+        # prefix += f"{datetime.now().strftime('%Y%m%d')}__{random_alnum()}"
+        prefix += datetime.now().strftime("%Y%m%d%H%M%S")
         logger.info(f"creating new tileset {prefix}")
         logger.info(f"source dataset: {in_path}")
 

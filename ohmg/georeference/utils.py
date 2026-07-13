@@ -1,6 +1,8 @@
 import io
 import logging
 import os
+import shutil
+import tarfile
 from datetime import datetime
 from multiprocessing import Pool
 from pathlib import Path
@@ -10,7 +12,11 @@ import morecantile
 from django.conf import settings
 from rio_tiler.io import Reader
 
-from ohmg.core.utils.s3 import get_boto3_s3_client
+from ohmg.core.utils.s3 import (
+    get_boto3_s3_client,
+    upload_directory_to_bucket,
+    upload_file_to_bucket,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +62,7 @@ def make_xyz_tiles_with_multiprocessing(
     min_zoom: int = 13,
     max_zoom: int = 20,
 ):
+    raise NotImplementedError("Tileset generation with multiprocessing is not fully implemented")
     start = datetime.now()
 
     logger.info(f"creating new tileset with multiprocessing {prefix}")
@@ -88,8 +95,7 @@ def make_xyz_tiles(
     max_zoom: int = 20,
 ):
     start = datetime.now()
-
-    logger.info(f"creating new tileset {prefix}")
+    logger.info(f"creating new tileset {prefix} from {data_source}")
 
     progress_pct = {
         10: False,
@@ -103,9 +109,7 @@ def make_xyz_tiles(
         90: False,
     }
 
-    if settings.ENABLE_S3_STORAGE:
-        s3 = get_boto3_s3_client()
-
+    tmp_tileset_root = Path(settings.TEMP_DIR, prefix)
     with Reader(data_source) as src:
         zooms = range(min_zoom, max_zoom + 1)
         bounds = src.geographic_bounds
@@ -118,21 +122,11 @@ def make_xyz_tiles(
             ## only make a tile if there is valid data (skip empty tiles)
             if tile.data_as_image().any():
                 rendered_bytes = tile.render()
-                if settings.ENABLE_S3_STORAGE:
-                    key = f"{prefix}/{coords.z}/{coords.x}/{coords.y}.png"
-                    file_like = io.BytesIO(rendered_bytes)
-                    s3.upload_fileobj(
-                        file_like,
-                        settings.AWS_STORAGE_BUCKET_NAME,
-                        key,
-                    )
-                else:
-                    out_root = Path(settings.MEDIA_ROOT, prefix)
-                    out_dir = Path(out_root, str(coords.z), str(coords.x))
-                    out_dir.mkdir(parents=True, exist_ok=True)
-                    file_path = Path(out_dir, f"{coords.y}.png")
-                    with open(file_path, "wb") as file:
-                        file.write(rendered_bytes)
+                out_dir = Path(tmp_tileset_root, str(coords.z), str(coords.x))
+                out_dir.mkdir(parents=True, exist_ok=True)
+                file_path = Path(out_dir, f"{coords.y}.png")
+                with open(file_path, "wb") as file:
+                    file.write(rendered_bytes)
             ## progress logging
             tiles_written_ct += 1
             pct = int((tiles_written_ct / tiles_total_ct) * 100)
@@ -141,6 +135,33 @@ def make_xyz_tiles(
                     logger.debug(f"{prefix} {k}% written")
                     progress_pct[k] = True
 
-    logger.info(f"{prefix} completed, elapsed time: {datetime.now() - start}")
+    logger.info(f"tileset {prefix} created, elapsed time: {datetime.now() - start}")
+
+    start2 = datetime.now()
+    logger.info(f"creating gzip archive for tileset {prefix}")
+
+    tmp_gz_path = Path(tmp_tileset_root.parent, "archive.tar.gz")
+    print(tmp_gz_path)
+    print(tmp_tileset_root.name)
+    with tarfile.open(tmp_gz_path, "w:gz") as tar:
+        tar.add(tmp_tileset_root, arcname=tmp_tileset_root.name)
+    logger.info(f"gzip {tmp_gz_path.name} created, elapsed time: {datetime.now() - start2}")
+
+    logger.debug("copying tileset to final location")
+
+    if settings.ENABLE_S3_STORAGE:
+        s3 = get_boto3_s3_client()
+        upload_directory_to_bucket(tmp_tileset_root, prefix, client=s3)
+        # place the archive file within the top-level of the tileset itself,
+        # alongside the z-level folders
+        upload_file_to_bucket(tmp_gz_path, f"{prefix}/{tmp_gz_path.name}", client=s3)
+    else:
+        local_media_dest = Path(settings.MEDIA_ROOT, prefix)
+        # local_media_dest.parent.mkdir(exist_ok=True, parents=True)
+        shutil.copytree(tmp_tileset_root, local_media_dest, dirs_exist_ok=True)
+        shutil.copyfile(tmp_gz_path, Path(local_media_dest, tmp_gz_path.name))
+
+    os.remove(tmp_gz_path)
+    shutil.rmtree(tmp_tileset_root)
 
     return prefix

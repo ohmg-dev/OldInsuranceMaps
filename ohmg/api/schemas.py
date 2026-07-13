@@ -29,6 +29,13 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def _datefield_to_timestamp(obj, field: str) -> float | None:
+    try:
+        return getattr(obj, field).timestamp()
+    except (AttributeError, ValueError):
+        return None
+
+
 class UserSchema(Schema):
     username: str
     profile_url: str
@@ -476,6 +483,7 @@ class LayerSetLayer(Schema):
 
 
 class LayerSetSchema(Schema):
+    pk: int
     id: str
     name: str
     map_id: str
@@ -487,6 +495,9 @@ class LayerSetSchema(Schema):
     multimask_extent: Optional[tuple]
     mosaic_cog_url: Optional[str]
     xyz_tiles_url: Optional[str]
+    multimask_date: Optional[float]
+    latest_cog_job: Optional["JobSchema"]
+    latest_xyz_job: Optional["JobSchema"]
 
     @staticmethod
     def resolve_id(obj):
@@ -503,6 +514,18 @@ class LayerSetSchema(Schema):
     @staticmethod
     def resolve_name(obj):
         return str(obj.category)
+
+    @staticmethod
+    def resolve_multimask_date(obj):
+        return _datefield_to_timestamp(obj, "multimask_date")
+
+    @staticmethod
+    def resolve_latest_cog_job(obj):
+        return obj.get_latest_cog_job()
+
+    @staticmethod
+    def resolve_latest_xyz_job(obj):
+        return obj.get_latest_xyz_job()
 
 
 class LayerSetDisplaySchema(Schema):
@@ -861,6 +884,49 @@ class ResourceFullSchema(Schema):
                 return "split"
 
 
+class JobTargetSchema(Schema):
+    name: str
+    url: str
+
+    @staticmethod
+    def resolve_name(obj):
+        return str(obj)
+
+    @staticmethod
+    def resolve_url(obj):
+        return f"/map/{obj.map.pk}"
+
+
+class JobSchema(Schema):
+    id: int
+    operation: str
+    stage: str
+    message: Optional[str]
+    target: JobTargetSchema
+    date_created: Optional[float]
+    date_queued: Optional[float]
+    date_started: Optional[float]
+    date_ended: Optional[float]
+    run_duration: Optional[int]
+
+    @staticmethod
+    def resolve_date_created(obj):
+        return _datefield_to_timestamp(obj, "date_created")
+
+    @staticmethod
+    def resolve_date_queued(obj):
+        return _datefield_to_timestamp(obj, "date_queued")
+
+    @staticmethod
+    def resolve_date_started(obj):
+        return _datefield_to_timestamp(obj, "date_started")
+
+    @staticmethod
+    def resolve_date_ended(obj):
+        return _datefield_to_timestamp(obj, "date_ended")
+
+
 DocumentFullSchema.update_forward_refs()
 RegionFullSchema.update_forward_refs()
 MapListSchema2.update_forward_refs()
+LayerSetSchema.update_forward_refs()

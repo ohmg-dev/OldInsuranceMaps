@@ -1,13 +1,10 @@
 <script>
   import { getCenter } from 'ol/extent';
 
-  import { Download } from "phosphor-svelte";
-
   import Link from '../base/Link.svelte';
-  import ResourceDownloadSectionModal from '../shared/modals/ResourceDownloadSectionModal.svelte';
 
   import { makeTitilerXYZUrl } from '../../lib/utils';
-  import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
+  import CopyableText from '../shared/buttons/CopyableText.svelte';
 
   export let CONTEXT;
   export let RESOURCE;
@@ -59,8 +56,6 @@
   }
 </script>
 
-<ResourceDownloadSectionModal id={'download-section-modal'} />
-
 <h4 class="dl-title">Record</h4>
 <dl>
   <dt>Title</dt>
@@ -94,7 +89,7 @@
   <dt>XYZ Tiles URL</dt>
   <dd>
     {#if xyzUrl}
-      <pre style="margin:0;">{xyzUrl}</pre>
+      <CopyableText text={xyzUrl} />
     {:else}
       n/a
     {/if}
@@ -102,7 +97,7 @@
   <dt>OHM</dt>
   <dd>
     {#if ohmUrl}
-      <Link href={ohmUrl} title="Open mosaic in OHM Editor" external={true}
+      <Link href={ohmUrl} title="Open in OHM Editor" external={true}
         >Open in OpenHistoricalMap iD editor</Link
       >
     {:else}

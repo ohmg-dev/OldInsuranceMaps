@@ -23,7 +23,8 @@
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.0",
     "rollup-plugin-svelte": "^7.1.5",
-    "svelte": "^4.0.0"
+    "svelte": "^4.0.0",
+    "typescript": "^5.0.0"
   },
   "dependencies": {
     "@petamoriken/float16": "3.4.7",
@@ -37,6 +38,7 @@
     "ol-pmtiles": "^1.0.2",
     "sirv-cli": "^1.0.0",
     "svelte-markdown": "^0.4.1",
+    "svelte-preprocess": "^6.0.5",
     "svelte-select": "^5.8.3",
     "svelte-tablesort": "^1.1.0"
   }

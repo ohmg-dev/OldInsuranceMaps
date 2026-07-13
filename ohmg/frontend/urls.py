@@ -11,6 +11,7 @@ from .views import (
     ActivityView,
     Browse,
     HomePage,
+    JobsView,
     PageView,
 )
 
@@ -20,6 +21,7 @@ urlpatterns = [
     ## app urls paths
     path("", HomePage.as_view(), name="home"),
     path("activity/", ActivityView.as_view(), name="activity"),
+    path("jobs/", JobsView.as_view(), name="jobs"),
     path("search/", Browse.as_view(), name="search"),
     path("<page-slug:page>/", PageView.as_view(), name="page-view"),
     ## conventional url paths

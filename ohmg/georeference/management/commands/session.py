@@ -1,10 +1,8 @@
+import json
+
 from django.core.management.base import BaseCommand
 
-from ohmg.georeference.models import (
-    GeorefSession,
-    PrepSession,
-    SessionBase
-)
+from ohmg.georeference.models import GeorefSession, PrepSession, SessionBase
 from ohmg.georeference.sessions import delete_expired_session_locks
 
 
@@ -19,6 +17,7 @@ class Command(BaseCommand):
                 "undo",
                 "list",
                 "delete-expired",
+                "data",
             ],
             help="specify the operation to carry out",
         )
@@ -54,7 +53,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         operation = options["operation"]
-        if operation in ["run", "undo"]:
+        if operation in ["run", "undo", "data"]:
             bs = SessionBase.objects.get(pk=options["pk"])
             model = self._model_from_type(bs.type)
             session = model.objects.get(pk=options["pk"])
@@ -63,6 +62,8 @@ class Command(BaseCommand):
                 session.run()
             elif operation == "undo":
                 session.undo()
+            elif operation == "data":
+                print(json.dumps(session.data, indent=1))
 
         elif operation == "list":
             if options["type"]:

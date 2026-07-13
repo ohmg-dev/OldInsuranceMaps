@@ -8,7 +8,7 @@
   import Link from '../../base/Link.svelte';
   import BaseCard from '../../base/Card.svelte';
 
-  import { copyToClipboard } from '../../../lib/utils';
+    import CopyableText from '../buttons/CopyableText.svelte';
 
   export let CONTEXT;
   export let LAYERSET_CATEGORIES;
@@ -107,13 +107,7 @@
                         <Link title="Get TileJSON" href="{CONTEXT.site_url}layer/{layer.id}/tilejson">TileJSON</Link>
                       </li>
                       <li>
-                        <button
-                          class="is-text-link"
-                          title="Copy URL to clipboard"
-                          on:click={() => {
-                            copyToClipboard(`lyr-${layer.id}-wms-link`);
-                          }}>WMS endpoint <Copy /></button
-                        >
+                        <CopyableText label="WMS endpoint" text={`${CONTEXT.titiler_host}/cog/wms/?LAYERS=${layer.urls.cog}&VERSION=1.1.1`} />
                       </li>
                       <li>
                         <Link href="{CONTEXT.site_url}layer/{layer.id}/ohm" external={true}>OpenHistoricalMap iD</Link>

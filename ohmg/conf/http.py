@@ -38,7 +38,7 @@ def user_info_from_request(request):
         user_info["api_keys"] = user.api_keys
         user_info["is_authenticated"] = True
         user_info["is_staff"] = user.is_staff
-        user_info["perms"] = list(user.get_all_permissions())
+        user_info["perms"] = sorted(list(user.get_all_permissions()))
     else:
         user_info = {
             "is_authenticated": False,
@@ -90,7 +90,7 @@ class JsonResponseNotFound(JsonResponse):
 
 class JsonResponseUnauthorized(JsonResponse):
     def __init__(self, message="unauthorized"):
-        self.status_code = HTTPStatus.NOT_FOUND
+        self.status_code = HTTPStatus.UNAUTHORIZED
         super().__init__(
             {
                 "success": False,
@@ -101,7 +101,7 @@ class JsonResponseUnauthorized(JsonResponse):
 
 class JsonResponseBadRequest(JsonResponse):
     def __init__(self, message="bad request"):
-        self.status_code = HTTPStatus.NOT_FOUND
+        self.status_code = HTTPStatus.BAD_REQUEST
         super().__init__(
             {
                 "success": False,
