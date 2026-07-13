@@ -1,10 +1,7 @@
 <script>
   import { getCenter } from 'ol/extent';
 
-  import { Download } from "phosphor-svelte";
-
   import Link from '../base/Link.svelte';
-  import ResourceDownloadSectionModal from '../shared/modals/ResourceDownloadSectionModal.svelte';
 
   import { makeTitilerXYZUrl } from '../../lib/utils';
   import CopyableText from '../shared/buttons/CopyableText.svelte';
@@ -58,8 +55,6 @@
     ohmUrl = `https://www.openhistoricalmap.org/edit#map=16/${ll[1]}/${ll[0]}&background=custom:${doubleEncodedXYZUrl}`;
   }
 </script>
-
-<ResourceDownloadSectionModal id={'download-section-modal'} />
 
 <h4 class="dl-title">Record</h4>
 <dl>
