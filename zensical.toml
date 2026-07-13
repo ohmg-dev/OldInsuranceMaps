@@ -60,6 +60,10 @@ nav = [
         "guides/preparation.md",
         "guides/georeferencing.md",
         "guides/trimming.md",
+        "guides/generating-mosaics.md",
+    ]},
+    { "Using georeferenced maps" = [
+        "guides/services.md",
     ]},
     { "Walkthroughs" = [
         "walkthroughs/new-iberia-la-1885.md"
