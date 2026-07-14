@@ -7,7 +7,7 @@ Currently, OIM supports the creation of two different derivatives per layerset:
 - **Cloud Optimized GeoTIFFs (COG)**
     - This is the primary output, and when present, is used within OIM in certain contexts
 - **Static XYZ Tileset**
-    - This is a rendering of the latest COG mosaic to actual PNG tiles in a {z}/{y}/{x}.png folder structure.
+    - This is a rendering of the latest COG mosaic to actual PNG tiles in a {z}/{x}/{y}.png folder structure.
 
 !!! note
 
