@@ -48,7 +48,7 @@
                 i.wmsUrl = i.mosaic_cog_url ? `${CONTEXT.titiler_preview_host}/cog/wms/?LAYERS=${encodeURIComponent(i.mosaic_cog_url)}&VERSION=1.1.1` : null;
                 i.masksDateDisplay = i.multimask_date ? new Date(i.multimask_date*1000).toLocaleString() : null;
                 i.xyzStaticArchiveURL = i.xyz_tiles_url ? `${i.xyz_tiles_url}/archive.tar.gz` : null;
-                i.xyzStaticTilesURL = i.xyz_tiles_url ? `${i.xyz_tiles_url}/{z}/{y}/{x}.png` : null;
+                i.xyzStaticTilesURL = i.xyz_tiles_url ? `${i.xyz_tiles_url}/{z}/{x}/{y}.png` : null;
                 i.cogStale = false;
                 i.cogDateDisplay = "---";
                 i.showCogQueueBtn = false;
