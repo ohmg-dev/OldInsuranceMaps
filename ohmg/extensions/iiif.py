@@ -34,19 +34,22 @@ class IIIFResource:
             wgs84.ImportFromEPSG(4326)
             mask_geojson = json.loads(self.layer.mask.geojson)
             coords = mask_geojson["coordinates"][0]
-            ct = CoordTransform(SpatialReference("WGS84"), SpatialReference("EPSG:3857"))
+
+            target_crs = f"EPSG:{self.region.gcpgroup.crs_epsg}"
+            ct = CoordTransform(SpatialReference("WGS84"), SpatialReference(target_crs))
             polygon = Polygon(coords)
             polygon.transform(ct)
 
-            g = Georeferencer(
-                crs=f"EPSG:{self.region.gcpgroup.crs_epsg}",
-                transformation=self.region.gcpgroup.transformation,
-                gcps_geojson=self.region.gcpgroup.as_geojson,
-            )
             in_path = (
                 self.region.file.url
                 if self.region.file.url.startswith("http")
                 else self.region.file.path
+            )
+
+            g = Georeferencer(
+                crs=target_crs,
+                transformation=self.region.gcpgroup.transformation,
+                gcps_geojson=self.region.gcpgroup.as_geojson,
             )
             g.make_gcps_vrt(in_path)
             ds = gdal.Open(g.gcps_vrt.get_vsi_url())
@@ -57,10 +60,7 @@ class IIIFResource:
                 ds,
                 # Transformer options that are ultimately passed to 'GDALCreateGenImgProjTransformer2()'
                 # https://gdal.org/api/gdal_alg.html#_CPPv432GDALCreateGenImgProjTransformer212GDALDatasetH12GDALDatasetHPPc
-                [
-                    ## need to update this, different number if thin plate spline
-                    "MAX_GCP_ORDER=1",
-                ],
+                g.make_transformer_options(),
             )
             transposed, status = transformer.TransformPoints(False, polygon.coords[0])
             coords_str = [f"{i[0]},{i[1]}" for i in transposed]
@@ -114,14 +114,15 @@ class IIIFResource:
         return features
 
     def get_body(self):
-        if self.region.gcpgroup.transformation == "poly1":
-            transformation = {"type": "polynomial", "options": {"order": 1}}
-        elif self.region.gcpgroup.transformation == "tps":
-            transformation = {
-                "type": "thinPlateSpline",
-            }
-        else:
-            raise Exception("invalid transformation", self.region.gcpgroup.transformation)
+        match t := self.region.gcpgroup.transformation:
+            case "poly1":
+                transformation = {"type": "polynomial", "options": {"order": 1}}
+            case "tps":
+                transformation = {"type": "thinPlateSpline"}
+            case "helmert":
+                transformation = {"type": "helmert"}
+            case _:
+                raise Exception(f"invalid transformation: {t}")
 
         body = {
             "id": full_reverse("iiif_gcps_view", args=(self.layerid,)),
