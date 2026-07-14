@@ -173,21 +173,6 @@
       available: CONTEXT.user.perms.includes("core.use_helmert")
     },
   ];
-  $: {
-    if (gcpList.length == 3 && currentTransformation == "helmert") {
-      currentTransformation = "poly1"
-    }
-    if (currentTransformation == "helmert") {
-      minGCPs = 2;
-    } else {
-      minGCPs = 3;
-    }
-  }
-  $: {
-    if (gcpList.length <= 2 && currentTransformation != "helmert") {
-      previewMode = "n/a"
-    }
-  }
 
   let currentTargetProjection = 'EPSG:3857';
   const availableProjections = [
@@ -590,6 +575,19 @@
         note: props.note,
       });
     });
+
+    // special handling for helmert, do this before the preview is regenerated
+    if (gcpList.length == 3 && currentTransformation == "helmert") {
+      currentTransformation = "poly1";
+    }
+    if (currentTransformation == "helmert") {
+      minGCPs = 2;
+    } else {
+      minGCPs = 3;
+    }
+    if (gcpList.length <= 2 && currentTransformation != "helmert") {
+      previewMode = "n/a"
+    }
     getPreview();
   }
 
@@ -736,6 +734,16 @@
     return featureCollection;
   };
 
+  const preparePayload = function () {
+    return {
+      gcp_geojson: asGeoJSON(),
+      transformation: currentTransformation,
+      projection: currentTargetProjection,
+      sesh_id: sessionId,
+      last_preview_id: currentPreviewId,
+    }
+  }
+
   function getPreview() {
     if (currentTransformation == "helmert") {
       minGCPs = 2;
@@ -750,13 +758,7 @@
       `/georeference/${REGION.id}/`,
       CONTEXT.ohmg_post_headers,
       'preview',
-      {
-        gcp_geojson: asGeoJSON(),
-        transformation: currentTransformation,
-        projection: currentTargetProjection,
-        sesh_id: sessionId,
-        last_preview_id: currentPreviewId,
-      },
+      preparePayload(),
       (result) => {
         previewMode = previewMode == 'n/a' ? 'transparent' : previewMode;
         // updating this variable will trigger the preview layer to be
@@ -779,13 +781,7 @@
       `/georeference/${REGION.id}/`,
       CONTEXT.ohmg_post_headers,
       'submit',
-      {
-        gcp_geojson: asGeoJSON(),
-        transformation: currentTransformation,
-        projection: currentTargetProjection,
-        sesh_id: sessionId,
-        last_preview_id: currentPreviewId,
-      },
+      preparePayload(),
       () => {
         window.location.href = `/map/${REGION.map}`;
       },
@@ -901,17 +897,23 @@
   }}
   on:unload={cancelSession}
 />
-<div style="height:25px;">
-  Create 3 or more ground control points to georeference this document. <Link
+<div>
+  Create three or more ground control points to georeference this document. First, click on a recognizable spot
+  in the document on the left to begin the GCP. Then, click on that same location in the web map on the right
+  to complete it. Learn more about the process <Link
     href="https://docs.oldinsurancemaps.net/guides/georeferencing/"
-    external={true}>Learn more</Link
-  >
+    external={true}>in the docs</Link
+  >.
 </div>
 
-<ModalConfirm id="modal-submit-helmert" yesAction={submitSession}>
+<ModalConfirm id="modal-submit-helmert"
+  yesButtonText="Submit with two GCPs"
+  yesAction={submitSession}
+  noButtonText="Back to georeferencing"
+  >
   <p>
-    You have only two GCPs, but it is highly advisable to have three or more.
-    Please add more, unless you are unable to do so.
+    You have only created two GCPs, but we recommend having three or more.
+    If possible, please add more before submitting your work.
   </p>
 </ModalConfirm>
 <ModalConfirm id="modal-cancel"
