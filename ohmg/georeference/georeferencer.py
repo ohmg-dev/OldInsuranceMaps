@@ -322,7 +322,11 @@ class Georeferencer:
             case "helmert":
                 pipeline = self._get_helmert_proj_pipeline()
                 logger.debug(f"applying: {pipeline}")
-                return ["SRC_METHOD=NO_GEOTRANSFORM", f"COORDINATE_OPERATION={pipeline}"]
+                return [
+                    "SRC_METHOD=NO_GEOTRANSFORM",
+                    f"COORDINATE_OPERATION={pipeline}",
+                    f"DST_SRS={self.crs_wkt}",
+                ]
             case _:
                 return [
                     f"DST_SRS={self.crs_wkt}",
