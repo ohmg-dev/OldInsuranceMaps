@@ -1,5 +1,6 @@
 from django.urls import path, register_converter
 
+from ohmg.extensions.feeds import PlaceFeed
 from ohmg.places.converters import PlaceConverter
 
 from .views import (
@@ -9,7 +10,6 @@ from .views import (
     IIIFResourceView,
     IIIFSelectorView,
 )
-from ohmg.extensions.feeds import PlaceFeed
 
 register_converter(PlaceConverter, "place-slug")
 

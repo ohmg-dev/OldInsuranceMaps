@@ -30,6 +30,7 @@ class HelmertParams:
     offset_x: float
     offset_y: float
 
+
 gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
 
 TRANSFORMATION_LOOKUP = {
@@ -300,6 +301,38 @@ class Georeferencer:
             offset_y=offset_y,
         )
 
+    def _get_helmert_proj_pipeline(self) -> str:
+        ## fit the four-parameter Helmert model in one shot
+        params = self._get_helmert_params()
+
+        ## convert the rotation to arcseconds for the proj pipeline
+        arcseconds = (params.rotation + 90) * 3600
+
+        pipeline = (
+            "+proj=pipeline "
+            "+step +proj=axisswap +order=2,1 "
+            f"+step +proj=helmert +x={params.offset_x} +y={params.offset_y} "
+            f"+theta={arcseconds} +s={params.scale}"
+        )
+
+        return pipeline
+
+    def make_transformer_options(self) -> list[str]:
+        match self.transformation["id"]:
+            case "helmert":
+                pipeline = self._get_helmert_proj_pipeline()
+                logger.debug(f"applying: {pipeline}")
+                return [
+                    "SRC_METHOD=NO_GEOTRANSFORM",
+                    f"COORDINATE_OPERATION={pipeline}",
+                    f"DST_SRS={self.crs_wkt}",
+                ]
+            case _:
+                return [
+                    f"DST_SRS={self.crs_wkt}",
+                    f"MAX_GCP_ORDER={self.transformation['gdal_code']}",
+                ]
+
     def cleanup_files(self):
         for vrt in [
             self.gcps_vrt,
@@ -355,61 +388,16 @@ class Georeferencer:
         self.make_gcps_vrt(src_path, out_name)
         self.warped_vrt = VRTHandler(out_name, as_variant="modified")
 
-        if self.transformation["id"] == "helmert":
-            ## fit the four-parameter Helmert model in one shot
-            params = self._get_helmert_params()
-
-            ## convert the rotation to arcseconds for the proj pipeline
-            arcseconds = (params.rotation + 90) * 3600
-
-            pipeline = (
-                "+proj=pipeline "
-                "+step +proj=axisswap +order=2,1 "
-                f"+step +proj=helmert +x={params.offset_x} +y={params.offset_y} "
-                f"+theta={arcseconds} +s={params.scale}"
-            )
-
-            logger.debug(f"applying: {pipeline}")
-
-            wo = gdal.WarpOptions(
-                creationOptions=[
-                    "BLOCKXSIZE=512",
-                    "BLOCKYSIZE=512",
-                ],
-                coordinateOperation=pipeline,
-                format="VRT",
-                dstSRS=f"{self.crs_code}",
-                transformerOptions=["SRC_METHOD=NO_GEOTRANSFORM"],
-                dstAlpha=True,
-                resampleAlg="nearest",
-            )
-        else:
-            wo = gdal.WarpOptions(
-                creationOptions=[
-                    #     "NUM_THREADS=ALL_CPUS",
-                    #     ## originally used this set of flags used
-                    #     # "COMPRESS=DEFLATE",
-                    #     ## should have been used PREDICTOR=2 with DEFLATE but didn't know about it
-                    #     # "PREDICTOR=2"
-                    #     ## useful in general but not needed when using COG driver
-                    "BLOCKXSIZE=512",
-                    "BLOCKYSIZE=512",
-                    #     ## advisable if using JPEG with GTiff, but not supported in COG
-                    #     # "JPEG_QUALITY=75",
-                    #     # "PHOTOMETRIC=YCBCR",
-                    #     ## Use JPEG, as recommended by Paul Ramsey article:
-                    #     ## https://blog.cleverelephant.ca/2015/02/geotiff-compression-for-dummies.html
-                    # "COMPRESS=JPEG",
-                ],
-                transformerOptions=[
-                    f"DST_SRS={self.crs_wkt}",
-                    f'MAX_GCP_ORDER={self.transformation["gdal_code"]}',
-                ],
-                format="VRT",
-                dstSRS=f"{self.crs_code}",
-                dstAlpha=True,
-                resampleAlg="nearest",
-            )
+        wo = gdal.WarpOptions(
+            creationOptions=[
+                "BLOCKXSIZE=512",
+                "BLOCKYSIZE=512",
+            ],
+            transformerOptions=self.make_transformer_options(),
+            format="VRT",
+            dstAlpha=True,
+            resampleAlg="nearest",
+        )
 
         try:
             gdal.Warp(str(self.warped_vrt.get_path()), self.gcps_vrt.get_vsi_url(), options=wo)
@@ -432,15 +420,6 @@ class Georeferencer:
             cutlineLayer=multimask_json_file.stem,
             cutlineWhere=f"layer='{layer_name}'",
             cropToCutline=True,
-            # srcAlpha = True,
-            # dstAlpha = True,
-            # creationOptions= [
-            #     'COMPRESS=JPEG',
-            # ]
-            # creationOptions= [
-            #     'COMPRESS=DEFLATE',
-            #     'PREDICTOR=2',
-            # ]
         )
         gdal.Warp(str(self.trimmed_vrt.get_path()), self.warped_vrt.get_vsi_url(), options=wo)
 
@@ -458,17 +437,9 @@ class Georeferencer:
         self.cog = Path(settings.TEMP_DIR, Path(src_path).stem + "-modified.tif")
 
         to = gdal.TranslateOptions(
-            # format="GTiff",
             format="COG",
-            # maskBand="mask",
             creationOptions=[
-                # 'COMPRESS=DEFLATE',
-                # 'PREDICTOR=2',
                 "COMPRESS=JPEG",
-                # 'TILED=YES',
-                # 'BLOCKXSIZE=512',
-                # 'BLOCKYSIZE=512',
-                # "PHOTOMETRIC=YCBCR",
                 "TILING_SCHEME=GoogleMapsCompatible",
             ],
             resampleAlg="nearest",

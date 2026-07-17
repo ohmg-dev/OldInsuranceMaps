@@ -18,10 +18,10 @@ then
     psql -U postgres -h $DATABASE_HOST -c "DROP DATABASE IF EXISTS "$DATABASE_NAME" WITH (FORCE);"
     psql -U postgres -h $DATABASE_HOST -c "CREATE DATABASE "$DATABASE_NAME" WITH OWNER "$DATABASE_USER";"
 
-    python manage.py migrate
+    uv run manage.py migrate
 
-    python manage.py loaddata tests/data/fixtures/auth/admin-user.json
-    python manage.py loaddata default-region-categories
-    python manage.py loaddata default-layerset-categories
-    python manage.py loaddata default-navbar
+    uv run manage.py loaddata tests/data/fixtures/auth/admin-user.json
+    uv run manage.py loaddata default-region-categories
+    uv run manage.py loaddata default-layerset-categories
+    uv run manage.py loaddata default-navbar
 fi

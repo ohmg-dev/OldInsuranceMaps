@@ -94,16 +94,16 @@ psql -U postgres -d oldinsurancemaps -c "CREATE EXTENSION PostGIS;"
 Run migrations and create admin user to access the Django admin panel (and login to the site once it's running)
 
 ```bash
-python manage.py migrate
-python manage.py createsuperuser
+uv run manage.py migrate
+uv run manage.py createsuperuser
 ```
 
 Load a few other fixtures with some default objects:
 
 ```bash
-python manage.py loaddata default-region-categories
-python manage.py loaddata default-layerset-categories
-python manage.py loaddata default-navbar
+uv run manage.py loaddata default-region-categories
+uv run manage.py loaddata default-layerset-categories
+uv run manage.py loaddata default-navbar
 ```
 
 Alternatively, if you have set all of the  `DATABASE_*` variables in `.env`, you can use the included script to perform all of the actions described above:
@@ -125,7 +125,7 @@ source ./scripts/load_dev_data.sh
 There are a few js and css plugins that must be downloaded to the local static directory:
 
 ```bash
-python manage.py get-plugins
+uv run manage.py get-plugins
 ```
 
 The frontend uses a suite of independently built svelte components. First install `pnpm`: https://pnpm.io/installation. Then:
@@ -153,7 +153,7 @@ In production, use the `build` command instead, and then Django's `collectstatic
 ```bash
 pnpm run build 
 cd ../../..
-python manage.py collectstatic --noinput
+uv run manage.py collectstatic --noinput
 ```
 
 This bash script combines all steps into one:
@@ -168,7 +168,7 @@ You can now activate the virtual environment and then run the django dev server:
 
 ```bash
 source .venv/bin/activate
-python manage.py runserver
+uv run manage.py runserver
 ```
 
 and view the site at `http://localhost:8000`.
@@ -259,13 +259,13 @@ In production, you will already be using a webserver for static files so you wil
 All tests are stored in `ohmg/tests`. Make sure you have installed dev requirements, then run:
 
 ```bash
-python manage.py test
+uv run manage.py test
 ```
 
 To skip the tests that make external calls to the LOC API, use the following command. Keep in mind that coverage numbers will be lower when you skip tests.
 
 ```bash
-python manage.py test --exclude-tag=loc
+uv run manage.py test --exclude-tag=loc
 ```
 
 ## Load the Place scaffolding
@@ -273,7 +273,7 @@ python manage.py test --exclude-tag=loc
 Load all the place objects to create geography scaffolding (this will take a minute or two)
 
 ```bash
-python manage.py place import-all
+uv run manage.py place import-all
 ```
 
 ## Environment variables

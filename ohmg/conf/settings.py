@@ -13,7 +13,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 # set BASE_DIR which is used to locate log, cache, temp, static, and uploaded dirs
 BASE_DIR = PROJECT_DIR.parent
 
-# the build file is generated and updated with python manage.py update_build
+# the build file is generated and updated with ./manage.py update_build
 BUILD_FILE = BASE_DIR / ".build"
 BUILD_NUMBER = ""
 if BUILD_FILE.is_file():
