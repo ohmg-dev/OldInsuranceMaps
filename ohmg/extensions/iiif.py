@@ -55,14 +55,14 @@ class IIIFResource:
             ds = gdal.Open(g.gcps_vrt.get_vsi_url())
             transformer = gdal.Transformer(
                 # Source datasource
-                None,
-                # Target datasource
                 ds,
+                # Target datasource
+                None,
                 # Transformer options that are ultimately passed to 'GDALCreateGenImgProjTransformer2()'
                 # https://gdal.org/api/gdal_alg.html#_CPPv432GDALCreateGenImgProjTransformer212GDALDatasetH12GDALDatasetHPPc
                 g.make_transformer_options(),
             )
-            transposed, status = transformer.TransformPoints(False, polygon.coords[0])
+            transposed, status = transformer.TransformPoints(True, polygon.coords[0])
             coords_str = [f"{i[0]},{i[1]}" for i in transposed]
 
         coords_join = " ".join(coords_str)
