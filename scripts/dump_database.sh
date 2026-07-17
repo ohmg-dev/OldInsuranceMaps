@@ -23,7 +23,7 @@ models="accounts.user
 
 for i in $models; do
   echo dumping $i
-  python manage.py dumpdata $i > $OUTDIR/$i.json
+  uv run manage.py dumpdata $i > $OUTDIR/$i.json
 done
 
 tar -czvf $BACKUPDIR/ohmg_$DATETIME.tar.gz $OUTDIR/*
