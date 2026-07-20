@@ -23,8 +23,12 @@
                         "title": "Georeferencing",
                         "children": [
                             {
-                                "title": "Latest Activity",
+                                "title": "Latest activity",
                                 "link": "/activity"
+                            },
+                            {
+                                "title": "Background jobs",
+                                "link": "/jobs"
                             },
                             {
                                 "title": "Contributors",
