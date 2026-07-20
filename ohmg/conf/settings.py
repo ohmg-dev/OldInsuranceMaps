@@ -303,7 +303,7 @@ if ENABLE_S3_STORAGE:
 # this will be removed once Django is upgraded
 SWAP_COORDINATE_ORDER = ast.literal_eval(os.getenv("SWAP_COORDINATE_ORDER", "False"))
 
-MAX_CONCURRENT_MOSAIC_JOBS = os.getenv("MAX_CONCURRENT_MOSAIC_JOBS", 1)
+MAX_CONCURRENT_MOSAIC_JOBS = int(os.getenv("MAX_CONCURRENT_MOSAIC_JOBS", 1))
 
 # CONFIGURE CELERY
 CELERY_BROKER_URL = os.getenv("BROKER_URL")
