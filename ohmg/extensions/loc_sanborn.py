@@ -66,6 +66,7 @@ class LOCSanbornImporter(BaseImporter):
             "identifier": identifier,
             "title": parsed_item.title,
             "creator": "Sanborn Map Company",
+            "publisher": "Sanborn Map Company",
             "year": parsed_item.year,
             "month": parsed_item.month,
             "locale": self.input_data["locale"],

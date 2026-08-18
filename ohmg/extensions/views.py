@@ -1,6 +1,3 @@
-import json
-
-import topojson
 from django.http import JsonResponse
 from django.views import View
 
@@ -8,7 +5,7 @@ from ohmg.conf.http import JsonResponseNotFound
 from ohmg.core.models import Map
 from ohmg.core.utils import full_reverse
 
-from .atlascope import AtlascopeLayersetFeature
+from .atlascope import generate_atlascope_footprints
 from .iiif import IIIFResource
 
 
@@ -53,29 +50,18 @@ class IIIFMosaicView(View):
 
 class AtlascopeDataView(View):
     def get(self, request, place, operation):
-        if operation == "footprints":
-            maps = sorted(place.map_set.all().exclude(hidden=True), key=lambda x: x.year)
-            ls = [i.get_layerset("main-content") for i in maps]
+        data_name = request.GET.get("data-name")
+        match operation:
+            case "footprints":
+                topo_json = generate_atlascope_footprints(place, override_data_name=data_name)
+                return JsonResponse(topo_json)
 
-            features = [
-                AtlascopeLayersetFeature.from_orm(i).dict() for i in ls if i and i.mosaic_geotiff
-            ]
+            case "coverages":
+                return JsonResponse(
+                    [{"name": str(place), "center": place.get_center()}], safe=False
+                )
 
-            feature_collection = {
-                "type": "FeatureCollection",
-                "name": f"{place.slug}-volume-extents",
-                "features": features,
-            }
-            topo = topojson.Topology(feature_collection)
-            topo_json = json.loads(topo.to_json())
-
-            ## extra key needed for atlascope detroit
-            if place.slug == "detroit-mi":
-                topo_json["objects"]["detroit-volume-extents"] = topo_json["objects"]["data"]
-            return JsonResponse(topo_json)
-
-        elif operation == "coverages":
-            return JsonResponse([{"name": str(place), "center": place.get_center()}], safe=False)
-
-        else:
-            return JsonResponseNotFound("invalid operation. must be 'footprints' or 'coverages'")
+            case _:
+                return JsonResponseNotFound(
+                    "invalid operation. must be 'footprints' or 'coverages'"
+                )
