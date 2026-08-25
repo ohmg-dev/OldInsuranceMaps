@@ -47,6 +47,7 @@ dependencies = [
     "pytz",
     "rio-tiler>=5.0.3",
     "topojson>=1.10",
+    "us>=3.2.0",
 ]
 
 [project.optional-dependencies]

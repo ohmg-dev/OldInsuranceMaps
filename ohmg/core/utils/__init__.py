@@ -213,8 +213,6 @@ STATE_POSTAL = {
     "wyoming": "wy",
 }
 STATE_NAMES = [i[0] for i in STATE_CHOICES]
-STATE_LOOKUP = {i[1]: i[0] for i in STATE_CHOICES}
-STATE_POSTAL_LOOKUP = {v: k for k, v in STATE_POSTAL.items()}
 
 
 def get_session_user_summary(session_list):

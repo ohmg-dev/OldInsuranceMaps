@@ -2,9 +2,11 @@ import csv
 import logging
 from pathlib import Path
 
+import us
+
 from ohmg.core.importer import BaseImporter
 from ohmg.core.models import Map
-from ohmg.core.utils import STATE_ABBREV, STATE_POSTAL, random_alnum
+from ohmg.core.utils import random_alnum
 
 logger = logging.getLogger(__name__)
 
@@ -51,11 +53,10 @@ class DSLFileImporter(BaseImporter):
         year = int(parts[1])
         volume_number = parts[2] if len(parts) == 3 else None
 
-        postal_rev = {v: k for k, v in STATE_POSTAL.items()}
         city_words = locale.split("-")[:-1]
         city = " ".join([i.capitalize() for i in city_words])
         po = locale.split("-")[-1]
-        abbr = STATE_ABBREV[postal_rev[po]]
+        abbr = us.states.lookup(po)
 
         title = f"Sanborn Map of {city}, {abbr}, {year}{', Vol. '+volume_number if volume_number else ''}"
 
