@@ -14,9 +14,6 @@
     export let CONTEXT;
     export let mapId;
 
-    console.log(CONTEXT)
-    console.log( CONTEXT.user.perms.includes("core.queue_mosaic_cog"))
-
     let layersets = []
     let loading = false;
 
