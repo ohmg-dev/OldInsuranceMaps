@@ -9,18 +9,19 @@
   export let download = false;
   export let title = '';
   export let classes = [];
+  export let style = '';
 
   const classStr = classes.join(' ');
 </script>
 
 {#if external || rightArrow || download}
   {#if download }
-  <a {href} class={classStr} target={external ? '_blank' : null} {title} download>
+  <a {href} class={classStr} style={style} target={external ? '_blank' : null} {title} download>
     <slot></slot>
     <DownloadSimple />
   </a>
   {:else}
-  <a {href} class={classStr} target={external ? '_blank' : null} {title}>
+  <a {href} class={classStr} style={style} target={external ? '_blank' : null} {title}>
     <slot></slot>
     {#if external}
       <ArrowSquareOut />
@@ -30,7 +31,7 @@
   </a>
   {/if}
 {:else}
-  <a {href} class={classStr} {title}>
+  <a {href} style={style} class={classStr} {title}>
     <slot></slot>
   </a>
 {/if}

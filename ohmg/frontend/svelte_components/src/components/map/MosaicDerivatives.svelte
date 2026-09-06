@@ -8,9 +8,14 @@
     import ModalInfo from '../base/ModalInfo.svelte';
     import LoadingEllipsis from '../shared/LoadingEllipsis.svelte';
     import DerivativeDD from '../shared/DerivativeDD.svelte';
+    import MosaicStatus from '../shared/tags/MosaicStatus.svelte';
+    import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise';
 
     export let CONTEXT;
     export let mapId;
+
+    console.log(CONTEXT)
+    console.log( CONTEXT.user.perms.includes("core.queue_mosaic_cog"))
 
     let layersets = []
     let loading = false;
@@ -49,52 +54,29 @@
                 i.masksDateDisplay = i.multimask_date ? new Date(i.multimask_date*1000).toLocaleString() : null;
                 i.xyzStaticArchiveURL = i.xyz_tiles_url ? `${i.xyz_tiles_url}/archive.tar.gz` : null;
                 i.xyzStaticTilesURL = i.xyz_tiles_url ? `${i.xyz_tiles_url}/{z}/{x}/{y}.png` : null;
+
+                i.enableCogQueueBtn = CONTEXT.user.perms.includes("core.queue_mosaic_cog")
+                i.cogQueueBtnTitle = CONTEXT.user.perms.includes("core.queue_mosaic_cog") ?
+                    "Click to queue COG build" : "You do not have permission for this action"
+
                 i.cogStale = false;
-                i.cogDateDisplay = "---";
-                i.showCogQueueBtn = false;
-                if (i.latest_cog_job) {
-                    if (i.latest_cog_job.stage == "completed") {
-                        i.cogDate = new Date(i.latest_cog_job.date_started * 1000).toLocaleString();
-                        i.cogDateDisplay = `last updated: ${i.cogDate}`;
-                        i.cogStale = i.multimask_date ? i.latest_cog_job.date_started < i.multimask_date : false
-                        i.showCogQueueBtn = i.cogStale;
-                    } else {
-                        i.cogDateDisplay = i.latest_cog_job.stage;
-                        if (i.latest_cog_job.stage != "queued" && i.latest_cog_job.stage != "running") {
-                            i.showCogQueueBtn = true;
-                        }
-                    }
-                } else {
-                    i.showCogQueueBtn = true;
-                    i.cogDateDisplay = "not generated";
+                if (i.latest_cog_job && i.latest_cog_job.stage == "completed") {
+                    i.cogStale = i.multimask_date ? i.latest_cog_job.date_started < i.multimask_date : false
                 }
 
                 // same thing now but for the XYZ tileset build
-                i.showXyzQueueBtn = false;
-                i.enableXyzQueue = false;
-                if (i.mosaic_cog_url && !i.cogStale) {
-                    i.enableXyzQueue = true
+                i.xyzQueueBtnTitle = "Click to queue XYZ tileset build";
+                i.enableXyzQueue = true;
+                if (!i.latest_cog_job || i.cogStale) {
+                    i.enableXyzQueue = false;
+                    i.xyzQueueBtnTitle = "COG must be up-to-date before tileset can be built";
+                }
+                if (!CONTEXT.user.perms.includes("core.queue_mosaic_xyz")) {
+                    i.enableXyzQueue = false;
+                    i.xyzQueueBtnTitle = "You do not have permission for this action";
                 }
 
-                i.xyzStale = false;
-                i.xyzDateDisplay = "---"
-                if (i.latest_xyz_job) {
-                    if (i.latest_xyz_job.stage == "completed") {
-                        i.xyzDate = new Date(i.latest_xyz_job.date_started * 1000).toLocaleString();
-                        i.xyzDateDisplay = `last updated: ${i.xyzDate}`;
-                        i.xyzStale = i.multimask_date ? i.latest_xyz_job.date_started < i.multimask_date : false;
-                        i.showXyzQueueBtn = i.xyzStale;
-                    } else {
-                        i.xyzDateDisplay = i.latest_xyz_job.stage;
-                        if (i.latest_xyz_job.stage != "queued" && i.latest_xyz_job.stage != "running") {
-                            i.showXyzQueueBtn = true;
-                            i.enableXyzQueue = true;
-                        }
-                    }
-                } else {
-                    i.showXyzQueueBtn = true;
-                    i.xyzDateDisplay = "not generated"
-                }
+                
                 return i
             });
             loading = false;
@@ -128,12 +110,12 @@
 <ModalConfirm id="modal-confirm-cog-queue"
     yesAction={() => {submitQueueRequest('queue-cog-creation')}}
 >
-    <p>Submit mosaic COG generation to queue?</p>
+    <p>Submit mosaic COG generation to queue? If the current COG is up-to-date, there is no need to rebuild it.</p>
 </ModalConfirm>
 <ModalConfirm id="modal-confirm-xyz-queue"
     yesAction={() => {submitQueueRequest('queue-tileset-creation')}}
 >
-    <p>Submit XYZ tileset generation to queue?</p>
+    <p>Submit XYZ tileset generation to queue? If the current XYZ tileset is up-to-date, there is no need to rebuild it.</p>
 </ModalConfirm>
 
 <div>
@@ -141,7 +123,7 @@
     mosaic. We provide access to this mosaic in the form of file downloads, web service endpoints, and direct integrations
     into other platforms. Read more <Link href="https://docs.oldinsurancemaps.net/guides/generating-mosaics" rightArrow={true}>in the docs</Link></p>
     <p>If the MultiMask has been updated <em>after</em> one of these artifacts was generated, dates will be shown in
-    red and you can queue that mosaic to be rebuilt. <button class="is-text-link" on:click={initLayersets}>refresh table</button></p>
+    red and you can queue that mosaic to be rebuilt.</p>
 </div>
 {#if loading}
 <LoadingEllipsis />
@@ -152,24 +134,31 @@
         <span>
             {`${ls.name} (${ls.layers_masked_ct}/${ls.layers.length} layers masked)`}
         </span>
-        {#if ls.multimask_date}
-        <span class="mask-timestamp">
-            masks last updated: {ls.masksDateDisplay}
-        </span>
-        {/if}
+        <div class="dl-title-right">
+            {#if ls.multimask_date}
+            <span class="mask-timestamp">
+                masks last edit: {ls.masksDateDisplay}
+            </span>
+            {/if}
+            <button style="color:white" on:click={initLayersets}><ArrowsClockwise/></button>
+        </div>
     </h4>
     <dl style="margin-bottom: 1em;">
         <dt class="derivative-subheader">
             Cloud Optimized GeoTIFF
-            <span class="timestamp{ls.cogStale ? ' stale' : ''}">
-                {ls.cogDateDisplay}
-                {#if ls.showCogQueueBtn}
-                <button class="is-text-link" on:click={() => {
+            <div class="derivative-subheader-right">
+                {#if ls.latest_cog_job}
+                <MosaicStatus job={ls.latest_cog_job} maskDate={ls.multimask_date}/>
+                {/if}
+                <button
+                    class="button is-small is-link"
+                    disabled={!ls.enableCogQueueBtn}
+                    title={ls.cogQueueBtnTitle}
+                    on:click={() => {
                         layersetToQueueForCog=ls.id;
                         openModal('modal-confirm-cog-queue')
-                    }}>queue rebuild</button>
-                {/if}
-            </span>
+                    }}>build COG</button>
+            </div>
         </dt>
         <dt>Direct download (.tif)</dt>
         <DerivativeDD
@@ -197,20 +186,19 @@
         />
         <dt class="derivative-subheader">
             Static XYZ Tileset
-            <span class="timestamp{ls.xyzStale ? ' stale' : ''}">
-                {ls.xyzDateDisplay}
-                {#if ls.showXyzQueueBtn}
-                <button class="is-text-link"
+            <div class="derivative-subheader-right">
+                {#if ls.latest_xyz_job}
+                <MosaicStatus job={ls.latest_xyz_job} maskDate={ls.multimask_date}/>
+                {/if}
+                <button
+                    class="button is-small is-link"
                     disabled={!ls.enableXyzQueue}
-                    title={ls.enableXyzQueue ? 
-                        'Queue creation of XYZ tileset' :
-                        'COG must be rebuilt before tileset can be created'}
+                    title={ls.xyzQueueBtnTitle}
                     on:click={() => {
                         layersetToQueueForCog=ls.id;
                         openModal('modal-confirm-xyz-queue')
-                    }}>queue rebuild</button>
-                {/if}
-            </span>
+                    }}>build XYZ tileset</button>
+            </div>
         </dt>
         <dt>Direct download (gzipped tarfile)</dt>
         <DerivativeDD
@@ -225,10 +213,7 @@
             naMessage="not yet generated"
         />
         <dt class="derivative-subheader">
-            Extensions...
-            <span class="timestamp">
-                always current, unless noted
-            </span>
+            Extensions
         </dt>
         <dt>Open in OpenHistoricalMap editor (uses XYZ tile endpoint)</dt>
         <DerivativeDD
@@ -261,6 +246,11 @@
         align-items: baseline;
         flex-wrap: wrap;
     }
+    .dl-title-right {
+        display: flex;
+        align-items: center;
+        gap: .5em
+    }
     span.mask-timestamp {
         font-size: .9em;
     }
@@ -271,6 +261,7 @@
         padding: .25em .5em;
         display: flex;
         justify-content: space-between;
+        align-items: center;
         flex-wrap: wrap;
         font-weight: 700;
         font-size: .85em;
@@ -279,10 +270,9 @@
     dt.derivative-subheader {
         background-color: rgb(188, 241, 253);
     }
-    .timestamp {
-        color: rgb(128, 128, 128);
-    }
-    .timestamp.stale {
-        color: red;
+    .derivative-subheader-right {
+        display: flex;
+        align-items: center;
+        gap: .5em;
     }
 </style>
