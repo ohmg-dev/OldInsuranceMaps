@@ -119,11 +119,12 @@
 </ModalConfirm>
 
 <div>
-    <p>Once layers have been trimmed in the <strong>MultiMask</strong> they can be combined into a single
-    mosaic. We provide access to this mosaic in the form of file downloads, web service endpoints, and direct integrations
-    into other platforms. Read more <Link href="https://docs.oldinsurancemaps.net/guides/generating-mosaics" rightArrow={true}>in the docs</Link></p>
-    <p>If the MultiMask has been updated <em>after</em> one of these artifacts was generated, dates will be shown in
-    red and you can queue that mosaic to be rebuilt.</p>
+    <p>Once layers have been trimmed in the <strong>MultiMask</strong> they are combined into a single
+    mosaic output, or "derivative". You can access these derivatives here in the form of file downloads, web service endpoints, and direct integrations
+    into other platforms.</p>
+    <p>To queue the creation (or recreation) of mosaics for each layerset, use the summary table below. If a derivative has been created, but
+    the MultiMask has since been edited, it will be marked as <strong>stale</strong> it should be queued for a rebuild.
+    Read more <Link href="https://docs.oldinsurancemaps.net/guides/generating-mosaics" rightArrow={true}>in the docs</Link></p>
 </div>
 {#if loading}
 <LoadingEllipsis />
@@ -172,7 +173,7 @@
             linkType="copytext"
             naMessage="requires COG"
         />
-        <dt>XYZ tile endpoint (dynamic)</dt>
+        <dt>Dynamic XYZ endpoint</dt>
         <DerivativeDD
             linkUrl={ls.dynamicXyzUrl}
             linkType="copytext"
@@ -185,7 +186,7 @@
             naMessage="requires COG"
         />
         <dt class="derivative-subheader">
-            Static XYZ Tileset
+            XYZ Tileset
             <div class="derivative-subheader-right">
                 {#if ls.latest_xyz_job}
                 <MosaicStatus job={ls.latest_xyz_job} maskDate={ls.multimask_date}/>
@@ -206,7 +207,7 @@
             linkType="download"
             naMessage="not yet generated"
         />
-        <dt>Tiles endpoint</dt>
+        <dt>Static XYZ endpoint</dt>
         <DerivativeDD
             linkUrl={ls.xyzStaticTilesURL}
             linkType="copytext"
@@ -215,7 +216,7 @@
         <dt class="derivative-subheader">
             Extensions
         </dt>
-        <dt>Open in OpenHistoricalMap editor (uses XYZ tile endpoint)</dt>
+        <dt>Open in OpenHistoricalMap editor (uses dynamic XYZ endpoint)</dt>
         <DerivativeDD
             linkUrl={ls.ohmUrl}
             linkType="external"
