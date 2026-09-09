@@ -34,7 +34,7 @@ class MapAdmin(admin.ModelAdmin):
 
 
 class DocumentAdmin(admin.ModelAdmin):
-    list_filter = ("prepared", "map")
+    list_filter = ("prepared",)
     list_display = ("title", "page_number", "load_date", "prepared", "map_link")
     search_fields = ("title",)
     readonly_fields = ("prepared", "title")
@@ -44,6 +44,10 @@ class DocumentAdmin(admin.ModelAdmin):
     def map_link(self, obj):
         return mark_safe(f'<a href="/admin/core/map/{obj.map.pk}">{obj.map.title}</a>')
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related("map")
+
 
 class RegionAdmin(admin.ModelAdmin):
     search_fields = ("title",)
@@ -51,7 +55,6 @@ class RegionAdmin(admin.ModelAdmin):
     readonly_fields = ("georeferenced", "title")
     list_display = ("title", "category", "georeferenced", "document_link", "map_link")
     list_filter = ("category",)
-    # list_display_links = ('title', 'document'
 
     @admin.display(description="Map")
     def map_link(self, obj):
@@ -69,7 +72,6 @@ class LayerAdmin(admin.ModelAdmin):
     raw_id_fields = ("region", "layerset2")
     readonly_fields = ("title",)
     list_display = ("title", "created_by", "region_link", "map_link", "layerset_link")
-    list_filter = ("layerset2",)
 
     @admin.display(description="Map")
     def map_link(self, obj):
