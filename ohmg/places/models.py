@@ -59,6 +59,9 @@ class Place(models.Model):
     def __str__(self):
         return self.display_name if self.display_name else self.name
 
+    def get_absolute_url(self) -> str:
+        return f"/{self.slug}" if self.slug else "/"
+
     @property
     def state(self):
         states = self.states
