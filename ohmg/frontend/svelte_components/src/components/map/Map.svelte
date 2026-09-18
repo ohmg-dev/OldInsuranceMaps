@@ -21,7 +21,6 @@
   import BasicDocViewer from '../interfaces/BasicDocViewer.svelte';
   import BasicLayerViewer from '../interfaces/BasicLayerViewer.svelte';
 
-  import SigninReminder from '../shared/SigninReminder.svelte';
   import LoadingEllipsis from '../shared/LoadingEllipsis.svelte';
   import LoadingMask from '../shared/LoadingMask.svelte';
 
@@ -580,7 +579,10 @@
         </span>
       </div>
       {#if !CONTEXT.user.is_authenticated}
-        <SigninReminder csrfToken={CONTEXT.csrf_token} />
+        <div class="notification is-light" style="padding:5px; text-align:center;">
+          <em><a href={`/account/login/?next=${window.location.href}`}>Sign in</a> or 
+          <a href="/account/signup">sign up</a> to work on this content.</em>
+        </div>
       {/if}
     </div>
   </section>
