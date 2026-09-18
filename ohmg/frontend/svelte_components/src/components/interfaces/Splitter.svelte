@@ -1,20 +1,19 @@
 <script>
   import { onMount } from 'svelte';
 
-  import CheckSquareOffset from 'phosphor-svelte/lib/CheckSquareOffset';
   import Scissors from 'phosphor-svelte/lib/Scissors';
   import ArrowCounterClockwise from 'phosphor-svelte/lib/ArrowCounterClockwise';
   import X from 'phosphor-svelte/lib/X';
 
   import View from 'ol/View';
   import Feature from 'ol/Feature';
-
+  
   import Polygon from 'ol/geom/Polygon';
-
+  
   import VectorSource from 'ol/source/Vector';
-
+  
   import VectorLayer from 'ol/layer/Vector';
-
+  
   import Projection from 'ol/proj/Projection';
 
   import Draw from 'ol/interaction/Draw';
@@ -40,6 +39,16 @@
 
   export let CONTEXT;
   export let DOCUMENT;
+
+  // 1. user enters interface on unprepared document
+  //    - in this case a session has already been started, and the interface is enabled
+  // 2. user enters interface on locked document
+  //    - if the user is the one who has locked the document, then the interface is enabled
+  //    - if not, the interface is disabled and lockec
+  // 3. user enters interface on already prepared document
+  //    - interface should be viewable but locked
+
+  console.log(DOCUMENT)
 
   let viewer;
   let showPreview = true;
@@ -91,16 +100,14 @@
 
   let currentTxt;
   $: {
-    if (DOCUMENT.regions.length > 0) {
+    if (divisions.length <= 1) {
       currentTxt =
-        'This document has already been prepared! (It was split into ' + DOCUMENT.regions.length + ' documents.)';
-    } else if (divisions.length <= 1) {
-      currentTxt =
-        'If this image needs to be split, draw cut-lines across it as needed. Click once to start or continue a line, double-click to finish.';
+        'If this image needs to be split, draw cut-lines across it as needed. Click once to start or ' +
+        'continue a line, double-click to finish.';
     } else {
       const linesTxt = cutLines.length + ' ' + (cutLines.length === 1 ? 'cut-line' : 'cut-lines');
       const divsTxt =
-        divisions.length + ' new ' + (divisions.length === 1 ? 'document' : 'documents') + ' will be made';
+        divisions.length + ' new ' + (divisions.length === 1 ? 'region' : 'regions') + ' will be made';
       currentTxt = 'Split summary: ' + linesTxt + ' | ' + divsTxt;
     }
   }
@@ -237,9 +244,20 @@
       }),
     );
 
-    // resetInterface();
-    if (!CONTEXT.user.is_authenticated) {
-      openModal('modal-anonymous');
+    resetInterface();
+
+    if (DOCUMENT.prepared) {
+      let lockMsg = "This document has already been prepared!"
+      if (DOCUMENT.regions.length == 1) {
+        lockMsg += " No split was needed."
+      } else {
+        lockMsg += ` It was split into ${DOCUMENT.regions.length} regions.`
+      }
+      lockMsg += ` <a href="/map/${DOCUMENT.map}">Return to map overview &rarr;</a>`
+      viewer.lockInterface(lockMsg)
+    } else if (!CONTEXT.user.is_authenticated) {
+      viewer.lockInterface("You must <a href='/account/login'>sign in</a> or " +
+        "<a href='/account/signup'>sign up</a> to work on this content.")
     }
   });
 
