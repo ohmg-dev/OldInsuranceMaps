@@ -53,7 +53,7 @@ class SplitView(View):
 
         # if the document is not currently locked and there is a logged in user,
         # create a new session
-        if not document.lock and request.user.is_authenticated:
+        if not document.lock and request.user.is_authenticated and not document.prepared:
             session = PrepSession.objects.create(user=request.user, doc2=document)
             session.start()
 
