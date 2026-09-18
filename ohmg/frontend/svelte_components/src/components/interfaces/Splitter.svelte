@@ -31,7 +31,6 @@
   import Modal, { openModal } from '../base/Modal.svelte';
   import ModalConfirm from '../base/ModalConfirm.svelte';
 
-  import SigninReminder from '../shared/SigninReminder.svelte';
   import ExtendSessionModal from '../shared/modals/ExtendSessionModal.svelte';
 
   import ExpandElement from './widgets/ExpandElement.svelte';
@@ -40,6 +39,8 @@
   export let CONTEXT;
   export let DOCUMENT;
 
+  // 0. non-authenticated user enters interface
+  //    - interface is locked
   // 1. user enters interface on unprepared document
   //    - in this case a session has already been started, and the interface is enabled
   // 2. user enters interface on locked document
@@ -47,8 +48,6 @@
   //    - if not, the interface is disabled and lockec
   // 3. user enters interface on already prepared document
   //    - interface should be viewable but locked
-
-  console.log(DOCUMENT)
 
   let viewer;
   let showPreview = true;
@@ -63,8 +62,6 @@
 
   const sessionId = DOCUMENT.lock ? DOCUMENT.lock.session_id : null;
 
-  let disableInterface = DOCUMENT.lock && DOCUMENT.lock.user.username != CONTEXT.user.username;
-  let disableReason;
   let leaveOkay = true;
   let enableButtons = false;
   if (DOCUMENT.lock && DOCUMENT.lock.user.username == CONTEXT.user.username) {
@@ -246,18 +243,24 @@
 
     resetInterface();
 
-    if (DOCUMENT.prepared) {
-      let lockMsg = "This document has already been prepared!"
+    let lockMsg;
+    if (!CONTEXT.user.is_authenticated) {
+      lockMsg = "You must <a href='/account/login'>sign in</a> or " +
+        "<a href='/account/signup'>sign up</a> to work on this content."
+    } else if (DOCUMENT.prepared) {
+      lockMsg = "This document has already been prepared,"
       if (DOCUMENT.regions.length == 1) {
-        lockMsg += " No split was needed."
+        lockMsg += " no split was needed."
       } else {
-        lockMsg += ` It was split into ${DOCUMENT.regions.length} regions.`
+        lockMsg += ` it was split into ${DOCUMENT.regions.length} regions.`
       }
+    } else if (DOCUMENT.lock && DOCUMENT.lock.user.username != CONTEXT.user.username) {
+      lockMsg = `Document currently locked for processing by ${DOCUMENT.lock.user.username}.`
+    }
+
+    if (lockMsg) {
       lockMsg += ` <a href="/map/${DOCUMENT.map}">Return to map overview &rarr;</a>`
       viewer.lockInterface(lockMsg)
-    } else if (!CONTEXT.user.is_authenticated) {
-      viewer.lockInterface("You must <a href='/account/login'>sign in</a> or " +
-        "<a href='/account/signup'>sign up</a> to work on this content.")
     }
   });
 
@@ -303,9 +306,8 @@
   }
 
   function cancelSplit() {
-    disableReason = 'cancel';
     leaveOkay = true;
-    disableInterface = true;
+    viewer.lockInterface("Cancelling preparation.")
 
     submitPostRequest(
       `/split/${DOCUMENT.id}/`,
@@ -326,9 +328,8 @@
   }
 
   function submitSplit() {
-    disableReason = 'split';
     leaveOkay = true;
-    disableInterface = true;
+    viewer.lockInterface("Processing document split... redirecting to map overview.")
 
     submitPostRequest(
       `/split/${DOCUMENT.id}/`,
@@ -404,12 +405,6 @@
   <p>Error!</p>
   <p>{errMsg}</p>
 </Modal>
-<Modal id="modal-anonymous">
-  <SigninReminder next={CONTEXT.path} msg="Without an account you can experiment with the interface, but cannot submit your work."/>
-</Modal>
-<Modal id="modal-finished">
-  <p>This document has already been prepared!</p>
-</Modal>
 <ModalConfirm id="modal-cancel"
   yesButtonText="Yes - return to overview"
   yesAction={cancelSplit}
@@ -437,21 +432,6 @@
   <Link href="https://about.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link>
 </div>
 <div id="map-container" style="height:calc(100vh - 205px)" class="svelte-component-main">
-  {#if disableInterface}
-    <div class="interface-mask">
-      <div class="signin-reminder">
-        {#if DOCUMENT.lock}
-          <p>Document currently locked for processing by {DOCUMENT.lock.user.username}</p>
-        {:else if disableReason == 'split'}
-          <p>Processing document split... redirecting to document detail.</p>
-        {:else if disableReason == 'no_split'}
-          <p>Document prepared and ready to georeference.</p>
-        {:else if disableReason == 'cancel'}
-          <p>Cancelling preparation.</p>
-        {/if}
-      </div>
-    </div>
-  {/if}
   <nav id="hamnav">
     <div id="interaction-options" class="tb-top-item">
       <label>
