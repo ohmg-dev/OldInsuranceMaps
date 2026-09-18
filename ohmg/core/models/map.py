@@ -350,7 +350,7 @@ class Map(models.Model):
                     parents = new_parents
 
     def get_absolute_url(self):
-        return f"/map/{self.pk}/"
+        return f"/map/{self.pk}"
 
     def update_item_lookup(self):
         from ohmg.api.schemas import DocumentSchema, LayerSchema, RegionSchema
