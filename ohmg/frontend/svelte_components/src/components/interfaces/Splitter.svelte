@@ -429,7 +429,7 @@
 </ModalConfirm>
 <div style="height:25px">
   {currentTxt}
-  <Link href="https://about.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link>
+  <Link href="https://docs.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link>
 </div>
 <div id="map-container" style="height:calc(100vh - 205px)" class="svelte-component-main">
   <nav id="hamnav">
