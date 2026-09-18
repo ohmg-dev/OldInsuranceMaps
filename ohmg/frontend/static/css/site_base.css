@@ -580,6 +580,22 @@ img.lead-image {
   padding-top: 275px;
 }
 
+.lock-map-interface-control {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.lock-map-message {
+  padding: 1em;
+  background: rgba(255, 255, 255, .8);
+  width: 100%;
+  text-align: center;
+}
+
 #doc-viewer {
   background: url("/static/img/sandpaper-bg-vlite.jpg");
 }
