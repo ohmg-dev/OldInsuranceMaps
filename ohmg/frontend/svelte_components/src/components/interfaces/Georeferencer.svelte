@@ -458,10 +458,10 @@
     }
 
     if (CONTEXT.user.is_authenticated && REGION.lock && REGION.lock.user.username != CONTEXT.user.username) {
-      let lockMsg = `${REGION.lock.user.username} is already georeferencing this resource.`
-      lockMsg += ` <a href="/map/${REGION.map}">Return to map overview &rarr;</a>`
-      docViewer.lockInterface("&nbsp;")
-      mapViewer.lockInterface(lockMsg)
+      const lockMsg1 = `${REGION.lock.user.username} is already georeferencing this resource.`
+      const lockMsg2 = `<a href="/map/${REGION.map}">Return to map overview &rarr;</a>`
+      docViewer.lockInterface(lockMsg1)
+      mapViewer.lockInterface(lockMsg2)
     }
 
   });
