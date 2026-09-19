@@ -53,7 +53,7 @@ class SplitView(View):
 
         # if the document is not currently locked and there is a logged in user,
         # create a new session
-        if not document.lock and request.user.is_authenticated:
+        if not document.lock and request.user.is_authenticated and not document.prepared:
             session = PrepSession.objects.create(user=request.user, doc2=document)
             session.start()
 
@@ -154,6 +154,13 @@ class SplitView(View):
             return JsonResponseSuccess("bulk prepare completed successfully")
 
         elif operation == "split":
+            if (
+                document.prepared
+                or PrepSession.objects.filter(doc2=document).exclude(pk=sesh.pk).exists()
+            ):
+                msg = "This document has already been prepared."
+                return JsonResponseFail(msg)
+
             sesh.data["split_needed"] = True
             sesh.data["cutlines"] = cutlines
             sesh.save(update_fields=["data"])

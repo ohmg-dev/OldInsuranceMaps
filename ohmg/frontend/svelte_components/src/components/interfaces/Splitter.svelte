@@ -1,20 +1,19 @@
 <script>
   import { onMount } from 'svelte';
 
-  import CheckSquareOffset from 'phosphor-svelte/lib/CheckSquareOffset';
   import Scissors from 'phosphor-svelte/lib/Scissors';
   import ArrowCounterClockwise from 'phosphor-svelte/lib/ArrowCounterClockwise';
   import X from 'phosphor-svelte/lib/X';
 
   import View from 'ol/View';
   import Feature from 'ol/Feature';
-
+  
   import Polygon from 'ol/geom/Polygon';
-
+  
   import VectorSource from 'ol/source/Vector';
-
+  
   import VectorLayer from 'ol/layer/Vector';
-
+  
   import Projection from 'ol/proj/Projection';
 
   import Draw from 'ol/interaction/Draw';
@@ -32,7 +31,6 @@
   import Modal, { openModal } from '../base/Modal.svelte';
   import ModalConfirm from '../base/ModalConfirm.svelte';
 
-  import SigninReminder from '../shared/SigninReminder.svelte';
   import ExtendSessionModal from '../shared/modals/ExtendSessionModal.svelte';
 
   import ExpandElement from './widgets/ExpandElement.svelte';
@@ -40,6 +38,16 @@
 
   export let CONTEXT;
   export let DOCUMENT;
+
+  // 0. non-authenticated user enters interface
+  //    - interface is locked
+  // 1. user enters interface on unprepared document
+  //    - in this case a session has already been started, and the interface is enabled
+  // 2. user enters interface on locked document
+  //    - if the user is the one who has locked the document, then the interface is enabled
+  //    - if not, the interface is disabled and lockec
+  // 3. user enters interface on already prepared document
+  //    - interface should be viewable but locked
 
   let viewer;
   let showPreview = true;
@@ -54,8 +62,6 @@
 
   const sessionId = DOCUMENT.lock ? DOCUMENT.lock.session_id : null;
 
-  let disableInterface = DOCUMENT.lock && DOCUMENT.lock.user.username != CONTEXT.user.username;
-  let disableReason;
   let leaveOkay = true;
   let enableButtons = false;
   if (DOCUMENT.lock && DOCUMENT.lock.user.username == CONTEXT.user.username) {
@@ -91,16 +97,14 @@
 
   let currentTxt;
   $: {
-    if (DOCUMENT.regions.length > 0) {
+    if (divisions.length <= 1) {
       currentTxt =
-        'This document has already been prepared! (It was split into ' + DOCUMENT.regions.length + ' documents.)';
-    } else if (divisions.length <= 1) {
-      currentTxt =
-        'If this image needs to be split, draw cut-lines across it as needed. Click once to start or continue a line, double-click to finish.';
+        'If this image needs to be split, draw cut-lines across it as needed. Click once to start or ' +
+        'continue a line, double-click to finish.';
     } else {
       const linesTxt = cutLines.length + ' ' + (cutLines.length === 1 ? 'cut-line' : 'cut-lines');
       const divsTxt =
-        divisions.length + ' new ' + (divisions.length === 1 ? 'document' : 'documents') + ' will be made';
+        divisions.length + ' new ' + (divisions.length === 1 ? 'region' : 'regions') + ' will be made';
       currentTxt = 'Split summary: ' + linesTxt + ' | ' + divsTxt;
     }
   }
@@ -237,9 +241,26 @@
       }),
     );
 
-    // resetInterface();
+    resetInterface();
+
+    let lockMsg;
     if (!CONTEXT.user.is_authenticated) {
-      openModal('modal-anonymous');
+      lockMsg = "You must <a href='/account/login'>sign in</a> or " +
+        "<a href='/account/signup'>sign up</a> to work on this content."
+    } else if (DOCUMENT.prepared) {
+      lockMsg = "This document has already been prepared,"
+      if (DOCUMENT.regions.length == 1) {
+        lockMsg += " no split was needed."
+      } else {
+        lockMsg += ` it was split into ${DOCUMENT.regions.length} regions.`
+      }
+    } else if (DOCUMENT.lock && DOCUMENT.lock.user.username != CONTEXT.user.username) {
+      lockMsg = `Document currently locked for processing by ${DOCUMENT.lock.user.username}.`
+    }
+
+    if (lockMsg) {
+      lockMsg += ` <a href="/map/${DOCUMENT.map}">Return to map overview &rarr;</a>`
+      viewer.lockInterface(lockMsg)
     }
   });
 
@@ -285,9 +306,8 @@
   }
 
   function cancelSplit() {
-    disableReason = 'cancel';
     leaveOkay = true;
-    disableInterface = true;
+    viewer.lockInterface("Cancelling preparation.")
 
     submitPostRequest(
       `/split/${DOCUMENT.id}/`,
@@ -308,9 +328,8 @@
   }
 
   function submitSplit() {
-    disableReason = 'split';
     leaveOkay = true;
-    disableInterface = true;
+    viewer.lockInterface("Processing document split... redirecting to map overview.")
 
     submitPostRequest(
       `/split/${DOCUMENT.id}/`,
@@ -385,12 +404,7 @@
 <Modal id="modal-error">
   <p>Error!</p>
   <p>{errMsg}</p>
-</Modal>
-<Modal id="modal-anonymous">
-  <SigninReminder next={CONTEXT.path} msg="Without an account you can experiment with the interface, but cannot submit your work."/>
-</Modal>
-<Modal id="modal-finished">
-  <p>This document has already been prepared!</p>
+  <p><a href="/map/{DOCUMENT.map}">Return to map overview &rarr;</a></p>
 </Modal>
 <ModalConfirm id="modal-cancel"
   yesButtonText="Yes - return to overview"
@@ -416,24 +430,9 @@
 </ModalConfirm>
 <div style="height:25px">
   {currentTxt}
-  <Link href="https://about.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link>
+  <Link href="https://docs.oldinsurancemaps.net/guides/preparation/" external={true}>Learn more</Link>
 </div>
 <div id="map-container" style="height:calc(100vh - 205px)" class="svelte-component-main">
-  {#if disableInterface}
-    <div class="interface-mask">
-      <div class="signin-reminder">
-        {#if DOCUMENT.lock}
-          <p>Document currently locked for processing by {DOCUMENT.lock.user.username}</p>
-        {:else if disableReason == 'split'}
-          <p>Processing document split... redirecting to document detail.</p>
-        {:else if disableReason == 'no_split'}
-          <p>Document prepared and ready to georeference.</p>
-        {:else if disableReason == 'cancel'}
-          <p>Cancelling preparation.</p>
-        {/if}
-      </div>
-    </div>
-  {/if}
   <nav id="hamnav">
     <div id="interaction-options" class="tb-top-item">
       <label>

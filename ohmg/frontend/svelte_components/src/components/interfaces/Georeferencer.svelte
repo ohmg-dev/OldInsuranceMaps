@@ -52,7 +52,6 @@
   import ExpandElement from './widgets/ExpandElement.svelte';
   import ExtendSessionModal from '../shared/modals/ExtendSessionModal.svelte';
   import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
-  import SigninReminder from '../shared/SigninReminder.svelte';
 
   import ModalConfirm from '../base/ModalConfirm.svelte';
 
@@ -113,8 +112,6 @@
 
   const sessionId = REGION.lock ? REGION.lock.session_id : null;
 
-  let disableInterface = REGION.lock && REGION.lock.user.username != CONTEXT.user.username;
-  let disableReason;
   let leaveOkay = true;
   let enableButtons = false;
   if (REGION.lock && REGION.lock.user.username == CONTEXT.user.username) {
@@ -459,6 +456,14 @@
     if (!CONTEXT.user.is_authenticated) {
       openModal('modal-anonymous');
     }
+
+    if (CONTEXT.user.is_authenticated && REGION.lock && REGION.lock.user.username != CONTEXT.user.username) {
+      const lockMsg1 = `${REGION.lock.user.username} is already georeferencing this resource.`
+      const lockMsg2 = `<a href="/map/${REGION.map}">Return to map overview &rarr;</a>`
+      docViewer.lockInterface(lockMsg1)
+      mapViewer.lockInterface(lockMsg2)
+    }
+
   });
 
   function loadIncomingGCPs() {
@@ -774,9 +779,16 @@
       previewMode = 'n/a';
       return;
     }
+
     leaveOkay = true;
-    disableInterface = true;
-    disableReason = 'submit';
+    docViewer.lockInterface("Saving control points and processing... redirecting to map overview.")
+    mapViewer.lockInterface(`<div class="lds-ellipsis small">
+      <div style="background:black"></div>
+      <div style="background:black"></div>
+      <div style="background:black"></div>
+      <div style="background:black"></div>
+    </div>`)
+
     submitPostRequest(
       `/georeference/${REGION.id}/`,
       CONTEXT.ohmg_post_headers,
@@ -789,9 +801,16 @@
   }
 
   function cancelSession() {
+
     leaveOkay = true;
-    disableInterface = true;
-    disableReason = 'cancel';
+    docViewer.lockInterface("Cancelling georeferencing.")
+    mapViewer.lockInterface(`<div class="lds-ellipsis small">
+      <div style="background:black"></div>
+      <div style="background:black"></div>
+      <div style="background:black"></div>
+      <div style="background:black"></div>
+    </div>`)
+
     submitPostRequest(
       `/georeference/${REGION.id}/`,
       CONTEXT.ohmg_post_headers,
@@ -923,7 +942,10 @@
   <p>Are you sure you want to cancel this session?</p>
 </ModalConfirm>
 <Modal id="modal-anonymous">
-  <SigninReminder next={CONTEXT.path} msg="Without an account you can experiment with the interface, but cannot submit your work."/>
+  <p>Without an account you can experiment with the interface, but cannot submit your work.
+    <a href={`/account/login/?next=${window.location.href}`}>Sign in</a> or
+    <a href="/account/signup">sign up</a> to get started.
+  </p>
 </Modal>
 <Modal id="modal-parcels">
   <p>It can be helpful to use modern-day property lines when georeferencing historical maps.</p>
@@ -947,28 +969,6 @@
 </Modal>
 
 <div id="map-container" style="height:calc(100vh - 205px)" class="svelte-component-main">
-  {#if disableInterface}
-    <div class="interface-mask">
-      <div class="signin-reminder">
-        {#if disableReason == 'unauthenticated'}
-          <SigninReminder />
-        {:else if disableReason == 'input' || disableReason == 'processing'}
-          <!-- svelte-ignore a11y-invalid-attribute -->
-          <p>
-            Someone is already georeferencing this document (<Link href="javascript:window.location.reload(true)"
-              >refresh</Link
-            >).
-          </p>
-        {:else if disableReason == 'submit'}
-          <p>Saving control points and georeferencing document... redirecting to document detail page.</p>
-          <LoadingEllipsis />
-        {:else if disableReason == 'cancel'}
-          <p>Cancelling georeferencing.</p>
-          <LoadingEllipsis />
-        {/if}
-      </div>
-    </div>
-  {/if}
   <nav>
     <div>
       <select title="Set panel size" bind:value={panelFocus} disabled={syncPanelWidth}>

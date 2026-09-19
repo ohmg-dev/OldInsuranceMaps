@@ -6,6 +6,8 @@ import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 
+import Control from 'ol/control/Control';
+
 import { toGeometry } from 'ol/render/Feature';
 
 import { containsXY } from 'ol/extent';
@@ -118,6 +120,22 @@ export class MapViewer {
 
   getZoom() {
     return Math.round(this.map.getView().getZoom() * 10) / 10;
+  }
+
+  lockInterface(message) {
+
+    this.map.getInteractions().forEach((i) => {i.setActive(false);});
+
+    const coverEl = document.createElement('div');
+    coverEl.className = 'lock-map-interface-control ol-unselectable ol-control';
+
+    if (message) {
+      coverEl.innerHTML = `<div class="lock-map-message">${message}</div>`
+    }
+
+    const coverControl = new Control({element: coverEl});
+
+    this.map.addControl(coverControl);
   }
 
   addSnappableVectorLayer(layer, visMinZoom, snapMinZoom, activeStyle, inactiveStyle) {
