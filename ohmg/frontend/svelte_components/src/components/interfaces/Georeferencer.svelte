@@ -781,8 +781,13 @@
     }
 
     leaveOkay = true;
-    docViewer.lockInterface("&nbsp;")
-    mapViewer.lockInterface("Saving control points and processing... redirecting to map overview.")
+    docViewer.lockInterface("Saving control points and processing... redirecting to map overview.")
+    mapViewer.lockInterface(`<div class="lds-ellipsis small">
+      <div style="background:black"></div>
+      <div style="background:black"></div>
+      <div style="background:black"></div>
+      <div style="background:black"></div>
+    </div>`)
 
     submitPostRequest(
       `/georeference/${REGION.id}/`,
@@ -798,8 +803,13 @@
   function cancelSession() {
 
     leaveOkay = true;
-    docViewer.lockInterface("&nbsp;")
-    mapViewer.lockInterface("Cancelling georeferencing.")
+    docViewer.lockInterface("Cancelling georeferencing.")
+    mapViewer.lockInterface(`<div class="lds-ellipsis small">
+      <div style="background:black"></div>
+      <div style="background:black"></div>
+      <div style="background:black"></div>
+      <div style="background:black"></div>
+    </div>`)
 
     submitPostRequest(
       `/georeference/${REGION.id}/`,
