@@ -154,6 +154,13 @@ class SplitView(View):
             return JsonResponseSuccess("bulk prepare completed successfully")
 
         elif operation == "split":
+            if (
+                document.prepared
+                or PrepSession.objects.filter(doc2=document).exclude(pk=sesh.pk).exists()
+            ):
+                msg = "This document has already been prepared."
+                return JsonResponseFail(msg)
+
             sesh.data["split_needed"] = True
             sesh.data["cutlines"] = cutlines
             sesh.save(update_fields=["data"])

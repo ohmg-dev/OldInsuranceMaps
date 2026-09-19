@@ -404,6 +404,7 @@
 <Modal id="modal-error">
   <p>Error!</p>
   <p>{errMsg}</p>
+  <p><a href="/map/{DOCUMENT.map}">Return to map overview &rarr;</a></p>
 </Modal>
 <ModalConfirm id="modal-cancel"
   yesButtonText="Yes - return to overview"
