@@ -72,6 +72,7 @@ class GCP(models.Model):
 
 class GCPGroup(models.Model):
     TRANSFORMATION_CHOICES = (
+        ("helmert", "helmert"),
         ("tps", "tps"),
         ("poly1", "poly1"),
         ("poly2", "poly2"),
