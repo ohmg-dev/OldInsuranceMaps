@@ -18,7 +18,7 @@ from ohmg.core.utils import random_alnum
 
 from .georeferencer import Georeferencer, VRTHandler
 from .tasks import cleanup_existing_tileset
-from .utils import make_xyz_tiles, make_xyz_tiles_with_multiprocessing
+from .utils.tiles import make_xyz_tiles, make_xyz_tiles_with_multiprocessing
 
 gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
 gdal.SetConfigOption("GDAL_TIFF_INTERNAL_MASK", "YES")

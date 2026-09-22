@@ -8,7 +8,7 @@ from django.db import connection
 from django.db.models import FileField
 from PIL import Image, ImageDraw, ImageFilter
 
-from .geometry import extend_linestring
+from .utils.geometry import extend_linestring
 
 logger = logging.getLogger(__name__)
 
