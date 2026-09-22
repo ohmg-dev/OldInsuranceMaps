@@ -12,6 +12,9 @@ from ohmg.core.utils.srs import retrieve_srs_wkt
 
 from .utils.gcps import (
     TRANSFORMATION_LOOKUP,
+    calculate_affine_distortion,
+    calculate_affine_rmse,
+    calculate_helmert_rmse,
     get_helmert_proj_pipeline,
 )
 
@@ -207,6 +210,20 @@ class Georeferencer:
                 os.remove(vrt.get_path())
         if self.cog and self.cog.is_file():
             os.remove(self.cog)
+
+    def get_measures(self) -> tuple[float, float, float]:
+        if self.transformation["id"] == "helmert":
+            rmse, preds, lines = calculate_helmert_rmse(self.gcps)
+            skew = 0
+            aniso = 1
+        elif self.transformation["id"] == "poly1":
+            rmse, preds, lines = calculate_affine_rmse(self.gcps)
+            skew, aniso = calculate_affine_distortion(self.gcps)
+        else:
+            rmse, preds, lines = None, [], []
+            skew, aniso = None, None
+
+        return (rmse, preds, lines, skew, aniso)
 
     def make_gcps_vrt(
         self,
