@@ -4,13 +4,13 @@ from django.test import tag
 from osgeo import gdal
 
 from ohmg.georeference.georeferencer import Georeferencer
+from ohmg.georeference.utils.gcps import get_helmert_params
 
 from .base import OHMGTestCase
 
 
 @tag("warp")
 class HelmertTransformationTestCase(OHMGTestCase):
-
     def test_helmert_transformation_calculations(self):
         """This test runs through 8 permutations of GCPs, and makes
         sure that the calculations used to set up the helmert
@@ -47,7 +47,7 @@ class HelmertTransformationTestCase(OHMGTestCase):
 
             g = Georeferencer(crs="EPSG:3857", transformation="helmert", gcps_gdal=[gcp1, gcp2])
 
-            params = g._get_helmert_params()
+            params = get_helmert_params(g.gcps)
             self.assertAlmostEqual(params.scale, 0.5)
             self.assertAlmostEqual(params.rotation, target_rotation)
             self.assertAlmostEqual(params.offset_x, x_offset)
