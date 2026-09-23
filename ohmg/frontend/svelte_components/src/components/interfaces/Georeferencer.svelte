@@ -206,11 +206,13 @@
   const offsetPtLayer = new VectorLayer({
     source: offsetPtSource,
     style: styles,
+    zIndex: 99,
   })
   const offsetLnSource = new VectorSource()
   const offsetLnLayer = new VectorLayer({
     source: offsetLnSource,
     style: styles,
+    zIndex: 98,
   })
   let showOffets = false;
   $: {
@@ -1154,13 +1156,14 @@
       <div class="error-section">
         <div class="tooltip">RMSE
           <span class="tooltiptext">Root Mean Square Error is the average distance between
-             where you want a GCP to end up and where it actually is. Only relevant with 4+ GCPs.</span>
+             where you placed a GCP and where the corresponding location on the 
+             old map actually ends up. Only relevant with 4+ GCPs.</span>
         </div>
-        <span class="tag is-small is-light">{rmse == null ? "n/a" : rmse}</span>
+        <span class="tag is-small is-light">{rmse == null ? "n/a" : `${rmse}m`}</span>
         <div class="tooltip">Skew
-          <span class="tooltiptext">Skew is the degree to which the page is off-square. It should be close to 0.</span>
+          <span class="tooltiptext">Skew is the degree measure of how off-square the page is. It should be close to 0.</span>
         </div>
-        <span class="tag is-small is-light">{skew == null ? "n/a" : skew}</span>
+        <span class="tag is-small is-light">{skew == null ? "n/a" : `${skew}°`}</span>
         <div class="tooltip">Anisotropy
           <span class="tooltiptext">Anisotropy is a measure of how distorted the
             scale of the image is, as a ratio of X (horizontal) scale
