@@ -87,10 +87,24 @@
   let showLayerPanel = true;
   let showNotePanel = false;
   let showSettingsPanel = false;
-
+  
+  let rmse = null;
   let skew = null;
   let aniso = null;
-  let rmse = null;
+
+  const RMSE_WARN = 2.35;
+  const SKEW_WARN_DEGREES = 1.0;
+  const ANISOTROPY_WARN = 0.05;
+  $: rmseClass = rmse != null ?
+    rmse > RMSE_WARN ? 'is-warning' : 'is-success'
+    :'is-light'
+  $: skewClass = skew != null ?
+    Math.abs(skew) > SKEW_WARN_DEGREES ? 'is-warning' : 'is-success'
+    :'is-light'
+  $: anisoClass = aniso != null ?
+    Math.abs(aniso - 1) > ANISOTROPY_WARN ? 'is-warning' : 'is-success'
+    :'is-light'
+
 
   let docRotate;
   let mapRotate;
@@ -823,6 +837,7 @@
   }
 
   function getPreview() {
+    getMeasures()
     if (currentTransformation == "helmert") {
       minGCPs = 2;
     } else {
@@ -832,7 +847,6 @@
       previewMode = 'n/a';
       return;
     }
-    getMeasures()
     submitPostRequest(
       `/georeference/${REGION.id}/`,
       CONTEXT.ohmg_post_headers,
@@ -1157,19 +1171,19 @@
         <div class="tooltip">RMSE
           <span class="tooltiptext">Root Mean Square Error is the average distance between
              where you placed a GCP and where the corresponding location on the 
-             old map actually ends up. Only relevant with 4+ GCPs.</span>
+             old map actually ends up. It should be under 2.35m. Only relevant with 4+ GCPs.</span>
         </div>
-        <span class="tag is-small is-light">{rmse == null ? "n/a" : `${rmse}m`}</span>
+        <span class="tag is-small {rmseClass}">{rmse == null ? "n/a" : `${rmse}m`}</span>
         <div class="tooltip">Skew
           <span class="tooltiptext">Skew is the degree measure of how off-square the page is. It should be close to 0.</span>
         </div>
-        <span class="tag is-small is-light">{skew == null ? "n/a" : `${skew}°`}</span>
+        <span class="tag is-small {skewClass}">{skew == null ? "n/a" : `${skew}°`}</span>
         <div class="tooltip">Anisotropy
           <span class="tooltiptext">Anisotropy is a measure of how distorted the
             scale of the image is, as a ratio of X (horizontal) scale
             to Y (vertical) scale. It should be close to 1.</span>
         </div>
-        <span class="tag is-small is-light">{aniso == null ? "n/a" : aniso}</span>
+        <span class="tag is-small {anisoClass}">{aniso == null ? "n/a" : aniso}</span>
         <label>
           <span class="tooltip">Show offsets
             <span class="tooltiptext">Display predicted points and offset distances</span>
