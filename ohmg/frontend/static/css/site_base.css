@@ -411,8 +411,8 @@ hr {
 .ffs {
   position: fixed !important;
   width: 100%;
-  top: 45px;
-  height: calc(100vh - 45px) !important;
+  height: 100vh !important;
+  top: 0;
   left: 0;
   z-index: 1000;
 }
