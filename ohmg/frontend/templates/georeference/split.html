@@ -8,7 +8,7 @@
 {% include '_titlebar.html' with title=split_params.DOCUMENT.nickname lead_icon="scissors" subtitle=split_params.DOCUMENT.map_title %}
 
 {{ split_params|json_script:'split-props'}}
-{% include '_svelte_component.html' with component_name='Split' %}
+{% include '_svelte_component.html' with component_name='Split' no_css=True %}
 {% endblock %}
 
 {% block footer %}
