@@ -208,7 +208,7 @@ Once RabbitMQ is running, update `.env` with the `RABBITMQ_DEFAULT_USER` and `RA
 Now you are ready to run Celery in development with:
 
 ```bash
-source ./scripts/celery_dev.sh
+source ./scripts/celery_main_dev.sh
 ```
 
 ## TiTiler
