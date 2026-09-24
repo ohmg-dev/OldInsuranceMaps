@@ -82,6 +82,11 @@ class Layer(models.Model):
         on_delete=models.SET_NULL,
     )
     tilejson = models.JSONField(null=True, blank=True)
+    gcp_count = models.IntegerField("GCP Count", null=True, blank=True)
+    transformation = models.CharField(null=True, blank=True)
+    rmse = models.FloatField("RMSE", null=True, blank=True)
+    skew = models.FloatField(null=True, blank=True)
+    anisotropy = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.title
