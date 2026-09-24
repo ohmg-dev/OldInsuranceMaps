@@ -68,13 +68,6 @@ def build_helmert_matrices(gcp_list: list[gdal.GCP]) -> tuple[np.array, np.array
     return np.array(sources, dtype=float), np.array(targets, dtype=float)
 
 
-def build_affine_matrices(gcp_list: list[gdal.GCP]) -> tuple[np.array, np.array]:
-    """Builds X (M, 3) and Y (M, 2) matrices for an Affine transformation."""
-    sources = np.array([[gcp.GCPPixel, gcp.GCPLine, 1.0] for gcp in gcp_list])
-    targets = np.array([[gcp.GCPX, gcp.GCPY] for gcp in gcp_list])
-    return sources, targets
-
-
 def calculate_helmert_rmse(gcp_list: list[gdal.GCP]) -> float:
     sources, targets = build_helmert_matrices(gcp_list)
 
@@ -93,58 +86,6 @@ def calculate_helmert_rmse(gcp_list: list[gdal.GCP]) -> float:
     lines = list(zip(pred_coords, target_coords))
 
     return round(rmse, 5), pred_coords, lines
-
-
-def calculate_affine_rmse(gcp_list: list[gdal.GCP]):
-    """
-    Calculates the overall RMSE and coordinate pairings
-    using a first-degree Polynomial (Affine) transformation.
-    """
-
-    sources, targets = build_affine_matrices(gcp_list)
-
-    x, *_ = np.linalg.lstsq(sources, targets, rcond=None)
-
-    predictions = sources @ x
-    rmse = np.sqrt(np.mean((targets - predictions) ** 2))
-
-    pred_coords = [tuple(coord) for coord in predictions.tolist()]
-    target_coords = [tuple(coord) for coord in targets.tolist()]
-
-    lines = list(zip(pred_coords, target_coords))
-
-    return round(rmse, 5), pred_coords, lines
-
-
-def calculate_affine_distortion(gcp_list: list[gdal.GCP]) -> tuple[float, float]:
-    """Compute skew (°) and anisotropy from the truth affine linear part.
-
-    Returns:
-        skew_deg: deviation of pixel-x / pixel-y axes from perpendicular (0° = similarity)
-        aniso: scale_x / scale_y ratio (1.0 = similarity; >1 means x-pixels cover more ground)
-    """
-
-    sources, targets = build_affine_matrices(gcp_list)
-
-    result, *_ = np.linalg.lstsq(sources, targets, rcond=None)
-
-    # Column vectors: change in metric geo per one pixel in each image direction.
-    v_x = np.array([result[0, 0], result[1, 0]])
-    v_y = np.array([result[0, 1], result[1, 1]])
-
-    scale_x = float(np.linalg.norm(v_x))
-    scale_y = float(np.linalg.norm(v_y))
-
-    aniso = scale_x / scale_y if scale_y > 0 else 1.0
-
-    if scale_x > 0 and scale_y > 0:
-        cos_angle = float(np.dot(v_x, v_y) / (scale_x * scale_y))
-        cos_angle = max(-1.0, min(1.0, cos_angle))
-        skew_deg = math.degrees(math.acos(cos_angle)) - 90.0
-    else:
-        skew_deg = 0.0
-
-    return round(skew_deg, 2), round(aniso, 3)
 
 
 def get_helmert_params(gcp_list: list[gdal.GCP]) -> HelmertParams:
@@ -203,3 +144,64 @@ def get_helmert_proj_pipeline(
     )
 
     return pipeline
+
+
+def build_affine_matrices(gcp_list: list[gdal.GCP]) -> tuple[np.array, np.array]:
+    """Builds X (M, 3) and Y (M, 2) matrices for an Affine transformation."""
+    sources = np.array([[gcp.GCPPixel, gcp.GCPLine, 1.0] for gcp in gcp_list])
+    targets = np.array([[gcp.GCPX, gcp.GCPY] for gcp in gcp_list])
+    return sources, targets
+
+
+def calculate_affine_rmse(gcp_list: list[gdal.GCP]):
+    """
+    Calculates the overall RMSE and coordinate pairings
+    using a first-degree Polynomial (Affine) transformation.
+    """
+
+    sources, targets = build_affine_matrices(gcp_list)
+
+    x, *_ = np.linalg.lstsq(sources, targets, rcond=None)
+
+    predictions = sources @ x
+    rmse = np.sqrt(np.mean((targets - predictions) ** 2))
+
+    pred_coords = [tuple(coord) for coord in predictions.tolist()]
+    target_coords = [tuple(coord) for coord in targets.tolist()]
+
+    lines = list(zip(pred_coords, target_coords))
+
+    return round(rmse, 3), pred_coords, lines
+
+
+def calculate_affine_distortion(gcp_list: list) -> tuple[float, float]:
+    """Compute skew (°) and anisotropy from the fitted linear transformation.
+
+    Returns:
+        skew_deg: deviation from perpendicular axes (0° = perfectly orthogonal)
+        aniso: scale_x / scale_y ratio (1.0 = isotropic scale)
+    """
+    sources, targets = build_affine_matrices(gcp_list)
+
+    # Solve: sources @ result approx targets
+    result, *_ = np.linalg.lstsq(sources, targets, rcond=None)
+
+    # Basis vectors mapping unit step in pixel (x, y) to metric geo displacement
+    v_x = result[0, :2]
+    v_y = result[1, :2]
+
+    scale_x = float(np.linalg.norm(v_x))
+    scale_y = float(np.linalg.norm(v_y))
+
+    if scale_x == 0 or scale_y == 0:
+        return 0.0, 1.0
+
+    aniso = scale_x / scale_y
+
+    # Normalized dot product clipped to [-1.0, 1.0] for acos stability
+    cos_angle = np.clip(np.dot(v_x, v_y) / (scale_x * scale_y), -1.0, 1.0)
+
+    # Angle between axes minus 90 degrees
+    skew_deg = math.degrees(math.acos(float(cos_angle))) - 90.0
+
+    return round(skew_deg, 2), round(aniso, 3)
