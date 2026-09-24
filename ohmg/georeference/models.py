@@ -154,6 +154,16 @@ class GCPGroup(models.Model):
 
         return content
 
+    def get_georeferencer(self) -> Georeferencer:
+        """Returns an instance of the Georeferencer class instantiated
+        with configs from this GCPGroup."""
+
+        return Georeferencer(
+            crs=f"EPSG:{self.crs_epsg}",
+            transformation=self.transformation,
+            gcps_geojson=self.as_geojson,
+        )
+
     def save_from_geojson(self, geojson, region, transformation=None):
         group = (
             region.gcpgroup
@@ -690,6 +700,9 @@ class GeorefSession(SessionBase):
         # add the layer to the main-content LayerSet
         layer.layerset2 = layer.map.get_layerset("main-content", create=True)
         layer.save()
+
+        # update the stored georeference measures on the layer
+        layer.update_georeferencing_measures()
 
         # saving the layerset now will update its extent
         layer.layerset2.save()

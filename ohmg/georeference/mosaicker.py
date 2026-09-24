@@ -16,7 +16,7 @@ from ohmg.core.models import Layer, LayerSet
 from ohmg.core.storages import get_file_url
 from ohmg.core.utils import random_alnum
 
-from .georeferencer import Georeferencer, VRTHandler
+from .georeferencer import VRTHandler
 from .tasks import cleanup_existing_tileset
 from .utils.tiles import make_xyz_tiles, make_xyz_tiles_with_multiprocessing
 
@@ -79,11 +79,7 @@ class Mosaicker:
                 layer_extent_polygons.append(extent_poly)
 
             gcpgroup = layer.region.gcpgroup
-            g = Georeferencer(
-                crs=f"EPSG:{gcpgroup.crs_epsg}",
-                transformation=gcpgroup.transformation,
-                gcps_geojson=gcpgroup.as_geojson,
-            )
+            g = gcpgroup.get_georeferencer()
 
             g.make_trimmed_vrt(get_file_url(layer.region), self.multimask_file, layer_name)
 

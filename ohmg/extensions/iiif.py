@@ -7,7 +7,6 @@ from osgeo import gdal, osr
 
 from ohmg.core.models import Layer
 from ohmg.core.utils import full_reverse
-from ohmg.georeference.georeferencer import Georeferencer
 
 
 class IIIFResource:
@@ -46,11 +45,7 @@ class IIIFResource:
                 else self.region.file.path
             )
 
-            g = Georeferencer(
-                crs=target_crs,
-                transformation=self.region.gcpgroup.transformation,
-                gcps_geojson=self.region.gcpgroup.as_geojson,
-            )
+            g = self.region.gcpgroup.get_georeferencer()
             g.make_gcps_vrt(in_path)
             ds = gdal.Open(g.gcps_vrt.get_vsi_url())
             transformer = gdal.Transformer(

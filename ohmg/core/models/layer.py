@@ -122,6 +122,30 @@ class Layer(models.Model):
             else None
         )
 
+    def get_gcp_group(self):
+        from ohmg.georeference.models import GCPGroup
+
+        try:
+            return GCPGroup.objects.get(region2=self.region)
+        except Exception as e:
+            logger.error(e)
+
+    def update_georeferencing_measures(self):
+        """Saves a suite of georeferencing-related data directly to this Layer instance."""
+
+        gcp_group = self.get_gcp_group()
+        if gcp_group:
+            rmse, _, _, skew, aniso = gcp_group.get_georeferencer().get_measures()
+            self.rmse = rmse
+            self.skew = skew
+            self.anisotropy = aniso
+            self.transformation = gcp_group.transformation
+            self.gcp_count = gcp_group.gcps.count()
+            self.save(
+                skip_map_lookup_update=True,
+                update_fields=["rmse", "skew", "anisotropy", "transformation", "gcp_count"],
+            )
+
     def create_xyz_url(self) -> Union[str, None]:
         file_url = get_file_url(self)
         if file_url:
