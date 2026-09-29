@@ -334,6 +334,15 @@ class LayerSchema(Schema):
     gcps_geojson: Optional[dict]
     urls: dict
     extent: Optional[list]
+    rmse: Optional[float]
+    skew: Optional[float]
+    skew_norm: Optional[float]
+    anisotropy: Optional[float]
+    anisotropy_norm: Optional[float]
+    gcp_count: Optional[int]
+    transformation: Optional[str]
+    map: MapSchemaLite
+    category: str
 
     @staticmethod
     def resolve_urls(obj: Layer):
@@ -371,6 +380,14 @@ class LayerSchema(Schema):
     @staticmethod
     def resolve_last_updated_by(obj: Layer):
         return obj.last_updated_by.username if obj.last_updated_by else ""
+
+    @staticmethod
+    def resolve_map(obj: Layer):
+        return obj.region.document.map
+
+    @staticmethod
+    def resolve_category(obj: Layer):
+        return obj.layerset2.category.display_name
 
 
 class LayerFullSchema(Schema):
