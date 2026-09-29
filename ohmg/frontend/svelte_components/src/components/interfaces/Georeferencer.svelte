@@ -1168,28 +1168,31 @@
     <nav style="justify-content: space-between;">
       {#if CONTEXT.user.is_staff}
       <div class="error-section">
-        <div class="tooltip">RMSE
-          <span class="tooltiptext">Root Mean Square Error is the average distance between
+        <div class="tooltip">
+          <span class="tooltiptext tooltip-left-anchor">Root Mean Square Error is the average distance between
              where you placed a GCP and where the corresponding location on the 
              old map actually ends up. It should be under 2.35m. Only relevant with 4+ GCPs.</span>
-        </div>
-        <span class="tag is-small {rmseClass}">{rmse == null ? "n/a" : `${rmse}m`}</span>
+             RMSE
+            </div>
+          <span class="tag is-small {rmseClass}">{rmse == null ? "n/a" : `${rmse}m`}</span>
+          <label>
+            <span class="tooltip">Show error
+              <span class="tooltiptext">Visualize predicted points and distances to target points. RMSE is the average
+                of these distances.
+              </span>
+            </span>
+            <input type="checkbox" bind:checked={showOffets} />
+          </label>
         <div class="tooltip">Skew
           <span class="tooltiptext">Skew is the degree measure of how off-square the page is. It should be close to 0.</span>
         </div>
         <span class="tag is-small {skewClass}">{skew == null ? "n/a" : `${skew}°`}</span>
-        <div class="tooltip">Anisotropy
-          <span class="tooltiptext">Anisotropy is a measure of how distorted the
-            scale of the image is, as a ratio of X (horizontal) scale
-            to Y (vertical) scale. It should be close to 1.</span>
+        <div class="tooltip">Stretch
+          <span class="tooltiptext">"Stretch" is a normalized value of <em>anisotropy</em>, measured as the ratio
+            of the horizontal scale factor to the vertical scale factor. A value of 1 means the X and Y scales
+            are proportional.</span>
         </div>
         <span class="tag is-small {anisoClass}">{aniso == null ? "n/a" : aniso}</span>
-        <label>
-          <span class="tooltip">Show offsets
-            <span class="tooltiptext">Display predicted points and offset distances</span>
-          </span>
-          <input type="checkbox" bind:checked={showOffets} />
-        </label>
       </div>
       {/if}
       <label title="Set georeferencing transformation">
@@ -1283,9 +1286,13 @@
     cursor: pointer;
   }
 
+  .tooltiptext.tooltip-left-anchor {
+    margin-left: 0;
+  }
+
   .tooltiptext {
     visibility: hidden;
-    width: 130px;
+    width: 200px;
     background-color: black;
     color: #ffffff;
     text-align: center;
@@ -1294,7 +1301,7 @@
     position: absolute;
     z-index: 1;
     bottom: 100%;
-    left: 65%;
+    left: 0%;
     margin-left: -65px;
   }
 
