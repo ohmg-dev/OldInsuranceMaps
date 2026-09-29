@@ -39,6 +39,7 @@ def user_info_from_request(request):
         user_info["is_authenticated"] = True
         user_info["is_staff"] = user.is_staff
         user_info["perms"] = sorted(list(user.get_all_permissions()))
+        user_info["loaded_maps"] = list(user.maps.values_list("pk", flat=True))
     else:
         user_info = {
             "is_authenticated": False,
