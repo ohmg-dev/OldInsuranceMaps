@@ -85,7 +85,7 @@ def calculate_helmert_rmse(gcp_list: list[gdal.GCP]) -> float:
 
     lines = list(zip(pred_coords, target_coords))
 
-    return round(rmse, 5), pred_coords, lines
+    return round(rmse, 3), pred_coords, lines
 
 
 def get_helmert_params(gcp_list: list[gdal.GCP]) -> HelmertParams:

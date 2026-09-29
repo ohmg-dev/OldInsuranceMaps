@@ -139,14 +139,17 @@ class Layer(models.Model):
         if gcp_group:
             rmse, _, _, skew, aniso = gcp_group.get_georeferencer().get_measures()
             self.rmse = rmse
-            self.skew = skew
-            self.skew_norm = abs(skew)
-            self.anisotropy = aniso
-            self.anisotropy_norm = aniso if aniso >= 1 or aniso == 0 else round(1 / aniso, 3)
+            if skew is not None:
+                self.skew = skew
+                self.skew_norm = abs(skew)
+            if aniso is not None:
+                self.anisotropy = aniso
+                self.anisotropy_norm = aniso if aniso >= 1 or aniso == 0 else round(1 / aniso, 3)
             self.transformation = gcp_group.transformation
             self.gcp_count = gcp_group.gcps.count()
             self.save(
                 skip_map_lookup_update=True,
+                set_extent=False,
                 update_fields=[
                     "rmse",
                     "skew",
