@@ -342,7 +342,7 @@ class LayerSchema(Schema):
     gcp_count: Optional[int]
     transformation: Optional[str]
     map: MapSchemaLite
-    category: str
+    category: Optional[str]
 
     @staticmethod
     def resolve_urls(obj: Layer):
@@ -387,7 +387,7 @@ class LayerSchema(Schema):
 
     @staticmethod
     def resolve_category(obj: Layer):
-        return obj.layerset2.category.display_name
+        return obj.layerset2.category.display_name if obj.layerset2 else None
 
 
 class LayerFullSchema(Schema):
