@@ -504,22 +504,22 @@ class LayerSetView(View):
             return JsonResponseSuccess()
 
         if operation == "queue-cog-creation":
-            if not request.user.has_perm("core.queue_mosaic_cog"):
-                return JsonResponseUnauthorized()
-            layerset = LayerSet.objects.get(
-                map_id=payload["map-id"], category__slug=payload["category"]
-            )
-            job_id = layerset.queue_mosaic_cog()
-            return JsonResponseSuccess(payload={"job": job_id})
+            map = Map.objects.get(pk=payload["map-id"])
+            if request.user.has_perm("core.queue_mosaic_cog") or request.user == map.loaded_by:
+                layerset = LayerSet.objects.get(
+                    map_id=payload["map-id"], category__slug=payload["category"]
+                )
+                job_id = layerset.queue_mosaic_cog()
+                return JsonResponseSuccess(payload={"job": job_id})
+            return JsonResponseUnauthorized()
 
         if operation == "queue-tileset-creation":
-            if not request.user.has_perm("core.queue_mosaic_xyz"):
-                return JsonResponseUnauthorized()
-            layerset = LayerSet.objects.get(
-                map_id=payload["map-id"], category__slug=payload["category"]
-            )
-            job_id = layerset.queue_mosaic_tileset()
-            return JsonResponseSuccess(payload={"job": job_id})
+            map = Map.objects.get(pk=payload["map-id"])
+            if request.user.has_perm("core.queue_mosaic_xyz") or request.user == map.loaded_by:
+                layerset = LayerSet.objects.get(map=map, category__slug=payload["category"])
+                job_id = layerset.queue_mosaic_tileset()
+                return JsonResponseSuccess(payload={"job": job_id})
+            return JsonResponseUnauthorized()
 
 
 class LayersetDerivativeView(View):
