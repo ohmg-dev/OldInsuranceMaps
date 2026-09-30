@@ -86,7 +86,9 @@ class Layer(models.Model):
     transformation = models.CharField(null=True, blank=True)
     rmse = models.FloatField("RMSE", null=True, blank=True)
     skew = models.FloatField(null=True, blank=True)
+    skew_norm = models.FloatField(null=True, blank=True)
     anisotropy = models.FloatField(null=True, blank=True)
+    anisotropy_norm = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -137,13 +139,26 @@ class Layer(models.Model):
         if gcp_group:
             rmse, _, _, skew, aniso = gcp_group.get_georeferencer().get_measures()
             self.rmse = rmse
-            self.skew = skew
-            self.anisotropy = aniso
+            if skew is not None:
+                self.skew = skew
+                self.skew_norm = abs(skew)
+            if aniso is not None:
+                self.anisotropy = aniso
+                self.anisotropy_norm = aniso if aniso >= 1 or aniso == 0 else round(1 / aniso, 3)
             self.transformation = gcp_group.transformation
             self.gcp_count = gcp_group.gcps.count()
             self.save(
                 skip_map_lookup_update=True,
-                update_fields=["rmse", "skew", "anisotropy", "transformation", "gcp_count"],
+                set_extent=False,
+                update_fields=[
+                    "rmse",
+                    "skew",
+                    "skew_norm",
+                    "anisotropy",
+                    "anisotropy_norm",
+                    "transformation",
+                    "gcp_count",
+                ],
             )
 
     def create_xyz_url(self) -> Union[str, None]:

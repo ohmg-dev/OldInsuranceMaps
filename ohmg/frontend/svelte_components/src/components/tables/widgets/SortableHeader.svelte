@@ -1,6 +1,7 @@
 <script>
   import SortAscending from 'phosphor-svelte/lib/SortAscending';
   import SortDescending from 'phosphor-svelte/lib/SortDescending';
+  import List from 'phosphor-svelte/lib/List';
 
   export let title = '';
   export let alt = '';
@@ -31,7 +32,7 @@
         <SortDescending />
       {/if}
     {:else}
-      <SortAscending style="color:grey;" />
+      <List style="color:gray;" />
     {/if}
   </button>
 {:else}

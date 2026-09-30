@@ -7,11 +7,13 @@ from ninja.pagination import PaginationBase
 
 from ohmg.accounts.models import User
 from ohmg.core.models import (
+    LayerSetCategory,
     Map,
 )
 from ohmg.georeference.models import (
     SESSION_TYPES,
 )
+from ohmg.georeference.utils.gcps import TRANSFORMATION_LOOKUP
 from ohmg.places.models import Place
 
 
@@ -56,6 +58,56 @@ class SessionPagination(PaginationBase):
             "types": type_items,
             "users": user_items,
             "maps": map_items,
+        }
+
+        offset = pagination.offset
+        return {
+            "items": queryset[offset : offset + pagination.limit],
+            "count": queryset.count(),
+            "filter_items": filter_items,
+        }
+
+
+class LayerPagination(PaginationBase):
+    class Input(Schema):
+        offset: int = 0
+        limit: int = 10
+
+    class Output(Schema):
+        items: List[Any]
+        count: int
+        filter_items: dict
+
+    def paginate_queryset(self, queryset, pagination: Input, **params):
+        category_items = []
+        for c in LayerSetCategory.objects.all():
+            if queryset.filter(layerset2__category=c).exists():
+                category_items.append({"id": c.pk, "label": c.display_name})
+
+        transformation_items = []
+        for t in TRANSFORMATION_LOOKUP.keys():
+            if queryset.filter(transformation=t).exists():
+                transformation_items.append({"id": t, "label": t})
+
+        user_ids = queryset.values_list("last_updated_by", flat=True)
+        users = get_user_model().objects.filter(pk__in=user_ids)
+        user_items = natsorted(
+            [{"id": i.username, "label": i.username} for i in users],
+            key=lambda k: k["id"],
+        )
+
+        map_ids = queryset.values_list("region__document__map", flat=True)
+        maps = Map.objects.filter(pk__in=map_ids)
+        map_items = natsorted(
+            [{"id": i[0], "label": i[1]} for i in maps.values_list("identifier", "title")],
+            key=lambda k: k["label"],
+        )
+
+        filter_items = {
+            "users": user_items,
+            "maps": map_items,
+            "categories": category_items,
+            "transformations": transformation_items,
         }
 
         offset = pagination.offset

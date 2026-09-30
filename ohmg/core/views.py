@@ -76,6 +76,18 @@ class MapListView(View):
         return render(request, "core/maps.html", context=context_dict)
 
 
+class LayerListView(View):
+    def get(self, request):
+        if not request.user.is_staff:
+            raise Http404
+        context_dict = {
+            "LAYERS_PARAMS": {
+                "CONTEXT": generate_ohmg_context(request),
+            }
+        }
+        return render(request, "core/layers.html", context=context_dict)
+
+
 class MapView(View):
     @time_this_function
     def get(self, request, identifier):

@@ -31,10 +31,12 @@ from .filters import (
     FilterAllDocumentsSchema,
     FilterDocumentSchema,
     FilterJobSchema,
+    FilterLayerSchema,
     FilterRegionSchema,
     FilterSessionSchema,
 )
 from .paginators import (
+    LayerPagination,
     MapPagination,
     ProfilePagination,
     SessionPagination,
@@ -302,6 +304,24 @@ def regions(request, filters: FilterRegionSchema = Query(...)):
 @beta2.get("layers/", response=List[LayerSchema], url_name="layers")
 def layer(request, map: str):
     return Layer.objects.filter(region__document__map_id=map)
+
+
+@beta2.get("layers2/", response=List[LayerSchema], url_name="api_layers_list")
+@paginate(LayerPagination)
+def list_layers(request, filters: FilterLayerSchema = Query(...)):
+    sort_param = request.GET.get("sortby", "")
+    sort_dir = request.GET.get("sort", "")
+    queryset = Layer.objects.all()
+    if sort_param:
+        if sort_param == "map":
+            sort_param = "region__document__map__title"
+        sort_arg = sort_param if sort_dir == "asc" else f"-{sort_param}"
+        queryset = queryset.order_by(sort_arg).select_related("region")
+    else:
+        queryset = queryset.order_by("-pk").select_related("region")
+
+    queryset = filters.filter(queryset)
+    return queryset
 
 
 ## SESSION LOCKS

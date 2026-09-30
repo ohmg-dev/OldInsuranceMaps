@@ -17,6 +17,13 @@ class FilterSessionSchema(FilterSchema):
     type: Optional[str]
 
 
+class FilterLayerSchema(FilterSchema):
+    username: Optional[str] = Field(q=["created_by__username", "last_updated_by__username"])
+    map: Optional[str] = Field(q=["region__document__map_id"])
+    category: Optional[str] = Field(q=["layerset2__category_id"])
+    transformation: Optional[str] = Field(q="transformation")
+
+
 class FilterJobSchema(FilterSchema):
     operation: Optional[str] = Field(q="operation")
     stage: Optional[str] = Field(q="stage")
