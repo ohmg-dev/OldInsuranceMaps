@@ -273,7 +273,7 @@
   // items needed by layers and map
   const docExtent = extentFromImageSize(REGION.image_size);
   const docProjection = projectionFromImageExtent(docExtent);
-  const documentLayer = makeImageLayer(REGION.urls.image, docProjection, docExtent);
+  const docLayer = makeImageLayer(REGION.urls.image, docProjection, docExtent);
 
   let previewLayer = new TileLayer({
     source: new XYZ(),
@@ -446,7 +446,7 @@
         maxZoom: 8,
       }),
     );
-    docViewer.addLayer(documentLayer);
+    docViewer.addLayer(docLayer);
     docViewer.addLayer(docGCPLayer);
 
     // add control
@@ -457,7 +457,6 @@
       return containsXY(docExtent, mapBrowserEvent.coordinate[0], mapBrowserEvent.coordinate[1]);
     }
 
-    
     docViewer.addInteraction('draw', makeDrawInteraction(docGCPSource, drawWithinDocCondition, emptyStyle));
     docViewer.addInteraction('modify', makeModifyInteraction(docGCPSource, docViewer.element, debounce((e) => {getMeasures()}, 8)));
 
@@ -1152,8 +1151,8 @@
   {/if}
   {#if showSettingsPanel}
     <nav style="justify-content: space-between;">
-      {#if CONTEXT.user.is_staff}
       <div class="error-section">
+        {#if CONTEXT.user.is_staff}
         <div class="tooltip">
           <span class="tooltiptext tooltip-left-anchor">Root Mean Square Error is the average distance between
              where you placed a GCP and where the corresponding location on the 
@@ -1179,8 +1178,8 @@
             are proportional.</span>
         </div>
         <span class="tag is-small {anisoClass}">{aniso == null ? "n/a" : aniso}</span>
+        {/if}
       </div>
-      {/if}
       <label title="Set georeferencing transformation">
         Transformation:
         <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={getPreview}>
