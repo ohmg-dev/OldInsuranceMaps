@@ -117,13 +117,8 @@
   let currentPreviewId;
 
   let defaultExtent;
-  if (REGION.gcps_geojson) {
-    defaultExtent = new VectorSource({
-      features: new GeoJSON().readFeatures(REGION.gcps_geojson, {
-        dataProjection: 'EPSG:4326',
-        featureProjection: 'EPSG:3857',
-      }),
-    }).getExtent();
+  if (REGION.layer?.extent) {
+    defaultExtent = transformExtent(REGION.layer.extent, 'EPSG:4326', 'EPSG:3857');
   } else if (MAP.extent) {
     defaultExtent = transformExtent(MAP.extent, 'EPSG:4326', 'EPSG:3857');
   } else {
