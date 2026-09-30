@@ -246,7 +246,7 @@ class GeoreferenceView(View):
             },
         )
 
-    @method_decorator(validate_post_request(operations=["preview", "submit", "cancel"]))
+    @method_decorator(validate_post_request(operations=["preview", "measures", "submit", "cancel"]))
     def post(self, request, docid):
         """
         Runs the georeferencing process for this document.
@@ -288,6 +288,28 @@ class GeoreferenceView(View):
 
                 return JsonResponseSuccess(
                     "all good", {"preview_url": g.warped_vrt.get_url(), "preview_id": preview_id}
+                )
+            except Exception as e:
+                logger.error(e)
+                return JsonResponseFail(str(e))
+
+        elif operation == "measures":
+            g = Georeferencer(
+                crs=projection,
+                gcps_geojson=gcp_geojson,
+                transformation=transformation,
+            )
+            try:
+                rmse, preds, lines, skew, aniso = g.get_measures()
+                return JsonResponseSuccess(
+                    "all good",
+                    {
+                        "rmse": rmse,
+                        "preds": preds,
+                        "lines": lines,
+                        "skew": skew,
+                        "aniso": aniso,
+                    },
                 )
             except Exception as e:
                 logger.error(e)

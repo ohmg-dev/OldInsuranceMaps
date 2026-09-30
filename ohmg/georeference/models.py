@@ -72,6 +72,7 @@ class GCP(models.Model):
 
 class GCPGroup(models.Model):
     TRANSFORMATION_CHOICES = (
+        ("helmert", "helmert"),
         ("tps", "tps"),
         ("poly1", "poly1"),
         ("poly2", "poly2"),
@@ -152,6 +153,16 @@ class GCPGroup(models.Model):
             content += f"{geom.x},{geom.y},{gcp.pixel_x},-{gcp.pixel_y},1\n"
 
         return content
+
+    def get_georeferencer(self) -> Georeferencer:
+        """Returns an instance of the Georeferencer class instantiated
+        with configs from this GCPGroup."""
+
+        return Georeferencer(
+            crs=f"EPSG:{self.crs_epsg}",
+            transformation=self.transformation,
+            gcps_geojson=self.as_geojson,
+        )
 
     def save_from_geojson(self, geojson, region, transformation=None):
         group = (
@@ -689,6 +700,9 @@ class GeorefSession(SessionBase):
         # add the layer to the main-content LayerSet
         layer.layerset2 = layer.map.get_layerset("main-content", create=True)
         layer.save()
+
+        # update the stored georeference measures on the layer
+        layer.update_georeferencing_measures()
 
         # saving the layerset now will update its extent
         layer.layerset2.save()
