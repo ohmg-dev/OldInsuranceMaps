@@ -117,13 +117,8 @@
   let currentPreviewId;
 
   let defaultExtent;
-  if (REGION.gcps_geojson) {
-    defaultExtent = new VectorSource({
-      features: new GeoJSON().readFeatures(REGION.gcps_geojson, {
-        dataProjection: 'EPSG:4326',
-        featureProjection: 'EPSG:3857',
-      }),
-    }).getExtent();
+  if (REGION.layer?.extent) {
+    defaultExtent = transformExtent(REGION.layer.extent, 'EPSG:4326', 'EPSG:3857');
   } else if (MAP.extent) {
     defaultExtent = transformExtent(MAP.extent, 'EPSG:4326', 'EPSG:3857');
   } else {
@@ -168,28 +163,26 @@
 
   const noteInputElId = 'note-input';
 
-  let currentTransformation = 'poly1';
-  let minGCPs = 3;
-  $: transformations = [
-    {
-      id: 'poly1',
-      name: 'Polynomial',
+  // the list to iterate for dropdown display
+  let currentTransformation = 'helmert';
+  $: transformationLookup = {
+    poly1: {
+      name: "Polynomial (1st order)",
       enabled: true,
-      available: true
+      gcpMin: 3,
     },
-    {
-      id: 'tps',
-      name: 'Thin Plate Spline',
+    tps: {
+      name: "Thin Plate Spline",
       enabled: true,
-      available: true
+      gcpMin: 3,
     },
-    {
-      id: 'helmert',
-      name: 'Helmert 4-param',
-      enabled: gcpList.length == 2,
-      available: CONTEXT.user.perms.includes("core.use_helmert")
+    helmert: {
+      name: "Helmert (4-param)",
+      enabled: gcpList.length <= 2,
+      gcpMin: 2,
     },
-  ];
+  }
+  $: minGCPs = transformationLookup[currentTransformation].gcpMin;
 
   let currentTargetProjection = 'EPSG:3857';
   const availableProjections = [
@@ -280,7 +273,7 @@
   // items needed by layers and map
   const docExtent = extentFromImageSize(REGION.image_size);
   const docProjection = projectionFromImageExtent(docExtent);
-  const documentLayer = makeImageLayer(REGION.urls.image, docProjection, docExtent);
+  const docLayer = makeImageLayer(REGION.urls.image, docProjection, docExtent);
 
   let previewLayer = new TileLayer({
     source: new XYZ(),
@@ -356,7 +349,7 @@
   ];
 
   let currentRefLayer = 'none';
-  if (kmLayerGroup) {
+  if (kmLayerGroup && !REGION.layer) {
     currentRefLayer = 'keyMap50';
   }
 
@@ -453,7 +446,7 @@
         maxZoom: 8,
       }),
     );
-    docViewer.addLayer(documentLayer);
+    docViewer.addLayer(docLayer);
     docViewer.addLayer(docGCPLayer);
 
     // add control
@@ -464,7 +457,6 @@
       return containsXY(docExtent, mapBrowserEvent.coordinate[0], mapBrowserEvent.coordinate[1]);
     }
 
-    
     docViewer.addInteraction('draw', makeDrawInteraction(docGCPSource, drawWithinDocCondition, emptyStyle));
     docViewer.addInteraction('modify', makeModifyInteraction(docGCPSource, docViewer.element, debounce((e) => {getMeasures()}, 8)));
 
@@ -567,7 +559,7 @@
       });
       previewMode = 'transparent';
     }
-    currentTransformation = REGION.transformation ? REGION.transformation : 'poly1';
+    if (REGION.transformation) {currentTransformation = REGION.transformation};
     syncGCPList();
     docViewer.resetExtent();
     mapViewer.resetExtent();
@@ -661,10 +653,8 @@
     if (gcpList.length == 3 && currentTransformation == "helmert") {
       currentTransformation = "poly1";
     }
-    if (currentTransformation == "helmert") {
-      minGCPs = 2;
-    } else {
-      minGCPs = 3;
+    if (gcpList.length == 2) {
+      currentTransformation = "helmert";
     }
     if (gcpList.length <= 2 && currentTransformation != "helmert") {
       previewMode = "n/a"
@@ -838,11 +828,6 @@
 
   function getPreview() {
     getMeasures()
-    if (currentTransformation == "helmert") {
-      minGCPs = 2;
-    } else {
-      minGCPs = 3;
-    }
     if (gcpList.length < minGCPs) {
       previewMode = 'n/a';
       return;
@@ -1166,8 +1151,8 @@
   {/if}
   {#if showSettingsPanel}
     <nav style="justify-content: space-between;">
-      {#if CONTEXT.user.is_staff}
       <div class="error-section">
+        {#if CONTEXT.user.is_staff}
         <div class="tooltip">
           <span class="tooltiptext tooltip-left-anchor">Root Mean Square Error is the average distance between
              where you placed a GCP and where the corresponding location on the 
@@ -1193,15 +1178,13 @@
             are proportional.</span>
         </div>
         <span class="tag is-small {anisoClass}">{aniso == null ? "n/a" : aniso}</span>
+        {/if}
       </div>
-      {/if}
       <label title="Set georeferencing transformation">
         Transformation:
         <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={getPreview}>
-          {#each transformations as trans}
-            {#if trans.available}
-              <option value={trans.id} disabled={!trans.enabled}>{trans.name}</option>
-            {/if}
+          {#each ["poly1", "tps", "helmert"] as t}
+            <option value={t} disabled={!transformationLookup[t].enabled}>{transformationLookup[t].name}</option>
           {/each}
         </select>
       </label>
