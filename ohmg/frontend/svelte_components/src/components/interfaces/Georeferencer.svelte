@@ -163,28 +163,26 @@
 
   const noteInputElId = 'note-input';
 
-  let currentTransformation = 'poly1';
-  let minGCPs = 3;
-  $: transformations = [
-    {
-      id: 'poly1',
-      name: 'Polynomial',
+  // the list to iterate for dropdown display
+  let currentTransformation = 'helmert';
+  $: transformationLookup = {
+    poly1: {
+      name: "Polynomial (1st order)",
       enabled: true,
-      available: true
+      gcpMin: 3,
     },
-    {
-      id: 'tps',
-      name: 'Thin Plate Spline',
+    tps: {
+      name: "Thin Plate Spline",
       enabled: true,
-      available: true
+      gcpMin: 3,
     },
-    {
-      id: 'helmert',
-      name: 'Helmert 4-param',
-      enabled: gcpList.length == 2,
-      available: CONTEXT.user.perms.includes("core.use_helmert")
+    helmert: {
+      name: "Helmert (4-param)",
+      enabled: gcpList.length <= 2,
+      gcpMin: 2,
     },
-  ];
+  }
+  $: minGCPs = transformationLookup[currentTransformation].gcpMin;
 
   let currentTargetProjection = 'EPSG:3857';
   const availableProjections = [
@@ -562,7 +560,7 @@
       });
       previewMode = 'transparent';
     }
-    currentTransformation = REGION.transformation ? REGION.transformation : 'poly1';
+    if (REGION.transformation) {currentTransformation = REGION.transformation};
     syncGCPList();
     docViewer.resetExtent();
     mapViewer.resetExtent();
@@ -656,10 +654,8 @@
     if (gcpList.length == 3 && currentTransformation == "helmert") {
       currentTransformation = "poly1";
     }
-    if (currentTransformation == "helmert") {
-      minGCPs = 2;
-    } else {
-      minGCPs = 3;
+    if (gcpList.length == 2) {
+      currentTransformation = "helmert";
     }
     if (gcpList.length <= 2 && currentTransformation != "helmert") {
       previewMode = "n/a"
@@ -833,11 +829,6 @@
 
   function getPreview() {
     getMeasures()
-    if (currentTransformation == "helmert") {
-      minGCPs = 2;
-    } else {
-      minGCPs = 3;
-    }
     if (gcpList.length < minGCPs) {
       previewMode = 'n/a';
       return;
@@ -1193,10 +1184,8 @@
       <label title="Set georeferencing transformation">
         Transformation:
         <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={getPreview}>
-          {#each transformations as trans}
-            {#if trans.available}
-              <option value={trans.id} disabled={!trans.enabled}>{trans.name}</option>
-            {/if}
+          {#each ["poly1", "tps", "helmert"] as t}
+            <option value={t} disabled={!transformationLookup[t].enabled}>{transformationLookup[t].name}</option>
           {/each}
         </select>
       </label>
