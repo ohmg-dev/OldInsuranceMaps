@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 
 from ohmg.core.models import (
@@ -70,8 +71,9 @@ class RegionAdmin(admin.ModelAdmin):
 class LayerAdmin(admin.ModelAdmin):
     search_fields = ("title",)
     raw_id_fields = ("region", "layerset2")
-    readonly_fields = ("title",)
+    readonly_fields = ("title", "gcp_count", "transformation", "rmse", "skew", "anisotropy")
     list_display = ("title", "created_by", "region_link", "map_link", "layerset_link")
+    actions = ("recalculate_measures",)
 
     @admin.display(description="Map")
     def map_link(self, obj):
@@ -86,6 +88,25 @@ class LayerAdmin(admin.ModelAdmin):
         return mark_safe(
             f'<a href="/admin/core/layerset/{obj.layerset2.pk}">{obj.layerset2.category}</a>'
         )
+
+    # handles custom button in object change page
+    def response_change(self, request, obj):
+        if "_recalculate-measures" in request.POST:
+            msg = "Measures recalculated"
+            try:
+                obj.update_georeferencing_measures()
+            except Exception as e:
+                msg = f"Error calculating measures: {e}"
+            self.message_user(request, msg)
+            return HttpResponseRedirect(".")
+        return super().response_change(request, obj)
+
+    # handles bulk updates through select/list page
+    @admin.action(description="Recalculate measures for selected layers")
+    def recalculate_measures(self, request, queryset):
+        for obj in queryset:
+            obj.update_georeferencing_measures()
+        self.message_user(request, f"{queryset.count()} updated")
 
 
 admin.site.register(MapGroup)

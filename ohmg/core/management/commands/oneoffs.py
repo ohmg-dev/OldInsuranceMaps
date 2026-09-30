@@ -27,6 +27,7 @@ class Command(BaseCommand):
                 "set-tilejson",
                 "delete-duplicate-regions",
                 "add-masks-to-layers",
+                "set-measures-on-layers",
             ],
             help="Choose what operation to run.",
         )
@@ -430,3 +431,14 @@ class Command(BaseCommand):
                         print("  -> setting mask to None")
                         layer.mask = None
                     layer.save(skip_map_lookup_update=True, set_extent=False)
+
+        ## Sept 25th, 2026
+        ## set the new metrics on all layers using the new method that has been added to Layer
+        elif operation == "set-measures-on-layers":
+            from ohmg.core.models import Layer
+
+            layers = Layer.objects.all()
+            layers_ct = layers.count()
+            for n, layer in enumerate(Layer.objects.all(), start=1):
+                print(f"{n}/{layers_ct}: {layer.title}")
+                layer.update_georeferencing_measures()

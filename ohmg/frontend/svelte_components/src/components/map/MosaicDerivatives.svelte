@@ -17,6 +17,9 @@
     let layersets = []
     let loading = false;
 
+    const userCanCog = CONTEXT.user.perms.includes("core.queue_mosaic_cog") || CONTEXT.user.loaded_maps.includes(mapId)
+    const userCanXyz = CONTEXT.user.perms.includes("core.queue_mosaic_xyz") || CONTEXT.user.loaded_maps.includes(mapId)
+
     const orderedCategories = [
         "main-content",
         "key-map",
@@ -52,8 +55,8 @@
                 i.xyzStaticArchiveURL = i.xyz_tiles_url ? `${i.xyz_tiles_url}/archive.tar.gz` : null;
                 i.xyzStaticTilesURL = i.xyz_tiles_url ? `${i.xyz_tiles_url}/{z}/{x}/{y}.png` : null;
 
-                i.enableCogQueueBtn = CONTEXT.user.perms.includes("core.queue_mosaic_cog")
-                i.cogQueueBtnTitle = CONTEXT.user.perms.includes("core.queue_mosaic_cog") ?
+                i.enableCogQueueBtn = userCanCog;
+                i.cogQueueBtnTitle = userCanCog ?
                     "Click to queue COG build" : "You do not have permission for this action"
 
                 i.cogStale = false;
@@ -68,7 +71,7 @@
                     i.enableXyzQueue = false;
                     i.xyzQueueBtnTitle = "COG must be up-to-date before tileset can be built";
                 }
-                if (!CONTEXT.user.perms.includes("core.queue_mosaic_xyz")) {
+                if (!userCanXyz) {
                     i.enableXyzQueue = false;
                     i.xyzQueueBtnTitle = "You do not have permission for this action";
                 }

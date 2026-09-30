@@ -82,6 +82,13 @@ class Layer(models.Model):
         on_delete=models.SET_NULL,
     )
     tilejson = models.JSONField(null=True, blank=True)
+    gcp_count = models.IntegerField("GCP Count", null=True, blank=True)
+    transformation = models.CharField(null=True, blank=True)
+    rmse = models.FloatField("RMSE", null=True, blank=True)
+    skew = models.FloatField(null=True, blank=True)
+    skew_norm = models.FloatField(null=True, blank=True)
+    anisotropy = models.FloatField(null=True, blank=True)
+    anisotropy_norm = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -116,6 +123,43 @@ class Layer(models.Model):
             if self.mask
             else None
         )
+
+    def get_gcp_group(self):
+        from ohmg.georeference.models import GCPGroup
+
+        try:
+            return GCPGroup.objects.get(region2=self.region)
+        except Exception as e:
+            logger.error(e)
+
+    def update_georeferencing_measures(self):
+        """Saves a suite of georeferencing-related data directly to this Layer instance."""
+
+        gcp_group = self.get_gcp_group()
+        if gcp_group:
+            rmse, _, _, skew, aniso = gcp_group.get_georeferencer().get_measures()
+            self.rmse = rmse
+            if skew is not None:
+                self.skew = skew
+                self.skew_norm = abs(skew)
+            if aniso is not None:
+                self.anisotropy = aniso
+                self.anisotropy_norm = aniso if aniso >= 1 or aniso == 0 else round(1 / aniso, 3)
+            self.transformation = gcp_group.transformation
+            self.gcp_count = gcp_group.gcps.count()
+            self.save(
+                skip_map_lookup_update=True,
+                set_extent=False,
+                update_fields=[
+                    "rmse",
+                    "skew",
+                    "skew_norm",
+                    "anisotropy",
+                    "anisotropy_norm",
+                    "transformation",
+                    "gcp_count",
+                ],
+            )
 
     def create_xyz_url(self) -> Union[str, None]:
         file_url = get_file_url(self)

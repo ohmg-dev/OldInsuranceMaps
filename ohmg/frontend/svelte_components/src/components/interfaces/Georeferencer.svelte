@@ -2,9 +2,9 @@
   import X from 'phosphor-svelte/lib/X';
   import Check from 'phosphor-svelte/lib/Check';
   import ArrowsClockwise from 'phosphor-svelte/lib/ArrowsClockwise';
+  import ChartScatter from 'phosphor-svelte/lib/ChartScatter';
   import Trash from 'phosphor-svelte/lib/Trash';
   import Stack from 'phosphor-svelte/lib/Stack';
-  import GearSix from 'phosphor-svelte/lib/GearSix';
 
   import { onMount } from 'svelte';
 
@@ -54,6 +54,8 @@
   import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
 
   import ModalConfirm from '../base/ModalConfirm.svelte';
+    import { LineString } from 'ol/geom';
+    import { Style, Circle, Stroke, Fill } from 'ol/style';
 
   export let CONTEXT;
   export let REGION;
@@ -85,6 +87,24 @@
   let showLayerPanel = true;
   let showNotePanel = false;
   let showSettingsPanel = false;
+  
+  let rmse = null;
+  let skew = null;
+  let aniso = null;
+
+  const RMSE_WARN = 2.35;
+  const SKEW_WARN_DEGREES = 1.0;
+  const ANISOTROPY_WARN = 0.05;
+  $: rmseClass = rmse != null ?
+    rmse > RMSE_WARN ? 'is-warning' : 'is-success'
+    :'is-light'
+  $: skewClass = skew != null ?
+    Math.abs(skew) > SKEW_WARN_DEGREES ? 'is-warning' : 'is-success'
+    :'is-light'
+  $: anisoClass = aniso != null ?
+    Math.abs(aniso - 1) > ANISOTROPY_WARN ? 'is-warning' : 'is-success'
+    :'is-light'
+
 
   let docRotate;
   let mapRotate;
@@ -97,13 +117,8 @@
   let currentPreviewId;
 
   let defaultExtent;
-  if (REGION.gcps_geojson) {
-    defaultExtent = new VectorSource({
-      features: new GeoJSON().readFeatures(REGION.gcps_geojson, {
-        dataProjection: 'EPSG:4326',
-        featureProjection: 'EPSG:3857',
-      }),
-    }).getExtent();
+  if (REGION.layer?.extent) {
+    defaultExtent = transformExtent(REGION.layer.extent, 'EPSG:4326', 'EPSG:3857');
   } else if (MAP.extent) {
     defaultExtent = transformExtent(MAP.extent, 'EPSG:4326', 'EPSG:3857');
   } else {
@@ -148,34 +163,69 @@
 
   const noteInputElId = 'note-input';
 
-  let currentTransformation = 'poly1';
-  let minGCPs = 3;
-  $: transformations = [
-    {
-      id: 'poly1',
-      name: 'Polynomial',
+  // the list to iterate for dropdown display
+  let currentTransformation = 'helmert';
+  $: transformationLookup = {
+    poly1: {
+      name: "Polynomial (1st order)",
       enabled: true,
-      available: true
+      gcpMin: 3,
     },
-    {
-      id: 'tps',
-      name: 'Thin Plate Spline',
+    tps: {
+      name: "Thin Plate Spline",
       enabled: true,
-      available: true
+      gcpMin: 3,
     },
-    {
-      id: 'helmert',
-      name: 'Helmert 4-param',
-      enabled: gcpList.length == 2,
-      available: CONTEXT.user.perms.includes("core.use_helmert")
+    helmert: {
+      name: "Helmert (4-param)",
+      enabled: gcpList.length <= 2,
+      gcpMin: 2,
     },
-  ];
+  }
+  $: minGCPs = transformationLookup[currentTransformation].gcpMin;
 
   let currentTargetProjection = 'EPSG:3857';
   const availableProjections = [
     { id: 'EPSG:3857', name: 'Pseudo Mercator' },
     { id: 'ESRI:102009', name: 'Lambert North America' },
   ];
+
+  const fill = new Fill({
+    color: 'rgba(255,255,255,0.4)',
+  });
+  const stroke = new Stroke({
+    color: 'red',
+    width: 1.25,
+  });
+  const styles = [
+    new Style({
+      image: new Circle({
+        fill: fill,
+        stroke: stroke,
+        radius: 5,
+      }),
+      fill: fill,
+      stroke: stroke,
+    }),
+  ];
+
+  const offsetPtSource = new VectorSource()
+  const offsetPtLayer = new VectorLayer({
+    source: offsetPtSource,
+    style: styles,
+    zIndex: 99,
+  })
+  const offsetLnSource = new VectorSource()
+  const offsetLnLayer = new VectorLayer({
+    source: offsetLnSource,
+    style: styles,
+    zIndex: 98,
+  })
+  let showOffets = false;
+  $: {
+    offsetPtLayer.setVisible(showOffets)
+    offsetLnLayer.setVisible(showOffets)
+  }
 
   // CREATE GCP LAYERS
   const docGCPSource = new VectorSource();
@@ -223,7 +273,7 @@
   // items needed by layers and map
   const docExtent = extentFromImageSize(REGION.image_size);
   const docProjection = projectionFromImageExtent(docExtent);
-  const documentLayer = makeImageLayer(REGION.urls.image, docProjection, docExtent);
+  const docLayer = makeImageLayer(REGION.urls.image, docProjection, docExtent);
 
   let previewLayer = new TileLayer({
     source: new XYZ(),
@@ -299,7 +349,7 @@
   ];
 
   let currentRefLayer = 'none';
-  if (kmLayerGroup) {
+  if (kmLayerGroup && !REGION.layer) {
     currentRefLayer = 'keyMap50';
   }
 
@@ -315,17 +365,34 @@
     });
   }
 
+  // const getMeasuresDuringModify = {
+  //   debounce((e) => {getMeasures()}, 8)
+  // }
+
   // SNAP LAYER STUFF
   let parcelLayer;
 
   // MAKING INTERACTIONS
 
   // this Modify interaction is created individually for each map panel
-  function makeModifyInteraction(source, targetElement) {
+  function makeModifyInteraction(source, targetElement, onChangeHandler) {
     const modify = new Modify({
       source: source,
       style: gcpStyles.hover,
     });
+
+    if (onChangeHandler) {
+      modify.on(['modifystart'], function (e) {
+        e.features.forEach(function (feature) {
+          feature.on('change', onChangeHandler)
+        });
+      })
+      modify.on(['modifyend'], function (e) {
+        e.features.forEach(function (feature) {
+          feature.un('change', onChangeHandler);
+        });
+      }
+    )}
 
     modify.on(['modifystart', 'modifyend'], function (e) {
       targetElement.style.cursor = e.type === 'modifystart' ? 'grabbing' : 'pointer';
@@ -379,7 +446,7 @@
         maxZoom: 8,
       }),
     );
-    docViewer.addLayer(documentLayer);
+    docViewer.addLayer(docLayer);
     docViewer.addLayer(docGCPLayer);
 
     // add control
@@ -390,9 +457,8 @@
       return containsXY(docExtent, mapBrowserEvent.coordinate[0], mapBrowserEvent.coordinate[1]);
     }
 
-    
     docViewer.addInteraction('draw', makeDrawInteraction(docGCPSource, drawWithinDocCondition, emptyStyle));
-    docViewer.addInteraction('modify', makeModifyInteraction(docGCPSource, docViewer.element));
+    docViewer.addInteraction('modify', makeModifyInteraction(docGCPSource, docViewer.element, debounce((e) => {getMeasures()}, 8)));
 
     docRotate = makeRotateCenterLayer();
     docViewer.addLayer(docRotate.layer);
@@ -408,6 +474,8 @@
     currentBasemap = mapViewer.currentBasemap.id;
     mapViewer.addLayer(previewLayer);
     mapViewer.addLayer(mapGCPLayer);
+    mapViewer.addLayer(offsetPtLayer)
+    mapViewer.addLayer(offsetLnLayer)
 
     // create controls
     mapViewer.addControl(new LyrMousePosition(null, 'ol-mouse-position'));
@@ -418,7 +486,7 @@
       return parcelLayer?.getVisible() ? gcpStyles.snapTarget : emptyStyle
     }
     mapViewer.addInteraction('draw', makeDrawInteraction(mapGCPSource, null, drawStyleFunction));
-    mapViewer.addInteraction('modify', makeModifyInteraction(mapGCPSource, mapViewer.element));
+    mapViewer.addInteraction('modify', makeModifyInteraction(mapGCPSource, mapViewer.element, debounce((e) => {getMeasures()}, 8)));
 
     // add some event listening to the map
     mapViewer.map.on('click', selectGCPOnClick);
@@ -491,7 +559,7 @@
       });
       previewMode = 'transparent';
     }
-    currentTransformation = REGION.transformation ? REGION.transformation : 'poly1';
+    if (REGION.transformation) {currentTransformation = REGION.transformation};
     syncGCPList();
     docViewer.resetExtent();
     mapViewer.resetExtent();
@@ -585,10 +653,8 @@
     if (gcpList.length == 3 && currentTransformation == "helmert") {
       currentTransformation = "poly1";
     }
-    if (currentTransformation == "helmert") {
-      minGCPs = 2;
-    } else {
-      minGCPs = 3;
+    if (gcpList.length == 2) {
+      currentTransformation = "helmert";
     }
     if (gcpList.length <= 2 && currentTransformation != "helmert") {
       previewMode = "n/a"
@@ -701,6 +767,17 @@
     }
   }
 
+  function debounce(fn, delay) {
+    let timerId;
+    return function (...args) {
+      if (timerId) {
+        clearTimeout(timerId);
+      }
+      timerId = setTimeout(() => {
+        fn.apply(this, args);
+      }, delay);
+    };
+  }
   function updatePreviewSource(previewUrl) {
     if (previewUrl) {
       showLoading = true;
@@ -750,11 +827,7 @@
   }
 
   function getPreview() {
-    if (currentTransformation == "helmert") {
-      minGCPs = 2;
-    } else {
-      minGCPs = 3;
-    }
+    getMeasures()
     if (gcpList.length < minGCPs) {
       previewMode = 'n/a';
       return;
@@ -770,6 +843,37 @@
         // updated with the new source url
         previewUrl = result.payload.preview_url;
         currentPreviewId = result.payload.preview_id;
+      },
+    );
+  }
+
+  function getMeasures() {
+    submitPostRequest(
+      `/georeference/${REGION.id}/`,
+      CONTEXT.ohmg_post_headers,
+      'measures',
+      preparePayload(),
+      (result) => {
+
+        rmse = result.payload.rmse;
+        aniso = result.payload.aniso;
+        skew = result.payload.skew;
+
+        offsetPtSource.clear()
+        result.payload.preds?.forEach(coord => {
+          const feat = new Feature({
+            geometry: new Point(coord),
+          });
+          offsetPtSource.addFeature(feat)
+        })
+
+        offsetLnSource.clear()
+        result.payload.lines?.forEach(coord => {
+          const feat = new Feature({
+            geometry: new LineString(coord),
+          });
+          offsetLnSource.addFeature(feat)
+        })
       },
     );
   }
@@ -1046,14 +1150,41 @@
     </nav>
   {/if}
   {#if showSettingsPanel}
-    <nav style="justify-content: end;">
+    <nav style="justify-content: space-between;">
+      <div class="error-section">
+        {#if CONTEXT.user.is_staff}
+        <div class="tooltip">
+          <span class="tooltiptext tooltip-left-anchor">Root Mean Square Error is the average distance between
+             where you placed a GCP and where the corresponding location on the 
+             old map actually ends up. It should be under 2.35m. Only relevant with 4+ GCPs.</span>
+             RMSE
+            </div>
+          <span class="tag is-small {rmseClass}">{rmse == null ? "n/a" : `${rmse}m`}</span>
+          <label>
+            <span class="tooltip">Show error
+              <span class="tooltiptext">Visualize predicted points and distances to target points. RMSE is the average
+                of these distances.
+              </span>
+            </span>
+            <input type="checkbox" bind:checked={showOffets} />
+          </label>
+        <div class="tooltip">Skew
+          <span class="tooltiptext">Skew is the degree measure of how off-square the page is. It should be close to 0.</span>
+        </div>
+        <span class="tag is-small {skewClass}">{skew == null ? "n/a" : `${skew}°`}</span>
+        <div class="tooltip">Stretch
+          <span class="tooltiptext">"Stretch" is a normalized value of <em>anisotropy</em>, measured as the ratio
+            of the horizontal scale factor to the vertical scale factor. A value of 1 means the X and Y scales
+            are proportional.</span>
+        </div>
+        <span class="tag is-small {anisoClass}">{aniso == null ? "n/a" : aniso}</span>
+        {/if}
+      </div>
       <label title="Set georeferencing transformation">
         Transformation:
         <select class="trans-select" style="width:151px;" bind:value={currentTransformation} on:change={getPreview}>
-          {#each transformations as trans}
-            {#if trans.available}
-              <option value={trans.id} disabled={!trans.enabled}>{trans.name}</option>
-            {/if}
+          {#each ["poly1", "tps", "helmert"] as t}
+            <option value={t} disabled={!transformationLookup[t].enabled}>{transformationLookup[t].name}</option>
           {/each}
         </select>
       </label>
@@ -1101,11 +1232,11 @@
     </div>
     <div style="display:flex; flex-direction:row; text-align:right;">
       <div class="control-btn-group">
-        <ToolUIButton
+      <ToolUIButton
           action={() => {
             showSettingsPanel = !showSettingsPanel;
           }}
-          title="Show/hide advanced settings..."><GearSix /></ToolUIButton
+          title="Show/hide transformation settings..."><ChartScatter /></ToolUIButton
         >
         <ToolUIButton
           action={() => {
@@ -1130,6 +1261,42 @@
 </div>
 
 <style>
+
+  .tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+    cursor: pointer;
+  }
+
+  .tooltiptext.tooltip-left-anchor {
+    margin-left: 0;
+  }
+
+  .tooltiptext {
+    visibility: hidden;
+    width: 200px;
+    background-color: black;
+    color: #ffffff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    left: 0%;
+    margin-left: -65px;
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+  }
+
+  .error-section > span {
+    font-family: mono;
+    font-size: .8em;
+  }
+
   label {
     margin: 0px;
   }
