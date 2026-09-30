@@ -349,7 +349,7 @@
   ];
 
   let currentRefLayer = 'none';
-  if (kmLayerGroup) {
+  if (kmLayerGroup && !REGION.layer) {
     currentRefLayer = 'keyMap50';
   }
 
