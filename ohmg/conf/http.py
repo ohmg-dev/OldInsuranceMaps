@@ -45,6 +45,7 @@ def user_info_from_request(request):
             "is_authenticated": False,
             "is_staff": False,
             "perms": [],
+            "loaded_maps": [],
         }
     return user_info
 
