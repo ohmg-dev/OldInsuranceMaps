@@ -30,6 +30,7 @@
 
   import MapContributors from '../tables/MapContributors.svelte';
   import Sessions from '../tables/Sessions.svelte';
+  import Layers from '../tables/Layers.svelte';
 
   import Breadcrumbs from './Breadcrumbs.svelte';
 
@@ -478,6 +479,7 @@
       {id: "details", title: "Details"},
       {id: "stats", title: "Stats"},
       {id: "activity", title: "Activity"},
+      {id: "layers", title: "Layers"},
     ]} bind:activeTab={detailsSectionActiveTab}>
       {#if detailsSectionActiveTab == "details"}
         <Details {MAP} {SESSION_SUMMARY} />
@@ -490,13 +492,19 @@
         </div>
         <MapContributors {CONTEXT} mapId={MAP.identifier} />
       {:else if detailsSectionActiveTab == "activity"}
-        <div>
-          <p>
-            Below is complete record of all preparation or georeferencing actions that have been performed on documents
-            within this map. Currently, trimming or "multimask" work is not reflected in this table.
-          </p>
-        </div>
-        <Sessions {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false} paginate={true} limit="50" />
+      <div>
+        <p>
+          Below is complete record of all preparation or georeferencing actions that have been performed on documents
+          within this map. Currently, trimming or "multimask" work is not reflected in this table.
+        </p>
+      </div>
+      <Sessions {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false} paginate={true} limit="50" />
+      {:else if detailsSectionActiveTab == "layers"}
+        {#if CONTEXT.user.is_staff}
+        <Layers {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false}/>
+        {:else}
+        <em>coming soon!</em>
+        {/if}
       {/if}
     </TabbedSection>
   </ExpandableSection>
