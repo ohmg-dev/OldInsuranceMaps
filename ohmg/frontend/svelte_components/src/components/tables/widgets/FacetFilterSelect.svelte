@@ -4,7 +4,7 @@
   export let value = null;
   export let items = [];
   export let placeholder = 'Choose a filter...';
-  export let containerStyles = 'width:300px;';
+  export let containerStyles = 'width:225px;';
   export let offset = 0;
 </script>
 
