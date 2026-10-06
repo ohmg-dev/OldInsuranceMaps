@@ -1,0 +1,38 @@
+{% extends "account/base_manage.html" %}
+{% load allauth i18n %}
+{% block content %}
+    <div class="alert alert-danger">Our API is still in beta mode and should not be considered stable.</div>
+    <div class="content">
+    <h2>
+        {% trans "API access" %}
+    </h2>
+        <p>To request a new key, email: <a href="mailto:hello@oldinsurancemaps.net">hello@oldinsurancemaps.net</a>.</p>
+        <p>Include the key in an <code>X-API-Key</code> header of each request. See the API docs for endpoints:</p>
+        <ul>
+            <li><a href="/api/beta2/docs">beta2 (unstable)</a></li>
+        </ul>
+        <p>Please wait at least 2 seconds between requests, for example when working through paginated response lists.</p>
+        <p>Currently, GeoTIFF downloads do not require an API key (they come straight from S3 compatible storage buckets)
+            and are not limited. Be aware this may change in the future.</p>
+    </div>
+    {% if CONTEXT.user.api_keys|length > 0 %}
+    <table>
+        <thead>
+            <tr>
+                <th>Key</th>
+                <th>Active?</th>
+                <th>Usage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key in CONTEXT.user.api_keys %}
+            <tr>
+                <th><code>{{key.0}}</code></th>
+                <th>{% if key.1 %}<span style="color:green">✓</span>{% else %}<span style="color:red">x</span>{% endif %}</th>
+                <th>{{key.2}}</th>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+{% endblock %}
