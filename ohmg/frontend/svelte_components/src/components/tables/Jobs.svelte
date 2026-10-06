@@ -240,7 +240,7 @@
   }
   td {
     white-space: nowrap;
-    padding: 2px 0.5em 2px 0;
+    padding: 2px 0.25em;
     vertical-align: middle;
   }
   td.ts-col {

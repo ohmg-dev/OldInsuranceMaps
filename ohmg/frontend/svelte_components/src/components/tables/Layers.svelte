@@ -161,7 +161,7 @@
                 <td>
                   <Link href={`/layer/${lyr.id}`} title={lyr.nickname}>
                   <div class="thumb-container">
-                    <img style="width:100%; height:auto;" src={lyr.urls.thumbnail} alt={lyr.nickname} />
+                    <img src={lyr.urls.thumbnail} alt={lyr.nickname} />
                   </div>
                     {lyr.nickname}</Link>
                 </td>
@@ -213,7 +213,7 @@
   }
   td {
     white-space: nowrap;
-    padding: 2px 0.5em;
+    padding: 2px 0.25em;
     vertical-align: middle;
   }
   .table-container {
@@ -223,6 +223,9 @@
     width: 65px;
     display: inline-block;
     text-align: center;
+  }
+  .thumb-container > img {
+    max-height: 50px;
   }
   .filter-level {
     max-width: calc(100% - 75px);

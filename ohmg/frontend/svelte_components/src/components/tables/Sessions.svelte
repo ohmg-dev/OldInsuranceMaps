@@ -162,15 +162,7 @@
                 <th><SortableHeader title="Map" /></th>
               {/if}
               {#if showResource}
-                <th title="Document, Region, or Layer for this work">
-                  <div>
-                    <span style="font-weight:400; margin-right:.5em;">Resource</span><input
-                      type="checkbox"
-                      bind:checked={showThumbs}
-                      title="Show thumbnails"
-                    />
-                  </div>
-                </th>
+                <th><SortableHeader title="Resource" alt="Document, Region, or Layer for this work" bind:toggleVar={showThumbs}/></th>
               {/if}
               <th><SortableHeader title="Stage" value={'stage'} bind:sortDir bind:sortParam bind:offset /></th>
               <th><SortableHeader title="Result" value={'note'} bind:sortDir bind:sortParam bind:offset /></th>
@@ -211,7 +203,7 @@
                       {#if s.doc2}
                         {#if showThumbs}
                           <div class="thumb-container">
-                            <img style="max-height:50px;" src={s.doc2.urls.thumbnail} alt={s.doc2.nickname} />
+                            <img src={s.doc2.urls.thumbnail} alt={s.doc2.nickname} />
                           </div>
                         {/if}
                         <Link href={s.doc2.urls.resource} title={s.doc2.nickname}>
@@ -224,7 +216,7 @@
                       {#if s.lyr2}
                         {#if showThumbs}
                           <div class="thumb-container">
-                            <img style="max-height:50px;" src={s.lyr2.urls.thumbnail} alt={s.reg2.nickname} />
+                            <img src={s.lyr2.urls.thumbnail} alt={s.reg2.nickname} />
                           </div>
                         {/if}
                         <Link href={s.lyr2.urls.resource} title={s.lyr2.nickname}>
@@ -278,7 +270,7 @@
   }
   td {
     white-space: nowrap;
-    padding: 2px 0.5em 2px 0;
+    padding: 2px 0.25em;
     vertical-align: middle;
   }
   .table-container {
@@ -288,6 +280,9 @@
     width: 65px;
     display: inline-block;
     text-align: center;
+  }
+  .thumb-container > img {
+    max-height: 50px;
   }
   @media screen and (max-width: 768px) {
     .filter-level,
