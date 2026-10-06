@@ -30,7 +30,12 @@ class User(AbstractUser):
 
     @cached_property
     def api_keys(self):
-        return [i for i in APIKey.objects.filter(account=self).values_list("value", flat=True)]
+        return [
+            i
+            for i in APIKey.objects.filter(account=self).values_list(
+                "value", "active", "request_count"
+            )
+        ]
 
     def update_sesh_counts(self):
         self.load_ct = Map.objects.filter(loaded_by=self).count()

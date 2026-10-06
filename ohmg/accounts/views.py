@@ -64,3 +64,18 @@ class OHMGSignupView(SignupView):
             if not verify_prosopo_token(token):
                 raise ValidationError("Invalid token", code="invalid")
         return super(self.__class__, self).form_valid(form)
+
+
+class APIKeysView(View):
+    def get(self, request):
+        ohmg_context = generate_ohmg_context(request)
+        return render(
+            request,
+            "accounts/api-keys.html",
+            context={
+                "CONTEXT": ohmg_context,
+                "PROFILES_PROPS": {
+                    "CONTEXT": ohmg_context,
+                },
+            },
+        )

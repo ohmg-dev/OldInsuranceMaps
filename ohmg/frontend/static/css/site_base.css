@@ -52,8 +52,26 @@ img {
 }
 
 table {
-  border-spacing: 0;
-  width: 100%;
+  min-width: 100%;
+  border: 1px solid #ddd;
+}
+
+table caption {
+  color: #333;
+  text-align: center;
+}
+
+th,
+td {
+  padding: 4px;
+}
+
+tr:nth-child(even) {
+  background-color: #f6f6f6;
+}
+
+tr:nth-child(odd) {
+  background-color: #ffffff;
 }
 
 pre {
