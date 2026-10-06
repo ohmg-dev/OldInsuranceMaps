@@ -22102,7 +22102,6 @@ pk,name,category,direct_parents
 32100,Mount Ayr,other,2974
 32101,Beaconsfield,other,2974
 32102,Diagonal,other,2974
-32103,Carson City,other,2975
 32104,Charlestown,other,2976
 32105,Claremont,other,2976
 32106,Plainfield,other,2976
@@ -31376,3 +31375,9 @@ pk,name,category,direct_parents
 41374,San Jon,other,4142
 41375,Nara Visa,other,4142
 41376,Logan,other,4142
+41377,Aurora,other,4046
+41378,Columbia,other,4046
+41379,Gold Hill,other,2635
+41380,Palisade,other,3360
+41381,Rhyolite,other,2895
+41382,Tuscarora,other,2596
