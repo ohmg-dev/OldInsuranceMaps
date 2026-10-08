@@ -61,9 +61,15 @@ table caption {
   text-align: center;
 }
 
-th,
+th > div {
+  display: flex;
+  padding: .5em;
+}
+
 td {
-  padding: 4px;
+  white-space: nowrap;
+  padding: 2px 0.25em;
+  vertical-align: middle !important;
 }
 
 tr:nth-child(even) {
@@ -72,6 +78,20 @@ tr:nth-child(even) {
 
 tr:nth-child(odd) {
   background-color: #ffffff;
+}
+
+th.new-col, td.new-col  {
+  border-left: 1px solid gray;
+}
+
+td.num-col {
+  padding: 0;
+  width: 25px;
+  text-align: center !important;
+}
+td.ts-col {
+  font-size: .85em;
+  text-align: center !important;
 }
 
 pre {

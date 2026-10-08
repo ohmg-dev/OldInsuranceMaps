@@ -10,8 +10,11 @@
   import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
   import SessionListModal from '../shared/modals/SessionListModal.svelte';
 
+  import TableContainer from './layouts/TableContainer.svelte';
+  import TableHeader from './layouts/TableHeader.svelte';
+  import TableCell from './layouts/TableCell.svelte';
+
   import PaginationButtons from './widgets/PaginationButtons.svelte';
-  import SortableHeader from './widgets/SortableHeader.svelte';
   import FacetFilterSelect from './widgets/FacetFilterSelect.svelte';
   import LimitSelect from './widgets/LimitSelect.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';
@@ -127,175 +130,135 @@
       </div>
     </div>
   {/if}
-  <div style="height: 100%; overflow-y:auto; border:1px solid #ddd; border-radius:4px; background:white;">
-    {#if items.length > 0}
-      <table>
-        <thead>
-          <tr>
-            <th><SortableHeader title="Title" value={'title'} bind:sortDir bind:sortParam bind:offset /></th>
-            <th><SortableHeader title="Year" value={'year'} bind:sortDir bind:sortParam bind:offset /></th>
-            <th><SortableHeader title="Docs" bind:sortDir bind:sortParam value={'document_ct'} bind:offset /></th>
-            {#if showPlace}
-              <th><SortableHeader title="Place" /></th>
-            {/if}
-            <th><SortableHeader title="Loaded by" /></th>
-            <th><SortableHeader title="Date" value={'load_date'} bind:sortDir bind:sortParam bind:offset /></th>
-            <th class="nul-col new-col"
-              ><SortableHeader
-                title="U"
-                value={'unprepared_ct'}
-                alt="Number of unprepared documents"
-                bind:sortDir
-                bind:sortParam
-                bind:offset
-              /></th
+  <TableContainer bind:items bind:loading>
+    <svelte:fragment slot="header-row">
+      <TableHeader title="Title" value={'title'} bind:sortDir bind:sortParam bind:offset />
+      <TableHeader title="Year" value={'year'} bind:sortDir bind:sortParam bind:offset />
+      <TableHeader title="Docs" bind:sortDir bind:sortParam value={'document_ct'} bind:offset />
+      {#if showPlace}
+        <TableHeader title="Place" />
+      {/if}
+      <TableHeader title="Loaded by" />
+      <TableHeader title="Date" value={'load_date'} bind:sortDir bind:sortParam bind:offset />
+      <TableHeader
+          title="U"
+          value={'unprepared_ct'}
+          alt="Number of unprepared documents"
+          newCol={true}
+          bind:sortDir
+          bind:sortParam
+          bind:offset
+        />
+      <TableHeader
+          title="P"
+          value={'prepared_ct'}
+          alt="Number of prepared regions"
+          bind:sortDir
+          bind:sortParam
+          bind:offset
+        />
+      <TableHeader
+          title="G"
+          value={'layer_ct'}
+          alt="Number of georeferenced layers"
+          bind:sortDir
+          bind:sortParam
+          bind:offset
+        />
+      <TableHeader
+          title="S"
+          alt="Number of skipped pieces"
+          value={'skip_ct'}
+          bind:sortDir
+          bind:sortParam
+          bind:offset
+        />
+      <TableHeader
+          title="N"
+          alt="Number of non-map pieces"
+          value={'nonmap_ct'}
+          bind:sortDir
+          bind:sortParam
+          bind:offset
+        />
+      <TableHeader
+          title="%"
+          alt="Percent complete - G/(U+P+G)"
+          value={'completion_pct'}
+          newCol={true}
+          bind:sortDir
+          bind:sortParam
+          bind:offset
+        />
+      <TableHeader
+          title="MM"
+          alt="Main content layers included in multimask"
+          value={'multimask_rank'}
+          newCol={true}
+          bind:sortDir
+          bind:sortParam
+          bind:offset
+        />
+      <TableHeader title="GT" alt="A geotiff has been created for this map's main content" newCol={true}/>
+      <TableHeader title="XYZ" alt="An XYZ tileset has been created for this map'item main content" />
+    </svelte:fragment>
+    <svelte:fragment slot="data-row" let:item>
+      <TableCell><Link href={`/map/${item.identifier}`}>{item.title}</Link></TableCell>
+      <TableCell>{item.year}</TableCell>
+      <TableCell>{item.document_ct}</TableCell>
+      {#if showPlace}
+        <TableCell>
+          {#if item.locale}
+            <Link href={`/${item.locale.slug}`} title={`View all ${item.locale.display_name} maps`}
+              >{item.locale.display_name}</Link
             >
-            <th class="nul-col"
-              ><SortableHeader
-                title="P"
-                value={'prepared_ct'}
-                alt="Number of prepared regions"
-                bind:sortDir
-                bind:sortParam
-                bind:offset
-              /></th
-            >
-            <th class="nul-col"
-              ><SortableHeader
-                title="G"
-                value={'layer_ct'}
-                alt="Number of georeferenced layers"
-                bind:sortDir
-                bind:sortParam
-                bind:offset
-              /></th
-            >
-            <th class="nul-col"
-              ><SortableHeader
-                title="S"
-                alt="Number of skipped pieces"
-                value={'skip_ct'}
-                bind:sortDir
-                bind:sortParam
-                bind:offset
-              /></th
-            >
-            <th class="nul-col"
-              ><SortableHeader
-                title="N"
-                alt="Number of non-map pieces"
-                value={'nonmap_ct'}
-                bind:sortDir
-                bind:sortParam
-                bind:offset
-              /></th
-            >
-            <th class="nul-col"
-              ><SortableHeader
-                title="%"
-                alt="Percent complete - G/(U+P+G)"
-                value={'completion_pct'}
-                bind:sortDir
-                bind:sortParam
-                bind:offset
-              /></th
-            >
-            <th class="nul-col new-col"
-              ><SortableHeader
-                title="MM"
-                alt="Main content layers included in multimask"
-                value={'multimask_rank'}
-                bind:sortDir
-                bind:sortParam
-                bind:offset
-              /></th
-            >
-            <th class="new-col"><SortableHeader title="GT" alt="A geotiff has been created for this map's main content" /></th>
-            <th><SortableHeader title="XYZ" alt="An XYZ tileset has been created for this map's main content" /></th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each items as s}
-            <tr style="height:38px; vertical-align:center;">
-              <td><Link href={`/map/${s.identifier}`}>{s.title}</Link></td>
-              <td>{s.year}</td>
-              <td>{s.document_ct}</td>
-              {#if showPlace}
-                <td>
-                  {#if s.locale}
-                    <Link href={`/${s.locale.slug}`} title={`View all ${s.locale.display_name} maps`}
-                      >{s.locale.display_name}</Link
-                    >
-                  {:else}
-                    Error: no locale
-                  {/if}
-                </td>
-              {/if}
-              <td>
-                {#if s.loaded_by}
-                  <Link href={s.loaded_by.profile_url} title="View profile">{s.loaded_by.username}</Link>
-                {:else}
-                  --
-                {/if}
-              </td>
-              <td>
-                {#if s.load_date}
-                  {s.load_date}
-                {:else}
-                  --
-                {/if}
-              </td>
-              <td class="number-col new-col">{s.unprepared_ct}</td>
-              <td class="number-col">{s.prepared_ct}</td>
-              <td class="number-col">{s.layer_ct}</td>
-              <td class="number-col">{s.skip_ct}</td>
-              <td class="number-col">{s.nonmap_ct}</td>
-              <td class="number-col new-col"><div class="box" style="--p:{s.completion_pct};"></div></td>
-              <td class="number-col new-col">{s.multimask_ct}/{s.main_layer_ct}</td>
-              <td class="number-col new-col"
-                >{#if s.gt_exists}
-                  <span style="color:green">✓</span>
-                {:else}
-                  <span style="color:red">x</span>
-                {/if}</td
-              >
-              <td class="number-col"
-                >{#if s.xyz_tiles_exists}
-                  <span style="color:green">✓</span>
-                {:else}
-                  <span style="color:red">x</span>
-                {/if}</td
-              >
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-    {:else}
-      <div class="level">
-        <div class="level-item" style="margin:5px 0;">
-          <em>{loading ? 'loading...' : 'no results'}</em>
-        </div>
-      </div>
-    {/if}
-  </div>
+          {:else}
+            Error: no locale
+          {/if}
+        </TableCell>
+      {/if}
+      <TableCell>
+        {#if item.loaded_by}
+          <Link href={item.loaded_by.profile_url} title="View profile">{item.loaded_by.username}</Link>
+        {:else}
+          --
+        {/if}
+      </TableCell>
+      <TableCell>
+        {#if item.load_date}
+          {item.load_date}
+        {:else}
+          --
+        {/if}
+      </TableCell>
+      <TableCell numCol={true} newCol={true}>{item.unprepared_ct}</TableCell>
+      <TableCell numCol={true}>{item.prepared_ct}</TableCell>
+      <TableCell numCol={true}>{item.layer_ct}</TableCell>
+      <TableCell numCol={true}>{item.skip_ct}</TableCell>
+      <TableCell numCol={true}>{item.nonmap_ct}</TableCell>
+      <TableCell numCol={true} newCol={true}><div class="box" style="--p:{item.completion_pct};"></div></TableCell>
+      <TableCell numCol={true} newCol={true}>{item.multimask_ct}/{item.main_layer_ct}</TableCell>
+      <TableCell numCol={true} newCol={true}>
+        {#if item.gt_exists}
+          <span style="color:green">✓</span>
+        {:else}
+          <span style="color:red">x</span>
+        {/if}
+      </TableCell>
+      <TableCell numCol={true}>
+        {#if item.xyz_tiles_exists}
+          <span style="color:green">✓</span>
+        {:else}
+          <span style="color:red">x</span>
+        {/if}
+      </TableCell>
+    </svelte:fragment>
+  </TableContainer>
 </div>
 
 <style>
   .level.is-mobile > .level-left {
     flex-direction: row;
-  }
-  td {
-    white-space: nowrap;
-    padding-left: 0.5em;
-    vertical-align: middle;
-  }
-  .number-col {
-    padding: 0;
-    width: 25px;
-    text-align: center;
-  }
-  .new-col {
-    border-left: 1px solid gray;
   }
   @media screen and (max-width: 768px) {
     .filter-level,

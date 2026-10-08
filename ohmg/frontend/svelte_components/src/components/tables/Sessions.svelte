@@ -11,8 +11,11 @@
   import PaginationButtons from './widgets/PaginationButtons.svelte';
   import FacetFilterSelect from './widgets/FacetFilterSelect.svelte';
   import LimitSelect from './widgets/LimitSelect.svelte';
-  import SortableHeader from './widgets/SortableHeader.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';
+
+  import TableContainer from './layouts/TableContainer.svelte';
+  import TableHeader from './layouts/TableHeader.svelte';
+  import TableCell from './layouts/TableCell.svelte';
 
   import { getFromAPI } from '../../lib/requests';
   import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
@@ -32,7 +35,6 @@
   export let mapFilter = null;
   export let sortParam = 'id';
   export let sortDir = 'des';
-  export let tableHeight = '100%';
 
   let userFilterItems = [];
   let mapFilterItems = [];
@@ -147,134 +149,97 @@
       </div>
     </div>
   {/if}
-  <div style="height: 100%; overflow-y:auto; border:1px solid #ddd; border-radius:4px; background:white;">
-    {#if items.length > 0}
-      <div class="table-container" style={`height: ${tableHeight};`}>
-        <table>
-          <thead>
-            <tr>
-              <th><SortableHeader title="Id" value={'id'} bind:sortDir bind:sortParam bind:offset /></th>
-              <th><SortableHeader title="Type" value={'type'} bind:sortDir bind:sortParam bind:offset /></th>
-              {#if showUser}
-                <th><SortableHeader title="User" value={'user'} bind:sortDir bind:sortParam bind:offset /></th>
+  <TableContainer bind:items bind:loading>
+    <svelte:fragment slot="header-row">
+      <TableHeader title="Id" value={'id'} bind:sortDir bind:sortParam bind:offset />
+      <TableHeader title="Type" value={'type'} bind:sortDir bind:sortParam bind:offset />
+      {#if showUser}
+        <TableHeader title="User" value={'user'} bind:sortDir bind:sortParam bind:offset />
+      {/if}
+      {#if showMap}
+        <TableHeader title="Map" />
+      {/if}
+      {#if showResource}
+        <TableHeader title="Resource" alt="Document, Region, or Layer for this work" bind:toggleVar={showThumbs}/>
+      {/if}
+      <TableHeader title="Stage" value={'stage'} bind:sortDir bind:sortParam bind:offset />
+      <TableHeader title="Result" value={'note'} bind:sortDir bind:sortParam bind:offset />
+      <TableHeader title="Duration" value={'duration'} bind:sortDir bind:sortParam bind:offset />
+      <TableHeader title="Date" value={'date_created'} bind:sortDir bind:sortParam bind:offset />
+    </svelte:fragment>
+    <svelte:fragment slot="data-row" let:item>
+      <TableCell>{item.id}</TableCell>
+      <TableCell>
+        {#if item.type === 'p'}
+          <span title="Preparation">Prep</span>
+        {:else if item.type === 'g'}
+          <span title="Georeference">Georef</span>
+        {:else if item.type === 't'}
+          <span title="Trim">Trim</span>
+        {/if}
+      </TableCell>
+      {#if showUser}
+        <TableCell>
+          <Link href={item.user.profile_url} title="View profile">{item.user.username}</Link>
+        </TableCell>
+      {/if}
+      {#if showMap}
+        <TableCell>
+          {#if item.map}
+            <Link href={`/map/${item.map.identifier}`} title={item.map.title}>{item.map.title}</Link>
+          {:else}
+            Error: no map
+          {/if}
+        </TableCell>
+      {/if}
+      {#if showResource}
+        <TableCell>
+          {#if item.type === 'p'}
+            {#if item.doc2}
+              {#if showThumbs}
+                <div class="thumb-container">
+                  <img src={item.doc2.urls.thumbnail} alt={item.doc2.nickname} />
+                </div>
               {/if}
-              {#if showMap}
-                <th><SortableHeader title="Map" /></th>
+              <Link href={item.doc2.urls.resource} title={item.doc2.nickname}>
+                {item.doc2.nickname}
+              </Link>
+            {:else}
+              Error: no document
+            {/if}
+          {:else if item.type === 'g' || item.type === 't'}
+            {#if item.lyr2}
+              {#if showThumbs}
+                <div class="thumb-container">
+                  <img src={item.lyr2.urls.thumbnail} alt={item.reg2.nickname} />
+                </div>
               {/if}
-              {#if showResource}
-                <th><SortableHeader title="Resource" alt="Document, Region, or Layer for this work" bind:toggleVar={showThumbs}/></th>
-              {/if}
-              <th><SortableHeader title="Stage" value={'stage'} bind:sortDir bind:sortParam bind:offset /></th>
-              <th><SortableHeader title="Result" value={'note'} bind:sortDir bind:sortParam bind:offset /></th>
-              <th><SortableHeader title="Duration" value={'duration'} bind:sortDir bind:sortParam bind:offset /></th>
-              <th><SortableHeader title="Date" value={'date_created'} bind:sortDir bind:sortParam bind:offset /></th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each items as s}
-              <tr style="height:38px; vertical-align:center;">
-                <td>{s.id}</td>
-                <td>
-                  {#if s.type === 'p'}
-                    <span title="Preparation">Prep</span>
-                  {:else if s.type === 'g'}
-                    <span title="Georeference">Georef</span>
-                  {:else if s.type === 't'}
-                    <span title="Trim">Trim</span>
-                  {/if}
-                </td>
-                {#if showUser}
-                  <td>
-                    <Link href={s.user.profile_url} title="View profile">{s.user.username}</Link>
-                  </td>
-                {/if}
-                {#if showMap}
-                  <td>
-                    {#if s.map}
-                      <Link href={`/map/${s.map.identifier}`} title={s.map.title}>{s.map.title}</Link>
-                    {:else}
-                      Error: no map
-                    {/if}
-                  </td>
-                {/if}
-                {#if showResource}
-                  <td>
-                    {#if s.type === 'p'}
-                      {#if s.doc2}
-                        {#if showThumbs}
-                          <div class="thumb-container">
-                            <img src={s.doc2.urls.thumbnail} alt={s.doc2.nickname} />
-                          </div>
-                        {/if}
-                        <Link href={s.doc2.urls.resource} title={s.doc2.nickname}>
-                          {s.doc2.nickname}
-                        </Link>
-                      {:else}
-                        Error: no document
-                      {/if}
-                    {:else if s.type === 'g' || s.type === 't'}
-                      {#if s.lyr2}
-                        {#if showThumbs}
-                          <div class="thumb-container">
-                            <img src={s.lyr2.urls.thumbnail} alt={s.reg2.nickname} />
-                          </div>
-                        {/if}
-                        <Link href={s.lyr2.urls.resource} title={s.lyr2.nickname}>
-                          {s.lyr2.nickname}
-                        </Link>
-                      {:else}
-                        Error: no layer
-                      {/if}
-                    {/if}
-                  </td>
-                {/if}
-                <td>{s.stage}</td>
-                <td>{s.note}</td>
-                <td title={`${s.duration.seconds} seconds`}>
-                  {#if s.duration}
-                    {s.duration.humanized}
-                  {:else}
-                    Error: not recorded
-                  {/if}
-                </td>
-                <td title={s.date_created.date}>{s.date_created.relative}</td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    {:else}
-      <div class="level">
-        <div class="level-item" style="margin:5px 0;">
-          <em>{loading ? 'loading...' : 'no results'}</em>
-        </div>
-      </div>
-    {/if}
-  </div>
+              <Link href={item.lyr2.urls.resource} title={item.lyr2.nickname}>
+                {item.lyr2.nickname}
+              </Link>
+            {:else}
+              Error: no layer
+            {/if}
+          {/if}
+        </TableCell>
+      {/if}
+      <TableCell>{item.stage}</TableCell>
+      <TableCell>{item.note}</TableCell>
+      <TableCell title={`${item.duration.seconds} seconds`}>
+        {#if item.duration}
+          {item.duration.humanized}
+        {:else}
+          Error: not recorded
+        {/if}
+      </TableCell>
+      <TableCell title={item.date_created.date}>{item.date_created.relative}</TableCell>
+    </svelte:fragment>
+  </TableContainer>
 </div>
 
 <style>
   .level.is-mobile > .level-left {
     flex-direction: row;
-  }
-  table {
-    text-align: left;
-    position: relative;
-  }
-  th {
-    position: sticky;
-    top: 0;
-  }
-  th > * {
-    display: flex;
-  }
-  td {
-    white-space: nowrap;
-    padding: 2px 0.25em;
-    vertical-align: middle;
-  }
-  .table-container {
-    overflow-y: auto;
   }
   .thumb-container {
     width: 65px;
