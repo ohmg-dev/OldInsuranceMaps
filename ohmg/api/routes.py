@@ -3,6 +3,7 @@ from typing import List
 
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
+from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db.models import F, Q
 from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI, Query
@@ -321,6 +322,18 @@ def list_layers(request, filters: FilterLayerSchema = Query(...)):
         queryset = queryset.order_by("-pk").select_related("region")
 
     queryset = filters.filter(queryset)
+
+    search_param = request.GET.get("search", "")
+    search_field = request.GET.get("field", "title").split(",")
+    if search_param:
+        vector = SearchVector(*search_field)
+        if "*" in search_param:
+            search_param = search_param.replace("*", ":*")
+            query = SearchQuery(search_param, search_type="raw")
+        else:
+            query = SearchQuery(search_param, search_type="websearch")
+        queryset = queryset.annotate(search=vector).filter(search=query)
+
     return queryset
 
 

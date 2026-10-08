@@ -17,6 +17,7 @@
 
   import { getFromAPI } from '../../lib/requests';
   import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
+    import SearchBox from './widgets/SearchBox.svelte';
 
   export let CONTEXT;
   export let limit = '25';
@@ -30,7 +31,9 @@
   export let mapFilter = null;
   export let sortParam = 'id';
   export let sortDir = 'des';
-  export let showFilters = true;
+  export let showFilters = false;
+  export let searchTerm = null;
+  export let searchField = "title";
 
   let userFilterItems = [];
   let mapFilterItems = [];
@@ -68,8 +71,10 @@
     if (sortParam) {
       fetchUrl += `&sortby=${sortParam}&sort=${sortDir}`;
     }
+    if (searchTerm) {
+      fetchUrl += `&search=${searchTerm}&field=${searchField}`
+    }
     getFromAPI(fetchUrl, CONTEXT.ohmg_api_headers, (result) => {
-      console.log(result)
       items = result.items;
       total = result.count;
       userFilterItems = result.filter_items.users;
@@ -81,32 +86,44 @@
   }
 </script>
 
-<SessionListModal id={'modal-session-list'} />
 <div>
   <div class="level is-mobile" style="margin:.5em 0;">
     <div class="level-left">
-      <InfoModalButton modalId="modal-session-list" />
-      <button
-        class="is-icon-link"
-        title={showFilters ? 'Hide filters' : 'Show filters'}
-        on:click={() => {
-          showFilters = !showFilters;
-        }}
-        ><Faders size={'1em'} />
-      </button>
-      {#if allowRefresh}
-        <RefreshButton
-          onClick={() => {
-            offset = 1000;
-            offset = 0;
+      <div class="level-item">
+        <SearchBox bind:searchTerm />
+      </div>
+      <div class="level-item">
+        <button
+          class={`button is-link ${showFilters ? '' : 'is-light'}`}
+          title={showFilters ? 'Hide filters' : 'Show filters'}
+          on:click={() => {
+            showFilters = !showFilters;
           }}
-          bind:loading
-        />
-      {/if}
+          >
+          <span style="margin-right: .25em;">
+            {showFilters ? 'Filters' : 'Filters'}
+          </span>
+          <Faders />
+        </button>
+      </div>
+      <!-- <div class="level-item">
+        <Link href="https://docs.oldinsurancemaps.net/" external={true}>how to search</Link>
+      </div> -->
     </div>
     <div class="level-right">
       <div class="level-item">
         <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit />
+      </div>
+      <div class="level-item">
+        {#if allowRefresh}
+          <RefreshButton
+            onClick={() => {
+              offset = 1000;
+              offset = 0;
+            }}
+            bind:loading
+          />
+        {/if}
       </div>
     </div>
   </div>

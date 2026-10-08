@@ -500,7 +500,7 @@
       </div>
       <Sessions {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false} paginate={true} limit="50" />
       {:else if detailsSectionActiveTab == "layers"}
-        <Layers {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false}/>
+        <Layers {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false} searchField={"nickname"}/>
       {/if}
     </TabbedSection>
   </ExpandableSection>

@@ -5,7 +5,7 @@
 
 {% block main_content %}
 
-{% include '_titlebar.html' with title="Layers" subtitle="see also: <a href='/maps'>maps</a>, <a href='/documents'>documents</a>, <a href='/regions'>regions</a>, <a href='/layersets'>layersets</a>, and <a href='/united-states'>locales</a>" lead_icon="layer" %}
+{% include '_titlebar.html' with title="Layers" subtitle="see also: <a href='/maps'>maps</a>, <a href='/united-states'>places</a>" lead_icon="layer" %}
 
 {{ LAYERS_PARAMS|json_script:'layers-props'}}
 {% include '_svelte_component.html' with component_name='Layers' %}
