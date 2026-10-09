@@ -13,6 +13,7 @@
   import TableContainer from './layouts/TableContainer.svelte';
   import TableHeader from './layouts/TableHeader.svelte';
   import TableCell from './layouts/TableCell.svelte';
+  import FilterRow from './layouts/FilterRow.svelte';
 
   import PaginationButtons from './widgets/PaginationButtons.svelte';
   import FacetFilterSelect from './widgets/FacetFilterSelect.svelte';
@@ -22,7 +23,6 @@
   export let CONTEXT;
   export let limit = '50';
   export let paginate = true;
-  export let allowRefresh = true;
   export let showUsers = true;
   export let userFilter = null;
   export let showPlace = true;
@@ -87,15 +87,13 @@
         }}
         ><Faders size={'1em'} />
       </button>
-      {#if allowRefresh}
-        <RefreshButton
-          onClick={() => {
-            offset = 1000;
-            offset = 0;
-          }}
-          bind:loading
-        />
-      {/if}
+      <RefreshButton
+        onClick={() => {
+          offset = 1000;
+          offset = 0;
+        }}
+        bind:loading
+      />
     </div>
     <div class="level-right">
       {#if paginate}
@@ -105,31 +103,24 @@
       {/if}
     </div>
   </div>
-  {#if showFilters}
-    <div transition:slide class="level" style="margin:.5em 0;">
-      <div class="filter-level level-left">
-        {#if showPlace}
-          <FacetFilterSelect
-            items={placeFilterItems}
-            bind:value={placeFilter}
-            placeholder="Filter by place..."
-            bind:offset
-          />
-        {/if}
-        {#if showUsers}
-          <FacetFilterSelect
-            items={userFilterItems}
-            bind:value={userFilter}
-            placeholder="Filter by user..."
-            bind:offset
-          />
-        {/if}
-      </div>
-      <div class="filter-level level-right">
-        <LimitSelect bind:value={currentLimit} />
-      </div>
-    </div>
-  {/if}
+  <FilterRow {showFilters} bind:currentLimit>
+    {#if showPlace}
+      <FacetFilterSelect
+        items={placeFilterItems}
+        bind:value={placeFilter}
+        placeholder="Filter by place..."
+        bind:offset
+      />
+    {/if}
+    {#if showUsers}
+      <FacetFilterSelect
+        items={userFilterItems}
+        bind:value={userFilter}
+        placeholder="Filter by user..."
+        bind:offset
+      />
+    {/if}
+  </FilterRow>
   <TableContainer bind:items bind:loading>
     <svelte:fragment slot="header-row">
       <TableHeader title="Title" value={'title'} bind:sortDir bind:sortParam bind:offset />

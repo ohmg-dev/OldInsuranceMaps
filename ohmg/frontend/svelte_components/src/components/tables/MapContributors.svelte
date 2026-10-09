@@ -4,14 +4,14 @@
   import Link from '../base/Link.svelte';
   import SessionListModal from '../shared/modals/SessionListModal.svelte';
 
-  import TableHeader from './layouts/TableHeader.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';
+
   import TableContainer from './layouts/TableContainer.svelte';
+  import TableHeader from './layouts/TableHeader.svelte';
   import TableCell from './layouts/TableCell.svelte';
 
   export let CONTEXT;
   export let mapId;
-  export let allowRefresh = true;
   export let sortParam = 'username';
   export let sortDir = 'asc';
 
@@ -39,16 +39,14 @@
 <div>
   <div class="level is-mobile" style="margin:.5em 0;">
     <div class="level-left">
-      {#if allowRefresh}
-        <RefreshButton
-          onClick={() => {
-            const oldSort = sortParam;
-            sortParam = null;
-            sortParam = oldSort;
-          }}
-          bind:loading
-        />
-      {/if}
+      <RefreshButton
+        onClick={() => {
+          const oldSort = sortParam;
+          sortParam = null;
+          sortParam = oldSort;
+        }}
+        bind:loading
+      />
     </div>
     <div class="level-right"></div>
   </div>

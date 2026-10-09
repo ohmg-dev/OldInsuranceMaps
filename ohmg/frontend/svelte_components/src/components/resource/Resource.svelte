@@ -283,7 +283,6 @@
           sortParam="date_created"
           showResource={false}
           showMap={false}
-          allowRefresh={false}
         />
       </div>
     {/if}

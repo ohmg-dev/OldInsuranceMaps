@@ -1,8 +1,4 @@
 <script>
-  import { slide } from 'svelte/transition';
-
-  import Faders from 'phosphor-svelte/lib/Faders';
-
   import Link from '../base/Link.svelte';
   import SessionListModal from '../shared/modals/SessionListModal.svelte';
 
@@ -10,7 +6,6 @@
 
   import { getFromAPI } from '../../lib/requests';
   import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
-  import LimitSelect from './widgets/LimitSelect.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';
 
   import TableContainer from './layouts/TableContainer.svelte';
@@ -20,7 +15,6 @@
   export let CONTEXT;
   export let limit = '50';
   export let paginate = true;
-  export let allowRefresh = true;
   export let sortParam = 'username';
   export let sortDir = 'asc';
 
@@ -50,7 +44,6 @@
     });
   }
 
-  let showFilters = false;
 </script>
 
 <SessionListModal id={'modal-session-list'} />
@@ -58,23 +51,13 @@
   <div class="level is-mobile" style="margin:.5em 0;">
     <div class="level-left">
       <InfoModalButton modalId="modal-session-list" />
-      <button
-        class="is-icon-link"
-        title={showFilters ? 'Hide filters' : 'Show filters'}
-        on:click={() => {
-          showFilters = !showFilters;
+      <RefreshButton
+        onClick={() => {
+          offset = 1000;
+          offset = 0;
         }}
-        ><Faders size={'1em'} />
-      </button>
-      {#if allowRefresh}
-        <RefreshButton
-          onClick={() => {
-            offset = 1000;
-            offset = 0;
-          }}
-          bind:loading
-        />
-      {/if}
+        bind:loading
+      />
     </div>
     <div class="level-right">
       {#if paginate}
@@ -84,13 +67,6 @@
       {/if}
     </div>
   </div>
-  {#if showFilters}
-    <div transition:slide class="level" style="margin:.5em 0;">
-      <div class="filter-level level-right">
-        <LimitSelect bind:value={currentLimit} />
-      </div>
-    </div>
-  {/if}
   <TableContainer bind:items bind:loading>
     <svelte:fragment slot="header-row">
       <TableHeader title="Username" bind:sortDir bind:sortParam bind:offset value={'username'} />

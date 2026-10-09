@@ -21,11 +21,11 @@
   import TableHeader from './layouts/TableHeader.svelte';
   import TableContainer from './layouts/TableContainer.svelte';
   import TableCell from './layouts/TableCell.svelte';
+  import FilterRow from './layouts/FilterRow.svelte';
 
   export let CONTEXT;
   export let limit = '10';
   export let paginate = true;
-  export let allowRefresh = true;
   export let operationFilter = null;
   export let stageFilter = null;
 
@@ -158,12 +158,10 @@
         }}
         ><Faders size={'1em'} />
       </button>
-      {#if allowRefresh}
-        <RefreshButton
-          onClick={triggerRefresh}
-          bind:loading
-        />
-      {/if}
+      <RefreshButton
+        onClick={triggerRefresh}
+        bind:loading
+      />
     </div>
     <div class="level-right">
       {#if paginate}
@@ -173,17 +171,10 @@
       {/if}
     </div>
   </div>
-  {#if showFilters}
-    <div transition:slide class="level" style="margin:.5em 0;">
-      <div id="" class="filter-level level-left">
-        <FacetFilterSelect items={operationFilterItems} bind:value={operationFilter} placeholder="Filter by operation..." />
-        <FacetFilterSelect items={stageFilterItems} bind:value={stageFilter} placeholder="Filter by stage..." />
-      </div>
-      <div class="filter-level level-right">
-        <LimitSelect bind:value={currentLimit} />
-      </div>
-    </div>
-  {/if}
+  <FilterRow {showFilters} bind:currentLimit >
+    <FacetFilterSelect items={operationFilterItems} bind:value={operationFilter} placeholder="Filter by operation..." />
+    <FacetFilterSelect items={stageFilterItems} bind:value={stageFilter} placeholder="Filter by stage..." />
+  </FilterRow>
   <TableContainer bind:items bind:loading>
     <svelte:fragment slot="header-row">
       <TableHeader title="Id" />

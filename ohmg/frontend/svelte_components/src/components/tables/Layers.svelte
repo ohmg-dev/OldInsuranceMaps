@@ -11,6 +11,7 @@
   import LimitSelect from './widgets/LimitSelect.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';
 
+  import FilterRow from './layouts/FilterRow.svelte';
   import TableContainer from './layouts/TableContainer.svelte';
   import TableHeader from './layouts/TableHeader.svelte';
   import TableCell from './layouts/TableCell.svelte';
@@ -26,7 +27,6 @@
   export let showCategory = true;
   export let categoryFilter = null;
   export let transformationFilter = null;
-  export let allowRefresh = true;
   export let showMap = true;
   export let mapFilter = null;
   export let sortParam = 'id';
@@ -34,6 +34,9 @@
   export let showFilters = false;
   export let searchTerm = null;
   export let searchField = "title";
+
+  export let includeSearch = true;
+  export let includeFilters = true;
 
   let userFilterItems = [];
   let mapFilterItems = [];
@@ -89,9 +92,12 @@
 <div>
   <div class="level is-mobile" style="margin:.5em 0;">
     <div class="level-left">
+      {#if includeSearch}
       <div class="level-item">
         <SearchBox bind:searchTerm />
       </div>
+      {/if}
+      {#if includeFilters}
       <div class="level-item">
         <button
           class={`button is-link ${showFilters ? '' : 'is-light'}`}
@@ -106,45 +112,36 @@
           <Faders />
         </button>
       </div>
-      <!-- <div class="level-item">
-        <Link href="https://docs.oldinsurancemaps.net/" external={true}>how to search</Link>
-      </div> -->
+      {/if}
     </div>
     <div class="level-right">
       <div class="level-item">
         <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit />
       </div>
       <div class="level-item">
-        {#if allowRefresh}
-          <RefreshButton
-            onClick={() => {
-              offset = 1000;
-              offset = 0;
-            }}
-            bind:loading
-          />
-        {/if}
+        <RefreshButton
+          onClick={() => {
+            offset = 1000;
+            offset = 0;
+          }}
+          bind:loading
+        />
       </div>
     </div>
   </div>
-  {#if showFilters}
-    <div transition:slide class="level" style="margin:.5em 0;">
-      <div class="filter-level level-left">
-        {#if showMap}
-          <FacetFilterSelect items={mapFilterItems} bind:value={mapFilter} placeholder="Filter by map..." />
-        {/if}
-        {#if showUser}
-          <FacetFilterSelect items={userFilterItems} bind:value={userFilter} placeholder="Filter by user..." />
-        {/if}
-        {#if showCategory}
-          <FacetFilterSelect items={categoryFilterItems} bind:value={categoryFilter} placeholder="Filter by category..." />
-        {/if}
-        <FacetFilterSelect items={transformationFilterItems} bind:value={transformationFilter} placeholder="Filter by transformation..." />
-      </div>
-      <div class="filter-level level-right">
-        <LimitSelect bind:value={currentLimit} />
-      </div>
-    </div>
+  {#if includeFilters}
+  <FilterRow {showFilters} bind:currentLimit>
+    {#if showMap}
+      <FacetFilterSelect items={mapFilterItems} bind:value={mapFilter} placeholder="Filter by map..." />
+    {/if}
+    {#if showUser}
+      <FacetFilterSelect items={userFilterItems} bind:value={userFilter} placeholder="Filter by user..." />
+    {/if}
+    {#if showCategory}
+      <FacetFilterSelect items={categoryFilterItems} bind:value={categoryFilter} placeholder="Filter by category..." />
+    {/if}
+    <FacetFilterSelect items={transformationFilterItems} bind:value={transformationFilter} placeholder="Filter by transformation..." />
+  </FilterRow>
   {/if}
   <TableContainer bind:items bind:loading>
     <svelte:fragment slot="header-row">

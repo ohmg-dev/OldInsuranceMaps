@@ -1,5 +1,4 @@
 <script>
-  import { slide } from 'svelte/transition';
   import { format } from 'date-fns';
 
   import Faders from 'phosphor-svelte/lib/Faders';
@@ -10,9 +9,9 @@
   import DatePicker from './widgets/DatePicker.svelte';
   import PaginationButtons from './widgets/PaginationButtons.svelte';
   import FacetFilterSelect from './widgets/FacetFilterSelect.svelte';
-  import LimitSelect from './widgets/LimitSelect.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';
 
+  import FilterRow from './layouts/FilterRow.svelte';
   import TableContainer from './layouts/TableContainer.svelte';
   import TableHeader from './layouts/TableHeader.svelte';
   import TableCell from './layouts/TableCell.svelte';
@@ -28,13 +27,14 @@
   export let userFilter = null;
   export let showResource = true;
   export let paginate = true;
-  export let allowRefresh = true;
   export let showTypeFilter = true;
   export let typeFilter = null;
   export let showMap = true;
   export let mapFilter = null;
   export let sortParam = 'id';
   export let sortDir = 'des';
+
+  export let includeFilters = true;
 
   let userFilterItems = [];
   let mapFilterItems = [];
@@ -104,6 +104,7 @@
   <div class="level is-mobile" style="margin:.5em 0;">
     <div class="level-left">
       <InfoModalButton modalId="modal-session-list" />
+      {#if includeFilters}
       <button
         class="is-icon-link"
         title={showFilters ? 'Hide filters' : 'Show filters'}
@@ -112,15 +113,14 @@
         }}
         ><Faders size={'1em'} />
       </button>
-      {#if allowRefresh}
-        <RefreshButton
-          onClick={() => {
-            offset = 1000;
-            offset = 0;
-          }}
-          bind:loading
-        />
       {/if}
+      <RefreshButton
+        onClick={() => {
+          offset = 1000;
+          offset = 0;
+        }}
+        bind:loading
+      />
     </div>
     <div class="level-right">
       {#if paginate}
@@ -130,24 +130,19 @@
       {/if}
     </div>
   </div>
-  {#if showFilters}
-    <div transition:slide class="level" style="margin:.5em 0;">
-      <div id="" class="filter-level level-left">
-        {#if showTypeFilter}
-          <FacetFilterSelect items={typeFilterItems} bind:value={typeFilter} placeholder="Filter by type..." />
-        {/if}
-        {#if showUser}
-          <FacetFilterSelect items={userFilterItems} bind:value={userFilter} placeholder="Filter by user..." />
-        {/if}
-        {#if showMap}
-          <FacetFilterSelect items={mapFilterItems} bind:value={mapFilter} placeholder="Filter by map..." />
-        {/if}
-        <DatePicker bind:startDate bind:endDate />
-      </div>
-      <div class="filter-level level-right">
-        <LimitSelect bind:value={currentLimit} />
-      </div>
-    </div>
+  {#if includeFilters}
+    <FilterRow {showFilters} bind:currentLimit>
+      {#if showTypeFilter}
+        <FacetFilterSelect items={typeFilterItems} bind:value={typeFilter} placeholder="Filter by type..." />
+      {/if}
+      {#if showUser}
+        <FacetFilterSelect items={userFilterItems} bind:value={userFilter} placeholder="Filter by user..." />
+      {/if}
+      {#if showMap}
+        <FacetFilterSelect items={mapFilterItems} bind:value={mapFilter} placeholder="Filter by map..." />
+      {/if}
+      <DatePicker bind:startDate bind:endDate />
+    </FilterRow>
   {/if}
   <TableContainer bind:items bind:loading>
     <svelte:fragment slot="header-row">
