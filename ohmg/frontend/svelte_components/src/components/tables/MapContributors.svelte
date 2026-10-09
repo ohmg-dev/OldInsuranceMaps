@@ -36,9 +36,11 @@
 </script>
 
 <SessionListModal id={'modal-session-list'} />
-<div>
+<section class="table-section">
   <div class="level is-mobile" style="margin:.5em 0;">
     <div class="level-left">
+    </div>
+    <div class="level-right">
       <RefreshButton
         onClick={() => {
           const oldSort = sortParam;
@@ -48,7 +50,6 @@
         bind:loading
       />
     </div>
-    <div class="level-right"></div>
   </div>
   <TableContainer bind:items bind:loading>
     <svelte:fragment slot="header-row">
@@ -86,7 +87,7 @@
       <TableCell numCol={true}>{item.gcp_ct}</TableCell>
     </svelte:fragment>
   </TableContainer>
-</div>
+</section>
 
 <style>
   .level.is-mobile > .level-left {

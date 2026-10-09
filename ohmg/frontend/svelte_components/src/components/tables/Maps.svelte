@@ -1,14 +1,7 @@
 <script>
-  import { slide } from 'svelte/transition';
-
-  import Faders from 'phosphor-svelte/lib/Faders';
-
   import { getFromAPI } from '../../lib/requests';
 
   import Link from '../base/Link.svelte';
-
-  import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
-  import SessionListModal from '../shared/modals/SessionListModal.svelte';
 
   import TableContainer from './layouts/TableContainer.svelte';
   import TableHeader from './layouts/TableHeader.svelte';
@@ -17,11 +10,12 @@
 
   import PaginationButtons from './widgets/PaginationButtons.svelte';
   import FacetFilterSelect from './widgets/FacetFilterSelect.svelte';
-  import LimitSelect from './widgets/LimitSelect.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';
+  import ShowFiltersButton from './widgets/ShowFiltersButton.svelte';
+  import SearchBox from './widgets/SearchBox.svelte';
 
   export let CONTEXT;
-  export let limit = '50';
+  export let limit = '25';
   export let paginate = true;
   export let showUsers = true;
   export let userFilter = null;
@@ -30,6 +24,10 @@
   export let placeInclusive = false;
   export let sortParam = 'title';
   export let sortDir = 'asc';
+  export let searchTerm = null;
+  export let includeSearch = true;
+  export let includeFilters = true;
+  export let useTitle = null;
 
   let placeFilterItems = [];
   let userFilterItems = [];
@@ -62,6 +60,9 @@
     if (sortParam) {
       fetchUrl += `&sortby=${sortParam}&sort=${sortDir}`;
     }
+    if (searchTerm) {
+      fetchUrl += `&search=${searchTerm}`;
+    }
     getFromAPI(fetchUrl, CONTEXT.ohmg_api_headers, (result) => {
       items = result.items;
       total = result.count;
@@ -74,19 +75,19 @@
   let showFilters = false;
 </script>
 
-<SessionListModal id={'modal-session-list'} />
-<div>
-  <div class="level is-mobile" style="margin:.5em 0;">
-    <div class="level-left">
-      <InfoModalButton modalId="modal-session-list" />
-      <button
-        class="is-icon-link"
-        title={showFilters ? 'Hide filters' : 'Show filters'}
-        on:click={() => {
-          showFilters = !showFilters;
-        }}
-        ><Faders size={'1em'} />
-      </button>
+<section class="table-section">
+  <div class="top-row">
+    <div class="top-row-left">
+      {#if useTitle}
+        <h4 style="margin: .2em 0;">{useTitle}</h4>
+      {/if}
+      {#if includeSearch}
+      <SearchBox bind:searchTerm />
+      {/if}
+      {#if includeFilters}
+      <ShowFiltersButton bind:showFilters />
+      {/if}
+      {#if CONTEXT.on_mobile}
       <RefreshButton
         onClick={() => {
           offset = 1000;
@@ -94,12 +95,20 @@
         }}
         bind:loading
       />
+      {/if}
     </div>
-    <div class="level-right">
+    <div class="top-row-right">
       {#if paginate}
-        <div class="level-item">
-          <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit />
-        </div>
+        <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit />
+      {/if}
+      {#if !CONTEXT.on_mobile}
+      <RefreshButton
+        onClick={() => {
+          offset = 1000;
+          offset = 0;
+        }}
+        bind:loading
+      />
       {/if}
     </div>
   </div>
@@ -108,7 +117,7 @@
       <FacetFilterSelect
         items={placeFilterItems}
         bind:value={placeFilter}
-        placeholder="Filter by place..."
+        placeholder="Set place..."
         bind:offset
       />
     {/if}
@@ -116,7 +125,7 @@
       <FacetFilterSelect
         items={userFilterItems}
         bind:value={userFilter}
-        placeholder="Filter by user..."
+        placeholder="Set user..."
         bind:offset
       />
     {/if}
@@ -245,21 +254,36 @@
       </TableCell>
     </svelte:fragment>
   </TableContainer>
-</div>
+</section>
 
 <style>
-  .level.is-mobile > .level-left {
+
+  .top-row {
+    display: flex;
     flex-direction: row;
+    justify-content: space-between;
+    margin:.5em 0;
   }
-  @media screen and (max-width: 768px) {
-    .filter-level,
-    :global(.filter-input),
-    :global(.date-filter),
-    :global(button.date-field) {
-      min-width: 100% !important;
-    }
+  .top-row-left {
+    display: flex;
+    gap: .5em;
+    align-items: center;
+  }
+  .top-row-right {
+    display: flex;
+    align-items: center;
+    gap: .25em;
   }
 
+  @media screen and (max-width: 768px) {
+    .top-row {
+      flex-direction: column;
+      gap: .5em;
+    }
+    .top-row-right {
+      justify-content: center;
+    }
+  }
   /* Credit to this SO answer: https://stackoverflow.com/a/52205730/3873885 */
   /* Could be revisited with other portion of that answer to add animation */
   .box {

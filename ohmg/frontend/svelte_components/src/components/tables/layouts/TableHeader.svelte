@@ -19,7 +19,7 @@
 
 <th class={`${newCol ? "new-col" : ""}`}>
   <div>
-    <span style="margin-top:.25em;">{title}</span>
+    <span style="margin-top:.25em; text-wrap: nowrap;">{title}</span>
     {#if sortParam}
       <button
         title={popup}

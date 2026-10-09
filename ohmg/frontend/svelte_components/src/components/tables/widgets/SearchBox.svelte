@@ -2,6 +2,7 @@
   import X from 'phosphor-svelte/lib/X';
 
   export let searchTerm;
+  export let placeholder = "Search..."
 
   let timer;
 
@@ -23,9 +24,9 @@
 </script>
 
 <div class="wrapper">
-  <input id="search-input" type="text" placeholder="Search (full words)..." on:input={handleInput} />
+  <input id="search-input" type="text" {placeholder} on:input={handleInput} />
   {#if searchTerm}
-  <button on:click={handleClear}><X/></button>
+  <button on:click={handleClear}><X weight={'bold'}/></button>
   {/if}
 </div>
 

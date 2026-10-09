@@ -37,7 +37,7 @@
         {#if startDate}
           {formattedStartDate} - {formattedEndDate}
         {:else}
-          Filter by date range...
+          Set date range...
         {/if}
         {#if startDate}
           <button title="Close date picker" on:click={onClearDates}>
@@ -60,6 +60,7 @@
     padding: 8px 16px;
     border-radius: 5px;
     border: solid rgb(197, 208, 219) 0.5px;
+    text-wrap: nowrap;
   }
 
   .date-field.open {
@@ -69,5 +70,10 @@
   .date {
     font-size: 16px;
     color: rgb(126, 137, 148);
+  }
+
+  :global(.calendars-container) {
+    left: unset !important;
+    right: 0 !important;
   }
 </style>
