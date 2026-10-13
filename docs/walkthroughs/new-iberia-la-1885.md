@@ -2,13 +2,13 @@
 
 This walkthrough illustrates the georeferencing and mosaicking process from start to finish for a single Sanborn map edition. It should be helpful not only as a point of reference while doing this work yourself, but also as a general (though not comprehensive) demonstration of the platform's capabilities.
 
-The map for this walkthrough, [New Iberia, La., 1885](https://www.loc.gov/item/sanborn03375_001/), is a Sanborn map with only 3 sheets, but it should be pretty easy to imagine how this process would scale to 50 or 100 sheets.
+The map for this walkthrough, [New Iberia, La., 1885](https://www.loc.gov/item/sanborn03375_001/), is a fire insurance map with only 3 sheets, but it should be pretty easy to imagine how this process would scale to 50 or 100 sheets.
 
 As a reminder, the main source of content in _OldInsuranceMaps.net_ is the digital [Sanborn Maps collection](https://www.loc.gov/collections/sanborn-maps/) at the Library of Congress, in which this map of New Iberia looks like this:
 
 ![LOC item for New Iberia, La. 1885](../images/tutorial-new-iberia-loc-gallery.png)
 
-Through the process shown below, these pages will be georeferenced and stitched together, creating a seamless mosaic. This mosaic can be downloaded as a GeoTIFF or, via XYZ or WMS web services, used in web applications or desktop GIS software.
+Through the process shown below, these pages will be georeferenced and stitched together, creating a seamless mosaic. This mosaic can be downloaded as a GeoTIFF or, used directly in web applications via XYZ or WMS web services.
 
 ## Overview
 
@@ -17,10 +17,11 @@ Broadly speaking, here is the recommended approach:
 1. [Find the map in the system](#find-the-map)
 1. [Load the documents](#load-the-documents)
 1. [Prepare the documents](#prepare-the-documents)
-2. [Georeference and classify the "key map"](#georeference-and-classify-the-key-map)
-4. [Georeference all other layers](#georeference-the-remaining-content)
-5. [Trim all the layers in the "MultiMask"](#trim-the-layers)
-6. [Make the final mosaic](#make-the-mosaic)
+1. [Georeference and classify the "key map"](#georeference-and-classify-the-key-map)
+1. [Georeference the remaining content](#georeference-the-remaining-content)
+1. [Trim layers in the "MultiMask"](#trim-the-layers)
+1. [Skipping small pieces and non-map content](#skipping-small-pieces-and-non-map-content)
+1. [Make the final mosaic](#make-the-mosaic)
 
 Keep in mind: All of the steps within this workflow are very modular, and can be carried out by one person in one sitting, or by many people over the course of multiple days (or weeks or months!).
 
@@ -43,11 +44,7 @@ While this action is better covered in the [finding maps](../guides/finding-maps
     - `https://oldinsurancemaps.net/<city/town name, state postal code>`
     - Example: [oldinsurancemaps.net/new-iberia-la](https://oldinsurancemaps.net/new-iberia-la)
 
-In this case we head to [oldinsurancemaps.net/new-iberia-la](https://oldinsurancemaps.net/new-iberia-la). Ypou just check the **show all** box to display maps that are in the system but have not yet been started.
-
-![listing maps of New Iberia](../images/tutorial-new-iberia-locale.png)
-
-Clicking the map title will navigate to the overview page for this map. It's a good idea to bookmark this page, as it is the central place from which all the work on this map will take place.
+In this case we head to [oldinsurancemaps.net/new-iberia-la](https://oldinsurancemaps.net/new-iberia-la). Clicking the map title will navigate to the overview page for this map. It's a good idea to bookmark this page, as it is the central place from which all the work on this map will take place.
 
 ![Before the documents are loaded for a map, it will be empty like this](../images/tutorial-new-iberia-empty-summary.png)
 
@@ -153,18 +150,38 @@ This is especially helpful on very large volumes, because it makes it much easie
 
 ### Other georeferenced content as reference layers
 
-_todo: add this section with the next couple of sheets_
+As you work your way through georeferencing the content, it can be helpful to take into account some of the completed layers when figuring out where your current one lines up. To do this, use the **Reference** dropdown, or the keyboard shortcut "r", to set the reference layer to **Main Content**.
 
-### Very small and difficult pieces
+## Skipping small pieces and non-map content
 
-Not everything can, or should, be georeferenced.....
+Not everything can, or should, be georeferenced. In some cases (though not in New Iberia, 1885!) the inset pieces that have been split apart are too small to be placed, or just too hard to find. Consider these "seed houses" somewhere outside of Detroit:
+
+![Map of isolated "seed house" buildings outside of Detroit](../images/tutorial-new-iberia-skip-example.jpg)
+
+In this case, it is probably best to click **skip this piece** and move on. Perhaps in the future we'll be able to come back to these skipped pieces and apply new techniques.
+
+On the other hand, it's also common to find scanned pages that are not maps at all (though not in New Iberia, 1885...). Below is an example of an index page from Detroit. Click **set as non-map** in these cases.
+
+![Street and specials index for Detroit atlas](../images/tutorial-new-iberia-index-page.png)
 
 ## Trim the layers
 
-Use the MultiMask tool to create mask boundaries around every layer in the "Main Content" category.
+After you have georeferenced everything you can, use the [MultiMask tool](../guides/trimming.md) to create mask boundaries around every layer, removing the overlapping margins. Masks are grouped by layer category (this allows you to snap all the edges together), and you can be as detailed as you want when you decide what parts of each layers to show.
+
+For example, you can remove street names from adjacent sheets to remove unnecessary doubles.
+
+![Original mask shows the street name Jefferson from both sheets](../images/tutorial-new-iberia-mm-detail1.png)
+
+While the initial masking shown above leaves the street name Jefferson from both sheets, you can adjust it with more points to remove one of these names and have a cleaner presentation (no need to have the street name so many times!).
+
+![Updated mask hides the street name from one of the sheets](../images/tutorial-new-iberia-mm-detail2.png)
+
+Typically, there is no need to add masks to the Key Map layerset, because it will only have one layer. But there are multiple adjacent key maps, or other categories of layers like _skeleton maps_, you can switch the MultiMask interface to a different category.
+
+![Multimask layerset switcher](../images/tutorial-new-iberia-mm-change-layerset.png)
 
 ## Make the mosaic
 
-Once the MultiMask includes every layer, a single mosaicked GeoTIFF can be created. In the future, this may be automated, but for now, please just email `hello@oldinsurancemaps.net`.
+Once the MultiMask includes every layer, you are ready to combine them into a single mosaic output, which we refer to as a "derivative". These derivative enable us to provide a single web service endpoint for the entire volume, and a downloadable mosaicked GeoTIFF for use in desktop software.
 
 When a mosaic has been made, it will be available for download in the **Summary** section of the map overview page.
