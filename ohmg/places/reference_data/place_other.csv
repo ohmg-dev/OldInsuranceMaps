@@ -31375,9 +31375,10 @@ pk,name,category,direct_parents
 41374,San Jon,other,4142
 41375,Nara Visa,other,4142
 41376,Logan,other,4142
-41377,Aurora,other,4046
-41378,Columbia,other,4046
-41379,Gold Hill,other,2635
-41380,Palisade,other,3360
-41381,Rhyolite,other,2895
-41382,Tuscarora,other,2596
+45000,Aurora,other,4046
+45001,Columbia,other,4046
+45002,Gold Hill,other,2635
+45003,Palisade,other,3360
+45004,Rhyolite,other,2895
+45006,Tuscarora,other,2596
+
