@@ -187,7 +187,7 @@ def list_maps2(
         queryset = maps.order_by("title")
 
     if search_param := request.GET.get("search"):
-        queryset = search_fuzzy_first_word(search_param, "title", queryset)
+        queryset = search_fuzzy_first_word(search_param, ["title"], queryset)
     return queryset
 
 
