@@ -11,8 +11,11 @@
   import { getFromAPI } from '../../lib/requests';
   import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
   import LimitSelect from './widgets/LimitSelect.svelte';
-  import SortableHeader from './widgets/SortableHeader.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';
+
+  import TableContainer from './layouts/TableContainer.svelte';
+  import TableHeader from './layouts/TableHeader.svelte';
+  import TableCell from './layouts/TableCell.svelte';
 
   export let CONTEXT;
   export let limit = '50';
@@ -20,7 +23,6 @@
   export let allowRefresh = true;
   export let sortParam = 'username';
   export let sortDir = 'asc';
-  export let showMapsLoaded = true;
 
   let loading = false;
 
@@ -89,94 +91,57 @@
       </div>
     </div>
   {/if}
-  <div style="height: 100%; overflow-y:auto; border:1px solid #ddd; border-radius:4px; background:white;">
-    {#if items.length > 0}
-      <table>
-        <thead>
-          <tr>
-            <th><SortableHeader title="Username" bind:sortDir bind:sortParam bind:offset value={'username'} /></th>
-            <th><SortableHeader title="Date joined" bind:sortDir bind:sortParam value={'date_joined'} /></th>
-            {#if showMapsLoaded}
-              <th class="num-col new-col"
-                ><SortableHeader title="Loaded" bind:sortDir bind:sortParam value={'load_ct'} />
-              </th>{/if}
-            <th class="num-col{showMapsLoaded ? '' : ' new-col'}"
-              ><SortableHeader
-                title="Prep"
-                alt="Number of preparation sessions"
-                value={'psesh_ct'}
-                bind:sortDir
-                bind:sortParam
-              />
-            </th><th class="num-col"
-              ><SortableHeader
-                title="Georef"
-                alt="Number of georeferencing sessions"
-                value={'gsesh_ct'}
-                bind:sortDir
-                bind:sortParam
-              />
-            </th><th class="num-col"
-              ><SortableHeader
-                title="GCPs"
-                alt="Number of georeferenced layers"
-                value={'gcp_ct'}
-                bind:sortDir
-                bind:sortParam
-              />
-            </th></tr
-          >
-        </thead>
-        <tbody>
-          {#each items as s}
-            <tr style="height:38px; vertical-align:center;">
-              <td
-                ><img src={s.image_url} alt={s.username} /><Link href={`/profile/${s.username}`}>{s.username}</Link></td
-              >
-              <td>
-                {s.date_joined}
-              </td>
-              {#if showMapsLoaded}
-                <td class="num-col new-col">{s.load_ct}</td>
-              {/if}
-              <td class="num-col">{s.psesh_ct}</td>
-              <td class="num-col">{s.gsesh_ct}</td>
-              <td class="num-col">{s.gcp_ct}</td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-    {:else}
-      <div class="level">
-        <div class="level-item" style="margin:5px 0;">
-          <em>{loading ? 'loading...' : 'no results'}</em>
-        </div>
-      </div>
-    {/if}
-  </div>
+  <TableContainer bind:items bind:loading>
+    <svelte:fragment slot="header-row">
+      <TableHeader title="Username" bind:sortDir bind:sortParam bind:offset value={'username'} />
+      <TableHeader title="Date joined" bind:sortDir bind:sortParam value={'date_joined'} />
+      <TableHeader title="Loaded" newCol={true} bind:sortDir bind:sortParam value={'load_ct'} />
+      <TableHeader
+          title="Prep"
+          alt="Number of preparation sessions"
+          value={'psesh_ct'}
+          bind:sortDir
+          bind:sortParam
+        />
+      <TableHeader
+          title="Georef"
+          alt="Number of georeferencing sessions"
+          value={'gsesh_ct'}
+          bind:sortDir
+          bind:sortParam
+        />
+      <TableHeader
+          title="GCPs"
+          alt="Number of georeferenced layers"
+          value={'gcp_ct'}
+          bind:sortDir
+          bind:sortParam
+        />
+    </svelte:fragment>
+    <svelte:fragment slot="data-row" let:item>
+      <TableCell>
+        <img src={item.image_url} alt={item.username} />
+        <Link href={`/profile/${item.username}`}>{item.username}</Link>
+      </TableCell>
+      <TableCell>
+        {item.date_joined}
+      </TableCell>
+      <TableCell numCol={true} newCol={true}>{item.load_ct}</TableCell>
+      <TableCell numCol={true}>{item.psesh_ct}</TableCell>
+      <TableCell numCol={true}>{item.gsesh_ct}</TableCell>
+      <TableCell numCol={true}>{item.gcp_ct}</TableCell>
+    </svelte:fragment>
+  </TableContainer>
 </div>
 
 <style>
   .level.is-mobile > .level-left {
     flex-direction: row;
   }
-  td {
-    white-space: nowrap;
-    padding-left: 0.5em;
-    vertical-align: middle;
-  }
-  td img {
+  img {
     margin-right: 0.5em;
     height: 30px;
     width: 30px;
     border-radius: 5px;
-  }
-  .num-col {
-    padding: 0;
-    width: 25px;
-    text-align: center;
-  }
-  .new-col {
-    border-left: 1px solid gray;
   }
 </style>

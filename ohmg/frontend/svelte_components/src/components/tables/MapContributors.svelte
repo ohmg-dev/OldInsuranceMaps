@@ -4,8 +4,10 @@
   import Link from '../base/Link.svelte';
   import SessionListModal from '../shared/modals/SessionListModal.svelte';
 
-  import SortableHeader from './widgets/SortableHeader.svelte';
+  import TableHeader from './layouts/TableHeader.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';
+  import TableContainer from './layouts/TableContainer.svelte';
+  import TableCell from './layouts/TableCell.svelte';
 
   export let CONTEXT;
   export let mapId;
@@ -50,85 +52,52 @@
     </div>
     <div class="level-right"></div>
   </div>
-  <div style="height: 100%; overflow-y:auto; border:1px solid #ddd; border-radius:4px; background:white;">
-    {#if items.length > 0}
-      <table>
-        <thead>
-          <tr>
-            <th><SortableHeader title="User" bind:sortDir bind:sortParam value={'username'} /></th>
-            <th class="num-col new-col"
-              ><SortableHeader
-                title="Prep"
-                alt="Number of preparation sessions"
-                value={'psesh_ct'}
-                bind:sortDir
-                bind:sortParam
-              /></th
-            >
-            <th class="num-col"
-              ><SortableHeader
-                title="Georef"
-                alt="Number of georeferencing sessions"
-                value={'gsesh_ct'}
-                bind:sortDir
-                bind:sortParam
-              /></th
-            >
-            <th class="num-col"
-              ><SortableHeader
-                title="GCPs"
-                alt="Number of ground control points created"
-                value={'gcp_ct'}
-                bind:sortDir
-                bind:sortParam
-              /></th
-            >
-          </tr>
-        </thead>
-        <tbody>
-          {#each items as s}
-            <tr style="height:38px; vertical-align:center;">
-              <td
-                ><img src={s.image_url} alt={s.username} /><Link href={`/profile/${s.username}`}>{s.username}</Link></td
-              >
-              <td class="num-col new-col">{s.psesh_ct}</td>
-              <td class="num-col">{s.gsesh_ct}</td>
-              <td class="num-col">{s.gcp_ct}</td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-    {:else}
-      <div class="level">
-        <div class="level-item" style="margin:5px 0;">
-          <em>{loading ? 'loading...' : 'no results'}</em>
-        </div>
-      </div>
-    {/if}
-  </div>
+  <TableContainer bind:items bind:loading>
+    <svelte:fragment slot="header-row">
+      <TableHeader title="User" bind:sortDir bind:sortParam value={'username'} />
+      <TableHeader
+          title="Prep"
+          alt="Number of preparation sessions"
+          value={'psesh_ct'}
+          newCol={true}
+          bind:sortDir
+          bind:sortParam
+        />
+      <TableHeader
+          title="Georef"
+          alt="Number of georeferencing sessions"
+          value={'gsesh_ct'}
+          bind:sortDir
+          bind:sortParam
+        />
+      <TableHeader
+          title="GCPs"
+          alt="Number of ground control points created"
+          value={'gcp_ct'}
+          bind:sortDir
+          bind:sortParam
+        />
+    </svelte:fragment>
+    <svelte:fragment slot="data-row" let:item>
+      <TableCell>
+        <img src={item.image_url} alt={item.username} />
+        <Link href={`/profile/${item.username}`}>{item.username}</Link>
+      </TableCell>
+      <TableCell numCol={true} newCol={true}>{item.psesh_ct}</TableCell>
+      <TableCell numCol={true}>{item.gsesh_ct}</TableCell>
+      <TableCell numCol={true}>{item.gcp_ct}</TableCell>
+    </svelte:fragment>
+  </TableContainer>
 </div>
 
 <style>
   .level.is-mobile > .level-left {
     flex-direction: row;
   }
-  td {
-    white-space: nowrap;
-    padding-left: 0.5em;
-    vertical-align: middle;
-  }
-  td img {
+  img {
     margin-right: 0.5em;
     height: 30px;
     width: 30px;
     border-radius: 5px;
-  }
-  .num-col {
-    padding: 0;
-    width: 25px;
-    text-align: center;
-  }
-  .new-col {
-    border-left: 1px solid gray;
   }
 </style>

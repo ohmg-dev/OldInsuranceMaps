@@ -78,8 +78,6 @@ class MapListView(View):
 
 class LayerListView(View):
     def get(self, request):
-        if not request.user.is_staff:
-            raise Http404
         context_dict = {
             "LAYERS_PARAMS": {
                 "CONTEXT": generate_ohmg_context(request),
