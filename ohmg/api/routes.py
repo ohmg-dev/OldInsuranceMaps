@@ -55,6 +55,7 @@ from .schemas import (
     SessionSchema,
     UserSchema,
 )
+from .search import search_fuzzy_first_word, search_word_contains
 
 logger = logging.getLogger(__name__)
 
@@ -141,6 +142,10 @@ def list_profiles(
         queryset = users.order_by(sort_arg)
     else:
         queryset = users.order_by("username")
+
+    if search_param := request.GET.get("search"):
+        queryset = search_word_contains(search_param, "username", queryset)
+
     return queryset
 
 
@@ -180,6 +185,9 @@ def list_maps2(
         queryset = maps.order_by(sort_arg)
     else:
         queryset = maps.order_by("title")
+
+    if search_param := request.GET.get("search"):
+        queryset = search_fuzzy_first_word(search_param, ["title"], queryset)
     return queryset
 
 
@@ -321,6 +329,11 @@ def list_layers(request, filters: FilterLayerSchema = Query(...)):
         queryset = queryset.order_by("-pk").select_related("region")
 
     queryset = filters.filter(queryset)
+
+    if search_param := request.GET.get("search"):
+        search_field = request.GET.get("field", "title").split(",")
+        queryset = search_fuzzy_first_word(search_param, search_field, queryset)
+
     return queryset
 
 

@@ -4,14 +4,14 @@
   import Link from '../base/Link.svelte';
   import SessionListModal from '../shared/modals/SessionListModal.svelte';
 
-  import TableHeader from './layouts/TableHeader.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';
+
   import TableContainer from './layouts/TableContainer.svelte';
+  import TableHeader from './layouts/TableHeader.svelte';
   import TableCell from './layouts/TableCell.svelte';
 
   export let CONTEXT;
   export let mapId;
-  export let allowRefresh = true;
   export let sortParam = 'username';
   export let sortDir = 'asc';
 
@@ -36,21 +36,20 @@
 </script>
 
 <SessionListModal id={'modal-session-list'} />
-<div>
+<section class="table-section">
   <div class="level is-mobile" style="margin:.5em 0;">
     <div class="level-left">
-      {#if allowRefresh}
-        <RefreshButton
-          onClick={() => {
-            const oldSort = sortParam;
-            sortParam = null;
-            sortParam = oldSort;
-          }}
-          bind:loading
-        />
-      {/if}
     </div>
-    <div class="level-right"></div>
+    <div class="level-right">
+      <RefreshButton
+        onClick={() => {
+          const oldSort = sortParam;
+          sortParam = null;
+          sortParam = oldSort;
+        }}
+        bind:loading
+      />
+    </div>
   </div>
   <TableContainer bind:items bind:loading>
     <svelte:fragment slot="header-row">
@@ -88,7 +87,7 @@
       <TableCell numCol={true}>{item.gcp_ct}</TableCell>
     </svelte:fragment>
   </TableContainer>
-</div>
+</section>
 
 <style>
   .level.is-mobile > .level-left {

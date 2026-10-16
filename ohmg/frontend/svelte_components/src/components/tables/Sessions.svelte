@@ -1,8 +1,5 @@
 <script>
-  import { slide } from 'svelte/transition';
   import { format } from 'date-fns';
-
-  import Faders from 'phosphor-svelte/lib/Faders';
 
   import Link from '../base/Link.svelte';
   import SessionListModal from '../shared/modals/SessionListModal.svelte';
@@ -10,31 +7,33 @@
   import DatePicker from './widgets/DatePicker.svelte';
   import PaginationButtons from './widgets/PaginationButtons.svelte';
   import FacetFilterSelect from './widgets/FacetFilterSelect.svelte';
-  import LimitSelect from './widgets/LimitSelect.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';
 
+  import FilterRow from './layouts/FilterRow.svelte';
   import TableContainer from './layouts/TableContainer.svelte';
   import TableHeader from './layouts/TableHeader.svelte';
   import TableCell from './layouts/TableCell.svelte';
 
   import { getFromAPI } from '../../lib/requests';
   import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
+  import ShowFiltersButton from './widgets/ShowFiltersButton.svelte';
 
   export let CONTEXT;
   export let FILTER_PARAM = '';
-  export let limit = '10';
+  export let limit = '25';
   export let showThumbs = false;
   export let showUser = true;
   export let userFilter = null;
   export let showResource = true;
   export let paginate = true;
-  export let allowRefresh = true;
   export let showTypeFilter = true;
   export let typeFilter = null;
   export let showMap = true;
   export let mapFilter = null;
   export let sortParam = 'id';
   export let sortDir = 'des';
+
+  export let includeFilters = true;
 
   let userFilterItems = [];
   let mapFilterItems = [];
@@ -100,54 +99,40 @@
 </script>
 
 <SessionListModal id={'modal-session-list'} />
-<div>
-  <div class="level is-mobile" style="margin:.5em 0;">
-    <div class="level-left">
-      <InfoModalButton modalId="modal-session-list" />
-      <button
-        class="is-icon-link"
-        title={showFilters ? 'Hide filters' : 'Show filters'}
-        on:click={() => {
-          showFilters = !showFilters;
-        }}
-        ><Faders size={'1em'} />
-      </button>
-      {#if allowRefresh}
-        <RefreshButton
-          onClick={() => {
-            offset = 1000;
-            offset = 0;
-          }}
-          bind:loading
-        />
+<section class="table-section">
+  <div class="top-row">
+    <div class="top-row-left">
+      {#if includeFilters}
+        <ShowFiltersButton bind:showFilters />
       {/if}
     </div>
-    <div class="level-right">
+    <div class="top-row-right">
       {#if paginate}
-        <div class="level-item">
-          <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit />
-        </div>
+        <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit />
       {/if}
+      <InfoModalButton modalId="modal-session-list" />
+      <RefreshButton
+        onClick={() => {
+          offset = 1000;
+          offset = 0;
+        }}
+        bind:loading
+      />
     </div>
   </div>
-  {#if showFilters}
-    <div transition:slide class="level" style="margin:.5em 0;">
-      <div id="" class="filter-level level-left">
-        {#if showTypeFilter}
-          <FacetFilterSelect items={typeFilterItems} bind:value={typeFilter} placeholder="Filter by type..." />
-        {/if}
-        {#if showUser}
-          <FacetFilterSelect items={userFilterItems} bind:value={userFilter} placeholder="Filter by user..." />
-        {/if}
-        {#if showMap}
-          <FacetFilterSelect items={mapFilterItems} bind:value={mapFilter} placeholder="Filter by map..." />
-        {/if}
-        <DatePicker bind:startDate bind:endDate />
-      </div>
-      <div class="filter-level level-right">
-        <LimitSelect bind:value={currentLimit} />
-      </div>
-    </div>
+  {#if includeFilters}
+    <FilterRow {showFilters} bind:currentLimit>
+      {#if showTypeFilter}
+        <FacetFilterSelect items={typeFilterItems} bind:value={typeFilter} placeholder="Set type..." />
+      {/if}
+      {#if showUser}
+        <FacetFilterSelect items={userFilterItems} bind:value={userFilter} placeholder="Set user..." />
+      {/if}
+      {#if showMap}
+        <FacetFilterSelect items={mapFilterItems} bind:value={mapFilter} placeholder="Set map..." />
+      {/if}
+      <DatePicker bind:startDate bind:endDate />
+    </FilterRow>
   {/if}
   <TableContainer bind:items bind:loading>
     <svelte:fragment slot="header-row">
@@ -235,11 +220,19 @@
       <TableCell title={item.date_created.date}>{item.date_created.relative}</TableCell>
     </svelte:fragment>
   </TableContainer>
-</div>
+</section>
 
 <style>
-  .level.is-mobile > .level-left {
+  .top-row {
+    display: flex;
     flex-direction: row;
+    justify-content: space-between;
+    margin:.5em 0;
+  }
+  .top-row-right {
+    display: flex;
+    align-items: center;
+    gap: .25em;
   }
   .thumb-container {
     width: 65px;
@@ -248,13 +241,5 @@
   }
   .thumb-container > img {
     max-height: 50px;
-  }
-  @media screen and (max-width: 768px) {
-    .filter-level,
-    :global(.filter-input),
-    :global(.date-filter),
-    :global(button.date-field) {
-      min-width: 100% !important;
-    }
   }
 </style>

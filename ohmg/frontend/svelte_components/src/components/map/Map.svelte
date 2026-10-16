@@ -498,9 +498,9 @@
           within this map. Currently, trimming or "multimask" work is not reflected in this table.
         </p>
       </div>
-      <Sessions {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false} paginate={true} limit="50" />
+      <Sessions {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false} paginate={true} />
       {:else if detailsSectionActiveTab == "layers"}
-        <Layers {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false}/>
+        <Layers {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false} searchField={"nickname"}/>
       {/if}
     </TabbedSection>
   </ExpandableSection>
