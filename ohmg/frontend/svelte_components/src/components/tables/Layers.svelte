@@ -40,6 +40,7 @@
   let transformationFilterItems = [];
 
   let loading = false;
+  let searching = false;
 
   let items = [];
 
@@ -71,6 +72,7 @@
       fetchUrl += `&sortby=${sortParam}&sort=${sortDir}`;
     }
     if (searchTerm) {
+      searching = true;
       fetchUrl += `&search=${searchTerm}&field=${searchField}`
     }
     getFromAPI(fetchUrl, CONTEXT.ohmg_api_headers, (result) => {
@@ -81,6 +83,7 @@
       categoryFilterItems = result.filter_items.categories;
       transformationFilterItems = result.filter_items.transformations;
       loading = false;
+      searching = false;
     });
   }
 </script>
@@ -89,7 +92,7 @@
   <div class="top-row">
     <div class="top-row-left">
       {#if includeSearch}
-        <SearchBox bind:searchTerm />
+        <SearchBox bind:searchTerm bind:searching />
       {/if}
       {#if includeFilters}
         <ShowFiltersButton bind:showFilters />

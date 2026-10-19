@@ -22,6 +22,7 @@
   export let searchTerm = null;
 
   let loading = false;
+  let searching = false;
 
   let items = [];
 
@@ -41,12 +42,14 @@
       fetchUrl += `&sortby=${sortParam}&sort=${sortDir}`;
     }
     if (searchTerm) {
+      searching = true;
       fetchUrl += `&search=${searchTerm}`
     }
     getFromAPI(fetchUrl, CONTEXT.ohmg_api_headers, (result) => {
       items = result.items;
       total = result.count;
       loading = false;
+      searching = false;
     });
   }
 
@@ -58,7 +61,7 @@
     <div class="level-left">
       {#if includeSearch}
         <div class="level-item">
-          <SearchBox bind:searchTerm />
+          <SearchBox bind:searchTerm bind:searching />
         </div>
       {/if}
     </div>

@@ -36,6 +36,7 @@
   let preparedFilterItems = [{"id": true, label: "Yes"}, {id: false, label: "No"}];
 
   let loading = false;
+  let searching = false;
 
   let items = [];
 
@@ -65,6 +66,7 @@
       fetchUrl += `&sortby=${sortParam}&sort=${sortDir}`;
     }
     if (searchTerm) {
+      searching = true;
       fetchUrl += `&search=${searchTerm}&field=${searchField}`
     }
     console.log(fetchUrl);
@@ -73,6 +75,7 @@
       total = result.count;
       mapFilterItems = result.filter_items.maps;
       loading = false;
+      search = false;
     });
   }
 </script>
@@ -86,7 +89,7 @@
   <div class="top-row">
     <div class="top-row-left">
       {#if includeSearch}
-        <SearchBox bind:searchTerm />
+        <SearchBox bind:searchTerm bind:searching />
       {/if}
       {#if includeFilters}
         <ShowFiltersButton bind:showFilters />

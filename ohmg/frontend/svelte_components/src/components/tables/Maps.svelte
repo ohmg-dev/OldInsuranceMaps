@@ -33,6 +33,7 @@
   let userFilterItems = [];
 
   let loading = false;
+  let searching = false;
 
   let items = [];
 
@@ -61,6 +62,7 @@
       fetchUrl += `&sortby=${sortParam}&sort=${sortDir}`;
     }
     if (searchTerm) {
+      searching = true;
       fetchUrl += `&search=${searchTerm}`;
     }
     getFromAPI(fetchUrl, CONTEXT.ohmg_api_headers, (result) => {
@@ -69,6 +71,7 @@
       placeFilterItems = result.filter_items.places;
       userFilterItems = result.filter_items.users;
       loading = false;
+      searching = false;
     });
   }
 
@@ -82,7 +85,7 @@
         <h4 style="margin: .2em 0;">{useTitle}</h4>
       {/if}
       {#if includeSearch}
-      <SearchBox bind:searchTerm />
+      <SearchBox bind:searchTerm bind:searching />
       {/if}
       {#if includeFilters}
       <ShowFiltersButton bind:showFilters />
