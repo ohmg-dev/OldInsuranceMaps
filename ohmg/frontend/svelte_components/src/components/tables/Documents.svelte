@@ -69,20 +69,19 @@
       searching = true;
       fetchUrl += `&search=${searchTerm}&field=${searchField}`
     }
-    console.log(fetchUrl);
     getFromAPI(fetchUrl, CONTEXT.ohmg_api_headers, (result) => {
       items = result.items;
       total = result.count;
       mapFilterItems = result.filter_items.maps;
       loading = false;
-      search = false;
+      searching = false;
     });
   }
 </script>
 
-<Modal id={'modal-simple-viewer'} full={true}>
+<Modal id={'modal-simple-viewer2'} full={true}>
   {#each reinitModalMap as key (key)}
-    <BasicDocViewer LAYER_URL={modalLyrUrl} EXTENT={modalExtent} />
+    <BasicDocViewer LAYER_URL={modalLyrUrl} EXTENT={modalExtent} elementId="doc-viewer2"/>
   {/each}
 </Modal>
 <section class="table-section">
@@ -149,7 +148,7 @@
           on:click={() => {
             modalLyrUrl = item.urls.image;
             modalExtent = [0, -item.image_size[1], item.image_size[0], 0];
-            openModal('modal-simple-viewer');
+            openModal('modal-simple-viewer2');
             reinitModalMap = [{}];
           }}
         >
@@ -179,7 +178,7 @@
                 on:click={() => {
                   modalLyrUrl = region.urls.image;
                   modalExtent = [0, -region.image_size[1], region.image_size[0], 0];
-                  openModal('modal-simple-viewer');
+                  openModal('modal-simple-viewer2');
                   reinitModalMap = [{}];
                 }}
               >

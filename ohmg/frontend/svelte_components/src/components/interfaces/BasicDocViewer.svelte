@@ -15,11 +15,12 @@
 
   export let LAYER_URL;
   export let EXTENT;
+  export let elementId = 'doc-viewer'
 
   let currentZoom;
 
   onMount(() => {
-    const viewer = new MapViewer('doc-viewer');
+    const viewer = new MapViewer(elementId);
 
     viewer.addZoomToExtentControl(EXTENT, 'extent-icon-doc');
     viewer.addControl(new DocMousePosition(EXTENT, 'doc-coords', null));
@@ -53,7 +54,7 @@
 </script>
 
 <div style="height:100%;">
-  <div id="doc-viewer">
+  <div id={elementId} class="viewer">
     <i id="extent-icon-doc"><CornersOut size={'20px'} /></i>
   </div>
   <div id="info-row">
@@ -65,7 +66,7 @@
 </div>
 
 <style>
-  #doc-viewer {
+  .viewer {
     background: url('../../static/img/sandpaper-bg-vlite.jpg');
     height: 100%;
     width: 100%;
