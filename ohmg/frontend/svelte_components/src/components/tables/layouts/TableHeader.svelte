@@ -9,6 +9,7 @@
   export let offset = 0;
   export let sortParam = null;
   export let sortDir = 'asc';
+  export let sortDefault = 'asc';
   export let toggleVar = null;
   export let newCol = false;
 
@@ -19,13 +20,13 @@
 
 <th class={`${newCol ? "new-col" : ""}`}>
   <div>
-    <span style="margin-top:.25em;">{title}</span>
+    <span style="margin-top:.25em; text-wrap: nowrap;">{title}</span>
     {#if sortParam}
       <button
         title={popup}
         style="margin-left:.25em; display:flex;"
         on:click={() => {
-          sortDir = !active ? 'asc' : sortDir == 'asc' ? 'des' : 'asc';
+          sortDir = !active ? sortDefault : sortDir == 'asc' ? 'des' : 'asc';
           sortParam = value;
           offset = 0;
         }}

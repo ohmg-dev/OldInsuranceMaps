@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 class Map(models.Model):
     class Meta:
         verbose_name_plural = "    Maps"
+        indexes = [models.Index(fields=["title"])]
 
     ACCESS_CHOICES = (
         ("none", "none"),

@@ -6,6 +6,7 @@ from django.contrib.gis.geos import Polygon
 from django.db.models import F, Q
 from django.shortcuts import get_object_or_404
 from ninja import NinjaAPI, Query
+from ninja.errors import ValidationError
 from ninja.pagination import paginate
 from ninja.security import APIKeyHeader
 
@@ -28,7 +29,6 @@ from ohmg.georeference.models import (
 from ohmg.places.models import Place
 
 from .filters import (
-    FilterAllDocumentsSchema,
     FilterDocumentSchema,
     FilterJobSchema,
     FilterLayerSchema,
@@ -36,6 +36,7 @@ from .filters import (
     FilterSessionSchema,
 )
 from .paginators import (
+    DocumentPagination,
     LayerPagination,
     MapPagination,
     ProfilePagination,
@@ -55,6 +56,7 @@ from .schemas import (
     SessionSchema,
     UserSchema,
 )
+from .search import search_fuzzy_first_word, search_word_contains
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +81,12 @@ beta2 = NinjaAPI(
     version="beta2",
     description="An API for accessing content on OldInsuranceMaps.net.",
 )
+
+
+@beta2.exception_handler(ValidationError)
+def api_errors(request, exc):
+    logger.warning(exc.errors)
+    return beta2.create_response(request, {"detail": exc.errors}, status=422)
 
 
 @beta2.get("jobs/", response=List[JobSchema], url_name="job_list")
@@ -141,6 +149,10 @@ def list_profiles(
         queryset = users.order_by(sort_arg)
     else:
         queryset = users.order_by("username")
+
+    if search_param := request.GET.get("search"):
+        queryset = search_word_contains(search_param, "username", queryset)
+
     return queryset
 
 
@@ -180,6 +192,9 @@ def list_maps2(
         queryset = maps.order_by(sort_arg)
     else:
         queryset = maps.order_by("title")
+
+    if search_param := request.GET.get("search"):
+        queryset = search_fuzzy_first_word(search_param, ["title"], queryset)
     return queryset
 
 
@@ -265,31 +280,37 @@ def get_places_geojson(request):
 
 
 ## DOCUMENT ROUTES
-@beta2.get("document/", response=DocumentSchema, url_name="documents")
+@beta2.get("document/", response=DocumentSchema, url_name="document")
 def document(request, id: int):
     return get_object_or_404(Document.objects.prefetch_related(), pk=id)
 
 
-@beta2.get("documents/", response=List[DocumentSchema], url_name="documents")
+@beta2.get("documents/", response=List[DocumentSchema], url_name="api_documents_list")
+@paginate(DocumentPagination)
 def documents(request, filters: FilterDocumentSchema = Query(...)):
+    sort_param = request.GET.get("sortby", "")
+    sort_dir = request.GET.get("sort", "")
     queryset = Document.objects.all().prefetch_related()
-    queryset = filters.filter(queryset)
-    return queryset
 
+    if sort_param:
+        if sort_param == "map":
+            sort_param = "map__title"
+        sort_arg = sort_param if sort_dir == "asc" else f"-{sort_param}"
+        queryset = queryset.order_by(sort_arg)
+    else:
+        queryset = queryset.order_by("map__title", "page_number")
 
-@beta2.get("documents/all", response=List[DocumentSchema], url_name="documents")
-@paginate
-def documents_all(request, sort: str = None, filters: FilterAllDocumentsSchema = Query(...)):
-    """Full paginated query for all documents in the database."""
-    queryset = Document.objects.all().prefetch_related().order_by("map__title", "page_number")
     queryset = filters.filter(queryset)
-    # if sort:
-    #     queryset.order_by(sort)
+
+    if search_param := request.GET.get("search"):
+        search_field = request.GET.get("field", "title").split(",")
+        queryset = search_fuzzy_first_word(search_param, search_field, queryset)
+
     return queryset
 
 
 ## REGION ROUTES - WIP
-@beta2.get("region/", response=RegionSchema, url_name="documents")
+@beta2.get("region/", response=RegionSchema, url_name="regions")
 def region(request, id: int):
     return get_object_or_404(Region.objects.prefetch_related(), pk=id)
 
@@ -315,12 +336,24 @@ def list_layers(request, filters: FilterLayerSchema = Query(...)):
     if sort_param:
         if sort_param == "map":
             sort_param = "region__document__map__title"
-        sort_arg = sort_param if sort_dir == "asc" else f"-{sort_param}"
-        queryset = queryset.order_by(sort_arg).select_related("region")
+        if sort_dir == "asc":
+            queryset = queryset.order_by(F(sort_param).asc(nulls_last=True)).select_related(
+                "region"
+            )
+        else:
+            queryset = queryset.order_by(F(sort_param).desc(nulls_last=True)).select_related(
+                "region"
+            )
+
     else:
         queryset = queryset.order_by("-pk").select_related("region")
 
     queryset = filters.filter(queryset)
+
+    if search_param := request.GET.get("search"):
+        search_field = request.GET.get("field", "title").split(",")
+        queryset = search_fuzzy_first_word(search_param, search_field, queryset)
+
     return queryset
 
 

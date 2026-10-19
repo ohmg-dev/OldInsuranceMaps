@@ -51,6 +51,10 @@ img {
   vertical-align: middle;
 }
 
+section.table-section {
+  margin-bottom: 1em;
+}
+
 table {
   min-width: 100%;
   border: 1px solid #ddd;
@@ -805,4 +809,11 @@ ul#avatar-select-form {
 ul#avatar-select-form > li > div {
   display: flex;
   gap: 15px;
+}
+
+
+@media only screen and (max-width: 768px) {
+  .hidden-mobile {
+    display: none;
+  }
 }

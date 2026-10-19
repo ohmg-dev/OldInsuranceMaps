@@ -68,6 +68,36 @@ class SessionPagination(PaginationBase):
         }
 
 
+class DocumentPagination(PaginationBase):
+    class Input(Schema):
+        offset: int = 0
+        limit: int = 10
+
+    class Output(Schema):
+        items: List[Any]
+        count: int
+        filter_items: dict
+
+    def paginate_queryset(self, queryset, pagination: Input, **params):
+        map_ids = queryset.values_list("map_id", flat=True)
+        maps = Map.objects.filter(pk__in=map_ids)
+        map_items = natsorted(
+            [{"id": i[0], "label": i[1]} for i in maps.values_list("identifier", "title")],
+            key=lambda k: k["label"],
+        )
+
+        filter_items = {
+            "maps": map_items,
+        }
+
+        offset = pagination.offset
+        return {
+            "items": queryset[offset : offset + pagination.limit],
+            "count": queryset.count(),
+            "filter_items": filter_items,
+        }
+
+
 class LayerPagination(PaginationBase):
     class Input(Schema):
         offset: int = 0

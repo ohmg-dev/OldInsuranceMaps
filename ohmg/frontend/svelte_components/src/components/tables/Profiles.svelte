@@ -1,8 +1,4 @@
 <script>
-  import { slide } from 'svelte/transition';
-
-  import Faders from 'phosphor-svelte/lib/Faders';
-
   import Link from '../base/Link.svelte';
   import SessionListModal from '../shared/modals/SessionListModal.svelte';
 
@@ -10,21 +6,23 @@
 
   import { getFromAPI } from '../../lib/requests';
   import InfoModalButton from '../shared/buttons/InfoModalButton.svelte';
-  import LimitSelect from './widgets/LimitSelect.svelte';
   import RefreshButton from './widgets/RefreshButton.svelte';
 
   import TableContainer from './layouts/TableContainer.svelte';
   import TableHeader from './layouts/TableHeader.svelte';
   import TableCell from './layouts/TableCell.svelte';
+    import SearchBox from './widgets/SearchBox.svelte';
 
   export let CONTEXT;
   export let limit = '50';
   export let paginate = true;
-  export let allowRefresh = true;
   export let sortParam = 'username';
   export let sortDir = 'asc';
+  export let includeSearch = true;
+  export let searchTerm = null;
 
   let loading = false;
+  let searching = false;
 
   let items = [];
 
@@ -43,37 +41,28 @@
     if (sortParam) {
       fetchUrl += `&sortby=${sortParam}&sort=${sortDir}`;
     }
+    if (searchTerm) {
+      searching = true;
+      fetchUrl += `&search=${searchTerm}`
+    }
     getFromAPI(fetchUrl, CONTEXT.ohmg_api_headers, (result) => {
       items = result.items;
       total = result.count;
       loading = false;
+      searching = false;
     });
   }
 
-  let showFilters = false;
 </script>
 
 <SessionListModal id={'modal-session-list'} />
-<div>
+<section class="table-section">
   <div class="level is-mobile" style="margin:.5em 0;">
     <div class="level-left">
-      <InfoModalButton modalId="modal-session-list" />
-      <button
-        class="is-icon-link"
-        title={showFilters ? 'Hide filters' : 'Show filters'}
-        on:click={() => {
-          showFilters = !showFilters;
-        }}
-        ><Faders size={'1em'} />
-      </button>
-      {#if allowRefresh}
-        <RefreshButton
-          onClick={() => {
-            offset = 1000;
-            offset = 0;
-          }}
-          bind:loading
-        />
+      {#if includeSearch}
+        <div class="level-item">
+          <SearchBox bind:searchTerm bind:searching />
+        </div>
       {/if}
     </div>
     <div class="level-right">
@@ -84,13 +73,6 @@
       {/if}
     </div>
   </div>
-  {#if showFilters}
-    <div transition:slide class="level" style="margin:.5em 0;">
-      <div class="filter-level level-right">
-        <LimitSelect bind:value={currentLimit} />
-      </div>
-    </div>
-  {/if}
   <TableContainer bind:items bind:loading>
     <svelte:fragment slot="header-row">
       <TableHeader title="Username" bind:sortDir bind:sortParam bind:offset value={'username'} />
@@ -132,7 +114,7 @@
       <TableCell numCol={true}>{item.gcp_ct}</TableCell>
     </svelte:fragment>
   </TableContainer>
-</div>
+</section>
 
 <style>
   .level.is-mobile > .level-left {

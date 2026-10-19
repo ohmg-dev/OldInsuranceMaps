@@ -8,8 +8,14 @@
 <Select
   items={limitOptions}
   bind:value
-  class="filter-input"
+  class="limit-select"
   searchable={false}
   clearable={false}
   listAutoWidth={false}
 />
+
+<style>
+  :global(.limit-select) {
+    height: 42px;
+  }
+</style>

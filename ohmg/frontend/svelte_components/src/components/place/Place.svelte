@@ -77,12 +77,15 @@
     {/if}
   </div>
   <div id="items-panel" style="flex-grow:1; overflow-x:auto;">
-    <h3>Maps</h3>
+    <!-- <h3>Maps</h3> -->
     <Maps
       {CONTEXT}
       placeFilter={{ id: freezePlace.slug, label: freezePlace.displayname }}
       placeInclusive={true}
       showPlace={false}
+      includeFilters={false}
+      includeSearch={false}
+      useTitle="Maps"
     />
   </div>
 </div>

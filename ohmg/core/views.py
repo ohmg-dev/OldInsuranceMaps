@@ -86,6 +86,16 @@ class LayerListView(View):
         return render(request, "core/layers.html", context=context_dict)
 
 
+class DocumentListView(View):
+    def get(self, request):
+        context_dict = {
+            "DOCUMENTS_PARAMS": {
+                "CONTEXT": generate_ohmg_context(request),
+            }
+        }
+        return render(request, "core/documents.html", context=context_dict)
+
+
 class MapView(View):
     @time_this_function
     def get(self, request, identifier):

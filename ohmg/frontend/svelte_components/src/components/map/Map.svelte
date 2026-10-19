@@ -31,6 +31,7 @@
   import MapContributors from '../tables/MapContributors.svelte';
   import Sessions from '../tables/Sessions.svelte';
   import Layers from '../tables/Layers.svelte';
+  import Documents from '../tables/Documents.svelte';
 
   import Breadcrumbs from './Breadcrumbs.svelte';
 
@@ -479,6 +480,7 @@
       {id: "details", title: "Details"},
       {id: "stats", title: "Stats"},
       {id: "activity", title: "Activity"},
+      {id: "documents", title: "Documents"},
       {id: "layers", title: "Layers"},
     ]} bind:activeTab={detailsSectionActiveTab}>
       {#if detailsSectionActiveTab == "details"}
@@ -498,9 +500,11 @@
           within this map. Currently, trimming or "multimask" work is not reflected in this table.
         </p>
       </div>
-      <Sessions {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false} paginate={true} limit="50" />
+      <Sessions {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false} paginate={true} />
+      {:else if detailsSectionActiveTab == "documents"}
+        <Documents {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false} searchField={"nickname"}/>
       {:else if detailsSectionActiveTab == "layers"}
-        <Layers {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false}/>
+        <Layers {CONTEXT} mapFilter={{ id: MAP.identifier }} showMap={false} searchField={"nickname"}/>
       {/if}
     </TabbedSection>
   </ExpandableSection>

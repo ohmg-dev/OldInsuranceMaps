@@ -202,6 +202,8 @@ class DocumentSchema(Schema):
     image_size: Optional[list]
     iiif_info: Optional[str]
     loading_file: bool
+    map: MapSchemaLite
+    regions: List["RegionSchema"]
 
     @staticmethod
     def resolve_urls(obj):
@@ -943,6 +945,7 @@ class JobSchema(Schema):
         return _datefield_to_timestamp(obj, "date_ended")
 
 
+DocumentSchema.update_forward_refs()
 DocumentFullSchema.update_forward_refs()
 RegionFullSchema.update_forward_refs()
 MapListSchema2.update_forward_refs()

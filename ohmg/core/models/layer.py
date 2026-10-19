@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 class Layer(models.Model):
     class Meta:
         verbose_name_plural = " Layers"
+        indexes = [models.Index(fields=["title", "nickname"])]
 
     title = models.CharField(max_length=200, default="untitled layer")
     nickname = models.CharField(max_length=200, null=True, blank=True)

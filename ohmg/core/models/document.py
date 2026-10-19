@@ -34,6 +34,7 @@ class Document(models.Model):
 
     class Meta:
         verbose_name_plural = "   Documents"
+        indexes = [models.Index(fields=["title", "nickname"])]
 
     title = models.CharField(max_length=200, default="untitled document")
     nickname = models.CharField(max_length=200, null=True, blank=True)

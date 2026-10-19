@@ -21,11 +21,12 @@
   import TableHeader from './layouts/TableHeader.svelte';
   import TableContainer from './layouts/TableContainer.svelte';
   import TableCell from './layouts/TableCell.svelte';
+  import FilterRow from './layouts/FilterRow.svelte';
+    import ShowFiltersButton from './widgets/ShowFiltersButton.svelte';
 
   export let CONTEXT;
   export let limit = '10';
   export let paginate = true;
-  export let allowRefresh = true;
   export let operationFilter = null;
   export let stageFilter = null;
 
@@ -148,42 +149,24 @@
 
 </ModalConfirm>
 <div>
-  <div class="level is-mobile" style="margin:.5em 0;">
-    <div class="level-left">
-      <button
-        class="is-icon-link"
-        title={showFilters ? 'Hide filters' : 'Show filters'}
-        on:click={() => {
-          showFilters = !showFilters;
-        }}
-        ><Faders size={'1em'} />
-      </button>
-      {#if allowRefresh}
-        <RefreshButton
-          onClick={triggerRefresh}
-          bind:loading
-        />
-      {/if}
+  <div class="top-row">
+    <div class="top-row-left">
+      <ShowFiltersButton bind:showFilters/>
     </div>
-    <div class="level-right">
+    <div class="top-row-right">
       {#if paginate}
-        <div class="level-item">
-          <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit />
-        </div>
+        <PaginationButtons bind:currentOffset={offset} bind:total bind:currentLimit />
       {/if}
+      <RefreshButton
+        onClick={triggerRefresh}
+        bind:loading
+      />
     </div>
   </div>
-  {#if showFilters}
-    <div transition:slide class="level" style="margin:.5em 0;">
-      <div id="" class="filter-level level-left">
-        <FacetFilterSelect items={operationFilterItems} bind:value={operationFilter} placeholder="Filter by operation..." />
-        <FacetFilterSelect items={stageFilterItems} bind:value={stageFilter} placeholder="Filter by stage..." />
-      </div>
-      <div class="filter-level level-right">
-        <LimitSelect bind:value={currentLimit} />
-      </div>
-    </div>
-  {/if}
+  <FilterRow {showFilters} bind:currentLimit >
+    <FacetFilterSelect items={operationFilterItems} bind:value={operationFilter} placeholder="Set operation..." />
+    <FacetFilterSelect items={stageFilterItems} bind:value={stageFilter} placeholder="Set stage..." />
+  </FilterRow>
   <TableContainer bind:items bind:loading>
     <svelte:fragment slot="header-row">
       <TableHeader title="Id" />
@@ -214,8 +197,16 @@
 </div>
 
 <style>
-  .level.is-mobile > .level-left {
+  .top-row {
+    display: flex;
     flex-direction: row;
+    justify-content: space-between;
+    margin:.5em 0;
+  }
+  .top-row-right {
+    display: flex;
+    align-items: center;
+    gap: .25em;
   }
   dl {
       background-color: #ffffff;
@@ -232,13 +223,5 @@
   }
   dd {
       padding-left: 1em;
-  }
-  @media screen and (max-width: 768px) {
-    .filter-level,
-    :global(.filter-input),
-    :global(.date-filter),
-    :global(button.date-field) {
-      min-width: 100% !important;
-    }
   }
 </style>
