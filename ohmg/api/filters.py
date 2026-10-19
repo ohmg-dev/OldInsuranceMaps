@@ -30,11 +30,7 @@ class FilterJobSchema(FilterSchema):
 
 
 class FilterDocumentSchema(FilterSchema):
-    map: str = Field(q="map_id")
-    prepared: Optional[bool] = Field(q="prepared")
-
-
-class FilterAllDocumentsSchema(FilterSchema):
+    map: Optional[str] = Field(q="map_id")
     prepared: Optional[bool] = Field(q="prepared")
 
 
