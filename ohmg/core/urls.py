@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+    DocumentListView,
     DocumentView,
     LayerListView,
     LayersetDerivativeView,
@@ -40,6 +41,7 @@ urlpatterns = [
         name="layer_derivative",
     ),
     path("layers/", LayerListView.as_view(), name="layer_list"),
+    path("documents/", DocumentListView.as_view(), name="document_list"),
     path("layerset/", LayerSetView.as_view(), name="layerset_view"),
     path("layerset/<int:pk>", LayerSetView.as_view(), name="layerset_view"),
 ]

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Documents | {{ block.super}} {% endblock title %}
+
+{% block main_content %}
+
+{% include '_titlebar.html' with title="Documents" subtitle="see also: <a href='/layers'>layers</a>, <a href='/maps'>maps</a>, <a href='/united-states'>places</a>" lead_icon="document" %}
+
+{{ DOCUMENTS_PARAMS|json_script:'documents-props'}}
+{% include '_svelte_component.html' with component_name='Documents' %}
+
+{% endblock %}

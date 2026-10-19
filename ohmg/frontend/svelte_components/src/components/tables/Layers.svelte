@@ -83,7 +83,6 @@
       loading = false;
     });
   }
-  console.log(CONTEXT)
 </script>
 
 <section class="table-section">
@@ -174,10 +173,10 @@
         {/if}
       </TableCell>
       <TableCell newCol={true}>
-        <Link href={`/layers/${item.created_by}`} title="View profile">{item.created_by}</Link>
+        <Link href={`/profile/${item.created_by}`} title="View profile">{item.created_by}</Link>
       </TableCell>
       <TableCell>
-        <Link href={`/layers/${item.last_updated_by}`} title="View profile">{item.last_updated_by}</Link>
+        <Link href={`/profile/${item.last_updated_by}`} title="View profile">{item.last_updated_by}</Link>
       </TableCell>
       {#if CONTEXT.user.is_staff}
       <TableCell numCol={true} newCol={true}>{item.rmse}</TableCell>

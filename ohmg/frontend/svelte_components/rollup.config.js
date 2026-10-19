@@ -76,6 +76,7 @@ export default (cliArgs) => {
     'Sessions',
     'Maps',
     'Layers',
+    'Documents',
     'Jobs',
     'Profiles',
     'LatestBlogPosts',
