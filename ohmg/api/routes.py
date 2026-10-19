@@ -336,8 +336,15 @@ def list_layers(request, filters: FilterLayerSchema = Query(...)):
     if sort_param:
         if sort_param == "map":
             sort_param = "region__document__map__title"
-        sort_arg = sort_param if sort_dir == "asc" else f"-{sort_param}"
-        queryset = queryset.order_by(sort_arg).select_related("region")
+        if sort_dir == "asc":
+            queryset = queryset.order_by(F(sort_param).asc(nulls_last=True)).select_related(
+                "region"
+            )
+        else:
+            queryset = queryset.order_by(F(sort_param).desc(nulls_last=True)).select_related(
+                "region"
+            )
+
     else:
         queryset = queryset.order_by("-pk").select_related("region")
 
