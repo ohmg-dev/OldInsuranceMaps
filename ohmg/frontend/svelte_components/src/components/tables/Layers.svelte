@@ -1,5 +1,5 @@
 <script>
-  import Faders from 'phosphor-svelte/lib/Faders';
+  import Pencil from 'phosphor-svelte/lib/Pencil';
 
   import Link from '../base/Link.svelte';
 
@@ -161,11 +161,20 @@
       </TableCell>
       {/if}
       <TableCell>
-        <Link href={`/layer/${item.id}`} title={item.nickname}>
-        <div class="thumb-container">
-          <img src={item.urls.thumbnail} alt={item.nickname} />
+        <div style="display:flex; flex-direction:row; align-items:center;">
+          <div class="thumb-container">
+            <img src={item.urls.thumbnail} alt={item.nickname} />
+          </div>
+          <div style="display:flex; flex-direction: column;">
+            <Link href={`/layer/${item.id}`} title={item.nickname}>{item.nickname}</Link><br>
+            <Link href={item.urls.georeference} title="Edit georeferencing">
+              <span style="display:flex; align-items:center; font-size:.8em;">
+                <Pencil />
+                <!-- <span>edit</span> -->
+              </span>
+            </Link>
+          </div>
         </div>
-          {item.nickname}</Link>
       </TableCell>
       <TableCell>{item.category}</TableCell>
       <TableCell numCol={true}>
