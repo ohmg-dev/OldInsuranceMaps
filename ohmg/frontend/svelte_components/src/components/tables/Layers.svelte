@@ -146,11 +146,11 @@
       <TableHeader title="Georeferenced by" value={'created_by'} newCol={true} bind:sortDir bind:sortParam bind:offset />
       <TableHeader title="Updated by" value={'last_updated_by'} bind:sortDir bind:sortParam bind:offset />
       {#if CONTEXT.user.is_staff}
-      <TableHeader title="RMSE" value={'rmse'} alt="Sort by average error across all GCPs" newCol={true} bind:sortDir bind:sortParam bind:offset />
-      <TableHeader title="Skew" value={'skew_norm'} alt="Sort by skew (degrees)" bind:sortDir bind:sortParam bind:offset />
-      <TableHeader title="Stretch" value={'anisotropy_norm'} alt="Sort by amount of x/y scale distortion (anisotropy)" bind:sortDir bind:sortParam bind:offset />
+      <TableHeader title="RMSE" value={'rmse'} alt="Sort by average error across all GCPs" newCol={true} sortDefault="desc" bind:sortDir bind:sortParam bind:offset />
+      <TableHeader title="Skew" value={'skew_norm'} alt="Sort by skew (degrees)" sortDefault="desc" bind:sortDir bind:sortParam bind:offset />
+      <TableHeader title="Stretch" value={'anisotropy_norm'} alt="Sort by amount of x/y scale distortion (anisotropy)" sortDefault="desc" bind:sortDir bind:sortParam bind:offset />
       {/if}
-      <TableHeader title="GCPs" value={'gcp_count'} alt="Sort by number of GCPs" bind:sortDir bind:sortParam bind:offset />
+      <TableHeader title="GCPs" value={'gcp_count'} alt="Sort by number of GCPs" newCol={true} bind:sortDir bind:sortParam bind:offset />
       <TableHeader title="Transformation" value={'transformation'} bind:sortDir bind:sortParam bind:offset />
     </svelte:fragment>
     <svelte:fragment slot="data-row" let:item>
@@ -186,7 +186,7 @@
       <TableCell numCol={true}>{item.skew_norm}</TableCell>
       <TableCell numCol={true}>{item.anisotropy_norm}</TableCell>
       {/if}
-      <TableCell numCol={true}>{item.gcp_count}</TableCell>
+      <TableCell numCol={true} newCol={true}>{item.gcp_count}</TableCell>
       <TableCell numCol={true}>{item.transformation}</TableCell>
     </svelte:fragment>
   </TableContainer>

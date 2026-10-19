@@ -9,6 +9,7 @@
   export let offset = 0;
   export let sortParam = null;
   export let sortDir = 'asc';
+  export let sortDefault = 'asc';
   export let toggleVar = null;
   export let newCol = false;
 
@@ -25,7 +26,7 @@
         title={popup}
         style="margin-left:.25em; display:flex;"
         on:click={() => {
-          sortDir = !active ? 'asc' : sortDir == 'asc' ? 'des' : 'asc';
+          sortDir = !active ? sortDefault : sortDir == 'asc' ? 'des' : 'asc';
           sortParam = value;
           offset = 0;
         }}
