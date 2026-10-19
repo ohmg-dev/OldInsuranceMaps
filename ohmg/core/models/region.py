@@ -39,6 +39,7 @@ class Region(models.Model):
     class Meta:
         verbose_name_plural = "  Regions"
         ordering = ("nickname",)
+        indexes = [models.Index(fields=["title", "nickname"])]
 
     title = models.CharField(max_length=200, default="untitled region")
     nickname = models.CharField(max_length=200, null=True, blank=True)
