@@ -223,7 +223,7 @@ class Command(BaseCommand):
             for n, map in enumerate(maps, start=1):
                 print(f"{map} ({n}/{map_ct})")
                 for lyr in map.layers.all():
-                    lyr.save(skip_map_lookup_update=True, set_tilejson=True, set_extent=False)
+                    lyr.save(skip_map_lookup_update=True, set_extent=False)
                 for ls in map.layerset_set.all():
-                    ls.save(set_tilejson=True)
+                    ls.save()
                 map.update_item_lookup()

@@ -391,6 +391,10 @@ class LayerSchema(Schema):
     def resolve_category(obj: Layer):
         return obj.layerset2.category.display_name if obj.layerset2 else None
 
+    @staticmethod
+    def resolve_tilejson(obj: Layer):
+        return obj.get_tilejson()
+
 
 class LayerFullSchema(Schema):
     id: int
@@ -500,6 +504,10 @@ class LayerSetLayer(Schema):
             "georeference": f"/georeference/{obj.region.pk}/",
         }
 
+    @staticmethod
+    def resolve_tilejson(obj: Layer):
+        return obj.get_tilejson()
+
 
 class LayerSetSchema(Schema):
     pk: int
@@ -546,6 +554,10 @@ class LayerSetSchema(Schema):
     def resolve_latest_xyz_job(obj):
         return obj.get_latest_xyz_job()
 
+    @staticmethod
+    def resolve_tilejson(obj: Layer):
+        return obj.get_tilejson()
+
 
 class LayerSetDisplaySchema(Schema):
     map_id: str
@@ -562,10 +574,10 @@ class LayerSetDisplaySchema(Schema):
     def resolve_layers_tilejson(obj: "LayerSet"):
         layers_tilejson = []
         if obj.mosaic_geotiff:
-            layers_tilejson.append(obj.tilejson)
+            layers_tilejson.append(obj.get_tilejson())
         else:
             for layer in natsorted(obj.get_layers(), key=lambda k: k.title):
-                tilejson = layer.tilejson
+                tilejson = layer.get_tilejson()
                 tilejson["mask"] = json.loads(layer.mask.geojson) if layer.mask else None
                 layers_tilejson.append(tilejson)
         return layers_tilejson

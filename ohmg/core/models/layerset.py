@@ -1,6 +1,6 @@
 import logging
 import urllib.parse
-from typing import TYPE_CHECKING, Iterable, Union
+from typing import TYPE_CHECKING, Iterable
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -11,6 +11,7 @@ from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 
 from ..storages import get_file_url
+from ..utils.services import make_tilejson
 
 if TYPE_CHECKING:
     from .layer import Layer
@@ -148,17 +149,6 @@ class LayerSet(models.Model):
         no COG exists, return None."""
         return urllib.parse.quote(self.mosaic_cog_url, safe="")
 
-    def create_xyz_url(self) -> Union[str, None]:
-        file_url = get_file_url(self, "mosaic_geotiff")
-        if file_url:
-            encoded_url = urllib.parse.quote(file_url, safe="")
-            xyx_base = (
-                f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}@2x.png?"
-            )
-            return f"{xyx_base}&url={encoded_url}"
-        else:
-            return None
-
     @property
     def multimask_extent(self):
         """Calculate an extent based any existing masks of layers in this LayerSet.
@@ -180,6 +170,10 @@ class LayerSet(models.Model):
             if mask_geojson:
                 fc["features"].append(mask_geojson)
         return fc
+
+    def get_tilejson(self):
+        file_url = get_file_url(self, "mosaic_geotiff")
+        return make_tilejson(file_url, self.centroid[1], self.centroid[0], self.extent)
 
     def queue_mosaic_cog(self) -> int:
         """Creates a new job to generate a mosaic cog from this layerset.
@@ -213,7 +207,7 @@ class LayerSet(models.Model):
         j.enqueue()
         return j.pk
 
-    def save(self, set_tilejson: bool = False, *args, **kwargs):
+    def save(self, *args, **kwargs):
         if self._state.adding is False:
             extents = self.get_layers().values_list("extent", flat=True)
             layer_extents = []
@@ -224,17 +218,5 @@ class LayerSet(models.Model):
             if layer_extents:
                 combined = MultiPolygon(layer_extents)
                 self.extent = combined.extent
-            if (set_tilejson or self.tilejson is None) and self.mosaic_geotiff:
-                self.tilejson = {
-                    "tilejson": "2.2.0",
-                    "version": "1.0.0",
-                    "scheme": "xyz",
-                    "tiles": [self.create_xyz_url()],
-                    "minzoom": 10,
-                    "maxzoom": 21,
-                    "bounds": self.extent,
-                    "center": [self.centroid[0], self.centroid[1], 16],
-                    "attribution": "<a href='https://oldinsurancemaps.net'>OldInsuranceMaps</a>; <a href='https://loc.gov/collections/sanborn-maps'>LOC</a>",
-                }
 
         return super(self.__class__, self).save(*args, **kwargs)

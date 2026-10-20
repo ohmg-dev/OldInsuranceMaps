@@ -2,18 +2,16 @@ import uuid
 from typing import Union
 
 import lxml.etree as et
-from django.conf import settings
 
 from ..models import Layer, LayerSet
 from ..storages import get_file_url
 from ..utils.image import get_extent_from_file
+from ..utils.services import make_titiler_wms_url
 from ..utils.srs import retrieve_srs_wkt
 
 
-def generate_qlr_content(
-    instance: Union[Layer, LayerSet], titiler_host: str = settings.TITILER_HOST
-):
-    title = str(instance)
+def generate_qlr_content(instance: Union[Layer, LayerSet]):
+    layername_str = str(instance)
 
     if isinstance(instance, Layer):
         file_url = get_file_url(instance)
@@ -31,13 +29,12 @@ def generate_qlr_content(
 
     id_str = f"_{str(uuid.uuid1()).replace('-', '_')}"
 
-    layername_str = title
     datasource_str2 = (
         "crs=EPSG:3857&dpiMode=7&format=image/png&"
         + f"layers={file_url}&"
         + "tilePixelRatio=0&"
         + "styles&"
-        + f"url={titiler_host}/cog/wms/?LAYERS%3D{file_url}%26VERSION%3D1.1.1"
+        + f"url={make_titiler_wms_url(file_url)}"
     )
 
     wkt3857_str = retrieve_srs_wkt(3857)
