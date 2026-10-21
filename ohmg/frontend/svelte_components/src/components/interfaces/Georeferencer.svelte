@@ -828,7 +828,7 @@
 
   function getPreview() {
     getMeasures()
-    if (gcpList.length < minGCPs) {
+    if (gcpList.length < transformationLookup[currentTransformation].gcpMin) {
       previewMode = 'n/a';
       return;
     }
