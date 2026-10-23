@@ -351,9 +351,9 @@ class Command(BaseCommand):
                 for layer in map.layers:
                     if not layer.tilejson:
                         print(layer)
-                        layer.save(set_tilejson=True, skip_map_lookup_update=True, set_extent=True)
+                        layer.save(skip_map_lookup_update=True, set_extent=True)
                 for layerset in LayerSet.objects.filter(map=map):
-                    layerset.save(set_tilejson=True)
+                    layerset.save()
 
         ## 10/06/2025 Cleaning up a lot of duplicate regions that had been inadvertedly created
         ## due to the slow reaponse of the prep "no split" action. In this operation, any document

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run --script
 """Django's command-line utility for administrative tasks."""
 
 import os

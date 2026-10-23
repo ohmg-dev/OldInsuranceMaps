@@ -131,7 +131,7 @@ class Mosaicker:
         if existing_file_name and storage.exists(name=existing_file_name):
             storage.delete(name=existing_file_name)
 
-        layerset.save(set_tilejson=True)
+        layerset.save()
 
     def generate_tileset(
         self,

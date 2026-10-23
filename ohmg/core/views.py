@@ -1,7 +1,6 @@
 import json
 import logging
 from datetime import datetime
-from urllib.parse import quote
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -48,6 +47,7 @@ from .tasks import (
     load_map_documents_as_task,
 )
 from .utils.performance import time_this_function
+from .utils.services import make_ohm_url, make_titiler_wms_url, make_titiler_xyz_url
 
 logger = logging.getLogger(__name__)
 
@@ -404,30 +404,20 @@ class ResourceDerivativeView(View):
                 return redirect(get_file_url(layer))
 
             if derivative == "tilejson":
-                if layer.tilejson:
-                    return JsonResponse(layer.tilejson)
-                else:
-                    raise Http404
+                return JsonResponse(layer.get_tilejson())
 
             if derivative == "ohm":
-                file_url_encoded = quote(get_file_url(layer), safe="")
-                xyz_base = (
-                    f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}.png?"
-                )
-                xyz_url_encoded = quote(f"{xyz_base}&url={file_url_encoded}", safe="")
                 lon, lat = layer.centroid
-                u = f"https://www.openhistoricalmap.org/edit#map=16/{lat}/{lon}&background=custom:{xyz_url_encoded}"
-                return redirect(u)
+                file_url = get_file_url(layer)
+                ohm_url = make_ohm_url(file_url, lat, lon)
+                return redirect(ohm_url)
 
             if derivative == "services":
-                file_url_encoded = quote(get_file_url(layer), safe="")
-                xyz_base = (
-                    f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}.png?"
-                )
+                file_url = get_file_url(layer)
                 return JsonResponse(
                     {
-                        "xyz": f"{xyz_base}&url={file_url_encoded}",
-                        "wms": f"{settings.TITILER_HOST}/cog/wms/?LAYERS={file_url_encoded}&VERSION=1.1.1",
+                        "xyz": make_titiler_xyz_url(file_url),
+                        "wms": make_titiler_wms_url(file_url),
                         "tilejson": f"{settings.SITEURL}layer/{pk}/tilejson",
                     }
                 )
@@ -546,8 +536,8 @@ class LayersetDerivativeView(View):
 
         raw = request.GET.get("raw", "false")
 
-        if derivative == "tilejson" and layerset.tilejson:
-            return JsonResponse(layerset.tilejson)
+        if derivative == "tilejson" and layerset.get_tilejson():
+            return JsonResponse(layerset.get_tilejson())
 
         elif derivative == "qlr":
             xml_str = generate_qlr_content(layerset)
@@ -562,24 +552,18 @@ class LayersetDerivativeView(View):
             return response
 
         elif derivative == "ohm":
-            file_url_encoded = quote(get_file_url(layerset, "mosaic_geotiff"), safe="")
-            xyz_base = f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}.png?"
-            xyz_url_encoded = quote(f"{xyz_base}&url={file_url_encoded}", safe="")
             lon, lat = layerset.centroid
-            u = f"https://www.openhistoricalmap.org/edit#map=16/{lat}/{lon}&background=custom:{xyz_url_encoded}"
-            return redirect(u)
-
-        elif derivative == "cog":
-            return redirect(get_file_url(layerset, "mosaic_geotiff"))
+            file_url = get_file_url(layerset)
+            ohm_url = make_ohm_url(file_url, lat, lon)
+            return redirect(ohm_url)
 
         elif derivative == "services":
-            file_url_encoded = quote(get_file_url(layerset, "mosaic_geotiff"), safe="")
-            xyz_base = f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}.png?"
+            file_url = get_file_url(layerset)
             return JsonResponse(
                 {
-                    "xyz": f"{xyz_base}&url={file_url_encoded}",
-                    "wms": f"{settings.TITILER_HOST}/cog/wms/?LAYERS={file_url_encoded}&VERSION=1.1.1",
-                    "tilejson": f"{settings.SITEURL}map/{mapid}/{category}/tilejson",
+                    "xyz": make_titiler_xyz_url(file_url),
+                    "wms": make_titiler_wms_url(file_url),
+                    "tilejson": f"{settings.SITEURL}layer/{mapid}/{category}/tilejson",
                 }
             )
 

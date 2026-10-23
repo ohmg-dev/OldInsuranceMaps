@@ -22,6 +22,7 @@ from ..utils.image import (
     generate_layer_thumbnail_content,
     get_extent_from_file,
 )
+from ..utils.services import make_tilejson
 
 if TYPE_CHECKING:
     from .map import Map
@@ -82,7 +83,6 @@ class Layer(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
     )
-    tilejson = models.JSONField(null=True, blank=True)
     gcp_count = models.IntegerField("GCP Count", null=True, blank=True)
     transformation = models.CharField(null=True, blank=True)
     rmse = models.FloatField("RMSE", null=True, blank=True)
@@ -162,17 +162,6 @@ class Layer(models.Model):
                 ],
             )
 
-    def create_xyz_url(self) -> Union[str, None]:
-        file_url = get_file_url(self)
-        if file_url:
-            encoded_url = urllib.parse.quote(file_url, safe="")
-            xyx_base = (
-                f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}@2x.png?"
-            )
-            return f"{xyx_base}&url={encoded_url}"
-        else:
-            return None
-
     @property
     def lock(self):
         from ohmg.georeference.models import SessionLock
@@ -183,6 +172,11 @@ class Layer(models.Model):
             return locks[0]
         else:
             return None
+
+    def get_tilejson(self):
+        if file_url := get_file_url(self):
+            return make_tilejson(file_url, self.centroid[1], self.centroid[0], self.extent)
+        return None
 
     def set_thumbnail(self):
         if self.file is not None:
@@ -240,7 +234,6 @@ class Layer(models.Model):
         set_slug: bool = False,
         set_thumbnail: bool = False,
         set_extent: bool = True,
-        set_tilejson: bool = False,
         skip_map_lookup_update: bool = False,
         *args,
         **kwargs,
@@ -259,18 +252,5 @@ class Layer(models.Model):
 
         self.title = self.region.title
         self.nickname = self.region.nickname
-
-        if (set_tilejson or self.tilejson is None) and self.file:
-            self.tilejson = {
-                "tilejson": "2.2.0",
-                "version": "1.0.0",
-                "scheme": "xyz",
-                "tiles": [self.create_xyz_url()],
-                "minzoom": 10,
-                "maxzoom": 21,
-                "bounds": self.extent,
-                "center": [self.centroid[0], self.centroid[1], 16],
-                "attribution": "<a href='https://oldinsurancemaps.net'>OldInsuranceMaps</a>; <a href='https://loc.gov/collections/sanborn-maps'>LOC</a>",
-            }
 
         return super(self.__class__, self).save(*args, **kwargs)
