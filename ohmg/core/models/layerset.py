@@ -71,7 +71,6 @@ class LayerSet(models.Model):
         blank=True,
         null=True,
     )
-    tilejson = models.JSONField(null=True, blank=True)
     multimask_date = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
