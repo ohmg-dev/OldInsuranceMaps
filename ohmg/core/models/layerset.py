@@ -171,8 +171,9 @@ class LayerSet(models.Model):
         return fc
 
     def get_tilejson(self):
-        file_url = get_file_url(self, "mosaic_geotiff")
-        return make_tilejson(file_url, self.centroid[1], self.centroid[0], self.extent)
+        if file_url := get_file_url(self, "mosaic_geotiff"):
+            return make_tilejson(file_url, self.centroid[1], self.centroid[0], self.extent)
+        return None
 
     def queue_mosaic_cog(self) -> int:
         """Creates a new job to generate a mosaic cog from this layerset.
