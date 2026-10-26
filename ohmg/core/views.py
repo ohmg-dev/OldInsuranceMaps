@@ -553,7 +553,7 @@ class LayersetDerivativeView(View):
 
         elif derivative == "ohm":
             lon, lat = layerset.centroid
-            file_url = get_file_url(layerset)
+            file_url = get_file_url(layerset, "mosaic_geotiff")
             ohm_url = make_ohm_url(file_url, lat, lon)
             return redirect(ohm_url)
 
