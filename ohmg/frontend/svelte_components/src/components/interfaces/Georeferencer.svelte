@@ -133,7 +133,7 @@
     leaveOkay = false;
     enableButtons = true;
   }
-  $: enableSave = gcpList.length >= minGCPs && enableButtons;
+  $: enableSave = gcpList.length >= transformationLookup[currentTransformation].gcpMin && enableButtons;
 
   let countdown = 10;
   let timer;
@@ -182,7 +182,6 @@
       gcpMin: 2,
     },
   }
-  $: minGCPs = transformationLookup[currentTransformation].gcpMin;
 
   let currentTargetProjection = 'EPSG:3857';
   const availableProjections = [
@@ -879,7 +878,7 @@
   }
 
   function submitSession() {
-    if (gcpList.length < minGCPs) {
+    if (gcpList.length < transformationLookup[currentTransformation].gcpMin) {
       previewMode = 'n/a';
       return;
     }
