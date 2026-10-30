@@ -5,6 +5,10 @@ import Link from 'ol/interaction/Link.js';
 import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
+import ContextMenu from 'ol-contextmenu';
+
+import { toLonLat, transformExtent } from 'ol/proj';
+
 
 import Control from 'ol/control/Control';
 
@@ -84,9 +88,74 @@ export class MapViewer {
 
   addBasemaps(mapboxApiKey, defaultId) {
     this.basemaps = makeBasemaps(mapboxApiKey);
-    const defaultBasemap = defaultId == 'satellite' ? this.basemaps[1] : this.basemaps[0];
-    this.map.getLayers().insertAt(0, defaultBasemap.layer);
-    this.currentBasemap = defaultBasemap;
+    this.setBasemap(defaultId)
+  }
+
+  addContextMenu() {
+    const contextmenu = new ContextMenu({
+        width: 200,
+        defaultItems: false,
+    });
+    contextmenu.on('open', async (evt) => {
+
+      const [lon, lat] = toLonLat(contextmenu.coordinate)
+      const lonLatStr = `${lat.toFixed(5)}, ${lon.toFixed(5)}`
+      const copyLonLat = () => {
+        const el = document.getElementsByClassName("copyable-coords")[0]
+        navigator.clipboard.writeText(el.textContent);
+        alert("Coordinates copied to clipboard (lat, long)")
+      }
+      const zoom = this.map.getView().getZoom();
+      const extent = this.map.getView().calculateExtent(this.map.getSize());
+      const bboxLatLon = transformExtent(extent, 'EPSG:3857', 'EPSG:4326');
+      const bboxStr = bboxLatLon.map(coord => coord.toFixed(3));
+      const copyBbox = () => {
+        const el = document.getElementsByClassName("copyable-bbox")[0]
+        navigator.clipboard.writeText(el.textContent);
+        alert("Bounding box copied to clipboard")
+      }
+
+      contextmenu.clear()
+      contextmenu.extend(contextmenu.getDefaultItems());
+      contextmenu.extend([
+        {
+          text: 'Center map here',
+          callback: (obj, map) => {
+              this.map.getView().animate({
+                center: obj.coordinate,
+                duration: 1000
+              });
+          },
+        },
+        "-",
+        {
+          text: "View in Mapillary &nearr;",
+          callback: (obj, map) => {
+            const url = `https://www.mapillary.com/app/?lat=${lat}&lng=${lon}&z=${zoom}`;
+            window.open(url, '_blank');
+          }
+        },
+        {
+          text: "View in OpenHistoricalMap &nearr;",
+          callback: (obj, map) => {
+            const url = `https://www.openhistoricalmap.org/#map=${zoom}/${lat}/${lon}`;
+            window.open(url, '_blank');
+          }
+        },
+        "-",
+        {
+          text: lonLatStr,
+          callback: copyLonLat,
+          classname: "copyable-coords"
+        },
+        {
+          text: bboxStr,
+          callback: copyBbox,
+          classname: "copyable-bbox"
+        }
+      ]);
+    });
+    this.map.addControl(contextmenu)
   }
   addControl(control) {
     this.map.addControl(control);

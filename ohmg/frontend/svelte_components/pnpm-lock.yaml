@@ -902,6 +902,12 @@ packages:
   numcodecs@0.3.2:
     resolution: {integrity: sha512-6YSPnmZgg0P87jnNhi3s+FVLOcIn3y+1CTIgUulA3IdASzK9fJM87sUFkpyA+be9GibGRaST2wCgkD+6U+fWKw==}
 
+  ol-contextmenu@6.0.1:
+    resolution: {integrity: sha512-53NUdY3bw1r6nc9cnpOgN098krDDx/Es2IOZKSqZX2VM+k5aMMhyDYNzEt7lO6jnbC+CoMDCtYT5txpsQ/L8GQ==}
+    engines: {node: '>=24', npm: '>=11'}
+    peerDependencies:
+      ol: '> 7.x <= 10.x'
+
   ol-ext@4.0.38:
     resolution: {integrity: sha512-fJmMcUYV8tfNhaHTl93eV1esBo1L8QHdOjJsBzapomgpmXiW7PGv91i6tmvXU4mL2z0gFrupuzs8BMLGi6T0QQ==}
     peerDependencies:
