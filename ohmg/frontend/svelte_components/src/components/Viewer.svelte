@@ -241,9 +241,6 @@
     });
   }
 
-  // setup all the basemap stuff
-  let currentBasemap = 'satellite';
-
   // GEOLOCATION MANAGEMENT
   const gpsSource = new VectorSource();
   const gpsLayer = new VectorLayer({
@@ -306,16 +303,13 @@
     setOpacitiesFromParams();
   }
 
-  $: {
-    if (viewer) {
-      viewer.setBasemap(currentBasemap);
-    }
-  }
+  let showMapboxLogo = false;
 
   let viewer;
   onMount(() => {
-    viewer = new MapViewer('map', CONTEXT.max_tiles_loading);
-    viewer.addBasemaps(CONTEXT.mapbox_api_token, currentBasemap);
+    viewer = new MapViewer('map', CONTEXT.max_tiles_loading, true);
+    viewer.addContextMenu();
+    viewer.addBasemaps(CONTEXT.mapbox_api_token, "satellite-new");
     viewer.setDefaultExtent(homeExtent);
 
     if (homeExtent) {
@@ -402,7 +396,7 @@
     </button>
   </div>
   <div id="map"></div>
-  {#if currentBasemap == 'satellite'}
+  {#if showMapboxLogo}
     <MapboxLogoLink fullpage={true} />
   {/if}
   <div id="panel-btn">
@@ -427,7 +421,8 @@
           class="control-btn"
           title="Change basemap"
           on:click={() => {
-            currentBasemap = currentBasemap == 'osm' ? 'satellite' : 'osm';
+            viewer.toggleBasemap();
+            showMapboxLogo = viewer.currentBasemap.id == "satellite" || viewer.currentBasemap.id == "satellite-new"
           }}><MapTrifold /></button
         >
         <button

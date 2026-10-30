@@ -21,7 +21,7 @@ export class MapViewer {
   currentBasemap = null;
   // snapCandidates = []
 
-  constructor(elementId, maxTilesLoading) {
+  constructor(elementId, maxTilesLoading, debug) {
     if (!maxTilesLoading) {
       maxTilesLoading = 32;
     }
@@ -29,7 +29,6 @@ export class MapViewer {
     const map = new Map({
       target: targetElement,
       maxTilesLoading: maxTilesLoading,
-      pixelRatio: 2,
     });
 
     // add transition actions to the map element, used in Georeferencing interface
@@ -41,6 +40,12 @@ export class MapViewer {
 
     this.map = map;
     this.element = targetElement;
+
+    if (debug) {
+      map.getView().on("change", () => {
+        console.log(map.getView().getZoom())
+      })
+    }
   }
 
   setDefaultExtent(extent) {
@@ -64,11 +69,17 @@ export class MapViewer {
     if (useLayer) {
       this.map.getLayers().removeAt(0);
       this.map.getLayers().insertAt(0, useLayer[0].layer);
-      this.currentBasemap = useLayer;
+      this.currentBasemap = useLayer[0];
     }
   }
   toggleBasemap() {
-    this.currentBasemap.id == 'satellite' ? this.setBasemap('osm') : this.setBasemap('satellite');
+    if (this.currentBasemap.id == 'satellite') {
+      this.setBasemap('satellite-new');
+    } else if (this.currentBasemap.id == 'satellite-new') {
+      this.setBasemap('osm');
+    } else {
+      this.setBasemap('satellite');
+    }
   }
 
   addBasemaps(mapboxApiKey, defaultId) {

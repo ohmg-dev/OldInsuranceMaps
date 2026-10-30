@@ -140,12 +140,11 @@ export function makeMBSatelliteRasterLayer(apiKey) {
   return new TileLayer({
     source: new XYZ({
       url: 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.jpg?access_token=' + apiKey,
-      tileSize: 512,
+      // tileSize: 512,
       attributions: [
         `© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>`,
       ],
     }),
-    opacity: .9
   })
 }
 
@@ -156,14 +155,10 @@ export function makeOFMLayer() {
 }
 
 export function makeOFMSatelliteLayer(apiKey) {
-
-  // now create a layer group with this layer in it
   const openfreemap = new LayerGroup({ layers: [
     makeMBSatelliteRasterLayer(apiKey)
   ]});
-
-  // and apply the vector tile layers on top
-  apply(openfreemap, "/static/aerialiberty/style.json")
+  apply(openfreemap, "/static/mapstyles/liberty-labels/style.json")
   return openfreemap
 }
 
@@ -178,6 +173,11 @@ export function makeBasemaps(mapboxKey) {
       id: 'satellite',
       layer: makeMBSatelliteStyleLayer(mapboxKey),
       label: 'Streets+Satellite',
+    },
+    {
+      layer: makeOFMSatelliteLayer(mapboxKey),
+      id: 'satellite-new',
+      label: 'Streets+Satellite New',
     },
   ];
 }
