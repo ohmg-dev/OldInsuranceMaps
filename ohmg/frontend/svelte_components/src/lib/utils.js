@@ -139,7 +139,7 @@ export function makeMBSatelliteStyleLayer(apiKey) {
 export function makeMBSatelliteRasterLayer(apiKey) {
   return new TileLayer({
     source: new XYZ({
-      url: 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.jpg?access_token=' + apiKey,
+      url: 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg?access_token=' + apiKey,
       tileSize: 512,
       attributions: [
         `© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> <strong><a href="https://www.mapbox.com/map-feedback/" target="_blank">Improve this map</a></strong>`,
