@@ -1832,7 +1832,7 @@
             },
             "paint": {
                 "text-color": "#ffffff",
-                "text-halo-color": "rgba(0,0,0,1)",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1.5
             }
         },
@@ -1895,7 +1895,7 @@
             },
             "paint": {
                 "text-color": "#ffffff",
-                "text-halo-color": "rgba(0,0,0,1)",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1.5
             }
         },
@@ -1992,7 +1992,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 0.5,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -2097,7 +2097,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 0.5,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -2202,7 +2202,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 0.5,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -2278,7 +2278,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 0.5,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -2356,7 +2356,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 0.5,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -2663,7 +2663,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 0.5,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -2744,7 +2744,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 1,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -2828,7 +2828,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 1,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -2912,7 +2912,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 1,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -2985,7 +2985,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 1,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -3086,7 +3086,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 1,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -3187,7 +3187,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 1,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -3269,7 +3269,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 1,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -3350,7 +3350,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 1,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         },
@@ -3431,7 +3431,7 @@
             "paint": {
                 "text-color": "#ffffff",
                 "text-halo-blur": 1,
-                "text-halo-color": "#000000",
+                "text-halo-color": "#3e3e3e",
                 "text-halo-width": 1
             }
         }

@@ -307,7 +307,7 @@
 
   let viewer;
   onMount(() => {
-    viewer = new MapViewer('map', CONTEXT.max_tiles_loading, true);
+    viewer = new MapViewer('map', CONTEXT.max_tiles_loading);
     viewer.addContextMenu();
     viewer.addBasemaps(CONTEXT.mapbox_api_token, "satellite-new");
     viewer.setDefaultExtent(homeExtent);
