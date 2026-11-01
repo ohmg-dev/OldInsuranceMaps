@@ -74,7 +74,9 @@ def calculate_helmert_rmse(gcp_list: list[gdal.GCP]) -> float:
     x, *_ = np.linalg.lstsq(sources, targets, rcond=None)
 
     predictions = sources @ x
-    rmse = np.sqrt(np.mean((targets - predictions) ** 2))
+    # RMSE over per-point distances, not over flattened x/y components.
+    residuals = (targets - predictions).reshape(-1, 2)
+    rmse = np.sqrt(np.mean(np.sum(residuals**2, axis=1)))
 
     def flat_list_to_pairs(flat_list: list) -> list[tuple[object, object]]:
         iterator = iter(flat_list)
@@ -164,7 +166,9 @@ def calculate_affine_rmse(gcp_list: list[gdal.GCP]):
     x, *_ = np.linalg.lstsq(sources, targets, rcond=None)
 
     predictions = sources @ x
-    rmse = np.sqrt(np.mean((targets - predictions) ** 2))
+    # RMSE over per-point distances, not over flattened x/y components.
+    residuals = targets - predictions
+    rmse = np.sqrt(np.mean(np.sum(residuals**2, axis=1)))
 
     pred_coords = [tuple(coord) for coord in predictions.tolist()]
     target_coords = [tuple(coord) for coord in targets.tolist()]
