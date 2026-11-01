@@ -33,7 +33,7 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0
       ol-mapbox-style:
-        specifier: ^13.7.1
+        specifier: ^13.4.0
         version: 13.8.0(ol@10.11.0)
       ol-pmtiles:
         specifier: ^1.0.2
