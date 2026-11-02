@@ -88,7 +88,8 @@ export class MapViewer {
 
   addBasemaps(mapboxApiKey, defaultId) {
     this.basemaps = makeBasemaps(mapboxApiKey);
-    this.setBasemap(defaultId)
+    const basemapId = defaultId ?? "osm"
+    this.setBasemap(basemapId);
   }
 
   addContextMenu() {
