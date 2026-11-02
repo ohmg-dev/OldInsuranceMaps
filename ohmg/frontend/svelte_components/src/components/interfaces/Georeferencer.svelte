@@ -8,7 +8,6 @@
 
   import { onMount } from 'svelte';
 
-  import View from 'ol/View';
   import Feature from 'ol/Feature';
 
   import Point from 'ol/geom/Point';
@@ -31,12 +30,10 @@
   import { submitPostRequest } from '../../lib/requests';
   import { gcpStyles, parcelStyles, emptyStyle } from '../../lib/map/styles';
   import {
-    makeImageLayer,
     makePmTilesLayer,
     makeLayerGroupFromLayerSet,
     makeTitilerXYZUrl,
     extentFromImageSize,
-    projectionFromImageExtent,
     makeRotateCenterLayer,
     showRotateCenter,
     removeRotateCenter,
@@ -269,11 +266,6 @@
 
   // CREATE DISPLAY LAYERS
 
-  // items needed by layers and map
-  const docExtent = extentFromImageSize(REGION.image_size);
-  const docProjection = projectionFromImageExtent(docExtent);
-  const docLayer = makeImageLayer(REGION.urls.image, docProjection, docExtent);
-
   let previewLayer = new TileLayer({
     source: new XYZ(),
     zIndex: 20,
@@ -437,15 +429,10 @@
   onMount(() => {
     // CREATE THE LEFT-SIDE DOCUMENT INTERFACE
     docViewer = new MapViewer('doc-viewer');
-    docViewer.setDefaultExtent(docExtent);
-    docViewer.setView(
-      new View({
-        projection: docProjection,
-        zoom: 1,
-        maxZoom: 8,
-      }),
-    );
-    docViewer.addLayer(docLayer);
+
+    const docExtent = extentFromImageSize(REGION.image_size);
+    docViewer.setAsDocViewer(REGION.urls.image, docExtent)
+
     docViewer.addLayer(docGCPLayer);
 
     // add control

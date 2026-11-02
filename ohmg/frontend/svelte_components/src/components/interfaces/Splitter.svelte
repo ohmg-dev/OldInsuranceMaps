@@ -5,7 +5,6 @@
   import ArrowCounterClockwise from 'phosphor-svelte/lib/ArrowCounterClockwise';
   import X from 'phosphor-svelte/lib/X';
 
-  import View from 'ol/View';
   import Feature from 'ol/Feature';
   
   import Polygon from 'ol/geom/Polygon';
@@ -13,8 +12,6 @@
   import VectorSource from 'ol/source/Vector';
   
   import VectorLayer from 'ol/layer/Vector';
-  
-  import Projection from 'ol/proj/Projection';
 
   import Draw from 'ol/interaction/Draw';
   import Modify from 'ol/interaction/Modify';
@@ -24,7 +21,6 @@
   import { splitStyles } from '../../lib/map/styles';
   import { submitPostRequest } from '../../lib/requests';
   import { MapViewer } from '../../lib/map/viewers';
-  import { makeImageLayer } from '../../lib/map/layers';
   import { DocMousePosition } from '../../lib/map/controls';
 
   import Link from '../base/Link.svelte';
@@ -121,13 +117,6 @@
     ],
   ];
 
-  const imgExtent = [0, 0, imgWidth, imgHeight];
-  const projection = new Projection({
-    code: 'whatdoesthismatter',
-    units: 'pixels',
-    extent: imgExtent,
-  });
-
   function resetInterface() {
     cutLayerSource.clear();
     previewLayerSource.clear();
@@ -139,8 +128,6 @@
     unchanged = true;
     viewer.resetExtent();
   }
-
-  const docLayer = makeImageLayer(DOCUMENT.urls.image, projection, imgExtent);
 
   const previewLayerSource = new VectorSource();
   const previewLayer = new VectorLayer({
@@ -171,24 +158,17 @@
   });
 
   onMount(() => {
-    // docView = new DocViewer("doc-viewer");
+
     viewer = new MapViewer('doc-viewer');
 
-    viewer.setDefaultExtent(imgExtent);
-    viewer.setView(
-      new View({
-        projection: projection,
-        zoom: 1,
-        maxZoom: 8,
-      }),
-    );
-    viewer.resetExtent();
+
+    const imgExtent = [0, 0, imgWidth, imgHeight];
+    viewer.setAsDocViewer(DOCUMENT.urls.image, imgExtent);
 
     // add control
     viewer.addControl(new DocMousePosition(imgExtent, null, 'ol-mouse-position'));
 
     // add layers
-    viewer.addLayer(docLayer);
     viewer.addLayer(previewLayer);
     viewer.addLayer(borderLayer);
     viewer.addLayer(cutLayer);

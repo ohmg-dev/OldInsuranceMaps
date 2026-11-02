@@ -1,10 +1,13 @@
 import Map from 'ol/Map';
+import View from 'ol/View';
 import ZoomToExtent from 'ol/control/ZoomToExtent';
 import Snap from 'ol/interaction/Snap';
 import Link from 'ol/interaction/Link.js';
 import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
+
+import Projection from 'ol/proj/Projection';
 
 import Control from 'ol/control/Control';
 
@@ -14,7 +17,7 @@ import { containsXY } from 'ol/extent';
 
 import { snapVertexStyle } from './styles';
 
-import { makeBasemaps } from './layers';
+import { makeBasemaps, makeImageLayer } from './layers';
 
 export class MapViewer {
   interactions = {};
@@ -46,6 +49,24 @@ export class MapViewer {
         console.log(map.getView().getZoom())
       })
     }
+  }
+
+  setAsDocViewer(docUrl, imageExtent) {
+    const projection = new Projection({
+      units: 'pixels',
+      extent: imageExtent,
+    });
+    const view = new View({
+      projection: projection,
+      zoom: 1,
+      maxZoom: 8,
+    });
+    this.map.setView(view);
+
+    const docLayer = makeImageLayer(docUrl, projection, imageExtent);
+    this.addLayer(docLayer);
+    this.setDefaultExtent(imageExtent);
+    this.resetExtent();
   }
 
   setDefaultExtent(extent) {

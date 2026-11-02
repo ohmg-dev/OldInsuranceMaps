@@ -3,13 +3,6 @@
 
   import CornersOut from 'phosphor-svelte/lib/CornersOut';
 
-  import View from 'ol/View';
-
-  import { Projection } from 'ol/proj';
-
-  import { ImageStatic } from 'ol/source';
-  import { Image as ImageLayer } from 'ol/layer';
-
   import { DocMousePosition } from '../../lib/map/controls';
   import { MapViewer } from '../../lib/map/viewers';
 
@@ -24,27 +17,7 @@
 
     viewer.addZoomToExtentControl(EXTENT, 'extent-icon-doc');
     viewer.addControl(new DocMousePosition(EXTENT, 'doc-coords', null));
-    const projection = new Projection({
-      units: 'pixels',
-      extent: EXTENT,
-    });
-    const view = new View({
-      projection: projection,
-      zoom: 1,
-      maxZoom: 8,
-    });
-    viewer.setView(view);
-
-    viewer.addLayer(
-      new ImageLayer({
-        source: new ImageStatic({
-          url: LAYER_URL,
-          projection: projection,
-          imageExtent: EXTENT,
-        }),
-      }),
-    );
-    viewer.setExtent(EXTENT);
+    viewer.setAsDocViewer(LAYER_URL, EXTENT);
 
     viewer.map.getView().on('change:resolution', () => {
       currentZoom = viewer.getZoom();
