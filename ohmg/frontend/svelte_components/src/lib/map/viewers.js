@@ -5,10 +5,6 @@ import Link from 'ol/interaction/Link.js';
 import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
-import ContextMenu from 'ol-contextmenu';
-
-import { toLonLat, transformExtent } from 'ol/proj';
-
 
 import Control from 'ol/control/Control';
 
@@ -16,9 +12,9 @@ import { toGeometry } from 'ol/render/Feature';
 
 import { containsXY } from 'ol/extent';
 
-import { snapVertexStyle } from '../lib/ol-styles';
+import { snapVertexStyle } from './styles';
 
-import { makeBasemaps } from './utils';
+import { makeBasemaps } from './layers';
 
 export class MapViewer {
   interactions = {};

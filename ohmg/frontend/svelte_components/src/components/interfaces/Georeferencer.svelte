@@ -27,22 +27,22 @@
   import Draw from 'ol/interaction/Draw';
   import Modify from 'ol/interaction/Modify';
 
-  import { gcpStyles, parcelStyles, emptyStyle } from '../../lib/ol-styles';
+  import { uuid, usaExtent } from '../../lib/utils';
+  import { submitPostRequest } from '../../lib/requests';
+  import { gcpStyles, parcelStyles, emptyStyle } from '../../lib/map/styles';
   import {
+    makeImageLayer,
+    makePmTilesLayer,
     makeLayerGroupFromLayerSet,
     makeTitilerXYZUrl,
+    extentFromImageSize,
+    projectionFromImageExtent,
     makeRotateCenterLayer,
     showRotateCenter,
     removeRotateCenter,
-    uuid,
-    extentFromImageSize,
-    projectionFromImageExtent,
-    usaExtent,
-  } from '../../lib/utils';
-  import { submitPostRequest } from '../../lib/requests';
-  import { makeImageLayer, makePmTilesLayer } from '../../lib/layers';
-  import { DocMousePosition, LyrMousePosition, MapScaleLine } from '../../lib/controls';
-  import { MapViewer } from '../../lib/viewers';
+  } from '../../lib/map/layers';
+  import { DocMousePosition, LyrMousePosition, MapScaleLine } from '../../lib/map/controls';
+  import { MapViewer } from '../../lib/map/viewers';
 
   import Modal, { openModal } from '../base/Modal.svelte';
   import LoadingEllipsis from '../shared/LoadingEllipsis.svelte';

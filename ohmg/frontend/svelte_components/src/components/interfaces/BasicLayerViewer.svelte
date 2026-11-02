@@ -8,9 +8,9 @@
   import { XYZ } from 'ol/source';
   import { Tile as TileLayer } from 'ol/layer';
 
-  import { makeTitilerXYZUrl } from '../../lib/utils';
-  import { LyrMousePosition } from '../../lib/controls';
-  import { MapViewer } from '../../lib/viewers';
+  import { makeTitilerXYZUrl } from '../../lib/map/layers';
+  import { LyrMousePosition } from '../../lib/map/controls';
+  import { MapViewer } from '../../lib/map/viewers';
 
   export let CONTEXT;
   export let LAYER_URL;

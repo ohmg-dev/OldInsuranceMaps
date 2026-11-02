@@ -10,8 +10,8 @@
   import VectorSource from 'ol/source/Vector';
   import VectorLayer from 'ol/layer/Vector';
 
-  import { browseMapStyle } from '../../lib/ol-styles';
-  import { MapViewer } from '../../lib/viewers';
+  import { browseMapStyle } from '../../lib/map/styles';
+  import { MapViewer } from '../../lib/map/viewers';
 
   export let CONTEXT;
   export let MAP_HEIGHT = '600px';

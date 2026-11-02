@@ -10,8 +10,8 @@
   import { ImageStatic } from 'ol/source';
   import { Image as ImageLayer } from 'ol/layer';
 
-  import { DocMousePosition } from '../../lib/controls';
-  import { MapViewer } from '../../lib/viewers';
+  import { DocMousePosition } from '../../lib/map/controls';
+  import { MapViewer } from '../../lib/map/viewers';
 
   export let LAYER_URL;
   export let EXTENT;

@@ -21,11 +21,11 @@
   import Snap from 'ol/interaction/Snap';
   import LineString from 'ol/geom/LineString';
 
-  import { splitStyles } from '../../lib/ol-styles';
+  import { splitStyles } from '../../lib/map/styles';
   import { submitPostRequest } from '../../lib/requests';
-  import { MapViewer } from '../../lib/viewers';
-  import { makeImageLayer } from '../../lib/layers';
-  import { DocMousePosition } from '../../lib/controls';
+  import { MapViewer } from '../../lib/map/viewers';
+  import { makeImageLayer } from '../../lib/map/layers';
+  import { DocMousePosition } from '../../lib/map/controls';
 
   import Link from '../base/Link.svelte';
   import Modal, { openModal } from '../base/Modal.svelte';

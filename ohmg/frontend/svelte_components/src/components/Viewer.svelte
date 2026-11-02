@@ -35,8 +35,8 @@
   import VectorLayer from 'ol/layer/Vector';
   import LayerGroup from 'ol/layer/Group';
 
-  import { MapViewer } from '../lib/viewers';
-  import { ContextMenuControl } from '../lib/controls';
+  import { MapViewer } from '../lib/map/viewers';
+  import { ContextMenuControl } from '../lib/map/controls';
   import Modal, { openModal } from './base/Modal.svelte';
   import Link from './base/Link.svelte';
   import MapboxLogoLink from './interfaces/widgets/MapboxLogoLink.svelte';
