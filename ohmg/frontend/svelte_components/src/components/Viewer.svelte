@@ -35,7 +35,8 @@
   import VectorLayer from 'ol/layer/Vector';
   import LayerGroup from 'ol/layer/Group';
 
-  import { MapViewer } from '../lib/viewers';
+  import { MapViewer } from '../lib/map/viewers';
+  import { ContextMenuControl } from '../lib/map/controls';
   import Modal, { openModal } from './base/Modal.svelte';
   import Link from './base/Link.svelte';
   import MapboxLogoLink from './interfaces/widgets/MapboxLogoLink.svelte';
@@ -241,9 +242,6 @@
     });
   }
 
-  // setup all the basemap stuff
-  let currentBasemap = 'satellite';
-
   // GEOLOCATION MANAGEMENT
   const gpsSource = new VectorSource();
   const gpsLayer = new VectorLayer({
@@ -306,16 +304,13 @@
     setOpacitiesFromParams();
   }
 
-  $: {
-    if (viewer) {
-      viewer.setBasemap(currentBasemap);
-    }
-  }
+  let showMapboxLogo = false;
 
   let viewer;
   onMount(() => {
     viewer = new MapViewer('map', CONTEXT.max_tiles_loading);
-    viewer.addBasemaps(CONTEXT.mapbox_api_token, currentBasemap);
+
+    viewer.addBasemaps(CONTEXT.mapbox_api_token, "satellite-new");
     viewer.setDefaultExtent(homeExtent);
 
     if (homeExtent) {
@@ -337,6 +332,9 @@
     });
 
     viewer.map.addLayer(gpsLayer);
+
+    const contextmenu = new ContextMenuControl(viewer.map)
+    viewer.addControl(contextmenu)
 
     viewer.map.addControl(
       new Control({
@@ -402,7 +400,7 @@
     </button>
   </div>
   <div id="map"></div>
-  {#if currentBasemap == 'satellite'}
+  {#if showMapboxLogo}
     <MapboxLogoLink fullpage={true} />
   {/if}
   <div id="panel-btn">
@@ -427,7 +425,8 @@
           class="control-btn"
           title="Change basemap"
           on:click={() => {
-            currentBasemap = currentBasemap == 'osm' ? 'satellite' : 'osm';
+            viewer.toggleBasemap();
+            showMapboxLogo = viewer.currentBasemap.id == "satellite" || viewer.currentBasemap.id == "satellite-new"
           }}><MapTrifold /></button
         >
         <button

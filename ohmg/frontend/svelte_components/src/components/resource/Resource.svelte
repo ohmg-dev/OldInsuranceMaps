@@ -16,7 +16,7 @@
 
   import ResourceBreadcrumbs from './Breadcrumbs.svelte';
 
-  import { makeTitilerXYZUrl } from '../../lib/utils';
+  import { makeTitilerXYZUrl } from '../../lib/map/layers';
 
   export let CONTEXT;
   export let RESOURCE;

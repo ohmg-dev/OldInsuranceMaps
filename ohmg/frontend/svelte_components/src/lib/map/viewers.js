@@ -1,4 +1,5 @@
 import Map from 'ol/Map';
+import View from 'ol/View';
 import ZoomToExtent from 'ol/control/ZoomToExtent';
 import Snap from 'ol/interaction/Snap';
 import Link from 'ol/interaction/Link.js';
@@ -6,22 +7,24 @@ import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 
+import Projection from 'ol/proj/Projection';
+
 import Control from 'ol/control/Control';
 
 import { toGeometry } from 'ol/render/Feature';
 
 import { containsXY } from 'ol/extent';
 
-import { snapVertexStyle } from '../lib/ol-styles';
+import { snapVertexStyle } from './styles';
 
-import { makeBasemaps } from './utils';
+import { makeBasemaps, makeImageLayer } from './layers';
 
 export class MapViewer {
   interactions = {};
   currentBasemap = null;
   // snapCandidates = []
 
-  constructor(elementId, maxTilesLoading) {
+  constructor(elementId, maxTilesLoading, debug) {
     if (!maxTilesLoading) {
       maxTilesLoading = 32;
     }
@@ -29,7 +32,6 @@ export class MapViewer {
     const map = new Map({
       target: targetElement,
       maxTilesLoading: maxTilesLoading,
-      pixelRatio: 2,
     });
 
     // add transition actions to the map element, used in Georeferencing interface
@@ -41,6 +43,30 @@ export class MapViewer {
 
     this.map = map;
     this.element = targetElement;
+
+    if (debug) {
+      map.getView().on("change", () => {
+        console.log(map.getView().getZoom())
+      })
+    }
+  }
+
+  setAsDocViewer(docUrl, imageExtent) {
+    const projection = new Projection({
+      units: 'pixels',
+      extent: imageExtent,
+    });
+    const view = new View({
+      projection: projection,
+      zoom: 1,
+      maxZoom: 8,
+    });
+    this.map.setView(view);
+
+    const docLayer = makeImageLayer(docUrl, projection, imageExtent);
+    this.addLayer(docLayer);
+    this.setDefaultExtent(imageExtent);
+    this.resetExtent();
   }
 
   setDefaultExtent(extent) {
@@ -64,18 +90,23 @@ export class MapViewer {
     if (useLayer) {
       this.map.getLayers().removeAt(0);
       this.map.getLayers().insertAt(0, useLayer[0].layer);
-      this.currentBasemap = useLayer;
+      this.currentBasemap = useLayer[0];
     }
   }
   toggleBasemap() {
-    this.currentBasemap.id == 'satellite' ? this.setBasemap('osm') : this.setBasemap('satellite');
+    if (this.currentBasemap.id == 'satellite') {
+      this.setBasemap('satellite-new');
+    } else if (this.currentBasemap.id == 'satellite-new') {
+      this.setBasemap('osm');
+    } else {
+      this.setBasemap('satellite');
+    }
   }
 
   addBasemaps(mapboxApiKey, defaultId) {
     this.basemaps = makeBasemaps(mapboxApiKey);
-    const defaultBasemap = defaultId == 'satellite' ? this.basemaps[1] : this.basemaps[0];
-    this.map.getLayers().insertAt(0, defaultBasemap.layer);
-    this.currentBasemap = defaultBasemap;
+    const basemapId = defaultId ?? "osm"
+    this.setBasemap(basemapId);
   }
   addControl(control) {
     this.map.addControl(control);

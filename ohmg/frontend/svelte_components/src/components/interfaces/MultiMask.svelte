@@ -39,10 +39,10 @@
   import LoadingEllipsis from '../shared/LoadingEllipsis.svelte';
 
   import { usaExtent } from '../../lib/utils';
-  import { MapViewer } from '../../lib/viewers';
-  import { LyrMousePosition } from '../../lib/controls';
+  import { MapViewer } from '../../lib/map/viewers';
+  import { LyrMousePosition } from '../../lib/map/controls';
 
-  import { colors, mmColors, makeCircle } from '../../lib/ol-styles';
+  import { colors, mmColors, makeCircle } from '../../lib/map/styles';
 
   export let CONTEXT;
   export let LAYERS;

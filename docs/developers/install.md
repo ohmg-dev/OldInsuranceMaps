@@ -128,7 +128,7 @@ There are a few js and css plugins that must be downloaded to the local static d
 uv run manage.py get-plugins
 ```
 
-The frontend uses a suite of independently built svelte components. First install `pnpm`: https://pnpm.io/installation. Then:
+The frontend uses a suite of independently built svelte components. First install `pnpm`: https://pnpm.io/installation (v12). Then:
 
 ```bash
 cd ohmg/frontend/svelte_components

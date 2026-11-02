@@ -19,9 +19,9 @@
   import { openModal } from '../base/Modal.svelte';
   import LegendModal from '../shared/modals/LegendModal.svelte';
 
-  import { makeLayerGroupFromLayerSet } from '../../lib/utils';
-  import { LyrMousePosition } from '../../lib/controls';
-  import { MapViewer } from '../../lib/viewers';
+  import { makeLayerGroupFromLayerSet } from '../../lib/map/layers';
+  import { LyrMousePosition } from '../../lib/map/controls';
+  import { MapViewer } from '../../lib/map/viewers';
   import { getFromAPI } from '../../lib/requests';
 
   export let CONTEXT;

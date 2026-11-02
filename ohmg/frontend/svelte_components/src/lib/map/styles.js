@@ -158,3 +158,19 @@ export const splitStyles = {
     image: makeCircle(colors.brightBlue, colors.white),
   }),
 };
+
+// OTHER
+
+export const rotateCenterStyle = new Style({
+  image: new RegularShape({
+    radius: 10,
+    radius2: 1,
+    points: 4,
+    rotateWithView: true,
+    fill: new Fill({ color: '#FF0000' }),
+    stroke: new Stroke({
+      color: '#FF0000',
+      width: 2,
+    }),
+  }),
+});

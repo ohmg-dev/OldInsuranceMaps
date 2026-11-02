@@ -3,7 +3,7 @@
 
   import Link from '../base/Link.svelte';
 
-  import { makeTitilerXYZUrl } from '../../lib/utils';
+  import { makeTitilerXYZUrl } from '../../lib/map/layers';
   import CopyableText from '../shared/buttons/CopyableText.svelte';
 
   export let CONTEXT;
