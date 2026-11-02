@@ -36,6 +36,7 @@
   import LayerGroup from 'ol/layer/Group';
 
   import { MapViewer } from '../lib/viewers';
+  import { ContextMenuControl } from '../lib/controls';
   import Modal, { openModal } from './base/Modal.svelte';
   import Link from './base/Link.svelte';
   import MapboxLogoLink from './interfaces/widgets/MapboxLogoLink.svelte';
@@ -308,7 +309,7 @@
   let viewer;
   onMount(() => {
     viewer = new MapViewer('map', CONTEXT.max_tiles_loading);
-    viewer.addContextMenu();
+
     viewer.addBasemaps(CONTEXT.mapbox_api_token, "satellite-new");
     viewer.setDefaultExtent(homeExtent);
 
@@ -331,6 +332,9 @@
     });
 
     viewer.map.addLayer(gpsLayer);
+
+    const contextmenu = new ContextMenuControl(viewer.map)
+    viewer.addControl(contextmenu)
 
     viewer.map.addControl(
       new Control({
