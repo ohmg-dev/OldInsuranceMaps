@@ -10,7 +10,7 @@
 {% block title %}{{ PAGE_TITLE }} | {{ block.super }}{% endblock %}
 
 {% block middle %}
-<div id="main-container" class="container" style="max-width:800px;">
+<div id="main-container" class="container">
         {% include "_status_message.html" %}
         {% include "_announcements.html" %}
         {% include "_messages.html" %}
@@ -22,7 +22,7 @@
         <div class="column is-one-fifth markdown-page-toc is-hidden-tablet">
             {% markdowntoc %}{{MARKDOWN_CONTENT}}{% endmarkdowntoc %}
         </div>
-        <div class="column markdown-page-content">
+        <div class="column">
             {% if DATE_MODIFIED %}<p style="color: #555555;"><em>Last updated: {{DATE_MODIFIED}}</em></p>{% endif %}
             {% markdowncontent %}{{MARKDOWN_CONTENT}}{% endmarkdowncontent %}
         </div>
