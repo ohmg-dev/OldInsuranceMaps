@@ -28,7 +28,7 @@ section > div {
   padding: 10px;
 }
 
-main p {
+main {
   font-size: 1.25em;
 }
 
@@ -55,7 +55,7 @@ main p {
 
 .double-column-section {
   display: flex;
-  gap: 10px;
+  gap: 1em;
   padding: 0;
 }
 
@@ -105,7 +105,7 @@ article.media.partner-listing {
   }
 
   .double-column-section {
-    flex-direction: column-reverse;
+    flex-direction: column;
   }
 
   .double-column-section > div {

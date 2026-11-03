@@ -19,6 +19,9 @@
         <div style="width:70%;">
           <h1 style="word-wrap: break-word; display:inline;">OldInsuranceMaps.net</h1>
           <p style="display:inline;"> is a <a href="https://openstreetmap.us/our-work/charter-projects/oldinsurancemaps/">Charter Project of OpenStreetMap US</a> that provides an open, online workflow for creating georeferenced layers of historical maps, with a special focus on making seamless mosaics from multi-page atlases in the <a href="https://loc.gov/collections/sanborn-maps" target="_blank">Sanborn map collection <i class="ph-bold ph-arrow-square-out"></i></a> at the Library of Congress.</p>
+          <div class="buttons" style="margin-top: 1em;">
+            <a class="button" href="https://donate.oldinsurancemaps.net">Donate</a>
+          </div>
         </div>
         <div class="home-page-top-links" style="width:30%;">
           <ul>
@@ -44,7 +47,7 @@
           </div>
         </div>
         <div class="hidden-mobile" style="padding:0;">
-        <div style="padding:10px; min-height:75px;">
+        <div style="padding:0 10px; min-height:75px;">
             <div class="level" style="margin-bottom:0;">
             <div class="level-left">
                 <div class="level-item">
@@ -144,7 +147,7 @@
         <article class="media partner-listing" style="margin-top:15px;">
             {% if partner.logo_url %}
             <figure class="media-left">
-                <img src={{partner.logo_url}} class="logo-image" alt={{partner.name}} />
+                <img src={{partner.logo_url}} class="logo-image" alt="{{partner.name}}" />
             </figure>
             {% endif %}
             <div class="media-content">
@@ -185,32 +188,42 @@
         {% endmarkdowncontent %}
     </div>
   </section>
-  <section>
+  <section class="content">
     <!-- <style>
       .responsive-list {
 
       }
     </style> -->
     <div>
-      <h2>Funding</h2>
+      <h2>Sponsorship and funding</h2>
       <div class="double-column-section">
         <div>
           {% markdowncontent %}
+
   _OldInsuranceMaps.net_ is funded in part by the National Institutes of Health (National Institute on Aging: [R01AG080401](https://reporter.nih.gov/search/bCrnkRo-rkWJJXyXqsj44g/project-details/10582012)) through a partnership with [University of Michigan Institute for Social Research](https://isr.umich.edu/), University of Richmond [Digital Scholarship Lab](https://dsl.richmond.edu/), and the [National Community Reinvestment Coalition](https://ncrc.org).
-  
-  We have also received funding to support collaboration with [Midlo Center for New Orleans Studies](https://www.uno.edu/academics/colaehd/la/history/midlo), [The Ohio State University Libraries](https://library.osu.edu/), and [Rowan University](https://www.rowan.edu).
+
+  We have undertaken funded collaborations with:
+
+  - [Midlo Center for New Orleans Studies](https://www.uno.edu/academics/colaehd/la/history/midlo)
+  - [The Ohio State University Libraries](https://library.osu.edu/)
+  - [Rowan University](https://www.rowan.edu)
+  - [Wayne State University Libraries](https://library.wayne.edu/)
+  - [Norman B. Leventhal Map & Education Center](https://www.leventhalmap.org/)
+  - [American Geographical Society Library](https://uwm.edu/libraries/agsl/)
       {% endmarkdowncontent %}
         </div>
         <div>
           {% markdowncontent %}
-Special thanks goes out to individuals who have donated to the project:
+Ongoing support also comes from [Subterrix](https://subterrix.com), premium tools for historical research and terrain analysis.
+
+_Special thanks goes out to individuals who have donated to the project:_
 
 Kevin H., Andrew M., Peter M., Pete Z., Chris P., Hayden S., Mike O., John P., Josiah W., Meagan B., Ian S., Zack R.,
 Jacob R., Jeff M., Daniel P., Mike B.
 
 _Thank you!_
 
-[Donate through OSM US](https://openstreetmap.app.neoncrm.com/forms/donate-oim)
+<a class="button" href="https://donate.oldinsurancemaps.net">Support OIM by donating today!</a>
   {% endmarkdowncontent %}
         </div>
       </div>

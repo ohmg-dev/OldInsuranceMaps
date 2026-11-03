@@ -31,17 +31,17 @@
   <div class="hero-banner-inner">
     <div>
       <ul>
-        <li>{MAP_CT} maps...</li>
-        <li>comprising {DOC_CT} pages/sheets...</li>
-        <li>georeferenced by {CONT_CT} users...</li>
-        <li>over the course of {SESH_CT} sessions...</li>
-        <li>resulting in {LYR_CT} individual layers.</li>
+        <li>{MAP_CT} <Link href="/maps">maps</Link>...</li>
+        <li>comprising {DOC_CT} <Link href="/documents">pages/sheets</Link>...</li>
+        <li>georeferenced by {CONT_CT} <Link href="/profiles">contributors</Link>...</li>
+        <li>over the course of {SESH_CT} <Link href="/activity">sessions</Link>...</li>
+        <li>resulting in {LYR_CT} individual <Link href="/layers">layers</Link>.</li>
       </ul>
       <h3>Find content</h3>
       <ul>
         <li><Link href="/search/#map">By location</Link></li>
         <li><Link href="/united-states">By state &gt; county &gt; city</Link></li>
-        <li><Link href="/search/#items">By map</Link></li>
+        <li><Link href="/maps">By map</Link></li>
       </ul>
     </div>
     {#if FEATURED_MAPS}
