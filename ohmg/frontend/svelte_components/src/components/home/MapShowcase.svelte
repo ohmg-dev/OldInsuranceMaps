@@ -14,7 +14,7 @@
   export let LYR_CT;
 </script>
 
-<div>
+<div style="font-size:.9em;">
   <div class="level">
     <div class="level-left">
       <h2>Content overview</h2>
@@ -77,7 +77,6 @@
   }
 
   .hero-banner-inner > div > ul {
-    font-size: 1.25em;
     padding: 0;
     list-style: none;
   }
