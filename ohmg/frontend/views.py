@@ -1,6 +1,8 @@
 import logging
+import xml.etree.ElementTree as ET
 
 import humanize
+import requests
 from django.shortcuts import render
 from django.views import View
 
@@ -35,6 +37,33 @@ class HomePage(View):
             len(set(SessionBase.objects.all().values_list("user_id", flat=True)))
         )
 
+        ## get blog posts to display on home page
+        blog_posts = []
+        try:
+            response = requests.get("https://blog.oldinsurancemaps.net/feed.xml")
+            root = ET.fromstring(response.content)
+            for n, item in enumerate(root.findall(".//item"), start=1):
+                if item.find("pubDate") is not None:
+                    datestr = item.find("pubDate").text
+                    datestr = datestr[:-15]
+                else:
+                    datestr = "No date"
+                blog_posts.append(
+                    {
+                        "title": item.find("title").text
+                        if item.find("title") is not None
+                        else "No Title",
+                        "link": item.find("link").text
+                        if item.find("link") is not None
+                        else "No Link",
+                        "date": datestr,
+                    }
+                )
+                if n == 5:
+                    break
+        except Exception as e:
+            logger.warning("Error fetching blog posts:", e)
+
         ohmg_context = generate_ohmg_context(request)
         context_dict = {
             "PARTNERS": partners,
@@ -58,6 +87,7 @@ class HomePage(View):
                 "CONTEXT": ohmg_context,
                 "showThumbs": True,
             },
+            "BLOG_POSTS": blog_posts,
         }
 
         return render(request, "index.html", context=context_dict)

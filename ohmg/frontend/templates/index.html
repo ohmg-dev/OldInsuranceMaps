@@ -43,7 +43,26 @@
     <div class="double-column-section" style="padding:0;">
         <div style="padding:10px;">
           <div style="padding-bottom: 20px;">
-              {% include '_svelte_component.html' with component_name='LatestBlogPosts' no_css=True %}
+            <div class="level is-mobile" style="margin-bottom:0;">
+              <div class="level-left">
+                <div class="level-item">
+                  <h3>From the blog...</h3>
+                </div>
+              </div>
+              <div class="level-right">
+                <div class="level-item">
+                  <a href="https://blog.oldinsurancemaps.net" target="_blank">visit blog <i class="ph-bold ph-arrow-square-out"></i></a>
+                </div>
+              </div>
+            </div>
+            <ul>
+              {% for post in BLOG_POSTS %}
+              <li style="margin-bottom: 5px;">
+                <p style="margin-bottom:3px;"><a href="{{post.link}}" target="_blank">{{post.title}} <i class="ph-bold ph-arrow-square-out"></i></a></p>
+                <small>{{post.date}}</small>
+              </li>
+              {% endfor %}
+            </ul>
           </div>
         </div>
         <div class="hidden-mobile" style="padding:0;">
