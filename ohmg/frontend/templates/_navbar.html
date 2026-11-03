@@ -21,23 +21,31 @@
 				</button>
 				<div class="navbar-dropdown navbar-menu">
 					{% for child in item.children %}
-					<a class="navbar-item" href="{{child.link}}">
-						<span style="margin-right:5px;">{{child.title}}</span>
 						{% if child.link|slice:":4" == "http" %}
-						<i class="ph-bold ph-arrow-square-out"></i>
+						<a class="navbar-item" href="{{child.link}}" target="_blank">
+							<span style="margin-right:5px;">{{child.title}}</span>
+							<i class="ph-bold ph-arrow-square-out"></i>
+						</a>
+						{% else %}
+						<a class="navbar-item" href="{{child.link}}">
+							<span style="margin-right:5px;">{{child.title}}</span>
+						</a>
 						{% endif %}
-					</a>
 					{% endfor %}
 				</div>
 			</div>
 			{% else %}
 			<div class="navbar-item{% if CURRENT_ROUTE in item.active_routes %} active{% endif %}" style="padding:0">
+				{% if item.link|slice:":4" == "http" %}
+				<a class="navbar-link is-arrowless" href="{{item.link}}" target="_blank">
+					<span>{{ item.title }}</span>
+					<i class="ph-bold ph-arrow-square-out"></i>
+				</a>
+				{% else %}
 				<a class="navbar-link is-arrowless" href="{{item.link}}">
 					<span>{{ item.title }}</span>
-					{% if item.link|slice:":4" == "http" %}
-					<i class="ph-bold ph-arrow-square-out"></i>
-					{% endif %}
 				</a>
+				{% endif %}
 			</div>
 			{% endif %}
 		{% endfor %}
