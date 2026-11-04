@@ -25,9 +25,9 @@
         </div>
         <div class="home-page-top-links" style="width:30%;">
           <ul>
-            <li><a href="#how">How does it work? &darr;</a></li>
-            <li><a href="#who">Who uses this platform? &darr;</a></li>
-            <li><a href="/activity">See latest activity &rarr;</a></li>
+            <li><a href="#how">How does it work? <i class="ph-bold ph-arrow-down"></i></a></li>
+            <li><a href="#who">Who uses this platform? <i class="ph-bold ph-arrow-down"></i></a></li>
+            <li><a href="/activity">See latest activity <i class="ph-bold ph-arrow-right"></i></a></li>
           </ul>
         </div>
       </div>
@@ -39,31 +39,25 @@
   </section>
   <section>
     <div class="double-column-section" style="padding:0;">
-        <div style="padding:10px;">
-          <div style="padding-bottom: 20px;">
-            <div class="level is-mobile" style="margin-bottom:0;">
-              <div class="level-left">
-                <div class="level-item">
-                  <h3>From the blog...</h3>
-                </div>
-              </div>
-              <div class="level-right">
-                <div class="level-item">
-                  <a href="https://blog.oldinsurancemaps.net" target="_blank">visit blog <i class="ph-bold ph-arrow-square-out"></i></a>
-                </div>
-              </div>
-            </div>
+      <div style="padding:.5em;">
+        <div style="padding-bottom:.5em;">
+          <div style="border-bottom: dashed 1px grey; margin-bottom:.5em;">
+            <h3>From the blog...</h3>
             <ul>
               {% for post in BLOG_POSTS %}
               <li style="margin-bottom: 5px;">
                 <p style="margin-bottom:3px;"><a href="{{post.link}}" target="_blank">{{post.title}} <i class="ph-bold ph-arrow-square-out"></i></a></p>
-                <small>{{post.date}}</small>
+                <em><small>{{post.date}}</small></em>
               </li>
               {% endfor %}
             </ul>
           </div>
+          <small>
+            <em>Read more in the <a href="https://blog.oldinsurancemaps.net/archive"> full archive <i class="ph-bold ph-arrow-right"></i></a></em>
+          </small>
         </div>
-        <div class="hidden-mobile" style="padding:0;">
+      </div>
+      <div class="hidden-mobile" style="padding:0;">
         <div style="padding:0 10px; min-height:75px;">
             <div class="level" style="margin-bottom:0;">
             <div class="level-left">
@@ -73,7 +67,7 @@
             </div>
             <div class="level-right">
                 <div class="level-item">
-                <a href="/united-states" rightArrow={true}>search all places</a>
+                <a href="/united-states">all places <i class="ph-bold ph-arrow-right"></i></a>
                 </div>
             </div>
             </div>
@@ -86,8 +80,55 @@
     </div>
   </section>
   <section>
-      {{ MAPSHOWCASE_PARAMS|json_script:'mapshowcase-props'}}
-      {% include '_svelte_component.html' with component_name='MapShowcase' %}
+    <div>
+      <div style="padding-bottom: 1em; border-bottom:dashed grey 1px;">
+        <h2>What's in the database?</h2>
+        <p>
+          {{ MAP_CT }} <a href="/maps">maps/atlases</a>...
+            comprising {{ DOC_CT }} <a href="/documents">pages/sheets</a>...
+            georeferenced by {{ CONT_CT }} <a href="/profiles">contributors</a>...
+            via {{ GCP_CT }} ground control points...
+            over the course of {{ SESH_CT }} <a href="/activity">sessions</a>...
+            resulting in {{ LYR_CT }} individual <a href="/layers">layers</a>.
+        </p>
+        <div class="buttons">
+          <a class="button" style="white-space:wrap;" href="https://docs.google.com/forms/d/e/1FAIpQLSeF6iQibKEsjIv4fiYIW4vVVxyimLL8sDLX4BLU7HSWsRBOFQ/viewform?usp=sf_link"
+              target="_blank">Want to work on a new map? Make a request <i style="margin-left:4px;" class="ph-bold ph-arrow-square-out"></i>
+          </a>
+        </div>
+        <small>
+          <strong>Find content:</strong> by <a href="/search/#map">location</a>...
+          by <a href="/united-states">state/county/city</a>...
+          by <a href="/maps">map name</a>.
+        </small>
+      </div>
+      <div class="map-showcase-content">
+        <div>
+          <h3>Latest activity</h3>
+          <div class="map-card-list">
+          {% for session in RECENT_ACTIVITY %}
+            {% include '_session_card.html' with session=session %}
+          {% endfor %}
+          </div>
+        </div>
+        <div>
+          <h3>Featured maps</h3>
+          <div class="map-card-list">
+          {% for map in FEATURED_MAPS %}
+            {% include '_map_card.html' with map=map %}
+          {% endfor %}
+          </div>
+        </div>
+        <div>
+          <h3>Recently loaded maps</h3>
+          <div class="map-card-list">
+            {% for map in LATEST_MAPS %}
+              {% include '_map_card.html' with map=map %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
   <section id="how">
     <div>

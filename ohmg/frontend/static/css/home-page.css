@@ -62,6 +62,38 @@ main {
   width: 50%;
 }
 
+.map-showcase-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  gap: 1em;
+  font-size: .9em;
+}
+
+.map-showcase-content > div {
+  width: 30%;
+}
+
+.map-card-list {
+  font-size: .9em;
+}
+
+.map-showcase-content > div > ul {
+  padding: 0;
+  list-style: none;
+}
+.map-showcase-content > div > ul li {
+  padding-left: 5px;
+}
+@media only screen and (max-width: 760px) {
+  .map-showcase-content {
+    flex-direction: column;
+  }
+  .map-showcase-content > div {
+    width: 100%;
+  }
+}
+
 .map-container-home {
   height: calc(100% - 75px);
   border-top: 2px solid black;

@@ -1,0 +1,20 @@
+<article class="media" style="flex-direction:row; align-items:center;">
+  <figure class="media-left">
+    <img src={{ map.thumbnail_url }} style="max-height: 75px; max-width: 65px;" alt="thumb" />
+  </figure>
+  <div class="">
+    <div class="">
+      <strong><a href="/map/{{ map.identifier}}" title="{{ map.title }} summary">{{ map.title }}</a></strong>
+      <br />
+      <em><a href="{{map.loaded_by.profile_url }}">{{map.loaded_by.username }}</a>, {{ map.load_date }}</em>
+      <br />
+      <small style="color:#6f6f6f">
+        {% if map.sheet_ct == 1 %}
+        single page
+        {% else %}
+        {{ map.sheet_ct }} pages
+        {% endif %}
+        </small>
+    </div>
+  </div>
+</article>
