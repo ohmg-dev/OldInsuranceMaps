@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load markdown_utils %}
+
+{% block title %}Add map | {{ block.super}} {% endblock title %}
+
+{% block main_content %}
+
+{% include '_titlebar.html' with title="Create a new map" subtitle="choose importer config..." lead_icon="volume" %}
+
+<section class="content markdown-page">
+    {% for importer in importers %}
+    <div style="border-bottom: dashed 1px grey; padding-bottom: 1em; margin-top: 1em;">
+        {% markdowncontent %}
+        {{ importer.info }}
+        {% endmarkdowncontent %}
+        {% if importer.web_import_supported %}
+        <a href="/map/add/{{importer.id}}"><strong>use this one <i class="ph-bold ph-arrow-right"></i></strong></a>
+        {% else %}
+        <span>Not yet enabled for web import</span>
+        {% endif %}
+    </div>
+    {% endfor %}
+</section>
+
+{% endblock %}

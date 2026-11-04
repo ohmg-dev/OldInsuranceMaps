@@ -115,7 +115,7 @@ class LOCImporterTestCase(OHMGTestCase):
         importer = get_importer("loc-sanborn")
 
         identifier = "sanborn03375_001"
-        map = importer.run_import(
+        importer.run_import(
             **{
                 "identifier": identifier,
                 "locale": "new-iberia-la",
@@ -123,7 +123,9 @@ class LOCImporterTestCase(OHMGTestCase):
             }
         )
 
-        self.assertEqual(Map.objects.filter(pk=map.pk).count(), 1)
+        self.assertEqual(Map.objects.filter(pk=identifier).count(), 1)
+
+        map = Map.objects.get(pk=identifier)
         self.assertEqual(len(map.document_sources), 3)
 
         locale = Place.objects.get(slug="new-iberia-la")

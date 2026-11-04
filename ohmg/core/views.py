@@ -32,6 +32,7 @@ from ohmg.conf.http import (
 from ohmg.georeference.models import GCP, SessionBase
 
 from .exporters.qlr import generate_qlr_content
+from .importer import get_importer
 from .models import (
     Document,
     Layer,
@@ -94,6 +95,69 @@ class DocumentListView(View):
             }
         }
         return render(request, "core/documents.html", context=context_dict)
+
+
+class AddMapView(View):
+    def get(self, request):
+        if not request.user.is_superuser:
+            raise Http404
+        importers = []
+        for id in settings.OHMG_IMPORTERS["map"].keys():
+            importer_class = get_importer(id)
+            importers.append(
+                {
+                    "id": id,
+                    "info": importer_class.__doc__,
+                    "web_import_supported": importer_class.web_import_supported,
+                }
+            )
+
+        return render(request, "core/map/add.html", context={"importers": importers})
+
+
+class AddMapImportView(View):
+    def get(self, request, importer_id):
+        if not request.user.is_superuser:
+            raise Http404
+
+        importer = get_importer(importer_id)
+        if not importer:
+            raise Http404
+        return render(
+            request,
+            "core/map/run-import.html",
+            context={
+                "form": importer.get_form(),
+                "importer": {"id": importer_id, "info": importer.__doc__},
+            },
+        )
+
+    def post(self, request, importer_id):
+        if not request.user.is_superuser:
+            raise Http404
+
+        importer = get_importer(importer_id)
+        if not importer:
+            raise Http404
+
+        form = importer.get_form(form_data=request.POST)
+
+        if form.is_valid():
+            print(form.cleaned_data)
+            result = importer.run_import(**form.cleaned_data)
+
+        else:
+            result = {"status": "form_invalid"}
+
+        return render(
+            request,
+            "core/map/run-import.html",
+            context={
+                "form": form,
+                "result": result,
+                "importer": {"id": importer_id, "info": importer.__doc__},
+            },
+        )
 
 
 class MapView(View):

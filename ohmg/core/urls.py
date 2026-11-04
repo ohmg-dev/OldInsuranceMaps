@@ -1,6 +1,8 @@
 from django.urls import path
 
 from .views import (
+    AddMapImportView,
+    AddMapView,
     DocumentListView,
     DocumentView,
     LayerListView,
@@ -17,6 +19,8 @@ from .views import (
 urlpatterns = [
     path("maps/", MapListView.as_view(), name="map_list"),
     path("map/<str:identifier>", MapView.as_view(), name="map_summary"),
+    path("map/add/", AddMapView.as_view(), name="map_add"),
+    path("map/add/<str:importer_id>/", AddMapImportView.as_view(), name="map_add"),
     path(
         "map/<str:identifier>/contributors", MapContributorsView.as_view(), name="map_contributors"
     ),

@@ -9,6 +9,7 @@ from django.conf import settings
 
 from ohmg.places.models import Place
 
+from .forms import DynamicForm
 from .models import Map
 from .utils import random_alnum
 
@@ -40,6 +41,7 @@ def get_importer(
 
 class BaseImporter:
     required_input = []
+    web_import_supported = False
 
     def __init__(
         self,
@@ -200,7 +202,7 @@ class BaseImporter:
                 logger.error(error)
                 if self.verbose:
                     print(error)
-            raise Exception("Errors encountered during map import. See log for more details.")
+            return {"status": "failed", "errors": self.errors}
 
         if self.verbose:
             print("no errors parsing input.")
@@ -208,8 +210,9 @@ class BaseImporter:
             print(json.dumps(self.parsed_data, indent=2))
 
         if not self.dry_run:
-            map = self.create_map()
-            return map
+            self.create_map()
+
+        return {"status": "success"}
 
     def run_bulk_import(self, csv_file: str):
         """Wraps the main import function by feeding rows from a CSV into it.
@@ -227,6 +230,18 @@ class BaseImporter:
             if "path" in item:
                 item["path"] = str(Path(csv_parent, item["path"]))
             self.run_import(**item)
+
+    def get_form(self, form_data=None):
+        config = {
+            "fields": [
+                {"name": i, "label": i, "type": "char", "required": True}
+                for i in self.required_input
+            ]
+        }
+        if form_data:
+            return DynamicForm(config, form_data)
+        else:
+            return DynamicForm(config)
 
 
 class DefaultImporter(BaseImporter):
