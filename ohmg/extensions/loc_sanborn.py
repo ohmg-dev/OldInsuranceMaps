@@ -32,20 +32,23 @@ LOC_SANBORN_CITY_MISSPELLINGS = {
 
 
 class LOCSanbornImporter(BaseImporter):
-    """LOC Importer
+    """
+    #### LOC Importer
 
     Load items from the Library of Congress Sanborn map collection.
 
     Required opts:
 
-        identifier:   the LOC id for the item, looks like 'sanborn04339_026'
-        locale:       slug for the locale to attach to the new map
+      - **identifier**:   the LOC id for the item, looks like `sanborn04339_026`
+      - **locale**:       slug for the locale to attach to the new map, like `new-orleans-la`.
+        Find slugs in the browser URL as you [navigate through places](/united-states).
     """
 
     required_input = [
         "identifier",
         "locale",
     ]
+    web_import_supported = True
 
     def parse(self):
         identifier = self.input_data["identifier"]
@@ -56,8 +59,9 @@ class LOCSanbornImporter(BaseImporter):
         if no_cache.lower() == "true":
             no_cache = True
         response = lc.get_item(identifier, no_cache=no_cache)
-        if response.get("status") == 404:
-            raise ValueError("Can't get this resource from LC")
+
+        if not response or response.get("status") == 404:
+            return ValueError("Can't get this resource from LC")
 
         parsed_item = LOCParser(item=response["item"])
         parsed_resources = LOCParser(resources=response["resources"])
@@ -321,7 +325,7 @@ class LOCConnection(object):
         self.data = CacheableRequest(url).get_json_content()
 
         ## during location/year searches, multiple items are returned in a 'results' list
-        if "results" in self.data:
+        if self.data and "results" in self.data:
             self.results += self.data["results"]
 
     def get_item(self, identifier, no_cache=False):
