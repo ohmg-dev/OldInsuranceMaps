@@ -335,19 +335,6 @@ hr {
   }
 }
 
-@media (min-width: 769px) {
-  .markdown-page-content {
-    height: calc(
-      100vh -
-        calc(
-          var(--bulma-navbar-height) + var(--title-bar-min-height) +
-            var(--footer-height)
-        )
-    );
-    overflow-y: scroll;
-  }
-}
-
 .markdown-page-toc ul {
   margin-inline-start: 1em;
   margin-top: 0 !important;
@@ -771,7 +758,6 @@ img.lead-image {
 }
 
 #step-list div > p {
-  font-size: 1.25em;
   margin-bottom: 0px;
 }
 

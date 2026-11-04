@@ -1,0 +1,26 @@
+<article class="media" style="flex-direction:row; align-items:center;">
+  <figure class="media-left">
+    <img
+      src="{% if session.doc2 %}{{ session.doc2.thumbnail }}{% elif session.lyr2 %}{{ session.lyr2.urls.thumbnail }}{% endif %}"
+      style="max-height: 75px; max-width: 65px" alt="thumb" />   
+  </figure>
+  <div class="">
+    <strong>
+      {% if session.doc2 %}
+        {{ session.doc2.nickname }}
+      {% elif session.lyr2 %}
+        {{ session.lyr2.nickname }}
+      {% endif %}
+    </strong>
+    <small style="color:#6f6f6f">
+      {% if session.type == "g" %}georeferenced{% else %}prepared{% endif %}
+    </small>
+    <br />
+    <em><a href="{{session.user.profile_url }}">{{session.user.username }}</a>,
+      <span title="{{session.date_created.date}}">{{ session.date_created.relative }}</span></em>
+    <br/>
+    <small style="color:#6f6f6f">
+        <a href="/map/{{ session.map.identifier}}" title="{{ session.map.title }} summary">{{ session.map.title }}</a>
+    </small>
+  </div>
+</article>

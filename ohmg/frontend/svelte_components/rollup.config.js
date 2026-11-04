@@ -79,9 +79,7 @@ export default (cliArgs) => {
     'Documents',
     'Jobs',
     'Profiles',
-    'LatestBlogPosts',
     'MapBrowse',
-    'MapShowcase',
     'Place',
     'Browse',
   ];

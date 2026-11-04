@@ -28,7 +28,7 @@ section > div {
   padding: 10px;
 }
 
-main p {
+main {
   font-size: 1.25em;
 }
 
@@ -45,7 +45,6 @@ main p {
 }
 
 .home-page-top-links > ul {
-  font-size: 1.25em;
   width: 250px;
 }
 
@@ -55,12 +54,44 @@ main p {
 
 .double-column-section {
   display: flex;
-  gap: 10px;
+  gap: 1em;
   padding: 0;
 }
 
 .double-column-section > div {
   width: 50%;
+}
+
+.map-showcase-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  gap: 1em;
+  font-size: .9em;
+}
+
+.map-showcase-content > div {
+  width: 30%;
+}
+
+.map-card-list {
+  font-size: .9em;
+}
+
+.map-showcase-content > div > ul {
+  padding: 0;
+  list-style: none;
+}
+.map-showcase-content > div > ul li {
+  padding-left: 5px;
+}
+@media only screen and (max-width: 760px) {
+  .map-showcase-content {
+    flex-direction: column;
+  }
+  .map-showcase-content > div {
+    width: 100%;
+  }
 }
 
 .map-container-home {
@@ -105,7 +136,7 @@ article.media.partner-listing {
   }
 
   .double-column-section {
-    flex-direction: column-reverse;
+    flex-direction: column;
   }
 
   .double-column-section > div {
