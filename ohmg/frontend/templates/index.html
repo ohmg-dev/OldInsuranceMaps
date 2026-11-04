@@ -3,13 +3,9 @@
 {% load static %}
 {% load markdown_utils %}
 
-
 {% block extra_head %}
-    {% if params.extra_head %}{{params.extra_head|safe}}{% endif %}
-    <link href="{{ STATIC_URL }}css/home-page.css" rel="stylesheet"/>
+    <link href="{{ STATIC_URL }}css/home-page.css?v={{ BUILD_NUMBER }}" rel="stylesheet"/>
 {% endblock %}
-
-{% block title %}{% if params.PAGE_TITLE %}{{ params.PAGE_TITLE }} | {% endif %}{{ block.super }}{% endblock %}
 
 {% block main_content %}
 <main>
