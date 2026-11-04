@@ -80,7 +80,6 @@ export default (cliArgs) => {
     'Jobs',
     'Profiles',
     'MapBrowse',
-    'MapShowcase',
     'Place',
     'Browse',
   ];

@@ -78,23 +78,9 @@ class HomePage(View):
             "PARTNERS": partners,
             "PLACES_CT": place_ct,
             "MAP_CT": map_ct,
-            # "LATEST_MAPS": latest_maps_json,
             "MAPBROWSE_PARAMS": {
                 "MAP_HEIGHT": "100%",
                 "CONTEXT": ohmg_context,
-            },
-            "MAPSHOWCASE_PARAMS": {
-                "CONTEXT": ohmg_context,
-                "FEATURED_MAPS": featured_list,
-                "DOC_CT": doc_ct,
-                "CONT_CT": cont_ct,
-                "SESH_CT": sesh_ct,
-                "MAP_CT": map_ct,
-                "LYR_CT": lyr_ct,
-            },
-            "SESSIONS_PARAMS": {
-                "CONTEXT": ohmg_context,
-                "showThumbs": True,
             },
             "FEATURED_MAPS": featured_list,
             "LATEST_MAPS": latest_list,
