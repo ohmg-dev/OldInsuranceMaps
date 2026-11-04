@@ -131,7 +131,7 @@ class MapView(View):
             ],
         }
 
-        return render(request, "core/map.html", context=context_dict)
+        return render(request, "core/map/overview.html", context=context_dict)
 
     @method_decorator(login_required)
     @method_decorator(validate_post_request(operations=["load-documents", "refresh-lookups"]))
