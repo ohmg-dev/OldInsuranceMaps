@@ -4,6 +4,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import HttpResponse, get_object_or_404, redirect, render
@@ -96,10 +97,10 @@ class DocumentListView(View):
         return render(request, "core/documents.html", context=context_dict)
 
 
-class AddMapView(View):
+class AddMapView(PermissionRequiredMixin, View):
+    permission_required = "core.create_map"
+
     def get(self, request):
-        if not request.user.is_superuser:
-            raise Http404
         importers = []
         for id in settings.OHMG_IMPORTERS["map"].keys():
             importer_class = get_importer(id)
@@ -114,11 +115,10 @@ class AddMapView(View):
         return render(request, "core/map/add.html", context={"importers": importers})
 
 
-class AddMapImportView(View):
-    def get(self, request, importer_id):
-        if not request.user.is_superuser:
-            raise Http404
+class AddMapImportView(PermissionRequiredMixin, View):
+    permission_required = "core.create_map"
 
+    def get(self, request, importer_id):
         importer = get_importer(importer_id)
         if not importer:
             raise Http404
@@ -132,9 +132,6 @@ class AddMapImportView(View):
         )
 
     def post(self, request, importer_id):
-        if not request.user.is_superuser:
-            raise Http404
-
         importer = get_importer(importer_id)
         if not importer:
             raise Http404
