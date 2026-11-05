@@ -15,7 +15,7 @@
         <p>Currently, GeoTIFF downloads do not require an API key (they come straight from S3 compatible storage buckets)
             and are not limited. Be aware this may change in the future.</p>
     </div>
-    {% if CONTEXT.user.api_keys|length > 0 %}
+    {% if API_KEYS|length > 0 %}
     <table>
         <thead>
             <tr>
@@ -25,7 +25,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for key in CONTEXT.user.api_keys %}
+            {% for key in API_KEYS %}
             <tr>
                 <th><code>{{key.0}}</code></th>
                 <th>{% if key.1 %}<span style="color:green">✓</span>{% else %}<span style="color:red">x</span>{% endif %}</th>

@@ -18,7 +18,6 @@ from ohmg.conf.http import (
     JsonResponseNotFound,
     JsonResponseSuccess,
     JsonResponseUnauthorized,
-    generate_ohmg_context,
     validate_post_request,
 )
 from ohmg.core.models import (
@@ -61,7 +60,7 @@ class SplitView(View):
         document_json = DocumentFullSchema.from_orm(document).dict()
 
         split_params = {
-            "CONTEXT": generate_ohmg_context(request),
+            "CONTEXT": request.ohmg_context,
             "DOCUMENT": document_json,
         }
 
@@ -226,7 +225,7 @@ class GeoreferenceView(View):
             other_maps = [{"identifier": i[0], "title": i[1]} for i in other_maps]
 
         georeference_params = {
-            "CONTEXT": generate_ohmg_context(request),
+            "CONTEXT": request.ohmg_context,
             "REGION": region_json,
             "MAP": map_json,
             "MAIN_LAYERSET": main_layerset,

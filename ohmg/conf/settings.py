@@ -249,6 +249,7 @@ MIDDLEWARE = (
     "django.contrib.redirects.middleware.RedirectFallbackMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "ohmg.conf.middleware.CORSMiddleware",
+    "ohmg.conf.middleware.OHMGContextMiddleware",
 )
 
 CORS_WHITELIST = (

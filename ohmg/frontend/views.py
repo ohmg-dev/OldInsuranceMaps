@@ -7,7 +7,6 @@ from django.shortcuts import render
 from django.views import View
 
 from ohmg.api.schemas import MapListSchema2, SessionSchema
-from ohmg.conf.http import generate_ohmg_context
 from ohmg.core.models import Document, Layer, Map
 from ohmg.georeference.models import GCP, SessionBase
 from ohmg.places.models import Place
@@ -28,9 +27,7 @@ class HomePage(View):
         latest_maps = Map.objects.filter(loaded_by__isnull=False).order_by("-load_date")[:5]
         latest_list = [MapListSchema2.from_orm(i).dict() for i in latest_maps]
 
-        latest_activity = SessionBase.objects.exclude(map__title__contains="Troy").order_by(
-            "-date_created"
-        )[:5]
+        latest_activity = SessionBase.objects.all().order_by("-date_created")[:5]
         activity_list = [SessionSchema.from_orm(i) for i in latest_activity]
 
         place_ct = humanize.intcomma(Place.objects.all().exclude(volume_count=0).count())
@@ -73,14 +70,13 @@ class HomePage(View):
         except Exception as e:
             logger.warning("Error fetching blog posts:", e)
 
-        ohmg_context = generate_ohmg_context(request)
         context_dict = {
             "PARTNERS": partners,
             "PLACES_CT": place_ct,
             "MAP_CT": map_ct,
             "MAPBROWSE_PARAMS": {
                 "MAP_HEIGHT": "100%",
-                "CONTEXT": ohmg_context,
+                "CONTEXT": request.ohmg_context,
             },
             "FEATURED_MAPS": featured_list,
             "LATEST_MAPS": latest_list,
@@ -100,7 +96,7 @@ class Browse(View):
     def get(self, request):
         context_dict = {
             "BROWSE_PARAMS": {
-                "CONTEXT": generate_ohmg_context(request),
+                "CONTEXT": request.ohmg_context,
                 "PLACES_CT": humanize.intcomma(Place.objects.all().exclude(volume_count=0).count()),
                 "MAP_CT": humanize.intcomma(Map.objects.all().exclude(loaded_by=None).count()),
             }
@@ -110,11 +106,9 @@ class Browse(View):
 
 class ActivityView(View):
     def get(self, request):
-        ohmg_context = generate_ohmg_context(request)
         context_dict = {
-            "CONTEXT": ohmg_context,
             "SESSIONS_PROPS": {
-                "CONTEXT": ohmg_context,
+                "CONTEXT": request.ohmg_context,
                 "showThumbs": True,
                 "limit": "25",
             },
@@ -125,11 +119,9 @@ class ActivityView(View):
 
 class JobsView(View):
     def get(self, request):
-        ohmg_context = generate_ohmg_context(request)
         context_dict = {
-            "CONTEXT": ohmg_context,
             "JOBS_PROPS": {
-                "CONTEXT": ohmg_context,
+                "CONTEXT": request.ohmg_context,
                 "showThumbs": True,
                 "limit": "25",
             },

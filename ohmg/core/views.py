@@ -26,7 +26,6 @@ from ohmg.conf.http import (
     JsonResponseNotFound,
     JsonResponseSuccess,
     JsonResponseUnauthorized,
-    generate_ohmg_context,
     validate_post_request,
 )
 from ohmg.georeference.models import GCP, SessionBase
@@ -71,7 +70,7 @@ class MapListView(View):
     def get(self, request):
         context_dict = {
             "MAPS_PARAMS": {
-                "CONTEXT": generate_ohmg_context(request),
+                "CONTEXT": request.ohmg_context,
             }
         }
         return render(request, "core/maps.html", context=context_dict)
@@ -81,7 +80,7 @@ class LayerListView(View):
     def get(self, request):
         context_dict = {
             "LAYERS_PARAMS": {
-                "CONTEXT": generate_ohmg_context(request),
+                "CONTEXT": request.ohmg_context,
             }
         }
         return render(request, "core/layers.html", context=context_dict)
@@ -91,7 +90,7 @@ class DocumentListView(View):
     def get(self, request):
         context_dict = {
             "DOCUMENTS_PARAMS": {
-                "CONTEXT": generate_ohmg_context(request),
+                "CONTEXT": request.ohmg_context,
             }
         }
         return render(request, "core/documents.html", context=context_dict)
@@ -179,7 +178,7 @@ class MapView(View):
 
         context_dict = {
             "svelte_params": {
-                "CONTEXT": generate_ohmg_context(request),
+                "CONTEXT": request.ohmg_context,
                 "MAP": map_json,
                 "LOCALE": locale_json,
                 "SESSION_SUMMARY": session_summary,
@@ -299,7 +298,7 @@ class GenericResourceView(View):
             "core/resource.html",
             context={
                 "resource_params": {
-                    "CONTEXT": generate_ohmg_context(request),
+                    "CONTEXT": request.ohmg_context,
                     "MAP": map_json,
                     "LOCALE": place_json,
                     "RESOURCE": resource_json,
