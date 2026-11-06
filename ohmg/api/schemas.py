@@ -663,10 +663,26 @@ class SessionLockSchema(Schema):
         return obj.target_type.model
 
 
+class SourceSchema(Schema):
+    abbreviation: str
+    name: str
+    url: Optional[str]
+    note: Optional[str]
+    logo_url: Optional[str]
+
+    @staticmethod
+    def resolve_logo_url(obj):
+        return obj.logo.url if obj.logo else None
+
+
 class MapFullSchema(Schema):
     identifier: str
     title: str
     year: int = 0
+    publisher: Optional[str]
+    source: Optional[SourceSchema]
+    source_item_url: Optional[str]
+    external_links: list
     loaded_by: Optional[UserSchemaLite]
     status: str = ""
     access: str = ""
@@ -743,6 +759,25 @@ class MapFullSchema(Schema):
     @staticmethod
     def resolve_documents(obj):
         return natsorted(obj.documents.all(), key=lambda k: k.title)
+
+    @staticmethod
+    def resolve_external_links(obj):
+        links = []
+        if (
+            obj.source.name
+            == "Library of Congress, Geography & Maps Division, Sanborn Map Collection"
+        ):
+            links.append(
+                {"title": "Mapsnap", "url": f"https://mapsnap.org/item?id={obj.identifier}"}
+            )
+        if obj.source.name == "National Archives, Records of the Federal Housing Administration":
+            links.append(
+                {
+                    "title": '"Pair HOLC Maps with FHA Maps to Tell a More Complete Story"',
+                    "url": "https://themetropole.blog/2023/08/16/pair-holc-maps-with-fha-maps-to-tell-a-more-complete-story/",
+                }
+            )
+        return links
 
 
 class MapResourcesSchema(Schema):

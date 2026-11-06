@@ -1,5 +1,6 @@
 <script>
     import Link from "../base/Link.svelte";
+    import SvelteMarkdown from 'svelte-markdown';
 
     export let MAP;
     export let SESSION_SUMMARY;
@@ -9,16 +10,40 @@
     <h4 class="dl-title">Record</h4>
     <dl>
         <dt>Title</dt>
-        <dd>Sanborn Map of {MAP.title}</dd>
+        <dd>{MAP.title}</dd>
         <dt>Year</dt>
         <dd>{MAP.year}</dd>
+        <dt>Publisher</dt>
+        <dd>{MAP.publisher ?? "---"}</dd>
         <dt>Locale</dt>
         <dd><Link href="/{MAP.locale.slug}">{MAP.locale.display_name}</Link></dd>
         <dt>Source</dt>
-        <dd><Link href="https://loc.gov/item/{MAP.identifier}" external={true}
-            >loc.gov/item/{MAP.identifier}</Link></dd>
-        <dt>Credit line</dt>
-        <dd>Library of Congress, Geography and Map Division, Sanborn Maps Collection.</dd>
+        <dd>
+            {#if MAP.source}
+            <Link href="{MAP.source.url}" external={true}>{MAP.source.name}</Link>
+                {#if MAP.source_item_url}
+                <br/>Item url: <Link href="{MAP.source_item_url}" external={true}>{MAP.source_item_url}</Link>
+                {/if}
+            {:else}
+            ---
+            {/if}
+        </dd>
+        {#if MAP.source && MAP.source.note}
+        <dt>Source note</dt>
+        <dd>
+        <SvelteMarkdown source={MAP.source.note}/>
+        </dd>
+        {/if}
+        {#if MAP.external_links.length > 0}
+        <dt>See also...</dt>
+        <dd>
+            <ul>
+                {#each MAP.external_links as link}
+                <li>{link.title}: <Link href="{link.url}" external={true}>{link.url}</Link></li>
+                {/each}
+            </ul>
+        </dd>
+        {/if}
     </dl>
     {#if MAP.progress.loaded_pages}
     <hr style="border-top: dashed grey 1px; background:none; margin: 1em 0;">

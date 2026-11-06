@@ -11,9 +11,7 @@ from ..places.models import Place
 def generate_atlascope_properties(layerset: LayerSet):
     return {
         "identifier": layerset.map.identifier,
-        "publisherShort": layerset.map.publisher
-        if layerset.map.publisher
-        else layerset.map.creator,
+        "publisherShort": layerset.map.publisher,
         "year": layerset.map.year,
         "bibliographicEntry": f"Fire Insurance Map of {layerset.map.title} (Sanborn Map Company)",
         "source": {

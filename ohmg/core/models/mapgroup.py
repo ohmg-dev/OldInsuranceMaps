@@ -19,6 +19,7 @@ class MapGroup(models.Model):
     slug = models.SlugField(max_length=100)
     year_start = models.IntegerField(blank=True, null=True)
     year_end = models.IntegerField(blank=True, null=True)
+    ## TODO: remove creator (no longer used on Map) and perhaps remove publisher too (redundant)
     creator = models.CharField(max_length=200)
     publisher = models.CharField(max_length=200)
     map_prefix = models.CharField(

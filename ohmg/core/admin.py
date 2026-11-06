@@ -11,6 +11,7 @@ from ohmg.core.models import (
     MapGroup,
     Region,
     RegionCategory,
+    Source,
 )
 
 
@@ -158,3 +159,10 @@ class LayerSetAdmin(admin.ModelAdmin):
 
 admin.site.register(LayerSet, LayerSetAdmin)
 admin.site.register(LayerSetCategory)
+
+
+class SourceAdmin(admin.ModelAdmin):
+    list_display = ("abbreviation", "name", "url")
+
+
+admin.site.register(Source, SourceAdmin)

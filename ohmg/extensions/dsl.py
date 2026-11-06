@@ -83,7 +83,7 @@ class DSLFileImporter(BaseImporter):
             "identifier": id,
             "title": title,
             "year": year,
-            "creator": "Sanborn Map Company",
+            "publisher": "Sanborn Map Company",
             "locale": locale,
             "volume_number": volume_number,
             "document_sources": document_sources,

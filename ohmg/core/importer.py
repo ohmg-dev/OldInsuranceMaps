@@ -74,7 +74,6 @@ class BaseImporter:
             "identifier": str,
             "title": str,
             "year": (int, type(None)),
-            "creator": (str, type(None)),
             "locale": (str, type(None)),
             "document_sources": list,
         }
@@ -156,8 +155,9 @@ class BaseImporter:
             )
 
         map.title = self.parsed_data.get("title")
-        map.creator = self.parsed_data.get("creator")
         map.publisher = self.parsed_data.get("publisher")
+        map.source_id = self.parsed_data.get("source_id")
+        map.source_item_url = self.parsed_data.get("source_item_url")
         map.year = self.parsed_data.get("year")
         map.month = self.parsed_data.get("month")
         map.volume_number = self.parsed_data.get("volume_number")
@@ -281,7 +281,7 @@ class DefaultImporter(BaseImporter):
 
     - **identifier**: will be used as pk for this map
     - **title**:      will be "Untitled map" if not provided
-    - **creator**:    name of creator for map
+    - **publisher**:      will be "Untitled map" if not provided
     """
 
     id = "default"
@@ -330,5 +330,5 @@ class DefaultImporter(BaseImporter):
             "year": int(self.input_data["year"]),
             "identifier": self.input_data.get("identifier"),
             "title": self.input_data.get("title", "Untitled map"),
-            "creator": self.input_data.get("creator", "n/a"),
+            "publisher": self.input_data.get("publisher", "n/a"),
         }
