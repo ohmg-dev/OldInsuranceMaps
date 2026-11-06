@@ -6,5 +6,9 @@
     <div class="submit-row">
         <input type="submit" value="Recalculate measures" name="_recalculate-measures">
     </div>
+    {% elif opts.model_name == "map" %}
+    <div class="submit-row">
+        <input type="submit" value="Set as featured" name="_set-featured">
+    </div>
     {% endif %}
 {% endblock %}

@@ -94,7 +94,10 @@ class Map(models.Model):
         blank=True,
         default=dict,
     )
-    featured = models.BooleanField(default=False, help_text="show in featured section")
+    featured_rank = models.IntegerField(
+        default=0,
+        help_text="0 = not featured, 1-5 = featured (first to last).",
+    )
     hidden = models.BooleanField(
         default=False,
         help_text="this map will be excluded from api calls (but url available directly)",
@@ -460,6 +463,16 @@ class Map(models.Model):
             "georef_contributors": get_session_user_summary(georef_sessions),
         }
         return summary
+
+    def set_featured(self):
+        for map in Map.objects.filter(featured_rank__gt=0):
+            if map.featured_rank == 5:
+                map.featured_rank = 0
+            else:
+                map.featured_rank += 1
+            map.save()
+        self.featured_rank = 1
+        self.save()
 
     def save(self, set_slug=False, *args, **kwargs):
         if set_slug or not self.slug:

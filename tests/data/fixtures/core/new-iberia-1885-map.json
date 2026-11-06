@@ -103,7 +103,7 @@
       ],
       "georeferenced": []
     },
-    "featured": false,
+    "featured_rank": 0,
     "hidden": false,
     "mapgroup": null,
     "access": "any",

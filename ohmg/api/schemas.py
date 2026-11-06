@@ -97,7 +97,7 @@ class MapListSchema2(Schema):
     volume_number: Optional[str]
     gt_exists: bool
     xyz_tiles_exists: bool
-    featured: bool
+    featured_rank: int
     hidden: bool
     document_ct: int
     unprepared_ct: int
@@ -671,7 +671,7 @@ class MapFullSchema(Schema):
     status: str = ""
     access: str = ""
     loading_documents: bool
-    featured: bool
+    featured_rank: int
     hidden: bool
     document_sources: list
     documents: List[DocumentSchema]

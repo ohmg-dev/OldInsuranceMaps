@@ -21,7 +21,7 @@ class HomePage(View):
         partners = [i.serialize() for i in Partner.objects.filter(published=True)]
         partners.sort(key=lambda x: x["sortorder"])
 
-        featured_maps = Map.objects.filter(featured=True)[:5]
+        featured_maps = Map.objects.filter(featured_rank__gt=0).order_by("featured_rank")
         featured_list = [MapListSchema2.from_orm(i).dict() for i in featured_maps]
 
         latest_maps = Map.objects.filter(loaded_by__isnull=False).order_by("-load_date")[:5]
