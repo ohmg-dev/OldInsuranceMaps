@@ -104,13 +104,7 @@ class AddMapView(PermissionRequiredMixin, View):
         importers = []
         for id in settings.OHMG_IMPORTERS["map"].keys():
             importer_class = get_importer(id)
-            importers.append(
-                {
-                    "id": id,
-                    "info": importer_class.__doc__,
-                    "web_import_supported": importer_class.web_import_supported,
-                }
-            )
+            importers.append(importer_class.serialize())
 
         return render(request, "core/map/add.html", context={"importers": importers})
 
@@ -122,12 +116,14 @@ class AddMapImportView(PermissionRequiredMixin, View):
         importer = get_importer(importer_id)
         if not importer:
             raise Http404
+
+        importer_json = importer.serialize()
         return render(
             request,
             "core/map/run-import.html",
             context={
                 "form": importer.get_form(),
-                "importer": {"id": importer_id, "info": importer.__doc__},
+                "importer": importer_json,
             },
         )
 
@@ -136,10 +132,10 @@ class AddMapImportView(PermissionRequiredMixin, View):
         if not importer:
             raise Http404
 
+        importer_json = importer.serialize()
         form = importer.get_form(form_data=request.POST)
 
         if form.is_valid():
-            print(form.cleaned_data)
             result = importer.run_import(**form.cleaned_data)
 
         else:
@@ -151,7 +147,7 @@ class AddMapImportView(PermissionRequiredMixin, View):
             context={
                 "form": form,
                 "result": result,
-                "importer": {"id": importer_id, "info": importer.__doc__},
+                "importer": importer_json,
             },
         )
 

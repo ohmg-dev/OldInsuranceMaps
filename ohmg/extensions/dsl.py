@@ -10,8 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class DSLFileImporter(BaseImporter):
-    """DSL File Importer
-
+    """
     Use this importer to create a new Map object with multiple Documents, based
     on content exported from an external system used by the DSL. The input CSV
     must have one line per Document, with columns 'filename' and 'page_number'.
@@ -19,15 +18,16 @@ class DSLFileImporter(BaseImporter):
     CSV.
 
     The name of the CSV (and corresponding file folder) must be constructed
-    like this:
-
-        <locale-slug>_<year>_<volume_number (optional)>.csv
+    with the following format: `locale-slug_year_volume_number (optional).csv`.
+    For example, Detroit 1884, vol. 1 would be: `detroit-mi_1884_1.csv`.
 
     Required opts:
 
-        csv-path: path/to/file.csv
+    - **csv-path**: path/to/file.csv
     """
 
+    id = "dsl"
+    label = "DSL File Importer"
     required_input = [
         "csv-path",
     ]

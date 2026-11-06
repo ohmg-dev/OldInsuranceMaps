@@ -33,17 +33,17 @@ LOC_SANBORN_CITY_MISSPELLINGS = {
 
 class LOCSanbornImporter(BaseImporter):
     """
-    #### LOC Importer
-
     Load items from the Library of Congress Sanborn map collection.
 
     Required opts:
 
-      - **identifier**:   the LOC id for the item, looks like `sanborn04339_026`
-      - **locale**:       slug for the locale to attach to the new map, like `new-orleans-la`.
+    - **identifier**:   the LOC id for the item, looks like `sanborn04339_026`
+    - **locale**:       slug for the locale to attach to the new map, like `new-orleans-la`.
         Find slugs in the browser URL as you [navigate through places](/united-states).
     """
 
+    id = "loc-sanborn"
+    label = "LOC Sanborn Map"
     required_input = [
         "identifier",
         "locale",

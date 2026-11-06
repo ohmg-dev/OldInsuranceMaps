@@ -40,8 +40,10 @@ def get_importer(
 
 
 class BaseImporter:
-    required_input = []
-    web_import_supported = False
+    id: str
+    label: str
+    required_input: list[str]
+    web_import_supported: bool = False
 
     def __init__(
         self,
@@ -243,26 +245,47 @@ class BaseImporter:
         else:
             return DynamicForm(config)
 
+    def get_markdown_docstring(self):
+        """Get the docstring, and if all of it is indented, then strip
+        the first four spaces to correct for auto-indenting."""
+        lines = []
+        for i in self.__doc__.split("\n"):
+            if len(i) > 4:
+                lines.append(i[4:])
+            else:
+                lines.append(i)
+        return "\n".join(lines)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "label": self.label,
+            "info": self.get_markdown_docstring(),
+            "web_import_supported": self.web_import_supported,
+            "required_input": self.required_input,
+        }
+
 
 class DefaultImporter(BaseImporter):
-    """Default Importer
-
+    """
     This is the default operation for loading a new Map. A single image file can be provided,
-    or a CSV that has a list of one or more files. Paths in the CSV
+    or a CSV that has a list of one or more files. Paths in the CSV must be relative to the location of the CSV.
 
     Required opts:
 
-        path:       path/to/image.tif OR path/to/file-list.csv
-        year:       year of publication
-        locale:     slug for locale
+    - **path**:       path/to/image.tif OR path/to/file-list.csv
+    - **year**:       year of publication
+    - **locale**:     slug for locale
 
     Optional opts:
 
-        identifier: will be used as pk for this map
-        title:      will be "Untitled map" if not provided
-        creator:    name of creator for map
+    - **identifier**: will be used as pk for this map
+    - **title**:      will be "Untitled map" if not provided
+    - **creator**:    name of creator for map
     """
 
+    id = "default"
+    label = "Default Importer"
     required_input = [
         "path",
         "year",
