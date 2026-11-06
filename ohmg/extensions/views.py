@@ -49,11 +49,9 @@ class IIIFMosaicView(View):
 
 
 class AtlascopeDataView(View):
-    operation = None
-
-    def get(self, request, place):
+    def get(self, request, place, operation):
         data_name = request.GET.get("data-name")
-        match self.operation:
+        match operation:
             case "coverageDescriptiveList":
                 return JsonResponse(
                     [{"name": str(place), "center": place.get_center()}], safe=False
