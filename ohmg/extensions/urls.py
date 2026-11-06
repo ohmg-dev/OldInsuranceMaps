@@ -35,9 +35,9 @@ urlpatterns = [
         name="iiif_canvas_view",
     ),
     path(
-        "atlascope/<str:operation>/<place-slug:place>/",
+        "atlascope/<place-slug:place>/<str:operation>/",
         AtlascopeDataView.as_view(),
-        name="atlascope-data",
+        name="atlascope-coverages",
     ),
     path(
         "<place-slug:place>/feed/rss/",

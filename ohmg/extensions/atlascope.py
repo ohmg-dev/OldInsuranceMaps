@@ -27,6 +27,10 @@ def generate_atlascope_properties(layerset: LayerSet):
 
 
 def generate_atlascope_geometry(layerset: LayerSet):
+    """Returns a dissolved geometry of all layer masks in this layerset.
+    TODO: This should most likely be a method on LayerSet itself.
+    """
+
     if layerset.multimask_geojson:
         collection = []
         for i in layerset.multimask_geojson["features"]:
@@ -39,7 +43,11 @@ def generate_atlascope_geometry(layerset: LayerSet):
         return {"type": "MultiPolygon", "coordinates": []}
 
 
-def generate_atlascope_footprints(place: Place, override_data_name: str = None):
+def get_layerset_features(place: Place) -> list["AtlascopeLayersetFeature"]:
+    """Returns a list of features for each layerset in this place that has an
+    xyz tiles url. The features have catalog information for properties and a
+    dissolved geometry of all layer masks."""
+
     maps = sorted(place.map_set.all().exclude(hidden=True), key=lambda x: x.year)
 
     features = []
@@ -49,6 +57,14 @@ def generate_atlascope_footprints(place: Place, override_data_name: str = None):
             feature = AtlascopeLayersetFeature.from_orm(ls).dict()
             features.append(feature)
 
+    return features
+
+
+def generate_atlascope_extents(place: Place, override_data_name: str = None):
+    """Returns a topojson representation of all layerset features for main content
+    in this place."""
+
+    features = get_layerset_features(place)
     topo = topojson.Topology(
         {
             "type": "FeatureCollection",
@@ -63,6 +79,20 @@ def generate_atlascope_footprints(place: Place, override_data_name: str = None):
         del topo_json["objects"]["data"]
 
     return topo_json
+
+
+def generate_atlascope_dissolved_footprints(place: Place) -> dict:
+    """Returns a dissolved polygon (or, often, a multipolygon) of all layer masks across
+    all main content layersets attached to this place."""
+
+    features = get_layerset_features(place)
+    geom_list = []
+    for i in features:
+        geom_list.append(GEOSGeometry(json.dumps(i["geometry"])))
+    combined = geom_list[0]
+    for geom in geom_list[1:]:
+        combined = combined.union(geom)
+    return json.loads(combined.json)
 
 
 class AtlascopeLayersetFeature(Schema):

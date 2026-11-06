@@ -5,7 +5,7 @@ from ohmg.conf.http import JsonResponseNotFound
 from ohmg.core.models import Map
 from ohmg.core.utils import full_reverse
 
-from .atlascope import generate_atlascope_footprints
+from .atlascope import generate_atlascope_dissolved_footprints, generate_atlascope_extents
 from .iiif import IIIFResource
 
 
@@ -52,16 +52,18 @@ class AtlascopeDataView(View):
     def get(self, request, place, operation):
         data_name = request.GET.get("data-name")
         match operation:
-            case "footprints":
-                topo_json = generate_atlascope_footprints(place, override_data_name=data_name)
-                return JsonResponse(topo_json)
-
-            case "coverages":
+            case "coverageDescriptiveList":
                 return JsonResponse(
                     [{"name": str(place), "center": place.get_center()}], safe=False
                 )
 
+            case "volumeExtentsFile":
+                topo_json = generate_atlascope_extents(place, override_data_name=data_name)
+                return JsonResponse(topo_json)
+
+            case "footprintsDissolved":
+                geojson = generate_atlascope_dissolved_footprints(place)
+                return JsonResponse(geojson)
+
             case _:
-                return JsonResponseNotFound(
-                    "invalid operation. must be 'footprints' or 'coverages'"
-                )
+                return JsonResponseNotFound("invalid operation")
