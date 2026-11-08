@@ -36,7 +36,7 @@ jobs:
 
       - name: Install dev system dependencies
         run: |
-          sudo apt-get -y install graphviz graphviz-dev
+          sudo apt-get -y install graphviz libgraphviz-dev pkg-config
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
