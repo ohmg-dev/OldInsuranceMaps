@@ -66,6 +66,9 @@ docs = [
     "zensical>=0.0.23",
 ]
 
+[tool.uv]
+no-binary-package = ["pygraphviz"]
+
 [tool.setuptools]
 packages = [
     "ohmg"
