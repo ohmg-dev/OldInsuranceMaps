@@ -54,7 +54,6 @@ dev = [
     "pre-commit",
     "django_debug_toolbar==4.0.0",
     "django-cprofile-middleware==1.0.5",
-    "pygraphviz",
     "ruff",
     "coverage",
 ]
@@ -65,9 +64,6 @@ prod = [
 docs = [
     "zensical>=0.0.23",
 ]
-
-[tool.uv]
-no-binary-package = ["pygraphviz"]
 
 [tool.setuptools]
 packages = [
