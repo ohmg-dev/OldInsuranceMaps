@@ -8,9 +8,10 @@ def encode_url(url: str):
 
 
 def make_titiler_xyz_url(cog_url: str, tiles_2x: bool = False):
-    tilesize = "512" if tiles_2x else "256"
-    xyz_base = f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}.png?tileSize={tilesize}"
-    return f"{xyz_base}&url={encode_url(cog_url)}"
+    xyz_base = f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}.png?"
+    if tiles_2x:
+        xyz_base += "tilesize=512&"
+    return f"{xyz_base}url={encode_url(cog_url)}"
 
 
 def make_titiler_wms_url(cog_url: str):
