@@ -361,7 +361,7 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
         img1 = np.asarray(Image.open(self.Files.new_iberia_p1__1_lyr), dtype=np.int16)
         img2 = np.asarray(Image.open(layer.file.path), dtype=np.int16)
 
-        self.assertEqual(img1.shape == img2.shape)
+        self.assertEqual(img1.shape, img2.shape)
         # Allow minor +/- 2 pixel value drift from JPEG codec differences
         diff = np.abs(img1 - img2)
         max_diff = diff.max()
