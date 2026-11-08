@@ -28,6 +28,7 @@ class Command(BaseCommand):
                 "delete-duplicate-regions",
                 "add-masks-to-layers",
                 "set-measures-on-layers",
+                "set-prod-map-sources",
             ],
             help="Choose what operation to run.",
         )
@@ -442,3 +443,39 @@ class Command(BaseCommand):
             for n, layer in enumerate(Layer.objects.all(), start=1):
                 print(f"{n}/{layers_ct}: {layer.title}")
                 layer.update_georeferencing_measures()
+
+        ## Nov 6th, 2026
+        ## loads the loc sanborn collection as a source and uses some logic to assign it to
+        ## everything currently in the production database from that collection (there is
+        ## bespoke logic here to account for a number of random maps in the system)
+        elif operation == "set-prod-map-sources":
+            from ohmg.core.models import Map, Source
+
+            # call_command("loaddata", "loc-sanborn-source")
+
+            maps = Map.objects.exclude(title__startswith="FHA")
+            maps = maps.exclude(title__icontains="henrico")
+            maps = maps.exclude(title__icontains="beers")
+            maps = maps.exclude(title__icontains="baist")
+            maps = maps.exclude(title__icontains="bluefield")
+            maps = maps.exclude(year=1876, locales__slug="new-orleans-la")
+
+            loc_sanborn = Source.objects.get(abbreviation="LC")
+
+            for map in maps:
+                map.source = loc_sanborn
+                map.source_item_url = f"https://loc.gov/item/{map.identifier}"
+                map.publisher = "Sanborn Map Company"
+                map.save()
+
+            nara_fha = Source.objects.create(
+                abbreviation="FHA",
+                name="Records of the Federal Housing Administration, National Archives",
+                url="https://www.archives.gov/research/guide-fed-records/groups/031.html",
+                note="These scans of FHA Block Data maps were made by Dr. Lawrence Brown of "
+                "Morgan State University's [Center for Urban and Health Equity](https://cuhe.morgan.edu/).",
+            )
+            for map in Map.objects.filter(title__startswith="FHA"):
+                map.publisher = "Federal Housing Administration"
+                map.source = nara_fha
+                map.save()

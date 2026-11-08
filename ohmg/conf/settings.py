@@ -249,6 +249,7 @@ MIDDLEWARE = (
     "django.contrib.redirects.middleware.RedirectFallbackMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "ohmg.conf.middleware.CORSMiddleware",
+    "ohmg.conf.middleware.OHMGContextMiddleware",
 )
 
 CORS_WHITELIST = (
@@ -403,8 +404,8 @@ LOCALE_PATHS = (PROJECT_DIR / "locale",)
 
 OHMG_IMPORTERS = {
     "map": {
-        "default": "ohmg.core.importer.DefaultImporter",
         "loc-sanborn": "ohmg.extensions.loc_sanborn.LOCSanbornImporter",
+        "default": "ohmg.core.importer.DefaultImporter",
         "dsl": "ohmg.extensions.dsl.DSLFileImporter",
     }
 }

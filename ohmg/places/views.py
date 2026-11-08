@@ -8,7 +8,6 @@ from ohmg.api.schemas import (
     MapListSchema2,
     PlaceFullSchema,
 )
-from ohmg.conf.http import generate_ohmg_context
 from ohmg.core.models import Map
 
 
@@ -17,11 +16,8 @@ class PlaceView(View):
         place_json = PlaceFullSchema.from_orm(place).dict()
         context_dict = {
             "PLACE_PARAMS": {
-                "CONTEXT": generate_ohmg_context(request),
+                "CONTEXT": request.ohmg_context,
                 "PLACE": place_json,
-                # "PAGE_NAME": "place",
-                # "PARAMS": {
-                # },
             },
             "navlinks": [
                 {
@@ -50,7 +46,7 @@ class Viewer(View):
 
         context_dict = {
             "svelte_params": {
-                "CONTEXT": generate_ohmg_context(request),
+                "CONTEXT": request.ohmg_context,
                 "PLACE": place_data,
                 "MAPS": maps_sorted,
             }

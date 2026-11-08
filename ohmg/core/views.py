@@ -4,6 +4,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import HttpResponse, get_object_or_404, redirect, render
@@ -20,18 +21,20 @@ from ohmg.api.schemas import (
     MapUserSchema,
     PlaceFullSchema,
     ResourceFullSchema,
+    SourceSchema,
 )
 from ohmg.conf.http import (
     JsonResponseFail,
     JsonResponseNotFound,
     JsonResponseSuccess,
     JsonResponseUnauthorized,
-    generate_ohmg_context,
     validate_post_request,
 )
+from ohmg.core.models import Source
 from ohmg.georeference.models import GCP, SessionBase
 
 from .exporters.qlr import generate_qlr_content
+from .importer import get_importer
 from .models import (
     Document,
     Layer,
@@ -70,7 +73,7 @@ class MapListView(View):
     def get(self, request):
         context_dict = {
             "MAPS_PARAMS": {
-                "CONTEXT": generate_ohmg_context(request),
+                "CONTEXT": request.ohmg_context,
             }
         }
         return render(request, "core/maps.html", context=context_dict)
@@ -80,7 +83,7 @@ class LayerListView(View):
     def get(self, request):
         context_dict = {
             "LAYERS_PARAMS": {
-                "CONTEXT": generate_ohmg_context(request),
+                "CONTEXT": request.ohmg_context,
             }
         }
         return render(request, "core/layers.html", context=context_dict)
@@ -90,10 +93,65 @@ class DocumentListView(View):
     def get(self, request):
         context_dict = {
             "DOCUMENTS_PARAMS": {
-                "CONTEXT": generate_ohmg_context(request),
+                "CONTEXT": request.ohmg_context,
             }
         }
         return render(request, "core/documents.html", context=context_dict)
+
+
+class AddMapView(PermissionRequiredMixin, View):
+    permission_required = "core.create_map"
+
+    def get(self, request):
+        importers = []
+        for id in settings.OHMG_IMPORTERS["map"].keys():
+            importer_class = get_importer(id)
+            importers.append(importer_class.serialize())
+
+        return render(request, "core/map/add.html", context={"importers": importers})
+
+
+class AddMapImportView(PermissionRequiredMixin, View):
+    permission_required = "core.create_map"
+
+    def get(self, request, importer_id):
+        importer = get_importer(importer_id)
+        if not importer:
+            raise Http404
+
+        importer_json = importer.serialize()
+        return render(
+            request,
+            "core/map/run-import.html",
+            context={
+                "form": importer.get_form(),
+                "importer": importer_json,
+            },
+        )
+
+    def post(self, request, importer_id):
+        importer = get_importer(importer_id)
+        if not importer:
+            raise Http404
+
+        importer_json = importer.serialize()
+        form = importer.get_form(form_data=request.POST)
+
+        if form.is_valid():
+            result = importer.run_import(**form.cleaned_data)
+
+        else:
+            result = {"status": "form_invalid"}
+
+        return render(
+            request,
+            "core/map/run-import.html",
+            context={
+                "form": form,
+                "result": result,
+                "importer": importer_json,
+            },
+        )
 
 
 class MapView(View):
@@ -115,7 +173,7 @@ class MapView(View):
 
         context_dict = {
             "svelte_params": {
-                "CONTEXT": generate_ohmg_context(request),
+                "CONTEXT": request.ohmg_context,
                 "MAP": map_json,
                 "LOCALE": locale_json,
                 "SESSION_SUMMARY": session_summary,
@@ -131,7 +189,7 @@ class MapView(View):
             ],
         }
 
-        return render(request, "core/map.html", context=context_dict)
+        return render(request, "core/map/overview.html", context=context_dict)
 
     @method_decorator(login_required)
     @method_decorator(validate_post_request(operations=["load-documents", "refresh-lookups"]))
@@ -150,6 +208,12 @@ class MapView(View):
             map.update_item_lookup()
             map_json = MapFullSchema.from_orm(map).dict()
             return JsonResponse(map_json)
+
+
+class SourcesView(View):
+    def get(self, request):
+        sources = [SourceSchema.from_orm(i).dict() for i in Source.objects.all()]
+        return render(request, "core/sources.html", context={"SOURCES": sources})
 
 
 class MapContributorsView(View):
@@ -235,7 +299,7 @@ class GenericResourceView(View):
             "core/resource.html",
             context={
                 "resource_params": {
-                    "CONTEXT": generate_ohmg_context(request),
+                    "CONTEXT": request.ohmg_context,
                     "MAP": map_json,
                     "LOCALE": place_json,
                     "RESOURCE": resource_json,

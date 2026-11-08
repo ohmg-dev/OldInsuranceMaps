@@ -9,6 +9,7 @@ from ohmg.accounts.models import User
 from ohmg.core.models import (
     LayerSetCategory,
     Map,
+    Source,
 )
 from ohmg.georeference.models import (
     SESSION_TYPES,
@@ -173,9 +174,17 @@ class MapPagination(PaginationBase):
             key=lambda k: k["id"],
         )
 
+        sources = Source.objects.all()
+        source_items = natsorted(
+            [{"id": i.pk, "label": i.name} for i in sources],
+            key=lambda k: k["id"],
+        )
+        source_items.append({"id": "none", "label": "(no source)"})
+
         filter_items = {
             "places": place_items,
             "users": user_items,
+            "sources": source_items,
         }
 
         offset = pagination.offset

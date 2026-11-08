@@ -15,6 +15,7 @@
     --envelope-svg: url(/static/icons/envelope-60.svg);
     --clipboard-svg: url(/static/icons/clipboard-60.svg);
     --wrench-svg: url(/static/icons/noun-spanner-937070.svg);
+    --house-svg: url(/static/icons/noun_House_2523128.svg);
 }
 
 i.fancy {
@@ -125,4 +126,9 @@ i.fancy-xs {
 .i-wrench {
     mask-image: var(--wrench-svg);
     -webkit-mask-image: var(--wrench-svg);
+}
+
+.i-house {
+    mask-image: var(--house-svg);
+    -webkit-mask-image: var(--house-svg);
 }

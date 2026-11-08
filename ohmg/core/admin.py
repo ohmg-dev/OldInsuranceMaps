@@ -11,6 +11,7 @@ from ohmg.core.models import (
     MapGroup,
     Region,
     RegionCategory,
+    Source,
 )
 
 
@@ -31,7 +32,28 @@ class MapAdmin(admin.ModelAdmin):
         "completion_pct",
         "multimask_ct",
         "multimask_rank",
+        "featured_rank",
     )
+    actions = ("set_featured",)
+
+    # handles custom button in object change page
+    def response_change(self, request, obj):
+        if "_set-featured" in request.POST:
+            msg = "Map set as featured"
+            try:
+                obj.set_featured()
+            except Exception as e:
+                msg = f"Error setting as featured {e}"
+            self.message_user(request, msg)
+            return HttpResponseRedirect(".")
+        return super().response_change(request, obj)
+
+    # handles bulk updates through select/list page
+    @admin.action(description="Set map(s) as featured")
+    def set_featured(self, request, queryset):
+        for obj in queryset:
+            obj.set_featured()
+        self.message_user(request, f"{queryset.count()} updated")
 
 
 class DocumentAdmin(admin.ModelAdmin):
@@ -137,3 +159,10 @@ class LayerSetAdmin(admin.ModelAdmin):
 
 admin.site.register(LayerSet, LayerSetAdmin)
 admin.site.register(LayerSetCategory)
+
+
+class SourceAdmin(admin.ModelAdmin):
+    list_display = ("abbreviation", "name", "url")
+
+
+admin.site.register(Source, SourceAdmin)

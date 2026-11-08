@@ -1,0 +1,11 @@
+[
+  {
+    "model": "core.source",
+    "pk": 1,
+    "fields": {
+      "abbreviation": "LC",
+      "name": "Library of Congress, Geography and Maps Division, Sanborn Map Collection",
+      "url": "https://loc.gov/collections/sanborn-maps"
+    }
+  }
+]

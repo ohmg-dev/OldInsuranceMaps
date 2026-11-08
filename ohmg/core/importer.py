@@ -9,6 +9,7 @@ from django.conf import settings
 
 from ohmg.places.models import Place
 
+from .forms import DynamicForm
 from .models import Map
 from .utils import random_alnum
 
@@ -39,7 +40,10 @@ def get_importer(
 
 
 class BaseImporter:
-    required_input = []
+    id: str
+    label: str
+    required_input: list[str]
+    web_import_supported: bool = False
 
     def __init__(
         self,
@@ -70,7 +74,6 @@ class BaseImporter:
             "identifier": str,
             "title": str,
             "year": (int, type(None)),
-            "creator": (str, type(None)),
             "locale": (str, type(None)),
             "document_sources": list,
         }
@@ -152,8 +155,9 @@ class BaseImporter:
             )
 
         map.title = self.parsed_data.get("title")
-        map.creator = self.parsed_data.get("creator")
         map.publisher = self.parsed_data.get("publisher")
+        map.source_id = self.parsed_data.get("source_id")
+        map.source_item_url = self.parsed_data.get("source_item_url")
         map.year = self.parsed_data.get("year")
         map.month = self.parsed_data.get("month")
         map.volume_number = self.parsed_data.get("volume_number")
@@ -200,7 +204,7 @@ class BaseImporter:
                 logger.error(error)
                 if self.verbose:
                     print(error)
-            raise Exception("Errors encountered during map import. See log for more details.")
+            return {"status": "failed", "errors": self.errors}
 
         if self.verbose:
             print("no errors parsing input.")
@@ -208,8 +212,9 @@ class BaseImporter:
             print(json.dumps(self.parsed_data, indent=2))
 
         if not self.dry_run:
-            map = self.create_map()
-            return map
+            self.create_map()
+
+        return {"status": "success"}
 
     def run_bulk_import(self, csv_file: str):
         """Wraps the main import function by feeding rows from a CSV into it.
@@ -228,26 +233,59 @@ class BaseImporter:
                 item["path"] = str(Path(csv_parent, item["path"]))
             self.run_import(**item)
 
+    def get_form(self, form_data=None):
+        config = {
+            "fields": [
+                {"name": i, "label": i, "type": "char", "required": True}
+                for i in self.required_input
+            ]
+        }
+        if form_data:
+            return DynamicForm(config, form_data)
+        else:
+            return DynamicForm(config)
+
+    def get_markdown_docstring(self):
+        """Get the docstring, and if all of it is indented, then strip
+        the first four spaces to correct for auto-indenting."""
+        lines = []
+        for i in self.__doc__.split("\n"):
+            if len(i) > 4:
+                lines.append(i[4:])
+            else:
+                lines.append(i)
+        return "\n".join(lines)
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "label": self.label,
+            "info": self.get_markdown_docstring(),
+            "web_import_supported": self.web_import_supported,
+            "required_input": self.required_input,
+        }
+
 
 class DefaultImporter(BaseImporter):
-    """Default Importer
-
+    """
     This is the default operation for loading a new Map. A single image file can be provided,
-    or a CSV that has a list of one or more files. Paths in the CSV
+    or a CSV that has a list of one or more files. Paths in the CSV must be relative to the location of the CSV.
 
     Required opts:
 
-        path:       path/to/image.tif OR path/to/file-list.csv
-        year:       year of publication
-        locale:     slug for locale
+    - **path**:       path/to/image.tif OR path/to/file-list.csv
+    - **year**:       year of publication
+    - **locale**:     slug for locale
 
     Optional opts:
 
-        identifier: will be used as pk for this map
-        title:      will be "Untitled map" if not provided
-        creator:    name of creator for map
+    - **identifier**: will be used as pk for this map
+    - **title**:      will be "Untitled map" if not provided
+    - **publisher**:      will be "Untitled map" if not provided
     """
 
+    id = "default"
+    label = "Default Importer"
     required_input = [
         "path",
         "year",
@@ -292,5 +330,5 @@ class DefaultImporter(BaseImporter):
             "year": int(self.input_data["year"]),
             "identifier": self.input_data.get("identifier"),
             "title": self.input_data.get("title", "Untitled map"),
-            "creator": self.input_data.get("creator", "n/a"),
+            "publisher": self.input_data.get("publisher", "n/a"),
         }

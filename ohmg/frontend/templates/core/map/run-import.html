@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load markdown_utils %}
+{% load form_utils %}
+
+{% block title %}Run map import | {{ block.super}} {% endblock title %}
+
+{% block main_content %}
+
+{% include '_titlebar.html' with title="Run map import" subtitle=importer.label lead_icon="volume" %}
+
+<section class="content markdown-page" style="padding:1em 0">
+
+    {% if result %}
+    <div class="notification {% if result.status == 'failed' %}is-warning{% elif result.status == 'success' %}is-success{% else %}is-info{% endif %}" style="margin-top:1em;">
+        {{result}}
+    </div>
+    {% endif %}
+
+    {% markdowncontent %}
+    {{ importer.info }}
+    {% endmarkdowncontent %}
+
+    <form class="form" action="/map/add/{{importer.id}}/" method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="field">
+            {{ field|label_with_classes:"label"}}
+            <div class="control">
+                {{ field }}
+            </div>
+        </div>
+            {% if field.help_text %}
+                <small class="help-text">{{ field.help_text|safe }}</small>
+            {% endif %}
+        {% endfor %}
+        <div class="field is-grouped">
+            <div class="control">
+                <button class="button is-link" {% if not importer.web_import_supported %}disabled{% endif %}>Submit</button>
+            </div>
+            <div class="control">
+                <a href="/map/add/" class="button is-light" style="text-decoration: none"><i class="ph-bold ph-arrow-left"></i> Back</a>
+            </div>
+        </div>
+    </form>
+
+</section>
+
+{% endblock %}

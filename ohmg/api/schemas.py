@@ -87,17 +87,31 @@ class PlaceSchemaVeryLite(Schema):
     slug: str
 
 
+class SourceSchema(Schema):
+    pk: int
+    abbreviation: str
+    name: str
+    url: Optional[str]
+    note: Optional[str]
+    logo_url: Optional[str]
+
+    @staticmethod
+    def resolve_logo_url(obj):
+        return obj.logo.url if obj.logo else None
+
+
 class MapListSchema2(Schema):
     identifier: str
     title: str
     year: int
     loaded_by: Optional[UserSchemaLite]
+    source: Optional[SourceSchema]
     load_date: str
     sheet_ct: int
     volume_number: Optional[str]
     gt_exists: bool
     xyz_tiles_exists: bool
-    featured: bool
+    featured_rank: int
     hidden: bool
     document_ct: int
     unprepared_ct: int
@@ -667,11 +681,15 @@ class MapFullSchema(Schema):
     identifier: str
     title: str
     year: int = 0
+    publisher: Optional[str]
+    source: Optional[SourceSchema]
+    source_item_url: Optional[str]
+    external_links: list
     loaded_by: Optional[UserSchemaLite]
     status: str = ""
     access: str = ""
     loading_documents: bool
-    featured: bool
+    featured_rank: int
     hidden: bool
     document_sources: list
     documents: List[DocumentSchema]
@@ -743,6 +761,25 @@ class MapFullSchema(Schema):
     @staticmethod
     def resolve_documents(obj):
         return natsorted(obj.documents.all(), key=lambda k: k.title)
+
+    @staticmethod
+    def resolve_external_links(obj):
+        links = []
+        if (
+            obj.source and obj.source.name
+            == "Library of Congress, Geography and Map Division, Sanborn Maps Collection"
+        ):
+            links.append(
+                {"title": "Mapsnap", "url": f"https://mapsnap.org/item?id={obj.identifier}"}
+            )
+        if obj.source and obj.source.name == "Records of the Federal Housing Administration, National Archives":
+            links.append(
+                {
+                    "title": '"Pair HOLC Maps with FHA Maps to Tell a More Complete Story"',
+                    "url": "https://themetropole.blog/2023/08/16/pair-holc-maps-with-fha-maps-to-tell-a-more-complete-story/",
+                }
+            )
+        return links
 
 
 class MapResourcesSchema(Schema):

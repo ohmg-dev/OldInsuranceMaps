@@ -16,6 +16,8 @@ class OHMGTestCase(LiveServerTestCase):
     """This inherits from LiveServerTestCase so that there will be a
     localhost:xxxx server running based on the test database."""
 
+    serialized_rollback = True
+
     ## On classes that inherit this one, files can be defined
     ## here and they will be copied to uploaded directory before
     ## test run.

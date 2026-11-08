@@ -6,6 +6,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.db import transaction
 from django.db.models import Q
+from markdownx.models import MarkdownxField
 from natsort import natsorted
 
 from ohmg.places.models import Place
@@ -17,6 +18,19 @@ from ..utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class Source(models.Model):
+    abbreviation = models.CharField(max_length=10)
+    name = models.CharField(max_length=100)
+    url = models.URLField(max_length=300, null=True, blank=True)
+    note = MarkdownxField(null=True, blank=True)
+    logo = models.FileField(
+        upload_to="source-logos",
+        null=True,
+        blank=True,
+        max_length=255,
+    )
 
 
 class Map(models.Model):
@@ -54,13 +68,19 @@ class Map(models.Model):
     title = models.CharField(max_length=200)
     year = models.IntegerField(blank=True, null=True)
     month = models.IntegerField(blank=True, null=True, choices=MONTH_CHOICES)
-    creator = models.CharField(
+    publisher = models.CharField(
         max_length=200,
         null=True,
         blank=True,
     )
-    publisher = models.CharField(
-        max_length=200,
+    source = models.ForeignKey(
+        Source,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    source_item_url = models.URLField(
+        max_length=350,
         null=True,
         blank=True,
     )
@@ -94,7 +114,10 @@ class Map(models.Model):
         blank=True,
         default=dict,
     )
-    featured = models.BooleanField(default=False, help_text="show in featured section")
+    featured_rank = models.IntegerField(
+        default=0,
+        help_text="0 = not featured, 1-5 = featured (first to last).",
+    )
     hidden = models.BooleanField(
         default=False,
         help_text="this map will be excluded from api calls (but url available directly)",
@@ -460,6 +483,16 @@ class Map(models.Model):
             "georef_contributors": get_session_user_summary(georef_sessions),
         }
         return summary
+
+    def set_featured(self):
+        for map in Map.objects.filter(featured_rank__gt=0):
+            if map.featured_rank == 5:
+                map.featured_rank = 0
+            else:
+                map.featured_rank += 1
+            map.save()
+        self.featured_rank = 1
+        self.save()
 
     def save(self, set_slug=False, *args, **kwargs):
         if set_slug or not self.slug:

@@ -7,24 +7,19 @@ from django.shortcuts import get_object_or_404, render
 from django.views import View
 
 from ohmg.api.schemas import UserSchema
-from ohmg.conf.http import (
-    generate_ohmg_context,
-)
 
 
 class ProfileView(View):
     def get(self, request, username):
         u = get_object_or_404(get_user_model(), username=username)
-        ohmg_context = generate_ohmg_context(request)
         profile_user = UserSchema.from_orm(u).dict()
         return render(
             request,
             "accounts/profile.html",
             context={
-                "CONTEXT": ohmg_context,
                 "PROFILE_USER": profile_user,
                 "SESSIONS_PROPS": {
-                    "CONTEXT": ohmg_context,
+                    "CONTEXT": request.ohmg_context,
                     "showUser": False,
                     "userFilter": {"id": username, "label": username},
                 },
@@ -34,14 +29,12 @@ class ProfileView(View):
 
 class ProfilesView(View):
     def get(self, request):
-        ohmg_context = generate_ohmg_context(request)
         return render(
             request,
             "accounts/profiles.html",
             context={
-                "CONTEXT": ohmg_context,
                 "PROFILES_PROPS": {
-                    "CONTEXT": ohmg_context,
+                    "CONTEXT": request.ohmg_context,
                 },
             },
         )
@@ -68,14 +61,13 @@ class OHMGSignupView(SignupView):
 
 class APIKeysView(View):
     def get(self, request):
-        ohmg_context = generate_ohmg_context(request)
         return render(
             request,
             "accounts/api-keys.html",
             context={
-                "CONTEXT": ohmg_context,
+                "API_KEYS": request.ohmg_context["user"]["api_keys"],
                 "PROFILES_PROPS": {
-                    "CONTEXT": ohmg_context,
+                    "CONTEXT": request.ohmg_context,
                 },
             },
         )
