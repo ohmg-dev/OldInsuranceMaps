@@ -469,11 +469,11 @@ class Command(BaseCommand):
                 map.save()
 
             nara_fha = Source.objects.create(
-                abbreviation="NARA",
-                name="National Archives, Records of the Federal Housing Administration",
+                abbreviation="FHA",
+                name="Records of the Federal Housing Administration, National Archives",
                 url="https://www.archives.gov/research/guide-fed-records/groups/031.html",
-                note="These scans of FHA Block Data maps were made by Dr. Lawrence Brown at "
-                "Morgan State University, [Center for Urban and Health Equity](https://cuhe.morgan.edu/).",
+                note="These scans of FHA Block Data maps were made by Dr. Lawrence Brown of "
+                "Morgan State University's [Center for Urban and Health Equity](https://cuhe.morgan.edu/).",
             )
             for map in Map.objects.filter(title__startswith="FHA"):
                 map.publisher = "Federal Housing Administration"

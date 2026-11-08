@@ -21,6 +21,7 @@ from ohmg.api.schemas import (
     MapUserSchema,
     PlaceFullSchema,
     ResourceFullSchema,
+    SourceSchema,
 )
 from ohmg.conf.http import (
     JsonResponseFail,
@@ -29,6 +30,7 @@ from ohmg.conf.http import (
     JsonResponseUnauthorized,
     validate_post_request,
 )
+from ohmg.core.models import Source
 from ohmg.georeference.models import GCP, SessionBase
 
 from .exporters.qlr import generate_qlr_content
@@ -206,6 +208,12 @@ class MapView(View):
             map.update_item_lookup()
             map_json = MapFullSchema.from_orm(map).dict()
             return JsonResponse(map_json)
+
+
+class SourcesView(View):
+    def get(self, request):
+        sources = [SourceSchema.from_orm(i).dict() for i in Source.objects.all()]
+        return render(request, "core/sources.html", context={"SOURCES": sources})
 
 
 class MapContributorsView(View):

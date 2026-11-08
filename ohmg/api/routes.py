@@ -171,6 +171,7 @@ def list_maps2(
     loaded_by: str = "",
     sort: str = "",
     sortby: str = "",
+    source: str = "",
 ):
     if loaded:
         maps = Map.objects.filter(load_date__isnull=False)
@@ -185,6 +186,11 @@ def list_maps2(
             maps = maps.filter(locales__in=place_ids)
         else:
             maps = maps.filter(locales__slug__exact=place)
+    if source:
+        if source == "none":
+            maps = maps.filter(source__isnull=True)
+        else:
+            maps = maps.filter(source_id=source)
     if sortby:
         if sortby == "loaded_by":
             sortby = "loaded_by__username"

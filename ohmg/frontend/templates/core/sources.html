@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load markdown_utils %}
+
+{% block title %}Sources | {{ block.super}} {% endblock title %}
+
+{% block main_content %}
+
+{% include '_titlebar.html' with title="Sources" lead_icon="house" %}
+
+{% for source in SOURCES %}
+<h3 id="source-{{source.pk}}">
+    {{ source.name }} ({{ source.abbreviation }})
+    {% if user.is_staff %}
+    <a href="/admin/core/source/{{source.pk}}" class="tag" style="text-decoration:none;"><i class="ph-bold ph-pencil-simple"></i> <strong>edit</strong></a>
+    {% endif %}
+</h3>
+
+<p><a href="{{ source.url }}">{{ source.url }}</a></p>
+
+{% markdowncontent %}
+{{ source.note }}
+{% endmarkdowncontent %}
+
+{% endfor %}
+
+{% endblock %}

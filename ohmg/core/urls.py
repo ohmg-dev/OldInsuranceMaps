@@ -14,6 +14,7 @@ from .views import (
     MapView,
     RegionView,
     ResourceDerivativeView,
+    SourcesView,
 )
 
 urlpatterns = [
@@ -48,4 +49,5 @@ urlpatterns = [
     path("documents/", DocumentListView.as_view(), name="document_list"),
     path("layerset/", LayerSetView.as_view(), name="layerset_view"),
     path("layerset/<int:pk>", LayerSetView.as_view(), name="layerset_view"),
+    path("sources/", SourcesView.as_view(), name="sources_view"),
 ]

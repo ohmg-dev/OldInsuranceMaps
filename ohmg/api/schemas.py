@@ -87,11 +87,25 @@ class PlaceSchemaVeryLite(Schema):
     slug: str
 
 
+class SourceSchema(Schema):
+    pk: int
+    abbreviation: str
+    name: str
+    url: Optional[str]
+    note: Optional[str]
+    logo_url: Optional[str]
+
+    @staticmethod
+    def resolve_logo_url(obj):
+        return obj.logo.url if obj.logo else None
+
+
 class MapListSchema2(Schema):
     identifier: str
     title: str
     year: int
     loaded_by: Optional[UserSchemaLite]
+    source: Optional[SourceSchema]
     load_date: str
     sheet_ct: int
     volume_number: Optional[str]
@@ -661,18 +675,6 @@ class SessionLockSchema(Schema):
     @staticmethod
     def resolve_target_type(obj):
         return obj.target_type.model
-
-
-class SourceSchema(Schema):
-    abbreviation: str
-    name: str
-    url: Optional[str]
-    note: Optional[str]
-    logo_url: Optional[str]
-
-    @staticmethod
-    def resolve_logo_url(obj):
-        return obj.logo.url if obj.logo else None
 
 
 class MapFullSchema(Schema):

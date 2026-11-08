@@ -21,6 +21,7 @@
   export let userFilter = null;
   export let showPlace = true;
   export let placeFilter = null;
+  export let sourceFilter = null;
   export let placeInclusive = false;
   export let sortParam = 'title';
   export let sortDir = 'asc';
@@ -31,6 +32,7 @@
 
   let placeFilterItems = [];
   let userFilterItems = [];
+  let sourceFilterItems = [];
 
   let loading = false;
   let searching = false;
@@ -52,6 +54,9 @@
     if (placeFilter) {
       fetchUrl += `&place=${placeFilter.id}`;
     }
+    if (sourceFilter) {
+      fetchUrl += `&source=${sourceFilter.id}`;
+    }
     if (userFilter) {
       fetchUrl += `&loaded_by=${userFilter.id}`;
     }
@@ -70,6 +75,7 @@
       total = result.count;
       placeFilterItems = result.filter_items.places;
       userFilterItems = result.filter_items.users;
+      sourceFilterItems = result.filter_items.sources;
       loading = false;
       searching = false;
     });
@@ -132,10 +138,17 @@
         bind:offset
       />
     {/if}
+    <FacetFilterSelect
+      items={sourceFilterItems}
+      bind:value={sourceFilter}
+      placeholder="Set source..."
+      bind:offset
+    />
   </FilterRow>
   <TableContainer bind:items bind:loading>
     <svelte:fragment slot="header-row">
       <TableHeader title="Title" value={'title'} bind:sortDir bind:sortParam bind:offset />
+      <TableHeader title="Source" />
       <TableHeader title="Year" value={'year'} bind:sortDir bind:sortParam bind:offset />
       <TableHeader title="Docs" bind:sortDir bind:sortParam value={'document_ct'} bind:offset />
       {#if showPlace}
@@ -207,6 +220,13 @@
     </svelte:fragment>
     <svelte:fragment slot="data-row" let:item>
       <TableCell><Link href={`/map/${item.identifier}`}>{item.title}</Link></TableCell>
+      <TableCell>
+        {#if item.source}
+        <span title="{item.source.name}">{item.source.abbreviation}</span>
+        {:else}
+        ---
+        {/if}
+      </TableCell>
       <TableCell>{item.year}</TableCell>
       <TableCell>{item.document_ct}</TableCell>
       {#if showPlace}
