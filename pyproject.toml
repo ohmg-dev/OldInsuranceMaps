@@ -42,7 +42,7 @@ dependencies = [
     "python-slugify",
     "humanize",
     "lxml",
-    "setuptools",
+    "setuptools<=80.10.2",
     # for celery beat
     "pytz",
     "rio-tiler>=5.0.3",
