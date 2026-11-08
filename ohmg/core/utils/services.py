@@ -8,8 +8,8 @@ def encode_url(url: str):
 
 
 def make_titiler_xyz_url(cog_url: str, tiles_2x: bool = False):
-    format = "@2x.png" if tiles_2x else ".png"
-    xyz_base = f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}{format}?"
+    tilesize = "512" if tiles_2x else "256"
+    xyz_base = f"{settings.TITILER_HOST}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}.png?tileSize={tilesize}"
     return f"{xyz_base}&url={encode_url(cog_url)}"
 
 
