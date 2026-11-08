@@ -766,13 +766,13 @@ class MapFullSchema(Schema):
     def resolve_external_links(obj):
         links = []
         if (
-            obj.source.name
-            == "Library of Congress, Geography & Maps Division, Sanborn Map Collection"
+            obj.source and obj.source.name
+            == "Library of Congress, Geography and Map Division, Sanborn Maps Collection"
         ):
             links.append(
                 {"title": "Mapsnap", "url": f"https://mapsnap.org/item?id={obj.identifier}"}
             )
-        if obj.source.name == "National Archives, Records of the Federal Housing Administration":
+        if obj.source and obj.source.name == "Records of the Federal Housing Administration, National Archives":
             links.append(
                 {
                     "title": '"Pair HOLC Maps with FHA Maps to Tell a More Complete Story"',

@@ -59,7 +59,7 @@
 <h4 class="dl-title">Record</h4>
 <dl>
   <dt>Title</dt>
-  <dd>Sanborn Map of {RESOURCE.title}</dd>
+  <dd>{RESOURCE.title}</dd>
   <dt>Status</dt>
   <dd>{RESOURCE.status}</dd>
 </dl>

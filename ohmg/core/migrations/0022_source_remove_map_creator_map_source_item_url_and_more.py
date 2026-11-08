@@ -11,7 +11,7 @@ def create_loc_sanborn_source(apps, schema_editor):
     model = apps.get_model('core', 'Source')
     model.objects.create(
         abbreviation="LC",
-        name="Library of Congress, Geography and Maps Division, Sanborn Map Collection",
+        name="Library of Congress, Geography and Map Division, Sanborn Maps Collection",
         note="The content of the Library of Congress online Sanborn Maps Collection is in the public domain and is free "\
             "to use and reuse. [[ref](https://www.loc.gov/collections/sanborn-maps/about-this-collection/rights-and-access/)]",
         url="https://loc.gov/collections/sanborn-maps",

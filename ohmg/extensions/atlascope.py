@@ -13,13 +13,13 @@ def generate_atlascope_properties(layerset: LayerSet):
         "identifier": layerset.map.identifier,
         "publisherShort": layerset.map.publisher,
         "year": layerset.map.year,
-        "bibliographicEntry": f"Fire Insurance Map of {layerset.map.title} (Sanborn Map Company)",
+        "bibliographicEntry": f"{layerset.map.title}{' ('+layerset.map.publisher+')' if layerset.map.publisher else ''}" ,
         "source": {
             "type": "xyz",
             "url": f"{layerset.xyz_tiles_url}/{{z}}/{{x}}/{{y}}.png",
         },
-        "catalogPermalink": f"https://loc.gov/item/{layerset.map.identifier}",
-        "heldBy": ["Library of Congress"],
+        "catalogPermalink": f"{layerset.map.source_item_url if layerset.map.source_item_url else ''}",
+        "heldBy": [layerset.map.source.name if layerset.map.source else ""],
         "sponsors": [],
     }
 
