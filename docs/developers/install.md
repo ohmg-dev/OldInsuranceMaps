@@ -213,7 +213,7 @@ source ./scripts/celery_main_dev.sh
 
 ## TiTiler
 
-TiTiler can also be run via Docker, using a slightly modified version of the official container (it is only modified to include the WMS endpoint extension):
+TiTiler can also be run via Docker:
 
 ```bash
 docker run --name titiler \
@@ -223,7 +223,7 @@ docker run --name titiler \
   -e WORKERS_PER_CORE=1 \
   --rm \
   -it \
-  ghcr.io/mradamcox/titiler:0.26.0-ohmg
+  ghcr.io/developmentseed/titiler:2.4.0
 ```
 
 Or the same command is wrapped in:
