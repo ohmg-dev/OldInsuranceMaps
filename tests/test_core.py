@@ -1,9 +1,11 @@
 import filecmp
 from pathlib import Path
 
+import numpy as np
 from django.contrib.auth import get_user_model
 from django.core.handlers.wsgi import WSGIHandler
 from django.test import Client, tag
+from PIL import Image
 
 from ohmg.core.importer import DefaultImporter, get_importer
 from ohmg.core.models import (
@@ -352,9 +354,16 @@ class GeoreferenceSessionTestCase(OHMGTestCase):
         self.assertEqual(LayerSet.objects.all().count(), 1)
         self.assertEqual(LayerSet.objects.all()[0], layer.layerset2)
 
-        self.assertTrue(
-            filecmp.cmp(self.Files.new_iberia_p1__1_lyr, layer.file.path, shallow=False)
-        )
+        # self.assertTrue(
+        #     filecmp.cmp(self.Files.new_iberia_p1__1_lyr, layer.file.path, shallow=False)
+        # )
+
+        img1 = np.asarray(Image.open(self.Files.new_iberia_p1__1_lyr), dtype=np.int16)
+        img2 = np.asarray(Image.open(layer.file.path), dtype=np.int16)
+
+        assert img1.shape == img2.shape
+        # Allow minor +/- 2 pixel value drift from JPEG codec differences
+        assert np.allclose(img1, img2, atol=2)
 
         self.assertTrue(hasattr(region, "gcpgroup"))
         self.assertEqual(len(region.gcpgroup.gcps), 4)
