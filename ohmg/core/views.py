@@ -171,6 +171,9 @@ class MapView(View):
         layersets = [LayerSetSchema.from_orm(i).dict() for i in map.layerset_set.all()]
         layerset_categories = list(LayerSetCategory.objects.all().values("slug", "display_name"))
 
+        parcel_layer = map.get_locale().get_parcels()
+        parcel_json = parcel_layer.serialize() if parcel_layer else None
+
         context_dict = {
             "svelte_params": {
                 "CONTEXT": request.ohmg_context,
@@ -179,6 +182,7 @@ class MapView(View):
                 "SESSION_SUMMARY": session_summary,
                 "LAYERSETS": layersets,
                 "LAYERSET_CATEGORIES": layerset_categories,
+                "PARCEL_LAYER": parcel_json,
             },
             "navlinks": [
                 {

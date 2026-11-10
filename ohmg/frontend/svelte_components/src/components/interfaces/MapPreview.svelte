@@ -19,15 +19,17 @@
   import { openModal } from '../base/Modal.svelte';
   import LegendModal from '../shared/modals/LegendModal.svelte';
 
-  import { makeLayerGroupFromLayerSet } from '../../lib/map/layers';
+  import { makeLayerGroupFromLayerSet, makePmTilesLayer } from '../../lib/map/layers';
   import { LyrMousePosition } from '../../lib/map/controls';
   import { MapViewer } from '../../lib/map/viewers';
+  import { parcelStyles } from '../../lib/map/styles';
   import { getFromAPI } from '../../lib/requests';
 
   export let CONTEXT;
   export let mapId;
   export let mapExtent;
   export let locale;
+  export let parcelLayerDef;
   export let refreshable = false;
 
   let mapViewer;
@@ -47,6 +49,17 @@
   };
 
   $: layerIdList = Object.keys(layerSetLookup).sort((a, b) => zIndexLookup[a] - zIndexLookup[b]);
+
+  let parcelLayer;
+  if (parcelLayerDef) {
+    parcelLayer = makePmTilesLayer(
+      parcelLayerDef.pmtiles_url,
+      `<a target="_blank" href="${parcelLayerDef.source_href}">${parcelLayerDef.source_name}</a>`,
+      parcelStyles.active,
+    );
+    parcelLayer.setZIndex(30)
+    parcelLayer.setVisible(false)
+  }
 
   function updateLayersets(layerSets) {
     const newExtent = createEmpty();
@@ -81,6 +94,9 @@
     mapViewer.clearNonBasemapLayers();
     for (const [key, value] of Object.entries(layerSetLookup)) {
       mapViewer.addLayer(value.layerGroup);
+    }
+    if (parcelLayer) {
+      mapViewer.addLayer(parcelLayer)
     }
   }
 
@@ -173,7 +189,7 @@
         </ToolUIButton>
       </div>
       <div class="layer-section-subheader">
-        {currentBasemap == 'satellite' ? 'Mapbox Imagery' : 'Open Street Map'}
+        {currentBasemap == 'satellite' ? 'Mapbox Imagery' : 'OpenStreetMap'}
       </div>
       {#each layerIdList as id}
         <div class="layer-section-header">
@@ -193,8 +209,24 @@
       {/each}
     </div>
     <div id="info-box">
-      <span>z: {currentZoom}</span>
-      <span id="pointer-coords-preview"></span>
+      <div style="display:flex; flex-direction:row; justify-content:space-between; width:100%;">
+        <span>z: {currentZoom}</span>
+        {#if parcelLayer}
+        <label>
+          show parcels
+          <input type="checkbox" on:change={(evt) => {
+              parcelLayer.setVisible(evt.target.checked)
+            }}/>
+        </label>
+        {:else}
+        <span>
+          no parcels for this locale
+        </span>
+        {/if}
+      </div>
+      <div style="display:flex; flex-direction:row; justify-content:start; width:100%;">
+        <span id="pointer-coords-preview"></span>
+      </div>
     </div>
   </div>
 </div>
