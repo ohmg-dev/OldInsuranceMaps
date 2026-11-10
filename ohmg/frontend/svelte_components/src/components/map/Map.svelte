@@ -50,6 +50,7 @@
   export let SESSION_SUMMARY;
   export let LAYERSETS;
   export let LAYERSET_CATEGORIES;
+  export let PARCEL_LAYER;
 
   const sessionLocks = { docs: {}, regs: {}, lyrs: {} };
   $: {
@@ -524,6 +525,7 @@
               mapId={MAP.identifier}
               mapExtent={MAP.extent}
               locale={LOCALE}
+              parcelLayerDef={PARCEL_LAYER}
               bind:refreshable={previewRefreshable} />
         {/key}
       {:else if mosaicSectionActiveTab == "multimask"}
