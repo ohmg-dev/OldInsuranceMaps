@@ -534,11 +534,10 @@ class LayerSetSchema(Schema):
     multimask_geojson: Optional[dict]
     extent: Optional[tuple]
     multimask_extent: Optional[tuple]
-    mosaic_cog_url: Optional[str]
-    xyz_tiles_url: Optional[str]
     multimask_date: Optional[float]
     latest_cog_job: Optional["JobSchema"]
     latest_xyz_job: Optional["JobSchema"]
+    urls: dict
 
     @staticmethod
     def resolve_id(obj):
@@ -766,13 +765,18 @@ class MapFullSchema(Schema):
     def resolve_external_links(obj):
         links = []
         if (
-            obj.source and obj.source.name
+            obj.source
+            and obj.source.name
             == "Library of Congress, Geography and Map Division, Sanborn Maps Collection"
         ):
             links.append(
                 {"title": "Mapsnap", "url": f"https://mapsnap.org/item?id={obj.identifier}"}
             )
-        if obj.source and obj.source.name == "Records of the Federal Housing Administration, National Archives":
+        if (
+            obj.source
+            and obj.source.name
+            == "Records of the Federal Housing Administration, National Archives"
+        ):
             links.append(
                 {
                     "title": '"Pair HOLC Maps with FHA Maps to Tell a More Complete Story"',

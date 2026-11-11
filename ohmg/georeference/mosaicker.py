@@ -90,6 +90,8 @@ class Mosaicker:
 
         if len(layer_extent_polygons) > 0:
             multi = MultiPolygon(layer_extent_polygons, srid=4326)
+        else:
+            raise Exception(f"error mosaicking layerset {layerset.pk}: no layers have masks!")
 
         bounds = multi.transform(3857, True).extent
         vo = gdal.BuildVRTOptions(
@@ -129,7 +131,10 @@ class Mosaicker:
 
         storage = get_storage_class()()
         if existing_file_name and storage.exists(name=existing_file_name):
-            storage.delete(name=existing_file_name)
+            try:
+                storage.delete(name=existing_file_name)
+            except Exception as e:
+                logger.warning(f"error deleting file: {existing_file_name} -- {e}")
 
         layerset.save()
 
@@ -141,7 +146,7 @@ class Mosaicker:
         use_multiprocessing: bool = False,
     ):
         if layerset.mosaic_geotiff:
-            in_path = f"/vsicurl/{layerset.mosaic_cog_url}"
+            in_path = f"/vsicurl/{layerset.urls['cog']}"
         else:
             self.generate_mosaic_vrt(layerset)
             in_path = self.mosaic_vrt.get_path()

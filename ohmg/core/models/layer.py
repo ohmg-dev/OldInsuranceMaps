@@ -1,6 +1,5 @@
 import json
 import logging
-import urllib.parse
 from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
@@ -105,12 +104,6 @@ class Layer(models.Model):
     @cached_property
     def file_url(self):
         return get_file_url(self)
-
-    @cached_property
-    def file_url_encoded(self):
-        """return the public url to the mosaic COG for this annotation set. If
-        no COG exists, return None."""
-        return urllib.parse.quote(self.file_url, safe="")
 
     @property
     def mask_geojson_feature(self) -> Union[dict | None]:
