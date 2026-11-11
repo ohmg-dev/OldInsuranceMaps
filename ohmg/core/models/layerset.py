@@ -140,7 +140,7 @@ class LayerSet(models.Model):
             "dynamic_xyz_tiles": make_titiler_xyz_url(cog_url) if cog_url else None,
             "tilejson_permalink": resource_url_base + "/tilejson" if cog_url else None,
             "wms": make_titiler_wms_url(cog_url) if cog_url else None,
-            "ohm_editor": make_ohm_url(cog_url, lon, lat) if cog_url else None,
+            "ohm_editor": make_ohm_url(cog_url, lat, lon) if cog_url else None,
             "ohm_permalink": resource_url_base + "/ohm" if cog_url else None,
             "static_xyz_tiles": f"{self.xyz_tiles_url}/{{z}}/{{x}}/{{y}}.png"
             if self.xyz_tiles_url
