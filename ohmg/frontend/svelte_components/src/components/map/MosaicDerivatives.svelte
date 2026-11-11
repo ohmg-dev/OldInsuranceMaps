@@ -50,7 +50,7 @@
                 i.ohmUrl = i.mosaic_cog_url ? `${CONTEXT.site_url}map/${mapId}/${i.id}/ohm` : null;
                 i.tileJsonUrl = i.mosaic_cog_url ? `${CONTEXT.site_url}map/${mapId}/${i.id}/tilejson` : null;
                 i.dynamicXyzUrl = i.mosaic_cog_url ? `${CONTEXT.titiler_host}/cog/tiles/WebMercatorQuad/{z}/{x}/{y}.png?url=${encodeURIComponent(i.mosaic_cog_url)}` : null;
-                i.wmsUrl = i.mosaic_cog_url ? `${CONTEXT.titiler_preview_host}/cog/wms/?LAYERS=${encodeURIComponent(i.mosaic_cog_url)}&VERSION=1.1.1` : null;
+                i.wmsUrl = i.mosaic_cog_url ? `${CONTEXT.titiler_host}/cog/wms/?LAYERS=${encodeURIComponent(i.mosaic_cog_url)}&VERSION=1.1.1` : null;
                 i.masksDateDisplay = i.multimask_date ? new Date(i.multimask_date*1000).toLocaleString() : null;
                 i.xyzStaticArchiveURL = i.xyz_tiles_url ? `${i.xyz_tiles_url}/archive.tar.gz` : null;
                 i.xyzStaticTilesURL = i.xyz_tiles_url ? `${i.xyz_tiles_url}/{z}/{x}/{y}.png` : null;
