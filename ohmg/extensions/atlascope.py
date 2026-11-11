@@ -13,10 +13,10 @@ def generate_atlascope_properties(layerset: LayerSet):
         "identifier": layerset.map.identifier,
         "publisherShort": layerset.map.publisher,
         "year": layerset.map.year,
-        "bibliographicEntry": f"{layerset.map.title}{' ('+layerset.map.publisher+')' if layerset.map.publisher else ''}" ,
+        "bibliographicEntry": f"{layerset.map.title}{' ('+layerset.map.publisher+')' if layerset.map.publisher else ''}",
         "source": {
             "type": "xyz",
-            "url": f"{layerset.xyz_tiles_url}/{{z}}/{{x}}/{{y}}.png",
+            "url": layerset.urls["static_xyz_tiles"],
         },
         "catalogPermalink": f"{layerset.map.source_item_url if layerset.map.source_item_url else ''}",
         "heldBy": [layerset.map.source.name if layerset.map.source else ""],
@@ -51,7 +51,7 @@ def get_layerset_features(place: Place) -> list["AtlascopeLayersetFeature"]:
     features = []
     for map in maps:
         ls = map.get_layerset("main-content")
-        if ls and ls.xyz_tiles_url:
+        if ls and ls.urls["static_xyz_tiles"]:
             feature = AtlascopeLayersetFeature.from_orm(ls).dict()
             features.append(feature)
 

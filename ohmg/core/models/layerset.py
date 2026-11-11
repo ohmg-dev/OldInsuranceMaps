@@ -11,7 +11,7 @@ from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 
 from ..storages import get_file_url
-from ..utils.services import make_tilejson
+from ..utils.services import make_ohm_url, make_tilejson, make_titiler_wms_url, make_titiler_xyz_url
 
 if TYPE_CHECKING:
     from .layer import Layer
@@ -121,32 +121,37 @@ class LayerSet(models.Model):
         else:
             return None
 
-    @property
-    def xyz_tiles_download_url(self):
-        if self.xyz_tiles_prefix:
-            if settings.ENABLE_S3_STORAGE:
-                base_url = f"{settings.AWS_S3_ENDPOINT_URL}/{settings.AWS_STORAGE_BUCKET_NAME}"
-            else:
-                base_url = f"{settings.SITEURL.rstrip('/')}{settings.MEDIA_URL}"
-            return f"{base_url.rstrip('/')}/{self.xyz_tiles_prefix}/"
-        else:
-            return None
-
     @cached_property
     def centroid(self):
         return Polygon.from_bbox(self.extent).centroid
 
-    @property
-    def mosaic_cog_url(self):
-        """return the public url to the mosaic COG for this annotation set. If
-        no COG exists, return None."""
-        return get_file_url(self, "mosaic_geotiff")
-
     @cached_property
-    def file_url_encoded(self):
-        """return the public url to the mosaic COG for this annotation set. If
-        no COG exists, return None."""
-        return urllib.parse.quote(self.mosaic_cog_url, safe="")
+    def urls(self) -> dict:
+        cog_url = get_file_url(self, "mosaic_geotiff")
+        lon, lat = self.centroid
+
+        iiif_annotation = (
+            f"{settings.SITEURL}iiif/mosaic/{self.map.identifier}/{self.category.slug}/"
+        )
+        resource_url_base = f"{settings.SITEURL}map/{self.map.identifier}/{self.category.slug}"
+
+        return {
+            "cog": cog_url,
+            "dynamic_xyz_tiles": make_titiler_xyz_url(cog_url) if cog_url else None,
+            "tilejson_permalink": resource_url_base + "/tilejson" if cog_url else None,
+            "wms": make_titiler_wms_url(cog_url) if cog_url else None,
+            "ohm_editor": make_ohm_url(cog_url, lon, lat) if cog_url else None,
+            "ohm_permalink": resource_url_base + "/ohm" if cog_url else None,
+            "static_xyz_tiles": f"{self.xyz_tiles_url}/{{z}}/{{x}}/{{y}}.png"
+            if self.xyz_tiles_url
+            else None,
+            "static_xyz_archive": f"{self.xyz_tiles_url}/archive.tar.gz"
+            if self.xyz_tiles_url
+            else None,
+            "iiif_annotation": iiif_annotation,
+            "iiif_annotation_trim": (iiif_trimmed := iiif_annotation + "?trim=true"),
+            "allmaps_url": f"https://viewer.allmaps.org/?url={urllib.parse.quote(iiif_trimmed, safe='')}",
+        }
 
     @property
     def multimask_extent(self):

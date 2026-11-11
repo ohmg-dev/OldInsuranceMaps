@@ -45,16 +45,7 @@
                 }
             })
             layersets = orderedLayersets.map(i => {
-                i.iiifAnnoUrl = `${CONTEXT.site_url}iiif/mosaic/${mapId}/${i.id}/?trim=true`
-                i.allmapsUrl = `https://viewer.allmaps.org/?url=${encodeURIComponent(i.iiifAnnoUrl)}`
-                i.ohmUrl = i.mosaic_cog_url ? `${CONTEXT.site_url}map/${mapId}/${i.id}/ohm` : null;
-                i.tileJsonUrl = i.mosaic_cog_url ? `${CONTEXT.site_url}map/${mapId}/${i.id}/tilejson` : null;
-                i.dynamicXyzUrl = i.mosaic_cog_url ? `${CONTEXT.titiler_host}/cog/tiles/WebMercatorQuad/{z}/{x}/{y}.png?url=${encodeURIComponent(i.mosaic_cog_url)}` : null;
-                i.wmsUrl = i.mosaic_cog_url ? `${CONTEXT.titiler_preview_host}/cog/wms/?LAYERS=${encodeURIComponent(i.mosaic_cog_url)}&VERSION=1.1.1` : null;
                 i.masksDateDisplay = i.multimask_date ? new Date(i.multimask_date*1000).toLocaleString() : null;
-                i.xyzStaticArchiveURL = i.xyz_tiles_url ? `${i.xyz_tiles_url}/archive.tar.gz` : null;
-                i.xyzStaticTilesURL = i.xyz_tiles_url ? `${i.xyz_tiles_url}/{z}/{x}/{y}.png` : null;
-
                 i.enableCogQueueBtn = userCanCog;
                 i.cogQueueBtnTitle = userCanCog ?
                     "Click to queue COG build" : "You do not have permission for this action"
@@ -163,25 +154,25 @@
         </dt>
         <dt>Direct download (.tif)</dt>
         <DerivativeDD
-            linkUrl={ls.mosaic_cog_url}
+            linkUrl={ls.urls.cog}
             linkType="download"
             naMessage="requires COG"
         />
         <dt>TileJSON</dt>
         <DerivativeDD
-            linkUrl={ls.tileJsonUrl}
+            linkUrl={ls.urls.tilejson_permalink}
             linkType="copytext"
             naMessage="requires COG"
         />
         <dt>Dynamic XYZ endpoint</dt>
         <DerivativeDD
-            linkUrl={ls.dynamicXyzUrl}
+            linkUrl={ls.urls.dynamic_xyz_tiles}
             linkType="copytext"
             naMessage="requires COG"
         />
         <dt>WMS endpoint</dt>
         <DerivativeDD
-            linkUrl={ls.wmsUrl}
+            linkUrl={ls.urls.wms}
             linkType="copytext"
             naMessage="requires COG"
         />
@@ -203,13 +194,13 @@
         </dt>
         <dt>Direct download (gzipped tarfile)</dt>
         <DerivativeDD
-            linkUrl={ls.xyzStaticArchiveURL}
+            linkUrl={ls.urls.static_xyz_archive}
             linkType="download"
             naMessage="not yet generated"
         />
         <dt>Static XYZ endpoint</dt>
         <DerivativeDD
-            linkUrl={ls.xyzStaticTilesURL}
+            linkUrl={ls.urls.static_xyz_tiles}
             linkType="copytext"
             naMessage="not yet generated"
         />
@@ -218,18 +209,18 @@
         </dt>
         <dt>Open in OpenHistoricalMap editor (uses dynamic XYZ endpoint)</dt>
         <DerivativeDD
-            linkUrl={ls.ohmUrl}
+            linkUrl={ls.urls.ohm_permalink}
             linkType="external"
             naMessage="requires COG"
         />
         <dt>IIIF Georef AnnotationPage</dt>
         <DerivativeDD
-            linkUrl={ls.iiifAnnoUrl}
+            linkUrl={ls.urls.iiif_annotation_trim}
             linkType="external"
         />
         <dt>Open in Allmaps Viewer</dt>
         <DerivativeDD
-            linkUrl={ls.allmapsUrl}
+            linkUrl={ls.urls.allmaps_url}
             linkType="external"
         />
     </dl>

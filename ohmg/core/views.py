@@ -620,18 +620,14 @@ class LayersetDerivativeView(View):
             return response
 
         elif derivative == "ohm":
-            lon, lat = layerset.centroid
-            file_url = get_file_url(layerset, "mosaic_geotiff")
-            ohm_url = make_ohm_url(file_url, lat, lon)
-            return redirect(ohm_url)
+            return redirect(layerset.urls["ohm_editor"])
 
         elif derivative == "services":
-            file_url = get_file_url(layerset)
             return JsonResponse(
                 {
-                    "xyz": make_titiler_xyz_url(file_url),
-                    "wms": make_titiler_wms_url(file_url),
-                    "tilejson": f"{settings.SITEURL}layer/{mapid}/{category}/tilejson",
+                    "xyz": layerset.urls["dynamic_xyz_tiles"],
+                    "wms": layerset.urls["wms"],
+                    "tilejson": layerset.urls["tilejson_permalink"],
                 }
             )
 

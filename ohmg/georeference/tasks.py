@@ -63,6 +63,7 @@ def create_mosaic_cog(layersetid: int, jobid: int | None = None):
         layerset = LayerSet.objects.get(pk=layersetid)
     except LayerSet.DoesNotExist:
         logger.warning(f"LayerSet does not exist: {layersetid}. Cancelling mosaic creation.")
+
     try:
         m = Mosaicker()
         success = True
@@ -70,9 +71,12 @@ def create_mosaic_cog(layersetid: int, jobid: int | None = None):
         m.cleanup_files()
     except Exception as e:
         success = False
-        message = e
+        error_msg = str(e)
+        logger.warning(f"message={error_msg}")
+        message = error_msg if len(error_msg) <= 255 else "check logs for error"
 
     if jobid:
+        logger.info(f"ending job {jobid}. success={success}")
         Job.objects.get(pk=jobid).end(success=success, message=message)
 
 
@@ -92,9 +96,12 @@ def create_mosaic_tileset(layersetid: int, jobid: int | None = None):
         m.cleanup_files()
     except Exception as e:
         success = False
-        message = e
+        error_msg = str(e)
+        logger.warning(f"message={error_msg}")
+        message = error_msg if len(error_msg) <= 255 else "check logs for error"
 
     if jobid:
+        logger.info(f"ending job {jobid}. success={success}")
         Job.objects.get(pk=jobid).end(success=success, message=message)
 
 
