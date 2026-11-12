@@ -123,12 +123,15 @@ class LayerSet(models.Model):
 
     @cached_property
     def centroid(self):
-        return Polygon.from_bbox(self.extent).centroid
+        if self.extent:
+            return Polygon.from_bbox(self.extent).centroid
+        else:
+            return None
 
     @cached_property
     def urls(self) -> dict:
         cog_url = get_file_url(self, "mosaic_geotiff")
-        lon, lat = self.centroid
+        lon, lat = self.centroid if self.centroid else 0, 0
 
         iiif_annotation = (
             f"{settings.SITEURL}iiif/mosaic/{self.map.identifier}/{self.category.slug}/"
