@@ -123,12 +123,15 @@ class LayerSet(models.Model):
 
     @cached_property
     def centroid(self):
-        return Polygon.from_bbox(self.extent).centroid
+        if self.extent:
+            return Polygon.from_bbox(self.extent).centroid
+        else:
+            return None
 
     @cached_property
     def urls(self) -> dict:
         cog_url = get_file_url(self, "mosaic_geotiff")
-        lon, lat = self.centroid
+        lon, lat = self.centroid if self.centroid else 0, 0
 
         iiif_annotation = (
             f"{settings.SITEURL}iiif/mosaic/{self.map.identifier}/{self.category.slug}/"
@@ -140,7 +143,7 @@ class LayerSet(models.Model):
             "dynamic_xyz_tiles": make_titiler_xyz_url(cog_url) if cog_url else None,
             "tilejson_permalink": resource_url_base + "/tilejson" if cog_url else None,
             "wms": make_titiler_wms_url(cog_url) if cog_url else None,
-            "ohm_editor": make_ohm_url(cog_url, lon, lat) if cog_url else None,
+            "ohm_editor": make_ohm_url(cog_url, lat, lon) if cog_url else None,
             "ohm_permalink": resource_url_base + "/ohm" if cog_url else None,
             "static_xyz_tiles": f"{self.xyz_tiles_url}/{{z}}/{{x}}/{{y}}.png"
             if self.xyz_tiles_url
