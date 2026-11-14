@@ -5,10 +5,19 @@
     {% if opts.model_name == "layer" %}
     <div class="submit-row">
         <input type="submit" value="Recalculate measures" name="_recalculate-measures">
+        <input type="submit" value="Recalculate extent" name="_set-extent">
     </div>
     {% elif opts.model_name == "map" %}
     <div class="submit-row">
         <input type="submit" value="Set as featured" name="_set-featured">
+    </div>
+    {% elif opts.model_name == "document" %}
+    <div class="submit-row">
+        <input type="submit" value="Recalculate image size" name="_set-image-size">
+    </div>
+    {% elif opts.model_name == "region" %}
+    <div class="submit-row">
+        <input type="submit" value="Recalculate image size" name="_set-image-size">
     </div>
     {% endif %}
 {% endblock %}
