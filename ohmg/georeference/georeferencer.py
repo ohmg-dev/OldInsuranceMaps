@@ -20,6 +20,10 @@ from .utils.gcps import (
 
 logger = logging.getLogger(__name__)
 
+## env settings to allow reading large jpgs
+os.environ["GDAL_ALLOW_LARGE_LIBJPEG_MEM_ALLOC"] = "1"
+os.environ["JPEGMEM"] = "2048M"
+
 gdal.SetConfigOption("GDAL_NUM_THREADS", "ALL_CPUS")
 
 
