@@ -60,7 +60,7 @@ class DocumentAdmin(admin.ModelAdmin):
     list_filter = ("prepared",)
     list_display = ("title", "page_number", "load_date", "prepared", "map_link")
     search_fields = ("title",)
-    readonly_fields = ("prepared", "title")
+    readonly_fields = ("prepared", "title", "image_size")
     raw_id_fields = ("map",)
 
     @admin.display(description="Map")
@@ -71,11 +71,17 @@ class DocumentAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         return qs.prefetch_related("map")
 
+    # handles custom button in object change page
+    def response_change(self, request, obj):
+        if "_set-image-size" in request.POST:
+            obj.save(set_image_size=True)
+        return super().response_change(request, obj)
+
 
 class RegionAdmin(admin.ModelAdmin):
     search_fields = ("title",)
     raw_id_fields = ("document",)
-    readonly_fields = ("georeferenced", "title")
+    readonly_fields = ("georeferenced", "title", "image_size")
     list_display = ("title", "category", "georeferenced", "document_link", "map_link")
     list_filter = ("category",)
 
@@ -88,6 +94,12 @@ class RegionAdmin(admin.ModelAdmin):
         return mark_safe(
             f'<a href="/admin/core/document/{obj.document.pk}">{obj.document.title}</a>'
         )
+
+    # handles custom button in object change page
+    def response_change(self, request, obj):
+        if "_set-image-size" in request.POST:
+            obj.save(set_image_size=True)
+        return super().response_change(request, obj)
 
 
 class LayerAdmin(admin.ModelAdmin):
@@ -121,6 +133,8 @@ class LayerAdmin(admin.ModelAdmin):
                 msg = f"Error calculating measures: {e}"
             self.message_user(request, msg)
             return HttpResponseRedirect(".")
+        if "_set-extent" in request.POST:
+            obj.save(set_extent=True)
         return super().response_change(request, obj)
 
     # handles bulk updates through select/list page
