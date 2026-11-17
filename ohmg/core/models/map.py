@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import MultiPolygon, Polygon
@@ -463,13 +464,22 @@ class Map(models.Model):
             ]
         )
 
-    def get_session_summary(self):
+    def get_sessions(self):
         from ohmg.georeference.models import SessionBase
 
-        sessions = SessionBase.objects.filter(
+        return SessionBase.objects.filter(
             Q(doc2__map_id=self.pk) | Q(reg2__document__map_id=self.pk)
-            # | Q(lyr2__region__document__map_id=self.pk)
         ).prefetch_related()
+
+    def get_users(self) -> list[get_user_model]:
+        sessions = self.get_sessions()
+        users = list(get_user_model().objects.distinct().filter(sessionbase__in=sessions))
+        if self.loaded_by and self.loaded_by not in users:
+            users.append(self.loaded_by)
+        return users
+
+    def get_session_summary(self):
+        sessions = self.get_sessions()
 
         prep_sessions = sessions.filter(type="p")
         georef_sessions = sessions.filter(type="g")
