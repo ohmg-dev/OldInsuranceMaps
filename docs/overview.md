@@ -2,7 +2,7 @@
 
 ## How the site is structured
 
-You can browse content in the platform by map, by place name, or by map name. To learn more about these search methods, see [Finding maps](./guides/finding-maps.md).
+You can browse content in the platform by map, by place name, or by map name. To learn more about these search methods, see [Finding maps](./getting-started/finding-maps.md).
 
 ![Homepage](../images/browse.jpg)
 

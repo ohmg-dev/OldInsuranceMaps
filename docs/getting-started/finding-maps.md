@@ -2,7 +2,7 @@
 
 You can search for map content in three different ways, all of which are accessible in the main [Search](https://oldinsurancemaps.net/search) page.
 
-1. [Browse by Map](#browse-by-map)
+1. [Browse by Location](#browse-by-location)
 2. [Browse by Place](#browse-by-place)
 3. [Browse by Volume](#browse-by-volume)
 
