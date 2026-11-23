@@ -486,22 +486,23 @@ class Command(BaseCommand):
         elif operation == "fha-map-data":
             from ohmg.core.models import Map
 
-            maps = Map.objects.filter(source__abbreviation="NARA").order_by("title")
+            maps = Map.objects.filter(source__abbreviation="FHA").order_by("title")
             output = []
             for map in maps:
+                contribs = map.get_users()
+                usernames = [i.username for i in contribs]
+                if "admin" in usernames:
+                    usernames = [i for i in usernames if i != "admin"]
+                    if "acfc" not in usernames:
+                        usernames.append("acfc")
+                usernames.sort()
+                contrib_links_list = [
+                    f"<a href='https://oldinsurancemaps.net/profile/{i}/'>{i}</a>"
+                    for i in usernames
+                ]
+
                 ls = map.get_layerset("main-content")
                 if ls and ls.urls["cog"]:
-                    contribs = map.get_users()
-                    usernames = [i.username for i in contribs]
-                    if "admin" in usernames:
-                        usernames = [i for i in usernames if i != "admin"]
-                        if "acfc" not in usernames:
-                            usernames.append("acfc")
-                    usernames.sort()
-                    contrib_links_list = [
-                        f"<a href='https://oldinsurancemaps.net/profile/{i}/'>{i}</a>"
-                        for i in usernames
-                    ]
                     center = [ls.centroid[0], ls.centroid[1], 16] if ls.centroid else None
                     item = {
                         "title": map.get_locale().display_name,
@@ -517,8 +518,32 @@ class Command(BaseCommand):
                             "attribution": f"OldInsuranceMaps.net contributors: {', '.join(contrib_links_list)}",
                         },
                         "downloads": {
-                            "mosaic_cog": ls.urls["cog"],
-                            "source_images": [i.file.url for i in map.documents.all()],
+                            "mosaic_cog": {"url": ls.mosaic_geotiff.url, "size": ls.mosaic_geotiff.size / (1024 * 1024)},
+                            "source_images": [{"url": i.file.url, "size": i.file.size / (1024 * 1024)} for i in map.documents.all()],
+                        },
+                        "center": center,
+                    }
+
+                    output.append(item)
+                elif map.documents.all().count() == 1 and map.layers.count() == 1:
+                    lyr = map.layers[0]
+                    center = [lyr.centroid[0], lyr.centroid[1], 16] if lyr.centroid else None
+                    item = {
+                        "title": map.get_locale().display_name,
+                        "id": map.identifier,
+                        "source": {
+                            "type": "raster",
+                            "scheme": "xyz",
+                            "tiles": [lyr.get_tilejson()["tiles"][0]],
+                            "tileSize": 256,
+                            "minzoom": 10,
+                            "maxzoom": 21,
+                            "bounds": lyr.extent,
+                            "attribution": f"OldInsuranceMaps.net contributors: {', '.join(contrib_links_list)}",
+                        },
+                        "downloads": {
+                            "mosaic_cog": {"url": lyr.file.url, "size": lyr.file.size / (1024 * 1024)},
+                            "source_images": [{"url": i.file.url, "size": i.file.size / (1024 * 1024)} for i in map.documents.all()],
                         },
                         "center": center,
                     }
