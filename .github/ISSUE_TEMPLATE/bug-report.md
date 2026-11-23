@@ -8,12 +8,15 @@ assignees: ''
 ---
 
 **Describe the problem**
-A clear and concise description of what the bug is. If possible or relevant, screenshots are very helpful.
+
+<!-- Describe the bug. If possible or relevant, screenshots are very helpful. -->
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+
+<!-- Describe what you expected to have happen.  -->
 
 **To Reproduce**
+
 Steps to reproduce the behavior:
 1.
 2.
@@ -21,9 +24,11 @@ Steps to reproduce the behavior:
 4.
 
 **Environment info:**
+
  - Device: [e.g. iPhone6, laptop]
  - Operating System: [e.g. Windows]
  - Browser [e.g. Firefox, Safari]
 
 **Additional context**
-Add any other context about the problem here, use `#<issue number>` to add a reference to a related issue.
+
+<!-- Add any other context about the problem here. Use `#<ticket number>` to add references to related issues, discussions, or pull requests. -->
