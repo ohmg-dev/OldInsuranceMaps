@@ -362,7 +362,7 @@
 </ModalConfirm>
 <ModalConfirm
   id="modal-confirm-bulk-no-split"
-  yesButtonText="Yes - each one only contains one map"}
+  yesButtonText="Yes - each one only contains one map"
   yesAction={postBulkNoSplit}
 >
   <p>

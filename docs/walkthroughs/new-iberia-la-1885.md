@@ -31,7 +31,7 @@ Keep in mind: All of the steps within this workflow are very modular, and can be
 
 ## Find the map
 
-While this action is better covered in the [finding maps](../guides/finding-maps.md) page, one helpful trick is that every place or "locale" within the platform (state, county/parish, city/town, etc.) can be accessed directly with a regularized URL pattern. Consider the following rules, with all letters lowercase and all spaces replaced with hyphens:
+While this action is better covered in the [finding maps](../getting-started/finding-maps.md) page, one helpful trick is that every place or "locale" within the platform (state, county/parish, city/town, etc.) can be accessed directly with a regularized URL pattern. Consider the following rules, with all letters lowercase and all spaces replaced with hyphens:
 
 - Maps within a state
     - `https://oldinsurancemaps.net/<state name>`
