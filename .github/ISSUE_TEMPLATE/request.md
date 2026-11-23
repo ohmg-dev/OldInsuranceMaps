@@ -8,13 +8,17 @@ assignees: ''
 ---
 
 **Describe the feature or enhancement you're looking for**
-A clear and concise description of what you want to happen.
+
+<!-- Describe what you want to have added.  -->
 
 **If this request is linked to a problem, please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+
+<!-- Describe what the problem is: "I'm always frustrated when [...]"  -->
 
 **Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+
+<!-- Describe alternative solutions or features you've considered.
 
 **Additional context**
-Add any other context or screenshots about the feature request here.
+
+<!-- Add any other context or screenshots about the feature request here.  Use `#<ticket number>` to add references to related issues, discussions, or pull requests. -->
