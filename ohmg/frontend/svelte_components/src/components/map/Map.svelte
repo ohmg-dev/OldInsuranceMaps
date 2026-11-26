@@ -142,14 +142,12 @@
 
   const sectionVis = {
     summary: (!hash && MAP.item_lookup.georeferenced.length == 0) || hash == 'summary',
-    preview: (!hash && MAP.item_lookup.georeferenced.length > 0) || hash == 'preview',
+    preview: (!hash && MAP.item_lookup.georeferenced.length > 0) || ['preview', 'multimask', 'download'].includes(hash),
     unprepared: hash == 'unprepared',
     prepared: hash == 'prepared',
     georeferenced: hash == 'georeferenced',
     nonmaps: hash == 'nonmaps',
     skipped: hash == 'skipped',
-    multimask: hash == 'multimask',
-    download: hash == 'download',
   };
 
   let intervalId;
@@ -339,7 +337,7 @@
 
   let previewRefreshable = false;
 
-  let mosaicSectionActiveTab = "preview";
+  let mosaicSectionActiveTab = ['multimask', 'download'].includes(hash) ? hash : 'preview';
   let detailsSectionActiveTab = "details";
 </script>
 
